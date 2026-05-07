@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "type": "fail_analysis_summary",
+  "ip": "smbus",
+  "diff_source": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/smbus/sim/_overnight_diff.jsonl",
+  "rows": 3,
+  "failing_test": "TC_smbus_writeread",
+  "output": "reports/fail_analysis.md"
+}

@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "type": "dut_lint",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "verilator",
+  "command": "verilator --lint-only -Wall -Irtl -f list/pl330_target.f --top-module pl330_target",
+  "cwd": "pl330_target",
+  "top": "pl330_target",
+  "filelist": "pl330_target/list/pl330_target.f",
+  "rtl_files": [
+    "rtl/pl330_target_engine.sv",
+    "rtl/pl330_target_pipeline.sv",
+    "rtl/pl330_target_lsq.sv",
+    "rtl/pl330_target_mfifo.sv",
+    "rtl/pl330_target_merge_buffer.sv",
+    "rtl/pl330_target_icache.sv",
+    "rtl/pl330_target_axi.sv",
+    "rtl/pl330_target_periph.sv",
+    "rtl/pl330_target_apb_regs.sv",
+    "rtl/pl330_target.sv"
+  ],
+  "timestamp": "2026-05-06T22:50:20.824703+00:00",
+  "returncode": 0,
+  "errors": 0,
+  "warnings": 0,
+  "waived_warnings": 0,
+  "suppression_violation_count": 0,
+  "suppression_violations": [],
+  "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions unless represented by exact SSOT waivers.",
+  "passed": true
+}

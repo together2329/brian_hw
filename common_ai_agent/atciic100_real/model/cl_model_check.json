@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "type": "cl_model_check",
+  "ip": "atciic100_real",
+  "source": "model/cycle_model.py",
+  "timestamp": "2026-05-06T22:03:37Z",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "transactions": 9,
+    "results_observed": 8,
+    "coverage_bins": 19,
+    "coverage_hit": 19
+  },
+  "decomposition_units": 4,
+  "fcov_bins": 19
+}

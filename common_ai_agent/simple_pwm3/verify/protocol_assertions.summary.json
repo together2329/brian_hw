@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "type": "protocol_assertions_summary",
+  "ip": "simple_pwm3",
+  "source": "simple_pwm3/yaml/simple_pwm3.ssot.yaml",
+  "assertions_total": 0,
+  "output": "verify/protocol_assertions.sva"
+}

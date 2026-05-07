@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "type": "module_harness_summary",
+  "ip": "atciic100_target",
+  "harness_files": [
+    "verify/sub/atciic100_target_apbslv_harness.py",
+    "verify/sub/atciic100_target_ctrl_harness.py",
+    "verify/sub/atciic100_target_fifo_harness.py",
+    "verify/sub/atciic100_target_gsf_harness.py"
+  ],
+  "harnesses_total": 4
+}

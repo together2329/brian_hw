@@ -1,0 +1,1923 @@
+top_module:
+  name: pl330_target
+  file: rtl/pl330_target.sv
+  type: peripheral
+  description: pl330_target leaf IP generated from approved ATLAS Web SSOT requirements
+  version: '1.0'
+  reference_spec: user-defined
+  target:
+    technology: generic
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+sub_modules:
+- name: pl330_target_engine
+  file: rtl/pl330_target_engine.sv
+  ownership: manifest
+  implements:
+  - function_model.transactions.fetch
+  - .decode
+  - .execute
+  - fsm.engine
+  - cycle_model.pipeline
+- name: pl330_target_pipeline
+  file: rtl/pl330_target_pipeline.sv
+  ownership: manifest
+  implements:
+  - cycle_model.pipeline
+  - cycle_model.handshake_rules.engine_pipeline
+  cycle_model_refs:
+  - cycle_model
+  source_sections:
+  - cycle_model
+- name: pl330_target_lsq
+  file: rtl/pl330_target_lsq.sv
+  ownership: manifest
+  implements:
+  - function_model.transactions.load
+  - .store
+  - cycle_model.ordering.lsq_order
+- name: pl330_target_mfifo
+  file: rtl/pl330_target_mfifo.sv
+  ownership: manifest
+  implements:
+  - function_model.state_variables.mfifo
+  - cycle_model.backpressure.mfifo_full
+  function_model_refs:
+  - function_model.transactions.FM_RESET
+  - function_model.transactions.FM_DMAGO
+  - function_model.transactions.FM_DMALD
+  - function_model.transactions.FM_DMAST
+  - function_model.transactions.FM_DMALDP
+  - function_model.transactions.FM_DMASTP
+  - function_model.transactions.FM_DMASEV
+  - function_model.transactions.FM_DMAEND
+  - function_model.transactions.FM_FAULT
+  - function_model.state_variables
+  feature_refs:
+  - features
+  source_sections:
+  - features
+  - dataflow
+  - fsm
+  - test_requirements
+  - registers
+  dataflow_refs:
+  - dataflow
+  fsm_refs:
+  - fsm
+  test_refs:
+  - test_requirements
+  register_refs:
+  - registers.register_list
+- name: pl330_target_merge_buffer
+  file: rtl/pl330_target_merge_buffer.sv
+  ownership: manifest
+  implements:
+  - function_model.transactions.merge
+  - cycle_model.handshake_rules.merge
+- name: pl330_target_icache
+  file: rtl/pl330_target_icache.sv
+  ownership: manifest
+  implements:
+  - cycle_model.handshake_rules.icache_fill
+- name: pl330_target_axi
+  file: rtl/pl330_target_axi.sv
+  ownership: manifest
+  implements:
+  - cycle_model.handshake_rules.axi_aw
+  - .axi_w
+  - .axi_b
+  - .axi_ar
+  - .axi_r
+  - cycle_model.ordering.axi_outstanding
+- name: pl330_target_periph
+  file: rtl/pl330_target_periph.sv
+  ownership: manifest
+  implements:
+  - function_model.transactions.peripheral_request
+  - cycle_model.handshake_rules.periph_dr_da
+- name: pl330_target_apb_regs
+  file: rtl/pl330_target_apb_regs.sv
+  ownership: manifest
+  implements:
+  - registers.register_list
+  - cycle_model.handshake_rules.apb
+- name: pl330_target
+  file: rtl/pl330_target.sv
+  ownership: manifest
+  ssot_gen: true
+  description: Top-level integration module matching SSOT top_module
+parameters:
+- name: NUM_CHANNELS
+  default: 8
+  description: DMA channel count
+- name: NUM_PERIPH_REQS
+  default: 32
+  description: Peripheral request interfaces
+- name: NUM_IRQS
+  default: 32
+  description: IRQ output count
+- name: AXI_DATA_WIDTH
+  default: 64
+  description: AXI data bus width
+- name: AXI_ID_WIDTH
+  default: 4
+  description: AXI ID width
+- name: AXI_ADDR_WIDTH
+  default: 32
+  description: AXI address width
+- name: APB_DATA_WIDTH
+  default: 32
+  description: APB data width
+- name: APB_ADDR_WIDTH
+  default: 12
+  description: APB address width
+- name: ICACHE_LINE_SIZE
+  default: 4
+  description: Instruction cache line size in beats
+- name: MFIFO_DEPTH
+  default: 16
+  description: Manager FIFO depth
+- name: MERGE_BUFFER_DEPTH
+  default: 4
+  description: Merge buffer depth
+- name: SUPPORT_TZ
+  default: 1
+  description: TrustZone (NS/S) support
+io_list:
+  clock_domains:
+  - name: clk
+    frequency_mhz: 100
+    description: Primary synchronous clock
+    ports:
+    - name: clk
+      width: 1
+      direction: input
+      description: Primary clock
+  resets:
+  - name: rst_n
+    polarity: active_low
+    sync_async: async_assert_sync_deassert
+    description: Active-low reset, asynchronous assert and synchronous release
+    ports:
+    - name: rst_n
+      width: 1
+      direction: input
+      description: Primary reset
+  interfaces:
+  - name: control_data
+    type: native_valid_ready
+    role: target
+    description: Generic request/response interface synthesized only as a repair fallback; replace with approved protocol ports before production
+      signoff.
+    ports:
+    - name: req_valid
+      width: 1
+      direction: input
+      description: Request/control payload valid
+    - name: req_ready
+      width: 1
+      direction: output
+      description: Request/control payload accepted when high with req_valid
+    - name: req_data
+      width: DATA_WIDTH
+      direction: input
+      description: Generic request/control payload
+    - name: rsp_valid
+      width: 1
+      direction: output
+      description: Response/result payload valid
+    - name: rsp_ready
+      width: 1
+      direction: input
+      description: Response/result accepted when high with rsp_valid
+    - name: rsp_data
+      width: DATA_WIDTH
+      direction: output
+      description: Generic response/result payload
+    - name: error
+      width: 1
+      direction: output
+      description: Generic architectural error indication
+features:
+- 'Instruction-driven DMA engine: DMAGO/DMALD/DMAST/DMALDP/DMASTP/DMAMOV/DMAFLUSHP/DMASEV/DMAWFE/DMAEND'
+- Per-channel scheduler with priority + round-robin
+- Multi-outstanding AXI3 read/write
+- TrustZone NS/S separation on APB
+- Configurable peripheral request interface count
+- Manager FIFO buffering
+- Merge buffer for byte-lane / unaligned write
+dataflow:
+  paths:
+  - name: dma_read
+    source: axi_master.r
+    sink: mfifo
+    via:
+    - pl330_target_axi
+    - pl330_target_lsq
+  - name: dma_write
+    source: mfifo
+    sink: axi_master.w
+    via:
+    - pl330_target_lsq
+    - pl330_target_merge_buffer
+    - pl330_target_axi
+  - name: cmd_fetch
+    source: axi_master.r
+    sink: engine
+    via:
+    - pl330_target_icache
+    - pl330_target_engine
+  - name: csr_write
+    source: apb_ns.pwdata
+    sink: pl330_target_apb_regs.config
+    via:
+    - pl330_target_apb_regs
+function_model:
+  state_variables:
+  - name: channel_state
+    width: 4
+    reset: 0
+    description: Per-channel FSM state (0=stopped, 1=executing, 2=cache_miss, 3=updating_pc, 4=waiting_for_event, 5=at_barrier, 6=killing, 7=completing,
+      8=faulting, 9=faulting_completing)
+  - name: channel_pc
+    width: 32
+    reset: 0
+  - name: outstanding_reads
+    width: 4
+    reset: 0
+  - name: outstanding_writes
+    width: 4
+    reset: 0
+  - name: mfifo_count
+    width: 5
+    reset: 0
+  - name: irq_status
+    width: 32
+    reset: 0
+  - name: fault_status
+    width: 32
+    reset: 0
+  transactions:
+  - id: FM_RESET
+    name: reset
+    outputs:
+    - all state -> reset values
+    side_effects:
+    - outstanding_reads=0
+    - outstanding_writes=0
+    - mfifo_count=0
+    - irq_status=0
+    error_cases: []
+    preconditions:
+    - transaction is accepted under cycle_model rules
+  - id: FM_DMAGO
+    name: dmago_command
+    preconditions:
+    - channel_state==0
+    - manager APB write to DBGINST
+    outputs:
+    - channel_state=1
+    - channel_pc=arg_addr
+    side_effects: []
+    error_cases:
+    - condition: secure violation
+      result: fault_status |= INSTR_FETCH_ERR
+  - id: FM_DMALD
+    name: dmald_load
+    preconditions:
+    - channel_state==1
+    - mfifo has space
+    outputs:
+    - outstanding_reads += 1
+    - mfifo entries reserved
+    side_effects:
+    - issue AXI AR
+    error_cases:
+    - condition: AXI rresp != OKAY
+      result: fault_status |= DATA_READ_ERR
+  - id: FM_DMAST
+    name: dmast_store
+    preconditions:
+    - channel_state==1
+    - mfifo has data
+    outputs:
+    - outstanding_writes += 1
+    - mfifo entries consumed
+    side_effects:
+    - issue AXI AW + W
+    error_cases:
+    - condition: AXI bresp != OKAY
+      result: fault_status |= DATA_WRITE_ERR
+  - id: FM_DMALDP
+    name: dmaldp_periph_load
+    preconditions:
+    - channel_state==1
+    - periph drvalid asserted
+    outputs:
+    - outstanding_reads += 1
+    side_effects:
+    - drready asserted
+    - AXI AR issued
+    error_cases: []
+  - id: FM_DMASTP
+    name: dmastp_periph_store
+    preconditions:
+    - channel_state==1
+    - periph davalid acknowledged
+    outputs:
+    - outstanding_writes += 1
+    side_effects:
+    - daready asserted
+    - AXI AW+W issued
+    error_cases: []
+  - id: FM_DMASEV
+    name: dmasev_event_signal
+    preconditions:
+    - channel_state==1
+    - event index < NUM_IRQS
+    outputs:
+    - irq_status |= 1<<event_idx
+    side_effects:
+    - irq[event_idx] pulse
+    error_cases: []
+  - id: FM_DMAEND
+    name: dmaend_terminate
+    preconditions:
+    - channel_state==1
+    - no outstanding
+    outputs:
+    - channel_state=0
+    side_effects: []
+    error_cases:
+    - condition: outstanding > 0
+      result: wait until drained
+  - id: FM_FAULT
+    name: fault_propagate
+    preconditions:
+    - any error_case fired
+    outputs:
+    - channel_state=8
+    - irq_abort pulse
+    side_effects:
+    - fault_status updated
+    error_cases: []
+  invariants:
+  - outstanding_reads >= 0 && outstanding_reads <= 2*NUM_CHANNELS
+  - outstanding_writes >= 0 && outstanding_writes <= 2*NUM_CHANNELS
+  - mfifo_count <= MFIFO_DEPTH
+  - channel_state != 1 -> outstanding_reads == 0 && outstanding_writes == 0
+  - fault triggers irq_abort within 4 cycles
+cycle_model:
+  purpose: Cycle/handshake contract for rtl-gen and waveform-based verification.
+  clock: clk
+  reset:
+    signal: rst_n
+    polarity: active_low
+    assertion: rst_n assertion returns architectural state to declared reset values
+    deassertion: Logic may accept transactions after async_assert_sync_deassert deassertion completes
+  latency:
+    control_or_request_accept:
+      min_cycles: 0
+      max_cycles: null
+      description: Bounded by declared valid/ready or protocol acceptance rules
+    primary_operation:
+      min_cycles: 1
+      max_cycles: null
+      description: Runs on clk at nominal 100 MHz; max depends on declared backpressure and implementation state
+    response_or_observable_result:
+      min_cycles: 0
+      max_cycles: null
+      description: Held stable until the declared response/output acceptance condition
+  handshake_rules:
+  - signal: req_valid/req_ready
+    rule: req_valid payload remains stable until req_ready is sampled asserted on control_data.
+  - signal: rsp_valid/rsp_ready
+    rule: rsp_valid payload remains stable until rsp_ready is sampled asserted on control_data.
+  pipeline:
+  - stage: S0_ACCEPT
+    cycle: 0..N
+    action: Accept legal request/command/packet/control work under declared handshake rules.
+  - stage: S1_EVALUATE
+    cycle: N..M
+    action: Evaluate function_model transaction and update only declared state.
+  - stage: S2_OBSERVE
+    cycle: M..K
+    action: Publish response/status/output/debug event and hold it stable until accepted.
+  ordering:
+  - Accepted requests update architectural state only on clock edges.
+  - Completion/status/interrupt updates occur after the operation reaches its terminal FSM state.
+  - Backpressure stalls the active handshake stage without corrupting stored state.
+  - Read/dataflow stages must precede dependent write/output stages where declared in dataflow.
+  backpressure:
+  - Ready/valid deassertion stalls only the affected interface stage; payload and route/control state remain stable.
+  observability:
+  - Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario.
+clock_reset_domains:
+  domains:
+  - clock: clk
+    reset: rst_n
+    frequency_mhz: 100
+    reset_scheme: async_assert_sync_deassert
+  reset_behavior:
+  - Handshake/control state resets to idle
+  - Observable outputs reset to function_model reset values
+cdc_requirements:
+  required: false
+  rationale: Single clock/reset domain in the repaired draft; update SSOT if additional clocks or resets are introduced
+  checks:
+  - No crossing paths expected; update SSOT if additional clocks or resets are introduced
+rdc_requirements:
+  required: false
+  rationale: Single clock/reset domain in the repaired draft; update SSOT if additional clocks or resets are introduced
+  checks:
+  - No crossing paths expected; update SSOT if additional clocks or resets are introduced
+registers:
+  register_list:
+  - name: DSR
+    offset: 0
+    access: RO
+    reset: 0
+    description: DMA Manager Status Register
+  - name: DPC
+    offset: 4
+    access: RO
+    reset: 0
+    description: DMA Manager PC
+  - name: INTEN
+    offset: 32
+    access: RW
+    reset: 0
+    description: Interrupt Enable
+  - name: INT_EVENT_RIS
+    offset: 36
+    access: RO
+    reset: 0
+    description: Event-Interrupt Raw Status
+  - name: INTMIS
+    offset: 40
+    access: RO
+    reset: 0
+    description: Interrupt Status (masked)
+  - name: INTCLR
+    offset: 44
+    access: WO
+    reset: 0
+    description: Interrupt Clear
+  - name: FSRD
+    offset: 48
+    access: RO
+    reset: 0
+    description: Fault Status DMA Manager
+  - name: FSRC
+    offset: 52
+    access: RO
+    reset: 0
+    description: Fault Status DMA Channels
+  - name: FTRD
+    offset: 56
+    access: RO
+    reset: 0
+    description: Fault Type DMA Manager
+  - name: CSR_chan_n
+    offset: 256
+    access: RO
+    reset: 0
+    count: NUM_CHANNELS
+    stride: 8
+    description: Channel Status
+  - name: CPC_chan_n
+    offset: 260
+    access: RO
+    reset: 0
+    count: NUM_CHANNELS
+    stride: 8
+    description: Channel PC
+  - name: SAR_chan_n
+    offset: 1024
+    access: RW
+    reset: 0
+    count: NUM_CHANNELS
+    stride: 32
+    description: Source Address
+  - name: DAR_chan_n
+    offset: 1028
+    access: RW
+    reset: 0
+    count: NUM_CHANNELS
+    stride: 32
+    description: Destination Address
+  - name: CCR_chan_n
+    offset: 1032
+    access: RW
+    reset: 0
+    count: NUM_CHANNELS
+    stride: 32
+    description: Channel Control
+  - name: DBGSTATUS
+    offset: 3328
+    access: RO
+    reset: 0
+    description: Debug Status
+  - name: DBGCMD
+    offset: 3332
+    access: WO
+    reset: 0
+    description: Debug Command
+  - name: DBGINST0
+    offset: 3336
+    access: WO
+    reset: 0
+    description: Debug Instruction-0
+  - name: DBGINST1
+    offset: 3340
+    access: WO
+    reset: 0
+    description: Debug Instruction-1
+  - name: CR0
+    offset: 3584
+    access: RO
+    reset: 0
+    description: Configuration Register 0
+memory:
+  instances:
+  - name: mfifo
+    type: ram_1r1w
+    depth: MFIFO_DEPTH
+    width: AXI_DATA_WIDTH
+    description: Manager FIFO
+  - name: merge_buffer
+    type: register_array
+    depth: MERGE_BUFFER_DEPTH
+    width: AXI_DATA_WIDTH
+    description: Byte-lane merge buffer
+  - name: icache
+    type: ram_1r1w
+    depth: 32
+    width: 32
+    description: Instruction cache
+interrupts:
+  outputs:
+  - name: irq
+    count: NUM_IRQS
+    source: irq_status
+  - name: irq_abort
+    count: 1
+    source: fault propagation
+fsm:
+  channel_state:
+    states:
+    - STOPPED
+    - EXECUTING
+    - CACHE_MISS
+    - UPDATING_PC
+    - WAITING_FOR_EVENT
+    - AT_BARRIER
+    - KILLING
+    - COMPLETING
+    - FAULTING
+    - FAULTING_COMPLETING
+    initial: STOPPED
+    transitions:
+    - from: STOPPED
+      to: EXECUTING
+      condition: DMAGO + secure check pass
+    - from: EXECUTING
+      to: CACHE_MISS
+      condition: icache miss
+    - from: CACHE_MISS
+      to: EXECUTING
+      condition: fill complete
+    - from: EXECUTING
+      to: WAITING_FOR_EVENT
+      condition: DMAWFE
+    - from: WAITING_FOR_EVENT
+      to: EXECUTING
+      condition: event signaled
+    - from: EXECUTING
+      to: AT_BARRIER
+      condition: DMAWFP barrier
+    - from: AT_BARRIER
+      to: EXECUTING
+      condition: barrier cleared
+    - from: EXECUTING
+      to: COMPLETING
+      condition: DMAEND issued
+    - from: COMPLETING
+      to: STOPPED
+      condition: all outstanding drained
+    - from: any
+      to: KILLING
+      condition: DMAKILL via DBGCMD
+    - from: KILLING
+      to: STOPPED
+      condition: kill drained
+    - from: any
+      to: FAULTING
+      condition: any error_case
+    - from: FAULTING
+      to: FAULTING_COMPLETING
+      condition: fault recovery initiated
+    - from: FAULTING_COMPLETING
+      to: STOPPED
+      condition: drain complete
+timing:
+  target_clocks:
+  - name: clk
+    frequency_mhz: 100
+    period_ns: 10.0
+    uncertainty_ns: 0.2
+  latency_budget:
+    register_access:
+      min: 0
+      max: null
+      measured_from: valid && ready
+      measured_to: response valid && ready
+    primary_operation:
+      min: 1
+      max: null
+      measured_from: start/request accepted
+      measured_to: done/response accepted
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports:
+    - sta/out/timing.rpt
+    - sta/out/wns.json
+power:
+  domains:
+  - name: PD_MAIN
+    voltage: nominal
+    clock_domains:
+    - clk
+    isolation: not_required_single_domain
+  power_states:
+  - name: 'ON'
+    entry: reset deasserted
+    exit: reset asserted
+    guarantees:
+    - All declared IP functionality active
+  clock_gating:
+    required: false
+    rationale: No explicit integrated clock-gating requirement in approved SSOT
+  upf_required: false
+security:
+  assets:
+  - Secure APB register space (sprdata/spwdata)
+  - Manager non-secure indicator (boot_manager_ns)
+  - Per-IRQ non-secure mapping (boot_irq_ns)
+  - Per-peripheral non-secure mapping (boot_periph_ns)
+  threats:
+  - NS-issued instruction targeting Secure peripheral
+  - Replay or skipping of DMAFLUSHP between contexts
+  - Bus error injection causing FSM exposure
+  classification: non_secure_leaf_ip
+  threat_model:
+  - threat: invalid configuration or address
+    mitigation: error_handling declares detection, architectural effect, and recovery
+  - threat: silent data/control corruption
+    mitigation: test_requirements scoreboard checks every declared functional transaction
+  privilege_model: System-level access control is owned by the integrating bus/firewall unless explicitly declared here.
+error_handling:
+  error_sources:
+  - id: instr_fetch_err
+    condition: Declared error condition is observed
+    architectural_effect: Status/error reporting follows the SSOT error policy
+  - id: data_read_err
+    condition: Declared error condition is observed
+    architectural_effect: Status/error reporting follows the SSOT error policy
+  - id: data_write_err
+    condition: Declared error condition is observed
+    architectural_effect: Status/error reporting follows the SSOT error policy
+  - id: undef_instr
+    condition: Declared error condition is observed
+    architectural_effect: Status/error reporting follows the SSOT error policy
+  - id: secure_violation
+    condition: Declared error condition is observed
+    architectural_effect: Status/error reporting follows the SSOT error policy
+  - id: unaligned_access
+    condition: Declared error condition is observed
+    architectural_effect: Status/error reporting follows the SSOT error policy
+  propagation: "FAULTING channel \u2192 COMPLETING_FAULT \u2192 STOPPED, irq_abort pulses on entry"
+  recovery:
+  - action: reset or software clear
+    clears:
+    - error/status indicators
+    preserves:
+    - configuration unless reset policy states otherwise
+debug_observability:
+  waveform_must_probe:
+  - aclk
+  - aresetn
+  - channel_state[*]
+  - channel_pc[*]
+  - mfifo_count
+  - outstanding_reads
+  - outstanding_writes
+  - irq
+  - irq_abort
+  - fault_status
+  - awvalid; awready; awaddr; awlen
+  - wvalid;  wready;  wdata;  wlast
+  - bvalid;  bready;  bresp
+  - arvalid; arready; araddr; arlen
+  - rvalid;  rready;  rdata;  rresp; rlast
+  trace_events:
+  - name: operation_start
+    trigger: start/request accepted
+  - name: operation_complete
+    trigger: done/response accepted
+  - name: error_detected
+    trigger: any error_handling.error_sources condition
+  status_outputs:
+  - status/debug signals declared in io_list or registers
+integration:
+  bus_attachment:
+    interfaces:
+    - control_data
+    address_ownership: SoC assigns base addresses and external routing not owned by this leaf IP
+  dependencies:
+    external_modules: []
+    external_clocks:
+    - clk
+    external_resets:
+    - rst_n
+  connections: []
+  connection_contract_status: missing machine-readable module wiring; child RTL drafts may proceed from owner packets, but top integration/signoff
+    must stay blocked until SSOT authors integration.connections or sub_modules[].connections with module/port/signal records
+  integration_notes:
+  - Integrator must connect every declared io_list port and honor timing/reset assumptions.
+dft:
+  scan_required: false
+  controllability:
+    reset: rst_n
+    clocks:
+    - clk
+    primary_inputs: all io_list inputs controllable in testbench
+  observability:
+    required_internal_points:
+    - fsm_state
+    - status
+    - error_status
+    outputs: all io_list outputs observable
+  mbist_required: true
+synthesis:
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 200
+    technology: openpdk45
+  dialect: systemverilog_2012
+  top_module: pl330_target
+  constraints:
+  - No inferred latches
+  - No unresolved black boxes
+  - All sequential state reset or intentionally initialized
+  required_outputs:
+  - syn/out/area.rpt
+  - syn/out/timing_summary.rpt
+  - sta/out/wns.json
+coding_rules:
+  verilog_style: systemverilog_2012
+  conventions:
+  - Use always_ff/always_comb or equivalent synthesis-safe style consistently
+  - No inferred latches; every combinational branch assigns all outputs
+  - No parameterized part-selects inside procedural blocks; use helper wires/continuous assigns
+  - No ad-hoc lint suppressions without SSOT waiver and DUT-only lint evidence
+  lint_waivers: []
+reuse_modules: []
+custom:
+  assumptions:
+  - Integration-owned address, routing, privilege, and clock/reset policies must be captured explicitly before signoff
+  - Repair does not imply IP-kind behavior; rtl-gen must implement only SSOT-owned function_model, cycle_model, and interface contracts
+  - Line/branch coverage is required when tool-supported; otherwise a waiver must be explicit in coverage evidence
+dir_structure:
+  yaml_dir: yaml/
+  output_dirs:
+    rtl: rtl/
+    list: list/
+    tb: tb/cocotb/
+    sim: sim/
+    lint: lint/
+    cov: cov/
+    doc: doc/
+  generators_dir: generators/
+filelist:
+  rtl:
+  - rtl/pl330_target_engine.sv
+  - rtl/pl330_target_pipeline.sv
+  - rtl/pl330_target_lsq.sv
+  - rtl/pl330_target_mfifo.sv
+  - rtl/pl330_target_merge_buffer.sv
+  - rtl/pl330_target_icache.sv
+  - rtl/pl330_target_axi.sv
+  - rtl/pl330_target_periph.sv
+  - rtl/pl330_target_apb_regs.sv
+  - rtl/pl330_target.sv
+  tb:
+  - tb/cocotb/test_pl330_target.py
+  - tb/cocotb/test_runner.py
+  - tb/cocotb/scoreboard.py
+  sim:
+  - sim/results.xml
+  - sim/waves.fst
+  coverage:
+  - cov/coverage.json
+test_requirements:
+  scenarios:
+  - id: SC01
+    name: reset contract
+    stimulus: Assert and release the declared reset while all external interfaces remain idle.
+    expected: Architectural state, status, outputs, and debug observability match function_model reset outputs.
+    checker: Reset checker compares all declared reset-visible state against function_model and cycle_model reset rules.
+    coverage:
+    - function_model.reset
+    - cycle_model.reset
+  - id: SC02
+    name: primary approved behavior
+    stimulus: Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.
+    expected: Externally observable result/status/side effects match the function_model primary transaction.
+    checker: FL-vs-RTL scoreboard compares observable outputs and state updates from the locked function_model.
+    coverage:
+    - function_model.primary
+    - features
+    - dataflow
+  - id: SC03
+    name: cycle handshake and backpressure
+    stimulus: Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.
+    expected: Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules.
+    checker: Protocol monitor and scoreboard check cycle_model.handshake_rules, ordering, and latency budget.
+    coverage:
+    - cycle_model.handshake_rules
+    - cycle_model.ordering
+    - backpressure
+  - id: SC04
+    name: error and recovery policy
+    stimulus: Inject each declared error_handling.error_sources condition where the interface can represent it.
+    expected: Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state.
+    checker: Negative checker compares error result and recovery state against function_model error_cases.
+    coverage:
+    - error_handling.error_sources
+    - function_model.error_cases
+  - id: SC05
+    name: debug and trace observability
+    stimulus: Run nominal and error flows while sampling every debug_observability waveform/status/trace point.
+    expected: Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior.
+    checker: Waveform/trace checker validates debug_observability entries and traceability.yaml_to_output rows.
+    coverage:
+    - debug_observability
+    - traceability
+  - id: SC06
+    name: function_model transaction FM_RESET
+    stimulus: Drive preconditions for function_model transaction `FM_RESET`.
+    expected: Outputs and side effects match `FM_RESET` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_RESET
+  - id: SC07
+    name: function_model transaction FM_DMAGO
+    stimulus: Drive preconditions for function_model transaction `FM_DMAGO`.
+    expected: Outputs and side effects match `FM_DMAGO` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_DMAGO
+  - id: SC08
+    name: function_model transaction FM_DMALD
+    stimulus: Drive preconditions for function_model transaction `FM_DMALD`.
+    expected: Outputs and side effects match `FM_DMALD` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_DMALD
+  - id: SC09
+    name: function_model transaction FM_DMAST
+    stimulus: Drive preconditions for function_model transaction `FM_DMAST`.
+    expected: Outputs and side effects match `FM_DMAST` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_DMAST
+  - id: SC10
+    name: function_model transaction FM_DMALDP
+    stimulus: Drive preconditions for function_model transaction `FM_DMALDP`.
+    expected: Outputs and side effects match `FM_DMALDP` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_DMALDP
+  - id: SC11
+    name: function_model transaction FM_DMASTP
+    stimulus: Drive preconditions for function_model transaction `FM_DMASTP`.
+    expected: Outputs and side effects match `FM_DMASTP` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_DMASTP
+  - id: SC12
+    name: function_model transaction FM_DMASEV
+    stimulus: Drive preconditions for function_model transaction `FM_DMASEV`.
+    expected: Outputs and side effects match `FM_DMASEV` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_DMASEV
+  coverage_goals:
+    planned_bins:
+    - id: cov_all_channels
+      class: scenario
+      description: every channel exercised at least once
+    - id: cov_dmaldp_seen
+      class: transaction_type
+      description: DMALDP fired at least once
+    - id: cov_burst_64beat
+      class: transaction_type
+      description: AXI burst of 64 beats observed
+    - id: cov_fault_recovery
+      class: error
+      description: FAULTING_COMPLETING reached
+    - id: cov_axi_outstanding_max
+      class: planned_functional
+      description: 16 outstanding reads simultaneously
+    - id: cov_apb_secure_block
+      class: planned_functional
+      description: NS access to secure register correctly blocked
+    scenario: All SSOT scenarios pass with executable cocotb/pyuvm checkers and FL-vs-RTL scoreboard evidence
+  scoreboard_checks: 12
+quality_gates:
+  ssot:
+    pass: check_ssot_disk.sh exits 0 and ATLAS SSOT progress is fully approved
+    evidence:
+    - check_ssot_disk.sh PASS
+    - ATLAS /api/progress ssot all sections approved
+  rtl:
+    pass: All expected RTL files exist, are production-ready, compile, and lint within warning budget
+    evidence:
+    - list/<ip>.f
+    - compile log
+    - lint log
+  rtl_gen:
+    profile: production
+    pass: rtl-gen execution_policy.pass_allowed is true, every required SSOT-derived RTL TODO is closed, and provenance proves common_ai_agent
+      rtl-gen authored the RTL without fixed-template fallback behavior
+    evidence:
+    - rtl/rtl_authoring_plan.json
+    - logs/rtl-gen/rtl_todo_plan.json
+    - rtl/provenance.json
+    - rtl_compile.json
+    - lint/dut_lint.json
+  dv:
+    pass: Every SSOT test_requirements scenario has an executable checker and FL-vs-RTL equivalence goal
+    evidence:
+    - verify/equivalence_goals.json
+    - sim/scoreboard_events.jsonl
+    - tb/cocotb tests
+    - scenario implementation map
+  coverage:
+    pass: Functional coverage passes and any explicitly requested structural metrics have matching evidence or approved waivers
+    evidence:
+    - coverage report
+    - coverage waiver list if any
+    fl_bin_hit_min: 100
+    cl_bin_hit_min: 90
+  eda:
+    pass: Synthesis/STA/DFT expectations have reports or approved waivers
+    evidence:
+    - syn/sta/dft reports
+  signoff:
+    pass: SSOT, FL/equivalence, RTL, lint, DV, sim, coverage, and EDA gates pass with fresh artifacts
+    evidence:
+    - ATLAS progress signoff PASS
+  ppa:
+    fmax_target_mhz: 200
+    area_target_um2: null
+    power_target_mw: null
+  dft:
+    scan_coverage_min: 95
+traceability:
+  reference_rtl: /Users/brian/Desktop/PL330-GRP-r1p2-rel/DMA-330_AXI_DMA_Controller/PL330-BU-00000-r1p2-00rel0/shared/logical/
+  notes: "This SSOT is a workflow target \u2014 it deliberately under-specifies many\nPL330 instructions (DMAMOV, DMAFLUSHP, DMAWFE/SEV semantics,\
+    \ channel\nthread structure) so that overnight iterations can identify which gaps\ncause golden_todos / equivalence_goals to escalate, and\
+    \ we can patch the\nworkflow accordingly.\n"
+  yaml_to_output:
+  - yaml: function_model
+    output: RTL behavior and TB reference model
+  - yaml: cycle_model
+    output: RTL handshake/pipeline timing and waveform checks
+  - yaml: function_model/cycle_model/test_requirements
+    output: verify/equivalence_goals.json and FL-vs-RTL scoreboard contracts
+  - yaml: timing
+    output: STA constraints and latency pass/fail criteria
+  - yaml: security
+    output: Threat mitigations and negative tests
+  - yaml: error_handling
+    output: Fault RTL paths and DV error scenarios
+  - yaml: debug_observability
+    output: VCD probes and sim_debug inspection
+  - yaml: quality_gates
+    output: ATLAS progress/signoff criteria
+workflow_todos:
+  rtl-gen:
+  - id: RTL_IMPLEMENT_SSOT_CONTRACT
+    content: Implement the complete SSOT RTL contract without fixed-template fallback behavior
+    detail: Use the current SSOT as the only source for ports, parameters, function_model, cycle_model, registers, dataflow, error/security/debug
+      behavior, decomposition ownership, and quality gates.
+    criteria:
+    - Generated RTL drives only SSOT-approved externally visible behavior
+    - No placeholder heartbeat, tie-off, alive-only, or comment-only implementation is used as evidence
+    - derive_rtl_todos.py --audit-rtl reports every required TODO as pass
+    source_refs:
+    - top_module
+    - function_model
+    - cycle_model
+    - quality_gates.rtl
+    - quality_gates.rtl_gen
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_MODULE_PL330_TARGET_ENGINE
+    content: Implement or account for SSOT module slice `pl330_target_engine`
+    detail: name=pl330_target_engine
+    criteria:
+    - Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module
+    - Module slice has traceability evidence in rtl_todo_plan.json
+    - No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned
+    source_refs:
+    - sub_modules[0]
+    owner_module: pl330_target_engine
+    owner_file: rtl/pl330_target_engine.sv
+    priority: high
+    required: true
+  - id: RTL_MODULE_PL330_TARGET_PIPELINE
+    content: Implement or account for SSOT module slice `pl330_target_pipeline`
+    detail: name=pl330_target_pipeline
+    criteria:
+    - Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module
+    - Module slice has traceability evidence in rtl_todo_plan.json
+    - No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned
+    source_refs:
+    - cycle_model
+    - cycle_model
+    owner_module: pl330_target_pipeline
+    owner_file: rtl/pl330_target_pipeline.sv
+    priority: high
+    required: true
+  - id: RTL_MODULE_PL330_TARGET_LSQ
+    content: Implement or account for SSOT module slice `pl330_target_lsq`
+    detail: name=pl330_target_lsq
+    criteria:
+    - Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module
+    - Module slice has traceability evidence in rtl_todo_plan.json
+    - No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned
+    source_refs:
+    - sub_modules[2]
+    owner_module: pl330_target_lsq
+    owner_file: rtl/pl330_target_lsq.sv
+    priority: high
+    required: true
+  - id: RTL_MODULE_PL330_TARGET_MFIFO
+    content: Implement or account for SSOT module slice `pl330_target_mfifo`
+    detail: name=pl330_target_mfifo
+    criteria:
+    - Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module
+    - Module slice has traceability evidence in rtl_todo_plan.json
+    - No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned
+    source_refs:
+    - features
+    - dataflow
+    - fsm
+    - test_requirements
+    - registers
+    - function_model.transactions.FM_RESET
+    - function_model.transactions.FM_DMAGO
+    - function_model.transactions.FM_DMALD
+    - function_model.transactions.FM_DMAST
+    - function_model.transactions.FM_DMALDP
+    - function_model.transactions.FM_DMASTP
+    - function_model.transactions.FM_DMASEV
+    - function_model.transactions.FM_DMAEND
+    - function_model.transactions.FM_FAULT
+    - function_model.state_variables
+    - features
+    - dataflow
+    - registers.register_list
+    - fsm
+    - test_requirements
+    owner_module: pl330_target_mfifo
+    owner_file: rtl/pl330_target_mfifo.sv
+    priority: high
+    required: true
+  - id: RTL_MODULE_PL330_TARGET_MERGE_BUFFER
+    content: Implement or account for SSOT module slice `pl330_target_merge_buffer`
+    detail: name=pl330_target_merge_buffer
+    criteria:
+    - Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module
+    - Module slice has traceability evidence in rtl_todo_plan.json
+    - No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned
+    source_refs:
+    - sub_modules[4]
+    owner_module: pl330_target_merge_buffer
+    owner_file: rtl/pl330_target_merge_buffer.sv
+    priority: high
+    required: true
+  - id: RTL_MODULE_PL330_TARGET_ICACHE
+    content: Implement or account for SSOT module slice `pl330_target_icache`
+    detail: name=pl330_target_icache
+    criteria:
+    - Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module
+    - Module slice has traceability evidence in rtl_todo_plan.json
+    - No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned
+    source_refs:
+    - sub_modules[5]
+    owner_module: pl330_target_icache
+    owner_file: rtl/pl330_target_icache.sv
+    priority: high
+    required: true
+  - id: RTL_MODULE_PL330_TARGET_AXI
+    content: Implement or account for SSOT module slice `pl330_target_axi`
+    detail: name=pl330_target_axi
+    criteria:
+    - Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module
+    - Module slice has traceability evidence in rtl_todo_plan.json
+    - No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned
+    source_refs:
+    - sub_modules[6]
+    owner_module: pl330_target_axi
+    owner_file: rtl/pl330_target_axi.sv
+    priority: high
+    required: true
+  - id: RTL_MODULE_PL330_TARGET_PERIPH
+    content: Implement or account for SSOT module slice `pl330_target_periph`
+    detail: name=pl330_target_periph
+    criteria:
+    - Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module
+    - Module slice has traceability evidence in rtl_todo_plan.json
+    - No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned
+    source_refs:
+    - sub_modules[7]
+    owner_module: pl330_target_periph
+    owner_file: rtl/pl330_target_periph.sv
+    priority: high
+    required: true
+  - id: RTL_MODULE_PL330_TARGET_APB_REGS
+    content: Implement or account for SSOT module slice `pl330_target_apb_regs`
+    detail: name=pl330_target_apb_regs
+    criteria:
+    - Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module
+    - Module slice has traceability evidence in rtl_todo_plan.json
+    - No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned
+    source_refs:
+    - sub_modules[8]
+    owner_module: pl330_target_apb_regs
+    owner_file: rtl/pl330_target_apb_regs.sv
+    priority: high
+    required: true
+  - id: RTL_MODULE_PL330_TARGET
+    content: Implement or account for SSOT module slice `pl330_target`
+    detail: Top-level integration module matching SSOT top_module
+    criteria:
+    - Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module
+    - Module slice has traceability evidence in rtl_todo_plan.json
+    - No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned
+    source_refs:
+    - sub_modules[9]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_FM_TX_FM_RESET
+    content: Implement FunctionalModel transaction `FM_RESET` in RTL
+    detail: 'Preconditions: . Outputs: all state -> reset values. Side effects: outstanding_reads=0; outstanding_writes=0; mfifo_count=0; irq_status=0.
+      Error cases: .'
+    criteria:
+    - RTL samples the transaction only under the approved preconditions
+    - All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping
+    - All side effects and error cases have observable state, status, or handoff evidence
+    source_refs:
+    - function_model.transactions[0]
+    - function_model.transactions.FM_RESET
+    owner_module: pl330_target_mfifo
+    owner_file: rtl/pl330_target_mfifo.sv
+    priority: high
+    required: true
+  - id: RTL_FM_TX_FM_DMAGO
+    content: Implement FunctionalModel transaction `FM_DMAGO` in RTL
+    detail: 'Preconditions: channel_state==0; manager APB write to DBGINST. Outputs: channel_state=1; channel_pc=arg_addr. Side effects: . Error
+      cases: condition=secure violation.'
+    criteria:
+    - RTL samples the transaction only under the approved preconditions
+    - All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping
+    - All side effects and error cases have observable state, status, or handoff evidence
+    source_refs:
+    - function_model.transactions[1]
+    - function_model.transactions.FM_DMAGO
+    owner_module: pl330_target_mfifo
+    owner_file: rtl/pl330_target_mfifo.sv
+    priority: high
+    required: true
+  - id: RTL_FM_TX_FM_DMALD
+    content: Implement FunctionalModel transaction `FM_DMALD` in RTL
+    detail: 'Preconditions: channel_state==1; mfifo has space. Outputs: outstanding_reads += 1; mfifo entries reserved. Side effects: issue AXI
+      AR. Error cases: condition=AXI rresp != OKAY.'
+    criteria:
+    - RTL samples the transaction only under the approved preconditions
+    - All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping
+    - All side effects and error cases have observable state, status, or handoff evidence
+    source_refs:
+    - function_model.transactions[2]
+    - function_model.transactions.FM_DMALD
+    owner_module: pl330_target_mfifo
+    owner_file: rtl/pl330_target_mfifo.sv
+    priority: high
+    required: true
+  - id: RTL_FM_TX_FM_DMAST
+    content: Implement FunctionalModel transaction `FM_DMAST` in RTL
+    detail: 'Preconditions: channel_state==1; mfifo has data. Outputs: outstanding_writes += 1; mfifo entries consumed. Side effects: issue AXI
+      AW + W. Error cases: condition=AXI bresp != OKAY.'
+    criteria:
+    - RTL samples the transaction only under the approved preconditions
+    - All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping
+    - All side effects and error cases have observable state, status, or handoff evidence
+    source_refs:
+    - function_model.transactions[3]
+    - function_model.transactions.FM_DMAST
+    owner_module: pl330_target_mfifo
+    owner_file: rtl/pl330_target_mfifo.sv
+    priority: high
+    required: true
+  - id: RTL_FM_TX_FM_DMALDP
+    content: Implement FunctionalModel transaction `FM_DMALDP` in RTL
+    detail: 'Preconditions: channel_state==1; periph drvalid asserted. Outputs: outstanding_reads += 1. Side effects: drready asserted; AXI AR
+      issued. Error cases: .'
+    criteria:
+    - RTL samples the transaction only under the approved preconditions
+    - All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping
+    - All side effects and error cases have observable state, status, or handoff evidence
+    source_refs:
+    - function_model.transactions[4]
+    - function_model.transactions.FM_DMALDP
+    owner_module: pl330_target_mfifo
+    owner_file: rtl/pl330_target_mfifo.sv
+    priority: high
+    required: true
+  - id: RTL_FM_TX_FM_DMASTP
+    content: Implement FunctionalModel transaction `FM_DMASTP` in RTL
+    detail: 'Preconditions: channel_state==1; periph davalid acknowledged. Outputs: outstanding_writes += 1. Side effects: daready asserted; AXI
+      AW+W issued. Error cases: .'
+    criteria:
+    - RTL samples the transaction only under the approved preconditions
+    - All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping
+    - All side effects and error cases have observable state, status, or handoff evidence
+    source_refs:
+    - function_model.transactions[5]
+    - function_model.transactions.FM_DMASTP
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_FM_TX_FM_DMASEV
+    content: Implement FunctionalModel transaction `FM_DMASEV` in RTL
+    detail: 'Preconditions: channel_state==1; event index < NUM_IRQS. Outputs: irq_status |= 1<<event_idx. Side effects: irq[event_idx] pulse.
+      Error cases: .'
+    criteria:
+    - RTL samples the transaction only under the approved preconditions
+    - All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping
+    - All side effects and error cases have observable state, status, or handoff evidence
+    source_refs:
+    - function_model.transactions[6]
+    - function_model.transactions.FM_DMASEV
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_FM_TX_FM_DMAEND
+    content: Implement FunctionalModel transaction `FM_DMAEND` in RTL
+    detail: 'Preconditions: channel_state==1; no outstanding. Outputs: channel_state=0. Side effects: . Error cases: condition=outstanding > 0.'
+    criteria:
+    - RTL samples the transaction only under the approved preconditions
+    - All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping
+    - All side effects and error cases have observable state, status, or handoff evidence
+    source_refs:
+    - function_model.transactions[7]
+    - function_model.transactions.FM_DMAEND
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_FM_TX_FM_FAULT
+    content: Implement FunctionalModel transaction `FM_FAULT` in RTL
+    detail: 'Preconditions: any error_case fired. Outputs: channel_state=8; irq_abort pulse. Side effects: fault_status updated. Error cases:
+      .'
+    criteria:
+    - RTL samples the transaction only under the approved preconditions
+    - All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping
+    - All side effects and error cases have observable state, status, or handoff evidence
+    source_refs:
+    - function_model.transactions[8]
+    - function_model.transactions.FM_FAULT
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_CYCLE_handshake_rules_ITEM_0
+    content: Implement cycle_model handshake rule 0
+    detail: rule=req_valid payload remains stable until req_ready is sampled asserted on control_data.
+    criteria:
+    - RTL timing/handshake behavior follows this cycle_model entry
+    - Signals remain stable or advance only under the approved protocol phase
+    - The behavior is visible to waveform/sim-debug or scoreboard checks
+    source_refs:
+    - cycle_model.handshake_rules[0]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_CYCLE_handshake_rules_1
+    content: Implement cycle_model handshake rule 1
+    detail: rule=rsp_valid payload remains stable until rsp_ready is sampled asserted on control_data.
+    criteria:
+    - RTL timing/handshake behavior follows this cycle_model entry
+    - Signals remain stable or advance only under the approved protocol phase
+    - The behavior is visible to waveform/sim-debug or scoreboard checks
+    source_refs:
+    - cycle_model.handshake_rules[1]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_CYCLE_pipeline_ITEM_0
+    content: Implement cycle_model pipeline stage 0
+    detail: action=Accept legal request/command/packet/control work under declared handshake rules.
+    criteria:
+    - RTL timing/handshake behavior follows this cycle_model entry
+    - Signals remain stable or advance only under the approved protocol phase
+    - The behavior is visible to waveform/sim-debug or scoreboard checks
+    source_refs:
+    - cycle_model.pipeline[0]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_CYCLE_pipeline_1
+    content: Implement cycle_model pipeline stage 1
+    detail: action=Evaluate function_model transaction and update only declared state.
+    criteria:
+    - RTL timing/handshake behavior follows this cycle_model entry
+    - Signals remain stable or advance only under the approved protocol phase
+    - The behavior is visible to waveform/sim-debug or scoreboard checks
+    source_refs:
+    - cycle_model.pipeline[1]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_CYCLE_pipeline_2
+    content: Implement cycle_model pipeline stage 2
+    detail: action=Publish response/status/output/debug event and hold it stable until accepted.
+    criteria:
+    - RTL timing/handshake behavior follows this cycle_model entry
+    - Signals remain stable or advance only under the approved protocol phase
+    - The behavior is visible to waveform/sim-debug or scoreboard checks
+    source_refs:
+    - cycle_model.pipeline[2]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_CYCLE_ordering_ITEM_0
+    content: Implement cycle_model ordering rule 0
+    detail: Accepted requests update architectural state only on clock edges.
+    criteria:
+    - RTL timing/handshake behavior follows this cycle_model entry
+    - Signals remain stable or advance only under the approved protocol phase
+    - The behavior is visible to waveform/sim-debug or scoreboard checks
+    source_refs:
+    - cycle_model.ordering[0]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_CYCLE_ordering_1
+    content: Implement cycle_model ordering rule 1
+    detail: Completion/status/interrupt updates occur after the operation reaches its terminal FSM state.
+    criteria:
+    - RTL timing/handshake behavior follows this cycle_model entry
+    - Signals remain stable or advance only under the approved protocol phase
+    - The behavior is visible to waveform/sim-debug or scoreboard checks
+    source_refs:
+    - cycle_model.ordering[1]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_CYCLE_ordering_2
+    content: Implement cycle_model ordering rule 2
+    detail: Backpressure stalls the active handshake stage without corrupting stored state.
+    criteria:
+    - RTL timing/handshake behavior follows this cycle_model entry
+    - Signals remain stable or advance only under the approved protocol phase
+    - The behavior is visible to waveform/sim-debug or scoreboard checks
+    source_refs:
+    - cycle_model.ordering[2]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_CYCLE_ordering_3
+    content: Implement cycle_model ordering rule 3
+    detail: Read/dataflow stages must precede dependent write/output stages where declared in dataflow.
+    criteria:
+    - RTL timing/handshake behavior follows this cycle_model entry
+    - Signals remain stable or advance only under the approved protocol phase
+    - The behavior is visible to waveform/sim-debug or scoreboard checks
+    source_refs:
+    - cycle_model.ordering[3]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_CYCLE_backpressure_ITEM_0
+    content: Implement cycle_model backpressure rule 0
+    detail: Ready/valid deassertion stalls only the affected interface stage; payload and route/control state remain stable.
+    criteria:
+    - RTL timing/handshake behavior follows this cycle_model entry
+    - Signals remain stable or advance only under the approved protocol phase
+    - The behavior is visible to waveform/sim-debug or scoreboard checks
+    source_refs:
+    - cycle_model.backpressure[0]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_DSR
+    content: Implement CSR/register `DSR` access behavior
+    detail: name=DSR; description=DMA Manager Status Register
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[0]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_DPC
+    content: Implement CSR/register `DPC` access behavior
+    detail: name=DPC; description=DMA Manager PC
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[1]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_INTEN
+    content: Implement CSR/register `INTEN` access behavior
+    detail: name=INTEN; description=Interrupt Enable
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[2]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_INT_EVENT_RIS
+    content: Implement CSR/register `INT_EVENT_RIS` access behavior
+    detail: name=INT_EVENT_RIS; description=Event-Interrupt Raw Status
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[3]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_INTMIS
+    content: Implement CSR/register `INTMIS` access behavior
+    detail: name=INTMIS; description=Interrupt Status (masked)
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[4]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_INTCLR
+    content: Implement CSR/register `INTCLR` access behavior
+    detail: name=INTCLR; description=Interrupt Clear
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[5]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_FSRD
+    content: Implement CSR/register `FSRD` access behavior
+    detail: name=FSRD; description=Fault Status DMA Manager
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[6]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_FSRC
+    content: Implement CSR/register `FSRC` access behavior
+    detail: name=FSRC; description=Fault Status DMA Channels
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[7]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_FTRD
+    content: Implement CSR/register `FTRD` access behavior
+    detail: name=FTRD; description=Fault Type DMA Manager
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[8]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_CSR_CHAN_N
+    content: Implement CSR/register `CSR_chan_n` access behavior
+    detail: name=CSR_chan_n; description=Channel Status
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[9]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_CPC_CHAN_N
+    content: Implement CSR/register `CPC_chan_n` access behavior
+    detail: name=CPC_chan_n; description=Channel PC
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[10]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_SAR_CHAN_N
+    content: Implement CSR/register `SAR_chan_n` access behavior
+    detail: name=SAR_chan_n; description=Source Address
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[11]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_DAR_CHAN_N
+    content: Implement CSR/register `DAR_chan_n` access behavior
+    detail: name=DAR_chan_n; description=Destination Address
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[12]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_CCR_CHAN_N
+    content: Implement CSR/register `CCR_chan_n` access behavior
+    detail: name=CCR_chan_n; description=Channel Control
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[13]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_DBGSTATUS
+    content: Implement CSR/register `DBGSTATUS` access behavior
+    detail: name=DBGSTATUS; description=Debug Status
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[14]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_DBGCMD
+    content: Implement CSR/register `DBGCMD` access behavior
+    detail: name=DBGCMD; description=Debug Command
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[15]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_DBGINST0
+    content: Implement CSR/register `DBGINST0` access behavior
+    detail: name=DBGINST0; description=Debug Instruction-0
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[16]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_DBGINST1
+    content: Implement CSR/register `DBGINST1` access behavior
+    detail: name=DBGINST1; description=Debug Instruction-1
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[17]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_REGISTER_CR0
+    content: Implement CSR/register `CR0` access behavior
+    detail: name=CR0; description=Configuration Register 0
+    criteria:
+    - Reset/access/field side effects match registers.register_list
+    - Illegal access behavior follows error_handling/security policy
+    - Readback and W1C/RW/RO semantics are covered by RTL and DV plan
+    source_refs:
+    - registers.register_list[18]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_SCENARIO_SUPPORT_SC01
+    content: Expose RTL behavior needed by SSOT scenario `SC01`
+    detail: 'Stimulus: Assert and release the declared reset while all external interfaces remain idle.. Expected: Architectural state, status,
+      outputs, and debug observability match function_model reset outputs..'
+    criteria:
+    - RTL has observable behavior for the scenario checker without weakening expected results
+    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
+    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
+    source_refs:
+    - test_requirements.scenarios[0]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: normal
+    required: true
+  - id: RTL_SCENARIO_SUPPORT_SC02
+    content: Expose RTL behavior needed by SSOT scenario `SC02`
+    detail: 'Stimulus: Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.. Expected:
+      Externally observable result/status/side effects match the function_model primary transaction..'
+    criteria:
+    - RTL has observable behavior for the scenario checker without weakening expected results
+    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
+    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
+    source_refs:
+    - test_requirements.scenarios[1]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: normal
+    required: true
+  - id: RTL_SCENARIO_SUPPORT_SC03
+    content: Expose RTL behavior needed by SSOT scenario `SC03`
+    detail: 'Stimulus: Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.. Expected: Payloads remain stable,
+      ordering is preserved, and completion timing respects cycle_model latency/backpressure rules..'
+    criteria:
+    - RTL has observable behavior for the scenario checker without weakening expected results
+    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
+    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
+    source_refs:
+    - test_requirements.scenarios[2]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: normal
+    required: true
+  - id: RTL_SCENARIO_SUPPORT_SC04
+    content: Expose RTL behavior needed by SSOT scenario `SC04`
+    detail: 'Stimulus: Inject each declared error_handling.error_sources condition where the interface can represent it.. Expected: Error/status/response/recovery
+      behavior follows error_handling without corrupting unrelated architectural state..'
+    criteria:
+    - RTL has observable behavior for the scenario checker without weakening expected results
+    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
+    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
+    source_refs:
+    - test_requirements.scenarios[3]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: normal
+    required: true
+  - id: RTL_SCENARIO_SUPPORT_SC05
+    content: Expose RTL behavior needed by SSOT scenario `SC05`
+    detail: 'Stimulus: Run nominal and error flows while sampling every debug_observability waveform/status/trace point.. Expected: Debug/status/trace
+      events reflect committed SSOT-visible state without exposing unsupported behavior..'
+    criteria:
+    - RTL has observable behavior for the scenario checker without weakening expected results
+    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
+    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
+    source_refs:
+    - test_requirements.scenarios[4]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: normal
+    required: true
+  - id: RTL_SCENARIO_SUPPORT_SC06
+    content: Expose RTL behavior needed by SSOT scenario `SC06`
+    detail: 'Stimulus: Drive preconditions for function_model transaction `FM_RESET`.. Expected: Outputs and side effects match `FM_RESET` exactly..'
+    criteria:
+    - RTL has observable behavior for the scenario checker without weakening expected results
+    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
+    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
+    source_refs:
+    - test_requirements.scenarios[5]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: normal
+    required: true
+  - id: RTL_SCENARIO_SUPPORT_SC07
+    content: Expose RTL behavior needed by SSOT scenario `SC07`
+    detail: 'Stimulus: Drive preconditions for function_model transaction `FM_DMAGO`.. Expected: Outputs and side effects match `FM_DMAGO` exactly..'
+    criteria:
+    - RTL has observable behavior for the scenario checker without weakening expected results
+    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
+    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
+    source_refs:
+    - test_requirements.scenarios[6]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: normal
+    required: true
+  - id: RTL_SCENARIO_SUPPORT_SC08
+    content: Expose RTL behavior needed by SSOT scenario `SC08`
+    detail: 'Stimulus: Drive preconditions for function_model transaction `FM_DMALD`.. Expected: Outputs and side effects match `FM_DMALD` exactly..'
+    criteria:
+    - RTL has observable behavior for the scenario checker without weakening expected results
+    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
+    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
+    source_refs:
+    - test_requirements.scenarios[7]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: normal
+    required: true
+  - id: RTL_SCENARIO_SUPPORT_SC09
+    content: Expose RTL behavior needed by SSOT scenario `SC09`
+    detail: 'Stimulus: Drive preconditions for function_model transaction `FM_DMAST`.. Expected: Outputs and side effects match `FM_DMAST` exactly..'
+    criteria:
+    - RTL has observable behavior for the scenario checker without weakening expected results
+    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
+    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
+    source_refs:
+    - test_requirements.scenarios[8]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: normal
+    required: true
+  - id: RTL_SCENARIO_SUPPORT_SC10
+    content: Expose RTL behavior needed by SSOT scenario `SC10`
+    detail: 'Stimulus: Drive preconditions for function_model transaction `FM_DMALDP`.. Expected: Outputs and side effects match `FM_DMALDP` exactly..'
+    criteria:
+    - RTL has observable behavior for the scenario checker without weakening expected results
+    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
+    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
+    source_refs:
+    - test_requirements.scenarios[9]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: normal
+    required: true
+  - id: RTL_SCENARIO_SUPPORT_SC11
+    content: Expose RTL behavior needed by SSOT scenario `SC11`
+    detail: 'Stimulus: Drive preconditions for function_model transaction `FM_DMASTP`.. Expected: Outputs and side effects match `FM_DMASTP` exactly..'
+    criteria:
+    - RTL has observable behavior for the scenario checker without weakening expected results
+    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
+    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
+    source_refs:
+    - test_requirements.scenarios[10]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: normal
+    required: true
+  - id: RTL_SCENARIO_SUPPORT_SC12
+    content: Expose RTL behavior needed by SSOT scenario `SC12`
+    detail: 'Stimulus: Drive preconditions for function_model transaction `FM_DMASEV`.. Expected: Outputs and side effects match `FM_DMASEV` exactly..'
+    criteria:
+    - RTL has observable behavior for the scenario checker without weakening expected results
+    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
+    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
+    source_refs:
+    - test_requirements.scenarios[11]
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: normal
+    required: true
+  - id: RTL_CLOSE_GATE_TODOS
+    content: Close all rtl_gate.rtl_gen quality-gate TODOs with fresh evidence
+    detail: Run dynamic TODO audit, DUT compile, DUT-only lint, and static traceability checks after the final RTL edit. The gate TODOs are pass/fail
+      work items, not summary prose.
+    criteria:
+    - SSOT authority, workflow TODO format, owner traceability, static RTL evidence, compile, lint, and closure gate TODOs pass
+    - rtl_compile.json and lint/dut_lint.json are fresh and clean
+    - open_required_todos is zero
+    source_refs:
+    - quality_gates.rtl
+    - quality_gates.rtl_gen
+    - workflow_todos.rtl-gen
+    - generation_flow
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  - id: RTL_RESOLVE_CONNECTION_CONTRACTS
+    content: Resolve production multi-module connection contracts before top integration signoff
+    detail: The SSOT is production-profile and declares manifest child modules, but it has no machine-readable integration.connections or sub_modules[].connections
+      records. Child module drafts may proceed from their owner packets; top wiring, PASS, and signoff must remain blocked until SSOT authors
+      module/port/signal contracts.
+    criteria:
+    - integration.connections or sub_modules[].connections lists every active child module connection as module/port/signal data
+    - rtl_authoring_plan.execution_policy.connection_contract_gap.status becomes ok
+    - Top/gate authoring packet integration_signoff_allowed is true after rerunning rtl-gen TODO derivation
+    source_refs:
+    - integration.connections
+    - sub_modules[].connections
+    - quality_gates.rtl_gen
+    - workflow_todos.rtl-gen
+    owner_module: pl330_target
+    owner_file: rtl/pl330_target.sv
+    priority: high
+    required: true
+  tb-gen: []
+  sim_debug: []
+generation_flow:
+  steps:
+  - name: validate_ssot
+    command: bash workflow/ssot-gen/scripts/check_ssot_disk.sh pl330_target
+    description: Validate production SSOT structure and quality gates
+  - name: handoff_fl_model
+    command: /ssot-fl-model pl330_target
+    description: Generate FunctionalModel, decomposition, and FCOV plan from SSOT
+  - name: handoff_equivalence_goals
+    command: /ssot-equiv-goals pl330_target
+    description: Derive FL-vs-RTL equivalence goals before TB generation
+  - name: handoff_rtl
+    command: /ssot-rtl pl330_target
+    description: Generate RTL from validated SSOT
+  - name: handoff_tb
+    command: /ssot-tb-cocotb pl330_target
+    description: Generate cocotb/pyuvm verification from validated SSOT
+  - name: handoff_sim_debug
+    command: /wf sim_debug
+    description: Run simulation, waveform, and coverage inspection
+ip: pl330_target
+description: "AXI DMA controller \u2014 single-master AXI3, dual APB (NS+S) slave, parameterized\nperipheral request interfaces, IRQ outputs,\
+  \ instruction-driven engine,\nmulti-channel scheduler, internal MFIFO + merge buffer.\n"
+clocks:
+- name: aclk
+  frequency_mhz_min: 200
+  description: System AXI/APB clock
+resets:
+- name: aresetn
+  type: async_low
+  sync_clock: aclk

@@ -1,0 +1,346 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "atciic100_real",
+  "source": "atciic100_real/yaml/atciic100_real.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "union",
+  "summary": {
+    "total_bins": 50,
+    "by_class": {
+      "scenario": 12,
+      "transaction_type": 9,
+      "state_transition": 12,
+      "error": 5,
+      "protocol_handshake": 5,
+      "latency_bin": 7
+    }
+  },
+  "bins": [
+    {
+      "id": "SC1_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC1",
+      "description": "Reset"
+    },
+    {
+      "id": "SC2_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC2",
+      "description": "APB Read"
+    },
+    {
+      "id": "SC3_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC3",
+      "description": "APB Write"
+    },
+    {
+      "id": "SC4_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC4",
+      "description": "Master TX"
+    },
+    {
+      "id": "SC5_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC5",
+      "description": "Master RX"
+    },
+    {
+      "id": "SC6_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC6",
+      "description": "Slave TX"
+    },
+    {
+      "id": "SC7_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC7",
+      "description": "Slave RX"
+    },
+    {
+      "id": "SC8_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC8",
+      "description": "Gen Call"
+    },
+    {
+      "id": "SC9_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[8]",
+      "scenario": "SC9",
+      "description": "Arb Lose"
+    },
+    {
+      "id": "SC10_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[9]",
+      "scenario": "SC10",
+      "description": "FIFO Full"
+    },
+    {
+      "id": "SC11_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[10]",
+      "scenario": "SC11",
+      "description": "DMA Flow"
+    },
+    {
+      "id": "SC12_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[11]",
+      "scenario": "SC12",
+      "description": "Glitch"
+    },
+    {
+      "id": "function_reset",
+      "class": "transaction_type",
+      "source": "function_model.transactions[0]",
+      "description": "reset"
+    },
+    {
+      "id": "function_csr_read",
+      "class": "transaction_type",
+      "source": "function_model.transactions[1]",
+      "description": "csr_read"
+    },
+    {
+      "id": "function_csr_write",
+      "class": "transaction_type",
+      "source": "function_model.transactions[2]",
+      "description": "csr_write"
+    },
+    {
+      "id": "function_master_send",
+      "class": "transaction_type",
+      "source": "function_model.transactions[3]",
+      "description": "master_send"
+    },
+    {
+      "id": "function_master_recv",
+      "class": "transaction_type",
+      "source": "function_model.transactions[4]",
+      "description": "master_recv"
+    },
+    {
+      "id": "function_slave_send",
+      "class": "transaction_type",
+      "source": "function_model.transactions[5]",
+      "description": "slave_send"
+    },
+    {
+      "id": "function_slave_recv",
+      "class": "transaction_type",
+      "source": "function_model.transactions[6]",
+      "description": "slave_recv"
+    },
+    {
+      "id": "function_general_call",
+      "class": "transaction_type",
+      "source": "function_model.transactions[7]",
+      "description": "general_call"
+    },
+    {
+      "id": "function_dma_request",
+      "class": "transaction_type",
+      "source": "function_model.transactions[8]",
+      "description": "dma_request"
+    },
+    {
+      "id": "fsm_iic_phase_idle_to_start_0",
+      "class": "state_transition",
+      "source": "fsm.iic_phase.transitions[0]",
+      "description": "cmd==1 && master==1 && Phase_start"
+    },
+    {
+      "id": "fsm_iic_phase_idle_to_addr_1",
+      "class": "state_transition",
+      "source": "fsm.iic_phase.transitions[1]",
+      "description": "cmd==1 && master==1 && !Phase_start && Phase_addr"
+    },
+    {
+      "id": "fsm_iic_phase_idle_to_dat_2",
+      "class": "state_transition",
+      "source": "fsm.iic_phase.transitions[2]",
+      "description": "cmd==1 && master==1 && !Phase_start && !Phase_addr && Phase_data"
+    },
+    {
+      "id": "fsm_iic_phase_start_to_addr_3",
+      "class": "state_transition",
+      "source": "fsm.iic_phase.transitions[3]",
+      "description": "Start sent"
+    },
+    {
+      "id": "fsm_iic_phase_addr_to_dat_4",
+      "class": "state_transition",
+      "source": "fsm.iic_phase.transitions[4]",
+      "description": "Addr sent and ACK received"
+    },
+    {
+      "id": "fsm_iic_phase_addr_to_stop_5",
+      "class": "state_transition",
+      "source": "fsm.iic_phase.transitions[5]",
+      "description": "Addr sent and NACK received"
+    },
+    {
+      "id": "fsm_iic_phase_addr_to_arblost_6",
+      "class": "state_transition",
+      "source": "fsm.iic_phase.transitions[6]",
+      "description": "Arbitration Lost"
+    },
+    {
+      "id": "fsm_iic_phase_dat_to_stop_7",
+      "class": "state_transition",
+      "source": "fsm.iic_phase.transitions[7]",
+      "description": "DataCnt==0"
+    },
+    {
+      "id": "fsm_iic_phase_dat_to_dat_8",
+      "class": "state_transition",
+      "source": "fsm.iic_phase.transitions[8]",
+      "description": "DataCnt>0"
+    },
+    {
+      "id": "fsm_iic_phase_dat_to_arblost_9",
+      "class": "state_transition",
+      "source": "fsm.iic_phase.transitions[9]",
+      "description": "Arbitration Lost"
+    },
+    {
+      "id": "fsm_iic_phase_stop_to_idle_10",
+      "class": "state_transition",
+      "source": "fsm.iic_phase.transitions[10]",
+      "description": "Stop sent"
+    },
+    {
+      "id": "fsm_iic_phase_arblost_to_idle_11",
+      "class": "state_transition",
+      "source": "fsm.iic_phase.transitions[11]",
+      "description": "Immediate"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "source": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_ACK', 'source': 'Slave NACK', 'effect': 'Transaction stops'}"
+    },
+    {
+      "id": "error_error_1",
+      "class": "error",
+      "source": "error_handling.error_sources[1]",
+      "description": "{'id': 'ERR_ARB', 'source': 'Multi-Master Collision', 'effect': 'ArbLost Status'}"
+    },
+    {
+      "id": "error_error_2",
+      "class": "error",
+      "source": "error_handling.error_sources[2]",
+      "description": "{'id': 'ERR_FIFO', 'source': 'Overrun/Underrun', 'effect': 'Data Loss/Clocking Stretching'}"
+    },
+    {
+      "id": "error_error_3",
+      "class": "error",
+      "source": "error_handling.error_sources[3]",
+      "description": "{'id': 'ERR_DMA_TIMEOUT', 'source': 'DMA acknowledge not received', 'effect': 'FIFO overrun or underrun'}"
+    },
+    {
+      "id": "error_error_4",
+      "class": "error",
+      "source": "error_handling.error_sources[4]",
+      "description": "{'id': 'ERR_GLITCH_INJECT', 'source': 'Injected glitch on SCL/SDA', 'effect': 'Filtered by GSF if within T_SP'}"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[0]",
+      "description": "handshake_0"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[1]",
+      "description": "handshake_1"
+    },
+    {
+      "id": "cycle_handshake_2",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[2]",
+      "description": "handshake_2"
+    },
+    {
+      "id": "cycle_handshake_3",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[3]",
+      "description": "handshake_3"
+    },
+    {
+      "id": "cycle_handshake_4",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[4]",
+      "description": "handshake_4"
+    },
+    {
+      "id": "latency_register_access_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_access",
+      "description": "register_access latency < 2 cycles",
+      "bucket": "<min",
+      "threshold": 2
+    },
+    {
+      "id": "latency_register_access_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_access",
+      "description": "register_access latency == 2 cycles",
+      "bucket": "min",
+      "cycles": 2
+    },
+    {
+      "id": "latency_register_access_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_access",
+      "description": "register_access latency == 2 cycles",
+      "bucket": "max",
+      "cycles": 2
+    },
+    {
+      "id": "latency_register_access_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_access",
+      "description": "register_access latency > 2 cycles",
+      "bucket": ">max",
+      "threshold": 2
+    },
+    {
+      "id": "latency_i2c_byte_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.i2c_byte",
+      "description": "i2c_byte latency < 9 cycles",
+      "bucket": "<min",
+      "threshold": 9
+    },
+    {
+      "id": "latency_i2c_byte_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.i2c_byte",
+      "description": "i2c_byte latency == 9 cycles",
+      "bucket": "min",
+      "cycles": 9
+    },
+    {
+      "id": "latency_i2c_byte_unbounded",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.i2c_byte",
+      "description": "i2c_byte latency unbounded (no max_cycles)",
+      "bucket": "unbounded"
+    }
+  ]
+}

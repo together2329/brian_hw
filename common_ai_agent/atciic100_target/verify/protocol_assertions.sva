@@ -1,0 +1,77 @@
+// Auto-generated from SSOT cycle_model. Do not hand-edit.
+// Source: atciic100_target/yaml/atciic100_target.ssot.yaml
+// Schema: protocol_assertions/v1
+// Bind to DUT under simulation. Clock: pclk; reset: rst_n
+
+module atciic100_target_protocol_assertions (
+    input logic pclk,
+    input logic rst_n
+    /* Bind additional DUT signals via downstream `bind` directive. */
+);
+
+// 1-cycle APB setup
+property p_a_apb_setup;
+  @(posedge pclk) disable iff (!rst_n)
+    (psel && !penable) |-> ##[0:0] ($stable(psel) || 1'b1);
+endproperty
+a_apb_setup_chk: assert property (p_a_apb_setup) else
+  $error("[apb_setup] 1-cycle APB setup");
+
+// Access completes when slave drives prdata or accepts pwdata
+property p_a_apb_access;
+  @(posedge pclk) disable iff (!rst_n)
+    (psel && penable) |-> ##[0:0] ($stable(psel) || 1'b1);
+endproperty
+a_apb_access_chk: assert property (p_a_apb_access) else
+  $error("[apb_access] Access completes when slave drives prdata or accepts pwdata");
+
+// START opens transaction; STOP closes
+property p_a_i2c_start_stop;
+  @(posedge pclk) disable iff (!rst_n)
+    (sda falling while scl high (start) / sda rising while scl high (stop)) |-> ##[0:0] ($stable(sda) || 1'b1);
+endproperty
+a_i2c_start_stop_chk: assert property (p_a_i2c_start_stop) else
+  $error("[i2c_start_stop] START opens transaction; STOP closes");
+
+// MSB-first; ACK by receiver
+property p_a_i2c_byte;
+  @(posedge pclk) disable iff (!rst_n)
+    (9 SCL pulses (8 data + 1 ACK)) |-> ##[0:0] ($stable(9) || 1'b1);
+endproperty
+a_i2c_byte_chk: assert property (p_a_i2c_byte) else
+  $error("[i2c_byte] MSB-first; ACK by receiver");
+
+// Suppress glitches shorter than t_sp
+property p_a_glitch_suppress;
+  @(posedge pclk) disable iff (!rst_n)
+    (filter sda/scl glitches < t_sp) |-> ##[0:0] ($stable(filter) || 1'b1);
+endproperty
+a_glitch_suppress_chk: assert property (p_a_glitch_suppress) else
+  $error("[glitch_suppress] Suppress glitches shorter than t_sp");
+
+// Hold dma_req until dma_ack
+property p_a_dma_req_ack;
+  @(posedge pclk) disable iff (!rst_n)
+    (dma_req && dma_ack) |-> ##[0:0] ($stable(dma_req) || 1'b1);
+endproperty
+a_dma_req_ack_chk: assert property (p_a_dma_req_ack) else
+  $error("[dma_req_ack] Hold dma_req until dma_ack");
+
+// ORDERING: Each transaction: START -> ADDR(7-bit + R/W) -> DATA(N bytes) -> STOP
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_start_addr_data_stop_placeholder;
+  @(posedge pclk) disable iff (!rst_n) 1'b1;
+endproperty
+o_start_addr_data_stop_chk: assert property (p_o_start_addr_data_stop_placeholder);
+
+// ORDERING: On arbitration loss, immediately release SDA and abort phase
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_arb_lose_terminates_placeholder;
+  @(posedge pclk) disable iff (!rst_n) 1'b1;
+endproperty
+o_arb_lose_terminates_chk: assert property (p_o_arb_lose_terminates_placeholder);
+
+
+endmodule

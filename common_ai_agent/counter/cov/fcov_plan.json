@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "counter",
+  "source": "counter/yaml/counter.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "union",
+  "summary": {
+    "total_bins": 0,
+    "by_class": {}
+  },
+  "bins": []
+}

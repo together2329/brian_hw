@@ -1,0 +1,475 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_decomposition",
+  "ip": "smbus",
+  "source": "smbus/yaml/smbus.ssot.yaml",
+  "units": [
+    {
+      "name": "smbus",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "function_model",
+        "parameters",
+        "rtl_contract",
+        "top_module"
+      ],
+      "rtl_candidates": [
+        "smbus"
+      ],
+      "rtl_file": "rtl/smbus.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.arbitration.bus_arbitration",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.ack_check",
+        "cycle_model.handshake_rules.stop_after_nack",
+        "cycle_model.handshake_rules.valid_ready",
+        "cycle_model.latency",
+        "cycle_model.ordering.address_before_data",
+        "cycle_model.ordering.start_before_data",
+        "cycle_model.reset",
+        "function_model",
+        "function_model.invariants.addr_7bit",
+        "function_model.invariants.busy_mutex",
+        "function_model.invariants.idle_on_rst",
+        "function_model.state_variables.addr_reg",
+        "function_model.state_variables.bit_cnt",
+        "function_model.state_variables.busy",
+        "function_model.state_variables.data_reg",
+        "function_model.state_variables.nack_flag",
+        "function_model.state_variables.shift_reg",
+        "function_model.state_variables.state",
+        "function_model.transactions.read_byte",
+        "function_model.transactions.read_byte.inputs.addr",
+        "function_model.transactions.read_byte.output_rules.scl_out",
+        "function_model.transactions.read_byte.output_rules.sda_out",
+        "function_model.transactions.read_byte.state_updates.busy",
+        "function_model.transactions.read_byte.state_updates.shift_reg",
+        "function_model.transactions.read_byte.state_updates.state",
+        "function_model.transactions.send_stop",
+        "function_model.transactions.send_stop.output_rules.scl_out",
+        "function_model.transactions.send_stop.output_rules.sda_out",
+        "function_model.transactions.send_stop.state_updates.busy",
+        "function_model.transactions.send_stop.state_updates.state",
+        "function_model.transactions.write_byte",
+        "function_model.transactions.write_byte.inputs.addr",
+        "function_model.transactions.write_byte.inputs.data",
+        "function_model.transactions.write_byte.output_rules.scl_out",
+        "function_model.transactions.write_byte.output_rules.sda_out",
+        "function_model.transactions.write_byte.state_updates.busy",
+        "function_model.transactions.write_byte.state_updates.shift_reg",
+        "function_model.transactions.write_byte.state_updates.state",
+        "parameters.clk_freq_hz",
+        "parameters.smb_freq_hz",
+        "rtl_contract",
+        "top_module"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.addr_7bit",
+        "function_model.invariants.busy_mutex",
+        "function_model.invariants.idle_on_rst",
+        "function_model.state_variables.addr_reg",
+        "function_model.state_variables.bit_cnt",
+        "function_model.state_variables.busy",
+        "function_model.state_variables.data_reg",
+        "function_model.state_variables.nack_flag",
+        "function_model.state_variables.shift_reg",
+        "function_model.state_variables.state",
+        "function_model.transactions.read_byte",
+        "function_model.transactions.read_byte.inputs.addr",
+        "function_model.transactions.read_byte.output_rules.scl_out",
+        "function_model.transactions.read_byte.output_rules.sda_out",
+        "function_model.transactions.read_byte.state_updates.busy",
+        "function_model.transactions.read_byte.state_updates.shift_reg",
+        "function_model.transactions.read_byte.state_updates.state",
+        "function_model.transactions.send_stop",
+        "function_model.transactions.send_stop.output_rules.scl_out",
+        "function_model.transactions.send_stop.output_rules.sda_out",
+        "function_model.transactions.send_stop.state_updates.busy",
+        "function_model.transactions.send_stop.state_updates.state",
+        "function_model.transactions.write_byte",
+        "function_model.transactions.write_byte.inputs.addr",
+        "function_model.transactions.write_byte.inputs.data",
+        "function_model.transactions.write_byte.output_rules.scl_out",
+        "function_model.transactions.write_byte.output_rules.sda_out",
+        "function_model.transactions.write_byte.state_updates.busy",
+        "function_model.transactions.write_byte.state_updates.shift_reg",
+        "function_model.transactions.write_byte.state_updates.state"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.arbitration.bus_arbitration",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.ack_check",
+        "cycle_model.handshake_rules.stop_after_nack",
+        "cycle_model.handshake_rules.valid_ready",
+        "cycle_model.latency",
+        "cycle_model.ordering.address_before_data",
+        "cycle_model.ordering.start_before_data",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "parameters.clk_freq_hz",
+        "parameters.smb_freq_hz"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    }
+  ],
+  "module_contracts": [
+    {
+      "name": "smbus",
+      "kind": "rtl_module",
+      "rtl_module": "smbus",
+      "rtl_file": "rtl/smbus.sv",
+      "source_sections": [
+        "cycle_model",
+        "function_model",
+        "parameters",
+        "rtl_contract",
+        "top_module"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.arbitration.bus_arbitration",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.ack_check",
+        "cycle_model.handshake_rules.stop_after_nack",
+        "cycle_model.handshake_rules.valid_ready",
+        "cycle_model.latency",
+        "cycle_model.ordering.address_before_data",
+        "cycle_model.ordering.start_before_data",
+        "cycle_model.reset",
+        "function_model",
+        "function_model.invariants.addr_7bit",
+        "function_model.invariants.busy_mutex",
+        "function_model.invariants.idle_on_rst",
+        "function_model.state_variables.addr_reg",
+        "function_model.state_variables.bit_cnt",
+        "function_model.state_variables.busy",
+        "function_model.state_variables.data_reg",
+        "function_model.state_variables.nack_flag",
+        "function_model.state_variables.shift_reg",
+        "function_model.state_variables.state",
+        "function_model.transactions.read_byte",
+        "function_model.transactions.read_byte.inputs.addr",
+        "function_model.transactions.read_byte.output_rules.scl_out",
+        "function_model.transactions.read_byte.output_rules.sda_out",
+        "function_model.transactions.read_byte.state_updates.busy",
+        "function_model.transactions.read_byte.state_updates.shift_reg",
+        "function_model.transactions.read_byte.state_updates.state",
+        "function_model.transactions.send_stop",
+        "function_model.transactions.send_stop.output_rules.scl_out",
+        "function_model.transactions.send_stop.output_rules.sda_out",
+        "function_model.transactions.send_stop.state_updates.busy",
+        "function_model.transactions.send_stop.state_updates.state",
+        "function_model.transactions.write_byte",
+        "function_model.transactions.write_byte.inputs.addr",
+        "function_model.transactions.write_byte.inputs.data",
+        "function_model.transactions.write_byte.output_rules.scl_out",
+        "function_model.transactions.write_byte.output_rules.sda_out",
+        "function_model.transactions.write_byte.state_updates.busy",
+        "function_model.transactions.write_byte.state_updates.shift_reg",
+        "function_model.transactions.write_byte.state_updates.state",
+        "parameters.clk_freq_hz",
+        "parameters.smb_freq_hz",
+        "rtl_contract",
+        "top_module"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.addr_7bit",
+        "function_model.invariants.busy_mutex",
+        "function_model.invariants.idle_on_rst",
+        "function_model.state_variables.addr_reg",
+        "function_model.state_variables.bit_cnt",
+        "function_model.state_variables.busy",
+        "function_model.state_variables.data_reg",
+        "function_model.state_variables.nack_flag",
+        "function_model.state_variables.shift_reg",
+        "function_model.state_variables.state",
+        "function_model.transactions.read_byte",
+        "function_model.transactions.read_byte.inputs.addr",
+        "function_model.transactions.read_byte.output_rules.scl_out",
+        "function_model.transactions.read_byte.output_rules.sda_out",
+        "function_model.transactions.read_byte.state_updates.busy",
+        "function_model.transactions.read_byte.state_updates.shift_reg",
+        "function_model.transactions.read_byte.state_updates.state",
+        "function_model.transactions.send_stop",
+        "function_model.transactions.send_stop.output_rules.scl_out",
+        "function_model.transactions.send_stop.output_rules.sda_out",
+        "function_model.transactions.send_stop.state_updates.busy",
+        "function_model.transactions.send_stop.state_updates.state",
+        "function_model.transactions.write_byte",
+        "function_model.transactions.write_byte.inputs.addr",
+        "function_model.transactions.write_byte.inputs.data",
+        "function_model.transactions.write_byte.output_rules.scl_out",
+        "function_model.transactions.write_byte.output_rules.sda_out",
+        "function_model.transactions.write_byte.state_updates.busy",
+        "function_model.transactions.write_byte.state_updates.shift_reg",
+        "function_model.transactions.write_byte.state_updates.state"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.arbitration.bus_arbitration",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.ack_check",
+        "cycle_model.handshake_rules.stop_after_nack",
+        "cycle_model.handshake_rules.valid_ready",
+        "cycle_model.latency",
+        "cycle_model.ordering.address_before_data",
+        "cycle_model.ordering.start_before_data",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "parameters.clk_freq_hz",
+        "parameters.smb_freq_hz"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.state",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.state_variables.shift_reg",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.state_variables.bit_cnt",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.state_variables.addr_reg",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.state_variables.data_reg",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.state_variables.busy",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.state_variables.nack_flag",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.write_byte",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.write_byte.inputs.addr",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.write_byte.inputs.data",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.write_byte.output_rules.sda_out",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.write_byte.output_rules.scl_out",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.write_byte.state_updates.state",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.write_byte.state_updates.shift_reg",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.write_byte.state_updates.busy",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.read_byte",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.read_byte.inputs.addr",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.read_byte.output_rules.sda_out",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.read_byte.output_rules.scl_out",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.read_byte.state_updates.state",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.read_byte.state_updates.shift_reg",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.read_byte.state_updates.busy",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.send_stop",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.send_stop.output_rules.sda_out",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.send_stop.output_rules.scl_out",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.send_stop.state_updates.state",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.send_stop.state_updates.busy",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.invariants.busy_mutex",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.invariants.addr_7bit",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.invariants.idle_on_rst",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.clock",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.reset",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.latency",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.valid_ready",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.ack_check",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.stop_after_nack",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.ordering.start_before_data",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.ordering.address_before_data",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.arbitration.bus_arbitration",
+          "matched_ref": "single_owner"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "parameters.clk_freq_hz",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "parameters.smb_freq_hz",
+          "matched_ref": "single_owner"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    }
+  ],
+  "orphan_function_cycle_refs": [],
+  "function_cycle_ref_count": 39,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "smbus/req/",
+      "smbus/yaml/smbus.ssot.yaml",
+      "smbus/model/functional_model.py",
+      "smbus/cov/fcov_plan.json",
+      "smbus/yaml/smbus.ssot.yaml#io_list",
+      "smbus/yaml/smbus.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "smbus/rtl/",
+      "smbus/tb/",
+      "smbus/sim/",
+      "smbus/vectors/",
+      "smbus/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "drives": [
+    "rtl_module_plan",
+    "tb_environment_plan",
+    "functional_coverage_plan"
+  ],
+  "complete": true
+}

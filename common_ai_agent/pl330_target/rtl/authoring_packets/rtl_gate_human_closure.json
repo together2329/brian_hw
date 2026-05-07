@@ -1,0 +1,912 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "missing"
+    },
+    "connection_contract_suggestions": {
+      "path": "rtl/connection_contract_suggestions.json",
+      "rows": [
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "busy",
+          "review_status": "pending",
+          "signal": "engine_busy"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "channel_state",
+          "review_status": "pending",
+          "signal": "engine_channel_state"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "clk",
+          "review_status": "pending",
+          "signal": "clk"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "cmd_channel",
+          "review_status": "pending",
+          "signal": "engine_cmd_channel"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "cmd_dst_addr",
+          "review_status": "pending",
+          "signal": "engine_cmd_dst_addr"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "cmd_len",
+          "review_status": "pending",
+          "signal": "engine_cmd_len"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "cmd_opcode",
+          "review_status": "pending",
+          "signal": "engine_cmd_opcode"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "cmd_privileged",
+          "review_status": "pending",
+          "signal": "engine_cmd_privileged"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "cmd_ready",
+          "review_status": "pending",
+          "signal": "engine_cmd_ready"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "cmd_secure",
+          "review_status": "pending",
+          "signal": "engine_cmd_secure"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "cmd_src_addr",
+          "review_status": "pending",
+          "signal": "engine_cmd_src_addr"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "cmd_valid",
+          "review_status": "pending",
+          "signal": "engine_cmd_valid"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "engine_state",
+          "review_status": "pending",
+          "signal": "engine_state"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "error_code",
+          "review_status": "pending",
+          "signal": "engine_error_code"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "error_valid",
+          "review_status": "pending",
+          "signal": "engine_error_valid"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "fetch_req_addr",
+          "review_status": "pending",
+          "signal": "engine_fetch_req_addr"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "fetch_req_channel",
+          "review_status": "pending",
+          "signal": "engine_fetch_req_channel"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "fetch_req_privileged",
+          "review_status": "pending",
+          "signal": "engine_fetch_req_privileged"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "fetch_req_ready",
+          "review_status": "pending",
+          "signal": "engine_fetch_req_ready"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "fetch_req_secure",
+          "review_status": "pending",
+          "signal": "engine_fetch_req_secure"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "fetch_req_valid",
+          "review_status": "pending",
+          "signal": "engine_fetch_req_valid"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "fetch_rsp_data",
+          "review_status": "pending",
+          "signal": "engine_fetch_rsp_data"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "fetch_rsp_error",
+          "review_status": "pending",
+          "signal": "engine_fetch_rsp_error"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "fetch_rsp_ready",
+          "review_status": "pending",
+          "signal": "engine_fetch_rsp_ready"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "fetch_rsp_valid",
+          "review_status": "pending",
+          "signal": "engine_fetch_rsp_valid"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "idle",
+          "review_status": "pending",
+          "signal": "engine_idle"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "observed_fetch_data",
+          "review_status": "pending",
+          "signal": "engine_observed_fetch_data"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "outstanding_reads",
+          "review_status": "pending",
+          "signal": "engine_outstanding_reads"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "outstanding_writes",
+          "review_status": "pending",
+          "signal": "engine_outstanding_writes"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "rd_req_addr",
+          "review_status": "pending",
+          "signal": "engine_rd_req_addr"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "rd_req_channel",
+          "review_status": "pending",
+          "signal": "engine_rd_req_channel"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "rd_req_len",
+          "review_status": "pending",
+          "signal": "engine_rd_req_len"
+        }
+      ],
+      "rule": "This artifact is a pending QA aid only. It is not SSOT authority, does not close manifest_connection_contract_evidence, and must be approved into integration.connections or sub_modules[].connections by a human.",
+      "summary": {
+        "applied_to_ssot": false,
+        "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
+        "pending_review": 398,
+        "status": "pending_review",
+        "suggested_rows": 398
+      }
+    },
+    "owner": {
+      "file": "rtl/pl330_target.sv",
+      "name": "pl330_target",
+      "refs": [],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pl330_target_engine.sv",
+        "name": "pl330_target_engine",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_pipeline.sv",
+        "name": "pl330_target_pipeline",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_lsq.sv",
+        "name": "pl330_target_lsq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_mfifo.sv",
+        "name": "pl330_target_mfifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_merge_buffer.sv",
+        "name": "pl330_target_merge_buffer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_icache.sv",
+        "name": "pl330_target_icache",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_axi.sv",
+        "name": "pl330_target_axi",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_periph.sv",
+        "name": "pl330_target_periph",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_apb_regs.sv",
+        "name": "pl330_target_apb_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target.sv",
+        "name": "pl330_target",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": {
+      "guidance": {
+        "calibration_only": true,
+        "do_not_copy_reference_rtl": true,
+        "target_candidate_rule": "suggested_ssot_target_scale is derived from design_candidate files when available, excluding validation/testbench/simulation collateral by path bucket."
+      },
+      "label": "PL330-GRP-r1p2",
+      "path": "reports/rtl_reference_profile.json",
+      "suggested_ssot_target_scale": {
+        "basis": "candidate structural scale from rtl_reference_profile; review and lock in SSOT before enforcement",
+        "control_flow_min": 155,
+        "depth_score_min": 4507,
+        "instances_min": 472,
+        "lines_min": 52338,
+        "modules_min": 52,
+        "nonconstant_assigns_min": 1135,
+        "procedural_blocks_min": 561,
+        "source_files_min": 57,
+        "state_updates_min": 295
+      },
+      "summary": {
+        "always_blocks": 910,
+        "assigns": 3049,
+        "case_blocks": 260,
+        "file_count": 143,
+        "instance_candidates": 1049,
+        "lines": 130568,
+        "modules": 210,
+        "nonconstant_assigns": 2890,
+        "state_updates": 1219
+      },
+      "target_candidate_basis": "design_candidate",
+      "target_candidate_summary": {
+        "always_blocks": 561,
+        "assigns": 1150,
+        "case_blocks": 155,
+        "file_count": 57,
+        "instance_candidates": 472,
+        "lines": 52338,
+        "modules": 52,
+        "nonconstant_assigns": 1135,
+        "state_updates": 295
+      }
+    },
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "aclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "aclk",
+        "source_ref": "clocks[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "aresetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "aresetn",
+        "source_ref": "resets[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "control_data_req_valid",
+          "req_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "req_valid",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "control_data_req_ready",
+          "req_ready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "req_ready",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "control_data_req_data",
+          "req_data"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "req_data",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "control_data_rsp_valid",
+          "rsp_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "rsp_valid",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "control_data_rsp_ready",
+          "rsp_ready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rsp_ready",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "control_data_rsp_data",
+          "rsp_data"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "rsp_data",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "control_data_error",
+          "error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "error",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [
+      {
+        "gate_kind": "manifest_connection_contract_evidence",
+        "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+        "source": "ssot_connection_contracts",
+        "status": "missing"
+      },
+      {
+        "gate_kind": "golden_authority_artifacts",
+        "owner_module": "pl330_target",
+        "reason": "Human authority gate(s) required before production RTL-GEN are not approved: G1=pending, G7=pending",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
+        "status": "open",
+        "task_id": "RTL-0020"
+      },
+      {
+        "gate_kind": "target_scale_policy",
+        "owner_module": "pl330_target",
+        "reason": "Reference profile provides suggested_ssot_target_scale, but SSOT target_scale is not locked and no approved waiver is present.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.target_scale",
+        "status": "open",
+        "task_id": "RTL-0021"
+      }
+    ],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": false,
+    "evidence_closure_allowed": true,
+    "human_locked_open_count": 3,
+    "integration_signoff_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 2,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pl330_target",
+  "kind": "gate",
+  "owner_file": "rtl/pl330_target.sv",
+  "owner_module": "pl330_target",
+  "packet_id": "rtl_gate_human_closure",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "rtl_gate.rtl_gen": 6
+    },
+    "module_slice": {},
+    "open_required_count": 2,
+    "required_count": 6,
+    "source_refs": [
+      "quality_gates.rtl_gen.ssot_required_sections",
+      "quality_gates.rtl_gen.workflow_todo_contract",
+      "quality_gates.rtl_gen.owner_traceability",
+      "quality_gates.rtl_gen.golden_authority_artifacts",
+      "quality_gates.rtl_gen.target_scale",
+      "quality_gates.rtl_gen.cycle_model_artifacts"
+    ],
+    "status_counts": {
+      "open": 2,
+      "pass": 4
+    },
+    "task_count": 6
+  },
+  "tasks": [
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: SSOT function_model and cycle_model are present before RTL generation",
+      "criteria": [
+        "function_model is present and non-empty in the SSOT",
+        "cycle_model is present and non-empty in the SSOT",
+        "Missing authority artifacts open a human/ssot-gen gate instead of being bypassed in RTL",
+        "Traceability keeps source_ref quality_gates.rtl_gen.ssot_required_sections",
+        "Primary implementation evidence is in rtl/pl330_target.sv"
+      ],
+      "detail": "rtl-gen cannot implement production RTL until the SSOT contains both the functional golden behavior and the cycle/handshake contract.\nSSOT ref: quality_gates.rtl_gen.ssot_required_sections.\nOwner: pl330_target in rtl/pl330_target.sv via top_fallback.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "yaml/<ip>.ssot.yaml",
+        "kind": "ssot_required_sections",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0003",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.ssot_required_sections",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.ssot_required_sections"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "yaml/<ip>.ssot.yaml"
+        ],
+        "reason": "SSOT function_model and cycle_model authority is present.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: SSOT-authored rtl-gen workflow TODOs are well formed",
+      "criteria": [
+        "Every workflow_todos.rtl-gen item has content",
+        "Every workflow_todos.rtl-gen item has detail",
+        "Every workflow_todos.rtl-gen item has at least one criteria entry",
+        "Traceability keeps source_ref quality_gates.rtl_gen.workflow_todo_contract",
+        "Primary implementation evidence is in rtl/pl330_target.sv"
+      ],
+      "detail": "Every SSOT workflow_todos.rtl-gen item must be executable by rtl-gen and therefore must carry content, detail, and criteria.\nSSOT ref: quality_gates.rtl_gen.workflow_todo_contract.\nOwner: pl330_target in rtl/pl330_target.sv via top_fallback.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "ssot_workflow_todo_format",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0004",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.workflow_todo_contract",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.workflow_todo_contract"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "SSOT-authored rtl-gen workflow TODOs are well formed.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: every SSOT-derived RTL behavior has an owner module",
+      "criteria": [
+        "No required function_model task is orphaned",
+        "No required cycle_model task is orphaned",
+        "No required register/dataflow/FSM task is orphaned",
+        "Owner module and owner file are recorded in rtl_todo_plan.json",
+        "Traceability keeps source_ref quality_gates.rtl_gen.owner_traceability",
+        "Primary implementation evidence is in rtl/pl330_target.sv"
+      ],
+      "detail": "Function-level, cycle-level, register, dataflow, and FSM behavior must map to an RTL owner module before approval.\nSSOT ref: quality_gates.rtl_gen.owner_traceability.\nOwner: pl330_target in rtl/pl330_target.sv via top_fallback.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "owner_traceability",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0005",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.owner_traceability",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.owner_traceability"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "Every required SSOT-derived RTL behavior has an owner module.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: production RTL uses locked SSOT/FL/coverage authority artifacts",
+      "criteria": [
+        "governance/authority.json exists",
+        "authority.json is the current IP human_llm_authority_manifest",
+        "authority operating rules R1..R6 and LLM loops L1..L9 are present",
+        "human authority gates G1..G7 are approved before production RTL-GEN",
+        "repo_layout separates locked SSOT/model/coverage truth from LLM-editable rtl/tb/sim/report work",
+        "model/functional_model.py exists",
+        "model/fl_model_check.json passed=true",
+        "model/model_signature.json matches the current SSOT-derived golden model signature",
+        "model/decomposition.json complete=true with unblocked implementation units",
+        "cov/fcov_plan.json has planned bins before RTL signoff",
+        "verify/equivalence_goals.json has required, unblocked goals",
+        "Traceability keeps source_ref quality_gates.rtl_gen.golden_authority_artifacts",
+        "Primary implementation evidence is in rtl/pl330_target.sv"
+      ],
+      "detail": "PL330-level RTL cannot proceed from prose alone. It must carry machine-readable authority artifacts that separate human-owned truth from LLM-editable implementation.\nSSOT ref: quality_gates.rtl_gen.golden_authority_artifacts.\nOwner: pl330_target in rtl/pl330_target.sv via top_fallback.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "governance/authority.json",
+        "kind": "golden_authority_artifacts",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0020",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.golden_authority_artifacts"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 13,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "governance/authority.json"
+        ],
+        "reason": "Human authority gate(s) required before production RTL-GEN are not approved: G1=pending, G7=pending",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: production RTL scale target is locked or explicitly waived",
+      "criteria": [
+        "Reference-derived suggested_ssot_target_scale candidates are review inputs only",
+        "SSOT quality_gates.rtl_gen.target_scale contains human-locked structural depth minima before PL330-level PASS claims",
+        "If target scale is intentionally not enforced, SSOT contains target_scale_waiver.approved=true with a rationale",
+        "Traceability keeps source_ref quality_gates.rtl_gen.target_scale",
+        "Primary implementation evidence is in rtl/pl330_target.sv"
+      ],
+      "detail": "When a calibration reference profile provides target-scale candidates, a human must lock the chosen minimum structural scale in SSOT quality_gates.rtl_gen.target_scale or record an explicit SSOT target_scale_waiver before rtl-gen can claim production signoff.\nSSOT ref: quality_gates.rtl_gen.target_scale.\nOwner: pl330_target in rtl/pl330_target.sv via top_fallback.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "yaml/<ip>.ssot.yaml",
+        "kind": "target_scale_policy",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0021",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.target_scale",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.target_scale"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "yaml/<ip>.ssot.yaml"
+        ],
+        "reason": "Reference profile provides suggested_ssot_target_scale, but SSOT target_scale is not locked and no approved waiver is present.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: production RTL has executable cycle/handshake model evidence",
+      "criteria": [
+        "model/cycle_model.py exists",
+        "model/cl_model_check.json passed=true",
+        "cycle_model evidence traces to SSOT cycle_model",
+        "Traceability keeps source_ref quality_gates.rtl_gen.cycle_model_artifacts",
+        "Primary implementation evidence is in rtl/pl330_target.sv"
+      ],
+      "detail": "Complex DMA-class RTL needs a cycle-level oracle for latency, handshake, ordering, backpressure, and performance-sensitive behavior.\nSSOT ref: quality_gates.rtl_gen.cycle_model_artifacts.\nOwner: pl330_target in rtl/pl330_target.sv via top_fallback.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "model/cycle_model.py",
+        "kind": "cycle_model_artifacts",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0023",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.cycle_model_artifacts"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "model/cycle_model.py"
+        ],
+        "reason": "Cycle model artifact and self-check are present.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "5ce9ec8f548eb16700a325ec5cf4698b70cdf559b6977cd26c2a8df84edc9398",
+  "top": "pl330_target",
+  "type": "rtl_authoring_packet"
+}

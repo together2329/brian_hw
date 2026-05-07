@@ -1,0 +1,9 @@
+{
+  "expressions_hash": "ebd49d36d562b44309e7b0aa849538f67f4a8791163d21e6b72cfb59830318dd",
+  "invariants_hash": "f55018e1500a257ca166a964ec9c0928703eb0ae92bb1baed5839604b3c0638c",
+  "ip": "smbus",
+  "schema_version": 1,
+  "ssot_hash": "0f9cd9ea90f25f3d6447396dacc3d526099bc4aa7d3d4ccb9fa79e0748037f74",
+  "transactions_hash": "4236effd1481ce4c75a04b0ccf38bc4c38e97ae068d435beed6e127e08d408d7",
+  "type": "model_signature"
+}

@@ -1,0 +1,708 @@
+{
+  "source": "ssot_coverage_summary",
+  "status": "blocked",
+  "ssot": "pl330_target/yaml/pl330_target.ssot.yaml",
+  "module": "pl330_target",
+  "dv_plan": {
+    "scenarios": 12,
+    "scoreboard_checks": 12,
+    "coverage_goals": {
+      "planned_bins": [
+        {
+          "id": "cov_all_channels",
+          "class": "scenario",
+          "description": "every channel exercised at least once"
+        },
+        {
+          "id": "cov_dmaldp_seen",
+          "class": "transaction_type",
+          "description": "DMALDP fired at least once"
+        },
+        {
+          "id": "cov_burst_64beat",
+          "class": "transaction_type",
+          "description": "AXI burst of 64 beats observed"
+        },
+        {
+          "id": "cov_fault_recovery",
+          "class": "error",
+          "description": "FAULTING_COMPLETING reached"
+        },
+        {
+          "id": "cov_axi_outstanding_max",
+          "class": "planned_functional",
+          "description": "16 outstanding reads simultaneously"
+        },
+        {
+          "id": "cov_apb_secure_block",
+          "class": "planned_functional",
+          "description": "NS access to secure register correctly blocked"
+        }
+      ],
+      "scenario": "All SSOT scenarios pass with executable cocotb/pyuvm checkers and FL-vs-RTL scoreboard evidence"
+    }
+  },
+  "functional": {
+    "hit": 0,
+    "total": 50,
+    "pct": 0.0
+  },
+  "planned_bins": [
+    "SC01_executed",
+    "SC02_executed",
+    "SC03_executed",
+    "SC04_executed",
+    "SC05_executed",
+    "SC06_executed",
+    "SC07_executed",
+    "SC08_executed",
+    "SC09_executed",
+    "SC10_executed",
+    "SC11_executed",
+    "SC12_executed",
+    "function_reset",
+    "function_dmago_command",
+    "function_dmald_load",
+    "function_dmast_store",
+    "function_dmaldp_periph_load",
+    "function_dmastp_periph_store",
+    "function_dmasev_event_signal",
+    "function_dmaend_terminate",
+    "function_fault_propagate",
+    "fsm_channel_state_stopped_to_executing_0",
+    "fsm_channel_state_executing_to_cache_miss_1",
+    "fsm_channel_state_cache_miss_to_executing_2",
+    "fsm_channel_state_executing_to_waiting_for_event_3",
+    "fsm_channel_state_waiting_for_event_to_executing_4",
+    "fsm_channel_state_executing_to_at_barrier_5",
+    "fsm_channel_state_at_barrier_to_executing_6",
+    "fsm_channel_state_executing_to_completing_7",
+    "fsm_channel_state_completing_to_stopped_8",
+    "fsm_channel_state_any_to_killing_9",
+    "fsm_channel_state_killing_to_stopped_10",
+    "fsm_channel_state_any_to_faulting_11",
+    "fsm_channel_state_faulting_to_faulting_completing_12",
+    "fsm_channel_state_faulting_completing_to_stopped_13",
+    "error_error_0",
+    "error_error_1",
+    "error_error_2",
+    "error_error_3",
+    "error_error_4",
+    "error_error_5",
+    "cycle_handshake_0",
+    "cycle_handshake_1",
+    "latency_control_or_request_accept_at_min",
+    "latency_control_or_request_accept_unbounded",
+    "latency_primary_operation_lt_min",
+    "latency_primary_operation_at_min",
+    "latency_primary_operation_unbounded",
+    "latency_response_or_observable_result_at_min",
+    "latency_response_or_observable_result_unbounded"
+  ],
+  "functional_bins": {
+    "SC01_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "SC02_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "SC03_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "SC04_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "SC05_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "SC06_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "SC07_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "SC08_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "SC09_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "SC10_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "SC11_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "SC12_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "function_reset": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "function_dmago_command": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "function_dmald_load": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "function_dmast_store": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "function_dmaldp_periph_load": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "function_dmastp_periph_store": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "function_dmasev_event_signal": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "function_dmaend_terminate": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "function_fault_propagate": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "fsm_channel_state_stopped_to_executing_0": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "fsm_channel_state_executing_to_cache_miss_1": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "fsm_channel_state_cache_miss_to_executing_2": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "fsm_channel_state_executing_to_waiting_for_event_3": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "fsm_channel_state_waiting_for_event_to_executing_4": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "fsm_channel_state_executing_to_at_barrier_5": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "fsm_channel_state_at_barrier_to_executing_6": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "fsm_channel_state_executing_to_completing_7": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "fsm_channel_state_completing_to_stopped_8": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "fsm_channel_state_any_to_killing_9": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "fsm_channel_state_killing_to_stopped_10": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "fsm_channel_state_any_to_faulting_11": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "fsm_channel_state_faulting_to_faulting_completing_12": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "fsm_channel_state_faulting_completing_to_stopped_13": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "error_error_0": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "error_error_1": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "error_error_2": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "error_error_3": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "error_error_4": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "error_error_5": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "cycle_handshake_0": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "cycle_handshake_1": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "latency_control_or_request_accept_at_min": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "latency_control_or_request_accept_unbounded": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "latency_primary_operation_lt_min": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "latency_primary_operation_at_min": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "latency_primary_operation_unbounded": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "latency_response_or_observable_result_at_min": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    },
+    "latency_response_or_observable_result_unbounded": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      }
+    }
+  },
+  "raw_functional": {
+    "hit": 0,
+    "total": 0,
+    "pct": null
+  },
+  "raw_functional_bins": {},
+  "rtl_observed": {
+    "status": "blocked",
+    "scoreboard_events": 0,
+    "scoreboard_passed_events_with_refs": 0,
+    "goal_refs": [
+      "SC01_executed",
+      "SC02_executed",
+      "SC03_executed",
+      "SC04_executed",
+      "SC05_executed",
+      "SC06_executed",
+      "SC07_executed",
+      "SC08_executed",
+      "SC09_executed",
+      "SC10_executed",
+      "SC11_executed",
+      "SC12_executed",
+      "cycle_handshake_0",
+      "cycle_handshake_1",
+      "error_error_0",
+      "error_error_1",
+      "error_error_2",
+      "error_error_3",
+      "error_error_4",
+      "error_error_5",
+      "fsm_channel_state_any_to_faulting_11",
+      "fsm_channel_state_any_to_killing_9",
+      "fsm_channel_state_at_barrier_to_executing_6",
+      "fsm_channel_state_cache_miss_to_executing_2",
+      "fsm_channel_state_completing_to_stopped_8",
+      "fsm_channel_state_executing_to_at_barrier_5",
+      "fsm_channel_state_executing_to_cache_miss_1",
+      "fsm_channel_state_executing_to_completing_7",
+      "fsm_channel_state_executing_to_waiting_for_event_3",
+      "fsm_channel_state_faulting_completing_to_stopped_13",
+      "fsm_channel_state_faulting_to_faulting_completing_12",
+      "fsm_channel_state_killing_to_stopped_10",
+      "fsm_channel_state_stopped_to_executing_0",
+      "fsm_channel_state_waiting_for_event_to_executing_4",
+      "function_dmaend_terminate",
+      "function_dmago_command",
+      "function_dmald_load",
+      "function_dmaldp_periph_load",
+      "function_dmasev_event_signal",
+      "function_dmast_store",
+      "function_dmastp_periph_store",
+      "function_fault_propagate",
+      "function_reset",
+      "latency_control_or_request_accept_at_min",
+      "latency_control_or_request_accept_unbounded",
+      "latency_primary_operation_at_min",
+      "latency_primary_operation_lt_min",
+      "latency_primary_operation_unbounded",
+      "latency_response_or_observable_result_at_min",
+      "latency_response_or_observable_result_unbounded"
+    ],
+    "missing_bins": [
+      "SC01_executed",
+      "SC02_executed",
+      "SC03_executed",
+      "SC04_executed",
+      "SC05_executed",
+      "SC06_executed",
+      "SC07_executed",
+      "SC08_executed",
+      "SC09_executed",
+      "SC10_executed",
+      "SC11_executed",
+      "SC12_executed",
+      "cycle_handshake_0",
+      "cycle_handshake_1",
+      "error_error_0",
+      "error_error_1",
+      "error_error_2",
+      "error_error_3",
+      "error_error_4",
+      "error_error_5",
+      "fsm_channel_state_any_to_faulting_11",
+      "fsm_channel_state_any_to_killing_9",
+      "fsm_channel_state_at_barrier_to_executing_6",
+      "fsm_channel_state_cache_miss_to_executing_2",
+      "fsm_channel_state_completing_to_stopped_8",
+      "fsm_channel_state_executing_to_at_barrier_5",
+      "fsm_channel_state_executing_to_cache_miss_1",
+      "fsm_channel_state_executing_to_completing_7",
+      "fsm_channel_state_executing_to_waiting_for_event_3",
+      "fsm_channel_state_faulting_completing_to_stopped_13",
+      "fsm_channel_state_faulting_to_faulting_completing_12",
+      "fsm_channel_state_killing_to_stopped_10",
+      "fsm_channel_state_stopped_to_executing_0",
+      "fsm_channel_state_waiting_for_event_to_executing_4",
+      "function_dmaend_terminate",
+      "function_dmago_command",
+      "function_dmald_load",
+      "function_dmaldp_periph_load",
+      "function_dmasev_event_signal",
+      "function_dmast_store",
+      "function_dmastp_periph_store",
+      "function_fault_propagate",
+      "function_reset",
+      "latency_control_or_request_accept_at_min",
+      "latency_control_or_request_accept_unbounded",
+      "latency_primary_operation_at_min",
+      "latency_primary_operation_lt_min",
+      "latency_primary_operation_unbounded",
+      "latency_response_or_observable_result_at_min",
+      "latency_response_or_observable_result_unbounded"
+    ],
+    "invalid_rows": []
+  },
+  "lines": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": null,
+    "meets_target": true
+  },
+  "branches": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": null,
+    "meets_target": true
+  },
+  "functions": {
+    "hit": 0,
+    "total": 0,
+    "pct": null
+  },
+  "fsm_state": {
+    "target_pct": null,
+    "hit": 0,
+    "total": 14,
+    "pct": 0.0,
+    "meets_target": true,
+    "source": "SSOT functional coverage bins"
+  },
+  "files": {},
+  "limitations": {
+    "rtl_observed_coverage": "Functional coverage requires passing scoreboard_events.jsonl rows with concrete rtl_observed signals; no scoreboard rows were found."
+  },
+  "static_universe_not_instrumented": {
+    "rtl_observed_coverage": "Functional coverage requires passing scoreboard_events.jsonl rows with concrete rtl_observed signals; no scoreboard rows were found."
+  },
+  "total_checks": 0,
+  "passed": 0,
+  "failed": 0,
+  "escalations": []
+}

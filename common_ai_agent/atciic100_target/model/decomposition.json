@@ -1,0 +1,1173 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_decomposition",
+  "ip": "atciic100_target",
+  "source": "atciic100_target/yaml/atciic100_target.ssot.yaml",
+  "units": [
+    {
+      "name": "atciic100_target_apbslv",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "function_model",
+        "parameters",
+        "registers"
+      ],
+      "rtl_candidates": [
+        "atciic100_target_apbslv"
+      ],
+      "rtl_file": "rtl/atciic100_target_apbslv.sv",
+      "ssot_refs": [
+        "cycle_model.handshake_rules.apb_access",
+        "cycle_model.handshake_rules.apb_setup",
+        "cycle_model.observability.observability_0",
+        "dataflow.paths.apb_to_csr",
+        "dataflow.paths.irq_emit",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables.cfg",
+        "function_model.state_variables.cmd",
+        "function_model.state_variables.int_en",
+        "function_model.state_variables.int_st",
+        "function_model.state_variables.setup",
+        "function_model.transactions.csr_read",
+        "function_model.transactions.csr_write",
+        "function_model.transactions.fm_csr_read",
+        "function_model.transactions.fm_csr_read.error_cases.error_case_0",
+        "function_model.transactions.fm_csr_read.outputs.output_0",
+        "function_model.transactions.fm_csr_read.preconditions.precondition_0",
+        "function_model.transactions.fm_csr_write",
+        "function_model.transactions.fm_csr_write.error_cases.error_case_0",
+        "function_model.transactions.fm_csr_write.outputs.output_0",
+        "function_model.transactions.fm_csr_write.preconditions.precondition_0",
+        "function_model.transactions.fm_csr_write.side_effects.side_effect_0",
+        "function_model.transactions.fm_gen_call.outputs.output_0",
+        "parameters.id",
+        "registers.register_list",
+        "registers.register_list.addr",
+        "registers.register_list.cfg",
+        "registers.register_list.cmd",
+        "registers.register_list.data",
+        "registers.register_list.hwcfg",
+        "registers.register_list.id",
+        "registers.register_list.int_en",
+        "registers.register_list.int_st",
+        "registers.register_list.rev",
+        "registers.register_list.setup",
+        "registers.register_list.tpm",
+        "registers.register_list.tsp"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables.cfg",
+        "function_model.state_variables.cmd",
+        "function_model.state_variables.int_en",
+        "function_model.state_variables.int_st",
+        "function_model.state_variables.setup",
+        "function_model.transactions.fm_csr_read",
+        "function_model.transactions.fm_csr_read.error_cases.error_case_0",
+        "function_model.transactions.fm_csr_read.outputs.output_0",
+        "function_model.transactions.fm_csr_read.preconditions.precondition_0",
+        "function_model.transactions.fm_csr_write",
+        "function_model.transactions.fm_csr_write.error_cases.error_case_0",
+        "function_model.transactions.fm_csr_write.outputs.output_0",
+        "function_model.transactions.fm_csr_write.preconditions.precondition_0",
+        "function_model.transactions.fm_csr_write.side_effects.side_effect_0",
+        "function_model.transactions.fm_gen_call.outputs.output_0"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.handshake_rules.apb_access",
+        "cycle_model.handshake_rules.apb_setup",
+        "cycle_model.observability.observability_0"
+      ],
+      "structural_refs": [
+        "dataflow.paths.apb_to_csr",
+        "dataflow.paths.irq_emit",
+        "parameters.id",
+        "registers.register_list.addr",
+        "registers.register_list.cfg",
+        "registers.register_list.cmd",
+        "registers.register_list.data",
+        "registers.register_list.hwcfg",
+        "registers.register_list.id",
+        "registers.register_list.int_en",
+        "registers.register_list.int_st",
+        "registers.register_list.rev",
+        "registers.register_list.setup",
+        "registers.register_list.tpm",
+        "registers.register_list.tsp"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "atciic100_target_ctrl",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "features",
+        "fsm",
+        "function_model",
+        "parameters"
+      ],
+      "rtl_candidates": [
+        "atciic100_target_ctrl"
+      ],
+      "rtl_file": "rtl/atciic100_target_ctrl.sv",
+      "ssot_refs": [
+        "cycle_model.arbitration.i2c_multimaster",
+        "cycle_model.backpressure.fifo_empty",
+        "cycle_model.handshake_rules.i2c_byte",
+        "cycle_model.handshake_rules.i2c_start_stop",
+        "cycle_model.observability.observability_2",
+        "cycle_model.ordering.arb_lose_terminates",
+        "cycle_model.ordering.start_addr_data_stop",
+        "dataflow.paths.csr_to_ctrl",
+        "features.feature_0",
+        "features.feature_1",
+        "features.feature_2",
+        "fsm.iic_phase",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_3",
+        "function_model.state_variables.addr_reg",
+        "function_model.state_variables.master",
+        "function_model.state_variables.phase",
+        "function_model.transactions.fm_gen_call.preconditions.precondition_0",
+        "function_model.transactions.fm_gen_call.side_effects.side_effect_0",
+        "function_model.transactions.fm_master_recv",
+        "function_model.transactions.fm_master_recv.outputs.output_0",
+        "function_model.transactions.fm_master_recv.side_effects.side_effect_0",
+        "function_model.transactions.fm_master_recv.side_effects.side_effect_1",
+        "function_model.transactions.fm_master_send",
+        "function_model.transactions.fm_master_send.error_cases.error_case_0",
+        "function_model.transactions.fm_master_send.outputs.output_0",
+        "function_model.transactions.fm_master_send.outputs.output_1",
+        "function_model.transactions.fm_master_send.side_effects.side_effect_0",
+        "function_model.transactions.fm_master_send.side_effects.side_effect_1",
+        "function_model.transactions.fm_master_send.side_effects.side_effect_2",
+        "function_model.transactions.fm_slave_recv",
+        "function_model.transactions.fm_slave_recv.outputs.output_0",
+        "function_model.transactions.fm_slave_recv.outputs.output_1",
+        "function_model.transactions.fm_slave_recv.preconditions.precondition_0",
+        "function_model.transactions.fm_slave_recv.preconditions.precondition_1",
+        "function_model.transactions.fm_slave_send",
+        "function_model.transactions.fm_slave_send.outputs.output_0",
+        "function_model.transactions.fm_slave_send.preconditions.precondition_0",
+        "function_model.transactions.fm_slave_send.preconditions.precondition_1",
+        "function_model.transactions.master_recv",
+        "function_model.transactions.master_send",
+        "function_model.transactions.slave_recv",
+        "function_model.transactions.slave_send",
+        "parameters.data_width"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_3",
+        "function_model.state_variables.addr_reg",
+        "function_model.state_variables.master",
+        "function_model.state_variables.phase",
+        "function_model.transactions.fm_gen_call.preconditions.precondition_0",
+        "function_model.transactions.fm_gen_call.side_effects.side_effect_0",
+        "function_model.transactions.fm_master_recv",
+        "function_model.transactions.fm_master_recv.outputs.output_0",
+        "function_model.transactions.fm_master_recv.side_effects.side_effect_0",
+        "function_model.transactions.fm_master_recv.side_effects.side_effect_1",
+        "function_model.transactions.fm_master_send",
+        "function_model.transactions.fm_master_send.error_cases.error_case_0",
+        "function_model.transactions.fm_master_send.outputs.output_0",
+        "function_model.transactions.fm_master_send.outputs.output_1",
+        "function_model.transactions.fm_master_send.side_effects.side_effect_0",
+        "function_model.transactions.fm_master_send.side_effects.side_effect_1",
+        "function_model.transactions.fm_master_send.side_effects.side_effect_2",
+        "function_model.transactions.fm_slave_recv",
+        "function_model.transactions.fm_slave_recv.outputs.output_0",
+        "function_model.transactions.fm_slave_recv.outputs.output_1",
+        "function_model.transactions.fm_slave_recv.preconditions.precondition_0",
+        "function_model.transactions.fm_slave_recv.preconditions.precondition_1",
+        "function_model.transactions.fm_slave_send",
+        "function_model.transactions.fm_slave_send.outputs.output_0",
+        "function_model.transactions.fm_slave_send.preconditions.precondition_0",
+        "function_model.transactions.fm_slave_send.preconditions.precondition_1"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.arbitration.i2c_multimaster",
+        "cycle_model.backpressure.fifo_empty",
+        "cycle_model.handshake_rules.i2c_byte",
+        "cycle_model.handshake_rules.i2c_start_stop",
+        "cycle_model.observability.observability_2",
+        "cycle_model.ordering.arb_lose_terminates",
+        "cycle_model.ordering.start_addr_data_stop"
+      ],
+      "structural_refs": [
+        "dataflow.paths.csr_to_ctrl",
+        "features.feature_0",
+        "features.feature_1",
+        "features.feature_2",
+        "parameters.data_width"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "atciic100_target_fifo",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "features",
+        "function_model",
+        "memory",
+        "parameters"
+      ],
+      "rtl_candidates": [
+        "atciic100_target_fifo"
+      ],
+      "rtl_file": "rtl/atciic100_target_fifo.sv",
+      "ssot_refs": [
+        "cycle_model.backpressure.fifo_full",
+        "cycle_model.observability.observability_1",
+        "dataflow.paths.dma_request",
+        "features.feature_4",
+        "features.feature_5",
+        "features.feature_8",
+        "function_model.invariants.invariant_0",
+        "function_model.state_variables.fifo_count",
+        "function_model.transactions.fm_dma_req.preconditions.precondition_0",
+        "function_model.transactions.fm_master_recv.error_cases.error_case_0",
+        "function_model.transactions.fm_master_send.preconditions.precondition_0",
+        "function_model.transactions.fm_reset.side_effects.side_effect_0",
+        "function_model.transactions.fm_slave_recv.error_cases.error_case_0",
+        "memory.instances.tx_rx_fifo",
+        "parameters.fifo_depth",
+        "parameters.index_width"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.state_variables.fifo_count",
+        "function_model.transactions.fm_dma_req.preconditions.precondition_0",
+        "function_model.transactions.fm_master_recv.error_cases.error_case_0",
+        "function_model.transactions.fm_master_send.preconditions.precondition_0",
+        "function_model.transactions.fm_reset.side_effects.side_effect_0",
+        "function_model.transactions.fm_slave_recv.error_cases.error_case_0"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.fifo_full",
+        "cycle_model.observability.observability_1"
+      ],
+      "structural_refs": [
+        "dataflow.paths.dma_request",
+        "features.feature_4",
+        "features.feature_5",
+        "features.feature_8",
+        "memory.instances.tx_rx_fifo",
+        "parameters.fifo_depth",
+        "parameters.index_width"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "atciic100_target_gsf",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "features"
+      ],
+      "rtl_candidates": [
+        "atciic100_target_gsf"
+      ],
+      "rtl_file": "rtl/atciic100_target_gsf.sv",
+      "ssot_refs": [
+        "cycle_model.handshake_rules.glitch_suppress",
+        "features.feature_6"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [
+        "cycle_model.handshake_rules.glitch_suppress"
+      ],
+      "structural_refs": [
+        "features.feature_6"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "atciic100_target_protocol_model",
+      "kind": "protocol",
+      "source_sections": [
+        "io_list",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "atciic100_target_axi_slv",
+        "atciic100_target_protocol"
+      ],
+      "verification_impact": [
+        "driver",
+        "monitor",
+        "protocol coverage"
+      ]
+    },
+    {
+      "name": "atciic100_target_register_model",
+      "kind": "register",
+      "source_sections": [
+        "registers",
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "atciic100_target_regs",
+        "atciic100_target_apb_regs"
+      ],
+      "verification_impact": [
+        "register sequences",
+        "readback scoreboard"
+      ]
+    },
+    {
+      "name": "atciic100_target_memory_model",
+      "kind": "memory",
+      "source_sections": [
+        "memory",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "atciic100_target_mem",
+        "atciic100_target_core"
+      ],
+      "verification_impact": [
+        "address retention",
+        "byte strobes",
+        "boundary coverage"
+      ]
+    },
+    {
+      "name": "atciic100_target_datapath_model",
+      "kind": "datapath",
+      "source_sections": [
+        "features",
+        "dataflow",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "atciic100_target_core",
+        "atciic100_target_datapath"
+      ],
+      "verification_impact": [
+        "functional scoreboard",
+        "transaction coverage"
+      ]
+    },
+    {
+      "name": "atciic100_target_fsm_model",
+      "kind": "fsm",
+      "source_sections": [
+        "fsm",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "atciic100_target_core"
+      ],
+      "verification_impact": [
+        "state transition coverage",
+        "waveform debug"
+      ]
+    },
+    {
+      "name": "atciic100_target_error_model",
+      "kind": "error",
+      "source_sections": [
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "atciic100_target_core",
+        "atciic100_target_error"
+      ],
+      "verification_impact": [
+        "negative tests",
+        "mismatch classification"
+      ]
+    }
+  ],
+  "module_contracts": [
+    {
+      "name": "atciic100_target_apbslv",
+      "kind": "rtl_module",
+      "rtl_module": "atciic100_target_apbslv",
+      "rtl_file": "rtl/atciic100_target_apbslv.sv",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "function_model",
+        "parameters",
+        "registers"
+      ],
+      "ssot_refs": [
+        "cycle_model.handshake_rules.apb_access",
+        "cycle_model.handshake_rules.apb_setup",
+        "cycle_model.observability.observability_0",
+        "dataflow.paths.apb_to_csr",
+        "dataflow.paths.irq_emit",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables.cfg",
+        "function_model.state_variables.cmd",
+        "function_model.state_variables.int_en",
+        "function_model.state_variables.int_st",
+        "function_model.state_variables.setup",
+        "function_model.transactions.csr_read",
+        "function_model.transactions.csr_write",
+        "function_model.transactions.fm_csr_read",
+        "function_model.transactions.fm_csr_read.error_cases.error_case_0",
+        "function_model.transactions.fm_csr_read.outputs.output_0",
+        "function_model.transactions.fm_csr_read.preconditions.precondition_0",
+        "function_model.transactions.fm_csr_write",
+        "function_model.transactions.fm_csr_write.error_cases.error_case_0",
+        "function_model.transactions.fm_csr_write.outputs.output_0",
+        "function_model.transactions.fm_csr_write.preconditions.precondition_0",
+        "function_model.transactions.fm_csr_write.side_effects.side_effect_0",
+        "function_model.transactions.fm_gen_call.outputs.output_0",
+        "parameters.id",
+        "registers.register_list",
+        "registers.register_list.addr",
+        "registers.register_list.cfg",
+        "registers.register_list.cmd",
+        "registers.register_list.data",
+        "registers.register_list.hwcfg",
+        "registers.register_list.id",
+        "registers.register_list.int_en",
+        "registers.register_list.int_st",
+        "registers.register_list.rev",
+        "registers.register_list.setup",
+        "registers.register_list.tpm",
+        "registers.register_list.tsp"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables.cfg",
+        "function_model.state_variables.cmd",
+        "function_model.state_variables.int_en",
+        "function_model.state_variables.int_st",
+        "function_model.state_variables.setup",
+        "function_model.transactions.fm_csr_read",
+        "function_model.transactions.fm_csr_read.error_cases.error_case_0",
+        "function_model.transactions.fm_csr_read.outputs.output_0",
+        "function_model.transactions.fm_csr_read.preconditions.precondition_0",
+        "function_model.transactions.fm_csr_write",
+        "function_model.transactions.fm_csr_write.error_cases.error_case_0",
+        "function_model.transactions.fm_csr_write.outputs.output_0",
+        "function_model.transactions.fm_csr_write.preconditions.precondition_0",
+        "function_model.transactions.fm_csr_write.side_effects.side_effect_0",
+        "function_model.transactions.fm_gen_call.outputs.output_0"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.handshake_rules.apb_access",
+        "cycle_model.handshake_rules.apb_setup",
+        "cycle_model.observability.observability_0"
+      ],
+      "structural_refs": [
+        "dataflow.paths.apb_to_csr",
+        "dataflow.paths.irq_emit",
+        "parameters.id",
+        "registers.register_list.addr",
+        "registers.register_list.cfg",
+        "registers.register_list.cmd",
+        "registers.register_list.data",
+        "registers.register_list.hwcfg",
+        "registers.register_list.id",
+        "registers.register_list.int_en",
+        "registers.register_list.int_st",
+        "registers.register_list.rev",
+        "registers.register_list.setup",
+        "registers.register_list.tpm",
+        "registers.register_list.tsp"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.cmd",
+          "matched_ref": "function_model.state_variables.cmd"
+        },
+        {
+          "ref": "function_model.state_variables.cfg",
+          "matched_ref": "function_model.state_variables.cfg"
+        },
+        {
+          "ref": "function_model.state_variables.int_en",
+          "matched_ref": "function_model.state_variables.int_en"
+        },
+        {
+          "ref": "function_model.state_variables.int_st",
+          "matched_ref": "function_model.state_variables.int_st"
+        },
+        {
+          "ref": "function_model.state_variables.setup",
+          "matched_ref": "semantic_terms:register,setup"
+        },
+        {
+          "ref": "function_model.transactions.fm_csr_write",
+          "matched_ref": "function_model.transactions.csr_write"
+        },
+        {
+          "ref": "function_model.transactions.fm_csr_write.preconditions.precondition_0",
+          "matched_ref": "semantic_terms:csr,write"
+        },
+        {
+          "ref": "function_model.transactions.fm_csr_write.outputs.output_0",
+          "matched_ref": "semantic_terms:csr,register,write"
+        },
+        {
+          "ref": "function_model.transactions.fm_csr_write.side_effects.side_effect_0",
+          "matched_ref": "semantic_terms:csr,int,int_st,st,write"
+        },
+        {
+          "ref": "function_model.transactions.fm_csr_write.error_cases.error_case_0",
+          "matched_ref": "semantic_terms:csr,write"
+        },
+        {
+          "ref": "function_model.transactions.fm_csr_read",
+          "matched_ref": "function_model.transactions.csr_read"
+        },
+        {
+          "ref": "function_model.transactions.fm_csr_read.preconditions.precondition_0",
+          "matched_ref": "semantic_terms:csr,read"
+        },
+        {
+          "ref": "function_model.transactions.fm_csr_read.outputs.output_0",
+          "matched_ref": "semantic_terms:csr,read,register"
+        },
+        {
+          "ref": "function_model.transactions.fm_csr_read.error_cases.error_case_0",
+          "matched_ref": "semantic_terms:csr,read"
+        },
+        {
+          "ref": "function_model.transactions.fm_gen_call.outputs.output_0",
+          "matched_ref": "semantic_terms:int,int_st,st"
+        },
+        {
+          "ref": "function_model.invariants.invariant_4",
+          "matched_ref": "semantic_terms:int,int_st,st,write"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.apb_setup",
+          "matched_ref": "cycle_model.handshake_rules.apb_setup"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.apb_access",
+          "matched_ref": "cycle_model.handshake_rules.apb_access"
+        },
+        {
+          "ref": "cycle_model.observability.observability_0",
+          "matched_ref": "semantic_terms:apb,int,int_st,st"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "parameters.id",
+          "matched_ref": "semantic_terms:register"
+        },
+        {
+          "ref": "dataflow.paths.apb_to_csr",
+          "matched_ref": "semantic_terms:apb,apbslv,atciic100_target_apbslv,csr"
+        },
+        {
+          "ref": "dataflow.paths.irq_emit",
+          "matched_ref": "semantic_terms:apbslv,atciic100_target_apbslv,int,int_st,st"
+        },
+        {
+          "ref": "registers.register_list.id",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.rev",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.hwcfg",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.cfg",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.int_en",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.int_st",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.addr",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.data",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.cmd",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.setup",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.tpm",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.tsp",
+          "matched_ref": "registers.register_list"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "atciic100_target_ctrl",
+      "kind": "rtl_module",
+      "rtl_module": "atciic100_target_ctrl",
+      "rtl_file": "rtl/atciic100_target_ctrl.sv",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "features",
+        "fsm",
+        "function_model",
+        "parameters"
+      ],
+      "ssot_refs": [
+        "cycle_model.arbitration.i2c_multimaster",
+        "cycle_model.backpressure.fifo_empty",
+        "cycle_model.handshake_rules.i2c_byte",
+        "cycle_model.handshake_rules.i2c_start_stop",
+        "cycle_model.observability.observability_2",
+        "cycle_model.ordering.arb_lose_terminates",
+        "cycle_model.ordering.start_addr_data_stop",
+        "dataflow.paths.csr_to_ctrl",
+        "features.feature_0",
+        "features.feature_1",
+        "features.feature_2",
+        "fsm.iic_phase",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_3",
+        "function_model.state_variables.addr_reg",
+        "function_model.state_variables.master",
+        "function_model.state_variables.phase",
+        "function_model.transactions.fm_gen_call.preconditions.precondition_0",
+        "function_model.transactions.fm_gen_call.side_effects.side_effect_0",
+        "function_model.transactions.fm_master_recv",
+        "function_model.transactions.fm_master_recv.outputs.output_0",
+        "function_model.transactions.fm_master_recv.side_effects.side_effect_0",
+        "function_model.transactions.fm_master_recv.side_effects.side_effect_1",
+        "function_model.transactions.fm_master_send",
+        "function_model.transactions.fm_master_send.error_cases.error_case_0",
+        "function_model.transactions.fm_master_send.outputs.output_0",
+        "function_model.transactions.fm_master_send.outputs.output_1",
+        "function_model.transactions.fm_master_send.side_effects.side_effect_0",
+        "function_model.transactions.fm_master_send.side_effects.side_effect_1",
+        "function_model.transactions.fm_master_send.side_effects.side_effect_2",
+        "function_model.transactions.fm_slave_recv",
+        "function_model.transactions.fm_slave_recv.outputs.output_0",
+        "function_model.transactions.fm_slave_recv.outputs.output_1",
+        "function_model.transactions.fm_slave_recv.preconditions.precondition_0",
+        "function_model.transactions.fm_slave_recv.preconditions.precondition_1",
+        "function_model.transactions.fm_slave_send",
+        "function_model.transactions.fm_slave_send.outputs.output_0",
+        "function_model.transactions.fm_slave_send.preconditions.precondition_0",
+        "function_model.transactions.fm_slave_send.preconditions.precondition_1",
+        "function_model.transactions.master_recv",
+        "function_model.transactions.master_send",
+        "function_model.transactions.slave_recv",
+        "function_model.transactions.slave_send",
+        "parameters.data_width"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_3",
+        "function_model.state_variables.addr_reg",
+        "function_model.state_variables.master",
+        "function_model.state_variables.phase",
+        "function_model.transactions.fm_gen_call.preconditions.precondition_0",
+        "function_model.transactions.fm_gen_call.side_effects.side_effect_0",
+        "function_model.transactions.fm_master_recv",
+        "function_model.transactions.fm_master_recv.outputs.output_0",
+        "function_model.transactions.fm_master_recv.side_effects.side_effect_0",
+        "function_model.transactions.fm_master_recv.side_effects.side_effect_1",
+        "function_model.transactions.fm_master_send",
+        "function_model.transactions.fm_master_send.error_cases.error_case_0",
+        "function_model.transactions.fm_master_send.outputs.output_0",
+        "function_model.transactions.fm_master_send.outputs.output_1",
+        "function_model.transactions.fm_master_send.side_effects.side_effect_0",
+        "function_model.transactions.fm_master_send.side_effects.side_effect_1",
+        "function_model.transactions.fm_master_send.side_effects.side_effect_2",
+        "function_model.transactions.fm_slave_recv",
+        "function_model.transactions.fm_slave_recv.outputs.output_0",
+        "function_model.transactions.fm_slave_recv.outputs.output_1",
+        "function_model.transactions.fm_slave_recv.preconditions.precondition_0",
+        "function_model.transactions.fm_slave_recv.preconditions.precondition_1",
+        "function_model.transactions.fm_slave_send",
+        "function_model.transactions.fm_slave_send.outputs.output_0",
+        "function_model.transactions.fm_slave_send.preconditions.precondition_0",
+        "function_model.transactions.fm_slave_send.preconditions.precondition_1"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.arbitration.i2c_multimaster",
+        "cycle_model.backpressure.fifo_empty",
+        "cycle_model.handshake_rules.i2c_byte",
+        "cycle_model.handshake_rules.i2c_start_stop",
+        "cycle_model.observability.observability_2",
+        "cycle_model.ordering.arb_lose_terminates",
+        "cycle_model.ordering.start_addr_data_stop"
+      ],
+      "structural_refs": [
+        "dataflow.paths.csr_to_ctrl",
+        "features.feature_0",
+        "features.feature_1",
+        "features.feature_2",
+        "parameters.data_width"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.addr_reg",
+          "matched_ref": "semantic_terms:addr,i2c"
+        },
+        {
+          "ref": "function_model.state_variables.phase",
+          "matched_ref": "semantic_terms:addr,i2c,phase,start,stop"
+        },
+        {
+          "ref": "function_model.state_variables.master",
+          "matched_ref": "semantic_terms:master"
+        },
+        {
+          "ref": "function_model.transactions.fm_master_send",
+          "matched_ref": "function_model.transactions.master_send"
+        },
+        {
+          "ref": "function_model.transactions.fm_master_send.outputs.output_0",
+          "matched_ref": "semantic_terms:byte,master,send"
+        },
+        {
+          "ref": "function_model.transactions.fm_master_send.outputs.output_1",
+          "matched_ref": "semantic_terms:master,send"
+        },
+        {
+          "ref": "function_model.transactions.fm_master_send.side_effects.side_effect_0",
+          "matched_ref": "semantic_terms:addr,master,phase,send,start,stop"
+        },
+        {
+          "ref": "function_model.transactions.fm_master_send.side_effects.side_effect_1",
+          "matched_ref": "semantic_terms:byte,master,send"
+        },
+        {
+          "ref": "function_model.transactions.fm_master_send.side_effects.side_effect_2",
+          "matched_ref": "semantic_terms:master,send"
+        },
+        {
+          "ref": "function_model.transactions.fm_master_send.error_cases.error_case_0",
+          "matched_ref": "semantic_terms:master,phase,send,stop"
+        },
+        {
+          "ref": "function_model.transactions.fm_master_recv",
+          "matched_ref": "function_model.transactions.master_recv"
+        },
+        {
+          "ref": "function_model.transactions.fm_master_recv.outputs.output_0",
+          "matched_ref": "semantic_terms:byte,master,recv"
+        },
+        {
+          "ref": "function_model.transactions.fm_master_recv.side_effects.side_effect_0",
+          "matched_ref": "semantic_terms:addr,master,phase,recv,start,stop"
+        },
+        {
+          "ref": "function_model.transactions.fm_master_recv.side_effects.side_effect_1",
+          "matched_ref": "semantic_terms:byte,master,recv"
+        },
+        {
+          "ref": "function_model.transactions.fm_slave_recv",
+          "matched_ref": "function_model.transactions.slave_recv"
+        },
+        {
+          "ref": "function_model.transactions.fm_slave_recv.preconditions.precondition_0",
+          "matched_ref": "semantic_terms:master,recv,slave"
+        },
+        {
+          "ref": "function_model.transactions.fm_slave_recv.preconditions.precondition_1",
+          "matched_ref": "semantic_terms:addr,recv,slave"
+        },
+        {
+          "ref": "function_model.transactions.fm_slave_recv.outputs.output_0",
+          "matched_ref": "semantic_terms:addr,recv,slave"
+        },
+        {
+          "ref": "function_model.transactions.fm_slave_recv.outputs.output_1",
+          "matched_ref": "semantic_terms:byte,recv,slave"
+        },
+        {
+          "ref": "function_model.transactions.fm_slave_send",
+          "matched_ref": "function_model.transactions.slave_send"
+        },
+        {
+          "ref": "function_model.transactions.fm_slave_send.preconditions.precondition_0",
+          "matched_ref": "semantic_terms:master,send,slave"
+        },
+        {
+          "ref": "function_model.transactions.fm_slave_send.preconditions.precondition_1",
+          "matched_ref": "semantic_terms:addr,master,send,slave"
+        },
+        {
+          "ref": "function_model.transactions.fm_slave_send.outputs.output_0",
+          "matched_ref": "semantic_terms:byte,send,slave"
+        },
+        {
+          "ref": "function_model.transactions.fm_gen_call.preconditions.precondition_0",
+          "matched_ref": "semantic_terms:addr"
+        },
+        {
+          "ref": "function_model.transactions.fm_gen_call.side_effects.side_effect_0",
+          "matched_ref": "semantic_terms:byte,ctrl"
+        },
+        {
+          "ref": "function_model.invariants.invariant_1",
+          "matched_ref": "semantic_terms:phase"
+        },
+        {
+          "ref": "function_model.invariants.invariant_3",
+          "matched_ref": "semantic_terms:phase,stop"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.i2c_start_stop",
+          "matched_ref": "cycle_model.handshake_rules.i2c_start_stop"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.i2c_byte",
+          "matched_ref": "cycle_model.handshake_rules.i2c_byte"
+        },
+        {
+          "ref": "cycle_model.ordering.start_addr_data_stop",
+          "matched_ref": "cycle_model.ordering.start_addr_data_stop"
+        },
+        {
+          "ref": "cycle_model.ordering.arb_lose_terminates",
+          "matched_ref": "semantic_terms:phase"
+        },
+        {
+          "ref": "cycle_model.backpressure.fifo_empty",
+          "matched_ref": "semantic_terms:byte,master,master_send,phase,send,stop"
+        },
+        {
+          "ref": "cycle_model.observability.observability_2",
+          "matched_ref": "semantic_terms:phase"
+        },
+        {
+          "ref": "cycle_model.arbitration.i2c_multimaster",
+          "matched_ref": "semantic_terms:i2c,master"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "parameters.data_width",
+          "matched_ref": "semantic_terms:byte,data,i2c"
+        },
+        {
+          "ref": "dataflow.paths.csr_to_ctrl",
+          "matched_ref": "semantic_terms:atciic100_target_ctrl,ctrl"
+        },
+        {
+          "ref": "features.feature_0",
+          "matched_ref": "semantic_terms:byte,i2c,master,start,stop"
+        },
+        {
+          "ref": "features.feature_1",
+          "matched_ref": "semantic_terms:byte,i2c,recv,send,slave"
+        },
+        {
+          "ref": "features.feature_2",
+          "matched_ref": "semantic_terms:master"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "atciic100_target_fifo",
+      "kind": "rtl_module",
+      "rtl_module": "atciic100_target_fifo",
+      "rtl_file": "rtl/atciic100_target_fifo.sv",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "features",
+        "function_model",
+        "memory",
+        "parameters"
+      ],
+      "ssot_refs": [
+        "cycle_model.backpressure.fifo_full",
+        "cycle_model.observability.observability_1",
+        "dataflow.paths.dma_request",
+        "features.feature_4",
+        "features.feature_5",
+        "features.feature_8",
+        "function_model.invariants.invariant_0",
+        "function_model.state_variables.fifo_count",
+        "function_model.transactions.fm_dma_req.preconditions.precondition_0",
+        "function_model.transactions.fm_master_recv.error_cases.error_case_0",
+        "function_model.transactions.fm_master_send.preconditions.precondition_0",
+        "function_model.transactions.fm_reset.side_effects.side_effect_0",
+        "function_model.transactions.fm_slave_recv.error_cases.error_case_0",
+        "memory.instances.tx_rx_fifo",
+        "parameters.fifo_depth",
+        "parameters.index_width"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.state_variables.fifo_count",
+        "function_model.transactions.fm_dma_req.preconditions.precondition_0",
+        "function_model.transactions.fm_master_recv.error_cases.error_case_0",
+        "function_model.transactions.fm_master_send.preconditions.precondition_0",
+        "function_model.transactions.fm_reset.side_effects.side_effect_0",
+        "function_model.transactions.fm_slave_recv.error_cases.error_case_0"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.fifo_full",
+        "cycle_model.observability.observability_1"
+      ],
+      "structural_refs": [
+        "dataflow.paths.dma_request",
+        "features.feature_4",
+        "features.feature_5",
+        "features.feature_8",
+        "memory.instances.tx_rx_fifo",
+        "parameters.fifo_depth",
+        "parameters.index_width"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.fifo_count",
+          "matched_ref": "function_model.state_variables.fifo_count"
+        },
+        {
+          "ref": "function_model.transactions.fm_reset.side_effects.side_effect_0",
+          "matched_ref": "semantic_terms:fifo"
+        },
+        {
+          "ref": "function_model.transactions.fm_master_send.preconditions.precondition_0",
+          "matched_ref": "semantic_terms:count,fifo,fifo_count"
+        },
+        {
+          "ref": "function_model.transactions.fm_master_recv.error_cases.error_case_0",
+          "matched_ref": "semantic_terms:fifo,full"
+        },
+        {
+          "ref": "function_model.transactions.fm_slave_recv.error_cases.error_case_0",
+          "matched_ref": "semantic_terms:fifo,full"
+        },
+        {
+          "ref": "function_model.transactions.fm_dma_req.preconditions.precondition_0",
+          "matched_ref": "semantic_terms:fifo"
+        },
+        {
+          "ref": "function_model.invariants.invariant_0",
+          "matched_ref": "semantic_terms:count,fifo,fifo_count"
+        },
+        {
+          "ref": "cycle_model.backpressure.fifo_full",
+          "matched_ref": "cycle_model.backpressure.fifo_full"
+        },
+        {
+          "ref": "cycle_model.observability.observability_1",
+          "matched_ref": "semantic_terms:fifo,full"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "parameters.fifo_depth",
+          "matched_ref": "semantic_terms:fifo"
+        },
+        {
+          "ref": "parameters.index_width",
+          "matched_ref": "semantic_terms:fifo"
+        },
+        {
+          "ref": "dataflow.paths.dma_request",
+          "matched_ref": "semantic_terms:atciic100_target_fifo,fifo"
+        },
+        {
+          "ref": "memory.instances.tx_rx_fifo",
+          "matched_ref": "memory.instances.tx_rx_fifo"
+        },
+        {
+          "ref": "features.feature_4",
+          "matched_ref": "semantic_terms:fifo,full"
+        },
+        {
+          "ref": "features.feature_5",
+          "matched_ref": "semantic_terms:fifo,full"
+        },
+        {
+          "ref": "features.feature_8",
+          "matched_ref": "semantic_terms:fifo"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "atciic100_target_gsf",
+      "kind": "rtl_module",
+      "rtl_module": "atciic100_target_gsf",
+      "rtl_file": "rtl/atciic100_target_gsf.sv",
+      "source_sections": [
+        "cycle_model",
+        "features"
+      ],
+      "ssot_refs": [
+        "cycle_model.handshake_rules.glitch_suppress",
+        "features.feature_6"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [
+        "cycle_model.handshake_rules.glitch_suppress"
+      ],
+      "structural_refs": [
+        "features.feature_6"
+      ],
+      "owner_matches": [
+        {
+          "ref": "cycle_model.handshake_rules.glitch_suppress",
+          "matched_ref": "cycle_model.handshake_rules.glitch_suppress"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "features.feature_6",
+          "matched_ref": "semantic_terms:glitch"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    }
+  ],
+  "orphan_function_cycle_refs": [
+    "cycle_model.clock",
+    "cycle_model.handshake_rules.dma_req_ack",
+    "cycle_model.latency",
+    "cycle_model.reset",
+    "function_model.invariants.invariant_2",
+    "function_model.state_variables.arb_lost",
+    "function_model.state_variables.datacnt",
+    "function_model.state_variables.trans",
+    "function_model.transactions.fm_dma_req",
+    "function_model.transactions.fm_dma_req.error_cases.error_case_0",
+    "function_model.transactions.fm_dma_req.outputs.output_0",
+    "function_model.transactions.fm_gen_call",
+    "function_model.transactions.fm_master_recv.preconditions.precondition_0",
+    "function_model.transactions.fm_master_send.error_cases.error_case_1",
+    "function_model.transactions.fm_reset",
+    "function_model.transactions.fm_reset.outputs.output_0",
+    "function_model.transactions.fm_reset.side_effects.side_effect_1",
+    "function_model.transactions.fm_slave_recv.side_effects.side_effect_0",
+    "function_model.transactions.fm_slave_send.side_effects.side_effect_0"
+  ],
+  "function_cycle_ref_count": 82,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "atciic100_target/req/",
+      "atciic100_target/yaml/atciic100_target.ssot.yaml",
+      "atciic100_target/model/functional_model.py",
+      "atciic100_target/cov/fcov_plan.json",
+      "atciic100_target/yaml/atciic100_target.ssot.yaml#io_list",
+      "atciic100_target/yaml/atciic100_target.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "atciic100_target/rtl/",
+      "atciic100_target/tb/",
+      "atciic100_target/sim/",
+      "atciic100_target/vectors/",
+      "atciic100_target/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "drives": [
+    "rtl_module_plan",
+    "tb_environment_plan",
+    "functional_coverage_plan"
+  ],
+  "complete": false
+}

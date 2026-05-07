@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "type": "loop_map_summary",
+  "ip": "spi_master",
+  "mmd": "governance/loop_map.mmd",
+  "svg": "governance/loop_map.svg",
+  "svg_status": "rendered",
+  "gates": 9,
+  "loops": 9,
+  "rules": 6
+}

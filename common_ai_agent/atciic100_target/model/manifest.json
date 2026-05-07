@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "ip": "atciic100_target",
+  "generated_at": "2026-05-06T21:34:54Z",
+  "emitter": "fl-model-gen",
+  "produced": [
+    "model/functional_model.py",
+    "model/decomposition.json",
+    "model/fl_model_check.json",
+    "cov/fcov_plan.json"
+  ]
+}

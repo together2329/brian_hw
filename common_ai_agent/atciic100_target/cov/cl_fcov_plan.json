@@ -1,0 +1,253 @@
+{
+  "schema_version": 1,
+  "type": "cl_functional_coverage_plan",
+  "ip": "atciic100_target",
+  "source": "atciic100_target/yaml/atciic100_target.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "cl",
+  "summary": {
+    "total_bins": 32,
+    "by_class": {
+      "protocol_handshake": 6,
+      "ordering": 2,
+      "arbitration_decision": 1,
+      "latency_bin": 20,
+      "backpressure_event": 2,
+      "outstanding_depth": 1
+    }
+  },
+  "bins": [
+    {
+      "id": "cycle_apb_setup",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[0]",
+      "description": "apb_setup"
+    },
+    {
+      "id": "cycle_apb_access",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[1]",
+      "description": "apb_access"
+    },
+    {
+      "id": "cycle_i2c_start_stop",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[2]",
+      "description": "i2c_start_stop"
+    },
+    {
+      "id": "cycle_i2c_byte",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[3]",
+      "description": "i2c_byte"
+    },
+    {
+      "id": "cycle_glitch_suppress",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[4]",
+      "description": "glitch_suppress"
+    },
+    {
+      "id": "cycle_dma_req_ack",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[5]",
+      "description": "dma_req_ack"
+    },
+    {
+      "id": "ordering_start_addr_data_stop",
+      "class": "ordering",
+      "source": "cycle_model.ordering[0]",
+      "description": "start_addr_data_stop"
+    },
+    {
+      "id": "ordering_arb_lose_terminates",
+      "class": "ordering",
+      "source": "cycle_model.ordering[1]",
+      "description": "arb_lose_terminates"
+    },
+    {
+      "id": "arbitration_i2c_multimaster",
+      "class": "arbitration_decision",
+      "source": "cycle_model.arbitration[0]",
+      "description": "i2c_multimaster"
+    },
+    {
+      "id": "latency_apb_register_read_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.apb_register_read",
+      "description": "apb_register_read latency == 0 cycles",
+      "bucket": "min",
+      "cycles": 0
+    },
+    {
+      "id": "latency_apb_register_read_mid",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.apb_register_read",
+      "description": "apb_register_read latency ~mid (0 cycles)",
+      "bucket": "mid",
+      "cycles": 0
+    },
+    {
+      "id": "latency_apb_register_read_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.apb_register_read",
+      "description": "apb_register_read latency == 1 cycles",
+      "bucket": "max",
+      "cycles": 1
+    },
+    {
+      "id": "latency_apb_register_read_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.apb_register_read",
+      "description": "apb_register_read latency > 1 cycles",
+      "bucket": ">max",
+      "threshold": 1
+    },
+    {
+      "id": "latency_apb_register_write_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.apb_register_write",
+      "description": "apb_register_write latency == 0 cycles",
+      "bucket": "min",
+      "cycles": 0
+    },
+    {
+      "id": "latency_apb_register_write_mid",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.apb_register_write",
+      "description": "apb_register_write latency ~mid (0 cycles)",
+      "bucket": "mid",
+      "cycles": 0
+    },
+    {
+      "id": "latency_apb_register_write_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.apb_register_write",
+      "description": "apb_register_write latency == 1 cycles",
+      "bucket": "max",
+      "cycles": 1
+    },
+    {
+      "id": "latency_apb_register_write_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.apb_register_write",
+      "description": "apb_register_write latency > 1 cycles",
+      "bucket": ">max",
+      "threshold": 1
+    },
+    {
+      "id": "latency_i2c_byte_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.i2c_byte",
+      "description": "i2c_byte latency < 9 cycles",
+      "bucket": "<min",
+      "threshold": 9
+    },
+    {
+      "id": "latency_i2c_byte_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.i2c_byte",
+      "description": "i2c_byte latency == 9 cycles",
+      "bucket": "min",
+      "cycles": 9
+    },
+    {
+      "id": "latency_i2c_byte_unbounded",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.i2c_byte",
+      "description": "i2c_byte latency unbounded (no max_cycles)",
+      "bucket": "unbounded"
+    },
+    {
+      "id": "latency_fifo_push_pop_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.fifo_push_pop",
+      "description": "fifo_push_pop latency == 0 cycles",
+      "bucket": "min",
+      "cycles": 0
+    },
+    {
+      "id": "latency_fifo_push_pop_mid",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.fifo_push_pop",
+      "description": "fifo_push_pop latency ~mid (0 cycles)",
+      "bucket": "mid",
+      "cycles": 0
+    },
+    {
+      "id": "latency_fifo_push_pop_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.fifo_push_pop",
+      "description": "fifo_push_pop latency == 1 cycles",
+      "bucket": "max",
+      "cycles": 1
+    },
+    {
+      "id": "latency_fifo_push_pop_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.fifo_push_pop",
+      "description": "fifo_push_pop latency > 1 cycles",
+      "bucket": ">max",
+      "threshold": 1
+    },
+    {
+      "id": "latency_glitch_suppress_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.glitch_suppress",
+      "description": "glitch_suppress latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_glitch_suppress_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.glitch_suppress",
+      "description": "glitch_suppress latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_glitch_suppress_mid",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.glitch_suppress",
+      "description": "glitch_suppress latency ~mid (2 cycles)",
+      "bucket": "mid",
+      "cycles": 2
+    },
+    {
+      "id": "latency_glitch_suppress_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.glitch_suppress",
+      "description": "glitch_suppress latency == 3 cycles",
+      "bucket": "max",
+      "cycles": 3
+    },
+    {
+      "id": "latency_glitch_suppress_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.glitch_suppress",
+      "description": "glitch_suppress latency > 3 cycles",
+      "bucket": ">max",
+      "threshold": 3
+    },
+    {
+      "id": "backpressure_fifo_full",
+      "class": "backpressure_event",
+      "source": "cycle_model.backpressure[0]",
+      "description": "fifo_full"
+    },
+    {
+      "id": "backpressure_fifo_empty",
+      "class": "backpressure_event",
+      "source": "cycle_model.backpressure[1]",
+      "description": "fifo_empty"
+    },
+    {
+      "id": "outstanding_depth_1",
+      "class": "outstanding_depth",
+      "source": "cycle_model.outstanding",
+      "description": "1 outstanding transaction (min)",
+      "depth": 1
+    }
+  ]
+}

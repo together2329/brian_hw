@@ -1,0 +1,1190 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "missing"
+    },
+    "connection_contract_suggestions": {
+      "path": "rtl/connection_contract_suggestions.json",
+      "rows": [
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cfg_nonsecure_allowed_i",
+          "review_status": "pending",
+          "signal": "mfifo_cfg_nonsecure_allowed_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "channel_pc_o",
+          "review_status": "pending",
+          "signal": "mfifo_channel_pc_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "channel_state_o",
+          "review_status": "pending",
+          "signal": "mfifo_channel_state_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "clk",
+          "review_status": "pending",
+          "signal": "clk"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_accept_o",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_accept_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_arg_addr_i",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_arg_addr_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_arg_data_i",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_arg_data_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_error_o",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_error_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_event_i",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_event_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_fault_code_o",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_fault_code_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_manager_i",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_manager_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_next_pc_i",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_next_pc_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_opcode_i",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_opcode_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_ready_o",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_ready_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_secure_i",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_secure_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_valid_i",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_valid_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "dbginst_write_i",
+          "review_status": "pending",
+          "signal": "mfifo_dbginst_write_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "fault_clear_i",
+          "review_status": "pending",
+          "signal": "mfifo_fault_clear_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "fault_status_o",
+          "review_status": "pending",
+          "signal": "mfifo_fault_status_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "fault_valid_o",
+          "review_status": "pending",
+          "signal": "mfifo_fault_valid_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "irq_clear_i",
+          "review_status": "pending",
+          "signal": "mfifo_irq_clear_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "irq_status_o",
+          "review_status": "pending",
+          "signal": "mfifo_irq_status_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "ld_req_addr_o",
+          "review_status": "pending",
+          "signal": "mfifo_ld_req_addr_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "ld_req_ready_i",
+          "review_status": "pending",
+          "signal": "mfifo_ld_req_ready_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "ld_req_valid_o",
+          "review_status": "pending",
+          "signal": "mfifo_ld_req_valid_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "ld_rsp_data_i",
+          "review_status": "pending",
+          "signal": "mfifo_ld_rsp_data_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "ld_rsp_error_i",
+          "review_status": "pending",
+          "signal": "mfifo_ld_rsp_error_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "ld_rsp_ready_o",
+          "review_status": "pending",
+          "signal": "mfifo_ld_rsp_ready_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "ld_rsp_valid_i",
+          "review_status": "pending",
+          "signal": "mfifo_ld_rsp_valid_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "mfifo_count_o",
+          "review_status": "pending",
+          "signal": "mfifo_count_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "mfifo_empty_o",
+          "review_status": "pending",
+          "signal": "mfifo_empty_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "mfifo_full_o",
+          "review_status": "pending",
+          "signal": "mfifo_full_o"
+        }
+      ],
+      "rule": "This artifact is a pending QA aid only. It is not SSOT authority, does not close manifest_connection_contract_evidence, and must be approved into integration.connections or sub_modules[].connections by a human.",
+      "summary": {
+        "applied_to_ssot": false,
+        "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
+        "pending_review": 398,
+        "status": "pending_review",
+        "suggested_rows": 398
+      }
+    },
+    "module_slice": {
+      "count": 11,
+      "enabled": true,
+      "index": 11,
+      "key": "workflow_todo",
+      "module_task_count": 140,
+      "rule": "Owner module pl330_target_mfifo is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "workflow_todo",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pl330_target_mfifo.sv",
+      "name": "pl330_target_mfifo",
+      "refs": [
+        "cycle_model.backpressure.mfifo_full",
+        "dataflow",
+        "features",
+        "fsm",
+        "function_model.state_variables",
+        "function_model.state_variables.mfifo",
+        "function_model.transactions.FM_DMAEND",
+        "function_model.transactions.FM_DMAGO",
+        "function_model.transactions.FM_DMALD",
+        "function_model.transactions.FM_DMALDP",
+        "function_model.transactions.FM_DMASEV",
+        "function_model.transactions.FM_DMAST",
+        "function_model.transactions.FM_DMASTP",
+        "function_model.transactions.FM_FAULT",
+        "function_model.transactions.FM_RESET",
+        "registers",
+        "registers.register_list",
+        "test_requirements"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pl330_target_engine.sv",
+        "name": "pl330_target_engine",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_pipeline.sv",
+        "name": "pl330_target_pipeline",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_lsq.sv",
+        "name": "pl330_target_lsq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_mfifo.sv",
+        "name": "pl330_target_mfifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_merge_buffer.sv",
+        "name": "pl330_target_merge_buffer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_icache.sv",
+        "name": "pl330_target_icache",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_axi.sv",
+        "name": "pl330_target_axi",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_periph.sv",
+        "name": "pl330_target_periph",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_apb_regs.sv",
+        "name": "pl330_target_apb_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target.sv",
+        "name": "pl330_target",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": {
+      "guidance": {
+        "calibration_only": true,
+        "do_not_copy_reference_rtl": true,
+        "target_candidate_rule": "suggested_ssot_target_scale is derived from design_candidate files when available, excluding validation/testbench/simulation collateral by path bucket."
+      },
+      "label": "PL330-GRP-r1p2",
+      "path": "reports/rtl_reference_profile.json",
+      "suggested_ssot_target_scale": {
+        "basis": "candidate structural scale from rtl_reference_profile; review and lock in SSOT before enforcement",
+        "control_flow_min": 155,
+        "depth_score_min": 4507,
+        "instances_min": 472,
+        "lines_min": 52338,
+        "modules_min": 52,
+        "nonconstant_assigns_min": 1135,
+        "procedural_blocks_min": 561,
+        "source_files_min": 57,
+        "state_updates_min": 295
+      },
+      "summary": {
+        "always_blocks": 910,
+        "assigns": 3049,
+        "case_blocks": 260,
+        "file_count": 143,
+        "instance_candidates": 1049,
+        "lines": 130568,
+        "modules": 210,
+        "nonconstant_assigns": 2890,
+        "state_updates": 1219
+      },
+      "target_candidate_basis": "design_candidate",
+      "target_candidate_summary": {
+        "always_blocks": 561,
+        "assigns": 1150,
+        "case_blocks": 155,
+        "file_count": 57,
+        "instance_candidates": 472,
+        "lines": 52338,
+        "modules": 52,
+        "nonconstant_assigns": 1135,
+        "state_updates": 295
+      }
+    },
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pl330_target",
+  "kind": "module",
+  "owner_file": "rtl/pl330_target_mfifo.sv",
+  "owner_module": "pl330_target_mfifo",
+  "packet_id": "module__pl330_target_mfifo__workflow_todo",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "workflow_todo.rtl_gen": 6
+    },
+    "module_slice": {
+      "count": 11,
+      "enabled": true,
+      "index": 11,
+      "key": "workflow_todo",
+      "module_task_count": 140,
+      "rule": "Owner module pl330_target_mfifo is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "workflow_todo",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 6,
+    "source_refs": [
+      "workflow_todos.rtl-gen[4]",
+      "workflow_todos.rtl-gen[11]",
+      "workflow_todos.rtl-gen[12]",
+      "workflow_todos.rtl-gen[13]",
+      "workflow_todos.rtl-gen[14]",
+      "workflow_todos.rtl-gen[15]"
+    ],
+    "status_counts": {
+      "pass": 6
+    },
+    "task_count": 6
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement or account for SSOT module slice `pl330_target_mfifo`",
+      "criteria": [
+        "Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module",
+        "Module slice has traceability evidence in rtl_todo_plan.json",
+        "No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[4]",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv",
+        "Semantic source_refs covered: dataflow, features, fsm, function_model.state_variables, function_model.transactions.FM_DMAEND, function_model.transactions.FM_DMAGO, function_model.transactions.FM_DMALD, function_model.transactions.FM_DMALDP, function_model.transactions.FM_DMASEV, function_model.transactions.FM_DMAST, function_model.transactions.FM_DMASTP, function_model.transactions.FM_FAULT, function_model.transactions.FM_RESET, registers, registers.register_list, test_requirements"
+      ],
+      "detail": "name=pl330_target_mfifo\nSSOT ref: workflow_todos.rtl-gen[4].\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via workflow_todos.owner.\nSSOT item context: id=RTL_MODULE_PL330_TARGET_MFIFO.",
+      "evidence_terms": [
+        "DMAEND",
+        "DMAGO",
+        "DMALD",
+        "DMALDP",
+        "DMASEV",
+        "DMAST",
+        "DMASTP",
+        "FAULT",
+        "FM",
+        "FM_DMAEND",
+        "FM_DMAGO",
+        "FM_DMALD",
+        "FM_DMALDP",
+        "FM_DMASEV",
+        "FM_DMAST",
+        "FM_DMASTP"
+      ],
+      "id": "RTL-0031",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[4]",
+      "ssot_context": {
+        "id": "RTL_MODULE_PL330_TARGET_MFIFO"
+      },
+      "ssot_refs": [
+        "dataflow",
+        "features",
+        "fsm",
+        "function_model.state_variables",
+        "function_model.transactions.FM_DMAEND",
+        "function_model.transactions.FM_DMAGO",
+        "function_model.transactions.FM_DMALD",
+        "function_model.transactions.FM_DMALDP",
+        "function_model.transactions.FM_DMASEV",
+        "function_model.transactions.FM_DMAST",
+        "function_model.transactions.FM_DMASTP",
+        "function_model.transactions.FM_FAULT",
+        "function_model.transactions.FM_RESET",
+        "registers",
+        "registers.register_list",
+        "test_requirements",
+        "workflow_todos.rtl-gen[4]"
+      ],
+      "static_evidence": {
+        "matched_count": 14,
+        "matched_terms": [
+          "DMAEND",
+          "DMAGO",
+          "DMALD",
+          "DMALDP",
+          "DMASEV",
+          "DMAST",
+          "DMASTP",
+          "FAULT",
+          "FM",
+          "FM_DMAGO",
+          "FM_DMALD",
+          "FM_DMALDP",
+          "FM_DMAST",
+          "FM_DMASTP"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "DMAEND",
+          "DMAGO",
+          "DMALD",
+          "DMALDP",
+          "DMASEV",
+          "DMAST",
+          "DMASTP",
+          "FAULT",
+          "FM",
+          "FM_DMAEND",
+          "FM_DMAGO",
+          "FM_DMALD",
+          "FM_DMALDP",
+          "FM_DMASEV",
+          "FM_DMAST",
+          "FM_DMASTP"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_MODULE_PL330_TARGET_MFIFO",
+        "source_refs": [
+          "dataflow",
+          "features",
+          "fsm",
+          "function_model.state_variables",
+          "function_model.transactions.FM_DMAEND",
+          "function_model.transactions.FM_DMAGO",
+          "function_model.transactions.FM_DMALD",
+          "function_model.transactions.FM_DMALDP",
+          "function_model.transactions.FM_DMASEV",
+          "function_model.transactions.FM_DMAST",
+          "function_model.transactions.FM_DMASTP",
+          "function_model.transactions.FM_FAULT",
+          "function_model.transactions.FM_RESET",
+          "registers",
+          "registers.register_list",
+          "test_requirements"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement FunctionalModel transaction `FM_RESET` in RTL",
+      "criteria": [
+        "RTL samples the transaction only under the approved preconditions",
+        "All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping",
+        "All side effects and error cases have observable state, status, or handoff evidence",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[11]",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv",
+        "Semantic source_refs covered: function_model.transactions.FM_RESET, function_model.transactions[0]"
+      ],
+      "detail": "Preconditions: . Outputs: all state -> reset values. Side effects: outstanding_reads=0; outstanding_writes=0; mfifo_count=0; irq_status=0. Error cases: .\nSSOT ref: workflow_todos.rtl-gen[11].\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via workflow_todos.owner.\nSSOT item context: id=RTL_FM_TX_FM_RESET.",
+      "evidence_terms": [
+        "FM",
+        "FM_RESET",
+        "RESET",
+        "RTL_FM_TX_FM_RESET",
+        "TX",
+        "count",
+        "irq",
+        "irq_status",
+        "mfifo",
+        "mfifo_count",
+        "outstanding",
+        "outstanding_reads",
+        "outstanding_writes",
+        "pl330",
+        "pl330_target_mfifo",
+        "reads"
+      ],
+      "id": "RTL-0038",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[11]",
+      "ssot_context": {
+        "id": "RTL_FM_TX_FM_RESET"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET",
+        "function_model.transactions[0]",
+        "workflow_todos.rtl-gen[11]"
+      ],
+      "static_evidence": {
+        "matched_count": 14,
+        "matched_terms": [
+          "FM",
+          "FM_RESET",
+          "RESET",
+          "count",
+          "irq",
+          "irq_status",
+          "mfifo",
+          "mfifo_count",
+          "outstanding",
+          "outstanding_reads",
+          "outstanding_writes",
+          "pl330",
+          "pl330_target_mfifo",
+          "reads"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "FM",
+          "FM_RESET",
+          "RESET",
+          "RTL_FM_TX_FM_RESET",
+          "TX",
+          "count",
+          "irq",
+          "irq_status",
+          "mfifo",
+          "mfifo_count",
+          "outstanding",
+          "outstanding_reads",
+          "outstanding_writes",
+          "pl330",
+          "pl330_target_mfifo",
+          "reads"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_FM_TX_FM_RESET",
+        "source_refs": [
+          "function_model.transactions.FM_RESET",
+          "function_model.transactions[0]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement FunctionalModel transaction `FM_DMAGO` in RTL",
+      "criteria": [
+        "RTL samples the transaction only under the approved preconditions",
+        "All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping",
+        "All side effects and error cases have observable state, status, or handoff evidence",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[12]",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv",
+        "Semantic source_refs covered: function_model.transactions.FM_DMAGO, function_model.transactions[1]"
+      ],
+      "detail": "Preconditions: channel_state==0; manager APB write to DBGINST. Outputs: channel_state=1; channel_pc=arg_addr. Side effects: . Error cases: condition=secure violation.\nSSOT ref: workflow_todos.rtl-gen[12].\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via workflow_todos.owner.\nSSOT item context: id=RTL_FM_TX_FM_DMAGO.",
+      "evidence_terms": [
+        "DMAGO",
+        "FM",
+        "FM_DMAGO",
+        "RTL_FM_TX_FM_DMAGO",
+        "TX",
+        "addr",
+        "arg",
+        "arg_addr",
+        "channel",
+        "channel_pc",
+        "channel_state",
+        "mfifo",
+        "pc",
+        "pl330",
+        "pl330_target_mfifo",
+        "target"
+      ],
+      "id": "RTL-0039",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[12]",
+      "ssot_context": {
+        "id": "RTL_FM_TX_FM_DMAGO"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMAGO",
+        "function_model.transactions[1]",
+        "workflow_todos.rtl-gen[12]"
+      ],
+      "static_evidence": {
+        "matched_count": 14,
+        "matched_terms": [
+          "DMAGO",
+          "FM",
+          "FM_DMAGO",
+          "addr",
+          "arg",
+          "arg_addr",
+          "channel",
+          "channel_pc",
+          "channel_state",
+          "mfifo",
+          "pc",
+          "pl330",
+          "pl330_target_mfifo",
+          "target"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "DMAGO",
+          "FM",
+          "FM_DMAGO",
+          "RTL_FM_TX_FM_DMAGO",
+          "TX",
+          "addr",
+          "arg",
+          "arg_addr",
+          "channel",
+          "channel_pc",
+          "channel_state",
+          "mfifo",
+          "pc",
+          "pl330",
+          "pl330_target_mfifo",
+          "target"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_FM_TX_FM_DMAGO",
+        "source_refs": [
+          "function_model.transactions.FM_DMAGO",
+          "function_model.transactions[1]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement FunctionalModel transaction `FM_DMALD` in RTL",
+      "criteria": [
+        "RTL samples the transaction only under the approved preconditions",
+        "All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping",
+        "All side effects and error cases have observable state, status, or handoff evidence",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[13]",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv",
+        "Semantic source_refs covered: function_model.transactions.FM_DMALD, function_model.transactions[2]"
+      ],
+      "detail": "Preconditions: channel_state==1; mfifo has space. Outputs: outstanding_reads += 1; mfifo entries reserved. Side effects: issue AXI AR. Error cases: condition=AXI rresp != OKAY.\nSSOT ref: workflow_todos.rtl-gen[13].\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via workflow_todos.owner.\nSSOT item context: id=RTL_FM_TX_FM_DMALD.",
+      "evidence_terms": [
+        "DMALD",
+        "FM",
+        "FM_DMALD",
+        "RTL_FM_TX_FM_DMALD",
+        "TX",
+        "channel",
+        "channel_state",
+        "mfifo",
+        "outstanding",
+        "outstanding_reads",
+        "pl330",
+        "pl330_target_mfifo",
+        "reads",
+        "target"
+      ],
+      "id": "RTL-0040",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[13]",
+      "ssot_context": {
+        "id": "RTL_FM_TX_FM_DMALD"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMALD",
+        "function_model.transactions[2]",
+        "workflow_todos.rtl-gen[13]"
+      ],
+      "static_evidence": {
+        "matched_count": 12,
+        "matched_terms": [
+          "DMALD",
+          "FM",
+          "FM_DMALD",
+          "channel",
+          "channel_state",
+          "mfifo",
+          "outstanding",
+          "outstanding_reads",
+          "pl330",
+          "pl330_target_mfifo",
+          "reads",
+          "target"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "DMALD",
+          "FM",
+          "FM_DMALD",
+          "RTL_FM_TX_FM_DMALD",
+          "TX",
+          "channel",
+          "channel_state",
+          "mfifo",
+          "outstanding",
+          "outstanding_reads",
+          "pl330",
+          "pl330_target_mfifo",
+          "reads",
+          "target"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_FM_TX_FM_DMALD",
+        "source_refs": [
+          "function_model.transactions.FM_DMALD",
+          "function_model.transactions[2]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement FunctionalModel transaction `FM_DMAST` in RTL",
+      "criteria": [
+        "RTL samples the transaction only under the approved preconditions",
+        "All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping",
+        "All side effects and error cases have observable state, status, or handoff evidence",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[14]",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv",
+        "Semantic source_refs covered: function_model.transactions.FM_DMAST, function_model.transactions[3]"
+      ],
+      "detail": "Preconditions: channel_state==1; mfifo has data. Outputs: outstanding_writes += 1; mfifo entries consumed. Side effects: issue AXI AW + W. Error cases: condition=AXI bresp != OKAY.\nSSOT ref: workflow_todos.rtl-gen[14].\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via workflow_todos.owner.\nSSOT item context: id=RTL_FM_TX_FM_DMAST.",
+      "evidence_terms": [
+        "DMAST",
+        "FM",
+        "FM_DMAST",
+        "RTL_FM_TX_FM_DMAST",
+        "TX",
+        "channel",
+        "channel_state",
+        "mfifo",
+        "outstanding",
+        "outstanding_writes",
+        "pl330",
+        "pl330_target_mfifo",
+        "target",
+        "writes"
+      ],
+      "id": "RTL-0041",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[14]",
+      "ssot_context": {
+        "id": "RTL_FM_TX_FM_DMAST"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMAST",
+        "function_model.transactions[3]",
+        "workflow_todos.rtl-gen[14]"
+      ],
+      "static_evidence": {
+        "matched_count": 12,
+        "matched_terms": [
+          "DMAST",
+          "FM",
+          "FM_DMAST",
+          "channel",
+          "channel_state",
+          "mfifo",
+          "outstanding",
+          "outstanding_writes",
+          "pl330",
+          "pl330_target_mfifo",
+          "target",
+          "writes"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "DMAST",
+          "FM",
+          "FM_DMAST",
+          "RTL_FM_TX_FM_DMAST",
+          "TX",
+          "channel",
+          "channel_state",
+          "mfifo",
+          "outstanding",
+          "outstanding_writes",
+          "pl330",
+          "pl330_target_mfifo",
+          "target",
+          "writes"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_FM_TX_FM_DMAST",
+        "source_refs": [
+          "function_model.transactions.FM_DMAST",
+          "function_model.transactions[3]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement FunctionalModel transaction `FM_DMALDP` in RTL",
+      "criteria": [
+        "RTL samples the transaction only under the approved preconditions",
+        "All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping",
+        "All side effects and error cases have observable state, status, or handoff evidence",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[15]",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv",
+        "Semantic source_refs covered: function_model.transactions.FM_DMALDP, function_model.transactions[4]"
+      ],
+      "detail": "Preconditions: channel_state==1; periph drvalid asserted. Outputs: outstanding_reads += 1. Side effects: drready asserted; AXI AR issued. Error cases: .\nSSOT ref: workflow_todos.rtl-gen[15].\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via workflow_todos.owner.\nSSOT item context: id=RTL_FM_TX_FM_DMALDP.",
+      "evidence_terms": [
+        "DMALDP",
+        "FM",
+        "FM_DMALDP",
+        "RTL_FM_TX_FM_DMALDP",
+        "TX",
+        "channel",
+        "channel_state",
+        "mfifo",
+        "outstanding",
+        "outstanding_reads",
+        "pl330",
+        "pl330_target_mfifo",
+        "reads",
+        "target"
+      ],
+      "id": "RTL-0042",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[15]",
+      "ssot_context": {
+        "id": "RTL_FM_TX_FM_DMALDP"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMALDP",
+        "function_model.transactions[4]",
+        "workflow_todos.rtl-gen[15]"
+      ],
+      "static_evidence": {
+        "matched_count": 12,
+        "matched_terms": [
+          "DMALDP",
+          "FM",
+          "FM_DMALDP",
+          "channel",
+          "channel_state",
+          "mfifo",
+          "outstanding",
+          "outstanding_reads",
+          "pl330",
+          "pl330_target_mfifo",
+          "reads",
+          "target"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "DMALDP",
+          "FM",
+          "FM_DMALDP",
+          "RTL_FM_TX_FM_DMALDP",
+          "TX",
+          "channel",
+          "channel_state",
+          "mfifo",
+          "outstanding",
+          "outstanding_reads",
+          "pl330",
+          "pl330_target_mfifo",
+          "reads",
+          "target"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_FM_TX_FM_DMALDP",
+        "source_refs": [
+          "function_model.transactions.FM_DMALDP",
+          "function_model.transactions[4]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    }
+  ],
+  "todo_plan_sha256": "5ce9ec8f548eb16700a325ec5cf4698b70cdf559b6977cd26c2a8df84edc9398",
+  "top": "pl330_target",
+  "type": "rtl_authoring_packet"
+}

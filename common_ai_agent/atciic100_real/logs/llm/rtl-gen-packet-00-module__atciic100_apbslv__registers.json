@@ -1,0 +1,15 @@
+{
+  "error": "Error calling LLM: [Errno 54] Connection reset by peer",
+  "finish_reason": "",
+  "finished_at": "2026-05-06T23:24:07Z",
+  "input_hash": "d48e19c16fe34660bf67289fd9d0d0b62a084d01257ea980b930ccd60c821271",
+  "model": "glm-5.1",
+  "output_hash": "d5bd56fb9f0a7a1ad3bf948c677475c32831c20b8bab669ea6fa3cb6977227de",
+  "parsed_artifacts": [],
+  "prompt_hash": "8e7da20fe8fe0b0e7351beb2f8ab054cf74e429f9b0ab8f261a8968096788d8f",
+  "raw_response": "Error calling LLM: [Errno 54] Connection reset by peer",
+  "stage": "rtl-gen",
+  "started_at": "2026-05-06T23:21:01Z",
+  "status": "blocked",
+  "usage": {}
+}

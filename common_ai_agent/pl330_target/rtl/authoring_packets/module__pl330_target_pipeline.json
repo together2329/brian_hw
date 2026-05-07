@@ -1,0 +1,1185 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "missing"
+    },
+    "connection_contract_suggestions": {
+      "path": "rtl/connection_contract_suggestions.json",
+      "rows": [
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "accepted_pulse",
+          "review_status": "pending",
+          "signal": "pipeline_accepted_pulse"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "busy",
+          "review_status": "pending",
+          "signal": "pipeline_busy"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "clk",
+          "review_status": "pending",
+          "signal": "clk"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "cmpl_id",
+          "review_status": "pending",
+          "signal": "pipeline_cmpl_id"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "cmpl_last",
+          "review_status": "pending",
+          "signal": "pipeline_cmpl_last"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "cmpl_rdata",
+          "review_status": "pending",
+          "signal": "pipeline_cmpl_rdata"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "cmpl_ready",
+          "review_status": "pending",
+          "signal": "pipeline_cmpl_ready"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "cmpl_resp",
+          "review_status": "pending",
+          "signal": "pipeline_cmpl_resp"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "cmpl_valid",
+          "review_status": "pending",
+          "signal": "pipeline_cmpl_valid"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "completed_pulse",
+          "review_status": "pending",
+          "signal": "pipeline_completed_pulse"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "debug_latency_count",
+          "review_status": "pending",
+          "signal": "pipeline_debug_latency_count"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "debug_stage_valid",
+          "review_status": "pending",
+          "signal": "pipeline_debug_stage_valid"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "debug_state",
+          "review_status": "pending",
+          "signal": "pipeline_debug_state"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "enable",
+          "review_status": "pending",
+          "signal": "pipeline_enable"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "engine_req_addr",
+          "review_status": "pending",
+          "signal": "pipeline_engine_req_addr"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "engine_req_ctrl",
+          "review_status": "pending",
+          "signal": "pipeline_engine_req_ctrl"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "engine_req_id",
+          "review_status": "pending",
+          "signal": "pipeline_engine_req_id"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "engine_req_len",
+          "review_status": "pending",
+          "signal": "pipeline_engine_req_len"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "engine_req_ready",
+          "review_status": "pending",
+          "signal": "pipeline_engine_req_ready"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "engine_req_size",
+          "review_status": "pending",
+          "signal": "pipeline_engine_req_size"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "engine_req_strb",
+          "review_status": "pending",
+          "signal": "pipeline_engine_req_strb"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "engine_req_valid",
+          "review_status": "pending",
+          "signal": "pipeline_engine_req_valid"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "engine_req_wdata",
+          "review_status": "pending",
+          "signal": "pipeline_engine_req_wdata"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "engine_req_write",
+          "review_status": "pending",
+          "signal": "pipeline_engine_req_write"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "engine_rsp_id",
+          "review_status": "pending",
+          "signal": "pipeline_engine_rsp_id"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "engine_rsp_last",
+          "review_status": "pending",
+          "signal": "pipeline_engine_rsp_last"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "engine_rsp_rdata",
+          "review_status": "pending",
+          "signal": "pipeline_engine_rsp_rdata"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "engine_rsp_ready",
+          "review_status": "pending",
+          "signal": "pipeline_engine_rsp_ready"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "engine_rsp_resp",
+          "review_status": "pending",
+          "signal": "pipeline_engine_rsp_resp"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "engine_rsp_valid",
+          "review_status": "pending",
+          "signal": "pipeline_engine_rsp_valid"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "error_seen",
+          "review_status": "pending",
+          "signal": "pipeline_error_seen"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_pipeline",
+          "module": "pl330_target_pipeline",
+          "port": "flush",
+          "review_status": "pending",
+          "signal": "pipeline_flush"
+        }
+      ],
+      "rule": "This artifact is a pending QA aid only. It is not SSOT authority, does not close manifest_connection_contract_evidence, and must be approved into integration.connections or sub_modules[].connections by a human.",
+      "summary": {
+        "applied_to_ssot": false,
+        "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
+        "pending_review": 398,
+        "status": "pending_review",
+        "suggested_rows": 398
+      }
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 13,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pl330_target_pipeline.sv",
+      "name": "pl330_target_pipeline",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules.engine_pipeline",
+        "cycle_model.pipeline"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pl330_target_engine.sv",
+        "name": "pl330_target_engine",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_pipeline.sv",
+        "name": "pl330_target_pipeline",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_lsq.sv",
+        "name": "pl330_target_lsq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_mfifo.sv",
+        "name": "pl330_target_mfifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_merge_buffer.sv",
+        "name": "pl330_target_merge_buffer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_icache.sv",
+        "name": "pl330_target_icache",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_axi.sv",
+        "name": "pl330_target_axi",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_periph.sv",
+        "name": "pl330_target_periph",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_apb_regs.sv",
+        "name": "pl330_target_apb_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target.sv",
+        "name": "pl330_target",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": {
+      "guidance": {
+        "calibration_only": true,
+        "do_not_copy_reference_rtl": true,
+        "target_candidate_rule": "suggested_ssot_target_scale is derived from design_candidate files when available, excluding validation/testbench/simulation collateral by path bucket."
+      },
+      "label": "PL330-GRP-r1p2",
+      "path": "reports/rtl_reference_profile.json",
+      "suggested_ssot_target_scale": {
+        "basis": "candidate structural scale from rtl_reference_profile; review and lock in SSOT before enforcement",
+        "control_flow_min": 155,
+        "depth_score_min": 4507,
+        "instances_min": 472,
+        "lines_min": 52338,
+        "modules_min": 52,
+        "nonconstant_assigns_min": 1135,
+        "procedural_blocks_min": 561,
+        "source_files_min": 57,
+        "state_updates_min": 295
+      },
+      "summary": {
+        "always_blocks": 910,
+        "assigns": 3049,
+        "case_blocks": 260,
+        "file_count": 143,
+        "instance_candidates": 1049,
+        "lines": 130568,
+        "modules": 210,
+        "nonconstant_assigns": 2890,
+        "state_updates": 1219
+      },
+      "target_candidate_basis": "design_candidate",
+      "target_candidate_summary": {
+        "always_blocks": 561,
+        "assigns": 1150,
+        "case_blocks": 155,
+        "file_count": 57,
+        "instance_candidates": 472,
+        "lines": 52338,
+        "modules": 52,
+        "nonconstant_assigns": 1135,
+        "state_updates": 295
+      }
+    },
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pl330_target",
+  "kind": "module",
+  "owner_file": "rtl/pl330_target_pipeline.sv",
+  "owner_module": "pl330_target_pipeline",
+  "packet_id": "module__pl330_target_pipeline",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.backpressure": 1,
+      "cycle_model.clock": 1,
+      "cycle_model.handshake_rules": 2,
+      "cycle_model.latency": 1,
+      "cycle_model.observability": 1,
+      "cycle_model.ordering": 4,
+      "cycle_model.reset": 1,
+      "equivalence.module": 1,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 13,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 13,
+    "source_refs": [
+      "workflow_todos.rtl-gen[2]",
+      "cycle_model.clock",
+      "cycle_model.reset",
+      "cycle_model.latency",
+      "cycle_model.handshake_rules.req_valid_req_ready",
+      "cycle_model.handshake_rules.rsp_valid_rsp_ready",
+      "cycle_model.ordering.ordering_rule_0",
+      "cycle_model.ordering.ordering_rule_1",
+      "cycle_model.ordering.ordering_rule_2",
+      "cycle_model.ordering.ordering_rule_3",
+      "cycle_model.backpressure.backpressure_rule_0",
+      "cycle_model.observability.observability_signal_0",
+      "sub_modules.pl330_target_pipeline.module_equivalence"
+    ],
+    "status_counts": {
+      "pass": 13
+    },
+    "task_count": 13
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement or account for SSOT module slice `pl330_target_pipeline`",
+      "criteria": [
+        "Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module",
+        "Module slice has traceability evidence in rtl_todo_plan.json",
+        "No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[2]",
+        "Primary implementation evidence is in rtl/pl330_target_pipeline.sv",
+        "Semantic source_refs covered: cycle_model"
+      ],
+      "detail": "name=pl330_target_pipeline\nSSOT ref: workflow_todos.rtl-gen[2].\nOwner: pl330_target_pipeline in rtl/pl330_target_pipeline.sv via workflow_todos.owner.\nSSOT item context: id=RTL_MODULE_PL330_TARGET_PIPELINE.",
+      "evidence_terms": [
+        "PL330",
+        "RTL_MODULE_PL330_TARGET_PIPELINE",
+        "TARGET",
+        "pl330",
+        "pl330_target_pipeline",
+        "plan",
+        "rtl_todo_plan",
+        "target",
+        "todo"
+      ],
+      "id": "RTL-0029",
+      "owner_file": "rtl/pl330_target_pipeline.sv",
+      "owner_module": "pl330_target_pipeline",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[2]",
+      "ssot_context": {
+        "id": "RTL_MODULE_PL330_TARGET_PIPELINE"
+      },
+      "ssot_refs": [
+        "cycle_model",
+        "workflow_todos.rtl-gen[2]"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "PL330",
+          "TARGET",
+          "pl330",
+          "pl330_target_pipeline",
+          "target"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "PL330",
+          "RTL_MODULE_PL330_TARGET_PIPELINE",
+          "TARGET",
+          "pl330",
+          "pl330_target_pipeline",
+          "plan",
+          "rtl_todo_plan",
+          "target",
+          "todo"
+        ],
+        "source_scope": "rtl/pl330_target_pipeline.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_MODULE_PL330_TARGET_PIPELINE",
+        "source_refs": [
+          "cycle_model"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "cycle_model.clock",
+      "content": "Implement cycle-model clock",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.clock",
+        "Primary implementation evidence is in rtl/pl330_target_pipeline.sv",
+        "cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: pl330_target_pipeline in rtl/pl330_target_pipeline.sv via cycle_model.\nSSOT item context: value=clk.",
+      "evidence_terms": [],
+      "id": "RTL-0177",
+      "owner_file": "rtl/pl330_target_pipeline.sv",
+      "owner_module": "pl330_target_pipeline",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.clock",
+      "ssot_context": {
+        "value": "clk"
+      },
+      "ssot_refs": [
+        "cycle_model.clock"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.reset",
+      "content": "Implement cycle-model reset",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.reset",
+        "Primary implementation evidence is in rtl/pl330_target_pipeline.sv",
+        "cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: pl330_target_pipeline in rtl/pl330_target_pipeline.sv via cycle_model.\nSSOT item context: signal=rst_n.",
+      "evidence_terms": [
+        "rst",
+        "rst_n"
+      ],
+      "id": "RTL-0178",
+      "owner_file": "rtl/pl330_target_pipeline.sv",
+      "owner_module": "pl330_target_pipeline",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.reset",
+      "ssot_context": {
+        "signal": "rst_n"
+      },
+      "ssot_refs": [
+        "cycle_model.reset"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "rst",
+          "rst_n"
+        ],
+        "source_scope": "rtl/pl330_target_pipeline.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.latency",
+      "content": "Implement cycle-model latency",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.latency",
+        "Primary implementation evidence is in rtl/pl330_target_pipeline.sv",
+        "cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: pl330_target_pipeline in rtl/pl330_target_pipeline.sv via cycle_model.",
+      "evidence_terms": [],
+      "id": "RTL-0179",
+      "owner_file": "rtl/pl330_target_pipeline.sv",
+      "owner_module": "pl330_target_pipeline",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.latency",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.latency"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: req_valid/req_ready",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.req_valid_req_ready",
+        "Primary implementation evidence is in rtl/pl330_target_pipeline.sv",
+        "cycle_model.handshake_rules.req_valid_req_ready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.req_valid_req_ready.\nOwner: pl330_target_pipeline in rtl/pl330_target_pipeline.sv via cycle_model.\nSSOT item context: signal=req_valid/req_ready.",
+      "evidence_terms": [
+        "ready",
+        "req",
+        "req_ready",
+        "req_valid",
+        "valid"
+      ],
+      "id": "RTL-0180",
+      "owner_file": "rtl/pl330_target_pipeline.sv",
+      "owner_module": "pl330_target_pipeline",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.req_valid_req_ready",
+      "ssot_context": {
+        "signal": "req_valid/req_ready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.req_valid_req_ready"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "ready",
+          "req",
+          "req_ready",
+          "req_valid",
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ready",
+          "req",
+          "req_ready",
+          "req_valid",
+          "valid"
+        ],
+        "source_scope": "rtl/pl330_target_pipeline.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: rsp_valid/rsp_ready",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.rsp_valid_rsp_ready",
+        "Primary implementation evidence is in rtl/pl330_target_pipeline.sv",
+        "cycle_model.handshake_rules.rsp_valid_rsp_ready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.rsp_valid_rsp_ready.\nOwner: pl330_target_pipeline in rtl/pl330_target_pipeline.sv via cycle_model.\nSSOT item context: signal=rsp_valid/rsp_ready.",
+      "evidence_terms": [
+        "ready",
+        "rsp",
+        "rsp_ready",
+        "rsp_valid",
+        "valid"
+      ],
+      "id": "RTL-0181",
+      "owner_file": "rtl/pl330_target_pipeline.sv",
+      "owner_module": "pl330_target_pipeline",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.rsp_valid_rsp_ready",
+      "ssot_context": {
+        "signal": "rsp_valid/rsp_ready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.rsp_valid_rsp_ready"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "ready",
+          "rsp",
+          "rsp_ready",
+          "rsp_valid",
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ready",
+          "rsp",
+          "rsp_ready",
+          "rsp_valid",
+          "valid"
+        ],
+        "source_scope": "rtl/pl330_target_pipeline.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_0",
+        "Primary implementation evidence is in rtl/pl330_target_pipeline.sv",
+        "cycle_model.ordering.ordering_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_0.\nOwner: pl330_target_pipeline in rtl/pl330_target_pipeline.sv via cycle_model.\nSSOT item context: value=Accepted requests update architectural state only on clock edges..",
+      "evidence_terms": [],
+      "id": "RTL-0185",
+      "owner_file": "rtl/pl330_target_pipeline.sv",
+      "owner_module": "pl330_target_pipeline",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_0",
+      "ssot_context": {
+        "value": "Accepted requests update architectural state only on clock edges."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_1",
+        "Primary implementation evidence is in rtl/pl330_target_pipeline.sv",
+        "cycle_model.ordering.ordering_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_1.\nOwner: pl330_target_pipeline in rtl/pl330_target_pipeline.sv via cycle_model.\nSSOT item context: value=Completion/status/interrupt updates occur after the operation reaches its terminal FSM state..",
+      "evidence_terms": [],
+      "id": "RTL-0186",
+      "owner_file": "rtl/pl330_target_pipeline.sv",
+      "owner_module": "pl330_target_pipeline",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_1",
+      "ssot_context": {
+        "value": "Completion/status/interrupt updates occur after the operation reaches its terminal FSM state."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_2",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_2",
+        "Primary implementation evidence is in rtl/pl330_target_pipeline.sv",
+        "cycle_model.ordering.ordering_rule_2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_2.\nOwner: pl330_target_pipeline in rtl/pl330_target_pipeline.sv via cycle_model.\nSSOT item context: value=Backpressure stalls the active handshake stage without corrupting stored state..",
+      "evidence_terms": [],
+      "id": "RTL-0187",
+      "owner_file": "rtl/pl330_target_pipeline.sv",
+      "owner_module": "pl330_target_pipeline",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_2",
+      "ssot_context": {
+        "value": "Backpressure stalls the active handshake stage without corrupting stored state."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_3",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_3",
+        "Primary implementation evidence is in rtl/pl330_target_pipeline.sv",
+        "cycle_model.ordering.ordering_rule_3 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_3.\nOwner: pl330_target_pipeline in rtl/pl330_target_pipeline.sv via cycle_model.\nSSOT item context: value=Read/dataflow stages must precede dependent write/output stages where declared in dataflow..",
+      "evidence_terms": [],
+      "id": "RTL-0188",
+      "owner_file": "rtl/pl330_target_pipeline.sv",
+      "owner_module": "pl330_target_pipeline",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_3",
+      "ssot_context": {
+        "value": "Read/dataflow stages must precede dependent write/output stages where declared in dataflow."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_0",
+        "Primary implementation evidence is in rtl/pl330_target_pipeline.sv",
+        "cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_0.\nOwner: pl330_target_pipeline in rtl/pl330_target_pipeline.sv via cycle_model.\nSSOT item context: value=Ready/valid deassertion stalls only the affected interface stage; payload and route/control state remain stable..",
+      "evidence_terms": [],
+      "id": "RTL-0189",
+      "owner_file": "rtl/pl330_target_pipeline.sv",
+      "owner_module": "pl330_target_pipeline",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
+      "ssot_context": {
+        "value": "Ready/valid deassertion stalls only the affected interface stage; payload and route/control state remain stable."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.observability",
+      "content": "Implement observability signal: observability_signal_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.observability.observability_signal_0",
+        "Primary implementation evidence is in rtl/pl330_target_pipeline.sv",
+        "cycle_model.observability.observability_signal_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_0.\nOwner: pl330_target_pipeline in rtl/pl330_target_pipeline.sv via cycle_model.\nSSOT item context: value=Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario..",
+      "evidence_terms": [
+        "Every",
+        "at",
+        "least",
+        "maps",
+        "one",
+        "scenario",
+        "stage"
+      ],
+      "id": "RTL-0190",
+      "owner_file": "rtl/pl330_target_pipeline.sv",
+      "owner_module": "pl330_target_pipeline",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.observability.observability_signal_0",
+      "ssot_context": {
+        "value": "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
+      },
+      "ssot_refs": [
+        "cycle_model.observability.observability_signal_0"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "stage"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "Every",
+          "at",
+          "least",
+          "maps",
+          "one",
+          "scenario",
+          "stage"
+        ],
+        "source_scope": "rtl/pl330_target_pipeline.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module pl330_target_pipeline is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.pl330_target_pipeline.module_equivalence",
+        "Primary implementation evidence is in rtl/pl330_target_pipeline.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.pl330_target_pipeline.module_equivalence.\nOwner: pl330_target_pipeline in rtl/pl330_target_pipeline.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0262",
+      "owner_file": "rtl/pl330_target_pipeline.sv",
+      "owner_module": "pl330_target_pipeline",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.pl330_target_pipeline.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.pl330_target_pipeline.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "5ce9ec8f548eb16700a325ec5cf4698b70cdf559b6977cd26c2a8df84edc9398",
+  "top": "pl330_target",
+  "type": "rtl_authoring_packet"
+}

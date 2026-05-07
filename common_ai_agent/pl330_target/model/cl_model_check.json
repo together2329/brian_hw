@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "type": "cl_model_check",
+  "ip": "pl330_target",
+  "source": "model/cycle_model.py",
+  "timestamp": "2026-05-06T21:17:12Z",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "transactions": 9,
+    "results_observed": 8,
+    "coverage_bins": 15,
+    "coverage_hit": 15
+  },
+  "decomposition_units": 10,
+  "fcov_bins": 15
+}

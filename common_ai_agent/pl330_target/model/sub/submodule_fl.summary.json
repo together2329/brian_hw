@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "type": "submodule_fl_summary",
+  "ip": "pl330_target",
+  "sub_modules_total": 10,
+  "submodule_fl_emitted": 9,
+  "emitted": [
+    {
+      "submodule": "pl330_target_engine",
+      "file": "model/sub/pl330_target_engine_fl.py",
+      "owned_tx": [],
+      "owned_state": [],
+      "owned_protocol_refs": [
+        "fsm.engine",
+        "cycle_model.pipeline"
+      ],
+      "implements": [
+        "function_model.transactions.fetch",
+        ".decode",
+        ".execute",
+        "fsm.engine",
+        "cycle_model.pipeline"
+      ]
+    },
+    {
+      "submodule": "pl330_target_pipeline",
+      "file": "model/sub/pl330_target_pipeline_fl.py",
+      "owned_tx": [],
+      "owned_state": [],
+      "owned_protocol_refs": [
+        "cycle_model.pipeline",
+        "cycle_model.handshake_rules.engine_pipeline"
+      ],
+      "implements": [
+        "cycle_model.pipeline",
+        "cycle_model.handshake_rules.engine_pipeline"
+      ]
+    },
+    {
+      "submodule": "pl330_target_lsq",
+      "file": "model/sub/pl330_target_lsq_fl.py",
+      "owned_tx": [
+        "FM_DMALD",
+        "FM_DMALDP"
+      ],
+      "owned_state": [],
+      "owned_protocol_refs": [
+        "cycle_model.ordering.lsq_order"
+      ],
+      "implements": [
+        "function_model.transactions.load",
+        ".store",
+        "cycle_model.ordering.lsq_order"
+      ]
+    },
+    {
+      "submodule": "pl330_target_mfifo",
+      "file": "model/sub/pl330_target_mfifo_fl.py",
+      "owned_tx": [],
+      "owned_state": [
+        "mfifo_count"
+      ],
+      "owned_protocol_refs": [
+        "cycle_model.backpressure.mfifo_full"
+      ],
+      "implements": [
+        "function_model.state_variables.mfifo",
+        "cycle_model.backpressure.mfifo_full"
+      ]
+    },
+    {
+      "submodule": "pl330_target_merge_buffer",
+      "file": "model/sub/pl330_target_merge_buffer_fl.py",
+      "owned_tx": [],
+      "owned_state": [],
+      "owned_protocol_refs": [
+        "cycle_model.handshake_rules.merge"
+      ],
+      "implements": [
+        "function_model.transactions.merge",
+        "cycle_model.handshake_rules.merge"
+      ]
+    },
+    {
+      "submodule": "pl330_target_icache",
+      "file": "model/sub/pl330_target_icache_fl.py",
+      "owned_tx": [],
+      "owned_state": [],
+      "owned_protocol_refs": [
+        "cycle_model.handshake_rules.icache_fill"
+      ],
+      "implements": [
+        "cycle_model.handshake_rules.icache_fill"
+      ]
+    },
+    {
+      "submodule": "pl330_target_axi",
+      "file": "model/sub/pl330_target_axi_fl.py",
+      "owned_tx": [],
+      "owned_state": [],
+      "owned_protocol_refs": [
+        "cycle_model.handshake_rules.axi_aw",
+        "cycle_model.ordering.axi_outstanding"
+      ],
+      "implements": [
+        "cycle_model.handshake_rules.axi_aw",
+        ".axi_w",
+        ".axi_b",
+        ".axi_ar",
+        ".axi_r",
+        "cycle_model.ordering.axi_outstanding"
+      ]
+    },
+    {
+      "submodule": "pl330_target_periph",
+      "file": "model/sub/pl330_target_periph_fl.py",
+      "owned_tx": [
+        "FM_DMALDP",
+        "FM_DMASTP"
+      ],
+      "owned_state": [],
+      "owned_protocol_refs": [
+        "cycle_model.handshake_rules.periph_dr_da"
+      ],
+      "implements": [
+        "function_model.transactions.peripheral_request",
+        "cycle_model.handshake_rules.periph_dr_da"
+      ]
+    },
+    {
+      "submodule": "pl330_target_apb_regs",
+      "file": "model/sub/pl330_target_apb_regs_fl.py",
+      "owned_tx": [],
+      "owned_state": [],
+      "owned_protocol_refs": [
+        "registers.register_list",
+        "cycle_model.handshake_rules.apb"
+      ],
+      "implements": [
+        "registers.register_list",
+        "cycle_model.handshake_rules.apb"
+      ]
+    }
+  ]
+}

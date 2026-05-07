@@ -1,0 +1,2887 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "missing"
+    },
+    "connection_contract_suggestions": {
+      "path": "rtl/connection_contract_suggestions.json",
+      "rows": [
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cfg_nonsecure_allowed_i",
+          "review_status": "pending",
+          "signal": "mfifo_cfg_nonsecure_allowed_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "channel_pc_o",
+          "review_status": "pending",
+          "signal": "mfifo_channel_pc_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "channel_state_o",
+          "review_status": "pending",
+          "signal": "mfifo_channel_state_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "clk",
+          "review_status": "pending",
+          "signal": "clk"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_accept_o",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_accept_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_arg_addr_i",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_arg_addr_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_arg_data_i",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_arg_data_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_error_o",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_error_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_event_i",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_event_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_fault_code_o",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_fault_code_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_manager_i",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_manager_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_next_pc_i",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_next_pc_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_opcode_i",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_opcode_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_ready_o",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_ready_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_secure_i",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_secure_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "cmd_valid_i",
+          "review_status": "pending",
+          "signal": "mfifo_cmd_valid_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "dbginst_write_i",
+          "review_status": "pending",
+          "signal": "mfifo_dbginst_write_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "fault_clear_i",
+          "review_status": "pending",
+          "signal": "mfifo_fault_clear_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "fault_status_o",
+          "review_status": "pending",
+          "signal": "mfifo_fault_status_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "fault_valid_o",
+          "review_status": "pending",
+          "signal": "mfifo_fault_valid_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "irq_clear_i",
+          "review_status": "pending",
+          "signal": "mfifo_irq_clear_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "irq_status_o",
+          "review_status": "pending",
+          "signal": "mfifo_irq_status_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "ld_req_addr_o",
+          "review_status": "pending",
+          "signal": "mfifo_ld_req_addr_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "ld_req_ready_i",
+          "review_status": "pending",
+          "signal": "mfifo_ld_req_ready_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "ld_req_valid_o",
+          "review_status": "pending",
+          "signal": "mfifo_ld_req_valid_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "ld_rsp_data_i",
+          "review_status": "pending",
+          "signal": "mfifo_ld_rsp_data_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "ld_rsp_error_i",
+          "review_status": "pending",
+          "signal": "mfifo_ld_rsp_error_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "ld_rsp_ready_o",
+          "review_status": "pending",
+          "signal": "mfifo_ld_rsp_ready_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "ld_rsp_valid_i",
+          "review_status": "pending",
+          "signal": "mfifo_ld_rsp_valid_i"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "mfifo_count_o",
+          "review_status": "pending",
+          "signal": "mfifo_count_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "mfifo_empty_o",
+          "review_status": "pending",
+          "signal": "mfifo_empty_o"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_mfifo",
+          "module": "pl330_target_mfifo",
+          "port": "mfifo_full_o",
+          "review_status": "pending",
+          "signal": "mfifo_full_o"
+        }
+      ],
+      "rule": "This artifact is a pending QA aid only. It is not SSOT authority, does not close manifest_connection_contract_evidence, and must be approved into integration.connections or sub_modules[].connections by a human.",
+      "summary": {
+        "applied_to_ssot": false,
+        "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
+        "pending_review": 398,
+        "status": "pending_review",
+        "suggested_rows": 398
+      }
+    },
+    "module_slice": {
+      "count": 11,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model_01",
+      "module_task_count": 140,
+      "rule": "Owner module pl330_target_mfifo is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 2,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pl330_target_mfifo.sv",
+      "name": "pl330_target_mfifo",
+      "refs": [
+        "cycle_model.backpressure.mfifo_full",
+        "dataflow",
+        "features",
+        "fsm",
+        "function_model.state_variables",
+        "function_model.state_variables.mfifo",
+        "function_model.transactions.FM_DMAEND",
+        "function_model.transactions.FM_DMAGO",
+        "function_model.transactions.FM_DMALD",
+        "function_model.transactions.FM_DMALDP",
+        "function_model.transactions.FM_DMASEV",
+        "function_model.transactions.FM_DMAST",
+        "function_model.transactions.FM_DMASTP",
+        "function_model.transactions.FM_FAULT",
+        "function_model.transactions.FM_RESET",
+        "registers",
+        "registers.register_list",
+        "test_requirements"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pl330_target_engine.sv",
+        "name": "pl330_target_engine",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_pipeline.sv",
+        "name": "pl330_target_pipeline",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_lsq.sv",
+        "name": "pl330_target_lsq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_mfifo.sv",
+        "name": "pl330_target_mfifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_merge_buffer.sv",
+        "name": "pl330_target_merge_buffer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_icache.sv",
+        "name": "pl330_target_icache",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_axi.sv",
+        "name": "pl330_target_axi",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_periph.sv",
+        "name": "pl330_target_periph",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target_apb_regs.sv",
+        "name": "pl330_target_apb_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pl330_target.sv",
+        "name": "pl330_target",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": {
+      "guidance": {
+        "calibration_only": true,
+        "do_not_copy_reference_rtl": true,
+        "target_candidate_rule": "suggested_ssot_target_scale is derived from design_candidate files when available, excluding validation/testbench/simulation collateral by path bucket."
+      },
+      "label": "PL330-GRP-r1p2",
+      "path": "reports/rtl_reference_profile.json",
+      "suggested_ssot_target_scale": {
+        "basis": "candidate structural scale from rtl_reference_profile; review and lock in SSOT before enforcement",
+        "control_flow_min": 155,
+        "depth_score_min": 4507,
+        "instances_min": 472,
+        "lines_min": 52338,
+        "modules_min": 52,
+        "nonconstant_assigns_min": 1135,
+        "procedural_blocks_min": 561,
+        "source_files_min": 57,
+        "state_updates_min": 295
+      },
+      "summary": {
+        "always_blocks": 910,
+        "assigns": 3049,
+        "case_blocks": 260,
+        "file_count": 143,
+        "instance_candidates": 1049,
+        "lines": 130568,
+        "modules": 210,
+        "nonconstant_assigns": 2890,
+        "state_updates": 1219
+      },
+      "target_candidate_basis": "design_candidate",
+      "target_candidate_summary": {
+        "always_blocks": 561,
+        "assigns": 1150,
+        "case_blocks": 155,
+        "file_count": 57,
+        "instance_candidates": 472,
+        "lines": 52338,
+        "modules": 52,
+        "nonconstant_assigns": 1135,
+        "state_updates": 295
+      }
+    },
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pl330_target",
+  "kind": "module",
+  "owner_file": "rtl/pl330_target_mfifo.sv",
+  "owner_module": "pl330_target_mfifo",
+  "packet_id": "module__pl330_target_mfifo__function_model_01",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.error_case": 3,
+      "function_model.output": 9,
+      "function_model.precondition": 12,
+      "function_model.side_effect": 10,
+      "function_model.state_variable": 7,
+      "function_model.transaction": 7
+    },
+    "module_slice": {
+      "count": 11,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model_01",
+      "module_task_count": 140,
+      "rule": "Owner module pl330_target_mfifo is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 2,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 48,
+    "source_refs": [
+      "function_model.state_variables.channel_state",
+      "function_model.state_variables.channel_pc",
+      "function_model.state_variables.outstanding_reads",
+      "function_model.state_variables.outstanding_writes",
+      "function_model.state_variables.mfifo_count",
+      "function_model.state_variables.irq_status",
+      "function_model.state_variables.fault_status",
+      "function_model.transactions.FM_RESET",
+      "function_model.transactions.FM_RESET.preconditions.precondition_0",
+      "function_model.transactions.FM_RESET.outputs.output_0",
+      "function_model.transactions.FM_RESET.side_effects.side_effect_0",
+      "function_model.transactions.FM_RESET.side_effects.side_effect_1",
+      "function_model.transactions.FM_RESET.side_effects.side_effect_2",
+      "function_model.transactions.FM_RESET.side_effects.side_effect_3",
+      "function_model.transactions.FM_DMAGO",
+      "function_model.transactions.FM_DMAGO.preconditions.precondition_0",
+      "function_model.transactions.FM_DMAGO.preconditions.precondition_1",
+      "function_model.transactions.FM_DMAGO.outputs.output_0",
+      "function_model.transactions.FM_DMAGO.outputs.output_1",
+      "function_model.transactions.FM_DMAGO.error_cases.error_case_0",
+      "function_model.transactions.FM_DMALD",
+      "function_model.transactions.FM_DMALD.preconditions.precondition_0",
+      "function_model.transactions.FM_DMALD.preconditions.precondition_1",
+      "function_model.transactions.FM_DMALD.outputs.output_0"
+    ],
+    "status_counts": {
+      "pass": 48
+    },
+    "task_count": 48
+  },
+  "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state channel_state",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.channel_state",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv",
+        "channel_state width matches SSOT value 4",
+        "channel_state reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.channel_state.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.state_variables.\nSSOT item context: name=channel_state; width=4; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0111",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.channel_state",
+      "ssot_context": {
+        "name": "channel_state",
+        "reset": "0",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.channel_state"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state channel_pc",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.channel_pc",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv",
+        "channel_pc width matches SSOT value 32",
+        "channel_pc reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.channel_pc.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.state_variables.\nSSOT item context: name=channel_pc; width=32; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0112",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.channel_pc",
+      "ssot_context": {
+        "name": "channel_pc",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.channel_pc"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state outstanding_reads",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.outstanding_reads",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv",
+        "outstanding_reads width matches SSOT value 4",
+        "outstanding_reads reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.outstanding_reads.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.state_variables.\nSSOT item context: name=outstanding_reads; width=4; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0113",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.outstanding_reads",
+      "ssot_context": {
+        "name": "outstanding_reads",
+        "reset": "0",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.outstanding_reads"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state outstanding_writes",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.outstanding_writes",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv",
+        "outstanding_writes width matches SSOT value 4",
+        "outstanding_writes reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.outstanding_writes.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.state_variables.\nSSOT item context: name=outstanding_writes; width=4; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0114",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.outstanding_writes",
+      "ssot_context": {
+        "name": "outstanding_writes",
+        "reset": "0",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.outstanding_writes"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state mfifo_count",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.mfifo_count",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv",
+        "mfifo_count width matches SSOT value 5",
+        "mfifo_count reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.mfifo_count.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.state_variables.\nSSOT item context: name=mfifo_count; width=5; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0115",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.mfifo_count",
+      "ssot_context": {
+        "name": "mfifo_count",
+        "reset": "0",
+        "width": "5"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.mfifo_count"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state irq_status",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.irq_status",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv",
+        "irq_status width matches SSOT value 32",
+        "irq_status reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.irq_status.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.state_variables.\nSSOT item context: name=irq_status; width=32; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0116",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.irq_status",
+      "ssot_context": {
+        "name": "irq_status",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.irq_status"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state fault_status",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.fault_status",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv",
+        "fault_status width matches SSOT value 32",
+        "fault_status reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.fault_status.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.state_variables.\nSSOT item context: name=fault_status; width=32; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0117",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.fault_status",
+      "ssot_context": {
+        "name": "fault_status",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.fault_status"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_RESET",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_RESET.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_RESET.\nSSOT item context: id=FM_RESET; name=reset.",
+      "evidence_terms": [],
+      "id": "RTL-0118",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "reset"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_RESET: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.preconditions.precondition_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_RESET.\nSSOT item context: value=transaction is accepted under cycle_model rules.",
+      "evidence_terms": [],
+      "id": "RTL-0119",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "transaction is accepted under cycle_model rules"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RESET: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.outputs.output_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.outputs.output_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_RESET.\nSSOT item context: value=all state -> reset values.",
+      "evidence_terms": [],
+      "id": "RTL-0120",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.outputs.output_0",
+      "ssot_context": {
+        "value": "all state -> reset values"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.outputs.output_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_RESET: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.side_effects.side_effect_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_RESET.\nSSOT item context: value=outstanding_reads=0.",
+      "evidence_terms": [
+        "outstanding",
+        "outstanding_reads",
+        "reads"
+      ],
+      "id": "RTL-0121",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "outstanding_reads=0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "outstanding",
+          "outstanding_reads",
+          "reads"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "outstanding",
+          "outstanding_reads",
+          "reads"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_RESET: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.side_effects.side_effect_1.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_RESET.\nSSOT item context: value=outstanding_writes=0.",
+      "evidence_terms": [
+        "outstanding",
+        "outstanding_writes",
+        "writes"
+      ],
+      "id": "RTL-0122",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.side_effects.side_effect_1",
+      "ssot_context": {
+        "value": "outstanding_writes=0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "outstanding",
+          "outstanding_writes",
+          "writes"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "outstanding",
+          "outstanding_writes",
+          "writes"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_RESET: side_effect_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.side_effects.side_effect_2",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.side_effects.side_effect_2.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_RESET.\nSSOT item context: value=mfifo_count=0.",
+      "evidence_terms": [
+        "count",
+        "mfifo",
+        "mfifo_count"
+      ],
+      "id": "RTL-0123",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.side_effects.side_effect_2",
+      "ssot_context": {
+        "value": "mfifo_count=0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.side_effects.side_effect_2"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "count",
+          "mfifo",
+          "mfifo_count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "mfifo",
+          "mfifo_count"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_RESET: side_effect_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.side_effects.side_effect_3",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.side_effects.side_effect_3.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_RESET.\nSSOT item context: value=irq_status=0.",
+      "evidence_terms": [
+        "irq",
+        "irq_status",
+        "status"
+      ],
+      "id": "RTL-0124",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.side_effects.side_effect_3",
+      "ssot_context": {
+        "value": "irq_status=0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.side_effects.side_effect_3"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "irq",
+          "irq_status",
+          "status"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "irq",
+          "irq_status",
+          "status"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_DMAGO",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_DMAGO",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_DMAGO.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMAGO.\nSSOT item context: id=FM_DMAGO; name=dmago_command.",
+      "evidence_terms": [],
+      "id": "RTL-0125",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMAGO",
+      "ssot_context": {
+        "id": "FM_DMAGO",
+        "name": "dmago_command"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMAGO"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DMAGO: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMAGO.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMAGO.preconditions.precondition_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMAGO.\nSSOT item context: value=channel_state==0.",
+      "evidence_terms": [
+        "channel",
+        "channel_state"
+      ],
+      "id": "RTL-0126",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMAGO.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "channel_state==0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMAGO.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "channel",
+          "channel_state"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "channel",
+          "channel_state"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DMAGO: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMAGO.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMAGO.preconditions.precondition_1.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMAGO.\nSSOT item context: value=manager APB write to DBGINST.",
+      "evidence_terms": [],
+      "id": "RTL-0127",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMAGO.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "manager APB write to DBGINST"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMAGO.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DMAGO: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMAGO.outputs.output_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMAGO.outputs.output_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMAGO.\nSSOT item context: value=channel_state=1.",
+      "evidence_terms": [
+        "channel",
+        "channel_state"
+      ],
+      "id": "RTL-0128",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMAGO.outputs.output_0",
+      "ssot_context": {
+        "value": "channel_state=1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMAGO.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "channel",
+          "channel_state"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "channel",
+          "channel_state"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DMAGO: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMAGO.outputs.output_1",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMAGO.outputs.output_1.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMAGO.\nSSOT item context: value=channel_pc=arg_addr.",
+      "evidence_terms": [
+        "addr",
+        "arg",
+        "arg_addr",
+        "channel",
+        "channel_pc",
+        "pc"
+      ],
+      "id": "RTL-0129",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMAGO.outputs.output_1",
+      "ssot_context": {
+        "value": "channel_pc=arg_addr"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMAGO.outputs.output_1"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "addr",
+          "arg",
+          "arg_addr",
+          "channel",
+          "channel_pc",
+          "pc"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "arg",
+          "arg_addr",
+          "channel",
+          "channel_pc",
+          "pc"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_DMAGO: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMAGO.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv",
+        "function_model.transactions.FM_DMAGO.error_cases.error_case_0 condition is implemented as RTL control logic: secure violation"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMAGO.error_cases.error_case_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMAGO.\nSSOT item context: condition=secure violation.",
+      "evidence_terms": [],
+      "id": "RTL-0130",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMAGO.error_cases.error_case_0",
+      "ssot_context": {
+        "condition": "secure violation"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMAGO.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_DMALD",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_DMALD",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_DMALD.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMALD.\nSSOT item context: id=FM_DMALD; name=dmald_load.",
+      "evidence_terms": [],
+      "id": "RTL-0131",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMALD",
+      "ssot_context": {
+        "id": "FM_DMALD",
+        "name": "dmald_load"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMALD"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DMALD: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMALD.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMALD.preconditions.precondition_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMALD.\nSSOT item context: value=channel_state==1.",
+      "evidence_terms": [
+        "channel",
+        "channel_state"
+      ],
+      "id": "RTL-0132",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMALD.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "channel_state==1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMALD.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "channel",
+          "channel_state"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "channel",
+          "channel_state"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DMALD: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMALD.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMALD.preconditions.precondition_1.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMALD.\nSSOT item context: value=mfifo has space.",
+      "evidence_terms": [],
+      "id": "RTL-0133",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMALD.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "mfifo has space"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMALD.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DMALD: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMALD.outputs.output_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMALD.outputs.output_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMALD.\nSSOT item context: value=outstanding_reads += 1.",
+      "evidence_terms": [
+        "outstanding",
+        "outstanding_reads",
+        "reads"
+      ],
+      "id": "RTL-0134",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMALD.outputs.output_0",
+      "ssot_context": {
+        "value": "outstanding_reads += 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMALD.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "outstanding",
+          "outstanding_reads",
+          "reads"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "outstanding",
+          "outstanding_reads",
+          "reads"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DMALD: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMALD.outputs.output_1",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMALD.outputs.output_1.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMALD.\nSSOT item context: value=mfifo entries reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0135",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMALD.outputs.output_1",
+      "ssot_context": {
+        "value": "mfifo entries reserved"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMALD.outputs.output_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DMALD: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMALD.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMALD.side_effects.side_effect_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMALD.\nSSOT item context: value=issue AXI AR.",
+      "evidence_terms": [],
+      "id": "RTL-0136",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMALD.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "issue AXI AR"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMALD.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_DMALD: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMALD.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv",
+        "function_model.transactions.FM_DMALD.error_cases.error_case_0 condition is implemented as RTL control logic: AXI rresp != OKAY"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMALD.error_cases.error_case_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMALD.\nSSOT item context: condition=AXI rresp != OKAY.",
+      "evidence_terms": [
+        "AXI",
+        "DMALD",
+        "FM",
+        "FM_DMALD",
+        "OKAY",
+        "ld_rsp_error",
+        "ld_rsp_error_i",
+        "rsp"
+      ],
+      "id": "RTL-0137",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMALD.error_cases.error_case_0",
+      "ssot_context": {
+        "condition": "AXI rresp != OKAY"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMALD.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "DMALD",
+          "FM",
+          "FM_DMALD",
+          "ld_rsp_error",
+          "ld_rsp_error_i",
+          "rsp"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "AXI",
+          "DMALD",
+          "FM",
+          "FM_DMALD",
+          "OKAY",
+          "ld_rsp_error",
+          "ld_rsp_error_i",
+          "rsp"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_DMAST",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_DMAST",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_DMAST.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMAST.\nSSOT item context: id=FM_DMAST; name=dmast_store.",
+      "evidence_terms": [],
+      "id": "RTL-0138",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMAST",
+      "ssot_context": {
+        "id": "FM_DMAST",
+        "name": "dmast_store"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMAST"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DMAST: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMAST.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMAST.preconditions.precondition_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMAST.\nSSOT item context: value=channel_state==1.",
+      "evidence_terms": [
+        "channel",
+        "channel_state"
+      ],
+      "id": "RTL-0139",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMAST.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "channel_state==1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMAST.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "channel",
+          "channel_state"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "channel",
+          "channel_state"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DMAST: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMAST.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMAST.preconditions.precondition_1.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMAST.\nSSOT item context: value=mfifo has data.",
+      "evidence_terms": [],
+      "id": "RTL-0140",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMAST.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "mfifo has data"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMAST.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DMAST: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMAST.outputs.output_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMAST.outputs.output_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMAST.\nSSOT item context: value=outstanding_writes += 1.",
+      "evidence_terms": [
+        "outstanding",
+        "outstanding_writes",
+        "writes"
+      ],
+      "id": "RTL-0141",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMAST.outputs.output_0",
+      "ssot_context": {
+        "value": "outstanding_writes += 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMAST.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "outstanding",
+          "outstanding_writes",
+          "writes"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "outstanding",
+          "outstanding_writes",
+          "writes"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DMAST: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMAST.outputs.output_1",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMAST.outputs.output_1.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMAST.\nSSOT item context: value=mfifo entries consumed.",
+      "evidence_terms": [],
+      "id": "RTL-0142",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMAST.outputs.output_1",
+      "ssot_context": {
+        "value": "mfifo entries consumed"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMAST.outputs.output_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DMAST: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMAST.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMAST.side_effects.side_effect_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMAST.\nSSOT item context: value=issue AXI AW + W.",
+      "evidence_terms": [],
+      "id": "RTL-0143",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMAST.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "issue AXI AW + W"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMAST.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_DMAST: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMAST.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv",
+        "function_model.transactions.FM_DMAST.error_cases.error_case_0 condition is implemented as RTL control logic: AXI bresp != OKAY"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMAST.error_cases.error_case_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMAST.\nSSOT item context: condition=AXI bresp != OKAY.",
+      "evidence_terms": [
+        "AXI",
+        "DMAST",
+        "FM",
+        "FM_DMAST",
+        "OKAY",
+        "rsp",
+        "st_rsp_error",
+        "st_rsp_error_i"
+      ],
+      "id": "RTL-0144",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMAST.error_cases.error_case_0",
+      "ssot_context": {
+        "condition": "AXI bresp != OKAY"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMAST.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "DMAST",
+          "FM",
+          "FM_DMAST",
+          "rsp",
+          "st_rsp_error",
+          "st_rsp_error_i"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "AXI",
+          "DMAST",
+          "FM",
+          "FM_DMAST",
+          "OKAY",
+          "rsp",
+          "st_rsp_error",
+          "st_rsp_error_i"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_DMALDP",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_DMALDP",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_DMALDP.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMALDP.\nSSOT item context: id=FM_DMALDP; name=dmaldp_periph_load.",
+      "evidence_terms": [],
+      "id": "RTL-0145",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMALDP",
+      "ssot_context": {
+        "id": "FM_DMALDP",
+        "name": "dmaldp_periph_load"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMALDP"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DMALDP: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMALDP.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMALDP.preconditions.precondition_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMALDP.\nSSOT item context: value=channel_state==1.",
+      "evidence_terms": [
+        "channel",
+        "channel_state"
+      ],
+      "id": "RTL-0146",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMALDP.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "channel_state==1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMALDP.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "channel",
+          "channel_state"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "channel",
+          "channel_state"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DMALDP: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMALDP.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMALDP.preconditions.precondition_1.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMALDP.\nSSOT item context: value=periph drvalid asserted.",
+      "evidence_terms": [],
+      "id": "RTL-0147",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMALDP.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "periph drvalid asserted"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMALDP.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DMALDP: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMALDP.outputs.output_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMALDP.outputs.output_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMALDP.\nSSOT item context: value=outstanding_reads += 1.",
+      "evidence_terms": [
+        "outstanding",
+        "outstanding_reads",
+        "reads"
+      ],
+      "id": "RTL-0148",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMALDP.outputs.output_0",
+      "ssot_context": {
+        "value": "outstanding_reads += 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMALDP.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "outstanding",
+          "outstanding_reads",
+          "reads"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "outstanding",
+          "outstanding_reads",
+          "reads"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DMALDP: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMALDP.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMALDP.side_effects.side_effect_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMALDP.\nSSOT item context: value=drready asserted.",
+      "evidence_terms": [],
+      "id": "RTL-0149",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMALDP.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "drready asserted"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMALDP.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DMALDP: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMALDP.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMALDP.side_effects.side_effect_1.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMALDP.\nSSOT item context: value=AXI AR issued.",
+      "evidence_terms": [],
+      "id": "RTL-0150",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMALDP.side_effects.side_effect_1",
+      "ssot_context": {
+        "value": "AXI AR issued"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMALDP.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_DMASTP",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_DMASTP",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_DMASTP.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMASTP.\nSSOT item context: id=FM_DMASTP; name=dmastp_periph_store.",
+      "evidence_terms": [],
+      "id": "RTL-0151",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMASTP",
+      "ssot_context": {
+        "id": "FM_DMASTP",
+        "name": "dmastp_periph_store"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMASTP"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DMASTP: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMASTP.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMASTP.preconditions.precondition_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMASTP.\nSSOT item context: value=channel_state==1.",
+      "evidence_terms": [
+        "channel",
+        "channel_state"
+      ],
+      "id": "RTL-0152",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMASTP.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "channel_state==1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMASTP.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "channel",
+          "channel_state"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "channel",
+          "channel_state"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DMASTP: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMASTP.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMASTP.preconditions.precondition_1.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMASTP.\nSSOT item context: value=periph davalid acknowledged.",
+      "evidence_terms": [],
+      "id": "RTL-0153",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMASTP.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "periph davalid acknowledged"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMASTP.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DMASTP: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMASTP.outputs.output_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMASTP.outputs.output_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMASTP.\nSSOT item context: value=outstanding_writes += 1.",
+      "evidence_terms": [
+        "outstanding",
+        "outstanding_writes",
+        "writes"
+      ],
+      "id": "RTL-0154",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMASTP.outputs.output_0",
+      "ssot_context": {
+        "value": "outstanding_writes += 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMASTP.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "outstanding",
+          "outstanding_writes",
+          "writes"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "outstanding",
+          "outstanding_writes",
+          "writes"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DMASTP: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMASTP.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMASTP.side_effects.side_effect_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMASTP.\nSSOT item context: value=daready asserted.",
+      "evidence_terms": [],
+      "id": "RTL-0155",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMASTP.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "daready asserted"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMASTP.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DMASTP: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMASTP.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMASTP.side_effects.side_effect_1.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMASTP.\nSSOT item context: value=AXI AW+W issued.",
+      "evidence_terms": [],
+      "id": "RTL-0156",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMASTP.side_effects.side_effect_1",
+      "ssot_context": {
+        "value": "AXI AW+W issued"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMASTP.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_DMASEV",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_DMASEV",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_DMASEV.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMASEV.\nSSOT item context: id=FM_DMASEV; name=dmasev_event_signal.",
+      "evidence_terms": [],
+      "id": "RTL-0157",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMASEV",
+      "ssot_context": {
+        "id": "FM_DMASEV",
+        "name": "dmasev_event_signal"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMASEV"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DMASEV: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMASEV.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/pl330_target_mfifo.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMASEV.preconditions.precondition_0.\nOwner: pl330_target_mfifo in rtl/pl330_target_mfifo.sv via function_model.transactions.FM_DMASEV.\nSSOT item context: value=channel_state==1.",
+      "evidence_terms": [
+        "channel",
+        "channel_state"
+      ],
+      "id": "RTL-0158",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMASEV.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "channel_state==1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMASEV.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "channel",
+          "channel_state"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "channel",
+          "channel_state"
+        ],
+        "source_scope": "rtl/pl330_target_mfifo.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "5ce9ec8f548eb16700a325ec5cf4698b70cdf559b6977cd26c2a8df84edc9398",
+  "top": "pl330_target",
+  "type": "rtl_authoring_packet"
+}

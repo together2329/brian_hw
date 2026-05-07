@@ -1,0 +1,9 @@
+{
+  "expressions_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "invariants_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "ip": "simple_pwm3",
+  "schema_version": 1,
+  "ssot_hash": "c12df67da8c43799d39a672ab0a4e3aacb0776a1b89e37f39a10e07979643f73",
+  "transactions_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "type": "model_signature"
+}

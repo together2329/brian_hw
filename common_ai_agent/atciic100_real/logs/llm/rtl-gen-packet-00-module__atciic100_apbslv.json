@@ -1,0 +1,15 @@
+{
+  "error": "Error calling LLM: [Errno 8] nodename nor servname provided, or not known",
+  "finish_reason": "",
+  "finished_at": "2026-05-06T23:51:28Z",
+  "input_hash": "40d7f8d523144be8d37c8be58d5b7cad711e88c729f36975ab8c44786fd36992",
+  "model": "glm-5.1",
+  "output_hash": "46d06e64b816787bc6999112d48a28dedbf2c8fb2dd682a436825e49aee4222b",
+  "parsed_artifacts": [],
+  "prompt_hash": "46940d933571bdd7b19b22e5593c29f3b6f761bd33185198cfc12849a710c76b",
+  "raw_response": "Error calling LLM: [Errno 8] nodename nor servname provided, or not known",
+  "stage": "rtl-gen",
+  "started_at": "2026-05-06T23:50:35Z",
+  "status": "blocked",
+  "usage": {}
+}

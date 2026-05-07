@@ -1,0 +1,264 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 9,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 3,
+      "key": "function_model_03",
+      "module_task_count": 140,
+      "rule": "Owner module atciic100_ctrl is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 3,
+      "section_chunk_index": 3,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/atciic100_ctrl.v",
+      "name": "atciic100_ctrl",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.pipeline",
+        "fsm",
+        "fsm.iic_phase",
+        "function_model",
+        "function_model.transactions"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/atciic100_apbslv.v",
+        "name": "atciic100_apbslv",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atciic100_ctrl.v",
+        "name": "atciic100_ctrl",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atciic100_fifo.v",
+        "name": "atciic100_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atciic100_gsf.v",
+        "name": "atciic100_gsf",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atciic100_real.sv",
+        "name": "atciic100_real",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atciic100_ctrl",
+        "port": "cmd",
+        "signal": "cmd_reg",
+        "signal_terms": [
+          "cmd_reg"
+        ],
+        "source_ref": "sub_modules[0].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atciic100_ctrl",
+        "port": "setup",
+        "signal": "setup_reg",
+        "signal_terms": [
+          "setup_reg"
+        ],
+        "source_ref": "sub_modules[0].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atciic100_ctrl",
+        "port": "data_out",
+        "signal": "rx_data",
+        "signal_terms": [
+          "rx_data"
+        ],
+        "source_ref": "sub_modules[2].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atciic100_ctrl",
+        "port": "scl_i",
+        "signal": "scl_filtered",
+        "signal_terms": [
+          "scl_filtered"
+        ],
+        "source_ref": "sub_modules[3].connections[0]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 2,
+    "open_required_count": 2,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "atciic100_real",
+  "kind": "module",
+  "owner_file": "rtl/atciic100_ctrl.v",
+  "owner_module": "atciic100_ctrl",
+  "packet_id": "module__atciic100_ctrl__function_model_03",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.invariant": 2
+    },
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 3,
+      "key": "function_model_03",
+      "module_task_count": 140,
+      "rule": "Owner module atciic100_ctrl is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 3,
+      "section_chunk_index": 3,
+      "task_limit": 48
+    },
+    "open_required_count": 2,
+    "required_count": 2,
+    "source_refs": [
+      "function_model.invariants.invariant_4",
+      "function_model.invariants.invariant_5"
+    ],
+    "status_counts": {
+      "open": 2
+    },
+    "task_count": 2
+  },
+  "tasks": [
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_4",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_4",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_4.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=No destination write occurs before the corresponding source read completes in any transaction..",
+      "evidence_terms": [],
+      "id": "RTL-0149",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_4",
+      "ssot_context": {
+        "value": "No destination write occurs before the corresponding source read completes in any transaction."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_4"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_5",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_5",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_5.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=SCL/SDA outputs are open-drain: driven low or released high, never actively driven high..",
+      "evidence_terms": [],
+      "id": "RTL-0150",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_5",
+      "ssot_context": {
+        "value": "SCL/SDA outputs are open-drain: driven low or released high, never actively driven high."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_5"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "80d90eab12a41558550a46753666dc7718d4ebd3f45786f7c28471fa33c1b209",
+  "top": "atciic100_real",
+  "type": "rtl_authoring_packet"
+}

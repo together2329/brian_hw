@@ -1,0 +1,3053 @@
+{
+  "execution_policy": {
+    "allowed_draft_work": [
+      "Author module RTL from SSOT-derived TODO packets.",
+      "Add tests, vectors, assertions, reports, and repair RTL under LLM-editable surfaces.",
+      "Leave unresolved locked-truth decisions as human_gate/change-request records instead of changing SSOT authority."
+    ],
+    "blocked_by_llm_work": [],
+    "blocked_by_locked_truth": [
+      {
+        "gate_kind": "manifest_connection_contract_evidence",
+        "pending_suggestions": {
+          "path": "rtl/connection_contract_suggestions.json",
+          "rule": "This artifact is a pending QA aid only. It is not SSOT authority, does not close manifest_connection_contract_evidence, and must be approved into integration.connections or sub_modules[].connections by a human.",
+          "sample_rows": [
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "output",
+              "instance": "u_engine",
+              "module": "pl330_target_engine",
+              "port": "busy",
+              "review_status": "pending",
+              "signal": "engine_busy"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "output",
+              "instance": "u_engine",
+              "module": "pl330_target_engine",
+              "port": "channel_state",
+              "review_status": "pending",
+              "signal": "engine_channel_state"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_engine",
+              "module": "pl330_target_engine",
+              "port": "clk",
+              "review_status": "pending",
+              "signal": "clk"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_engine",
+              "module": "pl330_target_engine",
+              "port": "cmd_channel",
+              "review_status": "pending",
+              "signal": "engine_cmd_channel"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_engine",
+              "module": "pl330_target_engine",
+              "port": "cmd_dst_addr",
+              "review_status": "pending",
+              "signal": "engine_cmd_dst_addr"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_engine",
+              "module": "pl330_target_engine",
+              "port": "cmd_len",
+              "review_status": "pending",
+              "signal": "engine_cmd_len"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_engine",
+              "module": "pl330_target_engine",
+              "port": "cmd_opcode",
+              "review_status": "pending",
+              "signal": "engine_cmd_opcode"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_engine",
+              "module": "pl330_target_engine",
+              "port": "cmd_privileged",
+              "review_status": "pending",
+              "signal": "engine_cmd_privileged"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "output",
+              "instance": "u_engine",
+              "module": "pl330_target_engine",
+              "port": "cmd_ready",
+              "review_status": "pending",
+              "signal": "engine_cmd_ready"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_engine",
+              "module": "pl330_target_engine",
+              "port": "cmd_secure",
+              "review_status": "pending",
+              "signal": "engine_cmd_secure"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_engine",
+              "module": "pl330_target_engine",
+              "port": "cmd_src_addr",
+              "review_status": "pending",
+              "signal": "engine_cmd_src_addr"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "input",
+              "instance": "u_engine",
+              "module": "pl330_target_engine",
+              "port": "cmd_valid",
+              "review_status": "pending",
+              "signal": "engine_cmd_valid"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "output",
+              "instance": "u_engine",
+              "module": "pl330_target_engine",
+              "port": "engine_state",
+              "review_status": "pending",
+              "signal": "engine_state"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "output",
+              "instance": "u_engine",
+              "module": "pl330_target_engine",
+              "port": "error_code",
+              "review_status": "pending",
+              "signal": "engine_error_code"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "output",
+              "instance": "u_engine",
+              "module": "pl330_target_engine",
+              "port": "error_valid",
+              "review_status": "pending",
+              "signal": "engine_error_valid"
+            },
+            {
+              "confidence": "observed_named_port_map",
+              "direction": "output",
+              "instance": "u_engine",
+              "module": "pl330_target_engine",
+              "port": "fetch_req_addr",
+              "review_status": "pending",
+              "signal": "engine_fetch_req_addr"
+            }
+          ],
+          "summary": {
+            "applied_to_ssot": false,
+            "child_modules": 9,
+            "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
+            "observed_named_port_map_rows": 398,
+            "pending_review": 398,
+            "proposed_rows": 0,
+            "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+            "status": "pending_review",
+            "suggested_rows": 398,
+            "top": "pl330_target",
+            "top_module": "pl330_target"
+          }
+        },
+        "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+        "source": "ssot_connection_contracts",
+        "status": "missing"
+      },
+      {
+        "gate_kind": "golden_authority_artifacts",
+        "owner_module": "pl330_target",
+        "reason": "Human authority gate(s) required before production RTL-GEN are not approved: G1=pending, G7=pending",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
+        "status": "open",
+        "task_id": "RTL-0020"
+      },
+      {
+        "gate_kind": "target_scale_policy",
+        "owner_module": "pl330_target",
+        "reason": "Reference profile provides suggested_ssot_target_scale, but SSOT target_scale is not locked and no approved waiver is present.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.target_scale",
+        "status": "open",
+        "task_id": "RTL-0021"
+      },
+      {
+        "gate_kind": "manifest_connection_contract_evidence",
+        "owner_module": "pl330_target",
+        "reason": "1 SSOT connection contract issue(s) remain. connection: Production-profile multi-module RTL has no machine-readable SSOT connection contracts",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+        "status": "open",
+        "task_id": "RTL-0016"
+      }
+    ],
+    "blocked_by_tool_evidence": [
+      {
+        "gate_kind": "dynamic_todo_closure",
+        "owner_module": "pl330_target",
+        "reason": "6 required non-closure TODO(s) remain open.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "status": "open",
+        "task_id": "RTL-0019"
+      },
+      {
+        "gate_kind": "protocol_assertion_evidence",
+        "owner_module": "pl330_target",
+        "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
+        "status": "open",
+        "task_id": "RTL-0024"
+      },
+      {
+        "gate_kind": "fl_rtl_goal_audit",
+        "owner_module": "pl330_target",
+        "reason": "FL-vs-RTL goal audit is not clean.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
+        "status": "open",
+        "task_id": "RTL-0025"
+      },
+      {
+        "gate_kind": "coverage_closure",
+        "owner_module": "pl330_target",
+        "reason": "Coverage closure report is not pass.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.coverage_closure",
+        "status": "open",
+        "task_id": "RTL-0026"
+      }
+    ],
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "missing"
+    },
+    "connection_contract_suggestions": {
+      "path": "rtl/connection_contract_suggestions.json",
+      "rule": "This artifact is a pending QA aid only. It is not SSOT authority, does not close manifest_connection_contract_evidence, and must be approved into integration.connections or sub_modules[].connections by a human.",
+      "sample_rows": [
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "busy",
+          "review_status": "pending",
+          "signal": "engine_busy"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "channel_state",
+          "review_status": "pending",
+          "signal": "engine_channel_state"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "clk",
+          "review_status": "pending",
+          "signal": "clk"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "cmd_channel",
+          "review_status": "pending",
+          "signal": "engine_cmd_channel"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "cmd_dst_addr",
+          "review_status": "pending",
+          "signal": "engine_cmd_dst_addr"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "cmd_len",
+          "review_status": "pending",
+          "signal": "engine_cmd_len"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "cmd_opcode",
+          "review_status": "pending",
+          "signal": "engine_cmd_opcode"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "cmd_privileged",
+          "review_status": "pending",
+          "signal": "engine_cmd_privileged"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "cmd_ready",
+          "review_status": "pending",
+          "signal": "engine_cmd_ready"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "cmd_secure",
+          "review_status": "pending",
+          "signal": "engine_cmd_secure"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "cmd_src_addr",
+          "review_status": "pending",
+          "signal": "engine_cmd_src_addr"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "input",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "cmd_valid",
+          "review_status": "pending",
+          "signal": "engine_cmd_valid"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "engine_state",
+          "review_status": "pending",
+          "signal": "engine_state"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "error_code",
+          "review_status": "pending",
+          "signal": "engine_error_code"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "error_valid",
+          "review_status": "pending",
+          "signal": "engine_error_valid"
+        },
+        {
+          "confidence": "observed_named_port_map",
+          "direction": "output",
+          "instance": "u_engine",
+          "module": "pl330_target_engine",
+          "port": "fetch_req_addr",
+          "review_status": "pending",
+          "signal": "engine_fetch_req_addr"
+        }
+      ],
+      "summary": {
+        "applied_to_ssot": false,
+        "child_modules": 9,
+        "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag",
+        "observed_named_port_map_rows": 398,
+        "pending_review": 398,
+        "proposed_rows": 0,
+        "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+        "status": "pending_review",
+        "suggested_rows": 398,
+        "top": "pl330_target",
+        "top_module": "pl330_target"
+      }
+    },
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "gate_status": "fail",
+    "hard_blockers": [],
+    "open_required_todos": 7,
+    "pass_allowed": false,
+    "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
+    "stop_conditions": [
+      "Do not edit SSOT/FL/coverage/interface/performance authority artifacts without human approval.",
+      "Do not claim rtl-gen PASS while pass_allowed is false.",
+      "Do not sign off top integration while required connection contracts are missing."
+    ],
+    "tool_evidence_plan": [
+      {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "artifacts": [
+          "pl330_target/rtl/rtl_todo_plan.json",
+          "pl330_target/rtl/rtl_authoring_status.md"
+        ],
+        "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py pl330_target --root . --audit-rtl"
+        ],
+        "gate_kind": "dynamic_todo_closure",
+        "prerequisites": [
+          "All non-closure required TODOs have pass status."
+        ],
+        "reason": "6 required non-closure TODO(s) remain open.",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "stage_sequence": [
+          "audit-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0019"
+      },
+      {
+        "artifact": "verify/protocol_assertions.sva",
+        "artifacts": [
+          "pl330_target/verify/protocol_assertions.sva",
+          "pl330_target/verify/protocol_assertions.summary.json",
+          "pl330_target/sim/assertion_failures.jsonl"
+        ],
+        "closure_rule": "Generated assertions exist and latest simulation has zero assertion failure records.",
+        "commands": [
+          "python3 workflow/fl-model-gen/scripts/emit_protocol_assertions.py pl330_target --root .",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py pl330_target --root . --audit-rtl"
+        ],
+        "gate_kind": "protocol_assertion_evidence",
+        "prerequisites": [
+          "SSOT cycle_model/protocol rules are machine-checkable.",
+          "Simulation has run after RTL edits."
+        ],
+        "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
+        "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
+        "stage_sequence": [
+          "ssot-protocol-assertions",
+          "sim"
+        ],
+        "status": "open",
+        "task_id": "RTL-0024"
+      },
+      {
+        "artifact": "sim/fl_rtl_goal_audit.json",
+        "artifacts": [
+          "pl330_target/sim/fl_rtl_goal_audit.json"
+        ],
+        "closure_rule": "fl_rtl_goal_audit.json must be fresh and status=pass.",
+        "commands": [
+          "python3 workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py pl330_target --root .",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py pl330_target --root . --audit-rtl"
+        ],
+        "gate_kind": "fl_rtl_goal_audit",
+        "prerequisites": [
+          "FL model, equivalence goals, TB, and simulation evidence are current."
+        ],
+        "reason": "FL-vs-RTL goal audit is not clean.",
+        "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
+        "stage_sequence": [
+          "ssot-fl-model",
+          "ssot-equiv-goals",
+          "ssot-tb-cocotb",
+          "sim",
+          "goal-audit"
+        ],
+        "status": "open",
+        "task_id": "RTL-0025"
+      },
+      {
+        "artifact": "cov/coverage.json",
+        "artifacts": [
+          "pl330_target/cov/coverage.json"
+        ],
+        "closure_rule": "coverage.json must be fresh, come from ssot_coverage_summary, and close every planned required bin.",
+        "commands": [
+          "python3 workflow/coverage/scripts/ssot_coverage_summary.py pl330_target",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py pl330_target --root . --audit-rtl"
+        ],
+        "gate_kind": "coverage_closure",
+        "prerequisites": [
+          "Simulation evidence exists and planned coverage bins are observable."
+        ],
+        "reason": "Coverage closure report is not pass.",
+        "source_ref": "quality_gates.rtl_gen.coverage_closure",
+        "stage_sequence": [
+          "sim",
+          "coverage"
+        ],
+        "status": "open",
+        "task_id": "RTL-0026"
+      }
+    ]
+  },
+  "ip": "pl330_target",
+  "packet_dir": "rtl/authoring_packets",
+  "packets": [
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [
+          {
+            "gate_kind": "manifest_connection_contract_evidence",
+            "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+            "source": "ssot_connection_contracts",
+            "status": "missing"
+          },
+          {
+            "gate_kind": "manifest_connection_contract_evidence",
+            "owner_module": "pl330_target",
+            "reason": "1 SSOT connection contract issue(s) remain. connection: Production-profile multi-module RTL has no machine-readable SSOT connection contracts",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+            "status": "open",
+            "task_id": "RTL-0016"
+          }
+        ],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 1,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 2,
+        "integration_signoff_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_contract_blocked.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_contract_blocked.md",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "packet_id": "rtl_gate_contract_blocked",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 1
+        },
+        "module_slice": {},
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "quality_gates.rtl_gen.manifest_connection_contract_evidence"
+        ],
+        "status_counts": {
+          "open": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [
+          {
+            "gate_kind": "manifest_connection_contract_evidence",
+            "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+            "source": "ssot_connection_contracts",
+            "status": "missing"
+          },
+          {
+            "gate_kind": "golden_authority_artifacts",
+            "owner_module": "pl330_target",
+            "reason": "Human authority gate(s) required before production RTL-GEN are not approved: G1=pending, G7=pending",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
+            "status": "open",
+            "task_id": "RTL-0020"
+          },
+          {
+            "gate_kind": "target_scale_policy",
+            "owner_module": "pl330_target",
+            "reason": "Reference profile provides suggested_ssot_target_scale, but SSOT target_scale is not locked and no approved waiver is present.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.target_scale",
+            "status": "open",
+            "task_id": "RTL-0021"
+          }
+        ],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 3,
+        "integration_signoff_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 2,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_human_closure.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_human_closure.md",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "packet_id": "rtl_gate_human_closure",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 6
+        },
+        "module_slice": {},
+        "open_required_count": 2,
+        "required_count": 6,
+        "source_refs": [
+          "quality_gates.rtl_gen.ssot_required_sections",
+          "quality_gates.rtl_gen.workflow_todo_contract",
+          "quality_gates.rtl_gen.owner_traceability",
+          "quality_gates.rtl_gen.golden_authority_artifacts",
+          "quality_gates.rtl_gen.target_scale",
+          "quality_gates.rtl_gen.cycle_model_artifacts"
+        ],
+        "status_counts": {
+          "open": 2,
+          "pass": 4
+        },
+        "task_count": 6
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [
+          {
+            "gate_kind": "dynamic_todo_closure",
+            "owner_module": "pl330_target",
+            "reason": "6 required non-closure TODO(s) remain open.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+            "status": "open",
+            "task_id": "RTL-0019"
+          },
+          {
+            "gate_kind": "protocol_assertion_evidence",
+            "owner_module": "pl330_target",
+            "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
+            "status": "open",
+            "task_id": "RTL-0024"
+          },
+          {
+            "gate_kind": "fl_rtl_goal_audit",
+            "owner_module": "pl330_target",
+            "reason": "FL-vs-RTL goal audit is not clean.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
+            "status": "open",
+            "task_id": "RTL-0025"
+          },
+          {
+            "gate_kind": "coverage_closure",
+            "owner_module": "pl330_target",
+            "reason": "Coverage closure report is not pass.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.coverage_closure",
+            "status": "open",
+            "task_id": "RTL-0026"
+          }
+        ],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 4,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 4,
+        "tool_evidence_plan": [
+          {
+            "artifact": "rtl/rtl_todo_plan.json",
+            "artifacts": [
+              "pl330_target/rtl/rtl_todo_plan.json",
+              "pl330_target/rtl/rtl_authoring_status.md"
+            ],
+            "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+            "commands": [
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py pl330_target --root . --audit-rtl"
+            ],
+            "gate_kind": "dynamic_todo_closure",
+            "prerequisites": [
+              "All non-closure required TODOs have pass status."
+            ],
+            "reason": "6 required non-closure TODO(s) remain open.",
+            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+            "stage_sequence": [
+              "audit-rtl"
+            ],
+            "status": "open",
+            "task_id": "RTL-0019"
+          },
+          {
+            "artifact": "verify/protocol_assertions.sva",
+            "artifacts": [
+              "pl330_target/verify/protocol_assertions.sva",
+              "pl330_target/verify/protocol_assertions.summary.json",
+              "pl330_target/sim/assertion_failures.jsonl"
+            ],
+            "closure_rule": "Generated assertions exist and latest simulation has zero assertion failure records.",
+            "commands": [
+              "python3 workflow/fl-model-gen/scripts/emit_protocol_assertions.py pl330_target --root .",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py pl330_target --root . --audit-rtl"
+            ],
+            "gate_kind": "protocol_assertion_evidence",
+            "prerequisites": [
+              "SSOT cycle_model/protocol rules are machine-checkable.",
+              "Simulation has run after RTL edits."
+            ],
+            "reason": "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.",
+            "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
+            "stage_sequence": [
+              "ssot-protocol-assertions",
+              "sim"
+            ],
+            "status": "open",
+            "task_id": "RTL-0024"
+          },
+          {
+            "artifact": "sim/fl_rtl_goal_audit.json",
+            "artifacts": [
+              "pl330_target/sim/fl_rtl_goal_audit.json"
+            ],
+            "closure_rule": "fl_rtl_goal_audit.json must be fresh and status=pass.",
+            "commands": [
+              "python3 workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py pl330_target --root .",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py pl330_target --root . --audit-rtl"
+            ],
+            "gate_kind": "fl_rtl_goal_audit",
+            "prerequisites": [
+              "FL model, equivalence goals, TB, and simulation evidence are current."
+            ],
+            "reason": "FL-vs-RTL goal audit is not clean.",
+            "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
+            "stage_sequence": [
+              "ssot-fl-model",
+              "ssot-equiv-goals",
+              "ssot-tb-cocotb",
+              "sim",
+              "goal-audit"
+            ],
+            "status": "open",
+            "task_id": "RTL-0025"
+          },
+          {
+            "artifact": "cov/coverage.json",
+            "artifacts": [
+              "pl330_target/cov/coverage.json"
+            ],
+            "closure_rule": "coverage.json must be fresh, come from ssot_coverage_summary, and close every planned required bin.",
+            "commands": [
+              "python3 workflow/coverage/scripts/ssot_coverage_summary.py pl330_target",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py pl330_target --root . --audit-rtl"
+            ],
+            "gate_kind": "coverage_closure",
+            "prerequisites": [
+              "Simulation evidence exists and planned coverage bins are observable."
+            ],
+            "reason": "Coverage closure report is not pass.",
+            "source_ref": "quality_gates.rtl_gen.coverage_closure",
+            "stage_sequence": [
+              "sim",
+              "coverage"
+            ],
+            "status": "open",
+            "task_id": "RTL-0026"
+          }
+        ],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_tool_evidence.md",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "packet_id": "rtl_gate_tool_evidence",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 7
+        },
+        "module_slice": {},
+        "open_required_count": 4,
+        "required_count": 7,
+        "source_refs": [
+          "quality_gates.rtl_gen.common_ai_agent_authoring",
+          "quality_gates.rtl_gen.dut_compile",
+          "quality_gates.rtl_gen.dut_lint",
+          "quality_gates.rtl_gen.dynamic_todo_closure",
+          "quality_gates.rtl_gen.protocol_assertion_evidence",
+          "quality_gates.rtl_gen.fl_rtl_goal_audit",
+          "quality_gates.rtl_gen.coverage_closure"
+        ],
+        "status_counts": {
+          "open": 4,
+          "pass": 3
+        },
+        "task_count": 7
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_engine.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_engine.md",
+      "owner_file": "rtl/pl330_target_engine.sv",
+      "owner_module": "pl330_target_engine",
+      "packet_id": "module__pl330_target_engine",
+      "summary": {
+        "categories": {
+          "cycle_model.pipeline": 3,
+          "equivalence.module": 1,
+          "function_model.invariant": 3,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 8,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 8,
+        "source_refs": [
+          "workflow_todos.rtl-gen[1]",
+          "function_model.invariants.invariant_0",
+          "function_model.invariants.invariant_1",
+          "function_model.invariants.invariant_3",
+          "cycle_model.pipeline.S0_ACCEPT",
+          "cycle_model.pipeline.S1_EVALUATE",
+          "cycle_model.pipeline.S2_OBSERVE",
+          "sub_modules.pl330_target_engine.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 8
+        },
+        "task_count": 8
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_pipeline.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_pipeline.md",
+      "owner_file": "rtl/pl330_target_pipeline.sv",
+      "owner_module": "pl330_target_pipeline",
+      "packet_id": "module__pl330_target_pipeline",
+      "summary": {
+        "categories": {
+          "cycle_model.backpressure": 1,
+          "cycle_model.clock": 1,
+          "cycle_model.handshake_rules": 2,
+          "cycle_model.latency": 1,
+          "cycle_model.observability": 1,
+          "cycle_model.ordering": 4,
+          "cycle_model.reset": 1,
+          "equivalence.module": 1,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 13,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 13,
+        "source_refs": [
+          "workflow_todos.rtl-gen[2]",
+          "cycle_model.clock",
+          "cycle_model.reset",
+          "cycle_model.latency",
+          "cycle_model.handshake_rules.req_valid_req_ready",
+          "cycle_model.handshake_rules.rsp_valid_rsp_ready",
+          "cycle_model.ordering.ordering_rule_0",
+          "cycle_model.ordering.ordering_rule_1",
+          "cycle_model.ordering.ordering_rule_2",
+          "cycle_model.ordering.ordering_rule_3",
+          "cycle_model.backpressure.backpressure_rule_0",
+          "cycle_model.observability.observability_signal_0",
+          "sub_modules.pl330_target_pipeline.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 13
+        },
+        "task_count": 13
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_lsq.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_lsq.md",
+      "owner_file": "rtl/pl330_target_lsq.sv",
+      "owner_module": "pl330_target_lsq",
+      "packet_id": "module__pl330_target_lsq",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 2,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 2,
+        "source_refs": [
+          "workflow_todos.rtl-gen[3]",
+          "sub_modules.pl330_target_lsq.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_mfifo__coverage.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_mfifo__coverage.md",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "packet_id": "module__pl330_target_mfifo__coverage",
+      "summary": {
+        "categories": {
+          "coverage.functional_bin": 6
+        },
+        "module_slice": {
+          "count": 11,
+          "enabled": true,
+          "index": 9,
+          "key": "coverage",
+          "module_task_count": 140,
+          "rule": "Owner module pl330_target_mfifo is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "coverage",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 6,
+        "source_refs": [
+          "test_requirements.coverage_goals.planned_bins.cov_all_channels",
+          "test_requirements.coverage_goals.planned_bins.cov_dmaldp_seen",
+          "test_requirements.coverage_goals.planned_bins.cov_burst_64beat",
+          "test_requirements.coverage_goals.planned_bins.cov_fault_recovery",
+          "test_requirements.coverage_goals.planned_bins.cov_axi_outstanding_max",
+          "test_requirements.coverage_goals.planned_bins.cov_apb_secure_block"
+        ],
+        "status_counts": {
+          "pass": 6
+        },
+        "task_count": 6
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_mfifo__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_mfifo__equivalence.md",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "packet_id": "module__pl330_target_mfifo__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 11,
+          "enabled": true,
+          "index": 10,
+          "key": "equivalence",
+          "module_task_count": 140,
+          "rule": "Owner module pl330_target_mfifo is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.pl330_target_mfifo.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_mfifo__features.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_mfifo__features.md",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "packet_id": "module__pl330_target_mfifo__features",
+      "summary": {
+        "categories": {
+          "features.item": 7
+        },
+        "module_slice": {
+          "count": 11,
+          "enabled": true,
+          "index": 7,
+          "key": "features",
+          "module_task_count": 140,
+          "rule": "Owner module pl330_target_mfifo is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "features",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 7,
+        "source_refs": [
+          "features.feature_0",
+          "features.feature_1",
+          "features.feature_2",
+          "features.feature_3",
+          "features.feature_4",
+          "features.feature_5",
+          "features.feature_6"
+        ],
+        "status_counts": {
+          "pass": 7
+        },
+        "task_count": 7
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_mfifo__fsm.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_mfifo__fsm.md",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "packet_id": "module__pl330_target_mfifo__fsm",
+      "summary": {
+        "categories": {
+          "fsm.state": 10,
+          "fsm.transition": 14
+        },
+        "module_slice": {
+          "count": 11,
+          "enabled": true,
+          "index": 4,
+          "key": "fsm",
+          "module_task_count": 140,
+          "rule": "Owner module pl330_target_mfifo is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "fsm",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 24,
+        "source_refs": [
+          "fsm.channel_state.states.state_0",
+          "fsm.channel_state.states.state_1",
+          "fsm.channel_state.states.state_2",
+          "fsm.channel_state.states.state_3",
+          "fsm.channel_state.states.state_4",
+          "fsm.channel_state.states.state_5",
+          "fsm.channel_state.states.state_6",
+          "fsm.channel_state.states.state_7",
+          "fsm.channel_state.states.state_8",
+          "fsm.channel_state.states.state_9",
+          "fsm.channel_state.transitions.transition_0",
+          "fsm.channel_state.transitions.transition_1",
+          "fsm.channel_state.transitions.transition_2",
+          "fsm.channel_state.transitions.transition_3",
+          "fsm.channel_state.transitions.transition_4",
+          "fsm.channel_state.transitions.transition_5",
+          "fsm.channel_state.transitions.transition_6",
+          "fsm.channel_state.transitions.transition_7",
+          "fsm.channel_state.transitions.transition_8",
+          "fsm.channel_state.transitions.transition_9",
+          "fsm.channel_state.transitions.transition_10",
+          "fsm.channel_state.transitions.transition_11",
+          "fsm.channel_state.transitions.transition_12",
+          "fsm.channel_state.transitions.transition_13"
+        ],
+        "status_counts": {
+          "pass": 24
+        },
+        "task_count": 24
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_mfifo__function_model_01.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_mfifo__function_model_01.md",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "packet_id": "module__pl330_target_mfifo__function_model_01",
+      "summary": {
+        "categories": {
+          "function_model.error_case": 3,
+          "function_model.output": 9,
+          "function_model.precondition": 12,
+          "function_model.side_effect": 10,
+          "function_model.state_variable": 7,
+          "function_model.transaction": 7
+        },
+        "module_slice": {
+          "count": 11,
+          "enabled": true,
+          "index": 2,
+          "key": "function_model_01",
+          "module_task_count": 140,
+          "rule": "Owner module pl330_target_mfifo is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 2,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 48,
+        "source_refs": [
+          "function_model.state_variables.channel_state",
+          "function_model.state_variables.channel_pc",
+          "function_model.state_variables.outstanding_reads",
+          "function_model.state_variables.outstanding_writes",
+          "function_model.state_variables.mfifo_count",
+          "function_model.state_variables.irq_status",
+          "function_model.state_variables.fault_status",
+          "function_model.transactions.FM_RESET",
+          "function_model.transactions.FM_RESET.preconditions.precondition_0",
+          "function_model.transactions.FM_RESET.outputs.output_0",
+          "function_model.transactions.FM_RESET.side_effects.side_effect_0",
+          "function_model.transactions.FM_RESET.side_effects.side_effect_1",
+          "function_model.transactions.FM_RESET.side_effects.side_effect_2",
+          "function_model.transactions.FM_RESET.side_effects.side_effect_3",
+          "function_model.transactions.FM_DMAGO",
+          "function_model.transactions.FM_DMAGO.preconditions.precondition_0",
+          "function_model.transactions.FM_DMAGO.preconditions.precondition_1",
+          "function_model.transactions.FM_DMAGO.outputs.output_0",
+          "function_model.transactions.FM_DMAGO.outputs.output_1",
+          "function_model.transactions.FM_DMAGO.error_cases.error_case_0",
+          "function_model.transactions.FM_DMALD",
+          "function_model.transactions.FM_DMALD.preconditions.precondition_0",
+          "function_model.transactions.FM_DMALD.preconditions.precondition_1",
+          "function_model.transactions.FM_DMALD.outputs.output_0"
+        ],
+        "status_counts": {
+          "pass": 48
+        },
+        "task_count": 48
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_mfifo__function_model_02.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_mfifo__function_model_02.md",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "packet_id": "module__pl330_target_mfifo__function_model_02",
+      "summary": {
+        "categories": {
+          "function_model.error_case": 1,
+          "function_model.invariant": 2,
+          "function_model.output": 4,
+          "function_model.precondition": 4,
+          "function_model.side_effect": 2,
+          "function_model.transaction": 2
+        },
+        "module_slice": {
+          "count": 11,
+          "enabled": true,
+          "index": 3,
+          "key": "function_model_02",
+          "module_task_count": 140,
+          "rule": "Owner module pl330_target_mfifo is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 2,
+          "section_chunk_index": 2,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 15,
+        "source_refs": [
+          "function_model.transactions.FM_DMASEV.preconditions.precondition_1",
+          "function_model.transactions.FM_DMASEV.outputs.output_0",
+          "function_model.transactions.FM_DMASEV.side_effects.side_effect_0",
+          "function_model.transactions.FM_DMAEND",
+          "function_model.transactions.FM_DMAEND.preconditions.precondition_0",
+          "function_model.transactions.FM_DMAEND.preconditions.precondition_1",
+          "function_model.transactions.FM_DMAEND.outputs.output_0",
+          "function_model.transactions.FM_DMAEND.error_cases.error_case_0",
+          "function_model.transactions.FM_FAULT",
+          "function_model.transactions.FM_FAULT.preconditions.precondition_0",
+          "function_model.transactions.FM_FAULT.outputs.output_0",
+          "function_model.transactions.FM_FAULT.outputs.output_1",
+          "function_model.transactions.FM_FAULT.side_effects.side_effect_0",
+          "function_model.invariants.invariant_2",
+          "function_model.invariants.invariant_4"
+        ],
+        "status_counts": {
+          "pass": 15
+        },
+        "task_count": 15
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_mfifo__memory.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_mfifo__memory.md",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "packet_id": "module__pl330_target_mfifo__memory",
+      "summary": {
+        "categories": {
+          "memory.instances": 1
+        },
+        "module_slice": {
+          "count": 11,
+          "enabled": true,
+          "index": 6,
+          "key": "memory",
+          "module_task_count": 140,
+          "rule": "Owner module pl330_target_mfifo is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "memory",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "memory.instances.mfifo"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_mfifo__parameters.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_mfifo__parameters.md",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "packet_id": "module__pl330_target_mfifo__parameters",
+      "summary": {
+        "categories": {
+          "parameters.item": 1
+        },
+        "module_slice": {
+          "count": 11,
+          "enabled": true,
+          "index": 1,
+          "key": "parameters",
+          "module_task_count": 140,
+          "rule": "Owner module pl330_target_mfifo is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "parameters",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "parameters.MFIFO_DEPTH"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_mfifo__registers.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_mfifo__registers.md",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "packet_id": "module__pl330_target_mfifo__registers",
+      "summary": {
+        "categories": {
+          "registers.register": 19
+        },
+        "module_slice": {
+          "count": 11,
+          "enabled": true,
+          "index": 5,
+          "key": "registers",
+          "module_task_count": 140,
+          "rule": "Owner module pl330_target_mfifo is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "registers",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 19,
+        "source_refs": [
+          "registers.register_list.DSR",
+          "registers.register_list.DPC",
+          "registers.register_list.INTEN",
+          "registers.register_list.INT_EVENT_RIS",
+          "registers.register_list.INTMIS",
+          "registers.register_list.INTCLR",
+          "registers.register_list.FSRD",
+          "registers.register_list.FSRC",
+          "registers.register_list.FTRD",
+          "registers.register_list.CSR_chan_n",
+          "registers.register_list.CPC_chan_n",
+          "registers.register_list.SAR_chan_n",
+          "registers.register_list.DAR_chan_n",
+          "registers.register_list.CCR_chan_n",
+          "registers.register_list.DBGSTATUS",
+          "registers.register_list.DBGCMD",
+          "registers.register_list.DBGINST0",
+          "registers.register_list.DBGINST1",
+          "registers.register_list.CR0"
+        ],
+        "status_counts": {
+          "pass": 19
+        },
+        "task_count": 19
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_mfifo__test_requirements.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_mfifo__test_requirements.md",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "packet_id": "module__pl330_target_mfifo__test_requirements",
+      "summary": {
+        "categories": {
+          "test_requirements.scenario": 12
+        },
+        "module_slice": {
+          "count": 11,
+          "enabled": true,
+          "index": 8,
+          "key": "test_requirements",
+          "module_task_count": 140,
+          "rule": "Owner module pl330_target_mfifo is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "test_requirements",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 12,
+        "source_refs": [
+          "test_requirements.scenarios.SC01",
+          "test_requirements.scenarios.SC02",
+          "test_requirements.scenarios.SC03",
+          "test_requirements.scenarios.SC04",
+          "test_requirements.scenarios.SC05",
+          "test_requirements.scenarios.SC06",
+          "test_requirements.scenarios.SC07",
+          "test_requirements.scenarios.SC08",
+          "test_requirements.scenarios.SC09",
+          "test_requirements.scenarios.SC10",
+          "test_requirements.scenarios.SC11",
+          "test_requirements.scenarios.SC12"
+        ],
+        "status_counts": {
+          "pass": 12
+        },
+        "task_count": 12
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_mfifo__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_mfifo__workflow_todo.md",
+      "owner_file": "rtl/pl330_target_mfifo.sv",
+      "owner_module": "pl330_target_mfifo",
+      "packet_id": "module__pl330_target_mfifo__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 6
+        },
+        "module_slice": {
+          "count": 11,
+          "enabled": true,
+          "index": 11,
+          "key": "workflow_todo",
+          "module_task_count": 140,
+          "rule": "Owner module pl330_target_mfifo is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 6,
+        "source_refs": [
+          "workflow_todos.rtl-gen[4]",
+          "workflow_todos.rtl-gen[11]",
+          "workflow_todos.rtl-gen[12]",
+          "workflow_todos.rtl-gen[13]",
+          "workflow_todos.rtl-gen[14]",
+          "workflow_todos.rtl-gen[15]"
+        ],
+        "status_counts": {
+          "pass": 6
+        },
+        "task_count": 6
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_merge_buffer.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_merge_buffer.md",
+      "owner_file": "rtl/pl330_target_merge_buffer.sv",
+      "owner_module": "pl330_target_merge_buffer",
+      "packet_id": "module__pl330_target_merge_buffer",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "memory.instances": 1,
+          "parameters.item": 1,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 4,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 4,
+        "source_refs": [
+          "workflow_todos.rtl-gen[5]",
+          "memory.instances.merge_buffer",
+          "sub_modules.pl330_target_merge_buffer.module_equivalence",
+          "parameters.MERGE_BUFFER_DEPTH"
+        ],
+        "status_counts": {
+          "pass": 4
+        },
+        "task_count": 4
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_icache.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_icache.md",
+      "owner_file": "rtl/pl330_target_icache.sv",
+      "owner_module": "pl330_target_icache",
+      "packet_id": "module__pl330_target_icache",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "memory.instances": 1,
+          "parameters.item": 1,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 4,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 4,
+        "source_refs": [
+          "workflow_todos.rtl-gen[6]",
+          "memory.instances.icache",
+          "sub_modules.pl330_target_icache.module_equivalence",
+          "parameters.ICACHE_LINE_SIZE"
+        ],
+        "status_counts": {
+          "pass": 4
+        },
+        "task_count": 4
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_axi.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_axi.md",
+      "owner_file": "rtl/pl330_target_axi.sv",
+      "owner_module": "pl330_target_axi",
+      "packet_id": "module__pl330_target_axi",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "parameters.item": 3,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 5,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 5,
+        "source_refs": [
+          "workflow_todos.rtl-gen[7]",
+          "sub_modules.pl330_target_axi.module_equivalence",
+          "parameters.AXI_DATA_WIDTH",
+          "parameters.AXI_ID_WIDTH",
+          "parameters.AXI_ADDR_WIDTH"
+        ],
+        "status_counts": {
+          "pass": 5
+        },
+        "task_count": 5
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_periph.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_periph.md",
+      "owner_file": "rtl/pl330_target_periph.sv",
+      "owner_module": "pl330_target_periph",
+      "packet_id": "module__pl330_target_periph",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "parameters.item": 1,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 3,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 3,
+        "source_refs": [
+          "workflow_todos.rtl-gen[8]",
+          "sub_modules.pl330_target_periph.module_equivalence",
+          "parameters.NUM_PERIPH_REQS"
+        ],
+        "status_counts": {
+          "pass": 3
+        },
+        "task_count": 3
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target_apb_regs.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target_apb_regs.md",
+      "owner_file": "rtl/pl330_target_apb_regs.sv",
+      "owner_module": "pl330_target_apb_regs",
+      "packet_id": "module__pl330_target_apb_regs",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "parameters.item": 2,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 4,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 4,
+        "source_refs": [
+          "workflow_todos.rtl-gen[9]",
+          "sub_modules.pl330_target_apb_regs.module_equivalence",
+          "parameters.APB_DATA_WIDTH",
+          "parameters.APB_ADDR_WIDTH"
+        ],
+        "status_counts": {
+          "pass": 4
+        },
+        "task_count": 4
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target__error_handling.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target__error_handling.md",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "packet_id": "module__pl330_target__error_handling",
+      "summary": {
+        "categories": {
+          "error_handling.recovery": 1
+        },
+        "module_slice": {
+          "count": 10,
+          "enabled": true,
+          "index": 5,
+          "key": "error_handling",
+          "module_task_count": 80,
+          "rule": "Owner module pl330_target is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "error_handling",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "error_handling.recovery.recovery_0"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target__integration.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target__integration.md",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "packet_id": "module__pl330_target__integration",
+      "summary": {
+        "categories": {
+          "integration.dependencies": 3
+        },
+        "module_slice": {
+          "count": 10,
+          "enabled": true,
+          "index": 4,
+          "key": "integration",
+          "module_task_count": 80,
+          "rule": "Owner module pl330_target is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "integration",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 3,
+        "source_refs": [
+          "integration.dependencies.external_modules",
+          "integration.dependencies.external_clocks",
+          "integration.dependencies.external_resets"
+        ],
+        "status_counts": {
+          "pass": 3
+        },
+        "task_count": 3
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target__interrupts.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target__interrupts.md",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "packet_id": "module__pl330_target__interrupts",
+      "summary": {
+        "categories": {
+          "interrupts.outputs": 2
+        },
+        "module_slice": {
+          "count": 10,
+          "enabled": true,
+          "index": 6,
+          "key": "interrupts",
+          "module_task_count": 80,
+          "rule": "Owner module pl330_target is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "interrupts",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 2,
+        "source_refs": [
+          "interrupts.outputs.irq",
+          "interrupts.outputs.irq_abort"
+        ],
+        "status_counts": {
+          "pass": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target__io_list.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target__io_list.md",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "packet_id": "module__pl330_target__io_list",
+      "summary": {
+        "categories": {
+          "io_list.port": 9
+        },
+        "module_slice": {
+          "count": 10,
+          "enabled": true,
+          "index": 2,
+          "key": "io_list",
+          "module_task_count": 80,
+          "rule": "Owner module pl330_target is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "io_list",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 9,
+        "source_refs": [
+          "io_list.clock_domains.clk.ports.clk",
+          "io_list.resets.rst_n.ports.rst_n",
+          "io_list.interfaces.control_data.ports.req_valid",
+          "io_list.interfaces.control_data.ports.req_ready",
+          "io_list.interfaces.control_data.ports.req_data",
+          "io_list.interfaces.control_data.ports.rsp_valid",
+          "io_list.interfaces.control_data.ports.rsp_ready",
+          "io_list.interfaces.control_data.ports.rsp_data",
+          "io_list.interfaces.control_data.ports.error"
+        ],
+        "status_counts": {
+          "pass": 9
+        },
+        "task_count": 9
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target__parameters.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target__parameters.md",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "packet_id": "module__pl330_target__parameters",
+      "summary": {
+        "categories": {
+          "parameters.item": 3
+        },
+        "module_slice": {
+          "count": 10,
+          "enabled": true,
+          "index": 3,
+          "key": "parameters",
+          "module_task_count": 80,
+          "rule": "Owner module pl330_target is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "parameters",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 3,
+        "source_refs": [
+          "parameters.NUM_CHANNELS",
+          "parameters.NUM_IRQS",
+          "parameters.SUPPORT_TZ"
+        ],
+        "status_counts": {
+          "pass": 3
+        },
+        "task_count": 3
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target__rtl_flow.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target__rtl_flow.md",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "packet_id": "module__pl330_target__rtl_flow",
+      "summary": {
+        "categories": {
+          "rtl_flow.seed": 1,
+          "rtl_flow.top": 1
+        },
+        "module_slice": {
+          "count": 10,
+          "enabled": true,
+          "index": 1,
+          "key": "rtl_flow",
+          "module_task_count": 80,
+          "rule": "Owner module pl330_target is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "rtl_flow",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 2,
+        "source_refs": [
+          "top_module",
+          "io_list"
+        ],
+        "status_counts": {
+          "pass": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target__security.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target__security.md",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "packet_id": "module__pl330_target__security",
+      "summary": {
+        "categories": {
+          "security.assets": 4
+        },
+        "module_slice": {
+          "count": 10,
+          "enabled": true,
+          "index": 7,
+          "key": "security",
+          "module_task_count": 80,
+          "rule": "Owner module pl330_target is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "security",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 4,
+        "source_refs": [
+          "security.assets.asset_0",
+          "security.assets.asset_1",
+          "security.assets.asset_2",
+          "security.assets.asset_3"
+        ],
+        "status_counts": {
+          "pass": 4
+        },
+        "task_count": 4
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target__synthesis.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target__synthesis.md",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "packet_id": "module__pl330_target__synthesis",
+      "summary": {
+        "categories": {
+          "synthesis.constraints": 3,
+          "synthesis.ppa_targets": 4
+        },
+        "module_slice": {
+          "count": 10,
+          "enabled": true,
+          "index": 8,
+          "key": "synthesis",
+          "module_task_count": 80,
+          "rule": "Owner module pl330_target is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "synthesis",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 7,
+        "source_refs": [
+          "synthesis.constraints.constraint_0",
+          "synthesis.constraints.constraint_1",
+          "synthesis.constraints.constraint_2",
+          "synthesis.ppa_targets.area_um2_max",
+          "synthesis.ppa_targets.power_mw_max",
+          "synthesis.ppa_targets.frequency_mhz_min",
+          "synthesis.ppa_targets.technology"
+        ],
+        "status_counts": {
+          "pass": 7
+        },
+        "task_count": 7
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target__workflow_todo_01.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target__workflow_todo_01.md",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "packet_id": "module__pl330_target__workflow_todo_01",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 48
+        },
+        "module_slice": {
+          "count": 10,
+          "enabled": true,
+          "index": 9,
+          "key": "workflow_todo_01",
+          "module_task_count": 80,
+          "rule": "Owner module pl330_target is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 2,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 48,
+        "source_refs": [
+          "workflow_todos.rtl-gen[0]",
+          "workflow_todos.rtl-gen[10]",
+          "workflow_todos.rtl-gen[16]",
+          "workflow_todos.rtl-gen[17]",
+          "workflow_todos.rtl-gen[18]",
+          "workflow_todos.rtl-gen[19]",
+          "workflow_todos.rtl-gen[20]",
+          "workflow_todos.rtl-gen[21]",
+          "workflow_todos.rtl-gen[22]",
+          "workflow_todos.rtl-gen[23]",
+          "workflow_todos.rtl-gen[24]",
+          "workflow_todos.rtl-gen[25]",
+          "workflow_todos.rtl-gen[26]",
+          "workflow_todos.rtl-gen[27]",
+          "workflow_todos.rtl-gen[28]",
+          "workflow_todos.rtl-gen[29]",
+          "workflow_todos.rtl-gen[30]",
+          "workflow_todos.rtl-gen[31]",
+          "workflow_todos.rtl-gen[32]",
+          "workflow_todos.rtl-gen[33]",
+          "workflow_todos.rtl-gen[34]",
+          "workflow_todos.rtl-gen[35]",
+          "workflow_todos.rtl-gen[36]",
+          "workflow_todos.rtl-gen[37]"
+        ],
+        "status_counts": {
+          "pass": 48
+        },
+        "task_count": 48
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pl330_target__workflow_todo_02.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pl330_target__workflow_todo_02.md",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "packet_id": "module__pl330_target__workflow_todo_02",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 10,
+          "enabled": true,
+          "index": 10,
+          "key": "workflow_todo_02",
+          "module_task_count": 80,
+          "rule": "Owner module pl330_target is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 2,
+          "section_chunk_index": 2,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[60]"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_evidence_closure.md",
+      "owner_file": "rtl/pl330_target.sv",
+      "owner_module": "pl330_target",
+      "packet_id": "rtl_gate_evidence_closure",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 10
+        },
+        "module_slice": {},
+        "open_required_count": 0,
+        "required_count": 10,
+        "source_refs": [
+          "quality_gates.rtl_gen.static_rtl_evidence",
+          "quality_gates.rtl_gen.owner_logic_structure_evidence",
+          "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+          "quality_gates.rtl_gen.top_io_contract_evidence",
+          "quality_gates.rtl_gen.top_output_drive_evidence",
+          "quality_gates.rtl_gen.top_input_consumption_evidence",
+          "quality_gates.rtl_gen.manifest_hierarchy_integration",
+          "quality_gates.rtl_gen.manifest_port_connection_evidence",
+          "quality_gates.rtl_gen.manifest_signal_flow_evidence",
+          "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
+        ],
+        "status_counts": {
+          "pass": 10
+        },
+        "task_count": 10
+      }
+    }
+  ],
+  "policy": {
+    "dynamic_task_rule": "Use every required task in this file as the active RTL implementation checklist; add as many UI todos as this plan requires.",
+    "fixed_template_role": "seed_only",
+    "no_orphan_function_level": true,
+    "reference_profile_rule": "Optional rtl_reference_profile artifacts are calibration-only scale reports; they must not be copied, transformed, or used as fixed RTL templates.",
+    "rtl_gate_todo_rule": "RTL-gen quality gates are first-class rtl_gate.rtl_gen TODOs; compile/lint/static/ownership/owner-logic/placeholder-free/implementation-depth/top-io/top-output-drive/top-input-consumption/hierarchy/port-connection/signal-flow/connection-contract gates must close as TODOs before PASS.",
+    "rtl_quality_profile": "production",
+    "rtl_target_scale": {},
+    "rtl_target_scale_waiver": {},
+    "single_source_of_truth": "SSOT YAML is the only authority for function_model, cycle_model, RTL ownership, DV plan, and coverage.",
+    "ssot_workflow_todo_rule": "workflow_todos.rtl-gen[] entries are first-class downstream tasks; content/detail/criteria must be preserved and satisfied by RTL evidence.",
+    "target_scale_rule": "Optional quality_gates.rtl_gen.target_scale is SSOT-locked human policy. It can be calibrated from a reference profile, but it is enforced as generic structural depth evidence, not as copied reference RTL."
+  },
+  "reference_profile": {
+    "bucket_summaries": {
+      "design_candidate": {
+        "always_blocks": 561,
+        "assigns": 1150,
+        "case_blocks": 155,
+        "file_count": 57,
+        "instance_candidates": 472,
+        "lines": 52338,
+        "modules": 52,
+        "nonconstant_assigns": 1135,
+        "state_updates": 295
+      },
+      "verification_collateral": {
+        "always_blocks": 349,
+        "assigns": 1899,
+        "case_blocks": 105,
+        "file_count": 86,
+        "instance_candidates": 577,
+        "lines": 78230,
+        "modules": 158,
+        "nonconstant_assigns": 1755,
+        "state_updates": 924
+      }
+    },
+    "generated_at": "2026-05-06T21:54:28Z",
+    "guidance": {
+      "calibration_only": true,
+      "do_not_copy_reference_rtl": true,
+      "target_candidate_rule": "suggested_ssot_target_scale is derived from design_candidate files when available, excluding validation/testbench/simulation collateral by path bucket."
+    },
+    "label": "PL330-GRP-r1p2",
+    "path": "reports/rtl_reference_profile.json",
+    "suggested_ssot_target_scale": {
+      "basis": "candidate structural scale from rtl_reference_profile; review and lock in SSOT before enforcement",
+      "control_flow_min": 155,
+      "depth_score_min": 4507,
+      "instances_min": 472,
+      "lines_min": 52338,
+      "modules_min": 52,
+      "nonconstant_assigns_min": 1135,
+      "procedural_blocks_min": 561,
+      "source_files_min": 57,
+      "state_updates_min": 295
+    },
+    "summary": {
+      "always_blocks": 910,
+      "assigns": 3049,
+      "case_blocks": 260,
+      "file_count": 143,
+      "instance_candidates": 1049,
+      "lines": 130568,
+      "modules": 210,
+      "nonconstant_assigns": 2890,
+      "state_updates": 1219
+    },
+    "target_candidate_basis": "design_candidate",
+    "target_candidate_summary": {
+      "always_blocks": 561,
+      "assigns": 1150,
+      "case_blocks": 155,
+      "file_count": 57,
+      "instance_candidates": 472,
+      "lines": 52338,
+      "modules": 52,
+      "nonconstant_assigns": 1135,
+      "state_updates": 295
+    },
+    "top_by_lines": [
+      {
+        "bucket": "verification_collateral",
+        "lines": 8178,
+        "path": "validation/pl301_a3bm_BM_5x7_1/verilog/axibm_master_interface_BM_5x7_1.v"
+      },
+      {
+        "bucket": "verification_collateral",
+        "lines": 4714,
+        "path": "validation/pl301_a3bm_BM_5x7_1/verilog/axibm_slave_interface_BM_5x7_1.v"
+      },
+      {
+        "bucket": "verification_collateral",
+        "lines": 4498,
+        "path": "validation/pl301_a3bm_BM_5x7_1/verilog/axibm_core_BM_5x7_1.v"
+      },
+      {
+        "bucket": "design_candidate",
+        "lines": 3800,
+        "path": "BP062-VL-70002/AxiPC.v"
+      },
+      {
+        "bucket": "design_candidate",
+        "lines": 3800,
+        "path": "pl330_dma/verilog/BP062-VL-70002/AxiPC.v"
+      },
+      {
+        "bucket": "design_candidate",
+        "lines": 3713,
+        "path": "BP062-VL-70004/AxiPC.sv"
+      },
+      {
+        "bucket": "verification_collateral",
+        "lines": 3605,
+        "path": "pl330_dma/validation/verilog/pl330_subsystem.v.xsl"
+      },
+      {
+        "bucket": "design_candidate",
+        "lines": 3412,
+        "path": "pl330_axi/verilog/pl330_axi_xmlcfg.v.xsl"
+      },
+      {
+        "bucket": "verification_collateral",
+        "lines": 3258,
+        "path": "validation/pl301_a3bm_BM_5x7_1/verilog/pl301_a3bm_protocol_conv_BM_5x7_1.v"
+      },
+      {
+        "bucket": "verification_collateral",
+        "lines": 3235,
+        "path": "validation/pl301_a3bm_BM_5x7_1/verilog/axibm_master_int_fwd_ctrl_a_BM_5x7_1.v"
+      },
+      {
+        "bucket": "verification_collateral",
+        "lines": 3180,
+        "path": "validation/pl301_a3bm_BM_5x7_1/verilog/pl301_a3bm_data_conv_BM_5x7_1.v"
+      },
+      {
+        "bucket": "verification_collateral",
+        "lines": 3015,
+        "path": "validation/pl301_a3bm_BM_5x7_1/verilog/axibm_mux_demux_sparse_BM_5x7_1.v"
+      },
+      {
+        "bucket": "verification_collateral",
+        "lines": 2655,
+        "path": "validation/pl301_a3bm_BM_5x7_1/verilog/axibm_slave_int_cab_BM_5x7_1.v"
+      },
+      {
+        "bucket": "verification_collateral",
+        "lines": 2594,
+        "path": "validation/pl301_a3bm_BM_5x7_1/verilog/axibm_master_int_w_fifo_BM_5x7_1.v"
+      },
+      {
+        "bucket": "verification_collateral",
+        "lines": 2517,
+        "path": "validation/pl301_a3bm_BM_5x7_1/verilog/pl301_a3bm_BM_5x7_1.v"
+      },
+      {
+        "bucket": "design_candidate",
+        "lines": 2510,
+        "path": "pl330_merge_buffer/verilog/pl330_merge_buffer_xmlcfg.v.xsl"
+      },
+      {
+        "bucket": "verification_collateral",
+        "lines": 2280,
+        "path": "validation/pl301_a3bm_BM_5x7_1/verilog/pl301_a3bm_freq_conv_BM_5x7_1.v"
+      },
+      {
+        "bucket": "verification_collateral",
+        "lines": 2254,
+        "path": "validation/pl301_a3bm_BM_5x7_1/verilog/axibm_master_int_arb_a_BM_5x7_1.v"
+      },
+      {
+        "bucket": "verification_collateral",
+        "lines": 2249,
+        "path": "validation/pl301_a3bm_BM_5x7_1/verilog/pl301_a3bm_regslice_outer_BM_5x7_1.v"
+      },
+      {
+        "bucket": "verification_collateral",
+        "lines": 2247,
+        "path": "validation/pl301_a3bm_BM_5x7_1/verilog/pl301_a3bm_regslice_inner_BM_5x7_1.v"
+      }
+    ]
+  },
+  "reference_scale_gap": {
+    "below_reference": [
+      {
+        "current": 11,
+        "metric": "instances",
+        "percent": 2.3,
+        "ratio": 0.0233,
+        "reference": 472
+      },
+      {
+        "current": 40,
+        "metric": "procedural_blocks",
+        "percent": 7.1,
+        "ratio": 0.0713,
+        "reference": 561
+      },
+      {
+        "current": 4662,
+        "metric": "lines",
+        "percent": 8.9,
+        "ratio": 0.0891,
+        "reference": 52338
+      },
+      {
+        "current": 10,
+        "metric": "source_files",
+        "percent": 17.5,
+        "ratio": 0.1754,
+        "reference": 57
+      },
+      {
+        "current": 10,
+        "metric": "modules",
+        "percent": 19.2,
+        "ratio": 0.1923,
+        "reference": 52
+      },
+      {
+        "current": 402,
+        "metric": "nonconstant_assigns",
+        "percent": 35.4,
+        "ratio": 0.3542,
+        "reference": 1135
+      }
+    ],
+    "calibration_only": true,
+    "do_not_copy_reference_rtl": true,
+    "metrics": {
+      "control_flow": {
+        "current": 270,
+        "percent": 174.2,
+        "ratio": 1.7419,
+        "reference": 155
+      },
+      "instances": {
+        "current": 11,
+        "percent": 2.3,
+        "ratio": 0.0233,
+        "reference": 472
+      },
+      "lines": {
+        "current": 4662,
+        "percent": 8.9,
+        "ratio": 0.0891,
+        "reference": 52338
+      },
+      "modules": {
+        "current": 10,
+        "percent": 19.2,
+        "ratio": 0.1923,
+        "reference": 52
+      },
+      "nonconstant_assigns": {
+        "current": 402,
+        "percent": 35.4,
+        "ratio": 0.3542,
+        "reference": 1135
+      },
+      "procedural_blocks": {
+        "current": 40,
+        "percent": 7.1,
+        "ratio": 0.0713,
+        "reference": 561
+      },
+      "source_files": {
+        "current": 10,
+        "percent": 17.5,
+        "ratio": 0.1754,
+        "reference": 57
+      },
+      "state_updates": {
+        "current": 719,
+        "percent": 243.7,
+        "ratio": 2.4373,
+        "reference": 295
+      }
+    },
+    "reference_basis": "design_candidate",
+    "reference_profile": "reports/rtl_reference_profile.json",
+    "rule": "This is a scale diagnostic and target-scale review aid. It does not close or fail PASS by itself; production PASS still requires human-approved quality_gates.rtl_gen.target_scale or an approved waiver.",
+    "schema_version": 1,
+    "status": "diagnostic_only",
+    "type": "rtl_reference_scale_gap"
+  },
+  "rules": [
+    "Use rtl_todo_plan.json as the complete ledger and rtl_authoring_plan.json as the LLM work queue.",
+    "Process one authoring packet at a time: module packets first, then unowned tasks if any, then rtl_gate_evidence_closure; leave rtl_gate_tool_evidence to tools and rtl_gate_contract_blocked/rtl_gate_human_closure to human-locked authority gaps.",
+    "Generate real RTL; do not instantiate a fixed IP template or copy boilerplate as the implementation.",
+    "If reference_profile is present, use it only to understand implementation scale and decomposition gaps; never copy or clone reference RTL.",
+    "After the top RTL exists, prioritize missing manifest child RTL packets before residual top-module slices.",
+    "Keep locked authority artifacts unchanged unless a human approves a change request.",
+    "Rerun rtl_todo_plan audit, compile, lint, sim, and coverage evidence until required TODOs pass."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "status_markdown": "rtl/rtl_authoring_status.md",
+  "summary": {
+    "connection_contract_suggestions_present": true,
+    "deferred_human_qa_allowed": true,
+    "gate_packets": 4,
+    "human_locked_packets": 2,
+    "human_locked_tasks": 5,
+    "llm_actionable_packets": 0,
+    "llm_actionable_tasks": 0,
+    "max_packet_required_tasks": 48,
+    "module_packets": 29,
+    "next_llm_packets": [],
+    "packet_task_limit": 48,
+    "packets": 33,
+    "pass_allowed": false,
+    "pending_connection_contract_suggestions": 398,
+    "recommended_packet_batch_limit": 4,
+    "reference_profile_present": true,
+    "reference_scale_gap_present": true,
+    "required_tasks": 287,
+    "sliced_module_packets": 21,
+    "target_scale_present": false,
+    "tool_evidence_packets": 1,
+    "tool_evidence_tasks": 4,
+    "total_tasks": 287,
+    "unowned_packets": 0
+  },
+  "target_scale": {},
+  "todo_plan_sha256": "5ce9ec8f548eb16700a325ec5cf4698b70cdf559b6977cd26c2a8df84edc9398",
+  "top": "pl330_target",
+  "type": "rtl_authoring_plan"
+}

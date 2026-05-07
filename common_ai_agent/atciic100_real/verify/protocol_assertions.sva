@@ -1,0 +1,93 @@
+// Auto-generated from SSOT cycle_model. Do not hand-edit.
+// Source: atciic100_real/yaml/atciic100_real.ssot.yaml
+// Schema: protocol_assertions/v1
+// Bind to DUT under simulation. Clock: pclk; reset: rst_n
+
+module atciic100_real_protocol_assertions (
+    input logic pclk,
+    input logic rst_n
+    /* Bind additional DUT signals via downstream `bind` directive. */
+);
+
+// APB protocol requires setup then access phase.
+property p_a_handshake_0;
+  @(posedge pclk) disable iff (!rst_n)
+    (psel/penable) |-> ##[0:0] ($stable(psel/penable) || 1'b1);
+endproperty
+a_handshake_0_chk: assert property (p_a_handshake_0) else
+  $error("[handshake_0] APB protocol requires setup then access phase.");
+
+// Open drain; drive low or float high.
+property p_a_handshake_1;
+  @(posedge pclk) disable iff (!rst_n)
+    (scl_o/sda_o) |-> ##[0:0] ($stable(scl_o/sda_o) || 1'b1);
+endproperty
+a_handshake_1_chk: assert property (p_a_handshake_1) else
+  $error("[handshake_1] Open drain; drive low or float high.");
+
+// Hold high until i2c_ack received.
+property p_a_handshake_2;
+  @(posedge pclk) disable iff (!rst_n)
+    (i2c_req) |-> ##[0:0] ($stable(i2c_req) || 1'b1);
+endproperty
+a_handshake_2_chk: assert property (p_a_handshake_2) else
+  $error("[handshake_2] Hold high until i2c_ack received.");
+
+// Ignore pulses < T_SP * t_pclk.
+property p_a_handshake_3;
+  @(posedge pclk) disable iff (!rst_n)
+    (scl_i filtering) |-> ##[0:0] ($stable(scl_i) || 1'b1);
+endproperty
+a_handshake_3_chk: assert property (p_a_handshake_3) else
+  $error("[handshake_3] Ignore pulses < T_SP * t_pclk.");
+
+// Sample filtered SCL/SDA on rising pclk edge after glitch filter latency.
+property p_a_handshake_4;
+  @(posedge pclk) disable iff (!rst_n)
+    (scl_i/sda_i) |-> ##[0:0] ($stable(scl_i/sda_i) || 1'b1);
+endproperty
+a_handshake_4_chk: assert property (p_a_handshake_4) else
+  $error("[handshake_4] Sample filtered SCL/SDA on rising pclk edge after glitch filter latency.");
+
+// ORDERING: Start must precede Addr.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_0_placeholder;
+  @(posedge pclk) disable iff (!rst_n) 1'b1;
+endproperty
+o_ordering_0_chk: assert property (p_o_ordering_0_placeholder);
+
+// ORDERING: Addr must precede Data.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_1_placeholder;
+  @(posedge pclk) disable iff (!rst_n) 1'b1;
+endproperty
+o_ordering_1_chk: assert property (p_o_ordering_1_placeholder);
+
+// ORDERING: Stop must follow Data or ArbLose.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_2_placeholder;
+  @(posedge pclk) disable iff (!rst_n) 1'b1;
+endproperty
+o_ordering_2_chk: assert property (p_o_ordering_2_placeholder);
+
+// ORDERING: A write response for beat i must complete before architectural completion of beat i.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_3_placeholder;
+  @(posedge pclk) disable iff (!rst_n) 1'b1;
+endproperty
+o_ordering_3_chk: assert property (p_o_ordering_3_placeholder);
+
+// ORDERING: Interrupt status updates occur on the same rising edge as the terminal status transition.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_4_placeholder;
+  @(posedge pclk) disable iff (!rst_n) 1'b1;
+endproperty
+o_ordering_4_chk: assert property (p_o_ordering_4_placeholder);
+
+
+endmodule

@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "counter",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 1,
+    "failed": 0,
+    "transactions": 0,
+    "transaction_results": [],
+    "unsupported_transaction_check": true,
+    "trace_entries": 1,
+    "coverage_bins": 0,
+    "invariants_total": 0,
+    "invariants_evaluated": 0,
+    "invariants_failed": [],
+    "invariants_skipped": [],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 0,
+    "error_cases_planned": 0
+  },
+  "decomposition_units": 1,
+  "fcov_bins": 0,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "counter/req/",
+      "counter/yaml/counter.ssot.yaml",
+      "counter/model/functional_model.py",
+      "counter/cov/fcov_plan.json",
+      "counter/yaml/counter.ssot.yaml#io_list",
+      "counter/yaml/counter.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "counter/rtl/",
+      "counter/tb/",
+      "counter/sim/",
+      "counter/vectors/",
+      "counter/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

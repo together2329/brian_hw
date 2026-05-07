@@ -1,0 +1,2413 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 9,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model_02",
+      "module_task_count": 140,
+      "rule": "Owner module atciic100_ctrl is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 3,
+      "section_chunk_index": 2,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/atciic100_ctrl.v",
+      "name": "atciic100_ctrl",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.pipeline",
+        "fsm",
+        "fsm.iic_phase",
+        "function_model",
+        "function_model.transactions"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/atciic100_apbslv.v",
+        "name": "atciic100_apbslv",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atciic100_ctrl.v",
+        "name": "atciic100_ctrl",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atciic100_fifo.v",
+        "name": "atciic100_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atciic100_gsf.v",
+        "name": "atciic100_gsf",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atciic100_real.sv",
+        "name": "atciic100_real",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atciic100_ctrl",
+        "port": "cmd",
+        "signal": "cmd_reg",
+        "signal_terms": [
+          "cmd_reg"
+        ],
+        "source_ref": "sub_modules[0].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atciic100_ctrl",
+        "port": "setup",
+        "signal": "setup_reg",
+        "signal_terms": [
+          "setup_reg"
+        ],
+        "source_ref": "sub_modules[0].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atciic100_ctrl",
+        "port": "data_out",
+        "signal": "rx_data",
+        "signal_terms": [
+          "rx_data"
+        ],
+        "source_ref": "sub_modules[2].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atciic100_ctrl",
+        "port": "scl_i",
+        "signal": "scl_filtered",
+        "signal_terms": [
+          "scl_filtered"
+        ],
+        "source_ref": "sub_modules[3].connections[0]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 48,
+    "open_required_count": 48,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "atciic100_real",
+  "kind": "module",
+  "owner_file": "rtl/atciic100_ctrl.v",
+  "owner_module": "atciic100_ctrl",
+  "packet_id": "module__atciic100_ctrl__function_model_02",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.error_case": 5,
+      "function_model.input": 8,
+      "function_model.invariant": 4,
+      "function_model.output": 7,
+      "function_model.precondition": 13,
+      "function_model.side_effect": 7,
+      "function_model.transaction": 4
+    },
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model_02",
+      "module_task_count": 140,
+      "rule": "Owner module atciic100_ctrl is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 3,
+      "section_chunk_index": 2,
+      "task_limit": 48
+    },
+    "open_required_count": 48,
+    "required_count": 48,
+    "source_refs": [
+      "function_model.transactions.FM5.preconditions.precondition_0",
+      "function_model.transactions.FM5.preconditions.precondition_1",
+      "function_model.transactions.FM5.preconditions.precondition_2",
+      "function_model.transactions.FM5.inputs.input_0",
+      "function_model.transactions.FM5.outputs.output_0",
+      "function_model.transactions.FM5.outputs.output_1",
+      "function_model.transactions.FM5.side_effects.side_effect_0",
+      "function_model.transactions.FM5.side_effects.side_effect_1",
+      "function_model.transactions.FM5.side_effects.side_effect_2",
+      "function_model.transactions.FM5.error_cases.error_case_0",
+      "function_model.transactions.FM6",
+      "function_model.transactions.FM6.preconditions.precondition_0",
+      "function_model.transactions.FM6.preconditions.precondition_1",
+      "function_model.transactions.FM6.preconditions.precondition_2",
+      "function_model.transactions.FM6.inputs.input_0",
+      "function_model.transactions.FM6.inputs.input_1",
+      "function_model.transactions.FM6.outputs.output_0",
+      "function_model.transactions.FM6.side_effects.side_effect_0",
+      "function_model.transactions.FM6.error_cases.error_case_0",
+      "function_model.transactions.FM7",
+      "function_model.transactions.FM7.preconditions.precondition_0",
+      "function_model.transactions.FM7.preconditions.precondition_1",
+      "function_model.transactions.FM7.preconditions.precondition_2",
+      "function_model.transactions.FM7.inputs.input_0"
+    ],
+    "status_counts": {
+      "open": 48
+    },
+    "task_count": 48
+  },
+  "tasks": [
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM5: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.preconditions.precondition_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=master==1.",
+      "evidence_terms": [],
+      "id": "RTL-0101",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "master==1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM5: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.preconditions.precondition_1.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=trans==1.",
+      "evidence_terms": [],
+      "id": "RTL-0102",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "trans==1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM5: precondition_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.preconditions.precondition_2",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.preconditions.precondition_2.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=cmd==1.",
+      "evidence_terms": [],
+      "id": "RTL-0103",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.preconditions.precondition_2",
+      "ssot_context": {
+        "value": "cmd==1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.preconditions.precondition_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM5: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.inputs.input_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.inputs.input_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=addr.",
+      "evidence_terms": [],
+      "id": "RTL-0104",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.inputs.input_0",
+      "ssot_context": {
+        "value": "addr"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.inputs.input_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM5: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.outputs.output_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.outputs.output_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=SCL/SDA signals driven for Start->Addr->Data->Stop.",
+      "evidence_terms": [],
+      "id": "RTL-0105",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.outputs.output_0",
+      "ssot_context": {
+        "value": "SCL/SDA signals driven for Start->Addr->Data->Stop"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.outputs.output_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM5: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.outputs.output_1",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.outputs.output_1.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=Data pushed to FIFO.",
+      "evidence_terms": [],
+      "id": "RTL-0106",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.outputs.output_1",
+      "ssot_context": {
+        "value": "Data pushed to FIFO"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.outputs.output_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM5: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.side_effects.side_effect_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=datacnt decrements.",
+      "evidence_terms": [],
+      "id": "RTL-0107",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "datacnt decrements"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM5: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.side_effects.side_effect_1.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=ByteRecv interrupt.",
+      "evidence_terms": [],
+      "id": "RTL-0108",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.side_effects.side_effect_1",
+      "ssot_context": {
+        "value": "ByteRecv interrupt"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM5: side_effect_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.side_effects.side_effect_2",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.side_effects.side_effect_2.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=FIFO status updates.",
+      "evidence_terms": [],
+      "id": "RTL-0109",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.side_effects.side_effect_2",
+      "ssot_context": {
+        "value": "FIFO status updates"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.side_effects.side_effect_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM5: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "function_model.transactions.FM5.error_cases.error_case_0 condition is implemented as RTL control logic: Slave NACK on address"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.error_cases.error_case_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: condition=Slave NACK on address.",
+      "evidence_terms": [
+        "NACK",
+        "Slave"
+      ],
+      "id": "RTL-0110",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.error_cases.error_case_0",
+      "ssot_context": {
+        "condition": "Slave NACK on address"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "NACK",
+          "Slave"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM6",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM6",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM6.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: id=FM6; name=slave_send.",
+      "evidence_terms": [],
+      "id": "RTL-0111",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6",
+      "ssot_context": {
+        "id": "FM6",
+        "name": "slave_send"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM6: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.preconditions.precondition_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=master==0.",
+      "evidence_terms": [],
+      "id": "RTL-0112",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "master==0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM6: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.preconditions.precondition_1.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=trans==1.",
+      "evidence_terms": [],
+      "id": "RTL-0113",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "trans==1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM6: precondition_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.preconditions.precondition_2",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.preconditions.precondition_2.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=addr matched.",
+      "evidence_terms": [],
+      "id": "RTL-0114",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.preconditions.precondition_2",
+      "ssot_context": {
+        "value": "addr matched"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.preconditions.precondition_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM6: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.inputs.input_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.inputs.input_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=bus_clk.",
+      "evidence_terms": [
+        "bus",
+        "bus_clk",
+        "clk"
+      ],
+      "id": "RTL-0115",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.inputs.input_0",
+      "ssot_context": {
+        "value": "bus_clk"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "bus",
+          "bus_clk",
+          "clk"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM6: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.inputs.input_1",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.inputs.input_1.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=bus_data.",
+      "evidence_terms": [
+        "bus",
+        "bus_data",
+        "data"
+      ],
+      "id": "RTL-0116",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.inputs.input_1",
+      "ssot_context": {
+        "value": "bus_data"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.inputs.input_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "bus",
+          "bus_data",
+          "data"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM6: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.outputs.output_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.outputs.output_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=Data from FIFO shifted out.",
+      "evidence_terms": [],
+      "id": "RTL-0117",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.outputs.output_0",
+      "ssot_context": {
+        "value": "Data from FIFO shifted out"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.outputs.output_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM6: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.side_effects.side_effect_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=ByteTrans interrupt.",
+      "evidence_terms": [],
+      "id": "RTL-0118",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "ByteTrans interrupt"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM6: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "function_model.transactions.FM6.error_cases.error_case_0 condition is implemented as RTL control logic: FIFO Empty"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.error_cases.error_case_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: condition=FIFO Empty.",
+      "evidence_terms": [
+        "Empty",
+        "FIFO"
+      ],
+      "id": "RTL-0119",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.error_cases.error_case_0",
+      "ssot_context": {
+        "condition": "FIFO Empty"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Empty",
+          "FIFO"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM7",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM7",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM7.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: id=FM7; name=slave_recv.",
+      "evidence_terms": [],
+      "id": "RTL-0120",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM7",
+      "ssot_context": {
+        "id": "FM7",
+        "name": "slave_recv"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM7"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM7: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM7.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM7.preconditions.precondition_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=master==0.",
+      "evidence_terms": [],
+      "id": "RTL-0121",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM7.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "master==0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM7.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM7: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM7.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM7.preconditions.precondition_1.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=trans==0.",
+      "evidence_terms": [],
+      "id": "RTL-0122",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM7.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "trans==0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM7.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM7: precondition_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM7.preconditions.precondition_2",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM7.preconditions.precondition_2.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=addr matched.",
+      "evidence_terms": [],
+      "id": "RTL-0123",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM7.preconditions.precondition_2",
+      "ssot_context": {
+        "value": "addr matched"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM7.preconditions.precondition_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM7: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM7.inputs.input_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM7.inputs.input_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=bus_clk.",
+      "evidence_terms": [
+        "bus",
+        "bus_clk",
+        "clk"
+      ],
+      "id": "RTL-0124",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM7.inputs.input_0",
+      "ssot_context": {
+        "value": "bus_clk"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM7.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "bus",
+          "bus_clk",
+          "clk"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM7: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM7.inputs.input_1",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM7.inputs.input_1.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=bus_data.",
+      "evidence_terms": [
+        "bus",
+        "bus_data",
+        "data"
+      ],
+      "id": "RTL-0125",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM7.inputs.input_1",
+      "ssot_context": {
+        "value": "bus_data"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM7.inputs.input_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "bus",
+          "bus_data",
+          "data"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM7: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM7.outputs.output_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM7.outputs.output_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=Data pushed to FIFO.",
+      "evidence_terms": [],
+      "id": "RTL-0126",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM7.outputs.output_0",
+      "ssot_context": {
+        "value": "Data pushed to FIFO"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM7.outputs.output_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM7: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM7.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM7.side_effects.side_effect_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=ByteRecv interrupt.",
+      "evidence_terms": [],
+      "id": "RTL-0127",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM7.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "ByteRecv interrupt"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM7.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM7: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM7.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "function_model.transactions.FM7.error_cases.error_case_0 condition is implemented as RTL control logic: FIFO Full"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM7.error_cases.error_case_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: condition=FIFO Full.",
+      "evidence_terms": [
+        "FIFO",
+        "Full"
+      ],
+      "id": "RTL-0128",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM7.error_cases.error_case_0",
+      "ssot_context": {
+        "condition": "FIFO Full"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM7.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "FIFO",
+          "Full"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM8",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM8",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM8.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: id=FM8; name=general_call.",
+      "evidence_terms": [],
+      "id": "RTL-0129",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM8",
+      "ssot_context": {
+        "id": "FM8",
+        "name": "general_call"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM8"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM8: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM8.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM8.preconditions.precondition_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=master==0.",
+      "evidence_terms": [],
+      "id": "RTL-0130",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM8.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "master==0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM8.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM8: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM8.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM8.preconditions.precondition_1.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=Address byte == 0x00.",
+      "evidence_terms": [],
+      "id": "RTL-0131",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM8.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "Address byte == 0x00"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM8.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM8: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM8.inputs.input_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM8.inputs.input_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=bus_clk.",
+      "evidence_terms": [
+        "bus",
+        "bus_clk",
+        "clk"
+      ],
+      "id": "RTL-0132",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM8.inputs.input_0",
+      "ssot_context": {
+        "value": "bus_clk"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM8.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "bus",
+          "bus_clk",
+          "clk"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM8: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM8.inputs.input_1",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM8.inputs.input_1.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=bus_data.",
+      "evidence_terms": [
+        "bus",
+        "bus_data",
+        "data"
+      ],
+      "id": "RTL-0133",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM8.inputs.input_1",
+      "ssot_context": {
+        "value": "bus_data"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM8.inputs.input_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "bus",
+          "bus_data",
+          "data"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM8: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM8.outputs.output_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM8.outputs.output_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=ACK response.",
+      "evidence_terms": [],
+      "id": "RTL-0134",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM8.outputs.output_0",
+      "ssot_context": {
+        "value": "ACK response"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM8.outputs.output_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM8: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM8.outputs.output_1",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM8.outputs.output_1.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=int_st.GenCall = 1.",
+      "evidence_terms": [
+        "int",
+        "int_st",
+        "st"
+      ],
+      "id": "RTL-0135",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM8.outputs.output_1",
+      "ssot_context": {
+        "value": "int_st.GenCall = 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM8.outputs.output_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "int",
+          "int_st",
+          "st"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM8: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM8.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM8.side_effects.side_effect_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=AddrHit interrupt.",
+      "evidence_terms": [],
+      "id": "RTL-0136",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM8.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "AddrHit interrupt"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM8.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM8: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM8.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "function_model.transactions.FM8.error_cases.error_case_0 condition is implemented as RTL control logic: Controller disabled (IICEn=0)"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM8.error_cases.error_case_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: condition=Controller disabled (IICEn=0).",
+      "evidence_terms": [
+        "Controller",
+        "IICEn"
+      ],
+      "id": "RTL-0137",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM8.error_cases.error_case_0",
+      "ssot_context": {
+        "condition": "Controller disabled (IICEn=0)"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM8.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Controller",
+          "IICEn"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM9",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM9",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM9.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: id=FM9; name=dma_request.",
+      "evidence_terms": [],
+      "id": "RTL-0138",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM9",
+      "ssot_context": {
+        "id": "FM9",
+        "name": "dma_request"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM9"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM9: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM9.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM9.preconditions.precondition_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=setup.DMAEn == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0139",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM9.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "setup.DMAEn == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM9.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM9: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM9.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM9.preconditions.precondition_1.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=(trans==1 && fifo_count > 0) || (trans==0 && fifo_count < FIFO_DEPTH).",
+      "evidence_terms": [
+        "DEPTH",
+        "FIFO",
+        "FIFO_DEPTH",
+        "count",
+        "fifo",
+        "fifo_count"
+      ],
+      "id": "RTL-0140",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM9.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "(trans==1 && fifo_count > 0) || (trans==0 && fifo_count < FIFO_DEPTH)"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM9.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DEPTH",
+          "FIFO",
+          "FIFO_DEPTH",
+          "count",
+          "fifo",
+          "fifo_count"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM9: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM9.inputs.input_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM9.inputs.input_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=DMA Enable.",
+      "evidence_terms": [],
+      "id": "RTL-0141",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM9.inputs.input_0",
+      "ssot_context": {
+        "value": "DMA Enable"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM9.inputs.input_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM9: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM9.outputs.output_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM9.outputs.output_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=i2c_req = 1.",
+      "evidence_terms": [
+        "i2c",
+        "i2c_req",
+        "req"
+      ],
+      "id": "RTL-0142",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM9.outputs.output_0",
+      "ssot_context": {
+        "value": "i2c_req = 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM9.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "i2c",
+          "i2c_req",
+          "req"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM9: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM9.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM9.side_effects.side_effect_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=DMA transfers data between FIFO and memory via external DMA controller.",
+      "evidence_terms": [],
+      "id": "RTL-0143",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM9.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "DMA transfers data between FIFO and memory via external DMA controller"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM9.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM9: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM9.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "function_model.transactions.FM9.error_cases.error_case_0 condition is implemented as RTL control logic: DMA acknowledge timeout"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM9.error_cases.error_case_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: condition=DMA acknowledge timeout.",
+      "evidence_terms": [
+        "DMA"
+      ],
+      "id": "RTL-0144",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM9.error_cases.error_case_0",
+      "ssot_context": {
+        "condition": "DMA acknowledge timeout"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM9.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "DMA"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_0",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=FIFO count never exceeds FIFO_DEPTH parameter..",
+      "evidence_terms": [
+        "DEPTH",
+        "FIFO",
+        "FIFO_DEPTH"
+      ],
+      "id": "RTL-0145",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_0",
+      "ssot_context": {
+        "value": "FIFO count never exceeds FIFO_DEPTH parameter."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DEPTH",
+          "FIFO",
+          "FIFO_DEPTH"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_1",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_1",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=Phase transitions follow IDLE->START->ADDR->DAT->STOP strictly, unless ArbLose occurs..",
+      "evidence_terms": [],
+      "id": "RTL-0146",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_1",
+      "ssot_context": {
+        "value": "Phase transitions follow IDLE->START->ADDR->DAT->STOP strictly, unless ArbLose occurs."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_2",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_2",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=Arbitration Lost (ArbLose) terminates transmission immediately and releases bus..",
+      "evidence_terms": [],
+      "id": "RTL-0147",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_2",
+      "ssot_context": {
+        "value": "Arbitration Lost (ArbLose) terminates transmission immediately and releases bus."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_3",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_3",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_3.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via function_model.\nSSOT item context: value=i2c_int is asserted if and only if (int_st & int_en) != 0..",
+      "evidence_terms": [
+        "en",
+        "i2c",
+        "i2c_int",
+        "int",
+        "int_en",
+        "int_st",
+        "st"
+      ],
+      "id": "RTL-0148",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_3",
+      "ssot_context": {
+        "value": "i2c_int is asserted if and only if (int_st & int_en) != 0."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_3"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "en",
+          "i2c",
+          "i2c_int",
+          "int",
+          "int_en",
+          "int_st",
+          "st"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "80d90eab12a41558550a46753666dc7718d4ebd3f45786f7c28471fa33c1b209",
+  "top": "atciic100_real",
+  "type": "rtl_authoring_packet"
+}

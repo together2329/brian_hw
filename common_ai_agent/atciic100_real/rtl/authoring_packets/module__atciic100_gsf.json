@@ -1,0 +1,561 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 9,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 9,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/atciic100_gsf.v",
+      "name": "atciic100_gsf",
+      "refs": [
+        "features",
+        "features.glitch_suppression"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/atciic100_apbslv.v",
+        "name": "atciic100_apbslv",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atciic100_ctrl.v",
+        "name": "atciic100_ctrl",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atciic100_fifo.v",
+        "name": "atciic100_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atciic100_gsf.v",
+        "name": "atciic100_gsf",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atciic100_real.sv",
+        "name": "atciic100_real",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atciic100_gsf",
+        "port": "scl_in",
+        "signal": "scl_filtered",
+        "signal_terms": [
+          "scl_filtered"
+        ],
+        "source_ref": "sub_modules[1].connections[2]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 9,
+    "open_required_count": 9,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "atciic100_real",
+  "kind": "module",
+  "owner_file": "rtl/atciic100_gsf.v",
+  "owner_module": "atciic100_gsf",
+  "packet_id": "module__atciic100_gsf",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "features.item": 7,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 9,
+      "task_limit": 48
+    },
+    "open_required_count": 9,
+    "required_count": 9,
+    "source_refs": [
+      "workflow_todos.rtl-gen[3]",
+      "features.Master_Transmit_Receive",
+      "features.Slave_Transmit_Receive",
+      "features.Multi_Master_Arbitration",
+      "features.General_Call",
+      "features.Glitch_Suppression",
+      "features.Auto_Clock_Stretching",
+      "features.Auto_ACK",
+      "sub_modules.atciic100_gsf.module_equivalence"
+    ],
+    "status_counts": {
+      "open": 9
+    },
+    "task_count": 9
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement Glitch Filter",
+      "criteria": [
+        "Glitch rejection functional",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[3]",
+        "Primary implementation evidence is in rtl/atciic100_gsf.v",
+        "Semantic source_refs covered: features.glitch_suppression"
+      ],
+      "detail": "Digital filter for SCL/SDA inputs based on T_SP.\nSSOT ref: workflow_todos.rtl-gen[3].\nOwner: atciic100_gsf in rtl/atciic100_gsf.v via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_GSF.",
+      "evidence_terms": [
+        "GSF",
+        "RTL_TODO_GSF",
+        "SP",
+        "TODO",
+        "T_SP",
+        "atciic100",
+        "atciic100_gsf",
+        "glitch",
+        "glitch_suppression",
+        "gsf",
+        "suppression"
+      ],
+      "id": "RTL-0030",
+      "owner_file": "rtl/atciic100_gsf.v",
+      "owner_module": "atciic100_gsf",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[3]",
+      "ssot_context": {
+        "id": "RTL_TODO_GSF"
+      },
+      "ssot_refs": [
+        "features.glitch_suppression",
+        "workflow_todos.rtl-gen[3]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "GSF",
+          "RTL_TODO_GSF",
+          "SP",
+          "TODO",
+          "T_SP",
+          "atciic100",
+          "atciic100_gsf",
+          "glitch",
+          "glitch_suppression",
+          "gsf",
+          "suppression"
+        ],
+        "source_scope": "rtl/atciic100_gsf.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_gsf.v.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_GSF",
+        "source_refs": [
+          "features.glitch_suppression"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Master Transmit/Receive",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Master_Transmit_Receive",
+        "Primary implementation evidence is in rtl/atciic100_gsf.v"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Master_Transmit_Receive.\nOwner: atciic100_gsf in rtl/atciic100_gsf.v via features.\nSSOT item context: name=Master Transmit/Receive; output=I2C Bus Transaction.",
+      "evidence_terms": [],
+      "id": "RTL-0203",
+      "owner_file": "rtl/atciic100_gsf.v",
+      "owner_module": "atciic100_gsf",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Master_Transmit_Receive",
+      "ssot_context": {
+        "name": "Master Transmit/Receive",
+        "output": "I2C Bus Transaction"
+      },
+      "ssot_refs": [
+        "features.Master_Transmit_Receive"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_gsf.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Slave Transmit/Receive",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Slave_Transmit_Receive",
+        "Primary implementation evidence is in rtl/atciic100_gsf.v"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Slave_Transmit_Receive.\nOwner: atciic100_gsf in rtl/atciic100_gsf.v via features.\nSSOT item context: name=Slave Transmit/Receive; output=Ack/Nack response.",
+      "evidence_terms": [],
+      "id": "RTL-0204",
+      "owner_file": "rtl/atciic100_gsf.v",
+      "owner_module": "atciic100_gsf",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Slave_Transmit_Receive",
+      "ssot_context": {
+        "name": "Slave Transmit/Receive",
+        "output": "Ack/Nack response"
+      },
+      "ssot_refs": [
+        "features.Slave_Transmit_Receive"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_gsf.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Multi-Master Arbitration",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Multi_Master_Arbitration",
+        "Primary implementation evidence is in rtl/atciic100_gsf.v"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Multi_Master_Arbitration.\nOwner: atciic100_gsf in rtl/atciic100_gsf.v via features.\nSSOT item context: name=Multi-Master Arbitration; output=Arbitration Lost Status.",
+      "evidence_terms": [],
+      "id": "RTL-0205",
+      "owner_file": "rtl/atciic100_gsf.v",
+      "owner_module": "atciic100_gsf",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Multi_Master_Arbitration",
+      "ssot_context": {
+        "name": "Multi-Master Arbitration",
+        "output": "Arbitration Lost Status"
+      },
+      "ssot_refs": [
+        "features.Multi_Master_Arbitration"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_gsf.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature General Call",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.General_Call",
+        "Primary implementation evidence is in rtl/atciic100_gsf.v"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.General_Call.\nOwner: atciic100_gsf in rtl/atciic100_gsf.v via features.\nSSOT item context: name=General Call; output=Ack response to address 0x00.",
+      "evidence_terms": [],
+      "id": "RTL-0206",
+      "owner_file": "rtl/atciic100_gsf.v",
+      "owner_module": "atciic100_gsf",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.General_Call",
+      "ssot_context": {
+        "name": "General Call",
+        "output": "Ack response to address 0x00"
+      },
+      "ssot_refs": [
+        "features.General_Call"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_gsf.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Glitch Suppression",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Glitch_Suppression",
+        "Primary implementation evidence is in rtl/atciic100_gsf.v"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Glitch_Suppression.\nOwner: atciic100_gsf in rtl/atciic100_gsf.v via features.\nSSOT item context: name=Glitch Suppression; output=Filtered SCL/SDA to internal logic.",
+      "evidence_terms": [],
+      "id": "RTL-0207",
+      "owner_file": "rtl/atciic100_gsf.v",
+      "owner_module": "atciic100_gsf",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Glitch_Suppression",
+      "ssot_context": {
+        "name": "Glitch Suppression",
+        "output": "Filtered SCL/SDA to internal logic"
+      },
+      "ssot_refs": [
+        "features.Glitch_Suppression"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_gsf.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Auto Clock Stretching",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Auto_Clock_Stretching",
+        "Primary implementation evidence is in rtl/atciic100_gsf.v"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Auto_Clock_Stretching.\nOwner: atciic100_gsf in rtl/atciic100_gsf.v via features.\nSSOT item context: name=Auto Clock Stretching; output=Stalled bus clock.",
+      "evidence_terms": [],
+      "id": "RTL-0208",
+      "owner_file": "rtl/atciic100_gsf.v",
+      "owner_module": "atciic100_gsf",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Auto_Clock_Stretching",
+      "ssot_context": {
+        "name": "Auto Clock Stretching",
+        "output": "Stalled bus clock"
+      },
+      "ssot_refs": [
+        "features.Auto_Clock_Stretching"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_gsf.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Auto-ACK",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Auto_ACK",
+        "Primary implementation evidence is in rtl/atciic100_gsf.v"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Auto_ACK.\nOwner: atciic100_gsf in rtl/atciic100_gsf.v via features.\nSSOT item context: name=Auto-ACK; output=Proper ACK/NACK on bus.",
+      "evidence_terms": [],
+      "id": "RTL-0209",
+      "owner_file": "rtl/atciic100_gsf.v",
+      "owner_module": "atciic100_gsf",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Auto_ACK",
+      "ssot_context": {
+        "name": "Auto-ACK",
+        "output": "Proper ACK/NACK on bus"
+      },
+      "ssot_refs": [
+        "features.Auto_ACK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_gsf.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module atciic100_gsf is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.atciic100_gsf.module_equivalence",
+        "Primary implementation evidence is in rtl/atciic100_gsf.v"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.atciic100_gsf.module_equivalence.\nOwner: atciic100_gsf in rtl/atciic100_gsf.v via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0221",
+      "owner_file": "rtl/atciic100_gsf.v",
+      "owner_module": "atciic100_gsf",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.atciic100_gsf.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.atciic100_gsf.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_gsf.v.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "80d90eab12a41558550a46753666dc7718d4ebd3f45786f7c28471fa33c1b209",
+  "top": "atciic100_real",
+  "type": "rtl_authoring_packet"
+}

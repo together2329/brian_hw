@@ -1,0 +1,9 @@
+{
+  "expressions_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "invariants_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "ip": "spi_master",
+  "schema_version": 1,
+  "ssot_hash": "88218b6274fce13f82b835c18212aa662defc0b941294d9e92af28ba7dd10b1b",
+  "transactions_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "type": "model_signature"
+}

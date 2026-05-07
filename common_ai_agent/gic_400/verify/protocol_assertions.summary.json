@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "type": "protocol_assertions_summary",
+  "ip": "gic_400",
+  "source": "gic_400/yaml/gic_400.ssot.yaml",
+  "assertions_total": 0,
+  "output": "verify/protocol_assertions.sva"
+}

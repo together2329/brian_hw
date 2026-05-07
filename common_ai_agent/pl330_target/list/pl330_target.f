@@ -1,0 +1,10 @@
+rtl/pl330_target_engine.sv
+rtl/pl330_target_pipeline.sv
+rtl/pl330_target_lsq.sv
+rtl/pl330_target_mfifo.sv
+rtl/pl330_target_merge_buffer.sv
+rtl/pl330_target_icache.sv
+rtl/pl330_target_axi.sv
+rtl/pl330_target_periph.sv
+rtl/pl330_target_apb_regs.sv
+rtl/pl330_target.sv

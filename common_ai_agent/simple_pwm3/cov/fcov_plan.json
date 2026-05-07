@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "simple_pwm3",
+  "source": "simple_pwm3/yaml/simple_pwm3.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "union",
+  "summary": {
+    "total_bins": 0,
+    "by_class": {}
+  },
+  "bins": []
+}

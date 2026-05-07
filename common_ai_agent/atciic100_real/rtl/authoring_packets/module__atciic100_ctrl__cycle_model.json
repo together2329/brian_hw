@@ -1,0 +1,1234 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 9,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 4,
+      "key": "cycle_model",
+      "module_task_count": 140,
+      "rule": "Owner module atciic100_ctrl is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/atciic100_ctrl.v",
+      "name": "atciic100_ctrl",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.pipeline",
+        "fsm",
+        "fsm.iic_phase",
+        "function_model",
+        "function_model.transactions"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/atciic100_apbslv.v",
+        "name": "atciic100_apbslv",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atciic100_ctrl.v",
+        "name": "atciic100_ctrl",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atciic100_fifo.v",
+        "name": "atciic100_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atciic100_gsf.v",
+        "name": "atciic100_gsf",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atciic100_real.sv",
+        "name": "atciic100_real",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atciic100_ctrl",
+        "port": "cmd",
+        "signal": "cmd_reg",
+        "signal_terms": [
+          "cmd_reg"
+        ],
+        "source_ref": "sub_modules[0].connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atciic100_ctrl",
+        "port": "setup",
+        "signal": "setup_reg",
+        "signal_terms": [
+          "setup_reg"
+        ],
+        "source_ref": "sub_modules[0].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atciic100_ctrl",
+        "port": "data_out",
+        "signal": "rx_data",
+        "signal_terms": [
+          "rx_data"
+        ],
+        "source_ref": "sub_modules[2].connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atciic100_ctrl",
+        "port": "scl_i",
+        "signal": "scl_filtered",
+        "signal_terms": [
+          "scl_filtered"
+        ],
+        "source_ref": "sub_modules[3].connections[0]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 22,
+    "open_required_count": 22,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "atciic100_real",
+  "kind": "module",
+  "owner_file": "rtl/atciic100_ctrl.v",
+  "owner_module": "atciic100_ctrl",
+  "packet_id": "module__atciic100_ctrl__cycle_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.arbitration": 1,
+      "cycle_model.backpressure": 2,
+      "cycle_model.clock": 1,
+      "cycle_model.handshake_rules": 5,
+      "cycle_model.latency": 1,
+      "cycle_model.observability": 1,
+      "cycle_model.ordering": 5,
+      "cycle_model.pipeline": 5,
+      "cycle_model.reset": 1
+    },
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 4,
+      "key": "cycle_model",
+      "module_task_count": 140,
+      "rule": "Owner module atciic100_ctrl is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 22,
+    "required_count": 22,
+    "source_refs": [
+      "cycle_model.clock",
+      "cycle_model.reset",
+      "cycle_model.latency",
+      "cycle_model.handshake_rules.psel_penable",
+      "cycle_model.handshake_rules.scl_o_sda_o",
+      "cycle_model.handshake_rules.i2c_req",
+      "cycle_model.handshake_rules.scl_i_filtering",
+      "cycle_model.handshake_rules.scl_i_sda_i",
+      "cycle_model.pipeline.IDLE",
+      "cycle_model.pipeline.START",
+      "cycle_model.pipeline.ADDR",
+      "cycle_model.pipeline.DAT",
+      "cycle_model.pipeline.STOP",
+      "cycle_model.ordering.ordering_rule_0",
+      "cycle_model.ordering.ordering_rule_1",
+      "cycle_model.ordering.ordering_rule_2",
+      "cycle_model.ordering.ordering_rule_3",
+      "cycle_model.ordering.ordering_rule_4",
+      "cycle_model.backpressure.backpressure_rule_0",
+      "cycle_model.backpressure.backpressure_rule_1",
+      "cycle_model.observability.observability_signal_0",
+      "cycle_model.arbitration.arbitration_rule_0"
+    ],
+    "status_counts": {
+      "open": 22
+    },
+    "task_count": 22
+  },
+  "tasks": [
+    {
+      "category": "cycle_model.clock",
+      "content": "Implement cycle-model clock",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.clock",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: value=pclk.",
+      "evidence_terms": [],
+      "id": "RTL-0151",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.clock",
+      "ssot_context": {
+        "value": "pclk"
+      },
+      "ssot_refs": [
+        "cycle_model.clock"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.reset",
+      "content": "Implement cycle-model reset",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.reset",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.",
+      "evidence_terms": [],
+      "id": "RTL-0152",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.reset",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.reset"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.latency",
+      "content": "Implement cycle-model latency",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.latency",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.",
+      "evidence_terms": [],
+      "id": "RTL-0153",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.latency",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.latency"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: psel/penable",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.psel_penable",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.handshake_rules.psel_penable appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.psel_penable.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: signal=psel/penable.",
+      "evidence_terms": [],
+      "id": "RTL-0154",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.psel_penable",
+      "ssot_context": {
+        "signal": "psel/penable"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.psel_penable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: scl_o/sda_o",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.scl_o_sda_o",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.handshake_rules.scl_o_sda_o appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.scl_o_sda_o.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: signal=scl_o/sda_o.",
+      "evidence_terms": [
+        "scl",
+        "scl_o",
+        "sda",
+        "sda_o"
+      ],
+      "id": "RTL-0155",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.scl_o_sda_o",
+      "ssot_context": {
+        "signal": "scl_o/sda_o"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.scl_o_sda_o"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "scl",
+          "scl_o",
+          "sda",
+          "sda_o"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: i2c_req",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.i2c_req",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.handshake_rules.i2c_req appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.i2c_req.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: signal=i2c_req.",
+      "evidence_terms": [
+        "i2c",
+        "i2c_req",
+        "req"
+      ],
+      "id": "RTL-0156",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.i2c_req",
+      "ssot_context": {
+        "signal": "i2c_req"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.i2c_req"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "i2c",
+          "i2c_req",
+          "req"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: scl_i filtering",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.scl_i_filtering",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.handshake_rules.scl_i_filtering appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.scl_i_filtering.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: signal=scl_i filtering.",
+      "evidence_terms": [
+        "scl",
+        "scl_i"
+      ],
+      "id": "RTL-0157",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.scl_i_filtering",
+      "ssot_context": {
+        "signal": "scl_i filtering"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.scl_i_filtering"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "scl",
+          "scl_i"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: scl_i/sda_i",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.scl_i_sda_i",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.handshake_rules.scl_i_sda_i appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.scl_i_sda_i.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: signal=scl_i/sda_i.",
+      "evidence_terms": [
+        "scl",
+        "scl_i",
+        "sda",
+        "sda_i"
+      ],
+      "id": "RTL-0158",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.scl_i_sda_i",
+      "ssot_context": {
+        "signal": "scl_i/sda_i"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.scl_i_sda_i"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "scl",
+          "scl_i",
+          "sda",
+          "sda_i"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: IDLE",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.IDLE",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.pipeline.IDLE timing uses SSOT cycle/latency 0",
+        "cycle_model.pipeline.IDLE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.IDLE.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: stage=IDLE; cycle=0.",
+      "evidence_terms": [],
+      "id": "RTL-0159",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.IDLE",
+      "ssot_context": {
+        "cycle": "0",
+        "stage": "IDLE"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.IDLE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: START",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.START",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.pipeline.START timing uses SSOT cycle/latency 1",
+        "cycle_model.pipeline.START appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.START.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: stage=START; cycle=1.",
+      "evidence_terms": [],
+      "id": "RTL-0160",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.START",
+      "ssot_context": {
+        "cycle": "1",
+        "stage": "START"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.START"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: ADDR",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.ADDR",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.pipeline.ADDR timing uses SSOT cycle/latency 2..9",
+        "cycle_model.pipeline.ADDR appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.ADDR.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: stage=ADDR; cycle=2..9.",
+      "evidence_terms": [],
+      "id": "RTL-0161",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.ADDR",
+      "ssot_context": {
+        "cycle": "2..9",
+        "stage": "ADDR"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.ADDR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: DAT",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.DAT",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.pipeline.DAT timing uses SSOT cycle/latency 10..N",
+        "cycle_model.pipeline.DAT appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.DAT.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: stage=DAT; cycle=10..N.",
+      "evidence_terms": [],
+      "id": "RTL-0162",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.DAT",
+      "ssot_context": {
+        "cycle": "10..N",
+        "stage": "DAT"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.DAT"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: STOP",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.STOP",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.pipeline.STOP timing uses SSOT cycle/latency N+1",
+        "cycle_model.pipeline.STOP appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.STOP.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: stage=STOP; cycle=N+1.",
+      "evidence_terms": [],
+      "id": "RTL-0163",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.STOP",
+      "ssot_context": {
+        "cycle": "N+1",
+        "stage": "STOP"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.STOP"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.ordering.ordering_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: value=Start must precede Addr..",
+      "evidence_terms": [],
+      "id": "RTL-0164",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_0",
+      "ssot_context": {
+        "value": "Start must precede Addr."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_1",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.ordering.ordering_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_1.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: value=Addr must precede Data..",
+      "evidence_terms": [],
+      "id": "RTL-0165",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_1",
+      "ssot_context": {
+        "value": "Addr must precede Data."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_2",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_2",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.ordering.ordering_rule_2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_2.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: value=Stop must follow Data or ArbLose..",
+      "evidence_terms": [],
+      "id": "RTL-0166",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_2",
+      "ssot_context": {
+        "value": "Stop must follow Data or ArbLose."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_3",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_3",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.ordering.ordering_rule_3 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_3.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: value=A write response for beat i must complete before architectural completion of beat i..",
+      "evidence_terms": [],
+      "id": "RTL-0167",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_3",
+      "ssot_context": {
+        "value": "A write response for beat i must complete before architectural completion of beat i."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_4",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_4",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.ordering.ordering_rule_4 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_4.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: value=Interrupt status updates occur on the same rising edge as the terminal status transition..",
+      "evidence_terms": [],
+      "id": "RTL-0168",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_4",
+      "ssot_context": {
+        "value": "Interrupt status updates occur on the same rising edge as the terminal status transition."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_4"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: value=FIFO Full holds SCL Low (Clock Stretching)..",
+      "evidence_terms": [],
+      "id": "RTL-0169",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
+      "ssot_context": {
+        "value": "FIFO Full holds SCL Low (Clock Stretching)."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_1",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.backpressure.backpressure_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_1.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: value=FIFO Empty in slave TX holds SCL Low until data available..",
+      "evidence_terms": [],
+      "id": "RTL-0170",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_1",
+      "ssot_context": {
+        "value": "FIFO Empty in slave TX holds SCL Low until data available."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.observability",
+      "content": "Implement observability signal: observability_signal_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.observability.observability_signal_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.observability.observability_signal_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: value=Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario..",
+      "evidence_terms": [
+        "Every",
+        "at",
+        "least",
+        "maps",
+        "one",
+        "scenario",
+        "stage"
+      ],
+      "id": "RTL-0171",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.observability.observability_signal_0",
+      "ssot_context": {
+        "value": "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
+      },
+      "ssot_refs": [
+        "cycle_model.observability.observability_signal_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "Every",
+          "at",
+          "least",
+          "maps",
+          "one",
+          "scenario",
+          "stage"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.arbitration",
+      "content": "Implement arbitration rule: arbitration_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.arbitration.arbitration_rule_0",
+        "Primary implementation evidence is in rtl/atciic100_ctrl.v",
+        "cycle_model.arbitration.arbitration_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.arbitration.arbitration_rule_0.\nOwner: atciic100_ctrl in rtl/atciic100_ctrl.v via cycle_model.\nSSOT item context: value=Sample SDA_I on SCL rising edge. If SDA_I=0 but SDA_O=1, ArbLose..",
+      "evidence_terms": [
+        "SDA",
+        "SDA_I",
+        "SDA_O"
+      ],
+      "id": "RTL-0172",
+      "owner_file": "rtl/atciic100_ctrl.v",
+      "owner_module": "atciic100_ctrl",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.arbitration.arbitration_rule_0",
+      "ssot_context": {
+        "value": "Sample SDA_I on SCL rising edge. If SDA_I=0 but SDA_O=1, ArbLose."
+      },
+      "ssot_refs": [
+        "cycle_model.arbitration.arbitration_rule_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "SDA",
+          "SDA_I",
+          "SDA_O"
+        ],
+        "source_scope": "rtl/atciic100_ctrl.v",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atciic100_ctrl.v.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "80d90eab12a41558550a46753666dc7718d4ebd3f45786f7c28471fa33c1b209",
+  "top": "atciic100_real",
+  "type": "rtl_authoring_packet"
+}

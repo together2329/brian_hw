@@ -1,0 +1,15 @@
+// Auto-generated from SSOT cycle_model. Do not hand-edit.
+// Source: gic_400/yaml/gic_400.ssot.yaml
+// Schema: protocol_assertions/v1
+// Bind to DUT under simulation. Clock: clk; reset: rst_n
+
+module gic_400_protocol_assertions (
+    input logic clk,
+    input logic rst_n
+    /* Bind additional DUT signals via downstream `bind` directive. */
+);
+
+// No handshake_rules / ordering rules in SSOT — module is intentionally empty.
+// [SSOT QUESTION] cycle_model has no machine-checkable protocol rules.
+
+endmodule

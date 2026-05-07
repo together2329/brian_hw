@@ -1,0 +1,229 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "smbus",
+  "source": "smbus/yaml/smbus.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "union",
+  "summary": {
+    "total_bins": 29,
+    "by_class": {
+      "transaction_type": 3,
+      "invariant_violation": 3,
+      "protocol_handshake": 3,
+      "ordering": 2,
+      "arbitration_decision": 1,
+      "latency_bin": 16,
+      "outstanding_depth": 1
+    }
+  },
+  "bins": [
+    {
+      "id": "function_write_byte",
+      "class": "transaction_type",
+      "source": "function_model.transactions[0]",
+      "description": "Send one data byte to slave after START + address phase"
+    },
+    {
+      "id": "function_read_byte",
+      "class": "transaction_type",
+      "source": "function_model.transactions[1]",
+      "description": "Receive one data byte from slave"
+    },
+    {
+      "id": "function_send_stop",
+      "class": "transaction_type",
+      "source": "function_model.transactions[2]",
+      "description": "Generate STOP condition on bus"
+    },
+    {
+      "id": "invariant_busy_mutex_violated",
+      "class": "invariant_violation",
+      "source": "function_model.invariants[0]",
+      "description": "Write and read commands are mutually exclusive"
+    },
+    {
+      "id": "invariant_addr_7bit_violated",
+      "class": "invariant_violation",
+      "source": "function_model.invariants[1]",
+      "description": "Address is always 7-bit"
+    },
+    {
+      "id": "invariant_idle_on_rst_violated",
+      "class": "invariant_violation",
+      "source": "function_model.invariants[2]",
+      "description": "Reset drives state to IDLE"
+    },
+    {
+      "id": "cycle_valid_ready",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[0]",
+      "description": "Transaction accepted when cmd_valid && !busy"
+    },
+    {
+      "id": "cycle_ack_check",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[1]",
+      "description": "ACK received from slave after address phase"
+    },
+    {
+      "id": "cycle_stop_after_nack",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[2]",
+      "description": "STOP condition issued after NACK"
+    },
+    {
+      "id": "ordering_start_before_data",
+      "class": "ordering",
+      "source": "cycle_model.ordering[0]",
+      "description": "START condition must precede data transfer"
+    },
+    {
+      "id": "ordering_address_before_data",
+      "class": "ordering",
+      "source": "cycle_model.ordering[1]",
+      "description": "Address phase must complete before data phase"
+    },
+    {
+      "id": "arbitration_bus_arbitration",
+      "class": "arbitration_decision",
+      "source": "cycle_model.arbitration[0]",
+      "description": "Lost arbitration detected when SDA driven high but reads low"
+    },
+    {
+      "id": "latency_write_byte_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.write_byte",
+      "description": "write_byte latency < 9 cycles",
+      "bucket": "<min",
+      "threshold": 9
+    },
+    {
+      "id": "latency_write_byte_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.write_byte",
+      "description": "write_byte latency == 9 cycles",
+      "bucket": "min",
+      "cycles": 9
+    },
+    {
+      "id": "latency_write_byte_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.write_byte",
+      "description": "write_byte latency == 9 cycles",
+      "bucket": "max",
+      "cycles": 9
+    },
+    {
+      "id": "latency_write_byte_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.write_byte",
+      "description": "write_byte latency > 9 cycles",
+      "bucket": ">max",
+      "threshold": 9
+    },
+    {
+      "id": "latency_read_byte_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.read_byte",
+      "description": "read_byte latency < 9 cycles",
+      "bucket": "<min",
+      "threshold": 9
+    },
+    {
+      "id": "latency_read_byte_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.read_byte",
+      "description": "read_byte latency == 9 cycles",
+      "bucket": "min",
+      "cycles": 9
+    },
+    {
+      "id": "latency_read_byte_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.read_byte",
+      "description": "read_byte latency == 9 cycles",
+      "bucket": "max",
+      "cycles": 9
+    },
+    {
+      "id": "latency_read_byte_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.read_byte",
+      "description": "read_byte latency > 9 cycles",
+      "bucket": ">max",
+      "threshold": 9
+    },
+    {
+      "id": "latency_send_stop_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.send_stop",
+      "description": "send_stop latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_send_stop_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.send_stop",
+      "description": "send_stop latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_send_stop_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.send_stop",
+      "description": "send_stop latency == 1 cycles",
+      "bucket": "max",
+      "cycles": 1
+    },
+    {
+      "id": "latency_send_stop_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.send_stop",
+      "description": "send_stop latency > 1 cycles",
+      "bucket": ">max",
+      "threshold": 1
+    },
+    {
+      "id": "latency_default_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.default",
+      "description": "default latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_default_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.default",
+      "description": "default latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_default_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.default",
+      "description": "default latency == 1 cycles",
+      "bucket": "max",
+      "cycles": 1
+    },
+    {
+      "id": "latency_default_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.default",
+      "description": "default latency > 1 cycles",
+      "bucket": ">max",
+      "threshold": 1
+    },
+    {
+      "id": "outstanding_depth_1",
+      "class": "outstanding_depth",
+      "source": "cycle_model.outstanding",
+      "description": "1 outstanding transaction (min)",
+      "depth": 1
+    }
+  ]
+}

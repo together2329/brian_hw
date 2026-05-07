@@ -1,0 +1,179 @@
+{
+  "bucket_summaries": {
+    "design_candidate": {
+      "always_blocks": 561,
+      "assigns": 1150,
+      "case_blocks": 155,
+      "file_count": 57,
+      "instance_candidates": 472,
+      "lines": 52338,
+      "modules": 52,
+      "nonconstant_assigns": 1135,
+      "state_updates": 295
+    },
+    "verification_collateral": {
+      "always_blocks": 349,
+      "assigns": 1899,
+      "case_blocks": 105,
+      "file_count": 86,
+      "instance_candidates": 577,
+      "lines": 78230,
+      "modules": 158,
+      "nonconstant_assigns": 1755,
+      "state_updates": 924
+    }
+  },
+  "file_extension_counts": {
+    ".sv": 1,
+    ".v": 91,
+    ".v.xsl": 51
+  },
+  "generated_at": "2026-05-06T21:54:28Z",
+  "guidance": {
+    "calibration_only": true,
+    "do_not_copy_reference_rtl": true,
+    "rule": "Use this profile only to calibrate implementation scale, review depth gaps, and plan decomposition. It is not a template, source artifact, or PASS gate.",
+    "target_candidate_rule": "suggested_ssot_target_scale is derived from design_candidate files when available, excluding validation/testbench/simulation collateral by path bucket."
+  },
+  "label": "PL330-GRP-r1p2",
+  "reference_root": "/Users/brian/Desktop/PL330-GRP-r1p2-rel/DMA-330_AXI_DMA_Controller/PL330-BU-00000-r1p2-00rel0/shared/logical",
+  "schema_version": 1,
+  "suggested_ssot_target_scale": {
+    "basis": "candidate structural scale from rtl_reference_profile; review and lock in SSOT before enforcement",
+    "control_flow_min": 155,
+    "depth_score_min": 4507,
+    "instances_min": 472,
+    "lines_min": 52338,
+    "modules_min": 52,
+    "nonconstant_assigns_min": 1135,
+    "procedural_blocks_min": 561,
+    "source_files_min": 57,
+    "state_updates_min": 295
+  },
+  "summary": {
+    "always_blocks": 910,
+    "assigns": 3049,
+    "case_blocks": 260,
+    "file_count": 143,
+    "instance_candidates": 1049,
+    "lines": 130568,
+    "modules": 210,
+    "nonconstant_assigns": 2890,
+    "state_updates": 1219
+  },
+  "target_candidate_basis": "design_candidate",
+  "target_candidate_summary": {
+    "always_blocks": 561,
+    "assigns": 1150,
+    "case_blocks": 155,
+    "file_count": 57,
+    "instance_candidates": 472,
+    "lines": 52338,
+    "modules": 52,
+    "nonconstant_assigns": 1135,
+    "state_updates": 295
+  },
+  "top_by_lines": [
+    {
+      "bucket": "verification_collateral",
+      "lines": 8178,
+      "path": "validation/pl301_a3bm_BM_5x7_1/verilog/axibm_master_interface_BM_5x7_1.v"
+    },
+    {
+      "bucket": "verification_collateral",
+      "lines": 4714,
+      "path": "validation/pl301_a3bm_BM_5x7_1/verilog/axibm_slave_interface_BM_5x7_1.v"
+    },
+    {
+      "bucket": "verification_collateral",
+      "lines": 4498,
+      "path": "validation/pl301_a3bm_BM_5x7_1/verilog/axibm_core_BM_5x7_1.v"
+    },
+    {
+      "bucket": "design_candidate",
+      "lines": 3800,
+      "path": "BP062-VL-70002/AxiPC.v"
+    },
+    {
+      "bucket": "design_candidate",
+      "lines": 3800,
+      "path": "pl330_dma/verilog/BP062-VL-70002/AxiPC.v"
+    },
+    {
+      "bucket": "design_candidate",
+      "lines": 3713,
+      "path": "BP062-VL-70004/AxiPC.sv"
+    },
+    {
+      "bucket": "verification_collateral",
+      "lines": 3605,
+      "path": "pl330_dma/validation/verilog/pl330_subsystem.v.xsl"
+    },
+    {
+      "bucket": "design_candidate",
+      "lines": 3412,
+      "path": "pl330_axi/verilog/pl330_axi_xmlcfg.v.xsl"
+    },
+    {
+      "bucket": "verification_collateral",
+      "lines": 3258,
+      "path": "validation/pl301_a3bm_BM_5x7_1/verilog/pl301_a3bm_protocol_conv_BM_5x7_1.v"
+    },
+    {
+      "bucket": "verification_collateral",
+      "lines": 3235,
+      "path": "validation/pl301_a3bm_BM_5x7_1/verilog/axibm_master_int_fwd_ctrl_a_BM_5x7_1.v"
+    },
+    {
+      "bucket": "verification_collateral",
+      "lines": 3180,
+      "path": "validation/pl301_a3bm_BM_5x7_1/verilog/pl301_a3bm_data_conv_BM_5x7_1.v"
+    },
+    {
+      "bucket": "verification_collateral",
+      "lines": 3015,
+      "path": "validation/pl301_a3bm_BM_5x7_1/verilog/axibm_mux_demux_sparse_BM_5x7_1.v"
+    },
+    {
+      "bucket": "verification_collateral",
+      "lines": 2655,
+      "path": "validation/pl301_a3bm_BM_5x7_1/verilog/axibm_slave_int_cab_BM_5x7_1.v"
+    },
+    {
+      "bucket": "verification_collateral",
+      "lines": 2594,
+      "path": "validation/pl301_a3bm_BM_5x7_1/verilog/axibm_master_int_w_fifo_BM_5x7_1.v"
+    },
+    {
+      "bucket": "verification_collateral",
+      "lines": 2517,
+      "path": "validation/pl301_a3bm_BM_5x7_1/verilog/pl301_a3bm_BM_5x7_1.v"
+    },
+    {
+      "bucket": "design_candidate",
+      "lines": 2510,
+      "path": "pl330_merge_buffer/verilog/pl330_merge_buffer_xmlcfg.v.xsl"
+    },
+    {
+      "bucket": "verification_collateral",
+      "lines": 2280,
+      "path": "validation/pl301_a3bm_BM_5x7_1/verilog/pl301_a3bm_freq_conv_BM_5x7_1.v"
+    },
+    {
+      "bucket": "verification_collateral",
+      "lines": 2254,
+      "path": "validation/pl301_a3bm_BM_5x7_1/verilog/axibm_master_int_arb_a_BM_5x7_1.v"
+    },
+    {
+      "bucket": "verification_collateral",
+      "lines": 2249,
+      "path": "validation/pl301_a3bm_BM_5x7_1/verilog/pl301_a3bm_regslice_outer_BM_5x7_1.v"
+    },
+    {
+      "bucket": "verification_collateral",
+      "lines": 2247,
+      "path": "validation/pl301_a3bm_BM_5x7_1/verilog/pl301_a3bm_regslice_inner_BM_5x7_1.v"
+    }
+  ],
+  "type": "rtl_reference_profile"
+}

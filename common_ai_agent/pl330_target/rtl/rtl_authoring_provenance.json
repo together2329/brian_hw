@@ -1,0 +1,41 @@
+{
+  "agent": "common_ai_agent",
+  "authoring_packets": [
+    "module__pl330_target__rtl_flow",
+    "module__pl330_target__security",
+    "module__pl330_target__workflow_todo_01",
+    "module__pl330_target_engine",
+    "module__pl330_target_pipeline",
+    "module__pl330_target_lsq",
+    "module__pl330_target_mfifo__function_model_01",
+    "module__pl330_target_merge_buffer",
+    "module__pl330_target_icache",
+    "module__pl330_target_axi",
+    "module__pl330_target_periph",
+    "module__pl330_target_apb_regs",
+    "module__pl330_target_mfifo__fsm",
+    "module__pl330_target_mfifo__function_model_02"
+  ],
+  "contract_files": [
+    "rtl/rtl_contract.json"
+  ],
+  "generation_note": "Headless common engine recorded LLM-authored RTL artifacts from rtl_authoring_plan packets.",
+  "rtl_files": [
+    "rtl/pl330_target_engine.sv",
+    "rtl/pl330_target_pipeline.sv",
+    "rtl/pl330_target_lsq.sv",
+    "rtl/pl330_target_mfifo.sv",
+    "rtl/pl330_target_merge_buffer.sv",
+    "rtl/pl330_target_icache.sv",
+    "rtl/pl330_target_axi.sv",
+    "rtl/pl330_target_periph.sv",
+    "rtl/pl330_target_apb_regs.sv",
+    "rtl/pl330_target.sv"
+  ],
+  "schema_version": 1,
+  "surface": "headless_common_engine",
+  "todo_plan_sha256": "5ce9ec8f548eb16700a325ec5cf4698b70cdf559b6977cd26c2a8df84edc9398",
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-05-06T22:32:51Z",
+  "workflow": "rtl-gen"
+}

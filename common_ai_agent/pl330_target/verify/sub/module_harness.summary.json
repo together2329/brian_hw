@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "type": "module_harness_summary",
+  "ip": "pl330_target",
+  "harness_files": [
+    "verify/sub/pl330_target_engine_harness.py",
+    "verify/sub/pl330_target_pipeline_harness.py",
+    "verify/sub/pl330_target_lsq_harness.py",
+    "verify/sub/pl330_target_mfifo_harness.py",
+    "verify/sub/pl330_target_merge_buffer_harness.py",
+    "verify/sub/pl330_target_icache_harness.py",
+    "verify/sub/pl330_target_axi_harness.py",
+    "verify/sub/pl330_target_periph_harness.py",
+    "verify/sub/pl330_target_apb_regs_harness.py"
+  ],
+  "harnesses_total": 9
+}
