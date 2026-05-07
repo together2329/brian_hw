@@ -261,13 +261,18 @@
     } else if (!wf && userSession && scope && scopeEndsWithWorkflow) {
       return joinSessionParts([userSession, scope]);
     }
+    // 'user' / 'soc' synthetic segments removed — they planted
+    // confusing `.session/<owner>/user/...` and `.session/<owner>/soc/<wf>/...`
+    // trees for ip-less / wf-less runs that aren't actually SoC or user-
+    // owned. Use 'default' for ip-less and just the workflow segment
+    // otherwise so the disk layout reads as the user expects.
     if (userSession && scope && wf) return `${userSession}/${scope}/${wf}`;
-    if (userSession && scope) return `${userSession}/${scope}/user`;
-    if (userSession && wf) return `${userSession}/soc/${wf}`;
+    if (userSession && scope) return `${userSession}/${scope}/default`;
+    if (userSession && wf) return `${userSession}/${wf}`;
     if (userSession) return `${userSession}/default`;
     if (scope && wf) return `${scope}/${wf}`;
-    if (scope) return `${scope}/user`;
-    if (wf) return `soc/${wf}`;
+    if (scope) return `${scope}/default`;
+    if (wf) return `${wf}`;
     return 'default';
   }
 

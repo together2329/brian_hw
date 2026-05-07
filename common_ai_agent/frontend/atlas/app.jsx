@@ -137,11 +137,16 @@ const App = () => {
     if (ip && wf) return `${owner}/${ip}/${wf}`;
     // Picking an IP without an explicit workflow → use 'default' as
     // the workflow segment so the namespace stays unambiguous and the
-    // splitSessionNamespace round-trip preserves the IP. Anything an
-    // explicit workflow click adds will replace this on the next
-    // activateNamespace call.
+    // splitSessionNamespace round-trip preserves the IP.
     if (ip) return `${owner}/${ip}/default`;
-    if (wf) return `${owner}/soc/${wf}`;
+    // Workflow without IP — drop the legacy `${owner}/soc/${wf}`
+    // synthesis. It used to plant a `.session/<owner>/soc/<wf>/`
+    // tree for plain ssot-gen / rtl-gen runs that aren't SoC-level
+    // at all, confusing operators. Use `${owner}/${wf}` so the
+    // workflow-only case lands at `.session/<owner>/<wf>/`. SoC
+    // Architect runs explicitly set ipId='soc' and keep the
+    // legacy three-segment shape via the (ip && wf) branch above.
+    if (wf) return `${owner}/${wf}`;
     return `${owner}/default`;
   }, [normalizeSession]);
 
