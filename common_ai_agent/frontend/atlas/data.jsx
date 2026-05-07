@@ -438,6 +438,17 @@
       const r = await fetch('/healthz');
       if (!r.ok) return;
       const d = await r.json();
+      // First-visit seed of the per-user session id. /healthz now
+      // carries the IPv4-derived user_session, so we don't need a
+      // separate /api/whoami round-trip on boot.
+      try {
+        const stored = (localStorage.getItem('atlasUserSessionId') || '').trim();
+        if (!stored && d.user_session) {
+          localStorage.setItem('atlasUserSessionId', d.user_session);
+          window.ATLAS_USER_SESSION_ID = d.user_session;
+          window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'USER_SESSION_ID' }));
+        }
+      } catch (_) {}
       const _prev = window.CONTEXT || {};
       const activeWorkflow = activeWorkflowFromSession();
       const backendWorkspace = normalizeSessionName(d.workspace || '');
@@ -540,36 +551,12 @@
   const _refSsot  = debounce(refreshSsotList, 250);
   const _refTodos = debounce(refreshTodos, 250);
 
-  // Auto-derive a user-scoped session_id from the requesting client's
-  // IPv4 (server side: /api/whoami). Seeds localStorage on first visit
-  // so each LAN user gets a unique namespace without a login screen.
-  // Skips the fetch if localStorage already carries one.
-  async function ensureUserSessionId() {
-    let sid = (() => {
-      try { return (localStorage.getItem('atlasUserSessionId') || '').trim(); }
-      catch (_) { return ''; }
-    })();
-    if (sid) {
-      window.ATLAS_USER_SESSION_ID = sid;
-      return sid;
-    }
-    try {
-      const r = await fetch('/api/whoami', { cache: 'no-store' });
-      if (r.ok) {
-        const d = await r.json();
-        sid = (d && d.user_session) || '';
-      }
-    } catch (_) { /* offline — fall back to a stable local id */ }
-    if (!sid) sid = 'u-local';
-    try { localStorage.setItem('atlasUserSessionId', sid); } catch (_) {}
-    window.ATLAS_USER_SESSION_ID = sid;
-    window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'USER_SESSION_ID' }));
-    return sid;
-  }
-
   async function boot() {
-    await ensureUserSessionId();
-    refreshHealth();
+    // /healthz carries `user_session` derived from the requesting
+    // IPv4. Awaiting it first guarantees ATLAS_USER_SESSION_ID is
+    // populated before any other fetch fires off, so downstream
+    // session-aware calls don't race the seed.
+    await refreshHealth();
     refreshFileTree(window.SCOPE_PATH || '');
     refreshTodos();
     refreshSsotList();
