@@ -128,6 +128,59 @@ const _postProcessMarkdownNode = (node) => {
   }
 };
 
+const _toolOutputLanguage = (tool, text) => {
+  const raw = String(text || '');
+  const t = raw.trim();
+  if (!t) return 'none';
+
+  const extMatch = raw.match(/\b[\w./-]+\.([a-z0-9]+)(?::|\s|$)/i);
+  const ext = extMatch && extMatch[1] && extMatch[1].toLowerCase();
+  if (ext && window.PRISM_LANG_MAP && window.PRISM_LANG_MAP[ext]) {
+    return window.PRISM_LANG_MAP[ext];
+  }
+
+  if (/^(diff --git|@@\s|\+\+\+ |--- )/m.test(t)) return 'diff';
+  if (/^\s*[{[]/.test(t)) {
+    try { JSON.parse(t); return 'json'; } catch (_) {}
+  }
+  if (/^(\s*---\s*$|\s*[\w.-]+:\s|-\s+[\w.-]+:\s)/m.test(t)) return 'yaml';
+  if (/\b(module|endmodule|always_ff|always_comb|assign|logic|wire|reg)\b/.test(t)) return 'verilog';
+  if (/\b(import|from|def|class|Traceback \(most recent call last\))\b/.test(t)) return 'python';
+  if (/\b(const|let|function|return|className=|React\.|=>)\b/.test(t)) return 'jsx';
+  if (/^\s*(git|npm|pnpm|yarn|python3?|pytest|rg|sed|cmux|curl|uv|make|cargo)\b/m.test(t)) return 'bash';
+  if (/^<([a-z][\w:-]*)(\s|>)/i.test(t)) return 'html';
+  if (String(tool || '').toLowerCase().includes('git')) return 'diff';
+  return 'none';
+};
+
+const ToolOutputPre = ({ text, tool, truncated }) => {
+  const codeRef = React.useRef(null);
+  const body = String(text || '') + (truncated ? '\n…[truncated]' : '');
+  const tooLarge = body.length > 60000;
+  const lang = tooLarge ? 'none' : _toolOutputLanguage(tool, body);
+  const className = lang && lang !== 'none' ? `language-${lang}` : 'language-none';
+
+  React.useEffect(() => {
+    const code = codeRef.current;
+    const Prism = window.Prism;
+    if (!code || !Prism || !lang || lang === 'none') return;
+    const highlight = () => {
+      try { Prism.highlightElement(code); } catch (_) {}
+    };
+    if (Prism.languages && Prism.languages[lang]) {
+      highlight();
+    } else if (Prism.plugins && Prism.plugins.autoloader && Prism.plugins.autoloader.loadLanguages) {
+      try { Prism.plugins.autoloader.loadLanguages(lang, highlight); } catch (_) {}
+    }
+  }, [body, lang]);
+
+  return (
+    <pre className={`tool-output-pre ${className}`}>
+      <code ref={codeRef} className={className}>{body}</code>
+    </pre>
+  );
+};
+
 // Hover-revealed copy button (positioned absolute; parent must be
 // position:relative and apply CSS `:hover .copy-btn{opacity:1}`).
 const CopyBtn = ({ text, label = 'copy' }) => {
@@ -2752,11 +2805,11 @@ const ObsCard = ({ entry, embedded }) => {
   const renderBody = () => looksLikeDiff
     ? txt.split('\n').map((line, i) => {
         const m = line.match(/^(\s*\d+ )([+\-])(.*)$/);
-        if (!m) return <div key={i} style={{ color: 'var(--fg-mute)' }}>{line || ' '}</div>;
+        if (!m) return <div className="diff-line" key={i} style={{ color: 'var(--fg-mute)' }}>{line || ' '}</div>;
         const [, prefix, marker, rest] = m;
         const add = marker === '+';
         return (
-          <div key={i} style={{
+          <div className="diff-line" key={i} style={{
             background: add ? 'color-mix(in oklch, #3fb950 18%, transparent)'
                             : 'color-mix(in oklch, #f85149 18%, transparent)',
             color: add ? '#7ee787' : '#ffa198',
@@ -2813,26 +2866,25 @@ const ObsCard = ({ entry, embedded }) => {
       >
         {!embedded && <span className="rb-tag">obs{entry.tool ? ` · ${entry.tool}` : ''}</span>}
         {statusBadge && <span style={{ fontSize: 12 }}>{statusBadge}</span>}
-        <span className="mute trunc" style={{ flex: 1, fontSize: 12 }}>
+        <span className="mute trunc" style={{ flex: 1, fontSize: 'var(--ui-control-font-size)' }}>
           {firstLine}
         </span>
-        <span className="mute" style={{ fontSize: 10 }}>
+        <span className="mute" style={{ fontSize: 'var(--ui-small-font-size)' }}>
           {lineCount} line{lineCount === 1 ? '' : 's'}
           {entry.truncated ? ' · truncated' : ''}
         </span>
-        <span className="mute" style={{ fontSize: 11 }}>{open ? '▾' : '▸'}</span>
+        <span className="mute" style={{ fontSize: 'var(--ui-control-font-size)' }}>{open ? '▾' : '▸'}</span>
       </div>
       {open && (
         looksLikeDiff || !_isWorkflowResultTool(entry.tool) ? (
-          <pre style={{
-            margin: '4px 0 0', maxHeight: 280, overflow: 'auto',
-            background: 'var(--bg-3)', padding: '6px 10px',
-            borderRadius: 4, fontSize: 11, lineHeight: 1.45,
-            whiteSpace: 'pre', wordBreak: 'normal',
-          }}>
-            {renderBody()}
-            {entry.truncated ? '\n…[truncated]' : ''}
-          </pre>
+          looksLikeDiff ? (
+            <pre className="tool-output-pre tool-output-diff">
+              {renderBody()}
+              {entry.truncated ? '\n…[truncated]' : ''}
+            </pre>
+          ) : (
+            <ToolOutputPre text={txt} tool={entry.tool} truncated={entry.truncated} />
+          )
         ) : (
           <>
             {renderMarkdownBody()}
@@ -2879,7 +2931,7 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
     return (
       <div style={{ padding: '10px 14px', marginBottom: 12, borderLeft: '2px solid var(--accent)', background: 'var(--bg-2)', borderRadius: 2 }}>
         <span className="acc" style={{ fontWeight: 600, marginRight: 8, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>You</span>
-        <span style={{ fontFamily: 'var(--mono)', fontSize: 13 }}>{entry.text}</span>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 'var(--ui-font-size)' }}>{entry.text}</span>
       </div>
     );
   }
@@ -2893,8 +2945,7 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
           <span className="ts-pill">{_relTime(entry.createdAt)}</span>
         ) : null}
         <CopyBtn text={entry.text || ''} />
-        <div className="md-agent" style={{ fontSize: 14, lineHeight: 1.65,
-          marginTop: 4 }} dangerouslySetInnerHTML={{ __html: html }}
+        <div className="md-agent" style={{ marginTop: 4 }} dangerouslySetInnerHTML={{ __html: html }}
           ref={_postProcessMarkdownNode}
         />
       </div>
