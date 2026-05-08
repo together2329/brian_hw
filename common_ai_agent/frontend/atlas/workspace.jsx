@@ -2903,11 +2903,11 @@ const RightTab = ({ id, cur, onTab, children }) => (
 
 // ── Feed entry: dispatcher ─────────────────────────────────────────
 const CollapsibleThought = ({ text, summaryMode = true }) => {
-  // Default state: show only the LAST ~5 lines, dimmed. Reasoning is
+  // Default state: show only the LAST ~3 lines, dimmed. Reasoning is
   // valuable as a tail (what the agent just decided), but the early
   // chain-of-thought lines are usually scaffolding the user doesn't
-  // need to read. Click to expand for the full text.
-  const TAIL_LINES = 5;
+  // need to read. Visual clamp also catches long wrapped lines.
+  const TAIL_LINES = 3;
   const [open, setOpen] = React.useState(!summaryMode);
   const lines = text.split('\n').filter(l => l.trim());
   const tail = lines.slice(-TAIL_LINES);
@@ -2928,7 +2928,13 @@ const CollapsibleThought = ({ text, summaryMode = true }) => {
           </span>
         )}
       </span>
-      <span style={{ whiteSpace: 'pre-wrap' }}>
+      <span style={{
+        whiteSpace: 'pre-wrap',
+        display: collapsed ? '-webkit-box' : 'block',
+        WebkitBoxOrient: collapsed ? 'vertical' : undefined,
+        WebkitLineClamp: collapsed ? TAIL_LINES : undefined,
+        overflow: collapsed ? 'hidden' : 'visible',
+      }}>
         {collapsed ? tail.join('\n') : text}
       </span>
     </div>
