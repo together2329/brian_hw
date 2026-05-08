@@ -245,6 +245,137 @@ const ssotIpFromSession = (session) => {
 
 const isSsotYamlPath = (path) => /\.ssot\.ya?ml$/i.test(String(path || ''));
 
+const ATLAS_ASYNC_RESOURCE_CACHES = {
+  file: new Map(),
+  ssot: new Map(),
+};
+
+const emptyAtlasResource = (path = '') => ({
+  path,
+  body: '',
+  size: 0,
+  truncated: false,
+  err: null,
+  loading: false,
+  loadedAt: 0,
+});
+
+const atlasResourceCache = (kind) =>
+  ATLAS_ASYNC_RESOURCE_CACHES[kind] || ATLAS_ASYNC_RESOURCE_CACHES.file;
+
+const atlasResourceUrl = (kind, path) => {
+  const encoded = encodeURIComponent(path);
+  return kind === 'ssot'
+    ? `/api/ssot?file=${encoded}`
+    : `/api/file?path=${encoded}`;
+};
+
+const readAtlasAsyncResource = (kind, rawPath, force = false) => {
+  const path = String(rawPath || '').trim();
+  if (!path) return Promise.resolve(emptyAtlasResource(''));
+  const cache = atlasResourceCache(kind);
+  const current = cache.get(path);
+  if (!force && current?.data) return Promise.resolve(current.data);
+  if (!force && current?.promise) return current.promise;
+  if (force && current?.controller) {
+    try { current.controller.abort(); } catch (_) {}
+  }
+
+  const token = Symbol(`${kind}:${path}`);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), kind === 'ssot' ? 12000 : 8000);
+  const previous = current?.data || emptyAtlasResource(path);
+  const promise = fetch(atlasResourceUrl(kind, path), {
+    signal: controller.signal,
+    cache: 'no-store',
+  }).then(async r => {
+    let d = {};
+    try { d = await r.json(); }
+    catch (_) { d = { error: r.statusText || `HTTP ${r.status}` }; }
+    if (!r.ok && !d.error) d.error = r.statusText || `HTTP ${r.status}`;
+    const err = d.error || null;
+    const body = err && !d.content
+      ? (kind === 'ssot' ? `# could not read ${path}\n# ${err}` : `// ${path}\n// (could not read: ${err})`)
+      : (d.content || '');
+    return {
+      path,
+      body,
+      size: d.size || 0,
+      truncated: !!d.truncated,
+      err,
+      loading: false,
+      loadedAt: Date.now(),
+    };
+  }).catch(e => {
+    const msg = e && e.name === 'AbortError'
+      ? `${kind} preview timed out`
+      : String(e);
+    return {
+      path,
+      body: kind === 'ssot' ? `# fetch failed: ${msg}` : `// ${path}\n// fetch failed: ${msg}`,
+      size: 0,
+      truncated: false,
+      err: msg,
+      loading: false,
+      loadedAt: Date.now(),
+    };
+  }).then(data => {
+    clearTimeout(timeout);
+    if (cache.get(path)?.token === token) {
+      cache.set(path, { data });
+      window.dispatchEvent(new CustomEvent('atlas-resource-loaded', { detail: { kind, path } }));
+    }
+    return data;
+  });
+
+  cache.set(path, { token, promise, data: previous, controller });
+  window.dispatchEvent(new CustomEvent('atlas-resource-loading', { detail: { kind, path } }));
+  return promise;
+};
+
+const cachedAtlasResource = (kind, path) => {
+  const key = String(path || '').trim();
+  if (!key) return emptyAtlasResource('');
+  return atlasResourceCache(kind).get(key)?.data || emptyAtlasResource(key);
+};
+
+const useAtlasAsyncResource = (kind, path, options = {}) => {
+  const key = String(path || '').trim();
+  const versionKey = String(options.versionKey || '');
+  const forceOnVersionChange = !!options.forceOnVersionChange;
+  const requestSeq = React.useRef(0);
+  const lastAutoLoad = React.useRef({ key, versionKey });
+  const [state, setState] = React.useState(() => cachedAtlasResource(kind, key));
+
+  const reload = React.useCallback((force = false) => {
+    const currentKey = String(path || '').trim();
+    const seq = requestSeq.current + 1;
+    requestSeq.current = seq;
+    if (!currentKey) {
+      const empty = emptyAtlasResource('');
+      setState(empty);
+      return Promise.resolve(empty);
+    }
+    const cached = cachedAtlasResource(kind, currentKey);
+    setState({ ...cached, path: currentKey, loading: true, err: force ? null : cached.err });
+    return readAtlasAsyncResource(kind, currentKey, force).then(data => {
+      if (requestSeq.current === seq) setState(data);
+      return data;
+    });
+  }, [kind, path]);
+
+  React.useEffect(() => {
+    const previous = lastAutoLoad.current;
+    const force = forceOnVersionChange && previous.key === key && previous.versionKey !== versionKey;
+    lastAutoLoad.current = { key, versionKey };
+    reload(force);
+    return () => { requestSeq.current += 1; };
+  }, [forceOnVersionChange, key, reload, versionKey]);
+
+  const visibleState = state.path === key ? state : cachedAtlasResource(kind, key);
+  return [visibleState, reload];
+};
+
 const workflowFromSession = (session) => {
   const parts = normalizeUiSession(session).split('/').filter(Boolean);
   const last = parts[parts.length - 1] || '';
@@ -5012,10 +5143,8 @@ const chooseSsotFile = (files, preferredPath = '') => {
 };
 
 const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
-  const files = window.SSOT_FILES || [];
+  const files = Array.isArray(window.SSOT_FILES) ? window.SSOT_FILES : [];
   const [selected, setSelected] = React.useState('');
-  const [content, setContent] = React.useState('');
-  const [loading, setLoading] = React.useState(false);
   const [activeKey, setActiveKey] = React.useState('');
   const lastInitialPath = React.useRef('');
 
@@ -5043,14 +5172,18 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
         reload: '새로고침',
       };
 
-  const filePaths = React.useMemo(() => {
-    const paths = files.map(ssotPathOf).filter(Boolean);
-    if (initialPath && isSsotYamlPath(initialPath) && !paths.includes(initialPath)) {
-      return [initialPath, ...paths];
-    }
-    return paths;
-  }, [files.length, initialPath]);
+  const ssotFilePaths = files.map(ssotPathOf).filter(Boolean);
+  const filePaths = initialPath && isSsotYamlPath(initialPath) && !ssotFilePaths.includes(initialPath)
+    ? [initialPath, ...ssotFilePaths]
+    : ssotFilePaths;
   const filePathKey = filePaths.join('|');
+  const [ssotResource, reloadSsot] = useAtlasAsyncResource('ssot', selected, {
+    versionKey: filePathKey,
+    forceOnVersionChange: true,
+  });
+  const content = selected ? (ssotResource.body || '') : '';
+  const loading = !!selected && !!ssotResource.loading;
+  const showLoading = loading && !content.trim();
 
   React.useEffect(() => {
     if (initialPath && initialPath !== lastInitialPath.current && filePaths.includes(initialPath)) {
@@ -5063,25 +5196,8 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
     if (!selected && filePaths.length > 0) setSelected(chooseSsotFile(files, initialPath));
   }, [filePathKey, selected, initialPath]);
 
-  React.useEffect(() => {
-    if (!selected) { setContent(''); return; }
-    let cancelled = false;
-    setLoading(true);
-    window.atlasData.fetchSsot(selected).then(d => {
-      if (cancelled) return;
-      setContent(d?.content || `# could not read ${selected}`);
-      setLoading(false);
-    }).catch(() => {
-      if (!cancelled) {
-        setContent('');
-        setLoading(false);
-      }
-    });
-    return () => { cancelled = true; };
-  }, [selected, files.length]);
-
   const sections = React.useMemo(() => splitSsotSections(content), [content]);
-  const statusByKey = React.useMemo(() => ssotProgressStatusMap(), [content, files.length]);
+  const statusByKey = React.useMemo(() => ssotProgressStatusMap(), [content, filePathKey]);
   const digestViews = React.useMemo(() => digestViewsForSections(sections), [sections]);
   const digestViewKey = digestViews.map(v => v.id).join('|');
 
@@ -5142,11 +5258,7 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
           <button
             type="button"
             className="btn"
-            onClick={() => {
-              const path = selected;
-              setSelected('');
-              setTimeout(() => setSelected(path), 0);
-            }}
+            onClick={() => reloadSsot(true)}
             style={{ fontSize: 10 }}
           >{t.reload}</button>
           <button type="button" className="btn" onClick={onBack} style={{ fontSize: 10 }}>chat</button>
@@ -5210,7 +5322,17 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
         </div>
 
         <div style={{ minHeight: 0, overflow: 'auto', padding: '14px 18px' }}>
-          {loading ? (
+          {ssotResource.err ? (
+            <div style={{
+              marginBottom: 10, padding: '6px 10px',
+              border: '1px solid var(--err)',
+              background: 'color-mix(in oklch, var(--err) 12%, transparent)',
+              color: 'var(--err)', fontFamily: 'var(--mono)', fontSize: 10,
+            }}>
+              ssot load error: {ssotResource.err}
+            </div>
+          ) : null}
+          {showLoading ? (
             <div className="code" style={{ padding: 16, color: 'var(--fg-mute)' }}># loading SSOT...</div>
           ) : activeView ? (
             <SsotDigestContent
@@ -6356,74 +6478,24 @@ const DiffPanel = () => (
 // strip. Same /api/file backend; Prism.js handles language detection
 // per the PRISM_LANG_MAP set up in index.html.
 const PreviewPane = ({ path, onClose }) => {
-  const [body, setBody] = React.useState('');
-  const [size, setSize] = React.useState(0);
-  const [truncated, setTruncated] = React.useState(false);
-  const [err, setErr] = React.useState(null);
-  const [loading, setLoading] = React.useState(false);
   const codeRef = React.useRef(null);
 
   const ext = (path ? (path.split('.').pop() || '') : '').toLowerCase();
   const lang = (window.PRISM_LANG_MAP && window.PRISM_LANG_MAP[ext]) || 'none';
   const isMarkdown = ['md', 'markdown', 'mdown', 'mkdn'].includes(ext);
   const hasGlobPath = !!path && /[*?[\]{}]/.test(path);
+  const [resource, reloadPreview] = useAtlasAsyncResource('file', hasGlobPath ? '' : path);
+  const body = hasGlobPath
+    ? `// ${path}\n// Preview needs one concrete file path, not a glob pattern.\n// Select an exact file from the tree, for example rtl/<module>.sv.`
+    : (resource.body || '');
+  const size = hasGlobPath ? 0 : (resource.size || 0);
+  const truncated = !hasGlobPath && !!resource.truncated;
+  const err = hasGlobPath
+    ? 'Preview needs one concrete file path; glob patterns are not previewable.'
+    : resource.err;
+  const loading = !hasGlobPath && !!resource.loading;
   const highlightTooLarge = !isMarkdown && body.length > 60000;
   const canHighlight = !highlightTooLarge && lang !== 'none';
-
-  React.useEffect(() => {
-    if (!path) {
-      setBody('');
-      setErr(null);
-      setSize(0);
-      setTruncated(false);
-      setLoading(false);
-      return;
-    }
-    if (/[*?[\]{}]/.test(path)) {
-      setLoading(false);
-      setSize(0);
-      setTruncated(false);
-      setErr('Preview needs one concrete file path; glob patterns are not previewable.');
-      setBody(`// ${path}\n// Preview needs one concrete file path, not a glob pattern.\n// Select an exact file from the tree, for example rtl/<module>.sv.`);
-      return;
-    }
-    let cancelled = false;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-    setLoading(true); setErr(null);
-    fetch('/api/file?path=' + encodeURIComponent(path), { signal: controller.signal }).then(async r => {
-      let d = {};
-      try { d = await r.json(); }
-      catch (_) { d = { error: r.statusText || `HTTP ${r.status}` }; }
-      if (!r.ok && !d.error) d.error = r.statusText || `HTTP ${r.status}`;
-      return d;
-    }).then(d => {
-      if (cancelled) return;
-      clearTimeout(timeout);
-      setLoading(false);
-      if (d.error) {
-        setErr(d.error); setBody(`// ${path}\n// (could not read: ${d.error})`); return;
-      }
-      setBody(d.content || '');
-      setSize(d.size || 0);
-      setTruncated(!!d.truncated);
-    }).catch(e => {
-      if (!cancelled) {
-        clearTimeout(timeout);
-        const msg = e && e.name === 'AbortError'
-          ? 'preview timed out after 8s'
-          : String(e);
-        setLoading(false);
-        setErr(msg);
-        setBody(`// ${path}\n// fetch failed: ${msg}`);
-      }
-    });
-    return () => {
-      cancelled = true;
-      clearTimeout(timeout);
-      controller.abort();
-    };
-  }, [path]);
 
   // Re-highlight whenever body/lang changes. Prism replaces the
   // <code> contents in place; we set the language class first.
@@ -6468,6 +6540,7 @@ const PreviewPane = ({ path, onClose }) => {
         {highlightTooLarge && <><span className="mute">·</span><span className="warn">syntax highlight skipped for speed</span></>}
         {hasGlobPath && <><span className="mute">·</span><span className="warn">glob path</span></>}
         <span style={{ flex: 1 }} />
+        <span onClick={() => reloadPreview(true)} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>refresh</span>
         <span onClick={copyAll}  style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy</span>
         <span onClick={copyPath} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy path</span>
       </div>
