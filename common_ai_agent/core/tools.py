@@ -1362,10 +1362,29 @@ def replace_in_file(path=None, old_text=None, new_text=None, count=-1, start_lin
         # both work even when the model passes count="3" or
         # start_line="42" as strings. fuzzy_whitespace can arrive as
         # the JSON string "false" — coerce that to a real bool.
-        try:
-            count = int(count) if count is not None else -1
-        except (ValueError, TypeError):
-            return f"Error: replace_in_file() 'count' must be an integer (got {count!r})"
+        #
+        # Some models occasionally leak a code token into `count`
+        # (e.g. count="begin\n"). In that case, treat it as default
+        # behavior (`count=-1`, replace all) instead of hard-failing.
+        invalid_count = None
+        if count is None:
+            count = -1
+        elif isinstance(count, str):
+            _count_raw = count.strip()
+            if _count_raw == "" or _count_raw.lower() in ("all", "auto", "default", "none"):
+                count = -1
+            else:
+                try:
+                    count = int(_count_raw)
+                except (ValueError, TypeError):
+                    invalid_count = count
+                    count = -1
+        else:
+            try:
+                count = int(count)
+            except (ValueError, TypeError):
+                invalid_count = count
+                count = -1
         if isinstance(fuzzy_whitespace, str):
             fuzzy_whitespace = fuzzy_whitespace.strip().lower() not in ("false", "0", "no", "off", "")
 
@@ -1377,9 +1396,15 @@ def replace_in_file(path=None, old_text=None, new_text=None, count=-1, start_lin
         end_idx = len(lines)
 
         if start_line is not None:
-            start_idx = max(0, int(start_line) - 1)
+            try:
+                start_idx = max(0, int(start_line) - 1)
+            except (ValueError, TypeError):
+                return f"Error: replace_in_file() 'start_line' must be an integer (got {start_line!r})"
         if end_line is not None:
-            end_idx = min(len(lines), int(end_line))
+            try:
+                end_idx = min(len(lines), int(end_line))
+            except (ValueError, TypeError):
+                return f"Error: replace_in_file() 'end_line' must be an integer (got {end_line!r})"
             
         target_lines = lines[start_idx:end_idx]
         target_content = "".join(target_lines)
@@ -1579,6 +1604,8 @@ Common issues: wrong indentation, tabs vs spaces, text doesn't exist (verify wit
         diff_output = format_diff_snippet(path, old_full_content, new_full_content, context_lines=3)
 
         result = f"Replaced {replacements} occurrence(s) in {path}\n"
+        if invalid_count is not None:
+            result += f"(Ignored invalid count={invalid_count!r}; using count=-1)\n"
         if actual_old_text != old_text:
             if matched_strategy:
                 result += f"(Fuzzy matched using: {matched_strategy})\n"

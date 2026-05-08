@@ -222,6 +222,21 @@ def _run_agent(app: AgentTUI) -> None:
 
 if __name__ == "__main__":
     import argparse as _argparse
+
+    _effort_aliases = {
+        'm': 'medium',
+        'med': 'medium',
+        'mid': 'medium',
+        'h': 'high',
+        'xh': 'xhigh',
+        'o': 'off',
+        'f': 'off',
+        'off': 'off',
+        'false': 'off',
+        'disable': 'off',
+        'disabled': 'off',
+    }
+
     _parser = _argparse.ArgumentParser(
         prog="textual_main",
         description="common_ai_agent launcher — picks textual / atlas / web UI",
@@ -246,6 +261,8 @@ if __name__ == "__main__":
                               '(PROFILE_<name>_BASE_URL/API_KEY/MODEL in .env) switch '
                               'all three at once; bare names only override LLM_MODEL_NAME. '
                               'gpt-5* names trigger ChatGPT OAuth (opencode_backend).')
+    _parser.add_argument('--effort', default='',
+                        help='Responses API reasoning effort: none|minimal|low|medium|high|xhigh|off')
     _args, _ = _parser.parse_known_args()
 
     # --model: mirror src/main.py:2510 handler so textual_main behaves the same.
@@ -273,6 +290,21 @@ if __name__ == "__main__":
             print(f"[--model] '{_m}' is not a defined profile; "
                   f"applied as bare LLM_MODEL_NAME override "
                   f"(BASE_URL/API_KEY unchanged).")
+
+    # --effort: set runtime reasoning effort for Responses API.
+    # Mirrors `/effort` command behavior (same aliases + env updates),
+    # but applies only for this process before UI bootstraps.
+    if getattr(_args, 'effort', ''):
+        _raw_effort = _args.effort.strip().lower()
+        _effort = _effort_aliases.get(_raw_effort, _raw_effort)
+        if _effort in ('none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'off'):
+            config.REASONING_MODE = _effort
+            config.REASONING_EFFORT = _effort
+            os.environ['REASONING_MODE'] = _effort
+            os.environ['REASONING_EFFORT'] = _effort
+            print(f"[--effort] reasoning effort set to {_effort} (API: reasoning.effort={_effort})")
+        else:
+            print(f"[--effort] unknown effort: {_raw_effort}. Allowed: none, minimal, low, medium, high, xhigh, off")
 
     _session_name = _args.session or _args.workspace or 'default'
     _agent._setup_session(_session_name)

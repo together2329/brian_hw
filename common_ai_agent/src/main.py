@@ -2592,10 +2592,27 @@ def _ensure_git_repo():
 
 if __name__ == "__main__":
     import argparse as _argparse
+
+    _effort_aliases = {
+        'm': 'medium',
+        'med': 'medium',
+        'mid': 'medium',
+        'h': 'high',
+        'xh': 'xhigh',
+        'o': 'off',
+        'f': 'off',
+        'off': 'off',
+        'false': 'off',
+        'disable': 'off',
+        'disabled': 'off',
+    }
+
     _parser = _argparse.ArgumentParser(add_help=False)
     _parser.add_argument('-s', '--session', default=None)
     _parser.add_argument('-w', '--workspace', '-wf', default=None,
                          help='Workspace name (e.g. default, verilog, spec-review)')
+    _parser.add_argument('--effort', default='',
+                         help='Responses API reasoning effort: none|minimal|low|medium|high|xhigh|off')
     _parser.add_argument('--serve', action='store_true',
                          help='Start as HTTP server (agent-to-agent mode)')
     _parser.add_argument('--port', type=int, default=8000,
@@ -2644,6 +2661,21 @@ if __name__ == "__main__":
                 f"[--model] '{_m}' is not a defined profile; "
                 f"applied as bare LLM_MODEL_NAME override "
                 f"(BASE_URL/API_KEY unchanged)."))
+
+    # --effort: set runtime reasoning effort for Responses API.
+    # Mirrors `/effort` command behavior (same aliases + env updates),
+    # but applies only for this process before first API call.
+    if getattr(_args, 'effort', ''):
+        _raw_effort = _args.effort.strip().lower()
+        _effort = _effort_aliases.get(_raw_effort, _raw_effort)
+        if _effort in ('none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'off'):
+            config.REASONING_MODE = _effort
+            config.REASONING_EFFORT = _effort
+            os.environ['REASONING_MODE'] = _effort
+            os.environ['REASONING_EFFORT'] = _effort
+            print(f"[--effort] reasoning effort set to {_effort} (API: reasoning.effort={_effort})")
+        else:
+            print(f"[--effort] unknown effort: {_raw_effort}. Allowed: none, minimal, low, medium, high, xhigh, off")
 
     # Each project gets its own session context:
     # if -s is not explicitly given, use the workspace name as the project name
