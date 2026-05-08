@@ -249,6 +249,17 @@ def _reasoning_keyword_match(name: str) -> bool:
     return any(k in n for k in ('glm', 'deepseek', 'qwq', 'r1', 'reasoning', 'o1', 'o3', 'o4'))
 
 
+def _supports_reasoning_summary(name: str) -> bool:
+    """Some model variants don't support Responses API reasoning.summary."""
+    if not name:
+        return False
+    n = name.lower()
+    if '/' in n:
+        n = n.split('/')[-1]
+    # Spark family variants (e.g. gpt-5.3-codex-spark) reject summary.
+    return 'spark' not in n
+
+
 def _reasoning_env_override() -> bool:
     """Treat the model as reasoning-capable when the operator has
     explicitly opted in via env. Covers Azure deployments where the
@@ -1091,7 +1102,7 @@ def _build_responses_request_body(
             return data
         if reasoning_mode in ('none', 'minimal', 'low', 'medium', 'high', 'xhigh'):
             reasoning = {"effort": reasoning_mode}
-            if getattr(config, 'RESPONSES_REASONING_SUMMARY', True):
+            if getattr(config, 'RESPONSES_REASONING_SUMMARY', True) and _supports_reasoning_summary(model):
                 reasoning["summary"] = "detailed"
             data["reasoning"] = reasoning
         elif getattr(config, 'DEBUG_MODE', False):
