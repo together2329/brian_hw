@@ -302,6 +302,10 @@ const ATLAS_ASYNC_RESOURCE_CACHES = {
   file: new Map(),
   ssot: new Map(),
 };
+const ATLAS_ASYNC_RESOURCE_TIMEOUT_MS = {
+  file: 30000,
+  ssot: 45000,
+};
 
 const emptyAtlasResource = (path = '') => ({
   path,
@@ -316,6 +320,9 @@ const emptyAtlasResource = (path = '') => ({
 const atlasResourceCache = (kind) =>
   ATLAS_ASYNC_RESOURCE_CACHES[kind] || ATLAS_ASYNC_RESOURCE_CACHES.file;
 
+const isAtlasResourceTimeout = (data) =>
+  /\bpreview timed out\b/i.test(String(data && data.err || ''));
+
 const atlasResourceUrl = (kind, path) => {
   const encoded = encodeURIComponent(path);
   return kind === 'ssot'
@@ -328,7 +335,7 @@ const readAtlasAsyncResource = (kind, rawPath, force = false) => {
   if (!path) return Promise.resolve(emptyAtlasResource(''));
   const cache = atlasResourceCache(kind);
   const current = cache.get(path);
-  if (!force && current?.data) return Promise.resolve(current.data);
+  if (!force && current?.data && !isAtlasResourceTimeout(current.data)) return Promise.resolve(current.data);
   if (!force && current?.promise) return current.promise;
   if (force && current?.controller) {
     try { current.controller.abort(); } catch (_) {}
@@ -336,7 +343,12 @@ const readAtlasAsyncResource = (kind, rawPath, force = false) => {
 
   const token = Symbol(`${kind}:${path}`);
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), kind === 'ssot' ? 12000 : 8000);
+  const timeoutMs = ATLAS_ASYNC_RESOURCE_TIMEOUT_MS[kind] || ATLAS_ASYNC_RESOURCE_TIMEOUT_MS.file;
+  let didTimeout = false;
+  const timeout = setTimeout(() => {
+    didTimeout = true;
+    controller.abort();
+  }, timeoutMs);
   const previous = current?.data || emptyAtlasResource(path);
   const promise = fetch(atlasResourceUrl(kind, path), {
     signal: controller.signal,
@@ -361,7 +373,7 @@ const readAtlasAsyncResource = (kind, rawPath, force = false) => {
     };
   }).catch(e => {
     const msg = e && e.name === 'AbortError'
-      ? `${kind} preview timed out`
+      ? (didTimeout ? `${kind} preview timed out after ${Math.round(timeoutMs / 1000)}s` : `${kind} preview request cancelled`)
       : String(e);
     return {
       path,
@@ -4329,7 +4341,7 @@ const SSOT_REVIEW_FOCUS = {
 };
 
 const SSOT_DIGEST_VIEWS = [
-  { id: 'overview', label: 'Overview', keys: ['top_module', 'features', 'sub_modules', 'io_list'] },
+  { id: 'overview', label: 'Brief', keys: ['top_module', 'features', 'sub_modules', 'io_list'] },
   { id: 'features', label: 'Features', keys: ['features'] },
   { id: 'architecture', label: 'Architecture', keys: ['sub_modules', 'decomposition'] },
   { id: 'function_model', label: 'Function Model', keys: ['function_model'] },
@@ -4751,6 +4763,14 @@ const DigestList = ({ items, limit = 8 }) => {
   );
 };
 
+const compactDigestItems = (items, limit = 6) => {
+  const rows = (items || []).filter(Boolean);
+  if (!rows.length) return '';
+  const shown = rows.slice(0, limit).join(', ');
+  const extra = rows.length > limit ? ` +${rows.length - limit} more` : '';
+  return shown + extra;
+};
+
 const DigestEmpty = ({ text = 'No structured data in this section yet.' }) => (
   <div className="mute" style={{ fontSize: 12, fontFamily: 'var(--mono)' }}>{text}</div>
 );
@@ -4863,11 +4883,12 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
   const latencyGroups = mapGroupsFromSection(cycleSection, 'latency');
   const handshakeRules = listBlocksFromSection(cycleSection, 'handshake_rules');
   const pipeline = listBlocksFromSection(cycleSection, 'pipeline');
+  const topName = sectionFact(top, 'name', 'SSOT');
 
   const header = (
     <div style={{ marginBottom: 12 }}>
       <div style={{ color: 'var(--magenta)', fontWeight: 900, fontSize: 18, letterSpacing: 0 }}>
-        {sectionFact(top, 'name', 'SSOT')}
+        {topName}
       </div>
       <div style={{ color: 'var(--fg)', lineHeight: 1.45, marginTop: 4, maxWidth: 920 }}>
         {sectionFact(top, 'description', 'No top_module.description available yet.')}
@@ -4876,45 +4897,21 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
   );
 
   const renderOverview = () => (
-    <>
-      {header}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }}>
-        <DigestCard title="Top Module" meta={top ? `line ${top.startLine}` : ''}>
-          <DigestKV rows={[
-            ['name', sectionFact(top, 'name')],
-            ['type', sectionFact(top, 'type')],
-            ['version', sectionFact(top, 'version')],
-            ['reference', sectionFact(top, 'reference_spec')],
-            ['technology', sectionFact(top, 'technology')],
-            ['target clock', sectionFact(top, 'clock_freq_mhz') ? `${sectionFact(top, 'clock_freq_mhz')} MHz` : ''],
-          ]} />
-        </DigestCard>
-        <DigestCard title="Interfaces" meta={`${interfaces.length} interfaces`}>
-          {interfaces.length ? interfaces.map(iface => (
-            <div key={iface.name} style={{ marginBottom: 8 }}>
-              <div style={{ fontWeight: 700 }}>{iface.name} <span className="mute">· {iface.type}{iface.role ? ` ${iface.role}` : ''}</span></div>
-              <div className="mute" style={{ fontSize: 11 }}>{iface.description}</div>
-              <div style={{ marginTop: 2, color: 'var(--cyan)', fontFamily: 'var(--mono)', fontSize: 10 }}>{iface.ports.length} {t.ports}</div>
-            </div>
-          )) : <DigestEmpty />}
-        </DigestCard>
-        <DigestCard title="Features" meta={`${features.length} features`}>
-          {features.length ? (
-            <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.5 }}>
-              {features.slice(0, 8).map(f => <li key={f.name}><b>{f.name}</b>{f.output ? <span className="mute"> - {f.output}</span> : null}</li>)}
-            </ul>
-          ) : <DigestEmpty />}
-        </DigestCard>
-        <DigestCard title="Architecture Split" meta={`${submods.length} modules`}>
-          {submods.length ? submods.slice(0, 8).map(m => (
-            <div key={m.name} style={{ marginBottom: 7 }}>
-              <b>{m.name}</b> <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>{m.file}</span>
-              <div className="mute" style={{ fontSize: 11 }}>{m.description}</div>
-            </div>
-          )) : <DigestEmpty />}
-        </DigestCard>
+    <DigestCard title="Brief" meta={top ? `line ${top.startLine}` : ''}>
+      <div style={{ color: 'var(--magenta)', fontWeight: 900, fontSize: 18, letterSpacing: 0, marginBottom: 4 }}>
+        {topName}
       </div>
-    </>
+      <div style={{ color: 'var(--fg)', lineHeight: 1.45, marginBottom: 10, maxWidth: 920 }}>
+        {trimSsotValue(sectionFact(top, 'description', 'No top_module.description available yet.'), 260)}
+      </div>
+      <DigestKV rows={[
+        ['type', sectionFact(top, 'type')],
+        ['clock', sectionFact(top, 'clock_freq_mhz') ? `${sectionFact(top, 'clock_freq_mhz')} MHz` : ''],
+        ['features', compactDigestItems(features.map(f => f.name), 5)],
+        ['interfaces', compactDigestItems(interfaces.map(iface => `${iface.name}${iface.type ? ` (${iface.type})` : ''}`), 4)],
+        ['modules', compactDigestItems(submods.map(m => m.name), 6)],
+      ]} />
+    </DigestCard>
   );
 
   const renderFeatures = () => (
@@ -5174,7 +5171,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
   return (
     <>
       {body}
-      {!['architecture'].includes(view.id) ? (
+      {!['architecture', 'overview'].includes(view.id) ? (
         <DigestSourceSections view={view} sections={sections} statusByKey={statusByKey} t={t} />
       ) : null}
     </>
