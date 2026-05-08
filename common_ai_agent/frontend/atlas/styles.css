@@ -897,6 +897,44 @@
   font-size: var(--ui-control-font-size);
 }
 
+.atlas-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 1px 7px;
+  border: 1px solid var(--status-color);
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--status-color) 10%, transparent);
+  color: var(--status-color);
+  font-family: var(--mono);
+  font-size: var(--ui-small-font-size);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.atlas-status-badge.compact {
+  gap: 4px;
+  padding: 0 6px;
+  font-size: 10px;
+}
+.atlas-status-badge.soft {
+  border-color: color-mix(in oklch, var(--status-color) 55%, var(--line));
+  background: color-mix(in oklch, var(--status-color) 7%, transparent);
+}
+.atlas-status-dot {
+  flex: 0 0 auto;
+  font-size: 0.95em;
+  line-height: 1;
+}
+.atlas-status-badge > span:not(.atlas-status-dot) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Hover-revealed affordances (copy button, timestamp pill).
    Markup: any element with class .has-hover-affordance must be
    position:relative; the inner .copy-btn / .ts-pill is opacity:0

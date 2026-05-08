@@ -80,6 +80,54 @@ const _obsStatus = (txt) => {
   return 'neutral';
 };
 
+const ATLAS_STATUS_META = {
+  loading:      { glyph: '◌', color: 'var(--accent)', label: 'loading' },
+  refreshing:  { glyph: '↻', color: 'var(--accent)', label: 'refreshing' },
+  running:     { glyph: '●', color: 'var(--accent)', label: 'running' },
+  active:      { glyph: '●', color: 'var(--accent)', label: 'running' },
+  in_progress: { glyph: '●', color: 'var(--accent)', label: 'in-progress' },
+  pending:     { glyph: '○', color: 'var(--warn)', label: 'pending' },
+  completed:   { glyph: '✓', color: 'var(--ok)', label: 'completed' },
+  done:        { glyph: '✓', color: 'var(--ok)', label: 'done' },
+  approved:    { glyph: '✓', color: 'var(--ok)', label: 'approved' },
+  rejected:    { glyph: '✕', color: 'var(--err)', label: 'rejected' },
+  blocked:     { glyph: '!', color: 'var(--err)', label: 'blocked' },
+  error:       { glyph: '!', color: 'var(--err)', label: 'error' },
+  review:      { glyph: '·', color: 'var(--fg-mute)', label: 'review' },
+  needs_review: { glyph: '!', color: 'var(--warn)', label: 'needs review' },
+  draft:       { glyph: '·', color: 'var(--fg-mute)', label: 'draft' },
+  total:       { glyph: 'Σ', color: 'var(--fg-mute)', label: 'total' },
+};
+
+const normalizeAtlasStatus = (status) => {
+  const s = String(status || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+  if (s === 'in_progress' || s === 'inprogress') return 'in_progress';
+  if (s === 'needs_review' || s === 'needsreview') return 'needs_review';
+  if (s === 'fail' || s === 'failed' || s === 'err') return 'error';
+  if (s === 'ok' || s === 'pass' || s === 'passed') return 'approved';
+  return s || 'pending';
+};
+
+const atlasStatusMeta = (status) => {
+  const key = normalizeAtlasStatus(status);
+  return ATLAS_STATUS_META[key] || { glyph: '·', color: 'var(--fg-mute)', label: String(status || 'unknown') };
+};
+
+const AtlasStatusBadge = ({ status, label, count, compact = false, soft = false, title }) => {
+  const meta = atlasStatusMeta(status);
+  const text = label || meta.label;
+  return (
+    <span
+      className={`atlas-status-badge${compact ? ' compact' : ''}${soft ? ' soft' : ''}`}
+      style={{ '--status-color': meta.color }}
+      title={title || text}
+    >
+      <span className="atlas-status-dot">{meta.glyph}</span>
+      <span>{count != null ? `${count} ${text}` : text}</span>
+    </span>
+  );
+};
+
 const _limitAtlasLines = (text, maxLines = 5) => {
   const lines = String(text || '').split(/\r?\n/).map(l => l.trimEnd());
   const clean = lines.filter(l => l.trim());
@@ -2329,11 +2377,15 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                   style={{ paddingLeft: 8 + (n.depth || 0) * 14, cursor: 'pointer' }}
                   onClick={() => {
                     if (n.type === 'file') {
+                      readAtlasAsyncResource('file', fullPath).catch(() => {});
                       setPreviewPath(fullPath);
                       setMainTab('split');
                     } else {
                       window.atlasData.setScopePath(fullPath);
                     }
+                  }}
+                  onMouseEnter={() => {
+                    if (n.type === 'file') readAtlasAsyncResource('file', fullPath).catch(() => {});
                   }}
                   title={fullPath + (n.type === 'file' ? ' (click to preview)' : '')}
                 >
@@ -3747,13 +3799,14 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
     const key = pendingItemKey(item);
     const isPending = status === 'pending';
     const isOpen = isPending && openPendingKey === key;
+    const statusColor = atlasStatusMeta(status).color;
     return (
       <div
         key={key}
         style={{
           padding: '8px 10px',
           border: '1px solid var(--line)',
-          borderLeft: `3px solid ${status === 'approved' ? 'var(--ok)' : 'var(--warn)'}`,
+          borderLeft: `3px solid ${statusColor}`,
           background: status === 'approved'
             ? 'color-mix(in oklch, var(--ok) 7%, transparent)'
             : 'color-mix(in oklch, var(--warn) 8%, transparent)',
@@ -3762,14 +3815,7 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
         }}
       >
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
-          <span style={{
-            color: status === 'approved' ? 'var(--ok)' : 'var(--warn)',
-            fontSize: 10,
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-          }}>
-            {status}
-          </span>
+          <AtlasStatusBadge status={status} compact />
           <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
             {item.decision_key || item.source || 'qa'}
           </span>
@@ -3833,12 +3879,10 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
           <button className="mini-btn" type="button" onClick={onBack}>{t.chat}</button>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10, fontSize: 11 }}>
-          <span style={{ color: 'var(--fg-mute)' }}>{t.total} {summary.total || 0}</span>
-          <span style={{ color: 'var(--ok)' }}>{t.approved} {summary.approved || 0}</span>
-          <span style={{ color: 'var(--warn)' }}>{t.pending} {summary.pending || 0}</span>
-          <span style={{ color: data.approved ? 'var(--ok)' : 'var(--fg-mute)' }}>
-            {t.ssot} {data.approved ? t.approved : (data.state_status || t.draft)}
-          </span>
+          <AtlasStatusBadge status="total" label={t.total} count={summary.total || 0} compact soft />
+          <AtlasStatusBadge status="approved" label={t.approved} count={summary.approved || 0} compact soft />
+          <AtlasStatusBadge status="pending" label={t.pending} count={summary.pending || 0} compact soft />
+          <AtlasStatusBadge status={data.approved ? 'approved' : (data.state_status || 'draft')} label={`${t.ssot} ${data.approved ? t.approved : (data.state_status || t.draft)}`} compact soft />
         </div>
       </div>
 
@@ -3874,9 +3918,7 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ color: row.approved ? 'var(--ok)' : 'var(--warn)' }}>
-                    {row.approved ? 'approved' : row.status || 'draft'}
-                  </span>
+                  <AtlasStatusBadge status={row.approved ? 'approved' : (row.status || 'draft')} compact />
                   <span style={{ flex: 1 }} />
                   <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>{row.workflow || 'ssot-gen'}</span>
                 </div>
@@ -3887,9 +3929,9 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
                   {row.session}
                 </div>
                 <div style={{ marginTop: 6, fontSize: 10 }}>
-                  <span style={{ color: 'var(--ok)' }}>{rowSummary.approved || 0} {t.approved}</span>
+                  <AtlasStatusBadge status="approved" label={t.approved} count={rowSummary.approved || 0} compact soft />
                   <span style={{ color: 'var(--fg-mute)' }}> / </span>
-                  <span style={{ color: 'var(--warn)' }}>{rowSummary.pending || 0} {t.pending}</span>
+                  <AtlasStatusBadge status="pending" label={t.pending} count={rowSummary.pending || 0} compact soft />
                 </div>
               </button>
             );
@@ -3950,13 +3992,13 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
           </div>
           {(section.pending || []).length ? (
             <div style={{ marginBottom: 10 }}>
-              <div style={{ color: 'var(--warn)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{t.pending}</div>
+              <div style={{ marginBottom: 6 }}><AtlasStatusBadge status="pending" label={t.pending} count={(section.pending || []).length} compact soft /></div>
               {(section.pending || []).map(item => renderQa(item, 'pending'))}
             </div>
           ) : null}
           {(section.approved || []).length ? (
             <div>
-              <div style={{ color: 'var(--ok)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{t.approved}</div>
+              <div style={{ marginBottom: 6 }}><AtlasStatusBadge status="approved" label={t.approved} count={(section.approved || []).length} compact soft /></div>
               {(section.approved || []).map(item => renderQa(item, 'approved'))}
             </div>
           ) : null}
@@ -4441,19 +4483,17 @@ const SSOT_REVIEW_FOCUS = {
 };
 
 const SSOT_DIGEST_VIEWS = [
-  { id: 'overview', label: 'Brief', keys: ['top_module', 'features', 'sub_modules', 'io_list'] },
-  { id: 'features', label: 'Features', keys: ['features'] },
+  { id: 'overview', label: 'Brief', keys: ['top_module', 'features', 'sub_modules', 'io_list', 'registers', 'dataflow'] },
   { id: 'architecture', label: 'Architecture', keys: ['sub_modules', 'decomposition'] },
+  { id: 'interfaces', label: 'Interfaces', keys: ['io_list', 'decomposition'] },
+  { id: 'feature_map', label: 'Feature Map', keys: ['features', 'sub_modules', 'decomposition', 'function_model', 'cycle_model', 'registers', 'dataflow'] },
   { id: 'function_model', label: 'Function Model', keys: ['function_model'] },
   { id: 'cycle_model', label: 'Cycle Model', keys: ['cycle_model', 'timing'] },
-  { id: 'interfaces', label: 'Interfaces', keys: ['io_list'] },
   { id: 'registers', label: 'Register Map', keys: ['registers'] },
   { id: 'dataflow', label: 'Dataflow', keys: ['dataflow'] },
-  { id: 'clocking', label: 'Clock / CDC', keys: ['clock_reset_domains', 'cdc_requirements', 'rdc_requirements'] },
-  { id: 'memory', label: 'Memory / FIFO', keys: ['memory'] },
-  { id: 'interrupts', label: 'Interrupts', keys: ['interrupts'] },
-  { id: 'fsm_errors', label: 'FSM / Errors', keys: ['fsm', 'errors', 'error_handling'] },
-  { id: 'review_items', label: 'Review Items', keys: ['workflow_todos', 'quality_gates', 'traceability'] },
+  { id: 'clocking', label: 'CDC / Reset', keys: ['clock_reset_domains', 'cdc_requirements', 'rdc_requirements'] },
+  { id: 'review_gaps', label: 'Review Gaps', keys: ['workflow_todos', 'quality_gates', 'traceability', 'top_module', 'features', 'sub_modules', 'io_list', 'registers', 'dataflow', 'function_model', 'cycle_model'] },
+  { id: 'raw_yaml', label: 'Raw YAML', keys: [] },
 ];
 
 const ssotPathOf = (entry) => typeof entry === 'string' ? entry : (entry && entry.path) || '';
@@ -4635,7 +4675,22 @@ const listBlocksFromSection = (section, parentKey = '') =>
     startLine: section.startLine + b.startLineOffset,
   })) : [];
 
-const blockField = (block, key, max = 240) => fieldFromText(block && block.text, key, max);
+const inlineYamlObjectFromLine = (line) => {
+  const raw = String(line || '').match(/\{(.+)\}/);
+  if (!raw) return {};
+  return raw[1].split(/,(?=(?:[^'"]*['"][^'"]*['"])*[^'"]*$)/).reduce((acc, part) => {
+    const m = part.match(/^\s*([A-Za-z0-9_.-]+)\s*:\s*(.*?)\s*$/);
+    if (m) acc[m[1]] = stripYamlScalar(m[2]);
+    return acc;
+  }, {});
+};
+
+const blockField = (block, key, max = 240) => {
+  const direct = fieldFromText(block && block.text, key, max);
+  if (direct) return direct;
+  const firstLine = String((block && block.text) || '').split(/\r?\n/)[0] || '';
+  return trimSsotValue(inlineYamlObjectFromLine(firstLine)[key], max);
+};
 
 const blockListValues = (block, parentKey, max = 8) =>
   listBlocksFromText(block && block.text, parentKey)
@@ -4689,6 +4744,45 @@ const extractInterfaces = (section) => listBlocksFromSection(section, 'interface
   })),
 }));
 
+const extractSignalPorts = (section) => listBlocksFromSection(section, 'signals').map(block => ({
+  name: blockField(block, 'name') || 'signal',
+  direction: blockField(block, 'direction') || blockField(block, 'dir'),
+  width: blockField(block, 'width') || '1',
+  description: blockField(block, 'description', 220),
+}));
+
+const extractReviewInterfaces = (sections, ioSection) => {
+  const canonical = extractInterfaces(ioSection);
+  const generic = (sections || [])
+    .filter(section => section !== ioSection && /(interface|businterfaces|interrupts?)$/i.test(section.key || ''))
+    .flatMap(section => {
+      const busItems = listBlocksFromSection(section);
+      if (busItems.length && /^businterfaces$/i.test(section.key || '')) {
+        return busItems.map(block => ({
+          name: blockField(block, 'name') || ssotTitleFor(section.key),
+          type: blockField(block, 'proto') || blockField(block, 'type') || 'bus',
+          role: blockField(block, 'role'),
+          description: blockField(block, 'description', 260),
+          ports: [],
+        }));
+      }
+      return [{
+        name: ssotTitleFor(section.key),
+        type: sectionFact(section, 'type') || sectionFact(section, 'proto') || 'interface',
+        role: sectionFact(section, 'role'),
+        description: sectionFact(section, 'description', ''),
+        ports: extractSignalPorts(section),
+      }];
+    });
+  const seen = new Set();
+  return [...canonical, ...generic].filter(iface => {
+    const key = `${iface.name}:${iface.type}:${iface.role}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return iface.name || iface.description || (iface.ports || []).length;
+  });
+};
+
 const extractFeatures = (section) => listBlocksFromSection(section).map(block => ({
   name: blockField(block, 'name') || 'Feature',
   trigger: blockField(block, 'trigger', 360),
@@ -4729,24 +4823,77 @@ const extractModuleContracts = (section) => listBlocksFromSection(section, 'modu
   })),
 }));
 
-const extractRegisters = (section) => listBlocksFromSection(section, 'register_list').map(block => ({
-  name: blockField(block, 'name') || 'REG',
-  offset: blockField(block, 'offset'),
-  width: blockField(block, 'width'),
-  access: blockField(block, 'access'),
-  reset: blockField(block, 'reset'),
-  description: blockField(block, 'description', 300),
-  fields: listBlocksFromText(block.text, 'fields').map(field => ({
-    name: blockField(field, 'name') || 'field',
-    access: blockField(field, 'access'),
-    reset: blockField(field, 'reset'),
-    description: blockField(field, 'description', 240),
-  })),
-}));
+const extractRegisters = (section) => {
+  const blocks = [
+    ...listBlocksFromSection(section, 'register_list'),
+    ...listBlocksFromSection(section, 'map'),
+  ];
+  const source = blocks.length ? blocks : listBlocksFromSection(section);
+  return source.map(block => ({
+    name: blockField(block, 'name') || 'REG',
+    offset: blockField(block, 'offset'),
+    width: blockField(block, 'width'),
+    access: blockField(block, 'access'),
+    reset: blockField(block, 'reset'),
+    description: blockField(block, 'description', 300),
+    fields: listBlocksFromText(block.text, 'fields').map(field => ({
+      name: blockField(field, 'name') || 'field',
+      access: blockField(field, 'access'),
+      reset: blockField(field, 'reset'),
+      description: blockField(field, 'description', 240),
+    })),
+  }));
+};
+
+const sourceSectionsForDigestView = (view, sections) => {
+  const source = sectionsForKeys(sections, view && view.keys);
+  const addMatching = (rx) => {
+    (sections || []).forEach(section => {
+      if (rx.test(section.key || '') && !source.includes(section)) source.push(section);
+    });
+  };
+  switch (view && view.id) {
+    case 'interfaces':
+      addMatching(/interface|businterfaces|interrupts?/i);
+      break;
+    case 'registers':
+      addMatching(/register|memory_?map/i);
+      break;
+    case 'clocking':
+      addMatching(/clock|reset|cdc|rdc/i);
+      break;
+    case 'function_model':
+      addMatching(/function|fsm|state|logic|arbitration|ack|interrupt/i);
+      break;
+    case 'cycle_model':
+      addMatching(/cycle|timing|latency|handshake|pipeline|scl/i);
+      break;
+    case 'dataflow':
+      addMatching(/dataflow|flow|fifo|buffer|bit_control|start_stop|open_drain|access/i);
+      break;
+    case 'architecture':
+      addMatching(/sub_?modules|decomposition|module|build/i);
+      break;
+    case 'feature_map':
+      addMatching(/feature|fifo|fsm|arbitration|ack|interrupt|start_stop|open_drain|scl|bit_control|access/i);
+      break;
+    case 'review_gaps':
+    case 'raw_yaml':
+      return sections || [];
+    default:
+      break;
+  }
+  return source;
+};
 
 const digestViewsForSections = (sections) => {
-  const has = (key) => !!sectionByKey(sections, key);
-  return SSOT_DIGEST_VIEWS.filter(view => view.id === 'overview' || view.keys.some(has));
+  if (!(sections || []).length) return [];
+  return SSOT_DIGEST_VIEWS.filter(view => (
+    view.id === 'overview'
+    || view.id === 'review_gaps'
+    || view.id === 'raw_yaml'
+    || sourceSectionsForDigestView(view, sections).length > 0
+  ));
 };
 
 const ssotProgressStatusMap = () => {
@@ -4898,7 +5045,7 @@ const ModuleTree = ({ topName, modules }) => (
 );
 
 const DigestSourceSections = ({ view, sections, statusByKey, t }) => {
-  const source = sectionsForKeys(sections, view.keys);
+  const source = sourceSectionsForDigestView(view, sections);
   if (!source.length) return null;
   return (
     <details style={{
@@ -4940,9 +5087,14 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
   const functionSection = sectionByKey(sections, 'function_model');
   const cycleSection = sectionByKey(sections, 'cycle_model');
   const timingSection = sectionByKey(sections, 'timing');
-  const registersSection = sectionByKey(sections, 'registers');
+  const registersSection = sectionByKey(sections, 'registers')
+    || sectionByKey(sections, 'memoryMap')
+    || sectionByKey(sections, 'memory_map')
+    || (sections || []).find(s => /register|memory_?map/i.test(s.key || ''));
   const dataflowSection = sectionByKey(sections, 'dataflow');
-  const clockSection = sectionByKey(sections, 'clock_reset_domains');
+  const clockSection = sectionByKey(sections, 'clock_reset_domains')
+    || sectionByKey(sections, 'clock_reset')
+    || sectionByKey(sections, 'clocks');
   const cdcSection = sectionByKey(sections, 'cdc_requirements');
   const rdcSection = sectionByKey(sections, 'rdc_requirements');
   const memorySection = sectionByKey(sections, 'memory');
@@ -4950,10 +5102,30 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
   const fsmSection = sectionByKey(sections, 'fsm');
   const errorsSection = sectionByKey(sections, 'errors') || sectionByKey(sections, 'error_handling');
 
-  const interfaces = extractInterfaces(io);
-  const features = extractFeatures(featuresSection);
-  const submods = extractSubmodules(submodsSection);
+  const interfaces = extractReviewInterfaces(sections, io);
+  const parsedFeatures = extractFeatures(featuresSection);
+  const featureSections = (sections || []).filter(section => (
+    section !== featuresSection
+    && /feature|fifo|fsm|generation|arbitration|ack|interrupt|open_drain|access|bit_control|start_stop/i.test(section.key || '')
+  ));
+  const features = parsedFeatures.length ? parsedFeatures : featureSections.slice(0, 12).map(section => ({
+    name: ssotTitleFor(section.key),
+    trigger: sectionFact(section, 'trigger') || sectionFact(section, 'condition') || sectionFact(section, 'source'),
+    datapath: sectionFact(section, 'datapath') || sectionFact(section, 'description') || sectionFact(section, 'implementation') || sectionFact(section, 'logic'),
+    control: sectionFact(section, 'control') || sectionFact(section, 'response') || sectionFact(section, 'timing'),
+    output: sectionFact(section, 'output') || sectionFact(section, 'result') || sectionFact(section, 'description'),
+    sourceKey: section.key,
+  }));
+  const rawSubmods = extractSubmodules(submodsSection);
   const moduleContracts = extractModuleContracts(decompSection);
+  const submods = rawSubmods.length ? rawSubmods : moduleContracts.map(contract => ({
+    name: contract.module,
+    file: '',
+    description: contract.implementation,
+    implements: contract.owns,
+    sourceSections: [],
+    interfaces: contract.interfaces,
+  }));
   const contractByModule = moduleContracts.reduce((acc, contract) => {
     if (contract.module) acc[contract.module] = contract;
     return acc;
@@ -4983,7 +5155,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
   const latencyGroups = mapGroupsFromSection(cycleSection, 'latency');
   const handshakeRules = listBlocksFromSection(cycleSection, 'handshake_rules');
   const pipeline = listBlocksFromSection(cycleSection, 'pipeline');
-  const topName = sectionFact(top, 'name', 'SSOT');
+  const topName = sectionFact(top, 'name') || sectionFact(top, 'module') || (top && top.value) || 'SSOT';
 
   const header = (
     <div style={{ marginBottom: 12 }}>
@@ -4996,22 +5168,92 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
     </div>
   );
 
+  const featureTokens = (feature) => String([
+    feature && feature.name,
+    feature && feature.sourceKey,
+    feature && feature.trigger,
+    feature && feature.datapath,
+  ].filter(Boolean).join(' '))
+    .toLowerCase()
+    .split(/[^a-z0-9_]+/)
+    .filter(token => token.length > 2 && !['the', 'and', 'with', 'for'].includes(token))
+    .slice(0, 8);
+
+  const matchesFeature = (text, tokens) => {
+    const hay = String(text || '').toLowerCase();
+    return (tokens || []).some(token => hay.includes(token));
+  };
+
+  const namesForFeature = (rows, tokens, nameOf, textOf, limit = 5) => (rows || [])
+    .filter(row => matchesFeature(textOf(row), tokens))
+    .map(nameOf)
+    .filter(Boolean)
+    .slice(0, limit);
+
+  const semanticSectionNames = (rx, limit = 6) => (sections || [])
+    .filter(section => rx.test(section.key || ''))
+    .map(section => ssotTitleFor(section.key))
+    .slice(0, limit);
+
+  const statusForPresence = (present) => present ? 'approved' : 'pending';
+  const coverageRows = [
+    { label: 'Top module', status: statusForPresence(!!top), detail: topName },
+    { label: 'Feature map', status: statusForPresence(features.length > 0), detail: `${features.length} features` },
+    { label: 'Architecture', status: statusForPresence(submods.length > 0 || moduleContracts.length > 0), detail: `${submods.length || moduleContracts.length} modules` },
+    { label: 'Interfaces', status: statusForPresence(interfaces.length > 0), detail: `${interfaces.length} interfaces` },
+    { label: 'Function model', status: statusForPresence(!!functionSection || semanticSectionNames(/function|fsm|logic|state/i, 1).length > 0), detail: functionSection ? 'function_model' : compactDigestItems(semanticSectionNames(/function|fsm|logic|state/i, 3), 3) },
+    { label: 'Cycle model', status: statusForPresence(!!cycleSection || !!timingSection || semanticSectionNames(/cycle|timing|latency|scl/i, 1).length > 0), detail: cycleSection ? 'cycle_model' : compactDigestItems(semanticSectionNames(/cycle|timing|latency|scl/i, 3), 3) },
+    { label: 'Register map', status: statusForPresence(registers.length > 0), detail: `${registers.length} registers` },
+    { label: 'Dataflow', status: statusForPresence(dataflowGroups.length > 0 || semanticSectionNames(/dataflow|flow|fifo|buffer|open_drain|access/i, 1).length > 0), detail: dataflowGroups.length ? `${dataflowGroups.length} flows` : compactDigestItems(semanticSectionNames(/dataflow|flow|fifo|buffer|open_drain|access/i, 3), 3) },
+  ];
+
   const renderOverview = () => (
-    <DigestCard title="Brief" meta={top ? `line ${top.startLine}` : ''}>
-      <div style={{ color: 'var(--magenta)', fontWeight: 900, fontSize: 18, letterSpacing: 0, marginBottom: 4 }}>
-        {topName}
+    <>
+      {header}
+      <div style={{ display: 'grid', gap: 10 }}>
+        <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
+          <DigestCard title="Top Module" meta={top ? `line ${top.startLine}` : ''}>
+            <DigestKV rows={[
+              ['name', topName],
+              ['type', sectionFact(top, 'type')],
+              ['clock', sectionFact(top, 'clock_freq_mhz') ? `${sectionFact(top, 'clock_freq_mhz')} MHz` : sectionFact(clockSection, 'frequency_hz')],
+              ['purpose', trimSsotValue(sectionFact(top, 'description', 'No top_module.description available yet.'), 300)],
+            ]} />
+          </DigestCard>
+          <DigestCard title="Review Coverage" meta={`${sections.length} sections`}>
+            <div style={{ display: 'grid', gap: 5 }}>
+              {coverageRows.map(row => (
+                <div key={row.label} style={{ display: 'grid', gridTemplateColumns: '118px minmax(0, 1fr)', gap: 8, alignItems: 'center' }}>
+                  <AtlasStatusBadge status={row.status} label={row.label} compact soft />
+                  <span className="trunc" style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10 }}>{row.detail || '-'}</span>
+                </div>
+              ))}
+            </div>
+          </DigestCard>
+        </div>
+        <DigestCard title="Architecture" meta={`${submods.length} submodules`}>
+          {submods.length ? <ModuleTree topName={topName} modules={submods.slice(0, 10)} /> : (
+            <DigestList items={moduleContracts.map(contract => `${contract.module}: ${compactDigestItems(contract.owns, 4)}`)} />
+          )}
+        </DigestCard>
+        <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
+          <DigestCard title="Features" meta={`${features.length} items`}>
+            <DigestList items={features.map(f => `${f.name}${f.datapath ? ` - ${trimSsotValue(f.datapath, 90)}` : ''}`)} limit={6} />
+          </DigestCard>
+          <DigestCard title="Interfaces" meta={`${interfaces.length} interfaces`}>
+            <DigestList items={interfaces.map(iface => `${iface.name}${iface.type ? ` (${iface.type})` : ''}${iface.ports.length ? ` · ${iface.ports.length} ports` : ''}`)} limit={6} />
+          </DigestCard>
+          <DigestCard title="Registers / Dataflow" meta={`${registers.length} regs`}>
+            <DigestKV rows={[
+              ['registers', compactDigestItems(registers.map(reg => `${reg.name}${reg.offset ? ` @ ${reg.offset}` : ''}`), 5)],
+              ['dataflow', compactDigestItems(dataflowGroups.map(g => ssotTitleFor(g.key)), 5) || compactDigestItems(semanticSectionNames(/dataflow|flow|fifo|buffer|open_drain|access/i, 5), 5)],
+              ['function', sectionFact(functionSection, 'purpose') || compactDigestItems(semanticSectionNames(/function|fsm|logic|state/i, 4), 4)],
+              ['cycle', sectionFact(cycleSection, 'purpose') || compactDigestItems(semanticSectionNames(/cycle|timing|latency|scl/i, 4), 4)],
+            ]} />
+          </DigestCard>
+        </div>
       </div>
-      <div style={{ color: 'var(--fg)', lineHeight: 1.45, marginBottom: 10, maxWidth: 920 }}>
-        {trimSsotValue(sectionFact(top, 'description', 'No top_module.description available yet.'), 260)}
-      </div>
-      <DigestKV rows={[
-        ['type', sectionFact(top, 'type')],
-        ['clock', sectionFact(top, 'clock_freq_mhz') ? `${sectionFact(top, 'clock_freq_mhz')} MHz` : ''],
-        ['features', compactDigestItems(features.map(f => f.name), 5)],
-        ['interfaces', compactDigestItems(interfaces.map(iface => `${iface.name}${iface.type ? ` (${iface.type})` : ''}`), 4)],
-        ['modules', compactDigestItems(submods.map(m => m.name), 6)],
-      ]} />
-    </DigestCard>
+    </>
   );
 
   const renderFeatures = () => (
@@ -5031,13 +5273,80 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
     </>
   );
 
+  const renderFeatureMap = () => (
+    <>
+      {header}
+      <div style={{ display: 'grid', gap: 10 }}>
+        {features.length ? features.map(feature => {
+          const tokens = featureTokens(feature);
+          const ownedModules = namesForFeature(
+            submods,
+            tokens,
+            row => row.name,
+            row => [row.name, row.description, ...(row.implements || []), ...(row.sourceSections || [])].join(' '),
+          );
+          const contractModules = namesForFeature(
+            moduleContracts,
+            tokens,
+            row => row.module,
+            row => [row.module, row.implementation, ...(row.owns || []), ...(row.inputs || []), ...(row.outputs || [])].join(' '),
+          );
+          const relatedRegisters = namesForFeature(
+            registers,
+            tokens,
+            row => `${row.name}${row.offset ? ` @ ${row.offset}` : ''}`,
+            row => [row.name, row.description, ...(row.fields || []).map(field => `${field.name} ${field.description}`)].join(' '),
+          );
+          const relatedFlows = namesForFeature(
+            dataflowGroups,
+            tokens,
+            row => ssotTitleFor(row.key),
+            row => `${row.key} ${row.text}`,
+          );
+          const relatedFunction = namesForFeature(
+            transactions,
+            tokens,
+            row => blockField(row, 'id') || blockField(row, 'name'),
+            row => row.text,
+          );
+          const relatedCycle = namesForFeature(
+            [...latencyGroups, ...handshakeRules, ...pipeline],
+            tokens,
+            row => row.key || blockField(row, 'signal') || blockField(row, 'stage') || blockField(row, 'name'),
+            row => row.text,
+          );
+          const modules = compactDigestItems([...new Set([...ownedModules, ...contractModules])], 5);
+          return (
+            <DigestCard key={feature.name} title={feature.name} meta={feature.sourceKey || feature.trigger}>
+              <DigestKV rows={[
+                ['what', feature.datapath || feature.output || feature.trigger],
+                ['implemented by', modules || compactDigestItems(featureSections.filter(section => matchesFeature(section.text, tokens)).map(section => ssotTitleFor(section.key)), 5)],
+                ['submodule direction', compactDigestItems(moduleContracts.filter(contract => matchesFeature(contract.implementation, tokens)).map(contract => `${contract.module}: ${trimSsotValue(contract.implementation, 90)}`), 2)],
+                ['control path', feature.control || compactDigestItems(relatedRegisters, 4)],
+                ['function model', compactDigestItems(relatedFunction, 4) || sectionFact(functionSection, 'purpose')],
+                ['cycle model', compactDigestItems(relatedCycle, 4) || sectionFact(cycleSection, 'purpose')],
+                ['registers', compactDigestItems(relatedRegisters, 5)],
+                ['dataflow', compactDigestItems(relatedFlows, 5)],
+                ['observable output', feature.output],
+              ]} />
+            </DigestCard>
+          );
+        }) : (
+          <DigestCard title="Feature Map">
+            <DigestEmpty text="No feature-level entries were found. Review Gaps shows which anchors are missing." />
+          </DigestCard>
+        )}
+      </div>
+    </>
+  );
+
   const renderArchitecture = () => (
     <>
       {header}
       <div style={{ display: 'grid', gap: 10 }}>
-        <DigestCard title="Module Tree" meta={`${sectionFact(top, 'name', 'top')} + ${submods.length} submodules`}>
+        <DigestCard title="Module Tree" meta={`${topName} + ${submods.length} submodules`}>
           {submods.length ? (
-            <ModuleTree topName={sectionFact(top, 'name', 'top')} modules={submods} />
+            <ModuleTree topName={topName} modules={submods} />
           ) : <DigestEmpty />}
         </DigestCard>
         <DigestCard title="Module Split" meta={`${submods.length} submodules`}>
@@ -5248,6 +5557,67 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
     </>
   );
 
+  const renderReviewGaps = () => {
+    const explicitGaps = (sections || []).flatMap(section => (
+      ((section.summary && section.summary.gaps) || []).map(gap => ({
+        key: section.key,
+        line: gap.line,
+        text: gap.text,
+      }))
+    ));
+    const missing = coverageRows.filter(row => row.status !== 'approved');
+    return (
+      <>
+        {header}
+        <div style={{ display: 'grid', gap: 10 }}>
+          <DigestCard title="Review Coverage" meta={`${coverageRows.length} anchors`}>
+            <div style={{ display: 'grid', gap: 6 }}>
+              {coverageRows.map(row => (
+                <div key={row.label} style={{
+                  display: 'grid', gridTemplateColumns: '150px minmax(0, 1fr)',
+                  gap: 8, alignItems: 'center', borderBottom: '1px solid var(--line)', paddingBottom: 5,
+                }}>
+                  <AtlasStatusBadge status={row.status} label={row.label} compact soft />
+                  <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 11, minWidth: 0, wordBreak: 'break-word' }}>
+                    {row.detail || '-'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </DigestCard>
+          <DigestCard title="Missing Anchors" meta={`${missing.length} missing`}>
+            {missing.length ? (
+              <DigestList items={missing.map(row => `${row.label}: ${row.detail || 'not found'}`)} />
+            ) : <DigestEmpty text="All core review anchors have structured SSOT coverage." />}
+          </DigestCard>
+          <DigestCard title="Open Flags" meta={`${explicitGaps.length} flags`}>
+            {explicitGaps.length ? (
+              <div style={{ display: 'grid', gap: 7 }}>
+                {explicitGaps.slice(0, 18).map(gap => (
+                  <div key={`${gap.key}:${gap.line}:${gap.text}`} style={{ borderLeft: '2px solid var(--warn)', paddingLeft: 8 }}>
+                    <div style={{ color: 'var(--warn)', fontFamily: 'var(--mono)', fontSize: 10 }}>{ssotTitleFor(gap.key)} · line {gap.line}</div>
+                    <div style={{ marginTop: 2 }}>{gap.text}</div>
+                  </div>
+                ))}
+              </div>
+            ) : <DigestEmpty text="No TBD, TODO, placeholder, pending, null, or unspecified markers detected." />}
+          </DigestCard>
+        </div>
+      </>
+    );
+  };
+
+  const renderRawYaml = () => (
+    <>
+      {header}
+      <DigestCard title="Raw YAML" meta={`${sections.length} sections`}>
+        <pre className="tool-output-pre language-yaml" style={{
+          maxHeight: 'none', margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+        }}>{(sections || []).map(section => section.text).join('\n\n')}</pre>
+      </DigestCard>
+    </>
+  );
+
   const renderGeneric = (title, sourceSections) => (
     <>
       {header}
@@ -5255,23 +5625,26 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
     </>
   );
 
-  const sourceSections = sectionsForKeys(sections, view.keys);
+  const sourceSections = sourceSectionsForDigestView(view, sections);
   let body;
   if (view.id === 'overview') body = renderOverview();
   else if (view.id === 'features') body = renderFeatures();
   else if (view.id === 'architecture') body = renderArchitecture();
+  else if (view.id === 'feature_map') body = renderFeatureMap();
   else if (view.id === 'function_model') body = renderFunctionModel();
   else if (view.id === 'cycle_model') body = renderCycleModel();
   else if (view.id === 'interfaces') body = renderInterfaces();
   else if (view.id === 'registers') body = renderRegisters();
   else if (view.id === 'dataflow') body = renderDataflow();
   else if (view.id === 'clocking') body = renderClocking();
+  else if (view.id === 'review_gaps') body = renderReviewGaps();
+  else if (view.id === 'raw_yaml') body = renderRawYaml();
   else body = renderGeneric(view.label, sourceSections);
 
   return (
     <>
       {body}
-      {!['architecture', 'overview'].includes(view.id) ? (
+      {!['architecture', 'overview', 'review_gaps', 'raw_yaml'].includes(view.id) ? (
         <DigestSourceSections view={view} sections={sections} statusByKey={statusByKey} t={t} />
       ) : null}
     </>
@@ -5331,6 +5704,7 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
   });
   const content = selected ? (ssotResource.body || '') : '';
   const loading = !!selected && !!ssotResource.loading;
+  const ssotHasContent = !!content.trim();
   const showLoading = loading && !content.trim();
 
   React.useEffect(() => {
@@ -5388,10 +5762,11 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
             letterSpacing: '0.08em', textTransform: 'uppercase',
           }}>{t.title}</div>
           <div className="mute trunc" style={{ marginTop: 3, fontSize: 11, fontFamily: 'var(--mono)' }}>
-            {selected || t.file} · {loading ? 'loading' : `${sections.length} ${t.sections}`} · {approvedCount} {t.approved} · {flagCount} {t.flags}
+            {selected || t.file} · {loading ? (ssotHasContent ? 'refreshing' : 'loading') : `${sections.length} ${t.sections}`} · {approvedCount} {t.approved} · {flagCount} {t.flags}
           </div>
         </div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', minWidth: 0 }}>
+          {loading ? <AtlasStatusBadge status={ssotHasContent ? 'refreshing' : 'loading'} compact /> : null}
           <select
             value={selected}
             onChange={e => setSelected(e.target.value)}
@@ -5424,18 +5799,21 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
           padding: '10px 8px',
         }}>
           {digestViews.map((view, idx) => {
-            const sourceSections = sectionsForKeys(sections, view.keys);
+            const sourceSections = sourceSectionsForDigestView(view, sections);
             const gaps = sourceSections.reduce((sum, section) => sum + ((section.summary && section.summary.gaps.length) || 0), 0);
             const approved = sourceSections.length > 0 && sourceSections.every(section => ssotSectionStatus(section, statusByKey) === 'approved');
             const status = gaps ? 'needs review' : approved ? 'approved' : 'review';
             const activeRow = activeView && activeView.id === view.id;
             const color = ssotStatusColor(status);
+            const sourceLabel = sourceSections.length
+              ? compactDigestItems(sourceSections.map(section => section.key), 4)
+              : (view.keys.join(' + ') || 'all sections');
             return (
               <button
                 key={view.id + ':' + idx}
                 type="button"
                 onClick={() => setActiveKey(view.id)}
-                title={`${view.keys.join(', ')} · ${status}`}
+                title={`${sourceLabel} · ${status}`}
                 style={{
                   width: '100%', textAlign: 'left', display: 'grid',
                   gridTemplateColumns: '22px minmax(0, 1fr) auto',
@@ -5455,7 +5833,7 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
                     {view.label}
                   </span>
                   <span className="trunc" style={{ display: 'block', fontSize: 10, color: 'var(--fg-mute)' }}>
-                    {view.keys.join(' + ')}
+                    {sourceLabel}
                   </span>
                 </span>
                 <span style={{
@@ -6036,18 +6414,19 @@ const TodoPanel = () => {
   // pending/active/done used by this UI; the renderer below also keeps
   // explicit cases for the raw statuses so live updates render right.
   const stateCfg = (s) => {
+    const meta = atlasStatusMeta(s);
     switch (s) {
       // Auto-finished by the agent (no explicit human nod)
-      case 'done':        return { glyph: '☑', color: '#3fb950', label: 'done' };
-      case 'completed':   return { glyph: '✓', color: '#3fb950', label: 'completed' };
+      case 'done':        return { glyph: meta.glyph, color: meta.color, label: meta.label };
+      case 'completed':   return { glyph: meta.glyph, color: meta.color, label: meta.label };
       // Explicitly approved by a human — distinct glyph + accent
       // colour so the pending/approved distinction reads at a glance
-      case 'approved':    return { glyph: '★', color: 'var(--accent, #58a6ff)', label: 'approved' };
-      case 'active':      return { glyph: '◉', color: '#58a6ff', label: 'in-progress' };
-      case 'in_progress': return { glyph: '◉', color: '#58a6ff', label: 'in-progress' };
-      case 'rejected':    return { glyph: '✕', color: '#f85149', label: 'rejected' };
+      case 'approved':    return { glyph: meta.glyph, color: meta.color, label: meta.label };
+      case 'active':      return { glyph: meta.glyph, color: meta.color, label: 'in-progress' };
+      case 'in_progress': return { glyph: meta.glyph, color: meta.color, label: meta.label };
+      case 'rejected':    return { glyph: meta.glyph, color: meta.color, label: meta.label };
       // Hollow square + warm warn-yellow so it never reads as "done"
-      case 'pending':     return { glyph: '☐', color: '#e8a82a', label: 'pending' };
+      case 'pending':     return { glyph: meta.glyph, color: meta.color, label: meta.label };
       default:            return { glyph: '☐', color: 'var(--fg-mute)', label: s || '?' };
     }
   };
@@ -6127,10 +6506,7 @@ const TodoPanel = () => {
         {['in-progress','pending','done','approved','completed','rejected'].filter(k => counts[k]).map(k => {
           const c = stateCfg(k === 'done' ? 'done' : k.replace('-', '_'));
           return (
-            <span key={k} style={{
-              fontSize: 10, padding: '1px 6px', borderRadius: 8,
-              border: `1px solid ${c.color}`, color: c.color,
-            }}>{counts[k]} {k}</span>
+            <AtlasStatusBadge key={k} status={k} label={c.label} count={counts[k]} compact soft />
           );
         })}
         <span style={{ flex: 1 }} />
@@ -6218,10 +6594,9 @@ const TodoPanel = () => {
                       }}
                     >
                       <span>{collapsed ? '▸' : '▾'}</span>
-                      <span>{labels[g]}</span>
+                      <AtlasStatusBadge status={g} label={labels[g]} count={items.length} compact />
                       <span style={{ flex: 1, height: 1, background: 'var(--line)',
-                                       opacity: 0.5, marginLeft: 6 }} />
-                      <span className="mute">{items.length}</span>
+                                      opacity: 0.5, marginLeft: 6 }} />
                     </div>
                     {!collapsed && items.map(t => {
                       const tcfg = stateCfg(t.state);
@@ -6231,7 +6606,7 @@ const TodoPanel = () => {
                           <div
                             onClick={() => setOpenId(open ? null : t.id)}
                             style={{
-                              display: 'grid', gridTemplateColumns: '24px 36px 1fr 16px',
+                              display: 'grid', gridTemplateColumns: '96px 36px minmax(0, 1fr) 16px',
                               alignItems: 'baseline', gap: 6, padding: '4px 12px',
                               cursor: 'pointer', fontFamily: 'var(--mono)', fontSize: 12,
                               background: t.state === 'active' || t.state === 'in_progress'
@@ -6241,7 +6616,7 @@ const TodoPanel = () => {
                                 ? '2px solid var(--accent)' : '2px solid transparent',
                             }}
                           >
-                            <span style={{ color: tcfg.color, fontSize: 13 }}>{tcfg.glyph}</span>
+                            <AtlasStatusBadge status={t.state} label={tcfg.label} compact soft />
                             <span className="mute" style={{ fontSize: 11 }}>{t.section}</span>
                             <span style={{ color: t.state === 'pending' ? 'var(--fg-mute)' : 'var(--fg)' }}>{t.title}</span>
                             <span className="mute" style={{ fontSize: 10 }}>{open ? '▾' : '▸'}</span>
@@ -6284,7 +6659,7 @@ const TodoPanel = () => {
                   borderLeft: t.state === 'active' ? '2px solid var(--accent)' : '2px solid transparent',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                    <span style={{ fontSize: 14, color: cfg.color }}>{cfg.glyph}</span>
+                    <AtlasStatusBadge status={t.state} label={cfg.label} compact soft />
                     <span className="mute" style={{ fontSize: 11 }}>{t.section}</span>
                     <span style={{ fontWeight: t.state === 'active' ? 500 : 400, flex: 1, fontSize: 12 }}>{t.title}</span>
                   </div>
@@ -6335,10 +6710,18 @@ const TodoGraph = ({ todos, openId, setOpenId }) => {
     });
   });
 
-  const stateCfg = (s) =>
-    s === 'done'   ? { fill: 'color-mix(in oklch, var(--ok) 14%, transparent)',     stroke: 'var(--ok)',     glyph: '✓', color: 'var(--ok)' } :
-    s === 'active' ? { fill: 'color-mix(in oklch, var(--accent) 14%, transparent)', stroke: 'var(--accent)', glyph: '●', color: 'var(--accent)' } :
-                     { fill: 'transparent',                                          stroke: 'var(--line)',   glyph: '○', color: 'var(--fg-mute)' };
+  const stateCfg = (s) => {
+    const meta = atlasStatusMeta(s);
+    const activeish = ['active', 'in_progress', 'running'].includes(normalizeAtlasStatus(s));
+    const doneish = ['done', 'completed', 'approved'].includes(normalizeAtlasStatus(s));
+    const errish = ['rejected', 'error', 'blocked'].includes(normalizeAtlasStatus(s));
+    return {
+      fill: activeish || doneish || errish ? `color-mix(in oklch, ${meta.color} 14%, transparent)` : 'transparent',
+      stroke: activeish || doneish || errish ? meta.color : 'var(--line)',
+      glyph: meta.glyph,
+      color: meta.color,
+    };
+  };
 
   return (
     <div style={{ padding: 12 }}>
@@ -6739,6 +7122,8 @@ const PreviewPane = ({ path, onClose }) => {
     ? 'Preview needs one concrete file path; glob patterns are not previewable.'
     : resource.err;
   const loading = !hasGlobPath && !!resource.loading;
+  const hasBody = !!String(body || '').trim();
+  const blockingLoading = loading && !hasBody;
   const highlightTooLarge = !isMarkdown && body.length > 60000;
   const canHighlight = !isMarkdown && !highlightTooLarge && lang !== 'none';
   const [highlightedHtml, setHighlightedHtml] = React.useState('');
@@ -6804,6 +7189,7 @@ const PreviewPane = ({ path, onClose }) => {
         {highlightTooLarge && <><span className="mute">·</span><span className="warn">syntax highlight skipped for speed</span></>}
         {canHighlight && !highlightedHtml && !loading && body && <><span className="mute">·</span><span className="warn">syntax pending</span></>}
         {hasGlobPath && <><span className="mute">·</span><span className="warn">glob path</span></>}
+        {loading && <AtlasStatusBadge status={hasBody ? 'refreshing' : 'loading'} compact soft />}
         <span style={{ flex: 1 }} />
         <span onClick={() => reloadPreview(true)} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>refresh</span>
         <span onClick={copyAll}  style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy</span>
@@ -6818,7 +7204,7 @@ const PreviewPane = ({ path, onClose }) => {
           fontFamily: 'var(--mono)',
           fontSize: 10,
         }}>
-          preview error: {err}
+          <AtlasStatusBadge status="error" label="preview error" compact /> <span style={{ marginLeft: 8 }}>{err}</span>
         </div>
       )}
       {/* code body — theme-aware background so light mode stays light.
@@ -6827,7 +7213,7 @@ const PreviewPane = ({ path, onClose }) => {
           code-fence/table styling used for the agent's chat replies
           applies to README/guide files in the preview tab. */}
       <div style={{ flex: 1, minHeight: 0, overflow: 'auto', background: isMarkdown ? 'var(--bg)' : 'var(--bg-3)' }}>
-        {loading ? (
+        {blockingLoading ? (
           <div style={{ padding: 16, color: 'var(--fg-mute)', fontFamily: 'var(--code-font, var(--mono))', fontSize: 12 }}>
             loading {path}…
           </div>
