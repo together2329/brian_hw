@@ -722,6 +722,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // (Chat / Preview / Q&A tab strip with auto-switch). Comes from the
   // server hello payload (driven by ATLAS_CENTER_LAYOUT in .config).
   const [centerLayout, setCenterLayout] = React.useState('classic');
+  const [chatFeedSummary, setChatFeedSummary] = React.useState(
+    () => window.ATLAS_CHAT_FEED_SUMMARY !== false
+  );
   // qaState is keyed by flow_id. Dynamic flows are added on-the-fly
   // when the agent emits an ask_user event over the WS.
   const [qaState, setQaState] = React.useState({});
@@ -896,6 +899,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
 
   React.useEffect(() => {
     const onData = (ev) => {
+      if (ev.detail === 'CONTEXT') {
+        setChatFeedSummary(window.ATLAS_CHAT_FEED_SUMMARY !== false);
+      }
       if (ev.detail === 'CONTEXT' || ev.detail === 'FLOW_STAGES') {
         const backendWorkflow = (window.CONTEXT && window.CONTEXT.workspace) || '';
         const activeWorkflow = workflowFromSession(window.ACTIVE_SESSION || '');
@@ -1327,6 +1333,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     subs.push(window.backend.subscribe('hello', (m) => {
       if (m && (m.center_layout === 'tabbed' || m.center_layout === 'classic')) {
         setCenterLayout(m.center_layout);
+      }
+      if (m && typeof m.chat_feed_summary === 'boolean') {
+        window.ATLAS_CHAT_FEED_SUMMARY = m.chat_feed_summary;
+        setChatFeedSummary(m.chat_feed_summary);
       }
       if (m && typeof m.running === 'boolean') {
         setStreaming(!!m.running);
@@ -2040,12 +2050,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       const nxt = feed[i + 1];
       if (cur && cur.kind === 'action' && nxt && nxt.kind === 'obs'
           && cur.tool && nxt.tool && cur.tool === nxt.tool) {
-        out.push(<ToolCard key={i} action={cur} obs={nxt} />);
+        out.push(<ToolCard key={i} action={cur} obs={nxt} summaryMode={chatFeedSummary} />);
         i++;
         continue;
       }
       if (cur && cur.kind === 'action' && cur.tool) {
-        out.push(<ToolCard key={i} action={cur} obs={null} />);
+        out.push(<ToolCard key={i} action={cur} obs={null} summaryMode={chatFeedSummary} />);
         continue;
       }
       out.push(
@@ -2057,6 +2067,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
           onCustom={setCustom}
           onSubmit={submitCard}
           dir={dir}
+          summaryMode={chatFeedSummary}
         />
       );
     }
@@ -2839,33 +2850,34 @@ const RightTab = ({ id, cur, onTab, children }) => (
 );
 
 // ── Feed entry: dispatcher ─────────────────────────────────────────
-const CollapsibleThought = ({ text }) => {
+const CollapsibleThought = ({ text, summaryMode = true }) => {
   // Default state: show only the LAST ~5 lines, dimmed. Reasoning is
   // valuable as a tail (what the agent just decided), but the early
   // chain-of-thought lines are usually scaffolding the user doesn't
   // need to read. Click to expand for the full text.
   const TAIL_LINES = 5;
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(!summaryMode);
   const lines = text.split('\n').filter(l => l.trim());
   const tail = lines.slice(-TAIL_LINES);
   const hidden = Math.max(0, lines.length - TAIL_LINES);
+  const collapsed = summaryMode && !open;
   return (
     <div
       className="react-block thought"
       style={{ cursor: 'pointer', opacity: 0.62 /* dim */ }}
       onClick={() => setOpen(o => !o)}
-      title={open ? 'click to collapse' : 'click to expand full reasoning'}
+      title={collapsed ? 'click to expand full reasoning' : 'click to collapse'}
     >
       <span className="rb-tag">
         thought{lines.length > 1 && ` (${lines.length})`}
-        {!open && hidden > 0 && (
+        {collapsed && hidden > 0 && (
           <span className="mute" style={{ marginLeft: 6, fontSize: 10, fontWeight: 400 }}>
             · +{hidden} earlier · click to expand
           </span>
         )}
       </span>
       <span style={{ whiteSpace: 'pre-wrap' }}>
-        {open ? text : tail.join('\n')}
+        {collapsed ? tail.join('\n') : text}
       </span>
     </div>
   );
@@ -2881,7 +2893,7 @@ const CollapsibleThought = ({ text }) => {
 // Optional `embedded` prop: when true, render WITHOUT the outer
 // react-block wrapper (used by ToolCard which provides its own
 // outer container).
-const ObsCard = ({ entry, embedded }) => {
+const ObsCard = ({ entry, embedded, summaryMode = true }) => {
   // Expanded by default — chat log was losing too much info when
   // collapsed (Read results, command output, etc. were hidden behind
   // a one-line header so the user couldn't follow what the agent did
@@ -2889,7 +2901,7 @@ const ObsCard = ({ entry, embedded }) => {
   // particular result is too long. Single-line obs always renders
   // inline regardless of this state.
   const [open, setOpen] = React.useState(true);
-  let txt = _cleanTodoToolText(entry.text || '', entry.tool);
+  let txt = summaryMode ? _cleanTodoToolText(entry.text || '', entry.tool) : (entry.text || '');
 
   const lines = txt.split('\n');
   const isMulti = lines.length > 1;
@@ -2927,6 +2939,7 @@ const ObsCard = ({ entry, embedded }) => {
       ref={_postProcessMarkdownNode}
     />
   );
+  const useMarkdownResult = summaryMode && _isWorkflowResultTool(entry.tool);
 
   // Status detection — leading ✓/✗ badge so errors stand out
   const status = _obsStatus(txt);
@@ -2974,7 +2987,7 @@ const ObsCard = ({ entry, embedded }) => {
         <span className="mute" style={{ fontSize: 'var(--ui-control-font-size)' }}>{open ? '▾' : '▸'}</span>
       </div>
       {open && (
-        looksLikeDiff || !_isWorkflowResultTool(entry.tool) ? (
+        looksLikeDiff || !useMarkdownResult ? (
           looksLikeDiff ? (
             <pre className="tool-output-pre tool-output-diff">
               {renderBody()}
@@ -2998,12 +3011,13 @@ const ObsCard = ({ entry, embedded }) => {
 // connected card with tool-themed left border + glyph + status badge.
 // Either half can be missing (action-only when blocked, obs-only is
 // uncommon but handled).
-const ToolCard = ({ action, obs }) => {
+const ToolCard = ({ action, obs, summaryMode = true }) => {
   const tool = (action && action.tool) || (obs && obs.tool) || '';
   const theme = _toolTheme(tool);
   // If the obs indicates an error, override the border to red so the
   // eye finds it. Otherwise use the tool theme color.
-  const status = obs ? _obsStatus(obs.text || '') : 'neutral';
+  const obsText = obs ? (summaryMode ? _cleanTodoToolText(obs.text || '', obs.tool) : (obs.text || '')) : '';
+  const status = obs ? _obsStatus(obsText) : 'neutral';
   const borderColor = status === 'err' ? '#f85149' : theme.color;
   const argsText = action && action.text ? action.text.replace(/^▶\s*/, '').replace(new RegExp('^' + tool + '\\s*'), '') : '';
   const ts = (action && action.createdAt) || (obs && obs.createdAt) || 0;
@@ -3019,12 +3033,12 @@ const ToolCard = ({ action, obs }) => {
         {status === 'ok'  && <span className="tool-card-status" style={{ color: '#3fb950' }}>✓</span>}
       </div>
       {obs && <div className="tool-card-sep" />}
-      {obs && <ObsCard entry={obs} embedded={true} />}
+      {obs && <ObsCard entry={obs} embedded={true} summaryMode={summaryMode} />}
     </div>
   );
 };
 
-const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
+const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir, summaryMode = true }) => {
   if (entry.kind === 'user') {
     return (
       <div style={{ padding: '10px 14px', marginBottom: 12, borderLeft: '2px solid var(--accent)', background: 'var(--bg-2)', borderRadius: 2 }}>
@@ -3050,7 +3064,7 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
     );
   }
   if (entry.kind === 'thought') {
-    return <CollapsibleThought text={entry.text || ''} />;
+    return <CollapsibleThought text={entry.text || ''} summaryMode={summaryMode} />;
   }
   if (entry.kind === 'iter_marker') {
     // Thin right-aligned label for the per-iteration banner. Replaces
@@ -3089,7 +3103,7 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
     );
   }
   if (entry.kind === 'obs') {
-    return <ObsCard entry={entry} />;
+    return <ObsCard entry={entry} summaryMode={summaryMode} />;
   }
   // legacy inline (unused — kept so the surrounding block compiles
   // until I fully extract; never reached because of return above)

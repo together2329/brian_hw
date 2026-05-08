@@ -99,6 +99,7 @@
     tokens: 0,
     maxTokens: 0,
   };
+  window.ATLAS_CHAT_FEED_SUMMARY = true;
 
   // Legacy globals retained as empty stubs so workspace.jsx never
   // crashes when it reads them. (Only used by mock-only panels.)
@@ -528,6 +529,9 @@
       const _prev = window.CONTEXT || {};
       const activeWorkflow = activeWorkflowFromSession();
       const backendWorkspace = normalizeSessionName(d.workspace || '');
+      if (typeof d.chat_feed_summary === 'boolean') {
+        window.ATLAS_CHAT_FEED_SUMMARY = d.chat_feed_summary;
+      }
       window.CONTEXT = Object.assign({}, _prev, {
         frontend:    d.frontend  || '',
         model:       d.model     || _prev.model || '—',
@@ -540,6 +544,7 @@
         projectRoot: d.project_root || '',
         cwd:         d.cwd || '',
         pricing:     d.pricing || null,    // {input, cache, output} USD/1M
+        chatFeedSummary: window.ATLAS_CHAT_FEED_SUMMARY !== false,
         // Token counts: only seed from /healthz when cost.json is on
         // disk (d.tokens_* is non-null). Otherwise PRESERVE whatever
         // the live WS 'cost' subscription has accumulated this session

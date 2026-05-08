@@ -129,6 +129,10 @@ def load_env_file(force_reload: bool = False):
                 os.environ[key] = value
 
 
+def _env_bool(name: str, default: str = "false") -> bool:
+    return os.getenv(name, default).strip().lower() in ("true", "1", "yes", "on")
+
+
 def _refresh_runtime_globals():
     """Re-derive the module-level config globals from current os.environ.
 
@@ -150,6 +154,9 @@ def _refresh_runtime_globals():
         g['BASE_URL'] = os.getenv("AZURE_OPENAI_ENDPOINT", "").rstrip("/")
         if os.getenv("AZURE_OPENAI_API_KEY"):
             g['API_KEY'] = os.getenv("AZURE_OPENAI_API_KEY", "")
+    layout = os.getenv("ATLAS_CENTER_LAYOUT", "classic").lower()
+    g['ATLAS_CENTER_LAYOUT'] = layout if layout in ("classic", "tabbed") else "classic"
+    g['ATLAS_CHAT_FEED_SUMMARY'] = _env_bool("ATLAS_CHAT_FEED_SUMMARY", "true")
 
 
 def reload_env() -> bool:
@@ -1302,6 +1309,11 @@ ATLAS_UI_PORT = int(os.getenv("ATLAS_UI_PORT", "8765"))
 ATLAS_CENTER_LAYOUT = os.getenv("ATLAS_CENTER_LAYOUT", "classic").lower()
 if ATLAS_CENTER_LAYOUT not in ("classic", "tabbed"):
     ATLAS_CENTER_LAYOUT = "classic"
+
+# Atlas chat feed cleanup layer:
+#   true  = concise reasoning tail + cleaned todo/tool summaries (default)
+#   false = show rawer reasoning/tool output for debugging the transcript
+ATLAS_CHAT_FEED_SUMMARY = _env_bool("ATLAS_CHAT_FEED_SUMMARY", "true")
 
 # sim_debug elaboration backend: "pyslang" | "verilator" | "slang"
 # Used by /api/hierarchy and /api/trace. Override via the

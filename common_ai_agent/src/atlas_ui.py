@@ -484,6 +484,7 @@ def create_app():
             info["provider"] = getattr(_cfg, "LLM_PROVIDER", "")
             info["max_context"] = getattr(_cfg, "MAX_CONTEXT_TOKENS", 0)
             info["max_iterations"] = getattr(_cfg, "MAX_ITERATIONS", 0)
+            info["chat_feed_summary"] = bool(getattr(_cfg, "ATLAS_CHAT_FEED_SUMMARY", True))
             # Resolve the "active session" the user is looking at. When
             # the agent boots WITHOUT -w, ACTIVE_WORKSPACE is unset but
             # the session still maps to .session/default/. Prefer the
@@ -9287,14 +9288,22 @@ def create_app():
         _ensure_broadcaster()
         # Greeting — surface user-tunable layout settings so the frontend
         # can pick its center-column shape (classic vs tabbed Chat/Preview/Q&A).
+        _center_layout = "classic"
+        _chat_feed_summary = True
         try:
             import src.config as _cfg_hello
+            try:
+                _cfg_hello.reload_env()
+            except Exception:
+                pass
             _center_layout = getattr(_cfg_hello, "ATLAS_CENTER_LAYOUT", "classic")
+            _chat_feed_summary = bool(getattr(_cfg_hello, "ATLAS_CHAT_FEED_SUMMARY", True))
         except Exception:
-            _center_layout = "classic"
+            pass
         await websocket.send_json({"type": "hello", "frontend": "atlas",
                                     "running": bridge.agent_running,
-                                    "center_layout": _center_layout})
+                                    "center_layout": _center_layout,
+                                    "chat_feed_summary": _chat_feed_summary})
         for pending_event in bridge.pending_ask_user_events():
             await websocket.send_json(pending_event)
         try:
