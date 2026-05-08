@@ -668,13 +668,15 @@ def create_app():
         target = _safe(path)
         if target is None or not target.is_file():
             return JSONResponse({"error": "not found"}, status_code=404)
-        stat = target.stat()
-        truncated = stat.st_size > MAX_READ_BYTES
         try:
-            data = target.read_bytes()[:MAX_READ_BYTES]
-            content = data.decode("utf-8", errors="replace")
+            def _read_preview():
+                stat = target.stat()
+                data = target.read_bytes()[:MAX_READ_BYTES]
+                return stat, data.decode("utf-8", errors="replace")
+            stat, content = await asyncio.to_thread(_read_preview)
         except OSError as e:
             return JSONResponse({"error": str(e)}, status_code=500)
+        truncated = stat.st_size > MAX_READ_BYTES
         return JSONResponse({
             "path": path, "size": stat.st_size, "mtime": stat.st_mtime,
             "truncated": truncated, "content": content,
@@ -1252,7 +1254,11 @@ def create_app():
             if target is None or not target.is_file():
                 return JSONResponse({"error": "not found"}, status_code=404)
             try:
-                content = target.read_text(encoding="utf-8", errors="replace")
+                content = await asyncio.to_thread(
+                    target.read_text,
+                    encoding="utf-8",
+                    errors="replace",
+                )
             except OSError as e:
                 return JSONResponse({"error": str(e)}, status_code=500)
             return JSONResponse({"path": file, "content": content})

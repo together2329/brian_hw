@@ -126,6 +126,8 @@
       section: t.priority ? String(t.priority).toUpperCase() : '',
       title:   t.content || '',
       detail:  t.detail || '',
+      approvedReason: t.approved_reason || '',
+      rejectionReason: t.rejection_reason || '',
       deps:    [],
     }));
   }

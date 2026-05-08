@@ -80,6 +80,85 @@ const _obsStatus = (txt) => {
   return 'neutral';
 };
 
+const _limitAtlasLines = (text, maxLines = 5) => {
+  const lines = String(text || '').split(/\r?\n/).map(l => l.trimEnd());
+  const clean = lines.filter(l => l.trim());
+  if (clean.length <= maxLines) return clean.join('\n');
+  return clean.slice(0, maxLines).join('\n') + `\n... (+${clean.length - maxLines} more)`;
+};
+
+const TODO_TOOL_RE = /^todo_(write|update|add|remove|status|note)$/i;
+const TODO_STATUS_MARKS = {
+  '⏸': 'pending',
+  '▶': 'in-progress',
+  '👀': 'completed',
+  '✅': 'approved',
+  '❌': 'rejected',
+  '[ ]': 'pending',
+  '[>]': 'in-progress',
+  '[.]': 'completed',
+  '[v]': 'approved',
+  '[x]': 'rejected',
+};
+
+const _todoStatusTally = (txt) => {
+  const tally = {};
+  const statusRe = /^\s*(⏸|▶|👀|✅|❌|\[\s?\]|\[>\]|\[\.]|\[v\]|\[x\])\s/gm;
+  let mm;
+  while ((mm = statusRe.exec(String(txt || ''))) !== null) {
+    const k = TODO_STATUS_MARKS[mm[1]];
+    if (k) tally[k] = (tally[k] || 0) + 1;
+  }
+  return tally;
+};
+
+const _todoTallyLine = (tally) =>
+  ['in-progress', 'pending', 'completed', 'approved', 'rejected']
+    .filter(k => tally[k])
+    .map(k => `${tally[k]} ${k}`)
+    .join(' · ');
+
+const _cleanTodoToolText = (text, tool) => {
+  let txt = String(text || '').trim();
+  if (!TODO_TOOL_RE.test(String(tool || ''))) return txt;
+
+  const tally = _todoStatusTally(txt);
+  const tallyStr = _todoTallyLine(tally);
+  txt = txt.replace(/\n\s*── TODO ──[\s\S]*$/m, '').trim();
+  txt = txt.replace(/\n\s*--- TODO ---[\s\S]*$/m, '').trim();
+
+  let m = txt.match(/^[✅\[]?v?\]?\s*Task\s+(\d+)\s+approved\.\s*\[([\s\S]*?)\]\s*([\s\S]*)$/i);
+  if (m) {
+    const next = (m[3] || '').split(/\r?\n/).map(l => l.trim()).filter(l => /^→?\s*Next:/i.test(l))[0] || '';
+    return [
+      `Task ${m[1]} approved`,
+      `Approved: ${_limitAtlasLines(m[2], 5)}`,
+      next.replace(/^→\s*/, ''),
+      tallyStr ? `Todo: ${tallyStr}` : '',
+    ].filter(Boolean).join('\n');
+  }
+
+  m = txt.match(/^[❌\[]?x?\]?\s*Task\s+(\d+)\s+rejected:?\s*([\s\S]*)$/i);
+  if (m) {
+    return [
+      `Task ${m[1]} rejected`,
+      `Rejected: ${_limitAtlasLines(m[2], 5)}`,
+      tallyStr ? `Todo: ${tallyStr}` : '',
+    ].filter(Boolean).join('\n');
+  }
+
+  m = txt.match(/^Task\s+(\d+)\s+marked\s+completed\./i);
+  if (m) {
+    return [
+      `Task ${m[1]} completed`,
+      'Review: verify ground-truth artifacts, then approve or reject with evidence.',
+      tallyStr ? `Todo: ${tallyStr}` : '',
+    ].filter(Boolean).join('\n');
+  }
+
+  return txt + (tallyStr && !txt.includes(tallyStr) ? `\nTodo: ${tallyStr}` : '');
+};
+
 // Relative timestamp helper for hover-revealed "5m ago" labels.
 const _relTime = (ts) => {
   if (!ts) return '';
@@ -303,8 +382,27 @@ const ATLAS_ASYNC_RESOURCE_CACHES = {
   ssot: new Map(),
 };
 const ATLAS_ASYNC_RESOURCE_TIMEOUT_MS = {
-  file: 30000,
-  ssot: 45000,
+  file: 90000,
+  ssot: 120000,
+};
+
+const scheduleAtlasPreviewWork = (fn, timeout = 900) => {
+  let cancelled = false;
+  const run = () => {
+    if (!cancelled) fn();
+  };
+  if (typeof window !== 'undefined' && window.requestIdleCallback) {
+    const id = window.requestIdleCallback(run, { timeout });
+    return () => {
+      cancelled = true;
+      try { window.cancelIdleCallback && window.cancelIdleCallback(id); } catch (_) {}
+    };
+  }
+  const id = setTimeout(run, 0);
+  return () => {
+    cancelled = true;
+    clearTimeout(id);
+  };
 };
 
 const emptyAtlasResource = (path = '') => ({
@@ -2782,28 +2880,7 @@ const ObsCard = ({ entry, embedded }) => {
   // particular result is too long. Single-line obs always renders
   // inline regardless of this state.
   const [open, setOpen] = React.useState(true);
-  let txt = entry.text || '';
-
-  // Condense todo_* tool results — strip the redundant ── TODO ──
-  // list block from chat. Right-sidebar TodoPanel has the live full
-  // state; reprinting per iteration drowns the chat.
-  if (entry.tool && /^todo_(write|update|add|remove|status|note)$/i.test(entry.tool)) {
-    const m = txt.match(/^([\s\S]*?)\n\s*── TODO ──[\s\S]*$/);
-    if (m) {
-      const head = m[1].trim();
-      const tally = {};
-      const todoBlock = txt.slice(m[1].length);
-      const statusRe = /^\s*(⏸|▶|👀|✅|❌)\s/gm;
-      let mm;
-      while ((mm = statusRe.exec(todoBlock)) !== null) {
-        const k = ({'⏸':'pending','▶':'in-progress','👀':'completed','✅':'approved','❌':'rejected'})[mm[1]];
-        if (k) tally[k] = (tally[k] || 0) + 1;
-      }
-      const tallyStr = ['in-progress','pending','completed','approved','rejected']
-        .filter(k => tally[k]).map(k => `${tally[k]} ${k}`).join(' · ');
-      txt = head + (tallyStr ? `\n— ${tallyStr} (full list in sidebar →)` : '');
-    }
-  }
+  let txt = _cleanTodoToolText(entry.text || '', entry.tool);
 
   const lines = txt.split('\n');
   const isMulti = lines.length > 1;
@@ -5952,6 +6029,28 @@ const TodoPanel = () => {
     }
   };
 
+  const TodoReason = ({ todo }) => {
+    const approved = todo.state === 'approved' || todo.state === 'done';
+    const rejected = todo.state === 'rejected';
+    const reason = approved ? todo.approvedReason : rejected ? todo.rejectionReason : '';
+    if (!reason) return null;
+    const label = approved ? 'Approved' : 'Rejected';
+    const color = approved ? 'var(--ok)' : 'var(--err)';
+    return (
+      <div style={{
+        marginTop: 5,
+        fontFamily: 'var(--mono)',
+        fontSize: 'var(--ui-control-font-size)',
+        lineHeight: 1.45,
+        whiteSpace: 'pre-wrap',
+      }}>
+        <span style={{ color, fontWeight: 700 }}>{label}</span>
+        <span className="mute"> : </span>
+        <span className="mute">{_limitAtlasLines(reason, 5)}</span>
+      </div>
+    );
+  };
+
   // Counts per state for the header summary
   const counts = todos.reduce((acc, t) => {
     const cfg = stateCfg(t.state);
@@ -6108,6 +6207,7 @@ const TodoPanel = () => {
                               background: 'var(--bg-2)',
                             }}>
                               {t.detail}
+                              <TodoReason todo={t} />
                               {t.deps && t.deps.length > 0 && (
                                 <div style={{ marginTop: 4, fontSize: 10 }}>
                                   <span className="mute">deps:</span>{' '}
@@ -6142,6 +6242,9 @@ const TodoPanel = () => {
                     <span style={{ fontWeight: t.state === 'active' ? 500 : 400, flex: 1, fontSize: 12 }}>{t.title}</span>
                   </div>
                   <div className="mute" style={{ fontSize: 11, marginTop: 4, marginLeft: 22, lineHeight: 1.4 }}>{t.detail}</div>
+                  <div style={{ marginLeft: 22 }}>
+                    <TodoReason todo={t} />
+                  </div>
                 </div>
               );
             })}
@@ -6525,9 +6628,55 @@ const DiffPanel = () => (
 // preview alongside (well, replacing) the chat feed via the main tab
 // strip. Same /api/file backend; Prism.js handles language detection
 // per the PRISM_LANG_MAP set up in index.html.
-const PreviewPane = ({ path, onClose }) => {
-  const codeRef = React.useRef(null);
+const DeferredMarkdownPreview = ({ body }) => {
+  const nodeRef = React.useRef(null);
+  const [html, setHtml] = React.useState('');
+  const text = String(body || '');
 
+  React.useEffect(() => {
+    setHtml('');
+    if (!text.trim()) return undefined;
+    let cancelled = false;
+    const cancel = scheduleAtlasPreviewWork(() => {
+      const next = _markdownHtml(text);
+      if (!cancelled) setHtml(next);
+    });
+    return () => {
+      cancelled = true;
+      if (cancel) cancel();
+    };
+  }, [text]);
+
+  React.useEffect(() => {
+    if (html && nodeRef.current) _postProcessMarkdownNode(nodeRef.current);
+  }, [html]);
+
+  if (!text.trim()) return <div className="md-preview-empty">empty markdown file</div>;
+  if (!html) {
+    return (
+      <pre className="tool-output-pre language-none" style={{
+        margin: 0,
+        border: 0,
+        borderRadius: 0,
+        maxHeight: 'none',
+        overflow: 'visible',
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
+      }}>
+        <code className="language-none">{text}</code>
+      </pre>
+    );
+  }
+  return (
+    <div
+      ref={nodeRef}
+      className="md-agent md-preview"
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+};
+
+const PreviewPane = ({ path, onClose }) => {
   const ext = (path ? (path.split('.').pop() || '') : '').toLowerCase();
   const lang = (window.PRISM_LANG_MAP && window.PRISM_LANG_MAP[ext]) || 'none';
   const isMarkdown = ['md', 'markdown', 'mdown', 'mkdn'].includes(ext);
@@ -6543,15 +6692,34 @@ const PreviewPane = ({ path, onClose }) => {
     : resource.err;
   const loading = !hasGlobPath && !!resource.loading;
   const highlightTooLarge = !isMarkdown && body.length > 60000;
-  const canHighlight = !highlightTooLarge && lang !== 'none';
+  const canHighlight = !isMarkdown && !highlightTooLarge && lang !== 'none';
+  const [highlightedHtml, setHighlightedHtml] = React.useState('');
 
-  // Re-highlight whenever body/lang changes. Prism replaces the
-  // <code> contents in place; we set the language class first.
   React.useEffect(() => {
-    if (!codeRef.current || !window.Prism) return;
-    if (!canHighlight) return;       // skip for plain text or large files
-    codeRef.current.className = 'language-' + lang;
-    try { window.Prism.highlightElement(codeRef.current); } catch (_) { /* ignore */ }
+    setHighlightedHtml('');
+    if (!body || !canHighlight || !window.Prism) return undefined;
+    let cancelled = false;
+    const runHighlight = () => {
+      const Prism = window.Prism;
+      if (!Prism) return;
+      const applyHighlight = () => {
+        if (cancelled || !Prism.languages || !Prism.languages[lang]) return;
+        try {
+          const html = Prism.highlight(body, Prism.languages[lang], lang);
+          if (!cancelled) setHighlightedHtml(html);
+        } catch (_) {}
+      };
+      if (Prism.languages && Prism.languages[lang]) {
+        applyHighlight();
+      } else if (Prism.plugins && Prism.plugins.autoloader && Prism.plugins.autoloader.loadLanguages) {
+        try { Prism.plugins.autoloader.loadLanguages(lang, applyHighlight); } catch (_) {}
+      }
+    };
+    const cancel = scheduleAtlasPreviewWork(runHighlight);
+    return () => {
+      cancelled = true;
+      if (cancel) cancel();
+    };
   }, [body, lang, canHighlight]);
 
   if (!path) {
@@ -6586,6 +6754,7 @@ const PreviewPane = ({ path, onClose }) => {
         {sizeKb && <><span className="mute">·</span><span>{sizeKb}</span></>}
         {truncated && <><span className="mute">·</span><span className="warn">truncated at {Math.round((body.length || 0) / 1024)}KB</span></>}
         {highlightTooLarge && <><span className="mute">·</span><span className="warn">syntax highlight skipped for speed</span></>}
+        {canHighlight && !highlightedHtml && !loading && body && <><span className="mute">·</span><span className="warn">syntax pending</span></>}
         {hasGlobPath && <><span className="mute">·</span><span className="warn">glob path</span></>}
         <span style={{ flex: 1 }} />
         <span onClick={() => reloadPreview(true)} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>refresh</span>
@@ -6615,15 +6784,7 @@ const PreviewPane = ({ path, onClose }) => {
             loading {path}…
           </div>
         ) : isMarkdown ? (
-          body.trim() ? (
-            <div
-              className="md-agent md-preview"
-              dangerouslySetInnerHTML={{ __html: _markdownHtml(body) }}
-              ref={_postProcessMarkdownNode}
-            />
-          ) : (
-            <div className="md-preview-empty">empty markdown file</div>
-          )
+          <DeferredMarkdownPreview body={body} />
         ) : (
           <pre style={{
             margin: 0, padding: '12px 16px',
@@ -6632,9 +6793,14 @@ const PreviewPane = ({ path, onClose }) => {
             background: 'transparent',
             color: 'var(--fg)',
           }}>
-            <code ref={codeRef} className={canHighlight ? ('language-' + lang) : ''}>
-              {body}
-            </code>
+            {highlightedHtml ? (
+              <code
+                className={canHighlight ? ('language-' + lang) : ''}
+                dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+              />
+            ) : (
+              <code className={canHighlight ? ('language-' + lang) : ''}>{body}</code>
+            )}
           </pre>
         )}
       </div>

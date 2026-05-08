@@ -922,14 +922,15 @@
   border-radius: 0 3px 3px 0;
 }
 .tool-card .tool-card-head {
-  display: flex; align-items: baseline; gap: 8px;
-  font-family: var(--mono); font-size: var(--ui-control-font-size);
-  padding: 2px 0;
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: var(--ui-font-size);
+  line-height: 1.35;
+  padding: 3px 0;
 }
-.tool-card .tool-card-glyph { font-size: 14px; }
+.tool-card .tool-card-glyph { font-size: 15px; line-height: 1; }
 .tool-card .tool-card-tool  { font-weight: 700; }
-.tool-card .tool-card-args  { color: var(--fg-mute); font-size: var(--ui-small-font-size); flex: 1; min-width: 0; }
-.tool-card .tool-card-status { font-size: var(--ui-control-font-size); }
+.tool-card .tool-card-args  { color: var(--fg-mute); font-size: var(--ui-font-size); flex: 1; min-width: 0; }
+.tool-card .tool-card-status { font-size: var(--ui-font-size); }
 .tool-card .tool-card-ts    {
   position: absolute; top: 4px; right: 6px;
   opacity: 0; transition: opacity .15s;
