@@ -63,9 +63,11 @@
   window.SSOT_FILES = [];
   window.ATLAS_PROGRESS = null;
   try {
-    window.ATLAS_UI_LANG = localStorage.getItem('atlasUiLang') || window.ATLAS_UI_LANG || 'ko';
+    const savedLang = localStorage.getItem('atlasUiLang');
+    const explicitLang = localStorage.getItem('atlasUiLangUserSet') === '1';
+    window.ATLAS_UI_LANG = explicitLang && savedLang === 'ko' ? 'ko' : 'en';
   } catch (_) {
-    window.ATLAS_UI_LANG = window.ATLAS_UI_LANG || 'ko';
+    window.ATLAS_UI_LANG = window.ATLAS_UI_LANG || 'en';
   }
 
   // Scope path: agent is asked (via prompt prefix) to keep all reads,
@@ -189,6 +191,33 @@
   }
   window.normalizeAtlasSessionName = normalizeSessionName;
 
+  function readUrlNamespace() {
+    let params;
+    try { params = new URLSearchParams(window.location.search || ''); }
+    catch (_) { return ''; }
+    const direct = normalizeSessionName(
+      params.get('session') || params.get('sid') || params.get('namespace') || ''
+    );
+    if (direct && direct.includes('/')) return direct;
+    const owner = normalizeSessionName(
+      params.get('session_id') || params.get('user_session') || params.get('owner') || direct || ''
+    );
+    const ip = normalizeSessionName(params.get('ip') || params.get('ip_id') || '');
+    const wf = normalizeSessionName(params.get('workflow') || params.get('wf') || '');
+    const storedOwner = (() => {
+      try { return normalizeSessionName(localStorage.getItem('atlasUserSessionId')); }
+      catch (_) { return ''; }
+    })();
+    const baseOwner = owner || storedOwner || normalizeSessionName(window.ATLAS_USER_SESSION_ID || '') || 'default';
+    if (ip && wf) return `${baseOwner}/${ip}/${wf}`;
+    if (ip) return `${baseOwner}/${ip}/default`;
+    if (wf) return `${baseOwner}/${wf}`;
+    if (owner) return `${owner}/default`;
+    return '';
+  }
+
+  const URL_ACTIVE_SESSION = readUrlNamespace();
+
   function sessionPartsEndWithWorkflow(parts) {
     const last = String(parts[parts.length - 1] || '').toLowerCase();
     return KNOWN_WORKFLOWS.has(last);
@@ -203,6 +232,11 @@
 
   try {
     let sid = normalizeSessionName(localStorage.getItem('atlasUserSessionId'));
+    const urlOwner = (URL_ACTIVE_SESSION.split('/').filter(Boolean)[0] || '');
+    if (urlOwner) {
+      sid = urlOwner;
+      localStorage.setItem('atlasUserSessionId', sid);
+    }
     if (!sid || sid.includes('/')) {
       sid = createUserSessionId();
       localStorage.setItem('atlasUserSessionId', sid);
@@ -212,7 +246,7 @@
     window.ATLAS_USER_SESSION_ID = createUserSessionId();
   }
   try {
-    const storedActive = normalizeSessionName(localStorage.getItem('atlasActiveSession'));
+    const storedActive = URL_ACTIVE_SESSION || normalizeSessionName(localStorage.getItem('atlasActiveSession'));
     if (!storedActive || storedActive === 'default') {
       setActiveSessionName(`${window.ATLAS_USER_SESSION_ID}/default`);
     } else {
@@ -226,6 +260,11 @@
       } else {
         setActiveSessionName(storedActive);
       }
+    }
+    const urlParts = (URL_ACTIVE_SESSION || '').split('/').filter(Boolean);
+    if (urlParts.length >= 3 && sessionPartsEndWithWorkflow(urlParts)) {
+      window.SCOPE_PATH = urlParts[urlParts.length - 2];
+      try { localStorage.setItem('atlasScopePath', window.SCOPE_PATH); } catch (_) {}
     }
   } catch (_) {
     if (!window.ACTIVE_SESSION || window.ACTIVE_SESSION === 'default') {
@@ -305,12 +344,16 @@
       const todos = d.todos && Array.isArray(d.todos.todos) ? d.todos.todos : [];
       window.TODOS = normalizeTodos(todos);
       if (hydrateConversation) {
-        window.dispatchEvent(new CustomEvent('atlas-session-loaded', { detail: { ...d, session: appliedSession } }));
+        const sessionDetail = { ...d, session: appliedSession };
+        const conversationDetail = {
+          messages: (d.conversation && d.conversation.messages) || [],
+          session: appliedSession,
+        };
+        window.ATLAS_LAST_SESSION_STATE = sessionDetail;
+        window.ATLAS_LAST_CONVERSATION = conversationDetail;
+        window.dispatchEvent(new CustomEvent('atlas-session-loaded', { detail: sessionDetail }));
         window.dispatchEvent(new CustomEvent('atlas-conversation-loaded', {
-          detail: {
-            messages: (d.conversation && d.conversation.messages) || [],
-            session: appliedSession,
-          },
+          detail: conversationDetail,
         }));
       }
       window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SESSION_STATE' }));

@@ -4409,6 +4409,30 @@ const extractSubmodules = (section) => listBlocksFromSection(section).map(block 
   description: blockField(block, 'description', 360),
   implements: blockListValues(block, 'implements', 6),
   sourceSections: blockListValues(block, 'source_sections', 6),
+  interfaces: listBlocksFromText(block.text, 'interfaces').map(iface => ({
+    name: blockField(iface, 'name') || 'interface',
+    type: blockField(iface, 'type') || 'local',
+    inputs: blockListValues(iface, 'inputs', 8),
+    outputs: blockListValues(iface, 'outputs', 8),
+  })),
+}));
+
+const extractModuleContracts = (section) => listBlocksFromSection(section, 'module_contracts').map(block => ({
+  module: blockField(block, 'module') || blockField(block, 'name') || 'module',
+  owns: blockListValues(block, 'owns', 10),
+  inputs: blockListValues(block, 'inputs', 12),
+  outputs: blockListValues(block, 'outputs', 12),
+  implementation: blockField(block, 'implementation_direction', 520)
+    || blockField(block, 'implementation', 520)
+    || blockField(block, 'approach', 520),
+  interfaces: listBlocksFromText(block.text, 'interfaces').map(iface => ({
+    name: blockField(iface, 'name') || 'interface',
+    type: blockField(iface, 'type') || 'local',
+    role: blockField(iface, 'role'),
+    inputs: blockListValues(iface, 'inputs', 8),
+    outputs: blockListValues(iface, 'outputs', 8),
+    description: blockField(iface, 'description', 260),
+  })),
 }));
 
 const extractRegisters = (section) => listBlocksFromSection(section, 'register_list').map(block => ({
@@ -4535,6 +4559,16 @@ const DigestKV = ({ rows }) => (
   </div>
 );
 
+const DigestList = ({ items, limit = 8 }) => {
+  const rows = (items || []).filter(Boolean).slice(0, limit);
+  if (!rows.length) return <DigestEmpty />;
+  return (
+    <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.45 }}>
+      {rows.map((item, idx) => <li key={`${item}-${idx}`}>{item}</li>)}
+    </ul>
+  );
+};
+
 const DigestEmpty = ({ text = 'No structured data in this section yet.' }) => (
   <div className="mute" style={{ fontSize: 12, fontFamily: 'var(--mono)' }}>{text}</div>
 );
@@ -4617,6 +4651,11 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
   const interfaces = extractInterfaces(io);
   const features = extractFeatures(featuresSection);
   const submods = extractSubmodules(submodsSection);
+  const moduleContracts = extractModuleContracts(decompSection);
+  const contractByModule = moduleContracts.reduce((acc, contract) => {
+    if (contract.module) acc[contract.module] = contract;
+    return acc;
+  }, {});
   const registers = extractRegisters(registersSection);
   const clockDomains = listBlocksFromSection(clockSection, 'domains').map(block => ({
     name: blockField(block, 'name'),
@@ -4725,16 +4764,45 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
         <DigestCard title="Module Split" meta={`${submods.length} submodules`}>
           {submods.length ? (
             <div style={{ display: 'grid', gap: 9 }}>
-              {submods.map(m => (
-                <div key={m.name} style={{ borderBottom: '1px solid var(--line)', paddingBottom: 7 }}>
-                  <div><b>{m.name}</b> <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>{m.file}</span></div>
-                  <div className="mute" style={{ marginTop: 2 }}>{m.description}</div>
-                  {m.implements.length ? <div style={{ marginTop: 3, color: 'var(--cyan)', fontFamily: 'var(--mono)', fontSize: 10 }}>implements: {m.implements.join(', ')}</div> : null}
-                </div>
-              ))}
+              {submods.map(m => {
+                const contract = contractByModule[m.name] || {};
+                const localInputs = (contract.inputs || []).length ? contract.inputs : [];
+                const localOutputs = (contract.outputs || []).length ? contract.outputs : [];
+                const owns = (contract.owns || []).length ? contract.owns : m.implements;
+                return (
+                  <div key={m.name} style={{ borderBottom: '1px solid var(--line)', paddingBottom: 7 }}>
+                    <div><b>{m.name}</b> <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>{m.file}</span></div>
+                    <div className="mute" style={{ marginTop: 2 }}>{m.description}</div>
+                    {owns.length ? <div style={{ marginTop: 3, color: 'var(--cyan)', fontFamily: 'var(--mono)', fontSize: 10 }}>direction: {owns.join(', ')}</div> : null}
+                    {localInputs.length || localOutputs.length ? (
+                      <DigestKV rows={[
+                        ['inputs', localInputs.join('; ')],
+                        ['outputs', localOutputs.join('; ')],
+                      ]} />
+                    ) : null}
+                  </div>
+                );
+              })}
             </div>
           ) : <DigestEmpty />}
         </DigestCard>
+        {moduleContracts.length ? (
+          <DigestCard title="Implementation Direction" meta={`${moduleContracts.length} module contracts`}>
+            <div style={{ display: 'grid', gap: 10 }}>
+              {moduleContracts.map(contract => (
+                <div key={contract.module} style={{ borderBottom: '1px solid var(--line)', paddingBottom: 8 }}>
+                  <div style={{ fontWeight: 800 }}>{contract.module}</div>
+                  {contract.implementation ? <div className="mute" style={{ marginTop: 2 }}>{contract.implementation}</div> : null}
+                  <DigestKV rows={[
+                    ['owns', contract.owns.join('; ')],
+                    ['inputs', contract.inputs.join('; ')],
+                    ['outputs', contract.outputs.join('; ')],
+                  ]} />
+                </div>
+              ))}
+            </div>
+          </DigestCard>
+        ) : null}
         {decompSection ? <DigestSourceSections view={{ keys: ['decomposition'] }} sections={sections} statusByKey={statusByKey} t={t} /> : null}
       </div>
     </>
@@ -4801,6 +4869,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
     <>
       {header}
       <div style={{ display: 'grid', gap: 10 }}>
+        <div style={{ color: 'var(--accent)', fontWeight: 800, fontSize: 12 }}>Top Module External Interfaces <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>{interfaces.length} interfaces</span></div>
         {interfaces.length ? interfaces.map(iface => (
           <DigestCard key={iface.name} title={iface.name} meta={`${iface.type}${iface.role ? ` · ${iface.role}` : ''} · ${iface.ports.length} ${t.ports}`}>
             <div className="mute" style={{ marginBottom: 8 }}>{iface.description}</div>
@@ -4816,6 +4885,35 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
             </div>
           </DigestCard>
         )) : <DigestEmpty />}
+        {moduleContracts.length ? (
+          <DigestCard title="Submodule Local Interfaces" meta={`${moduleContracts.length} modules`}>
+            <div style={{ display: 'grid', gap: 10 }}>
+              {moduleContracts.map(contract => (
+                <div key={contract.module} style={{ borderBottom: '1px solid var(--line)', paddingBottom: 8 }}>
+                  <div style={{ fontWeight: 800 }}>{contract.module}</div>
+                  <DigestKV rows={[
+                    ['inputs', contract.inputs.join('; ')],
+                    ['outputs', contract.outputs.join('; ')],
+                  ]} />
+                  {contract.interfaces.length ? (
+                    <div style={{ marginTop: 7, display: 'grid', gap: 6 }}>
+                      {contract.interfaces.map(iface => (
+                        <div key={iface.name}>
+                          <b>{iface.name}</b> <span className="mute">{iface.type}{iface.role ? ` · ${iface.role}` : ''}</span>
+                          <DigestKV rows={[
+                            ['inputs', iface.inputs.join('; ')],
+                            ['outputs', iface.outputs.join('; ')],
+                            ['description', iface.description],
+                          ]} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </DigestCard>
+        ) : null}
       </div>
     </>
   );

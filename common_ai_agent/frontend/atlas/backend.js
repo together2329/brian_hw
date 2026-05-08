@@ -16,11 +16,20 @@
 
   // ── pubsub primitive ───────────────────────────────────────
   const handlers = Object.create(null);
+  const lastPayload = Object.create(null);
+  const replayablePayloads = new Set(['hello', 'connection']);
   function subscribe(type, cb) {
     (handlers[type] = handlers[type] || new Set()).add(cb);
+    if (replayablePayloads.has(type) && Object.prototype.hasOwnProperty.call(lastPayload, type)) {
+      setTimeout(() => {
+        try { cb(lastPayload[type]); }
+        catch (e) { console.error('[backend]', type, e); }
+      }, 0);
+    }
     return () => handlers[type] && handlers[type].delete(cb);
   }
   function emit(type, payload) {
+    lastPayload[type] = payload;
     const set = handlers[type];
     if (set) set.forEach((cb) => { try { cb(payload); } catch (e) { console.error('[backend]', type, e); } });
     const all = handlers['*'];

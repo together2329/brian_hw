@@ -2,9 +2,9 @@ top_module:
   name: pl330_target
   file: rtl/pl330_target.sv
   type: peripheral
-  description: pl330_target leaf IP generated from approved ATLAS Web SSOT requirements
+  description: PL330-style AXI DMA controller target generated from approved ATLAS Web SSOT requirements
   version: '1.0'
-  reference_spec: user-defined
+  reference_spec: ARM PL330 DMA-330 local reference package plus project SSOT deltas
   target:
     technology: generic
     clock_freq_mhz: 100
@@ -15,9 +15,16 @@ sub_modules:
   file: rtl/pl330_target_engine.sv
   ownership: manifest
   implements:
-  - function_model.transactions.fetch
-  - .decode
-  - .execute
+  - function_model.instruction_set
+  - function_model.transactions.FM_DMAGO
+  - function_model.transactions.FM_DMAMOV
+  - function_model.transactions.FM_DMALP
+  - function_model.transactions.FM_DMALPEND
+  - function_model.transactions.FM_DMAWFE
+  - function_model.transactions.FM_DMASEV
+  - function_model.transactions.FM_DMAADDH
+  - function_model.transactions.FM_DMAEND
+  - function_model.transactions.FM_DMAKILL
   - fsm.engine
   - cycle_model.pipeline
 - name: pl330_target_pipeline
@@ -34,14 +41,18 @@ sub_modules:
   file: rtl/pl330_target_lsq.sv
   ownership: manifest
   implements:
-  - function_model.transactions.load
-  - .store
+  - function_model.transactions.FM_DMALD
+  - function_model.transactions.FM_DMAST
+  - function_model.transactions.FM_DMASTZ
+  - function_model.transactions.FM_DMARMB
+  - function_model.transactions.FM_DMAWMB
   - cycle_model.ordering.lsq_order
 - name: pl330_target_mfifo
   file: rtl/pl330_target_mfifo.sv
   ownership: manifest
   implements:
   - function_model.state_variables.mfifo
+  - function_model.invariants
   - cycle_model.backpressure.mfifo_full
   function_model_refs:
   - function_model.transactions.FM_RESET
@@ -95,7 +106,9 @@ sub_modules:
   file: rtl/pl330_target_periph.sv
   ownership: manifest
   implements:
-  - function_model.transactions.peripheral_request
+  - function_model.transactions.FM_DMALDP
+  - function_model.transactions.FM_DMASTP
+  - function_model.transactions.FM_DMAFLUSHP
   - cycle_model.handshake_rules.periph_dr_da
 - name: pl330_target_apb_regs
   file: rtl/pl330_target_apb_regs.sv
@@ -103,11 +116,105 @@ sub_modules:
   implements:
   - registers.register_list
   - cycle_model.handshake_rules.apb
+  - security.privilege_rules
 - name: pl330_target
   file: rtl/pl330_target.sv
   ownership: manifest
   ssot_gen: true
   description: Top-level integration module matching SSOT top_module
+decomposition:
+  strategy: production_multi_module
+  top_owner: pl330_target
+  module_contracts:
+  - module: pl330_target_engine
+    owns:
+    - instruction fetch/decode/execute sequencing
+    - channel FSM transitions
+    - DMAGO/DMAMOV/DMALP/DMALPEND/DMAWFE/DMASEV/DMAADDH/DMAEND/DMAKILL transactions
+    inputs:
+    - APB debug command stream
+    - icache response
+    - LSQ/peripheral completion responses
+    outputs:
+    - fetch request
+    - load/store request
+    - event/IRQ updates
+    - fault requests
+  - module: pl330_target_lsq
+    owns:
+    - DMALD/DMALDP read issue
+    - DMAST/DMASTP/DMASTZ write issue
+    - DMARMB/DMAWMB ordering barriers
+    inputs:
+    - engine load/store requests
+    - mfifo status/data
+    - AXI response status
+    outputs:
+    - AXI read/write request packets
+    - mfifo push/pop controls
+    - data_read_err/data_write_err
+  - module: pl330_target_mfifo
+    owns:
+    - manager FIFO storage
+    - mfifo_count/full/empty observability
+    inputs:
+    - AXI read data push
+    - store data pop
+    outputs:
+    - store payload
+    - full/empty/backpressure
+  - module: pl330_target_merge_buffer
+    owns:
+    - byte-lane merge and unaligned write support
+    - write strobe generation
+    inputs:
+    - LSQ store payload
+    outputs:
+    - AXI WDATA/WSTRB/WLAST payload
+  - module: pl330_target_icache
+    owns:
+    - instruction cache lookup/fill/invalidate
+    - instruction fetch fault forwarding
+    inputs:
+    - engine fetch request
+    - AXI read fill response
+    outputs:
+    - instruction bundle
+    - fill request
+  - module: pl330_target_axi
+    owns:
+    - external AXI read/write channel protocol
+    - outstanding read/write response matching
+    inputs:
+    - LSQ/cache request packets
+    - external AXI responses
+    outputs:
+    - external AXI AR/AW/W/B/R signals
+    - response/fault packets
+  - module: pl330_target_periph
+    owns:
+    - peripheral request/acknowledge lane selection
+    - pending/active masks
+    inputs:
+    - drvalid/drlast/drtype
+    - davalid/datype
+    - engine peripheral transaction request
+    outputs:
+    - drready/daready
+    - engine peripheral accepted/completed events
+  - module: pl330_target_apb_regs
+    owns:
+    - APB register decode/read/write side effects
+    - debug command capture
+    - security-visible APB filtering
+    inputs:
+    - apb_ns/apb_secure buses
+    - status/fault/interrupt state
+    outputs:
+    - DBGCMD/DBGINST command packets
+    - INTEN/INTCLR side effects
+    - APB read data and ready
+  integration_rule: pl330_target top wires only declared integration.connections unless a waiver is recorded in quality_gates.rtl_gen evidence.
 parameters:
 - name: NUM_CHANNELS
   default: 8
@@ -121,6 +228,9 @@ parameters:
 - name: AXI_DATA_WIDTH
   default: 64
   description: AXI data bus width
+- name: AXI_STRB_WIDTH
+  default: AXI_DATA_WIDTH/8
+  description: AXI byte strobe width derived from AXI data width
 - name: AXI_ID_WIDTH
   default: 4
   description: AXI ID width
@@ -145,6 +255,12 @@ parameters:
 - name: SUPPORT_TZ
   default: 1
   description: TrustZone (NS/S) support
+- name: CHANNEL_ID_WIDTH
+  default: 3
+  description: Encodes NUM_CHANNELS=8 channel IDs
+- name: PERIPH_ID_WIDTH
+  default: 5
+  description: Encodes NUM_PERIPH_REQS=32 peripheral IDs
 io_list:
   clock_domains:
   - name: clk
@@ -166,48 +282,260 @@ io_list:
       direction: input
       description: Primary reset
   interfaces:
-  - name: control_data
-    type: native_valid_ready
-    role: target
-    description: Generic request/response interface synthesized only as a repair fallback; replace with approved protocol ports before production
-      signoff.
+  - name: boot_config
+    type: static_boot
+    role: input
+    description: Reset-sampled PL330 boot configuration and security defaults.
     ports:
-    - name: req_valid
+    - name: boot_from_pc
       width: 1
       direction: input
-      description: Request/control payload valid
-    - name: req_ready
-      width: 1
-      direction: output
-      description: Request/control payload accepted when high with req_valid
-    - name: req_data
-      width: DATA_WIDTH
+      description: Start manager thread from boot_addr after reset when asserted.
+    - name: boot_addr
+      width: AXI_ADDR_WIDTH
       direction: input
-      description: Generic request/control payload
-    - name: rsp_valid
-      width: 1
-      direction: output
-      description: Response/result payload valid
-    - name: rsp_ready
+      description: Initial manager PC / instruction fetch address.
+    - name: boot_manager_ns
       width: 1
       direction: input
-      description: Response/result accepted when high with rsp_valid
-    - name: rsp_data
-      width: DATA_WIDTH
+      description: Manager thread non-secure attribute.
+    - name: boot_irq_ns
+      width: NUM_IRQS
+      direction: input
+      description: Per-event non-secure mapping sampled for IRQ security checks.
+    - name: boot_periph_ns
+      width: NUM_PERIPH_REQS
+      direction: input
+      description: Per-peripheral non-secure mapping sampled for peripheral request security checks.
+  - name: peripheral_request
+    type: pl330_dr_da
+    role: target
+    description: PL330 peripheral request and acknowledge interface, vectorized across NUM_PERIPH_REQS.
+    ports:
+    - name: drvalid
+      width: NUM_PERIPH_REQS
+      direction: input
+      description: Peripheral request valid, one bit per peripheral.
+    - name: drready
+      width: NUM_PERIPH_REQS
       direction: output
-      description: Generic response/result payload
-    - name: error
+      description: DMA accepted the matching drvalid request.
+    - name: drtype
+      width: NUM_PERIPH_REQS*2
+      direction: input
+      description: Two-bit request type for each peripheral request.
+    - name: drlast
+      width: NUM_PERIPH_REQS
+      direction: input
+      description: Last request marker from the peripheral.
+    - name: davalid
+      width: NUM_PERIPH_REQS
+      direction: input
+      description: Peripheral acknowledge valid.
+    - name: daready
+      width: NUM_PERIPH_REQS
+      direction: output
+      description: DMA accepted the matching davalid acknowledge.
+    - name: datype
+      width: NUM_PERIPH_REQS*2
+      direction: input
+      description: Two-bit acknowledge type for each peripheral.
+  - name: irq_outputs
+    type: interrupt
+    role: source
+    description: PL330 event and abort interrupt outputs.
+    ports:
+    - name: irq
+      width: NUM_IRQS
+      direction: output
+      description: Event IRQ vector driven from irq_status masked by INTEN.
+    - name: irq_abort
       width: 1
       direction: output
-      description: Generic architectural error indication
+      description: Abort/fault interrupt pulse on FAULTING entry.
+  - name: axi_write_master
+    type: AXI3
+    role: master
+    description: AXI write address/data/response master channel used by DMAST, DMASTP, DMASTZ, and merge-buffer drains.
+    ports:
+    - name: awid
+      width: AXI_ID_WIDTH
+      direction: output
+    - name: awaddr
+      width: AXI_ADDR_WIDTH
+      direction: output
+    - name: awlen
+      width: 4
+      direction: output
+    - name: awsize
+      width: 3
+      direction: output
+    - name: awburst
+      width: 2
+      direction: output
+    - name: awlock
+      width: 2
+      direction: output
+    - name: awcache
+      width: 4
+      direction: output
+    - name: awprot
+      width: 3
+      direction: output
+    - name: awvalid
+      width: 1
+      direction: output
+    - name: awready
+      width: 1
+      direction: input
+    - name: wid
+      width: AXI_ID_WIDTH
+      direction: output
+    - name: wdata
+      width: AXI_DATA_WIDTH
+      direction: output
+    - name: wstrb
+      width: AXI_DATA_WIDTH/8
+      direction: output
+    - name: wlast
+      width: 1
+      direction: output
+    - name: wvalid
+      width: 1
+      direction: output
+    - name: wready
+      width: 1
+      direction: input
+    - name: bid
+      width: AXI_ID_WIDTH
+      direction: input
+    - name: bresp
+      width: 2
+      direction: input
+    - name: bvalid
+      width: 1
+      direction: input
+    - name: bready
+      width: 1
+      direction: output
+  - name: axi_read_master
+    type: AXI3
+    role: master
+    description: AXI read address/data master channel used by instruction fetch, DMALD, DMALDP, and cache fill.
+    ports:
+    - name: arid
+      width: AXI_ID_WIDTH
+      direction: output
+    - name: araddr
+      width: AXI_ADDR_WIDTH
+      direction: output
+    - name: arlen
+      width: 4
+      direction: output
+    - name: arsize
+      width: 3
+      direction: output
+    - name: arburst
+      width: 2
+      direction: output
+    - name: arlock
+      width: 2
+      direction: output
+    - name: arcache
+      width: 4
+      direction: output
+    - name: arprot
+      width: 3
+      direction: output
+    - name: arvalid
+      width: 1
+      direction: output
+    - name: arready
+      width: 1
+      direction: input
+    - name: rid
+      width: AXI_ID_WIDTH
+      direction: input
+    - name: rdata
+      width: AXI_DATA_WIDTH
+      direction: input
+    - name: rresp
+      width: 2
+      direction: input
+    - name: rlast
+      width: 1
+      direction: input
+    - name: rvalid
+      width: 1
+      direction: input
+    - name: rready
+      width: 1
+      direction: output
+  - name: apb_ns
+    type: APB3
+    role: target
+    description: Non-secure APB register target.
+    ports:
+    - name: pclken
+      width: 1
+      direction: input
+    - name: paddr
+      width: 32
+      direction: input
+    - name: psel
+      width: 1
+      direction: input
+    - name: penable
+      width: 1
+      direction: input
+    - name: pwrite
+      width: 1
+      direction: input
+    - name: pwdata
+      width: 32
+      direction: input
+    - name: prdata
+      width: 32
+      direction: output
+    - name: pready
+      width: 1
+      direction: output
+  - name: apb_secure
+    type: APB3
+    role: target
+    description: Secure APB register target with separate address, write data, and read data buses.
+    ports:
+    - name: spaddr
+      width: 32
+      direction: input
+    - name: spsel
+      width: 1
+      direction: input
+    - name: spenable
+      width: 1
+      direction: input
+    - name: spwrite
+      width: 1
+      direction: input
+    - name: spwdata
+      width: 32
+      direction: input
+    - name: sprdata
+      width: 32
+      direction: output
+    - name: spready
+      width: 1
+      direction: output
 features:
-- 'Instruction-driven DMA engine: DMAGO/DMALD/DMAST/DMALDP/DMASTP/DMAMOV/DMAFLUSHP/DMASEV/DMAWFE/DMAEND'
+- 'Instruction-driven DMA engine: DMAGO/DMALD/DMAST/DMALDP/DMASTP/DMAMOV/DMASTZ/DMALP/DMALPEND/DMAFLUSHP/DMASEV/DMAWFE/DMAADDH/DMARMB/DMAWMB/DMAEND'
 - Per-channel scheduler with priority + round-robin
 - Multi-outstanding AXI3 read/write
 - TrustZone NS/S separation on APB
 - Configurable peripheral request interface count
 - Manager FIFO buffering
 - Merge buffer for byte-lane / unaligned write
+- Debug command execution path with DMAKILL drain behavior
+- Event/IRQ wakeup model tied to INTEN, INTCLR, boot_irq_ns, and event_latch
 dataflow:
   paths:
   - name: dma_read
@@ -234,6 +562,26 @@ dataflow:
     sink: pl330_target_apb_regs.config
     via:
     - pl330_target_apb_regs
+  - name: periph_load
+    source: peripheral_request.drvalid
+    sink: mfifo
+    via:
+    - pl330_target_periph
+    - pl330_target_lsq
+    - pl330_target_axi
+  - name: periph_store
+    source: mfifo
+    sink: peripheral_request.daready
+    via:
+    - pl330_target_lsq
+    - pl330_target_axi
+    - pl330_target_periph
+  - name: event_irq
+    source: function_model.event_latch
+    sink: irq_outputs.irq
+    via:
+    - pl330_target_engine
+    - pl330_target_apb_regs
 function_model:
   state_variables:
   - name: channel_state
@@ -259,6 +607,393 @@ function_model:
   - name: fault_status
     width: 32
     reset: 0
+  - name: channel_sar
+    width: 32
+    reset: 0
+    description: Per-channel source address register used by DMAMOV, DMAADDH, DMALD, and DMALDP.
+  - name: channel_dar
+    width: 32
+    reset: 0
+    description: Per-channel destination address register used by DMAMOV, DMAADDH, DMAST, DMASTP, and DMASTZ.
+  - name: channel_ccr
+    width: 32
+    reset: 0
+    description: Per-channel control register carrying burst size, burst length, cache, prot, endian, increment, and peripheral flow attributes.
+  - name: loop_counter0
+    width: 8
+    reset: 0
+    description: DMALP loop counter 0.
+  - name: loop_counter1
+    width: 8
+    reset: 0
+    description: DMALP loop counter 1.
+  - name: event_latch
+    width: NUM_IRQS
+    reset: 0
+    description: Sticky event state consumed by DMAWFE and reported through INT_EVENT_RIS.
+  - name: channel_ns
+    width: NUM_CHANNELS
+    reset: 0
+    description: Per-channel non-secure attribute latched at DMAGO.
+  instruction_set:
+  - mnemonic: DMAEND
+    opcode: 0x00
+    bytes: 1
+    operands: []
+    transaction_ref: FM_DMAEND
+    owner_module: pl330_target_engine
+    state_updates:
+    - channel_state -> COMPLETING when outstanding_reads==0 and outstanding_writes==0
+    interface_effects: []
+    error_cases:
+    - outstanding_write_or_read_present delays STOPPED until drain completes
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMALD
+    opcode: 0x04
+    bytes: 1
+    operands:
+    - ccr-derived burst attributes
+    transaction_ref: FM_DMALD
+    owner_module: pl330_target_lsq
+    state_updates:
+    - channel_sar increments when CCR src_inc is set
+    - outstanding_reads increments on AR accept and decrements on final R beat
+    interface_effects:
+    - axi_read_master.AR issued
+    - read data pushed into mfifo
+    error_cases:
+    - AXI RRESP not OKAY sets data_read_err
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMALDS
+    opcode: 0x05
+    bytes: 1
+    operands:
+    - single request qualifier
+    transaction_ref: FM_DMALD
+    owner_module: pl330_target_lsq
+    state_updates:
+    - same as DMALD with single-request qualifier
+    interface_effects:
+    - axi_read_master.AR issued
+    error_cases:
+    - AXI RRESP not OKAY sets data_read_err
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMALDB
+    opcode: 0x07
+    bytes: 1
+    operands:
+    - burst request qualifier
+    transaction_ref: FM_DMALD
+    owner_module: pl330_target_lsq
+    state_updates:
+    - same as DMALD with burst-request qualifier
+    interface_effects:
+    - axi_read_master.AR issued
+    error_cases:
+    - AXI RRESP not OKAY sets data_read_err
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMAST
+    opcode: 0x08
+    bytes: 1
+    operands:
+    - ccr-derived burst attributes
+    transaction_ref: FM_DMAST
+    owner_module: pl330_target_lsq
+    state_updates:
+    - channel_dar increments when CCR dst_inc is set
+    - outstanding_writes increments on AW accept and decrements on B response
+    interface_effects:
+    - mfifo data consumed
+    - axi_write_master.AW/W issued
+    error_cases:
+    - AXI BRESP not OKAY sets data_write_err
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMASTS
+    opcode: 0x09
+    bytes: 1
+    operands:
+    - single request qualifier
+    transaction_ref: FM_DMAST
+    owner_module: pl330_target_lsq
+    state_updates:
+    - same as DMAST with single-request qualifier
+    interface_effects:
+    - axi_write_master.AW/W issued
+    error_cases:
+    - AXI BRESP not OKAY sets data_write_err
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMASTB
+    opcode: 0x0B
+    bytes: 1
+    operands:
+    - burst request qualifier
+    transaction_ref: FM_DMAST
+    owner_module: pl330_target_lsq
+    state_updates:
+    - same as DMAST with burst-request qualifier
+    interface_effects:
+    - axi_write_master.AW/W issued
+    error_cases:
+    - AXI BRESP not OKAY sets data_write_err
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMASTZ
+    opcode: 0x0C
+    bytes: 1
+    operands:
+    - ccr-derived burst attributes
+    transaction_ref: FM_DMASTZ
+    owner_module: pl330_target_lsq
+    state_updates:
+    - channel_dar increments when CCR dst_inc is set
+    - outstanding_writes follows AW/B lifetime
+    interface_effects:
+    - zero data beats written without consuming mfifo
+    error_cases:
+    - AXI BRESP not OKAY sets data_write_err
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMALP_0
+    opcode: 0x20
+    bytes: 2
+    operands:
+    - loop_count
+    transaction_ref: FM_DMALP
+    owner_module: pl330_target_engine
+    state_updates:
+    - loop_counter0 loads loop_count
+    interface_effects: []
+    error_cases:
+    - illegal loop nesting sets undef_instr
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMALP_1
+    opcode: 0x22
+    bytes: 2
+    operands:
+    - loop_count
+    transaction_ref: FM_DMALP
+    owner_module: pl330_target_engine
+    state_updates:
+    - loop_counter1 loads loop_count
+    interface_effects: []
+    error_cases:
+    - illegal loop nesting sets undef_instr
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMALDP_S
+    opcode: 0x25
+    bytes: 2
+    operands:
+    - peripheral_id
+    transaction_ref: FM_DMALDP
+    owner_module: pl330_target_periph
+    state_updates:
+    - peripheral request accepted before AXI read issue
+    interface_effects:
+    - drready pulse on selected peripheral
+    - axi_read_master.AR issued
+    error_cases:
+    - disabled peripheral sets secure_violation or undef_instr per security policy
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMALDP_B
+    opcode: 0x27
+    bytes: 2
+    operands:
+    - peripheral_id
+    transaction_ref: FM_DMALDP
+    owner_module: pl330_target_periph
+    state_updates:
+    - same as DMALDP_S with burst request qualifier
+    interface_effects:
+    - drready pulse on selected peripheral
+    - axi_read_master.AR issued
+    error_cases:
+    - disabled peripheral sets secure_violation or undef_instr per security policy
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMASTP_S
+    opcode: 0x29
+    bytes: 2
+    operands:
+    - peripheral_id
+    transaction_ref: FM_DMASTP
+    owner_module: pl330_target_periph
+    state_updates:
+    - peripheral acknowledge accepted before AXI write issue
+    interface_effects:
+    - daready pulse on selected peripheral
+    - axi_write_master.AW/W issued
+    error_cases:
+    - disabled peripheral sets secure_violation or undef_instr per security policy
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMASTP_B
+    opcode: 0x2B
+    bytes: 2
+    operands:
+    - peripheral_id
+    transaction_ref: FM_DMASTP
+    owner_module: pl330_target_periph
+    state_updates:
+    - same as DMASTP_S with burst request qualifier
+    interface_effects:
+    - daready pulse on selected peripheral
+    - axi_write_master.AW/W issued
+    error_cases:
+    - disabled peripheral sets secure_violation or undef_instr per security policy
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMALPEND
+    opcode: 0x2C
+    bytes: 2
+    operands:
+    - loop_index
+    - backward_offset
+    transaction_ref: FM_DMALPEND
+    owner_module: pl330_target_engine
+    state_updates:
+    - selected loop counter decrements until zero
+    - channel_pc branches by backward_offset when loop counter remains nonzero
+    interface_effects: []
+    error_cases:
+    - malformed loop target sets undef_instr
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMASEV
+    opcode: 0x34
+    bytes: 2
+    operands:
+    - event_id
+    transaction_ref: FM_DMASEV
+    owner_module: pl330_target_engine
+    state_updates:
+    - event_latch[event_id] set
+    - irq_status[event_id] set when INTEN[event_id] is enabled
+    interface_effects:
+    - irq[event_id] asserts when enabled and allowed by security mapping
+    error_cases:
+    - event_id >= NUM_IRQS sets undef_instr
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMAFLUSHP
+    opcode: 0x35
+    bytes: 2
+    operands:
+    - peripheral_id
+    transaction_ref: FM_DMAFLUSHP
+    owner_module: pl330_target_periph
+    state_updates:
+    - pending peripheral request for peripheral_id clears
+    interface_effects:
+    - periph pending/active masks update without AXI transfer
+    error_cases:
+    - peripheral_id >= NUM_PERIPH_REQS sets undef_instr
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMAWFE
+    opcode: 0x36
+    bytes: 2
+    operands:
+    - event_id
+    - invalidate_flag
+    transaction_ref: FM_DMAWFE
+    owner_module: pl330_target_engine
+    state_updates:
+    - channel_state -> WAITING_FOR_EVENT until event_latch[event_id] is set
+    - event_latch[event_id] clears when invalidate_flag is set and event is consumed
+    interface_effects: []
+    error_cases:
+    - event_id >= NUM_IRQS sets undef_instr
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMAADDH_SAR
+    opcode: 0x54
+    bytes: 3
+    operands:
+    - halfword_immediate
+    transaction_ref: FM_DMAADDH
+    owner_module: pl330_target_engine
+    state_updates:
+    - channel_sar += halfword_immediate << 16
+    interface_effects: []
+    error_cases: []
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMAADDH_DAR
+    opcode: 0x56
+    bytes: 3
+    operands:
+    - halfword_immediate
+    transaction_ref: FM_DMAADDH
+    owner_module: pl330_target_engine
+    state_updates:
+    - channel_dar += halfword_immediate << 16
+    interface_effects: []
+    error_cases: []
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMAGO
+    opcode: 0xA0
+    bytes: 6
+    operands:
+    - channel_id
+    - start_pc
+    transaction_ref: FM_DMAGO
+    owner_module: pl330_target_engine
+    state_updates:
+    - channel_state[channel_id] -> EXECUTING
+    - channel_pc[channel_id] = start_pc
+    - channel_ns[channel_id] = 0
+    interface_effects:
+    - instruction fetch starts through axi_read_master
+    error_cases:
+    - target channel not STOPPED sets undef_instr
+    - secure violation sets secure_violation
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMAGO_NS
+    opcode: 0xA2
+    bytes: 6
+    operands:
+    - channel_id
+    - start_pc
+    transaction_ref: FM_DMAGO
+    owner_module: pl330_target_engine
+    state_updates:
+    - channel_state[channel_id] -> EXECUTING
+    - channel_pc[channel_id] = start_pc
+    - channel_ns[channel_id] = 1
+    interface_effects:
+    - instruction fetch starts through axi_read_master with non-secure attribute
+    error_cases:
+    - target channel not STOPPED sets undef_instr
+    - secure violation sets secure_violation
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMAMOV
+    opcode: 0xBC
+    bytes: 6
+    operands:
+    - register_selector
+    - immediate32
+    transaction_ref: FM_DMAMOV
+    owner_module: pl330_target_engine
+    state_updates:
+    - selected SAR/DAR/CCR register gets immediate32
+    interface_effects: []
+    error_cases:
+    - unsupported register_selector sets undef_instr
+    reference_status: extracted_from_pl330_wave_alias
+  - mnemonic: DMARMB
+    opcode: null
+    bytes: 1
+    operands: []
+    transaction_ref: FM_DMARMB
+    owner_module: pl330_target_lsq
+    state_updates:
+    - read pipeline waits until prior reads are architecturally ordered
+    interface_effects:
+    - no new AR issue until read barrier clears
+    error_cases: []
+    reference_status: needs_trm_opcode_lock
+  - mnemonic: DMAWMB
+    opcode: null
+    bytes: 1
+    operands: []
+    transaction_ref: FM_DMAWMB
+    owner_module: pl330_target_lsq
+    state_updates:
+    - write pipeline waits until prior writes are architecturally ordered
+    interface_effects:
+    - no new AW/W issue until write barrier clears
+    error_cases: []
+    reference_status: needs_trm_opcode_lock
   transactions:
   - id: FM_RESET
     name: reset
@@ -284,6 +1019,19 @@ function_model:
     error_cases:
     - condition: secure violation
       result: fault_status |= INSTR_FETCH_ERR
+  - id: FM_DMAMOV
+    name: dmamov_program_channel_register
+    instruction_ref: function_model.instruction_set.DMAMOV
+    preconditions:
+    - channel_state==1
+    - register_selector in {SAR,DAR,CCR}
+    outputs:
+    - selected channel_sar/channel_dar/channel_ccr = immediate32
+    side_effects:
+    - subsequent DMALD/DMAST transactions use updated address/control attributes
+    error_cases:
+    - condition: unsupported register_selector
+      result: fault_status |= UNDEF_INSTR
   - id: FM_DMALD
     name: dmald_load
     preconditions:
@@ -332,6 +1080,48 @@ function_model:
     - daready asserted
     - AXI AW+W issued
     error_cases: []
+  - id: FM_DMASTZ
+    name: dmastz_store_zero
+    instruction_ref: function_model.instruction_set.DMASTZ
+    preconditions:
+    - channel_state==1
+    - AXI write channel can accept at least one burst
+    outputs:
+    - outstanding_writes += 1
+    - zero write data issued with CCR-derived strobes
+    side_effects:
+    - issue AXI AW + W with all WDATA bits zero
+    - channel_dar advances when CCR dst_inc is set
+    error_cases:
+    - condition: AXI bresp != OKAY
+      result: fault_status |= DATA_WRITE_ERR
+  - id: FM_DMALP
+    name: dmalp_load_loop_counter
+    instruction_ref: function_model.instruction_set.DMALP_0
+    preconditions:
+    - channel_state==1
+    - selected loop counter is not already active for an illegal nesting level
+    outputs:
+    - loop_counter0 or loop_counter1 loaded from loop_count operand
+    side_effects:
+    - loop start PC is captured for matching DMALPEND
+    error_cases:
+    - condition: illegal loop nesting or malformed operand
+      result: fault_status |= UNDEF_INSTR
+  - id: FM_DMALPEND
+    name: dmalpend_branch_or_exit
+    instruction_ref: function_model.instruction_set.DMALPEND
+    preconditions:
+    - channel_state==1
+    - selected loop counter has active context
+    outputs:
+    - loop_counter decrements when nonzero
+    - channel_pc branches by backward_offset when decremented counter remains nonzero
+    side_effects:
+    - loop context clears when counter reaches zero
+    error_cases:
+    - condition: malformed target or inactive loop counter
+      result: fault_status |= UNDEF_INSTR
   - id: FM_DMASEV
     name: dmasev_event_signal
     preconditions:
@@ -341,6 +1131,64 @@ function_model:
     - irq_status |= 1<<event_idx
     side_effects:
     - irq[event_idx] pulse
+    error_cases: []
+  - id: FM_DMAWFE
+    name: dmawfe_wait_for_event
+    instruction_ref: function_model.instruction_set.DMAWFE
+    preconditions:
+    - channel_state==1
+    - event index < NUM_IRQS
+    outputs:
+    - channel_state=WAITING_FOR_EVENT when event_latch[event_idx]==0
+    - channel_state=EXECUTING when event_latch[event_idx]==1
+    side_effects:
+    - event_latch[event_idx] clears on consume when invalidate_flag is set
+    error_cases:
+    - condition: event index >= NUM_IRQS
+      result: fault_status |= UNDEF_INSTR
+  - id: FM_DMAFLUSHP
+    name: dmaflushp_flush_peripheral_request
+    instruction_ref: function_model.instruction_set.DMAFLUSHP
+    preconditions:
+    - channel_state==1
+    - peripheral_id < NUM_PERIPH_REQS
+    outputs:
+    - pending peripheral request bit clears
+    side_effects:
+    - no AXI read or write is issued
+    error_cases:
+    - condition: peripheral_id >= NUM_PERIPH_REQS
+      result: fault_status |= UNDEF_INSTR
+  - id: FM_DMAADDH
+    name: dmaaddh_add_high_halfword
+    instruction_ref: function_model.instruction_set.DMAADDH_SAR
+    preconditions:
+    - channel_state==1
+    - target register is SAR or DAR
+    outputs:
+    - selected address register += halfword_immediate << 16
+    side_effects:
+    - subsequent load/store address uses the updated register
+    error_cases: []
+  - id: FM_DMARMB
+    name: dmarmb_read_memory_barrier
+    instruction_ref: function_model.instruction_set.DMARMB
+    preconditions:
+    - channel_state==1
+    outputs:
+    - channel_state=AT_BARRIER until outstanding_reads==0
+    side_effects:
+    - no new AXI AR issued while the read barrier is active
+    error_cases: []
+  - id: FM_DMAWMB
+    name: dmawmb_write_memory_barrier
+    instruction_ref: function_model.instruction_set.DMAWMB
+    preconditions:
+    - channel_state==1
+    outputs:
+    - channel_state=AT_BARRIER until outstanding_writes==0
+    side_effects:
+    - no new AXI AW/W issued while the write barrier is active
     error_cases: []
   - id: FM_DMAEND
     name: dmaend_terminate
@@ -353,6 +1201,19 @@ function_model:
     error_cases:
     - condition: outstanding > 0
       result: wait until drained
+  - id: FM_DMAKILL
+    name: dmakill_debug_abort
+    preconditions:
+    - DBGCMD requests DMAKILL for a valid channel
+    outputs:
+    - channel_state=KILLING
+    - outstanding issue stops immediately
+    side_effects:
+    - channel drains accepted AXI transactions before STOPPED
+    - fault_status records debug kill completion only when implementation exposes it
+    error_cases:
+    - condition: invalid channel id
+      result: fault_status |= UNDEF_INSTR
   - id: FM_FAULT
     name: fault_propagate
     preconditions:
@@ -391,27 +1252,96 @@ cycle_model:
       max_cycles: null
       description: Held stable until the declared response/output acceptance condition
   handshake_rules:
-  - signal: req_valid/req_ready
-    rule: req_valid payload remains stable until req_ready is sampled asserted on control_data.
-  - signal: rsp_valid/rsp_ready
-    rule: rsp_valid payload remains stable until rsp_ready is sampled asserted on control_data.
+  - id: CM_APB_NS
+    interface: apb_ns
+    signal: psel/penable/pready
+    rule: APB transfer commits on psel && penable && pready; paddr, pwrite, and pwdata remain stable from setup through access.
+    maps_to:
+    - registers
+    - function_model.transactions.FM_DMAGO
+  - id: CM_APB_SECURE
+    interface: apb_secure
+    signal: spsel/spenable/spready
+    rule: Secure APB transfer commits on spsel && spenable && spready; secure space can access all registers that NS APB can access plus secure-only debug/control fields.
+    maps_to:
+    - registers
+    - security.privilege_rules
+  - id: CM_AXI_AW
+    interface: axi_write_master
+    signal: awvalid/awready
+    rule: AW payload remains stable until awvalid && awready; accepted AW allocates one write outstanding slot and records ID/address/len/prot.
+    maps_to:
+    - function_model.transactions.FM_DMAST
+    - function_model.transactions.FM_DMASTP
+    - function_model.transactions.FM_DMASTZ
+  - id: CM_AXI_W
+    interface: axi_write_master
+    signal: wvalid/wready/wlast
+    rule: W payload remains stable until wvalid && wready; wlast must match the final beat of the accepted AW burst.
+    maps_to:
+    - dataflow.dma_write
+    - memory.merge_buffer
+  - id: CM_AXI_B
+    interface: axi_write_master
+    signal: bvalid/bready
+    rule: B response is accepted when bvalid && bready; BRESP other than OKAY updates data_write_err and retires the matching write outstanding slot.
+    maps_to:
+    - error_handling.data_write_err
+    - function_model.state_variables.outstanding_writes
+  - id: CM_AXI_AR
+    interface: axi_read_master
+    signal: arvalid/arready
+    rule: AR payload remains stable until arvalid && arready; accepted AR allocates one read outstanding slot and records ID/address/len/prot.
+    maps_to:
+    - function_model.transactions.FM_DMALD
+    - function_model.transactions.FM_DMALDP
+    - dataflow.cmd_fetch
+  - id: CM_AXI_R
+    interface: axi_read_master
+    signal: rvalid/rready/rlast
+    rule: R payload is consumed when rvalid && rready; RRESP other than OKAY updates data_read_err or instr_fetch_err based on request class.
+    maps_to:
+    - error_handling.data_read_err
+    - error_handling.instr_fetch_err
+    - memory.mfifo
+  - id: CM_PERIPH_DR
+    interface: peripheral_request
+    signal: drvalid/drready/drtype/drlast
+    rule: Selected peripheral request is accepted on drvalid[n] && drready[n]; drtype and drlast for n remain stable until accepted.
+    maps_to:
+    - function_model.transactions.FM_DMALDP
+    - function_model.transactions.FM_DMAFLUSHP
+  - id: CM_PERIPH_DA
+    interface: peripheral_request
+    signal: davalid/daready/datype
+    rule: Selected peripheral acknowledge is accepted on davalid[n] && daready[n]; datype for n remains stable until accepted.
+    maps_to:
+    - function_model.transactions.FM_DMASTP
   pipeline:
-  - stage: S0_ACCEPT
+  - stage: S0_FETCH
     cycle: 0..N
-    action: Accept legal request/command/packet/control work under declared handshake rules.
-  - stage: S1_EVALUATE
+    action: Fetch instruction bytes through icache or AXI read master, then present a stable opcode bundle to decode.
+  - stage: S1_DECODE
     cycle: N..M
-    action: Evaluate function_model transaction and update only declared state.
-  - stage: S2_OBSERVE
+    action: Decode instruction_set mnemonic, operands, security attributes, and owning transaction.
+  - stage: S2_EXECUTE
     cycle: M..K
-    action: Publish response/status/output/debug event and hold it stable until accepted.
+    action: Execute one function_model transaction or stall on loop/event/barrier/AXI/peripheral backpressure.
+  - stage: S3_RETIRE
+    cycle: K..L
+    action: Commit PC, register, interrupt, outstanding counter, and fault-status changes after the transaction reaches a legal terminal point.
   ordering:
-  - Accepted requests update architectural state only on clock edges.
-  - Completion/status/interrupt updates occur after the operation reaches its terminal FSM state.
-  - Backpressure stalls the active handshake stage without corrupting stored state.
-  - Read/dataflow stages must precede dependent write/output stages where declared in dataflow.
+  - Accepted APB writes update architectural state only on clock edges and cannot partially commit.
+  - Instruction retirement is in channel program order except documented wait/barrier states that intentionally stall retirement.
+  - AXI read responses can return after later read requests, but each RID must retire into the matching outstanding slot before mfifo visibility.
+  - AXI writes retire only after BRESP for the matching BID, and write errors cannot be masked by later successful writes.
+  - DMAWFE, DMARMB, and DMAWMB block subsequent instruction retirement until their event or outstanding-drain condition is true.
+  - Security faults take precedence over AXI issue for the same instruction.
   backpressure:
-  - Ready/valid deassertion stalls only the affected interface stage; payload and route/control state remain stable.
+  - AXI AW, W, AR, R, and B stalls hold their payload/control state stable and do not modify SAR/DAR until the relevant beat is accepted.
+  - mfifo full stalls DMALD/DMALDP issue before AR; mfifo empty stalls DMAST/DMASTP before AW/W.
+  - APB pready can deassert for register side effects, but paddr/pwrite/pwdata decode remains stable until completion.
+  - Peripheral drready/daready can deassert independently per peripheral; unrelated channels can continue if arbitration permits.
   observability:
   - Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario.
 clock_reset_domains:
@@ -434,52 +1364,157 @@ rdc_requirements:
   checks:
   - No crossing paths expected; update SSOT if additional clocks or resets are introduced
 registers:
+  access_policy:
+  - interface: apb_ns
+    allowed: non-secure visible registers and debug commands permitted by security.privilege_rules
+    denied_effect: read returns zero or safe status for secure-only fields; write is ignored and secure_violation is reported when architecturally visible
+  - interface: apb_secure
+    allowed: complete register map including secure debug/control/status
+    denied_effect: none
   register_list:
   - name: DSR
     offset: 0
     access: RO
     reset: 0
     description: DMA Manager Status Register
+    fields:
+    - name: manager_state
+      bits: 3:0
+      reset: 0
+      description: Manager FSM state encoded from channel_state manager context.
+    - name: manager_fault
+      bits: 8
+      reset: 0
+      description: Set when manager context enters FAULTING.
+    read_effects: []
+    write_effects: []
+    function_refs:
+    - function_model.transactions.FM_FAULT
   - name: DPC
     offset: 4
     access: RO
     reset: 0
     description: DMA Manager PC
+    fields:
+    - name: pc
+      bits: 31:0
+      reset: 0
+      description: Current manager program counter.
+    read_effects: []
+    write_effects: []
+    function_refs:
+    - function_model.state_variables.channel_pc
   - name: INTEN
     offset: 32
     access: RW
     reset: 0
     description: Interrupt Enable
+    fields:
+    - name: enable
+      bits: NUM_IRQS-1:0
+      reset: 0
+      description: One enable bit per event interrupt.
+    read_effects: []
+    write_effects:
+    - APB write replaces irq enable mask.
+    function_refs:
+    - function_model.transactions.FM_DMASEV
   - name: INT_EVENT_RIS
     offset: 36
     access: RO
     reset: 0
     description: Event-Interrupt Raw Status
+    fields:
+    - name: raw_event
+      bits: NUM_IRQS-1:0
+      reset: 0
+      description: Raw event latch before INTEN masking.
+    read_effects: []
+    write_effects: []
+    function_refs:
+    - function_model.state_variables.event_latch
   - name: INTMIS
     offset: 40
     access: RO
     reset: 0
     description: Interrupt Status (masked)
+    fields:
+    - name: masked_event
+      bits: NUM_IRQS-1:0
+      reset: 0
+      description: event_latch & INTEN, after security mapping permits visibility.
+    read_effects: []
+    write_effects: []
+    function_refs:
+    - function_model.transactions.FM_DMASEV
   - name: INTCLR
     offset: 44
     access: WO
     reset: 0
     description: Interrupt Clear
+    fields:
+    - name: clear_event
+      bits: NUM_IRQS-1:0
+      reset: 0
+      description: Write-one-to-clear event_latch and irq_status bits.
+    read_effects:
+    - reads return zero
+    write_effects:
+    - event_latch &= ~clear_event
+    - irq_status &= ~clear_event
+    function_refs:
+    - function_model.transactions.FM_DMAWFE
   - name: FSRD
     offset: 48
     access: RO
     reset: 0
     description: Fault Status DMA Manager
+    fields:
+    - name: manager_fault
+      bits: 0
+      reset: 0
+      description: Manager fault pending.
+    - name: decode_fault
+      bits: 1
+      reset: 0
+      description: Undefined instruction or malformed operand detected by manager.
+    read_effects: []
+    write_effects: []
+    function_refs:
+    - error_handling.undef_instr
+    - error_handling.instr_fetch_err
   - name: FSRC
     offset: 52
     access: RO
     reset: 0
     description: Fault Status DMA Channels
+    fields:
+    - name: channel_fault
+      bits: NUM_CHANNELS-1:0
+      reset: 0
+      description: One fault bit per channel.
+    read_effects: []
+    write_effects: []
+    function_refs:
+    - function_model.transactions.FM_FAULT
   - name: FTRD
     offset: 56
     access: RO
     reset: 0
     description: Fault Type DMA Manager
+    fields:
+    - name: fault_type
+      bits: 7:0
+      reset: 0
+      description: Encoded latest manager fault source.
+    - name: fault_pc_valid
+      bits: 8
+      reset: 0
+      description: Fault PC is valid for debug/status correlation.
+    read_effects: []
+    write_effects: []
+    function_refs:
+    - error_handling.error_sources
   - name: CSR_chan_n
     offset: 256
     access: RO
@@ -487,6 +1522,23 @@ registers:
     count: NUM_CHANNELS
     stride: 8
     description: Channel Status
+    fields:
+    - name: channel_state
+      bits: 3:0
+      reset: 0
+      description: STOPPED/EXECUTING/WAITING/BARRIER/KILLING/FAULTING encoding for channel n.
+    - name: channel_ns
+      bits: 8
+      reset: 0
+      description: Non-secure attribute latched by DMAGO_NS.
+    - name: wake_pending
+      bits: 9
+      reset: 0
+      description: Channel is blocked in DMAWFE.
+    read_effects: []
+    write_effects: []
+    function_refs:
+    - fsm.channel_state
   - name: CPC_chan_n
     offset: 260
     access: RO
@@ -494,6 +1546,15 @@ registers:
     count: NUM_CHANNELS
     stride: 8
     description: Channel PC
+    fields:
+    - name: pc
+      bits: 31:0
+      reset: 0
+      description: Current channel program counter.
+    read_effects: []
+    write_effects: []
+    function_refs:
+    - function_model.state_variables.channel_pc
   - name: SAR_chan_n
     offset: 1024
     access: RW
@@ -501,6 +1562,17 @@ registers:
     count: NUM_CHANNELS
     stride: 32
     description: Source Address
+    fields:
+    - name: sar
+      bits: 31:0
+      reset: 0
+      description: Source address for channel n.
+    read_effects: []
+    write_effects:
+    - Secure APB debug write or DMAMOV updates channel_sar when channel is not executing unless debug execution explicitly permits it.
+    function_refs:
+    - function_model.transactions.FM_DMAMOV
+    - function_model.transactions.FM_DMAADDH
   - name: DAR_chan_n
     offset: 1028
     access: RW
@@ -508,6 +1580,17 @@ registers:
     count: NUM_CHANNELS
     stride: 32
     description: Destination Address
+    fields:
+    - name: dar
+      bits: 31:0
+      reset: 0
+      description: Destination address for channel n.
+    read_effects: []
+    write_effects:
+    - Secure APB debug write or DMAMOV updates channel_dar when channel is not executing unless debug execution explicitly permits it.
+    function_refs:
+    - function_model.transactions.FM_DMAMOV
+    - function_model.transactions.FM_DMAADDH
   - name: CCR_chan_n
     offset: 1032
     access: RW
@@ -515,31 +1598,139 @@ registers:
     count: NUM_CHANNELS
     stride: 32
     description: Channel Control
+    fields:
+    - name: src_inc
+      bits: 0
+      reset: 0
+      description: Increment SAR after accepted read beats.
+    - name: dst_inc
+      bits: 1
+      reset: 0
+      description: Increment DAR after accepted write beats.
+    - name: src_burst_size
+      bits: 4:2
+      reset: 0
+      description: Source burst size encoding.
+    - name: dst_burst_size
+      bits: 7:5
+      reset: 0
+      description: Destination burst size encoding.
+    - name: src_burst_len
+      bits: 11:8
+      reset: 0
+      description: Source burst length minus one.
+    - name: dst_burst_len
+      bits: 15:12
+      reset: 0
+      description: Destination burst length minus one.
+    - name: cache_ctrl
+      bits: 23:16
+      reset: 0
+      description: AXI cache/prot/control attributes generated for AR/AW.
+    read_effects: []
+    write_effects:
+    - Secure APB debug write or DMAMOV updates channel_ccr when channel is not executing unless debug execution explicitly permits it.
+    function_refs:
+    - function_model.transactions.FM_DMAMOV
+    - cycle_model.handshake_rules.CM_AXI_AR
+    - cycle_model.handshake_rules.CM_AXI_AW
   - name: DBGSTATUS
     offset: 3328
     access: RO
     reset: 0
     description: Debug Status
+    fields:
+    - name: busy
+      bits: 0
+      reset: 0
+      description: Debug interface is executing a command.
+    - name: cmd_error
+      bits: 1
+      reset: 0
+      description: Last debug command was rejected or faulted.
+    read_effects: []
+    write_effects: []
+    function_refs:
+    - function_model.transactions.FM_DMAKILL
   - name: DBGCMD
     offset: 3332
     access: WO
     reset: 0
     description: Debug Command
+    fields:
+    - name: cmd
+      bits: 1:0
+      reset: 0
+      description: Encoded debug command, including execute instruction and DMAKILL.
+    - name: channel
+      bits: 10:8
+      reset: 0
+      description: Target channel for channel debug command.
+    read_effects:
+    - reads return zero
+    write_effects:
+    - Launch debug instruction in DBGINST0/1 or request FM_DMAKILL based on cmd.
+    function_refs:
+    - function_model.transactions.FM_DMAGO
+    - function_model.transactions.FM_DMAKILL
   - name: DBGINST0
     offset: 3336
     access: WO
     reset: 0
     description: Debug Instruction-0
+    fields:
+    - name: opcode_and_operands_low
+      bits: 31:0
+      reset: 0
+      description: Low word of debug instruction payload.
+    read_effects:
+    - reads return zero
+    write_effects:
+    - Captures debug instruction low word until DBGCMD execute.
+    function_refs:
+    - function_model.instruction_set
   - name: DBGINST1
     offset: 3340
     access: WO
     reset: 0
     description: Debug Instruction-1
+    fields:
+    - name: operands_high
+      bits: 31:0
+      reset: 0
+      description: High word of debug instruction payload.
+    read_effects:
+    - reads return zero
+    write_effects:
+    - Captures debug instruction high word until DBGCMD execute.
+    function_refs:
+    - function_model.instruction_set
   - name: CR0
     offset: 3584
     access: RO
     reset: 0
     description: Configuration Register 0
+    fields:
+    - name: num_channels_m1
+      bits: 2:0
+      reset: NUM_CHANNELS-1
+      description: Encoded implemented channel count minus one.
+    - name: num_periph_m1
+      bits: 8:4
+      reset: NUM_PERIPH_REQS-1
+      description: Encoded implemented peripheral request count minus one.
+    - name: num_irq_m1
+      bits: 15:10
+      reset: NUM_IRQS-1
+      description: Encoded implemented event IRQ count minus one.
+    - name: data_width_code
+      bits: 18:16
+      reset: implementation_defined
+      description: Encoded AXI data width capability.
+    read_effects: []
+    write_effects: []
+    function_refs:
+    - parameters
 memory:
   instances:
   - name: mfifo
@@ -672,34 +1863,96 @@ security:
   - NS-issued instruction targeting Secure peripheral
   - Replay or skipping of DMAFLUSHP between contexts
   - Bus error injection causing FSM exposure
-  classification: non_secure_leaf_ip
+  classification: mixed_secure_non_secure_dma
+  privilege_rules:
+  - id: SEC_APB_NS_VISIBLE
+    subject: apb_ns
+    condition: psel && penable
+    allow: Non-secure register reads/writes only for architecturally NS-visible status, interrupt, and debug command fields.
+    deny: Secure-only debug/control writes and secure-channel state mutation.
+    effect_on_deny: Ignore write side effects and set secure_violation when status reporting is enabled.
+  - id: SEC_APB_SECURE_FULL
+    subject: apb_secure
+    condition: spsel && spenable
+    allow: Full register map access including secure debug command execution.
+    deny: none
+    effect_on_deny: none
+  - id: SEC_DMAGO
+    subject: DMAGO/DMAGO_NS
+    condition: debug command launches a channel
+    allow: Secure manager may launch secure or non-secure channels; non-secure manager may launch only non-secure channels.
+    deny: Launch that would let non-secure context access secure-only peripheral, IRQ, or instruction region.
+    effect_on_deny: Do not modify channel_state/channel_pc; set secure_violation and irq_abort.
+  - id: SEC_PERIPH
+    subject: DMALDP/DMASTP/DMAFLUSHP
+    condition: peripheral_id decoded
+    allow: Channel security attribute must be compatible with boot_periph_ns[peripheral_id].
+    deny: Non-secure channel targeting secure peripheral request.
+    effect_on_deny: Suppress drready/daready, set secure_violation, enter FAULTING.
+  - id: SEC_IRQ
+    subject: DMASEV
+    condition: event_id decoded
+    allow: Channel security attribute must be compatible with boot_irq_ns[event_id].
+    deny: Non-secure channel setting secure event IRQ.
+    effect_on_deny: Do not set irq_status[event_id]; set secure_violation.
+  - id: SEC_AXI_PROT
+    subject: axi_read_master/axi_write_master
+    condition: AR/AW issued for instruction/data transfer
+    allow: ARPROT/AWPROT security bit reflects channel_ns and boot_manager_ns source context.
+    deny: none inside leaf; external firewall owns address acceptance.
+    effect_on_deny: AXI error responses are handled by error_handling.
   threat_model:
   - threat: invalid configuration or address
-    mitigation: error_handling declares detection, architectural effect, and recovery
+    mitigation: security.privilege_rules plus error_handling declare detection, architectural effect, and recovery.
   - threat: silent data/control corruption
-    mitigation: test_requirements scoreboard checks every declared functional transaction
-  privilege_model: System-level access control is owned by the integrating bus/firewall unless explicitly declared here.
+    mitigation: test_requirements scoreboard checks every declared functional transaction and every secure-deny scenario.
+  - threat: non-secure debug instruction injection
+    mitigation: apb_ns debug writes are filtered by SEC_APB_NS_VISIBLE and DBGCMD cannot mutate secure channel state.
+  privilege_model: Leaf IP enforces boot_irq_ns/boot_periph_ns/boot_manager_ns and APB secure-vs-non-secure separation; SoC firewall owns address-range legality.
 error_handling:
   error_sources:
   - id: instr_fetch_err
-    condition: Declared error condition is observed
-    architectural_effect: Status/error reporting follows the SSOT error policy
+    condition: AXI instruction fetch returns RRESP not OKAY, fetch alignment is invalid, or instruction cache reports fill_resp_error.
+    architectural_effect: Current manager/channel enters FAULTING, FSRD/FTRD capture fetch error type, irq_abort pulses.
+    observable_evidence:
+    - arvalid/arready request classified as instruction fetch
+    - rresp != OKAY or fill_resp_error
   - id: data_read_err
-    condition: Declared error condition is observed
-    architectural_effect: Status/error reporting follows the SSOT error policy
+    condition: DMALD/DMALDP AXI read returns RRESP not OKAY before final R beat retirement.
+    architectural_effect: Channel enters FAULTING, outstanding_reads retires the failing slot, fault_status records DATA_READ_ERR, irq_abort pulses.
+    observable_evidence:
+    - rvalid && rready && rresp != OKAY
   - id: data_write_err
-    condition: Declared error condition is observed
-    architectural_effect: Status/error reporting follows the SSOT error policy
+    condition: DMAST/DMASTP/DMASTZ AXI write returns BRESP not OKAY.
+    architectural_effect: Channel enters FAULTING after matching write outstanding slot retires; fault_status records DATA_WRITE_ERR.
+    observable_evidence:
+    - bvalid && bready && bresp != OKAY
   - id: undef_instr
-    condition: Declared error condition is observed
-    architectural_effect: Status/error reporting follows the SSOT error policy
+    condition: Decoded opcode is absent from function_model.instruction_set, operand selector is unsupported, or loop/event/peripheral operand is out of range.
+    architectural_effect: Suppress external side effects for that instruction, enter FAULTING, report decode fault in FTRD/FSRC.
+    observable_evidence:
+    - decoder valid with no matching instruction_set row
   - id: secure_violation
-    condition: Declared error condition is observed
-    architectural_effect: Status/error reporting follows the SSOT error policy
+    condition: security.privilege_rules deny a channel launch, peripheral transaction, event interrupt, APB write, or debug command.
+    architectural_effect: Denied action has no external side effect; channel/manager enters FAULTING when architecturally visible; irq_abort pulses.
+    observable_evidence:
+    - denied rule id recorded in sim scoreboard event
   - id: unaligned_access
-    condition: Declared error condition is observed
-    architectural_effect: Status/error reporting follows the SSOT error policy
-  propagation: "FAULTING channel \u2192 COMPLETING_FAULT \u2192 STOPPED, irq_abort pulses on entry"
+    condition: SAR/DAR alignment is incompatible with CCR burst size and implementation cannot split/merge the access through merge_buffer.
+    architectural_effect: Suppress AXI issue when detected pre-issue; otherwise report DATA_READ_ERR/DATA_WRITE_ERR on failing response.
+    observable_evidence:
+    - address low bits violate CCR size before AR/AW handshake
+  - id: mfifo_overflow
+    condition: DMALD/DMALDP attempts to reserve more beats than MFIFO_DEPTH has available.
+    architectural_effect: Stall before AR issue; if implementation overflows, enter FAULTING and set fault_status.
+    observable_evidence:
+    - mfifo_count == MFIFO_DEPTH and load instruction is ready to issue
+  - id: decode_fault
+    condition: Instruction byte stream ends before required operands or contains unsupported DMALPEND variant/target.
+    architectural_effect: Enter FAULTING before issuing AXI/peripheral side effects.
+    observable_evidence:
+    - decoder operand_valid is false at execute entry
+  propagation: "FAULTING channel -> FAULTING_COMPLETING -> STOPPED, irq_abort pulses on entry"
   recovery:
   - action: reset or software clear
     clears:
@@ -708,16 +1961,26 @@ error_handling:
     - configuration unless reset policy states otherwise
 debug_observability:
   waveform_must_probe:
-  - aclk
-  - aresetn
+  - clk
+  - rst_n
   - channel_state[*]
   - channel_pc[*]
+  - channel_sar[*]
+  - channel_dar[*]
+  - channel_ccr[*]
+  - loop_counter0[*]
+  - loop_counter1[*]
+  - event_latch
   - mfifo_count
   - outstanding_reads
   - outstanding_writes
   - irq
   - irq_abort
   - fault_status
+  - psel; penable; pwrite; paddr; pwdata; prdata; pready
+  - spsel; spenable; spwrite; spaddr; spwdata; sprdata; spready
+  - drvalid; drready; drtype; drlast
+  - davalid; daready; datype
   - awvalid; awready; awaddr; awlen
   - wvalid;  wready;  wdata;  wlast
   - bvalid;  bready;  bresp
@@ -735,7 +1998,13 @@ debug_observability:
 integration:
   bus_attachment:
     interfaces:
-    - control_data
+    - boot_config
+    - peripheral_request
+    - irq_outputs
+    - axi_write_master
+    - axi_read_master
+    - apb_ns
+    - apb_secure
     address_ownership: SoC assigns base addresses and external routing not owned by this leaf IP
   dependencies:
     external_modules: []
@@ -743,11 +2012,402 @@ integration:
     - clk
     external_resets:
     - rst_n
-  connections: []
-  connection_contract_status: missing machine-readable module wiring; child RTL drafts may proceed from owner packets, but top integration/signoff
-    must stay blocked until SSOT authors integration.connections or sub_modules[].connections with module/port/signal records
+  connections:
+  - module: pl330_target
+    port: clk
+    signal: clk
+    direction: input
+    source_ref: io_list.clock_domains.clk
+  - module: pl330_target
+    port: rst_n
+    signal: rst_n
+    direction: input
+    source_ref: io_list.resets.rst_n
+  - module: pl330_target
+    port: boot_from_pc
+    signal: boot_from_pc
+    direction: input
+    source_ref: io_list.interfaces.boot_config.boot_from_pc
+  - module: pl330_target
+    port: boot_addr
+    signal: boot_addr
+    direction: input
+    source_ref: io_list.interfaces.boot_config.boot_addr
+  - module: pl330_target
+    port: boot_manager_ns
+    signal: boot_manager_ns
+    direction: input
+    source_ref: security.privilege_rules.SEC_DMAGO
+  - module: pl330_target
+    port: boot_irq_ns
+    signal: boot_irq_ns
+    direction: input
+    source_ref: security.privilege_rules.SEC_IRQ
+  - module: pl330_target
+    port: boot_periph_ns
+    signal: boot_periph_ns
+    direction: input
+    source_ref: security.privilege_rules.SEC_PERIPH
+  - module: pl330_target
+    port: irq
+    signal: irq
+    direction: output
+    source_ref: interrupts.outputs.irq
+  - module: pl330_target
+    port: irq_abort
+    signal: irq_abort
+    direction: output
+    source_ref: interrupts.outputs.irq_abort
+  - module: pl330_target
+    port: drvalid
+    signal: drvalid
+    direction: input
+    source_ref: io_list.interfaces.peripheral_request.drvalid
+  - module: pl330_target
+    port: drready
+    signal: drready
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_PERIPH_DR
+  - module: pl330_target
+    port: drtype
+    signal: drtype
+    direction: input
+    source_ref: io_list.interfaces.peripheral_request.drtype
+  - module: pl330_target
+    port: drlast
+    signal: drlast
+    direction: input
+    source_ref: io_list.interfaces.peripheral_request.drlast
+  - module: pl330_target
+    port: davalid
+    signal: davalid
+    direction: input
+    source_ref: io_list.interfaces.peripheral_request.davalid
+  - module: pl330_target
+    port: daready
+    signal: daready
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_PERIPH_DA
+  - module: pl330_target
+    port: datype
+    signal: datype
+    direction: input
+    source_ref: io_list.interfaces.peripheral_request.datype
+  - module: pl330_target
+    port: awid
+    signal: awid
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_AW
+  - module: pl330_target
+    port: awaddr
+    signal: awaddr
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_AW
+  - module: pl330_target
+    port: awlen
+    signal: awlen
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_AW
+  - module: pl330_target
+    port: awsize
+    signal: awsize
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_AW
+  - module: pl330_target
+    port: awburst
+    signal: awburst
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_AW
+  - module: pl330_target
+    port: awlock
+    signal: awlock
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_AW
+  - module: pl330_target
+    port: awcache
+    signal: awcache
+    direction: output
+    source_ref: registers.register_list.CCR_chan_n
+  - module: pl330_target
+    port: awprot
+    signal: awprot
+    direction: output
+    source_ref: security.privilege_rules.SEC_AXI_PROT
+  - module: pl330_target
+    port: awvalid
+    signal: awvalid
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_AW
+  - module: pl330_target
+    port: awready
+    signal: awready
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_AXI_AW
+  - module: pl330_target
+    port: wid
+    signal: wid
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_W
+  - module: pl330_target
+    port: wdata
+    signal: wdata
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_W
+  - module: pl330_target
+    port: wstrb
+    signal: wstrb
+    direction: output
+    source_ref: memory.merge_buffer
+  - module: pl330_target
+    port: wlast
+    signal: wlast
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_W
+  - module: pl330_target
+    port: wvalid
+    signal: wvalid
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_W
+  - module: pl330_target
+    port: wready
+    signal: wready
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_AXI_W
+  - module: pl330_target
+    port: bid
+    signal: bid
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_AXI_B
+  - module: pl330_target
+    port: bresp
+    signal: bresp
+    direction: input
+    source_ref: error_handling.data_write_err
+  - module: pl330_target
+    port: bvalid
+    signal: bvalid
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_AXI_B
+  - module: pl330_target
+    port: bready
+    signal: bready
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_B
+  - module: pl330_target
+    port: arid
+    signal: arid
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_AR
+  - module: pl330_target
+    port: araddr
+    signal: araddr
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_AR
+  - module: pl330_target
+    port: arlen
+    signal: arlen
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_AR
+  - module: pl330_target
+    port: arsize
+    signal: arsize
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_AR
+  - module: pl330_target
+    port: arburst
+    signal: arburst
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_AR
+  - module: pl330_target
+    port: arlock
+    signal: arlock
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_AR
+  - module: pl330_target
+    port: arcache
+    signal: arcache
+    direction: output
+    source_ref: registers.register_list.CCR_chan_n
+  - module: pl330_target
+    port: arprot
+    signal: arprot
+    direction: output
+    source_ref: security.privilege_rules.SEC_AXI_PROT
+  - module: pl330_target
+    port: arvalid
+    signal: arvalid
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_AR
+  - module: pl330_target
+    port: arready
+    signal: arready
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_AXI_AR
+  - module: pl330_target
+    port: rid
+    signal: rid
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_AXI_R
+  - module: pl330_target
+    port: rdata
+    signal: rdata
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_AXI_R
+  - module: pl330_target
+    port: rresp
+    signal: rresp
+    direction: input
+    source_ref: error_handling.data_read_err
+  - module: pl330_target
+    port: rlast
+    signal: rlast
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_AXI_R
+  - module: pl330_target
+    port: rvalid
+    signal: rvalid
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_AXI_R
+  - module: pl330_target
+    port: rready
+    signal: rready
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_AXI_R
+  - module: pl330_target
+    port: paddr
+    signal: paddr
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_APB_NS
+  - module: pl330_target
+    port: psel
+    signal: psel
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_APB_NS
+  - module: pl330_target
+    port: penable
+    signal: penable
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_APB_NS
+  - module: pl330_target
+    port: pwrite
+    signal: pwrite
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_APB_NS
+  - module: pl330_target
+    port: pwdata
+    signal: pwdata
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_APB_NS
+  - module: pl330_target
+    port: prdata
+    signal: prdata
+    direction: output
+    source_ref: registers.register_list
+  - module: pl330_target
+    port: pready
+    signal: pready
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_APB_NS
+  - module: pl330_target
+    port: spaddr
+    signal: spaddr
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_APB_SECURE
+  - module: pl330_target
+    port: spsel
+    signal: spsel
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_APB_SECURE
+  - module: pl330_target
+    port: spenable
+    signal: spenable
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_APB_SECURE
+  - module: pl330_target
+    port: spwrite
+    signal: spwrite
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_APB_SECURE
+  - module: pl330_target
+    port: spwdata
+    signal: spwdata
+    direction: input
+    source_ref: cycle_model.handshake_rules.CM_APB_SECURE
+  - module: pl330_target
+    port: sprdata
+    signal: sprdata
+    direction: output
+    source_ref: registers.register_list
+  - module: pl330_target
+    port: spready
+    signal: spready
+    direction: output
+    source_ref: cycle_model.handshake_rules.CM_APB_SECURE
+  - module: pl330_target_engine
+    instance: u_engine
+    port: cmd_opcode
+    signal: engine_cmd_opcode
+    direction: input
+    source_ref: function_model.instruction_set
+  - module: pl330_target_engine
+    instance: u_engine
+    port: fetch_req_valid
+    signal: icache_req_valid
+    direction: output
+    source_ref: dataflow.cmd_fetch
+  - module: pl330_target_engine
+    instance: u_engine
+    port: rd_req_valid
+    signal: lsq_load_valid
+    direction: output
+    source_ref: function_model.transactions.FM_DMALD
+  - module: pl330_target_engine
+    instance: u_engine
+    port: wr_req_valid
+    signal: lsq_store_valid
+    direction: output
+    source_ref: function_model.transactions.FM_DMAST
+  - module: pl330_target_lsq
+    instance: u_lsq
+    port: load_resp_error_o
+    signal: data_read_error
+    direction: output
+    source_ref: error_handling.data_read_err
+  - module: pl330_target_lsq
+    instance: u_lsq
+    port: store_resp_error_o
+    signal: data_write_error
+    direction: output
+    source_ref: error_handling.data_write_err
+  - module: pl330_target_mfifo
+    instance: u_mfifo
+    port: mfifo_count_o
+    signal: mfifo_count
+    direction: output
+    source_ref: function_model.state_variables.mfifo_count
+  - module: pl330_target_periph
+    instance: u_periph
+    port: pending_mask_o
+    signal: periph_pending_mask
+    direction: output
+    source_ref: function_model.transactions.FM_DMAFLUSHP
+  - module: pl330_target_apb_regs
+    instance: u_apb_regs
+    port: start_pulse
+    signal: dbg_start_pulse
+    direction: output
+    source_ref: registers.register_list.DBGCMD
+  - module: pl330_target_apb_regs
+    instance: u_apb_regs
+    port: cfg_secure
+    signal: cfg_secure
+    direction: output
+    source_ref: security.privilege_rules
+  connection_contract_status: authored_machine_readable
   integration_notes:
   - Integrator must connect every declared io_list port and honor timing/reset assumptions.
+  - Child module ports listed here are the required top integration intent; rtl-gen must either wire the named port/signal pair or provide an explicit SSOT waiver.
+  - AXI address-map legality is integration-owned; this leaf reports AXI error responses and local security-deny conditions.
 dft:
   scan_required: false
   controllability:
@@ -768,20 +2428,28 @@ synthesis:
     power_mw_max: null
     frequency_mhz_min: 200
     technology: openpdk45
-  dialect: systemverilog_2012
+  dialect: verilog_2001_syntax_in_sv_files
   top_module: pl330_target
   constraints:
   - No inferred latches
   - No unresolved black boxes
   - All sequential state reset or intentionally initialized
+  include_files:
+  - rtl/pl330_target_param.vh
+  - rtl/pl330_target_ip.vh
   required_outputs:
   - syn/out/area.rpt
   - syn/out/timing_summary.rpt
   - sta/out/wns.json
 coding_rules:
-  verilog_style: systemverilog_2012
+  verilog_style: verilog_2001_syntax_in_sv_files
   conventions:
-  - Use always_ff/always_comb or equivalent synthesis-safe style consistently
+  - RTL files keep .sv extension, but emitted syntax must stay Verilog-2001 compatible.
+  - Use module parameters and `include "pl330_target_param.vh"` / `include "pl330_target_ip.vh"` for shared constants.
+  - Do not emit package, import, interface, modport, typedef, enum, struct, union, logic, always_ff, always_comb, always_latch, unique, priority, final, or bind constructs.
+  - Do not emit function/endfunction or task/endtask; duplicate simple expressions with wires or local combinational logic instead.
+  - Do not emit procedural for/while/repeat/forever loops; expand fixed lanes explicitly or generate them in the generator before writing RTL text.
+  - Use wire/reg declarations and always @(*) / always @(posedge clk or negedge rst_n) blocks.
   - No inferred latches; every combinational branch assigns all outputs
   - No parameterized part-selects inside procedural blocks; use helper wires/continuous assigns
   - No ad-hoc lint suppressions without SSOT waiver and DUT-only lint evidence
@@ -826,97 +2494,117 @@ filelist:
   - cov/coverage.json
 test_requirements:
   scenarios:
-  - id: SC01
-    name: reset contract
+  - id: SC_RESET
+    name: reset and boot configuration
     stimulus: Assert and release the declared reset while all external interfaces remain idle.
-    expected: Architectural state, status, outputs, and debug observability match function_model reset outputs.
-    checker: Reset checker compares all declared reset-visible state against function_model and cycle_model reset rules.
+    expected: Architectural state resets, boot_config is sampled, APB read-only configuration registers reflect parameters.
+    checker: Reset checker compares function_model reset outputs, boot_config latches, and CR0 fields.
     coverage:
     - function_model.reset
     - cycle_model.reset
-  - id: SC02
-    name: primary approved behavior
-    stimulus: Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.
-    expected: Externally observable result/status/side effects match the function_model primary transaction.
-    checker: FL-vs-RTL scoreboard compares observable outputs and state updates from the locked function_model.
-    coverage:
-    - function_model.primary
-    - features
-    - dataflow
-  - id: SC03
-    name: cycle handshake and backpressure
-    stimulus: Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.
-    expected: Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules.
-    checker: Protocol monitor and scoreboard check cycle_model.handshake_rules, ordering, and latency budget.
-    coverage:
-    - cycle_model.handshake_rules
-    - cycle_model.ordering
-    - backpressure
-  - id: SC04
-    name: error and recovery policy
-    stimulus: Inject each declared error_handling.error_sources condition where the interface can represent it.
-    expected: Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state.
-    checker: Negative checker compares error result and recovery state against function_model error_cases.
-    coverage:
-    - error_handling.error_sources
-    - function_model.error_cases
-  - id: SC05
-    name: debug and trace observability
-    stimulus: Run nominal and error flows while sampling every debug_observability waveform/status/trace point.
-    expected: Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior.
-    checker: Waveform/trace checker validates debug_observability entries and traceability.yaml_to_output rows.
-    coverage:
-    - debug_observability
-    - traceability
-  - id: SC06
-    name: function_model transaction FM_RESET
-    stimulus: Drive preconditions for function_model transaction `FM_RESET`.
-    expected: Outputs and side effects match `FM_RESET` exactly.
-    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
-    coverage:
-    - function_model.transactions.FM_RESET
-  - id: SC07
-    name: function_model transaction FM_DMAGO
-    stimulus: Drive preconditions for function_model transaction `FM_DMAGO`.
-    expected: Outputs and side effects match `FM_DMAGO` exactly.
-    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    - registers.register_list.CR0
+  - id: SC_DMAGO_DMAMOV
+    name: DMAGO launches a channel and DMAMOV programs SAR/DAR/CCR
+    stimulus: Use secure APB DBGINST0/1 and DBGCMD to issue DMAGO, then feed DMAMOV SAR, DMAMOV DAR, and DMAMOV CCR instruction bytes.
+    expected: Target channel enters EXECUTING, channel_pc starts at operand PC, SAR/DAR/CCR update exactly from immediate operands.
+    checker: Python FL model decodes instruction_set rows and compares CSR/CPC/SAR/DAR/CCR observations against RTL.
     coverage:
     - function_model.transactions.FM_DMAGO
-  - id: SC08
-    name: function_model transaction FM_DMALD
-    stimulus: Drive preconditions for function_model transaction `FM_DMALD`.
-    expected: Outputs and side effects match `FM_DMALD` exactly.
-    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    - function_model.transactions.FM_DMAMOV
+    - registers.register_list.DBGCMD
+  - id: SC_DMALD_DMAST_COPY
+    name: memory-to-memory copy through MFIFO
+    stimulus: Program SAR/DAR/CCR, execute DMALD followed by DMAST with AXI read/write backpressure permutations.
+    expected: AR/R pushes data into mfifo, AW/W/B drains matching data, SAR/DAR/outstanding counters update under cycle_model ordering.
+    checker: AXI monitor plus FL-vs-RTL scoreboard checks data, ID, address, burst, and outstanding slot retirement.
     coverage:
     - function_model.transactions.FM_DMALD
-  - id: SC09
-    name: function_model transaction FM_DMAST
-    stimulus: Drive preconditions for function_model transaction `FM_DMAST`.
-    expected: Outputs and side effects match `FM_DMAST` exactly.
-    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
-    coverage:
     - function_model.transactions.FM_DMAST
-  - id: SC10
-    name: function_model transaction FM_DMALDP
-    stimulus: Drive preconditions for function_model transaction `FM_DMALDP`.
-    expected: Outputs and side effects match `FM_DMALDP` exactly.
-    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    - cycle_model.handshake_rules.CM_AXI_AR
+    - cycle_model.handshake_rules.CM_AXI_AW
+  - id: SC_DMASTZ
+    name: zero-fill store
+    stimulus: Execute DMASTZ with several CCR burst sizes while mfifo is empty.
+    expected: AXI WDATA is zero for every accepted beat, mfifo_count is unchanged, DAR advances according to CCR dst_inc.
+    checker: AXI write monitor checks WDATA, WSTRB, WLAST, BRESP, and DAR update.
+    coverage:
+    - function_model.transactions.FM_DMASTZ
+    - memory.merge_buffer
+  - id: SC_LOOP
+    name: DMALP and DMALPEND branch loop
+    stimulus: Execute nested DMALP_0/DMALP_1 loops around DMALD/DMAST instructions with finite loop counts.
+    expected: loop_counter0/1 decrement, PC branches by backward_offset until zero, data movement count equals loop iteration count.
+    checker: FL instruction interpreter compares retired PC sequence and loop counter state against RTL traces.
+    coverage:
+    - function_model.transactions.FM_DMALP
+    - function_model.transactions.FM_DMALPEND
+  - id: SC_EVENT
+    name: DMAWFE and DMASEV event flow
+    stimulus: Channel A executes DMAWFE for event n while channel B executes DMASEV for the same event, then INTCLR clears it.
+    expected: Channel A stalls in WAITING_FOR_EVENT, resumes after event_latch[n] is set, irq[n] follows INTEN and INTCLR.
+    checker: Event scoreboard checks event_latch, irq_status, INTMIS, channel_state, and invalidate_flag behavior.
+    coverage:
+    - function_model.transactions.FM_DMAWFE
+    - function_model.transactions.FM_DMASEV
+    - registers.register_list.INTCLR
+  - id: SC_PERIPH
+    name: peripheral request load/store and flush
+    stimulus: Execute DMALDP_S, DMASTP_S, DMALDP_B, DMASTP_B, and DMAFLUSHP against enabled peripheral request lanes.
+    expected: drready/daready pulse only on selected lanes, pending masks clear on DMAFLUSHP, AXI traffic follows peripheral acceptance.
+    checker: Peripheral monitor checks vector lane, type, last, pending/active masks, and AXI side effects.
     coverage:
     - function_model.transactions.FM_DMALDP
-  - id: SC11
-    name: function_model transaction FM_DMASTP
-    stimulus: Drive preconditions for function_model transaction `FM_DMASTP`.
-    expected: Outputs and side effects match `FM_DMASTP` exactly.
-    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
-    coverage:
     - function_model.transactions.FM_DMASTP
-  - id: SC12
-    name: function_model transaction FM_DMASEV
-    stimulus: Drive preconditions for function_model transaction `FM_DMASEV`.
-    expected: Outputs and side effects match `FM_DMASEV` exactly.
-    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    - function_model.transactions.FM_DMAFLUSHP
+  - id: SC_BARRIER
+    name: read and write memory barriers
+    stimulus: Issue outstanding reads/writes, then execute DMARMB and DMAWMB before later transfer instructions.
+    expected: Later AR/AW issue is blocked until matching outstanding counter reaches zero.
+    checker: AXI temporal checker verifies no post-barrier request is accepted before the required drain point.
     coverage:
-    - function_model.transactions.FM_DMASEV
+    - function_model.transactions.FM_DMARMB
+    - function_model.transactions.FM_DMAWMB
+  - id: SC_AXI_ERROR
+    name: AXI error response faults
+    stimulus: Return SLVERR/DECERR on instruction fetch, data read, and data write responses.
+    expected: instr_fetch_err, data_read_err, or data_write_err is reported, channel enters FAULTING then FAULTING_COMPLETING, irq_abort pulses.
+    checker: Negative scoreboard correlates request class, RRESP/BRESP, fault_status, FSRD/FSRC/FTRD, and irq_abort.
+    coverage:
+    - error_handling.instr_fetch_err
+    - error_handling.data_read_err
+    - error_handling.data_write_err
+  - id: SC_SECURITY
+    name: secure and non-secure denial
+    stimulus: Attempt non-secure DMAGO_NS/peripheral/event/debug actions against secure boot_periph_ns, boot_irq_ns, and APB-secure-owned fields.
+    expected: Denied action has no external side effect, secure_violation is reported, secure state is not modified.
+    checker: Security scoreboard validates each security.privilege_rules row and verifies denied side effects are absent.
+    coverage:
+    - security.privilege_rules
+    - error_handling.secure_violation
+  - id: SC_DEBUG_KILL
+    name: debug DMAKILL drains and stops a channel
+    stimulus: Launch a channel with outstanding AXI operations, then issue DBGCMD DMAKILL.
+    expected: Channel enters KILLING, suppresses new issue, drains accepted responses, and reaches STOPPED without corrupting unrelated channels.
+    checker: Debug checker tracks DBGCMD, channel_state, outstanding counters, and final CSR/CPC state.
+    coverage:
+    - function_model.transactions.FM_DMAKILL
+    - registers.register_list.DBGSTATUS
+  - id: SC_DECODE_NEGATIVE
+    name: undefined opcode and malformed operand faults
+    stimulus: Feed an opcode absent from instruction_set and malformed operand streams for loop/event/peripheral instructions.
+    expected: No AXI/peripheral side effect occurs, undef_instr/decode_fault is reported, channel enters FAULTING.
+    checker: Decoder negative checker proves side-effect suppression and exact fault classification.
+    coverage:
+    - error_handling.undef_instr
+    - error_handling.decode_fault
+  - id: SC_MARKDOWN_TRACE
+    name: SSOT-to-output trace evidence
+    stimulus: Run the cocotb/pyuvm scenario set and export scoreboard_events.jsonl plus traceability map.
+    expected: Every function_model transaction, cycle_model handshake, security rule, and error source has at least one passing evidence row.
+    checker: Coverage closure script checks traceability.yaml_to_output and coverage_goals planned bins.
+    coverage:
+    - traceability
+    - quality_gates.dv
   coverage_goals:
     planned_bins:
     - id: cov_all_channels
@@ -937,8 +2625,20 @@ test_requirements:
     - id: cov_apb_secure_block
       class: planned_functional
       description: NS access to secure register correctly blocked
+    - id: cov_instruction_rows
+      class: instruction_set
+      description: every function_model.instruction_set row with a locked opcode executed or explicitly waived
+    - id: cov_event_wait_resume
+      class: scenario
+      description: DMAWFE wait and DMASEV resume observed for at least two event IDs
+    - id: cov_barrier_drain
+      class: ordering
+      description: DMARMB and DMAWMB both block younger issue until outstanding drain
+    - id: cov_secure_deny_no_side_effect
+      class: security
+      description: each security.privilege_rules deny path proves no external side effect
     scenario: All SSOT scenarios pass with executable cocotb/pyuvm checkers and FL-vs-RTL scoreboard evidence
-  scoreboard_checks: 12
+  scoreboard_checks: 14
 quality_gates:
   ssot:
     pass: check_ssot_disk.sh exits 0 and ATLAS SSOT progress is fully approved
@@ -991,9 +2691,7 @@ quality_gates:
     scan_coverage_min: 95
 traceability:
   reference_rtl: /Users/brian/Desktop/PL330-GRP-r1p2-rel/DMA-330_AXI_DMA_Controller/PL330-BU-00000-r1p2-00rel0/shared/logical/
-  notes: "This SSOT is a workflow target \u2014 it deliberately under-specifies many\nPL330 instructions (DMAMOV, DMAFLUSHP, DMAWFE/SEV semantics,\
-    \ channel\nthread structure) so that overnight iterations can identify which gaps\ncause golden_todos / equivalence_goals to escalate, and\
-    \ we can patch the\nworkflow accordingly.\n"
+  notes: "This SSOT now carries a structured PL330 contract for RTL generation: real top-level boot, IRQ, peripheral, AXI, and APB interfaces; instruction rows for the locally observed opcode aliases; machine-readable integration.connections; APB register side effects; security/error policy; and cocotb/pyuvm scenario requirements. Rows marked reference_status=needs_trm_opcode_lock are intentionally blocked from opcode-exact implementation until a TRM-backed opcode value is locked."
   yaml_to_output:
   - yaml: function_model
     output: RTL behavior and TB reference model
@@ -1317,7 +3015,7 @@ workflow_todos:
     required: true
   - id: RTL_CYCLE_handshake_rules_ITEM_0
     content: Implement cycle_model handshake rule 0
-    detail: rule=req_valid payload remains stable until req_ready is sampled asserted on control_data.
+    detail: rule=APB NS transfer commits only on psel && penable && pready; paddr, pwrite, and pwdata remain stable through setup/access.
     criteria:
     - RTL timing/handshake behavior follows this cycle_model entry
     - Signals remain stable or advance only under the approved protocol phase
@@ -1330,7 +3028,7 @@ workflow_todos:
     required: true
   - id: RTL_CYCLE_handshake_rules_1
     content: Implement cycle_model handshake rule 1
-    detail: rule=rsp_valid payload remains stable until rsp_ready is sampled asserted on control_data.
+    detail: rule=Secure APB transfer commits only on spsel && spenable && spready; spaddr, spwrite, and spwdata remain stable through setup/access.
     criteria:
     - RTL timing/handshake behavior follows this cycle_model entry
     - Signals remain stable or advance only under the approved protocol phase

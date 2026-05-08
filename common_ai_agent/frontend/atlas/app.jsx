@@ -171,11 +171,28 @@ const App = () => {
     }
   }, [normalizeSession, uiLang]);
 
+  const syncNamespaceUrl = React.useCallback((namespace, owner, ip, workflow) => {
+    try {
+      const url = new URL(window.location.href);
+      const sid = normalizeSession(namespace || '');
+      if (sid && sid !== 'default') url.searchParams.set('session', sid);
+      else url.searchParams.delete('session');
+      if (owner && owner !== 'default') url.searchParams.set('session_id', owner);
+      else url.searchParams.delete('session_id');
+      if (ip) url.searchParams.set('ip', ip);
+      else url.searchParams.delete('ip');
+      if (workflow) url.searchParams.set('workflow', workflow);
+      else url.searchParams.delete('workflow');
+      window.history.replaceState(null, '', url);
+    } catch (_) {}
+  }, [normalizeSession]);
+
   const activateNamespace = React.useCallback((sessionId, ipId, workflow, syncWorkflow = true) => {
     const owner = normalizeSession(sessionId) || 'default';
     const ip = normalizeSession(ipId || '');
     const wf = normalizeSession(workflow || '');
     const namespace = namespaceFor(owner, ip, wf);
+    syncNamespaceUrl(namespace, owner, ip, wf);
     setActiveSessionId(owner);
     setActiveIp(ip);
     setActiveNamespace(namespace);
@@ -199,7 +216,7 @@ const App = () => {
     // flips. Skipping here would leave the backend pinned.
     if (syncWorkflow) activateBackendWorkflow(wf, namespace);
     return namespace;
-  }, [activateBackendWorkflow, namespaceFor, normalizeSession]);
+  }, [activateBackendWorkflow, namespaceFor, normalizeSession, syncNamespaceUrl]);
 
   // Synthetic / reserved namespace segments that should never show
   // up in the ip_id dropdown. 'soc' is the SoC architect placeholder,

@@ -2568,10 +2568,7 @@ def _ui_group_for_task(task: dict[str, Any]) -> tuple[int, str, str]:
     if section == "interrupts":
         return (5, "control.interrupts", "Implement interrupt sources, enables, and clears")
     if category == "workflow_todo.rtl_gen":
-        workflow = task.get("workflow_todo") if isinstance(task.get("workflow_todo"), dict) else {}
-        todo_id = _slug(workflow.get("id") or content or task.get("id"), fallback="workflow_todo")
-        title = content or "Execute SSOT-authored rtl-gen workflow TODO"
-        return (10, f"workflow.{todo_id}", title)
+        return (10, "workflow.rtl_gen", "Execute SSOT-authored rtl-gen workflow TODOs")
     if section == "function_model":
         if subsection in {"input", "output", "output_rule", "transaction"}:
             return (20, "function.io_transactions", "Implement function_model inputs, outputs, and transactions")

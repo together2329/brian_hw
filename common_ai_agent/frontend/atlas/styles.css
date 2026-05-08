@@ -177,6 +177,7 @@
    Shared primitives
    ────────────────────────────────────────────── */
 .app {
+  --atlas-topbar-h: 30px;
   font-family: var(--mono);
   background: var(--bg);
   color: var(--fg);
@@ -187,6 +188,13 @@
   font-size: var(--ui-font-size);
   line-height: var(--ui-line-height);
   font-feature-settings: "calt" 0, "liga" 0;
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - var(--atlas-topbar-h));
+  min-height: 0;
 }
 
 [data-dir="B"] .app {
@@ -266,29 +274,43 @@
 
 /* ───────── direction switcher ───────── */
 .dir-switcher {
-  position: absolute;
-  top: 8px;
-  right: 12px;
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
   z-index: 100;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 6px;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  height: var(--atlas-topbar-h);
+  padding: 3px 4px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
   font-size: var(--ui-control-font-size);
   font-family: var(--mono);
-  max-width: calc(100% - 24px);
+  max-width: none;
+  overflow: visible;
+  white-space: nowrap;
+}
+.dir-switcher > span {
+  width: 6px !important;
+  flex: 0 0 6px;
 }
 .dir-btn {
   background: transparent;
   color: var(--fg-dim);
   border: 1px solid var(--line);
-  padding: 4px 10px;
+  padding: 3px 7px;
   cursor: pointer;
   border-radius: 2px;
   font-family: var(--mono);
   font-size: var(--ui-control-font-size);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
+  flex: 0 0 auto;
 }
 .dir-btn:hover { color: var(--fg); border-color: var(--line-2); background: color-mix(in oklch, var(--fg) 4%, transparent); }
 .dir-btn.active {
@@ -299,20 +321,21 @@
 .dir-select-wrap {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 6px;
+  gap: 4px;
+  padding: 2px 5px;
   background: transparent;
   border: 1px solid var(--line);
   border-radius: 2px;
   color: var(--fg-dim);
   font-family: var(--mono);
   font-size: var(--ui-small-font-size);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
+  flex: 0 0 auto;
 }
 .dir-select {
-  max-width: 220px;
-  min-width: 118px;
+  max-width: 160px;
+  min-width: 96px;
   background: var(--bg-2);
   color: var(--fg);
   border: 1px solid var(--line);
@@ -324,12 +347,12 @@
   text-transform: none;
 }
 .dir-select.ip {
-  min-width: 96px;
-  max-width: 160px;
+  min-width: 78px;
+  max-width: 120px;
 }
 .dir-select.mini {
-  min-width: 74px;
-  max-width: 104px;
+  min-width: 58px;
+  max-width: 76px;
 }
 .dir-select:focus {
   border-color: var(--accent);
@@ -1047,6 +1070,34 @@ body.atlas-sim-debug-fullscreen .titlebar,
 body.atlas-sim-debug-fullscreen .dir-switcher,
 body.atlas-sim-debug-fullscreen .statusbar {
   display: none !important;
+}
+body.atlas-sim-debug-fullscreen {
+  background: var(--bg) !important;
+}
+body.atlas-sim-debug-fullscreen #scaler {
+  width: 100vw !important;
+  height: 100vh !important;
+  transform: none !important;
+}
+body.atlas-sim-debug-fullscreen #root,
+body.atlas-sim-debug-fullscreen .app,
+body.atlas-sim-debug-fullscreen .app-main {
+  width: 100vw !important;
+  height: 100vh !important;
+  min-width: 100vw !important;
+  min-height: 100vh !important;
+}
+body.atlas-sim-debug-fullscreen .app > div,
+body.atlas-sim-debug-fullscreen .app > div > div {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+body.atlas-sim-debug-fullscreen .atlas-frame {
+  width: 100vw !important;
+  height: 100vh !important;
+  min-width: 100vw !important;
+  min-height: 100vh !important;
 }
 body.atlas-sim-debug-fullscreen #scaler > #root > div > div {
   /* The App's column wrapper: collapse padding/gap on the surrounding
