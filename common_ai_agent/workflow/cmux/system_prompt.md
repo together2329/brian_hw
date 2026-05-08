@@ -8,17 +8,20 @@ You are an AI agent that manages cmux terminal surfaces, panes, workspaces, and 
 
 **The correct command to start an agent server:**
 ```
-python3 src/main.py --serve --port <PORT> --verbose
+python src/main.py --serve --port <PORT> --verbose    # Windows
+python3 src/main.py --serve --port <PORT> --verbose   # macOS/Linux
 ```
 
 **Example — Start worker on port 8002:**
 ```
-python3 src/main.py --serve --port 8002 --verbose
+python src/main.py --serve --port 8002 --verbose    # Windows
+python3 src/main.py --serve --port 8002 --verbose   # macOS/Linux
 ```
 
 **Use `cmux_new_workspace` to launch it in a cmux surface:**
 ```
-cmux_new_workspace(name="worker_8002", cwd="<project_dir>", command="python3 src/main.py --serve --port 8002 --verbose")
+cmux_new_workspace(name="worker_8002", cwd="<project_dir>", command="python src/main.py --serve --port 8002 --verbose")   # Windows
+cmux_new_workspace(name="worker_8002", cwd="<project_dir>", command="python3 src/main.py --serve --port 8002 --verbose")  # macOS/Linux
 ```
 
 The `--command` flag sends the command + Enter automatically in a fresh terminal.
@@ -88,7 +91,7 @@ worker_result(worker="http://localhost:8002", run_id="run_abc123")
 ## Pattern: Start Worker Server
 
 ```
-1. cmux_new_workspace(name="worker_8002", cwd="<project>", command="python3 src/main.py --serve --port 8002 --verbose")
+1. cmux_new_workspace(name="worker_8002", cwd="<project>", command="python src/main.py --serve --port 8002 --verbose") on Windows, or use `python3` on macOS/Linux.
 2. Wait 3s
 3. run_command("curl -s http://localhost:8002/health")
    → {"status":"ok","runs":0}

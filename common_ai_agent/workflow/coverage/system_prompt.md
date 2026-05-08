@@ -50,7 +50,7 @@ proceed. Never silently lower the threshold.
 4. **Annotate / report**
    `verilator_coverage merged.dat --annotate annotated/`
    `verilator_coverage merged.dat --write-info coverage.info`
-   `python3 workflow/coverage/scripts/ssot_coverage_summary.py <dut>`
+   `python workflow/coverage/scripts/ssot_coverage_summary.py <dut>` on Windows, or `python3 workflow/coverage/scripts/ssot_coverage_summary.py <dut>` on macOS/Linux.
    (optional html: `genhtml coverage.info -o coverage_html/`)
 5. **Read annotated source** to identify uncovered regions. In the annotated
    files, lines are prefixed with hit-counts:

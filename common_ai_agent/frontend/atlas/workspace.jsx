@@ -1,31 +1,31 @@
 // workspace.jsx — Chat-centric: ReAct + inline Q&A cards + SSOT/Todo sidebar + file viewer
 
 // ── Tool-call visual theme ────────────────────────────────────────
-// Each tool gets a glyph + accent color so a long chat can be
-// visually scanned ("the agent just did 4 writes and a grep") at a
-// glance. Used by ToolCard's left border + header glyph.
+// Tool calls use one accent color so the chat feed stays calm. Glyphs
+// still provide a small shape cue without turning the feed into a legend.
+const TOOL_ACCENT = 'var(--tool-accent)';
 const TOOL_THEME = {
-  write_file:        { glyph: '✏️',  color: '#3fb950' },  // green
-  replace_in_file:   { glyph: '✏️',  color: '#3fb950' },
-  replace_lines:     { glyph: '✏️',  color: '#3fb950' },
-  read_file:         { glyph: '📄',  color: '#58a6ff' },  // blue
-  read_lines:        { glyph: '📄',  color: '#58a6ff' },
-  grep_file:         { glyph: '🔍',  color: '#d29922' },  // amber
-  find_files:        { glyph: '🔍',  color: '#d29922' },
-  list_dir:          { glyph: '🔍',  color: '#d29922' },
-  run_command:       { glyph: '⚡',  color: '#a371f7' },  // purple
-  todo_update:       { glyph: '☑',  color: '#39c5cf' },  // cyan
-  todo_write:        { glyph: '☑',  color: '#39c5cf' },
-  todo_add:          { glyph: '☑',  color: '#39c5cf' },
-  todo_remove:       { glyph: '☑',  color: '#39c5cf' },
-  todo_status:       { glyph: '☑',  color: '#39c5cf' },
-  todo_note:         { glyph: '☑',  color: '#39c5cf' },
-  scaffold_ip:       { glyph: '🛠️', color: '#f0883e' },  // orange
-  ask_user:          { glyph: '⏸',  color: '#d29922' },
-  read_doc:          { glyph: '📄',  color: '#58a6ff' },
-  git_diff:          { glyph: '⚙',  color: '#a371f7' },
-  git_status:        { glyph: '⚙',  color: '#a371f7' },
-  __default:         { glyph: '▶',  color: 'var(--fg-mute)' },
+  write_file:        { glyph: '✎', color: TOOL_ACCENT },
+  replace_in_file:   { glyph: '✎', color: TOOL_ACCENT },
+  replace_lines:     { glyph: '✎', color: TOOL_ACCENT },
+  read_file:         { glyph: '▤', color: TOOL_ACCENT },
+  read_lines:        { glyph: '▤', color: TOOL_ACCENT },
+  grep_file:         { glyph: '⌕', color: TOOL_ACCENT },
+  find_files:        { glyph: '⌕', color: TOOL_ACCENT },
+  list_dir:          { glyph: '⌕', color: TOOL_ACCENT },
+  run_command:       { glyph: '▶', color: TOOL_ACCENT },
+  todo_update:       { glyph: '☑', color: TOOL_ACCENT },
+  todo_write:        { glyph: '☑', color: TOOL_ACCENT },
+  todo_add:          { glyph: '☑', color: TOOL_ACCENT },
+  todo_remove:       { glyph: '☑', color: TOOL_ACCENT },
+  todo_status:       { glyph: '☑', color: TOOL_ACCENT },
+  todo_note:         { glyph: '☑', color: TOOL_ACCENT },
+  scaffold_ip:       { glyph: '◆', color: TOOL_ACCENT },
+  ask_user:          { glyph: '⏸', color: TOOL_ACCENT },
+  read_doc:          { glyph: '▤', color: TOOL_ACCENT },
+  git_diff:          { glyph: '◇', color: TOOL_ACCENT },
+  git_status:        { glyph: '◇', color: TOOL_ACCENT },
+  __default:         { glyph: '▶', color: TOOL_ACCENT },
 };
 const _toolTheme = (name) => TOOL_THEME[name] || TOOL_THEME.__default;
 
@@ -317,6 +317,59 @@ const ToolOutputPre = ({ text, tool, truncated }) => {
   );
 };
 
+const _highlightInlineCode = (code, lang) => {
+  const Prism = window.Prism;
+  if (!Prism || !lang || lang === 'none' || !Prism.languages || !Prism.languages[lang]) {
+    return _escHtml(code);
+  }
+  try {
+    return Prism.highlight(code, Prism.languages[lang], lang);
+  } catch (_) {
+    return _escHtml(code);
+  }
+};
+
+const DiffOutputPre = ({ text, tool, truncated }) => {
+  const body = String(text || '') + (truncated ? '\n…[truncated]' : '');
+  const codeOnly = body.split('\n').map(line => {
+    const m = line.match(/^(\s*\d+\s+)?([+-])(.*)$/);
+    return m ? m[3] : line;
+  }).join('\n');
+  const lang = _toolOutputLanguage(tool, codeOnly);
+  const [, forceRerender] = React.useState(0);
+
+  React.useEffect(() => {
+    const Prism = window.Prism;
+    if (!Prism || !lang || lang === 'none' || (Prism.languages && Prism.languages[lang])) return;
+    if (Prism.plugins && Prism.plugins.autoloader && Prism.plugins.autoloader.loadLanguages) {
+      try {
+        Prism.plugins.autoloader.loadLanguages(lang, () => forceRerender(n => n + 1));
+      } catch (_) {}
+    }
+  }, [lang, body]);
+
+  return (
+    <pre className={`tool-output-pre tool-output-diff ${lang && lang !== 'none' ? `language-${lang}` : 'language-none'}`}>
+      {body.split('\n').map((line, i) => {
+        const m = line.match(/^(\s*\d+\s+)?([+-])(.*)$/);
+        if (!m) return <div className="diff-line" key={i}>{line || ' '}</div>;
+        const [, prefix = '', marker, rest] = m;
+        const add = marker === '+';
+        return (
+          <div className={`diff-line ${add ? 'add' : 'del'}`} key={i}>
+            <span className="diff-prefix">{prefix}</span>
+            <span className={`diff-marker ${add ? 'add' : 'del'}`}>{marker}</span>
+            <code
+              className={lang && lang !== 'none' ? `language-${lang}` : 'language-none'}
+              dangerouslySetInnerHTML={{ __html: _highlightInlineCode(rest, lang) }}
+            />
+          </div>
+        );
+      })}
+    </pre>
+  );
+};
+
 // Hover-revealed copy button (positioned absolute; parent must be
 // position:relative and apply CSS `:hover .copy-btn{opacity:1}`).
 const CopyBtn = ({ text, label = 'copy' }) => {
@@ -439,8 +492,8 @@ const ATLAS_ASYNC_RESOURCE_CACHES = {
   ssot: new Map(),
 };
 const ATLAS_ASYNC_RESOURCE_TIMEOUT_MS = {
-  file: 90000,
-  ssot: 120000,
+  file: 300000,
+  ssot: 300000,
 };
 
 const scheduleAtlasPreviewWork = (fn, timeout = 900) => {
@@ -591,6 +644,37 @@ const useAtlasAsyncResource = (kind, path, options = {}) => {
     reload(force);
     return () => { requestSeq.current += 1; };
   }, [forceOnVersionChange, key, reload, versionKey]);
+
+  React.useEffect(() => {
+    if (!key) return undefined;
+    const syncFromCache = (event) => {
+      const detail = event?.detail || {};
+      if (detail.kind !== kind || detail.path !== key) return;
+      setState(cachedAtlasResource(kind, key));
+    };
+    const markLoading = (event) => {
+      const detail = event?.detail || {};
+      if (detail.kind !== kind || detail.path !== key) return;
+      setState(prev => {
+        const cached = cachedAtlasResource(kind, key);
+        return {
+          ...prev,
+          ...cached,
+          body: cached.body || prev.body || '',
+          size: cached.size || prev.size || 0,
+          path: key,
+          loading: true,
+          err: cached.err || prev.err || null,
+        };
+      });
+    };
+    window.addEventListener('atlas-resource-loaded', syncFromCache);
+    window.addEventListener('atlas-resource-loading', markLoading);
+    return () => {
+      window.removeEventListener('atlas-resource-loaded', syncFromCache);
+      window.removeEventListener('atlas-resource-loading', markLoading);
+    };
+  }, [kind, key]);
 
   const visibleState = state.path === key ? state : cachedAtlasResource(kind, key);
   return [visibleState, reload];
@@ -2970,26 +3054,6 @@ const ObsCard = ({ entry, embedded, summaryMode = true }) => {
   const looksLikeDiff = /(^|\n)\s*⎿?\s*Added \d+ lines?,? removed \d+ lines?/.test(txt)
                      || (entry.tool && /^(replace_in_file|write_file|edit|patch)/i.test(entry.tool));
 
-  const renderBody = () => looksLikeDiff
-    ? txt.split('\n').map((line, i) => {
-        const m = line.match(/^(\s*\d+ )([+\-])(.*)$/);
-        if (!m) return <div className="diff-line" key={i} style={{ color: 'var(--fg-mute)' }}>{line || ' '}</div>;
-        const [, prefix, marker, rest] = m;
-        const add = marker === '+';
-        return (
-          <div className="diff-line" key={i} style={{
-            background: add ? 'color-mix(in oklch, #3fb950 18%, transparent)'
-                            : 'color-mix(in oklch, #f85149 18%, transparent)',
-            color: add ? '#7ee787' : '#ffa198',
-            borderLeft: `2px solid ${add ? '#3fb950' : '#f85149'}`,
-            paddingLeft: 6,
-          }}>
-            <span style={{ color: 'var(--fg-mute)' }}>{prefix}</span>
-            <b>{marker}</b><span>{rest}</span>
-          </div>
-        );
-      })
-    : txt;
   const renderMarkdownBody = () => (
     <div
       className="md-agent md-tool-result"
@@ -3047,10 +3111,7 @@ const ObsCard = ({ entry, embedded, summaryMode = true }) => {
       {open && (
         looksLikeDiff || !useMarkdownResult ? (
           looksLikeDiff ? (
-            <pre className="tool-output-pre tool-output-diff">
-              {renderBody()}
-              {entry.truncated ? '\n…[truncated]' : ''}
-            </pre>
+            <DiffOutputPre text={txt} tool={entry.tool} truncated={entry.truncated} />
           ) : (
             <ToolOutputPre text={txt} tool={entry.tool} truncated={entry.truncated} />
           )
@@ -3154,7 +3215,7 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir, summaryM
     return (
       <div className="react-block action" style={planned ? { opacity: 0.6, borderLeftColor: 'var(--warn)' } : {}}>
         <span className="rb-tag" style={planned ? { color: 'var(--warn)' } : {}}>{planned ? 'plan·action' : 'action'}</span>
-        <span>{planned && <span className="warn" style={{ marginRight: 6, fontStyle: 'italic' }}>[would]</span>}<b className="cyan">{entry.tool}</b>(<span className="mute">{Object.entries(entry.args || {}).filter(([k]) => k !== 'planned').map(([k, v]) => (
+        <span>{planned && <span className="warn" style={{ marginRight: 6, fontStyle: 'italic' }}>[would]</span>}<b style={{ color: 'var(--tool-accent)' }}>{entry.tool}</b>(<span className="mute">{Object.entries(entry.args || {}).filter(([k]) => k !== 'planned').map(([k, v]) => (
           <span key={k}>{k}=<span style={{ color: 'var(--fg)' }}>{typeof v === 'object' ? JSON.stringify(v) : String(v)}</span> </span>
         ))}</span>)</span>
       </div>
@@ -4046,10 +4107,10 @@ const AskUserCall = ({ flowId, state, dir }) => {
 
   return (
     <>
-      <div className="react-block action" style={{ borderLeftColor: submitted ? 'var(--ok)' : 'var(--warn)' }}>
-        <span className="rb-tag" style={{ color: submitted ? 'var(--ok)' : 'var(--warn)' }}>action</span>
+      <div className="react-block action">
+        <span className="rb-tag">action</span>
         <span>
-          <b className="cyan">ask_user</b>
+          <b style={{ color: 'var(--tool-accent)' }}>ask_user</b>
           <span className="mute">(</span>
           <span style={{ color: 'var(--fg-mute)' }}>{argSummary}</span>
           <span className="mute">)</span>
@@ -5721,7 +5782,13 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
   }, [initialPath, filePathKey]);
 
   React.useEffect(() => {
-    if (!selected && filePaths.length > 0) setSelected(chooseSsotFile(files, initialPath));
+    if (!filePaths.length) {
+      if (selected) setSelected('');
+      return;
+    }
+    if (!selected || !filePaths.includes(selected)) {
+      setSelected(chooseSsotFile(files, initialPath));
+    }
   }, [filePathKey, selected, initialPath]);
 
   const sections = React.useMemo(() => splitSsotSections(content), [content]);

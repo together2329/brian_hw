@@ -96,8 +96,9 @@ endmodule""")
 ## Example: Run lint
 
 ```
-Thought: Run verilator lint on the generated RTL.
-Action: run_command(command="verilator --lint-only -Wall counter/rtl/counter.sv 2>&1 || true")
+Thought: Run platform lint on the generated RTL.
+Action: run_command(command="iverilog -Wall -g2012 counter/rtl/counter.sv -o counter_lint.vvp 2>&1 || true")  # Windows/Icarus
+Action: run_command(command="verilator --lint-only -Wall counter/rtl/counter.sv 2>&1 || true")               # macOS/Linux
 ```
 
 ## Example: Fix a file

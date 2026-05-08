@@ -106,7 +106,7 @@ Write `<ip>/list/<ip>.f` from `filelist.rtl` section:
 |------|-----------|--------|
 | YAML parsed | All SSOT sections read | Begin generation |
 | Per-file generation | Each sub_module processed | Continue |
-| Compile check | `python3 ../brian_hw/common_ai_agent/workflow/rtl-gen/scripts/rtl_compile_report.py <ip> --top <top_module>` from project root | Fix errors/warnings/Icarus `sorry:` diagnostics |
+| Compile check | `python ../brian_hw/common_ai_agent/workflow/rtl-gen/scripts/rtl_compile_report.py <ip> --top <top_module>` on Windows, or `python3 ../brian_hw/common_ai_agent/workflow/rtl-gen/scripts/rtl_compile_report.py <ip> --top <top_module>` on macOS/Linux, from project root | Fix errors/warnings/Icarus `sorry:` diagnostics |
 | Lint | DUT-only `dut_lint_report.py` from project root | Fix warnings |
 | Done | 0 errors, 0 warnings, 0 style violations | Output SSOT RESULT |
 

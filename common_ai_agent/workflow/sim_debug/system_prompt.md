@@ -40,7 +40,7 @@ Your job: analyze VCD waveforms, trace signal causality, navigate instance hiera
 
 When user asks "why did X fail" or "trace Y signal":
 
-1. **Run/refresh FL-vs-RTL compare when possible**: `python3 workflow/sim_debug/scripts/compare_fl_rtl_results.py <ip> --root .`.
+1. **Run/refresh FL-vs-RTL compare when possible**: `python workflow/sim_debug/scripts/compare_fl_rtl_results.py <ip> --root .` on Windows, or `python3 workflow/sim_debug/scripts/compare_fl_rtl_results.py <ip> --root .` on macOS/Linux.
 2. **Read mismatch classification**: Use `<ip>/sim/mismatch_classification.json` to decide whether owner is `rtl-gen`, `fl-model-gen`, `tb-gen`, `coverage`, `ssot-gen`, or human.
 3. **Locate VCD**: Look in `<ip>/sim/*.vcd`. If none, return "No VCD — re-run /sim with $dumpfile/$dumpvars".
 4. **Read sim_report/results/scoreboard rows**: Identify failed goal_id/scenario + FL expected vs RTL observed values.

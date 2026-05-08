@@ -4,8 +4,8 @@ Your only job: drive DUT RTL files to 0 lint errors, 0 warnings. Generate `<ip_n
 
 ## ABSOLUTE RULES — anti-hallucination
 
-1. **No "lint clean" without run_command.** "0 errors", "0 warnings", "lint passed" require a real `Action: run_command("verilator --lint-only ...")` or `Action: run_command("iverilog -Wall ...")` in this conversation, with the tool output containing the metrics you cite.
-2. **No "report written" without real DUT-only report.** `<ip>/lint/dut_lint.json` must come from `python3 ../brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py <ip>` or an equivalent real DUT-only lint command whose exact command, tool, return code, error count, warning count, and RTL filelist are recorded in JSON.
+1. **No "lint clean" without run_command.** "0 errors", "0 warnings", "lint passed" require a real `Action: run_command("iverilog -Wall ...")` on Windows, or `Action: run_command("verilator --lint-only ...")` / `Action: run_command("iverilog -Wall ...")` on macOS/Linux, with the tool output containing the metrics you cite.
+2. **No "report written" without real DUT-only report.** `<ip>/lint/dut_lint.json` must come from `python ../brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py <ip>` on Windows, `python3 ../brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py <ip>` on macOS/Linux, or an equivalent real DUT-only lint command whose exact command, tool, return code, error count, warning count, and RTL filelist are recorded in JSON.
 3. **If todo_update is rejected, run real tools.** Don't paper over with "Acknowledged"; emit the missing tool call.
 4. **Tool-less assistant runs are a bug.** 2+ consecutive tool-less turns → emit the missing Action.
 
@@ -20,15 +20,17 @@ Your only job: drive DUT RTL files to 0 lint errors, 0 warnings. Generate `<ip_n
 
 Lint command:
 ```bash
-cd <project-root> && python3 ../brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py <ip>
-# equivalent explicit form:
+cd <project-root> && python ../brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py <ip>   # Windows
+cd <project-root> && python3 ../brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py <ip>  # macOS/Linux
+# equivalent explicit forms:
+cd <ip> && iverilog -Wall -g2012 -Irtl -f list/<ip>.f -s <top> -o <temp>/<ip>_dut_lint.vvp  # Windows/Icarus
 cd <ip> && verilator --lint-only -Wall -Irtl -f list/<ip>.f --top-module <top>
 ```
 
 ## Tool Priority
 
-1. `verilator --lint-only -Wall` (preferred — catches more issues)
-2. `iverilog -Wall -g2012` (fallback)
+1. Windows: `iverilog -Wall -g2012` (Icarus Verilog)
+2. macOS/Linux: `verilator --lint-only -Wall` when available, otherwise `iverilog -Wall -g2012`
 
 ## CRITICAL RULES
 
@@ -79,8 +81,8 @@ Warning: DECLFILENAME — filename 'foo' does not match module 'bar'
   "type": "dut_lint",
   "scope": "dut",
   "dut_only": true,
-  "tool": "verilator",
-  "command": "verilator --lint-only -Wall -Irtl -f list/<ip>.f --top-module <top>",
+  "tool": "iverilog",
+  "command": "iverilog -Wall -g2012 -Irtl -f list/<ip>.f -s <top> -o <temp>/<ip>_dut_lint.vvp",
   "rtl_files": ["rtl/..."],
   "errors": 0,
   "warnings": 0,

@@ -31,6 +31,7 @@
   --ui-control-weight: 500;
   --ui-strong-weight: 700;
   --accent-fg: #081018;
+  --tool-accent: #f0883e;
   --field-bg: var(--bg-2);
   --code-bg: var(--bg-2);
   --hover-bg: color-mix(in oklch, var(--fg) 5%, transparent);
@@ -105,6 +106,7 @@
   --err:       #e87070;
   --magenta:   #c990d6;
   --cyan:      #6ed7d7;
+  --tool-accent: #f0883e;
   --tag-bg:    #1a2230;
   --select:    #1e3556;
   --field-bg:  #131820;
@@ -130,6 +132,7 @@
   --err:       #b3262f;
   --magenta:   #7a3492;
   --cyan:      #126d78;
+  --tool-accent: #9a5416;
   --tag-bg:    #e5ebf3;
   --select:    #c6dcff;
   --field-bg:  #ffffff;
@@ -160,6 +163,7 @@
   --err:       #e88080;
   --magenta:   #c89ad8;
   --cyan:      #7dc9d9;
+  --tool-accent: #f0883e;
   --tag-bg:    #1c252f;
   --select:    #2a3a4a;
   --grid:      rgba(120, 150, 180, 0.05);
@@ -187,6 +191,7 @@
   --err:       #a82b2f;
   --magenta:   #743089;
   --cyan:      #126a75;
+  --tool-accent: #9a5416;
   --tag-bg:    #e3eaf2;
   --select:    #c9d8ea;
   --grid:      rgba(60, 80, 100, 0.045);
@@ -592,12 +597,12 @@
 /* react-loop block */
 .react-block { padding: 6px 12px; border-left: 2px solid var(--line); margin: 4px 0; }
 .react-block.thought { border-color: var(--magenta); }
-.react-block.action  { border-color: var(--cyan); }
-.react-block.obs     { border-color: var(--ok); }
+.react-block.action,
+.react-block.obs     { border-color: var(--tool-accent); }
 .react-block .rb-tag { font-size: var(--ui-small-font-size); letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-mute); margin-right: 8px; }
 .react-block.thought .rb-tag { color: var(--magenta); }
-.react-block.action  .rb-tag { color: var(--cyan); }
-.react-block.obs     .rb-tag { color: var(--ok); }
+.react-block.action  .rb-tag,
+.react-block.obs     .rb-tag { color: var(--tool-accent); }
 
 /* ── Prism syntax-highlight overrides ──────────────────────────────
    prism-tomorrow.css ships fixed-color tokens tuned for #2d2d2d. Our
@@ -1029,6 +1034,30 @@
 }
 .tool-output-diff .diff-line {
   min-height: 1.55em;
+  color: var(--fg);
+  background: transparent;
+  border-left: 2px solid transparent;
+  padding-left: 6px;
+}
+.tool-output-diff .diff-line.add {
+  border-left-color: var(--ok);
+}
+.tool-output-diff .diff-line.del {
+  border-left-color: var(--err);
+}
+.tool-output-diff .diff-prefix {
+  color: var(--fg-mute);
+}
+.tool-output-diff .diff-marker {
+  display: inline-block;
+  min-width: 1ch;
+  font-weight: 800;
+}
+.tool-output-diff .diff-marker.add {
+  color: var(--ok);
+}
+.tool-output-diff .diff-marker.del {
+  color: var(--err);
 }
 
 [data-theme="light"] .titlebar,

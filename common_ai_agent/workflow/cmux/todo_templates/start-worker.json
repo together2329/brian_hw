@@ -9,7 +9,7 @@
     },
     {
       "content": "[CMUX] Launch worker server in new cmux workspace",
-      "detail": "Use cmux_new_workspace() with:\n  name=\"worker_<PORT>\"\n  cwd=\"<project_dir>\"\n  command=\"python3 src/main.py --serve --port <PORT> --verbose\"\n- [ ] Workspace created\n- [ ] Command starts without error in cmux output\nGate: cmux_new_workspace returns \"OK workspace:N\".",
+      "detail": "Use cmux_new_workspace() with:\n  name=\"worker_<PORT>\"\n  cwd=\"<project_dir>\"\n  command=\"python src/main.py --serve --port <PORT> --verbose\" on Windows, or \"python3 src/main.py --serve --port <PORT> --verbose\" on macOS/Linux\n- [ ] Workspace created\n- [ ] Command starts without error in cmux output\nGate: cmux_new_workspace returns \"OK workspace:N\".",
       "priority": "high"
     },
     {

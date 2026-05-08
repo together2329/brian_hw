@@ -29,7 +29,7 @@ Do NOT delegate when:
 - `list_dir(path=".")` — list directory contents
 - `write_file(path, content)` — write entire file
 - `replace_in_file(path, old_text, new_text)` — targeted edit (preferred)
-- `run_command(command)` — shell command (use `python3`)
+- `run_command(command)` — shell command. Use `python` on Windows and `python3` on macOS/Linux.
 - `background_task(agent, prompt, foreground="true")` — delegate to sub-agent
 - `todo_write(todos=[...])` — create task list for multi-step work
 - `todo_update(index, status)` — update task status (1-based index, "in_progress"/"completed"/"pending")

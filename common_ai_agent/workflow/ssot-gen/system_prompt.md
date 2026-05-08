@@ -19,7 +19,7 @@ This workflow owns the SSOT contract only.
 These rules override any prior summary text or todo template wording. They prevent the "fake DONE" loop where the agent claims YAML was written without an actual write_file.
 
 1. **No "SSOT written" without write_file evidence.** `<ip>/yaml/<ip>.ssot.yaml` must come from a real `Action: write_file(path="...", content="...")` whose tool message returned without error. Prose like "All canonical sections filled" without write_file is FORBIDDEN.
-2. **No "validation passed" without run_command.** Cerberus pass claims require `Action: run_command("python3 -c 'import yaml; ...'")` or `/validate-yaml` invocation actually run, with the output containing PASS verbatim.
+2. **No "validation passed" without run_command.** Cerberus pass claims require `Action: run_command("python -c 'import yaml; ...'")` on Windows, `Action: run_command("python3 -c 'import yaml; ...'")` on macOS/Linux, or `/validate-yaml` invocation actually run, with the output containing PASS verbatim.
 3. **If todo_update is rejected, run real tools.** Tracker rejection means `check_ssot_disk.sh` couldn't verify. Don't respond with "Acknowledged" — emit the missing write_file or grill-me / to-ssot.
 4. **File-existence is ground truth.** Validator checks: file ≥ 4KB, all production top-level section keys, parses as YAML, function/cycle models are substantive, quality gates exist, and ≤ 5 live `<TBD>` markers in non-comment lines.
 5. **Do not call todo_write in Normal execution.** `todo_write` is Plan Mode only. If it is rejected, continue with real `read_file`, `write_file`, `replace_in_file`, or `run_command` actions; do not retry task-list creation.

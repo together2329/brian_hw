@@ -9,8 +9,9 @@ bridges it to the existing main.py agent loop via:
   • WS   /ws/agent               → bidirectional event stream
 
 Activation:
-    UI_MODE=atlas  python3 src/textual_main.py        (preferred)
-    or directly:   python3 -m src.atlas_ui --port 8765
+    UI_MODE=atlas  python src/textual_main.py         (Windows)
+    UI_MODE=atlas  python3 src/textual_main.py        (macOS/Linux)
+    or directly:   python -m src.atlas_ui --port 8765 (Windows)
 
 This mirrors web_ui.py (SSE) but uses WebSockets so the frontend can both
 push prompts AND receive token / stage / tool / cost / todo events.
@@ -62,6 +63,12 @@ FRONTEND     = SOURCE_ROOT / "frontend" / "atlas"
 PROJECT_ROOT = Path(os.getcwd()).resolve()
 # Backwards compat alias — older code references ROOT.
 ROOT         = SOURCE_ROOT
+
+
+def _python_cmd() -> str:
+    """Return the Python launcher for generated user-facing commands."""
+    return "python" if os.name == "nt" else "python3"
+
 
 try:
     from .workflow_stage_engine import _rtl_manifest_progress as _shared_rtl_manifest_progress
@@ -1255,14 +1262,20 @@ def create_app():
             if target is None or not target.is_file():
                 return JSONResponse({"error": "not found"}, status_code=404)
             try:
-                content = await asyncio.to_thread(
-                    target.read_text,
-                    encoding="utf-8",
-                    errors="replace",
-                )
+                def _read_ssot_preview():
+                    stat = target.stat()
+                    data = target.read_bytes()[:MAX_READ_BYTES]
+                    return stat, data.decode("utf-8", errors="replace")
+                stat, content = await asyncio.to_thread(_read_ssot_preview)
             except OSError as e:
                 return JSONResponse({"error": str(e)}, status_code=500)
-            return JSONResponse({"path": file, "content": content})
+            return JSONResponse({
+                "path": file,
+                "size": stat.st_size,
+                "mtime": stat.st_mtime,
+                "truncated": stat.st_size > MAX_READ_BYTES,
+                "content": content,
+            })
         # No specific file → list every *.ssot.yaml in the project
         results = []
         for p in PROJECT_ROOT.rglob("*.ssot.yaml"):
@@ -6285,6 +6298,7 @@ def create_app():
         session = f"{ip}/rtl-gen"
         compile_report = PROJECT_ROOT / ip / "rtl" / "rtl_compile.json"
         lint_report = PROJECT_ROOT / ip / "lint" / "dut_lint.json"
+        py_cmd = _python_cmd()
         queued = (
             f"[repair-rtl] queued through rtl-gen\n"
             f"module: {ip}\n"
@@ -6318,12 +6332,13 @@ def create_app():
             "parameterized part-selects inside `always`, `always_comb`, `always_ff`, or "
             "`always_latch`. Use helper wires and continuous assigns.\n"
             "- Eliminate all Icarus `sorry:` diagnostics and any compile warnings/errors.\n"
-            "- Preserve Verilator DUT-only lint pass with zero suppressions.\n"
+            "- Preserve DUT-only lint pass with zero suppressions; on Windows use Icarus "
+            "Verilog (`iverilog`) rather than Verilator.\n"
             "- Reconcile filelist and top wrapper naming with SSOT, or escalate to ssot-gen "
             "if the SSOT source of truth must change.\n\n"
             "After the final RTL edit, run exactly:\n"
-            f"`python3 {SOURCE_ROOT / 'workflow' / 'rtl-gen' / 'scripts' / 'rtl_compile_report.py'} {ip} --top {ip}`\n"
-            f"`python3 {SOURCE_ROOT / 'workflow' / 'lint' / 'scripts' / 'dut_lint_report.py'} {ip} --top {ip}`\n\n"
+            f"`{py_cmd} {SOURCE_ROOT / 'workflow' / 'rtl-gen' / 'scripts' / 'rtl_compile_report.py'} {ip} --top {ip}`\n"
+            f"`{py_cmd} {SOURCE_ROOT / 'workflow' / 'lint' / 'scripts' / 'dut_lint_report.py'} {ip} --top {ip}`\n\n"
             "DONE requires compile pass E0/D0/S0, lint pass E0/W0/S0, and no hidden "
             "waivers/suppressions. If any part cannot be fixed from RTL alone, stop with "
             "a precise `[SSOT QUESTION]` or `[RTL BLOCKED]` rather than claiming DONE."

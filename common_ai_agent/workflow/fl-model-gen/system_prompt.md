@@ -35,11 +35,13 @@ Use reusable scripts only when their semantics match the current SSOT. Otherwise
 author the model in this workflow:
 
 ```bash
-python3 workflow/fl-model-gen/scripts/emit_fl_model.py <ip> --root .
+python workflow/fl-model-gen/scripts/emit_fl_model.py <ip> --root .    # Windows
+python3 workflow/fl-model-gen/scripts/emit_fl_model.py <ip> --root .   # macOS/Linux
 ```
 
 For equivalence goals:
 
 ```bash
-python3 workflow/fl-model-gen/scripts/emit_equivalence_goals.py <ip> --root .
+python workflow/fl-model-gen/scripts/emit_equivalence_goals.py <ip> --root .    # Windows
+python3 workflow/fl-model-gen/scripts/emit_equivalence_goals.py <ip> --root .   # macOS/Linux
 ```

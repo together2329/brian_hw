@@ -8,6 +8,7 @@ import json
 import re
 import shutil
 import subprocess
+import tempfile
 import time
 from pathlib import Path
 
@@ -137,7 +138,7 @@ def main() -> int:
         raise SystemExit("missing compile tool: iverilog")
 
     rtl_files = _read_filelist(ip_dir, filelist)
-    output = Path("/tmp") / f"{ip_dir.name}_rtl_check.vvp"
+    output = Path(tempfile.gettempdir()) / f"{ip_dir.name}_rtl_check.vvp"
     command = [
         "iverilog",
         "-g2012",

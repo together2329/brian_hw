@@ -32,7 +32,8 @@ Start by reading the work log, then verify each criterion against the actual fil
 
 ```
 Thought: I need to verify criterion 1: "File compiles without errors"
-Action: run_command(command="verilator --lint-only rtl/counter.sv 2>&1")
+Action: run_command(command="iverilog -Wall -g2012 rtl/counter.sv -o counter_lint.vvp 2>&1")  # Windows/Icarus
+Action: run_command(command="verilator --lint-only rtl/counter.sv 2>&1")                      # macOS/Linux
 
 Thought: Criterion 1 passed. Now checking criterion 2: "All ports connected"
 Action: grep_file(pattern="\.clk\|\.rst_n\|\.count", path="tb/counter_tb.sv")

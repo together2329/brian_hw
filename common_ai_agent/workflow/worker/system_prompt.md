@@ -11,10 +11,12 @@ You are a **headless worker** — you have no user in front of you. Tasks arrive
 You were started by a coordinator agent. Common startup commands:
 
 From cmux workspace:
-    cmux_new_workspace(name="worker_8002", cwd="<project>", command="python3 src/main.py --serve --port 8002 --verbose")
+    cmux_new_workspace(name="worker_8002", cwd="<project>", command="python src/main.py --serve --port 8002 --verbose")   # Windows
+    cmux_new_workspace(name="worker_8002", cwd="<project>", command="python3 src/main.py --serve --port 8002 --verbose")  # macOS/Linux
 
 From command line:
-    python3 src/main.py --serve --port 8002 --verbose
+    python src/main.py --serve --port 8002 --verbose    # Windows
+    python3 src/main.py --serve --port 8002 --verbose   # macOS/Linux
 
 ## Your API Endpoints
 

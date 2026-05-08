@@ -13,6 +13,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -143,31 +144,44 @@ def _count_diagnostics(text: str) -> dict[str, int]:
     return {"errors": errors, "warnings": warnings}
 
 
+def _iverilog_command(ip_name: str, top: str) -> list[str]:
+    return [
+        "iverilog",
+        "-g2012",
+        "-Wall",
+        "-Irtl",
+        "-f",
+        f"list/{ip_name}.f",
+        "-s",
+        top,
+        "-o",
+        str(Path(tempfile.gettempdir()) / f"{ip_name}_dut_lint.vvp"),
+    ]
+
+
+def _verilator_command(ip_name: str, top: str) -> list[str]:
+    return [
+        "verilator",
+        "--lint-only",
+        "-Wall",
+        "-Irtl",
+        "-f",
+        f"list/{ip_name}.f",
+        "--top-module",
+        top,
+    ]
+
+
 def _tool_command(ip_name: str, top: str) -> tuple[str, list[str]]:
+    prefer_icarus = sys.platform.startswith("win")
+    if prefer_icarus:
+        if shutil.which("iverilog"):
+            return "iverilog", _iverilog_command(ip_name, top)
+        raise RuntimeError("Windows DUT lint requires Icarus Verilog (iverilog)")
     if shutil.which("verilator"):
-        return "verilator", [
-            "verilator",
-            "--lint-only",
-            "-Wall",
-            "-Irtl",
-            "-f",
-            f"list/{ip_name}.f",
-            "--top-module",
-            top,
-        ]
+        return "verilator", _verilator_command(ip_name, top)
     if shutil.which("iverilog"):
-        return "iverilog", [
-            "iverilog",
-            "-g2012",
-            "-Wall",
-            "-Irtl",
-            "-f",
-            f"list/{ip_name}.f",
-            "-s",
-            top,
-            "-o",
-            f"/tmp/{ip_name}_dut_lint.vvp",
-        ]
+        return "iverilog", _iverilog_command(ip_name, top)
     raise RuntimeError("No DUT lint tool found: install verilator or iverilog")
 
 
