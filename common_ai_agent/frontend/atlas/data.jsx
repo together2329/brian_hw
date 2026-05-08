@@ -128,6 +128,7 @@
       detail:  t.detail || '',
       approvedReason: t.approved_reason || '',
       rejectionReason: t.rejection_reason || '',
+      notes:   Array.isArray(t.notes) ? t.notes : [],
       deps:    [],
     }));
   }

@@ -156,6 +156,15 @@ const _cleanTodoToolText = (text, tool) => {
     ].filter(Boolean).join('\n');
   }
 
+  m = txt.match(/^(?:📝\s*)?Note\s+\[(\d+)\]\s+added\s+to\s+Task\s+(\d+):\s*([\s\S]*)$/i);
+  if (m) {
+    return [
+      `Task ${m[2]} note added`,
+      `Notes : [${m[1]}] ${_limitAtlasLines(m[3], 5)}`,
+      tallyStr ? `Todo: ${tallyStr}` : '',
+    ].filter(Boolean).join('\n');
+  }
+
   return txt + (tallyStr && !txt.includes(tallyStr) ? `\nTodo: ${tallyStr}` : '');
 };
 
@@ -6051,6 +6060,29 @@ const TodoPanel = () => {
     );
   };
 
+  const TodoNotes = ({ todo }) => {
+    const notes = Array.isArray(todo.notes) ? todo.notes.filter(n => String(n || '').trim()) : [];
+    if (!notes.length) return null;
+    const lastIndex = notes.length;
+    const last = String(notes[notes.length - 1] || '');
+    return (
+      <div style={{
+        marginTop: 5,
+        fontFamily: 'var(--mono)',
+        fontSize: 'var(--ui-control-font-size)',
+        lineHeight: 1.45,
+        whiteSpace: 'pre-wrap',
+      }}>
+        <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>Notes</span>
+        <span className="mute"> : </span>
+        <span className="mute">[{lastIndex}] {_limitAtlasLines(last, 5)}</span>
+        {notes.length > 1 && (
+          <span className="mute" style={{ marginLeft: 6 }}>+{notes.length - 1} earlier</span>
+        )}
+      </div>
+    );
+  };
+
   // Counts per state for the header summary
   const counts = todos.reduce((acc, t) => {
     const cfg = stateCfg(t.state);
@@ -6207,6 +6239,7 @@ const TodoPanel = () => {
                               background: 'var(--bg-2)',
                             }}>
                               {t.detail}
+                              <TodoNotes todo={t} />
                               <TodoReason todo={t} />
                               {t.deps && t.deps.length > 0 && (
                                 <div style={{ marginTop: 4, fontSize: 10 }}>
@@ -6243,6 +6276,7 @@ const TodoPanel = () => {
                   </div>
                   <div className="mute" style={{ fontSize: 11, marginTop: 4, marginLeft: 22, lineHeight: 1.4 }}>{t.detail}</div>
                   <div style={{ marginLeft: 22 }}>
+                    <TodoNotes todo={t} />
                     <TodoReason todo={t} />
                   </div>
                 </div>
