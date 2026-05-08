@@ -2946,13 +2946,13 @@ const CollapsibleThought = ({ text, summaryMode = true }) => {
 // react-block wrapper (used by ToolCard which provides its own
 // outer container).
 const ObsCard = ({ entry, embedded, summaryMode = true }) => {
-  // Expanded by default — chat log was losing too much info when
-  // collapsed (Read results, command output, etc. were hidden behind
-  // a one-line header so the user couldn't follow what the agent did
-  // without clicking each row). Click the header to collapse if a
-  // particular result is too long. Single-line obs always renders
-  // inline regardless of this state.
-  const [open, setOpen] = React.useState(true);
+  // In summary mode, multi-line tool output stays closed by default:
+  // tool name + args + first result line + line count are enough for the
+  // normal chat feed. Full stdout/diffs remain one click away.
+  const [open, setOpen] = React.useState(!summaryMode);
+  React.useEffect(() => {
+    setOpen(!summaryMode);
+  }, [summaryMode]);
   let txt = summaryMode ? _cleanTodoToolText(entry.text || '', entry.tool) : (entry.text || '');
 
   const lines = txt.split('\n');
