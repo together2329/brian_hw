@@ -400,6 +400,27 @@ def create_app():
             pass
         return JSONResponse({"mtime": latest})
 
+    @app.post("/api/control/stop")
+    async def api_control_stop():
+        """HTTP fallback for the UI Stop button and Escape key.
+
+        The primary control plane is the WebSocket, but control buttons
+        should still work when the WS is reconnecting or its outbound queue
+        is wedged behind a larger message.
+        """
+        bridge.request_stop()
+        bridge.emit("agent_state", running=False)
+        return JSONResponse({"ok": True, "action": "stop"})
+
+    @app.post("/api/control/shutdown")
+    async def api_control_shutdown():
+        """HTTP fallback for the UI Exit button."""
+        bridge.emit("error", message="server is shutting down")
+        bridge.emit("done")
+        import os as _os, threading as _t
+        _t.Timer(0.4, lambda: _os._exit(0)).start()
+        return JSONResponse({"ok": True, "action": "shutdown"})
+
     @app.get("/healthz")
     async def healthz(request: Request):
         info = {

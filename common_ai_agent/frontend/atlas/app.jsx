@@ -425,6 +425,26 @@ const App = () => {
     document.documentElement.setAttribute('data-font-scale', fontScale);
   }, [dir, theme, fontMode, fontScale]);
 
+  const sendControl = React.useCallback((type) => {
+    if (!type) return;
+    try { if (window.backend) window.backend.send({ type }); } catch (_) {}
+    try {
+      if (type === 'stop' && window.backend && window.backend._emit) {
+        window.backend._emit('agent_state', { running: false });
+      }
+      if (type === 'shutdown' && window.backend && window.backend._emit) {
+        window.backend._emit('connection', { state: 'closed' });
+      }
+    } catch (_) {}
+    try {
+      fetch(`/api/control/${type}`, {
+        method: 'POST',
+        cache: 'no-store',
+        keepalive: true,
+      }).catch(() => {});
+    } catch (_) {}
+  }, []);
+
   // Bump on every atlas-data-changed so the TitleBar (which reads
   // window.CONTEXT.cwd / .workspace) re-renders when /healthz lands
   // or the user runs /wf.
@@ -444,29 +464,29 @@ const App = () => {
       if ((e.ctrlKey || e.metaKey) && (e.key === 'q' || e.key === 'Q')) {
         e.preventDefault();
         if (!confirm('Shut down the server and close this tab?')) return;
-        if (window.backend) window.backend.send({ type: 'shutdown' });
+        sendControl('shutdown');
         setTimeout(() => { try { window.close(); } catch (_) {} }, 600);
         return;
       }
       // Esc → tell the agent to abort the current iteration.
       if (e.key === 'Escape') {
-        const tag = (document.activeElement?.tagName || '').toLowerCase();
-        // Don't hijack Esc when an inline ask_user / slash dropdown
-        // owns the input — those handle their own Esc.
-        if (tag === 'input' || tag === 'textarea') return;
-        if (window.backend) window.backend.send({ type: 'stop' });
+        const active = document.activeElement;
+        const ownsEsc = !!document.querySelector('.slash-menu')
+          || !!(active && active.closest && active.closest('.ask-prompt, [data-esc-local="true"]'));
+        if (ownsEsc) return;
+        e.preventDefault();
+        sendControl('stop');
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [sendControl]);
 
   const stopAgent = () => {
-    if (window.backend) window.backend.send({ type: 'stop' });
+    sendControl('stop');
   };
   const exitAll = () => {
-    if (!confirm('Shut down the server and close this tab?')) return;
-    if (window.backend) window.backend.send({ type: 'shutdown' });
+    sendControl('shutdown');
     setTimeout(() => { try { window.close(); } catch (_) {} }, 600);
   };
 
