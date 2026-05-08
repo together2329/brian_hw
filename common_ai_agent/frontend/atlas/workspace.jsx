@@ -189,7 +189,7 @@ const useResizable = (initial, storageKey, minW, maxW, restoreCollapsed = true) 
 // Double-click → onToggle(). Side='left' resizes the LEFT column
 // (drag right widens), side='right' resizes the RIGHT column (drag
 // left widens — direction inverted).
-const Splitter = ({ width, side, onResize, onToggle }) => {
+const Splitter = ({ width, side, onResize, onToggle, title }) => {
   const drag = React.useRef(null);
   const onMouseDown = (e) => {
     e.preventDefault();
@@ -216,7 +216,7 @@ const Splitter = ({ width, side, onResize, onToggle }) => {
     <div
       onMouseDown={onMouseDown}
       onDoubleClick={onToggle}
-      title={'drag to resize · double-click to ' + (width === 0 ? 'expand' : 'collapse')}
+      title={title || ('drag to resize · double-click to ' + (width === 0 ? 'expand' : 'collapse'))}
       style={{
         cursor: 'col-resize',
         background: 'transparent',
@@ -243,6 +243,14 @@ const ssotIpFromSession = (session) => {
   return idx > 0 ? parts[idx - 1] : '';
 };
 
+const isSsotYamlPath = (path) => /\.ssot\.ya?ml$/i.test(String(path || ''));
+
+const workflowFromSession = (session) => {
+  const parts = normalizeUiSession(session).split('/').filter(Boolean);
+  const last = parts[parts.length - 1] || '';
+  return (window.FLOW_STAGES || []).some(s => s.id === last) ? last : '';
+};
+
 const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // Two-axis mode model:
   //   intent: 'normal' | 'plan'   (top-level — shift+tab to swap)
@@ -254,6 +262,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // 0 = collapsed; any positive width is clamped to [min, max].
   const [leftW,  setLeftW,  toggleLeft]  = useResizable(230, 'atlasLeftW',  160, 480, false);
   const [rightW, setRightW, toggleRight] = useResizable(360, 'atlasRightW', 260, 600);
+  const [splitRightW, setSplitRightW] = useResizable(520, 'atlasSplitRightW', 300, 900, false);
 
   // File-tree sort mode — 'name' (alphabetical, dirs first; default) or
   // 'recent' (most recently modified first, regardless of dir/file).
@@ -363,6 +372,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     // can re-enter the old workflow after local React state cleared.
     const next = workflow === w ? null : w;
     setWorkflow(next);
+    window.CONTEXT = Object.assign({}, window.CONTEXT || {}, { workspace: next || '' });
     refreshFeed(intent, next);
     const sid = activateSession(window.SCOPE_PATH || '', next || '');
     if (window.backend) {
@@ -399,10 +409,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // Main column tab: 'chat' shows the conversation feed; 'preview' shows
   // the contents of the file at previewPath with syntax highlighting;
   // 'split' keeps chat and preview visible side-by-side.
+  // 'ssot' shows a reviewer-friendly section-by-section SSOT view.
   // 'qa' is only available when centerLayout === 'tabbed' — it surfaces
   // the dedicated ask_user pane with breadcrumb-tabbed batched questions.
   // Double-clicking a file in the left tree sets previewPath + flips tab.
-  const [mainTab, setMainTab] = React.useState('chat');     // chat | preview | split | qa
+  const [mainTab, setMainTab] = React.useState('chat');     // chat | preview | split | ssot | qa
   const [previewPath, setPreviewPath] = React.useState(null);
   // Center layout: 'classic' (chat with inline ask_user) or 'tabbed'
   // (Chat / Preview / Q&A tab strip with auto-switch). Comes from the
@@ -584,18 +595,17 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     const onData = (ev) => {
       if (ev.detail === 'CONTEXT' || ev.detail === 'FLOW_STAGES') {
         const backendWorkflow = (window.CONTEXT && window.CONTEXT.workspace) || '';
-        const known = (window.FLOW_STAGES || []).some(s => s.id === backendWorkflow);
-        if (!backendWorkflow || backendWorkflow === 'default') {
+        const activeWorkflow = workflowFromSession(window.ACTIVE_SESSION || '');
+        const nextWorkflow = activeWorkflow || backendWorkflow;
+        const known = (window.FLOW_STAGES || []).some(s => s.id === nextWorkflow);
+        if (!nextWorkflow || nextWorkflow === 'default') {
           setWorkflow(null);
         } else if (known) {
-          setWorkflow(backendWorkflow);
+          setWorkflow(nextWorkflow);
         }
       }
       if (ev.detail === 'SCOPE_PATH') {
-        const activeParts = normalizeUiSession(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
-        const activeWorkflow = (window.FLOW_STAGES || []).some(s => s.id === activeParts[activeParts.length - 1])
-          ? activeParts[activeParts.length - 1]
-          : '';
+        const activeWorkflow = workflowFromSession(window.ACTIVE_SESSION || '');
         activateSession(window.SCOPE_PATH || '', activeWorkflow || workflow || (window.CONTEXT && window.CONTEXT.workspace) || '');
       }
     };
@@ -670,6 +680,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       setFeed(newFeed);
     };
     window.addEventListener('atlas-conversation-loaded', onConvLoaded);
+    if (window.ATLAS_LAST_CONVERSATION) {
+      onConvLoaded({ detail: window.ATLAS_LAST_CONVERSATION });
+    }
     return () => window.removeEventListener('atlas-conversation-loaded', onConvLoaded);
   }, []);
 
@@ -716,6 +729,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   const pendingQcardActiveTab = pendingQcard
     ? (qaState[pendingQcard.flowId]?.active || 0)
     : 0;
+  const showQaTab = centerLayout === 'tabbed' || workflow === 'ssot-gen' || !!pendingQcard;
+  const showSsotTab = workflow === 'ssot-gen' || (window.SSOT_FILES || []).length > 0 || isSsotYamlPath(previewPath);
   React.useEffect(() => { setAskSel(0); }, [pendingQcard?.flowId, pendingQcardActiveTab]);
 
   // Auto-focus the ask_user prompt area when one opens
@@ -860,6 +875,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     recordInputHistory(raw);
     setInput('');
     setShowSlash(false);
+
+    if (pendingQcard && !raw.startsWith('/') && answerPendingFromInput(raw)) {
+      return;
+    }
 
     // ── Client-side slash commands ──────────────────────────────
     // Some commands operate on browser state (SCOPE_PATH lives in
@@ -1428,6 +1447,180 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     });
   };
 
+  function matchAnswerToken(raw, opts) {
+    const text = String(raw || '').trim();
+    if (!text) return null;
+    if (/^\d+$/.test(text)) {
+      const idx = parseInt(text, 10) - 1;
+      return opts[idx] || null;
+    }
+    const low = text.toLowerCase();
+    return opts.find(o =>
+      String(o.id || '').toLowerCase() === low ||
+      String(o.label || '').toLowerCase() === low
+    ) || null;
+  }
+
+  function parseTextAnswer(raw, question, opts) {
+    const text = String(raw || '').trim();
+    const kind = question?.kind === 'multi' ? 'multi'
+      : question?.kind === 'input' ? 'input'
+      : 'single';
+    if (!text || kind === 'input' || !opts.length) {
+      return { selected: [], custom: text };
+    }
+    if (kind === 'multi') {
+      const tokens = text.split(/[,\s]+/).map(x => x.trim()).filter(Boolean);
+      const selected = [];
+      const unmatched = [];
+      for (const token of tokens) {
+        const match = matchAnswerToken(token, opts);
+        if (match) selected.push(match.id);
+        else unmatched.push(token);
+      }
+      if (selected.length) {
+        return { selected: Array.from(new Set(selected)), custom: unmatched.join(' ') };
+      }
+      return { selected: [], custom: text };
+    }
+    const match = matchAnswerToken(text, opts);
+    return match ? { selected: [match.id], custom: '' } : { selected: [], custom: text };
+  }
+
+  function applyParsedAnswer(tabState, question, parsed) {
+    const selected = new Set(parsed.selected || []);
+    const kind = question?.kind === 'multi' ? 'multi'
+      : question?.kind === 'input' ? 'input'
+      : 'single';
+    const opts = (tabState.opts || []).map(o => ({
+      ...o,
+      selected: kind === 'multi'
+        ? (!!o.locked || selected.has(o.id))
+        : selected.has(o.id),
+    }));
+    return { ...tabState, opts, custom: parsed.custom || '' };
+  }
+
+  function tabHasAnswer(tabState) {
+    return !!(
+      (tabState?.opts || []).some(o => o.selected) ||
+      String(tabState?.custom || '').trim()
+    );
+  }
+
+  function historySnapshotFor(flowId, flow, st) {
+    if (!flow || !st) return null;
+    const items = flow.batched
+      ? (flow.questions || []).map((q, i) => {
+          const tab = (st.states || [])[i] || { opts: [], custom: '' };
+          return {
+            question: q.question || '',
+            kind: q.kind || 'single',
+            selected: tab.opts.filter(o => o.selected)
+              .map(o => ({ id: o.id, label: o.label })),
+            custom: tab.custom || '',
+          };
+        })
+      : [{
+          question: flow.question || '',
+          kind: flow.kind || 'single',
+          selected: (st.opts || []).filter(o => o.selected)
+            .map(o => ({ id: o.id, label: o.label })),
+          custom: st.custom || '',
+        }];
+    return {
+      flowId,
+      ts: Date.now(),
+      ip: flow.ip || '',
+      workflow: flow.workflow || '',
+      source: flow.source || '',
+      items,
+    };
+  }
+
+  function answerPendingFromInput(raw) {
+    const flowId = pendingQcard?.flowId;
+    const flow = flowId && window.QA_FLOWS && window.QA_FLOWS[flowId];
+    const st = flowId && qaState[flowId];
+    const text = String(raw || '').trim();
+    if (!flowId || !flow || !st || st.submitted || !text) return false;
+
+    let nextState = st;
+    let shouldSubmit = false;
+    let snapshot = null;
+
+    if (st.batched) {
+      const questions = flow.questions || [];
+      const states = (st.states || questions.map(q => ({
+        opts: (q.options || []).map(o => ({ ...o })),
+        custom: '',
+      }))).map(tab => ({
+        ...tab,
+        opts: (tab.opts || []).map(o => ({ ...o })),
+      }));
+      const lines = text.split(/\n+/).map(x => x.trim()).filter(Boolean);
+      let lineIdx = 0;
+      const active = Math.max(0, Math.min(st.active || 0, Math.max(0, questions.length - 1)));
+      const openTargets = questions.map((_, i) => i).filter(i => !tabHasAnswer(states[i]));
+      const targets = lines.length > 1
+        ? Array.from(new Set((openTargets.length ? openTargets : [active])))
+        : [active];
+      for (const idx of targets) {
+        if (idx < 0 || idx >= questions.length || lineIdx >= lines.length) continue;
+        const q = questions[idx];
+        const parsed = parseTextAnswer(lines[lineIdx], q, states[idx]?.opts || []);
+        states[idx] = applyParsedAnswer(states[idx] || { opts: [], custom: '' }, q, parsed);
+        lineIdx += 1;
+      }
+      const allAnswered = states.length > 0 && states.every(tabHasAnswer);
+      const firstOpen = states.findIndex(tab => !tabHasAnswer(tab));
+      nextState = {
+        ...st,
+        states,
+        active: allAnswered ? questions.length : Math.max(0, firstOpen),
+        submitted: allAnswered,
+      };
+      shouldSubmit = allAnswered;
+      if (shouldSubmit && window.backend) {
+        const answers = states.map(tab => ({
+          selected: tab.opts.filter(o => o.selected).map(o => o.id),
+          custom: tab.custom || '',
+        }));
+        window.backend.send({ type: 'answer', flow_id: flowId, answers });
+        snapshot = historySnapshotFor(flowId, flow, nextState);
+      }
+    } else {
+      const parsed = parseTextAnswer(text, flow, st.opts || []);
+      nextState = {
+        ...applyParsedAnswer(st, flow, parsed),
+        submitted: true,
+      };
+      shouldSubmit = true;
+      if (window.backend) {
+        window.backend.send({
+          type: 'answer',
+          flow_id: flowId,
+          selected: nextState.opts.filter(o => o.selected).map(o => o.id),
+          custom: nextState.custom || '',
+        });
+        snapshot = historySnapshotFor(flowId, flow, nextState);
+      }
+    }
+
+    setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+    setQaState(s => ({ ...s, [flowId]: nextState }));
+    if (snapshot) {
+      setQaHistory(h => {
+        if (h.length && h[0].flowId === snapshot.flowId) return h;
+        return [snapshot, ...h].slice(0, 50);
+      });
+    }
+    setMainTab(shouldSubmit ? 'chat' : 'qa');
+    setAskSel(0);
+    if (shouldSubmit) setStreaming(true);
+    return true;
+  }
+
   // Switch active tab in a batched ask_user flow. `idx` may equal
   // questions.length to land on the synthetic 'Submit' tab (review).
   const setActiveTab = (flowId, idx) => {
@@ -1573,7 +1766,35 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
           buffer as plain text, then the same text reappeared as a
           markdown-rendered 'agent' entry on flush, with very different
           line spacing. The status strip already signals work-in-progress;
-          the final clean markdown lands once when the buffer parks. */}
+      the final clean markdown lands once when the buffer parks. */}
+    </div>
+  );
+  const renderPromptRow = () => (
+    <div className="prompt-row">
+      <span className="ps" style={{ color: 'var(--fg-mute)' }}>❯</span>
+      <input ref={inputRef} value={input}
+        onChange={e => {
+          inputHistoryIndexRef.current = null;
+          inputHistoryDraftRef.current = '';
+          setInput(e.target.value);
+        }}
+        onKeyDown={onKey}
+        placeholder={pendingQcard
+          ? 'Answer pending Q&A here · "/" for commands'
+          : 'Type a message · "/" for commands · "@" for files'}
+        autoFocus
+      />
+      <span className="mute" style={{ fontSize: 11 }}>
+        {pendingQcard ? (
+          <>
+            <Kbd>↵</Kbd> answer · <Kbd>/</Kbd> cmd · <Kbd>↑</Kbd><Kbd>↓</Kbd> history
+          </>
+        ) : (
+          <>
+            <Kbd>/</Kbd> cmd · <Kbd>@</Kbd> file · <Kbd>↑</Kbd><Kbd>↓</Kbd> history · <Kbd>↵</Kbd> send
+          </>
+        )}
+      </span>
     </div>
   );
 
@@ -1644,13 +1865,16 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             {window.FLOW_STAGES.map((s, i) => {
               const active = workflow === s.id;
               return (
-                <div key={s.id}
+                <button key={s.id}
+                  type="button"
                   onClick={() => switchWorkflow(s.id)}
                   style={{
                     display: 'grid', gridTemplateColumns: '14px 38px 1fr 14px',
                     gap: 8, padding: '6px 12px', alignItems: 'center', fontSize: 12, cursor: 'pointer',
                     background: active ? 'var(--select)' : 'transparent',
                     borderLeft: active ? `2px solid ${s.color}` : '2px solid transparent',
+                    borderTop: 0, borderRight: 0, borderBottom: 0,
+                    width: '100%', color: 'var(--fg)', textAlign: 'left', fontFamily: 'inherit',
                   }}
                   onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = 'var(--bg-2)'; }}
                   onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = 'transparent'; }}
@@ -1659,7 +1883,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                   <span style={{ color: s.color, fontWeight: 700, letterSpacing: '0.06em', fontSize: 10 }}>{s.glyph}</span>
                   <span style={{ fontWeight: active ? 500 : 400 }}>{s.label}</span>
                   <span className="mute" style={{ fontSize: 10 }}>{active ? '◉' : '○'}</span>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -1792,7 +2016,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                   onClick={() => {
                     if (n.type === 'file') {
                       setPreviewPath(fullPath);
-                      setMainTab(tab => tab === 'split' ? 'split' : 'preview');
+                      setMainTab('split');
                     } else {
                       window.atlasData.setScopePath(fullPath);
                     }
@@ -1909,6 +2133,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             {/* Tab strip: chat ↔ preview. Preview stays reachable even
                 before a file is selected so the empty-state is visible. */}
             <span
+              className="tab-chip"
               onClick={() => setMainTab('chat')}
               style={{
                 cursor: 'pointer', padding: '2px 8px', borderRadius: 2,
@@ -1919,6 +2144,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               }}
             >chat</span>
             <span
+              className="tab-chip"
               onClick={() => setMainTab('preview')}
               title={previewPath ? 'View ' + previewPath : 'Open preview pane'}
               style={{
@@ -1931,6 +2157,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               }}
             >preview</span>
             <span
+              className="tab-chip"
               onClick={() => setMainTab('split')}
               title="Show chat and preview side by side"
               style={{
@@ -1942,8 +2169,24 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
               }}
             >split</span>
-            {centerLayout === 'tabbed' && (
+            {showSsotTab && (
               <span
+                className="tab-chip"
+                onClick={() => setMainTab('ssot')}
+                title="Review SSOT by section"
+                style={{
+                  cursor: 'pointer',
+                  padding: '2px 8px', borderRadius: 2, marginLeft: 4,
+                  color: mainTab === 'ssot' ? 'var(--magenta)' : 'var(--fg-mute)',
+                  background: mainTab === 'ssot' ? 'color-mix(in oklch, var(--magenta) 14%, transparent)' : 'transparent',
+                  border: '1px solid ' + (mainTab === 'ssot' ? 'var(--magenta)' : 'transparent'),
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                }}
+              >ssot</span>
+            )}
+            {showQaTab && (
+              <span
+                className="tab-chip"
                 onClick={() => setMainTab('qa')}
                 title={pendingQcard ? 'Answer the agent\'s questions' : 'No pending questions'}
                 style={{
@@ -1992,7 +2235,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             ) : mainTab === 'split' ? (
               <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}
                     title={previewPath || ''}>
-                chat + preview · {previewPath || '(no file selected)'}
+                chat + {isSsotYamlPath(previewPath) ? 'ssot' : 'preview'} · {previewPath || '(no file selected)'}
+              </span>
+            ) : mainTab === 'ssot' ? (
+              <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}>
+                SSOT section review
               </span>
             ) : (
               <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}
@@ -2005,7 +2252,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 "Running / End of loop / Waiting on you" pill above the
                 input row already conveys this state, and louder, so two
                 redundant indicators just add noise to the tab header. */}
-            {(mainTab === 'preview' || mainTab === 'split') && (
+            {(mainTab === 'preview' || mainTab === 'split' || mainTab === 'ssot') && (
               <span style={{ fontSize: 10 }}>
                 <span className="mute" style={{ marginRight: 8 }}>{mainTab === 'split' ? 'chat only' : 'back to chat'}</span>
                 <span onClick={() => setMainTab('chat')} className="acc"
@@ -2021,10 +2268,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
           ) : mainTab === 'split' ? (
             <div style={{
               flex: 1, minHeight: 0, display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1fr) minmax(300px, 42%)',
+              gridTemplateColumns: `minmax(280px, 1fr) 4px minmax(300px, ${splitRightW}px)`,
               overflow: 'hidden',
             }}>
-              <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--line)' }}>
+              <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
                 <div style={{
                   padding: '4px 10px', borderBottom: '1px solid var(--line)',
                   color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10,
@@ -2034,12 +2281,28 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 </div>
                 {renderChatPane({ padding: '10px 12px' })}
               </div>
+              <Splitter
+                width={splitRightW}
+                side="right"
+                onResize={setSplitRightW}
+                title="drag to resize chat / preview split"
+              />
               <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-                <PreviewPane path={previewPath} onClose={() => setMainTab('chat')} />
+                {isSsotYamlPath(previewPath) ? (
+                  <SsotReviewPane uiLang={uiLang} initialPath={previewPath} onBack={() => setMainTab('chat')} />
+                ) : (
+                  <PreviewPane path={previewPath} onClose={() => setMainTab('chat')} />
+                )}
               </div>
             </div>
+          ) : mainTab === 'ssot' ? (
+            <SsotReviewPane
+              uiLang={uiLang}
+              initialPath={isSsotYamlPath(previewPath) ? previewPath : ''}
+              onBack={() => setMainTab('chat')}
+            />
           ) : (
-            /* mainTab === 'qa' — only reachable when centerLayout==='tabbed' */
+            /* mainTab === 'qa' — SSOT-GEN QA board or active ask_user */
             <div style={{ flex: 1, overflow: 'auto', padding: '14px 18px' }}>
               {pendingQcard ? (
                 <AskUserPrompt
@@ -2064,6 +2327,13 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                   onSelectSession={activateSsotQaSession}
                   onBack={() => setMainTab('chat')}
                   onRefresh={() => { refreshSsotQa(); refreshSsotQaSessions(); }}
+                  onUsePending={(_, text, opts = {}) => {
+                    setInput(text || '');
+                    if (opts?.focusChat !== false) {
+                      setMainTab('chat');
+                      setTimeout(() => inputRef.current?.focus(), 0);
+                    }
+                  }}
                 />
               )}
               {qaHistory.length > 0 && (
@@ -2166,11 +2436,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             );
           })()}
           {/* Bottom prompt area — three rendering modes:
-              1. classic + pending qcard      → inline AskUserPrompt (legacy)
+              1. classic + pending qcard      → inline AskUserPrompt unless Q&A tab owns it
               2. tabbed   + on Q&A tab        → hidden (AskUserPrompt lives in tab body)
               3. tabbed   + chat/preview tab  → hint to switch to Q&A tab (not input)
               4. anything + no pending qcard  → normal input row */}
-          {pendingQcard && centerLayout === 'classic' ? (
+          {pendingQcard && centerLayout === 'classic' && mainTab !== 'qa' ? (
             <AskUserPrompt
               flowId={pendingQcard.flowId}
               state={qaState[pendingQcard.flowId]}
@@ -2184,46 +2454,37 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               onSetTab={setActiveTab}
               onAdvance={advanceBatchedQuestion}
             />
+          ) : pendingQcard && centerLayout === 'classic' && mainTab === 'qa' ? (
+            renderPromptRow()
           ) : pendingQcard && centerLayout === 'tabbed' && mainTab !== 'qa' ? (
-            <div
-              onClick={() => setMainTab('qa')}
-              className="ask-feed-placeholder"
-              style={{
-                padding: '8px 12px',
-                border: '1px dashed var(--warn)',
-                borderRadius: 2,
-                background: 'color-mix(in oklch, var(--warn) 10%, transparent)',
-                color: 'var(--warn)',
-                fontSize: 12,
-                cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 8,
-              }}
-              title="Click to open the Q&A tab"
-            >
-              <span>⏸</span>
-              <span>Agent is waiting on you · click here or open the <b>Q&amp;A</b> tab to answer</span>
-              <span style={{ flex: 1 }} />
-              <span style={{ fontSize: 10, color: 'var(--fg-mute)' }}>→ Q&amp;A</span>
-            </div>
-          ) : pendingQcard && centerLayout === 'tabbed' && mainTab === 'qa' ? (
-            null /* AskUserPrompt is rendered inside the tab body above */
-          ) : (
-            <div className="prompt-row">
-              <span className="ps" style={{ color: 'var(--fg-mute)' }}>❯</span>
-              <input ref={inputRef} value={input}
-                onChange={e => {
-                  inputHistoryIndexRef.current = null;
-                  inputHistoryDraftRef.current = '';
-                  setInput(e.target.value);
+            <>
+              <div
+                onClick={() => setMainTab('qa')}
+                className="ask-feed-placeholder"
+                style={{
+                  padding: '8px 12px',
+                  marginBottom: 6,
+                  border: '1px dashed var(--warn)',
+                  borderRadius: 2,
+                  background: 'color-mix(in oklch, var(--warn) 10%, transparent)',
+                  color: 'var(--warn)',
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 8,
                 }}
-                onKeyDown={onKey}
-                placeholder='Type a message · "/" for commands · "@" for files'
-                autoFocus
-              />
-              <span className="mute" style={{ fontSize: 11 }}>
-                <Kbd>/</Kbd> cmd · <Kbd>@</Kbd> file · <Kbd>↑</Kbd><Kbd>↓</Kbd> history · <Kbd>↵</Kbd> send
-              </span>
-            </div>
+                title="Click to open the Q&A tab"
+              >
+                <span>⏸</span>
+                <span>Agent is waiting on you · type an answer below, or open the <b>Q&amp;A</b> tab for the full card</span>
+                <span style={{ flex: 1 }} />
+                <span style={{ fontSize: 10, color: 'var(--fg-mute)' }}>→ Q&amp;A</span>
+              </div>
+              {renderPromptRow()}
+            </>
+          ) : pendingQcard && centerLayout === 'tabbed' && mainTab === 'qa' ? (
+            renderPromptRow() /* AskUserPrompt is rendered inside the tab body above */
+          ) : (
+            renderPromptRow()
           )}
         </div>
 
@@ -2783,12 +3044,207 @@ const SsotApprovalCard = ({ payload }) => {
   );
 };
 
-const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSession, onBack, onRefresh }) => {
+const AskUserQuestionBlock = ({
+  index = 0,
+  block = {},
+  blockState = { opts: [], custom: '' },
+  kind = 'single',
+  isBatched = false,
+  isActive = true,
+  answered = false,
+  selectedIndex = 0,
+  showQuestion = true,
+  onEnsureActive = () => {},
+  onSelectIndex = () => {},
+  onToggleOption = () => {},
+  onCustom = () => {},
+  onSelectAll,
+  onClearAll,
+}) => {
+  const blockOpts = blockState.opts || [];
+  const customIdx = blockOpts.length;
+  const blockMultiline = !!(block.multiline || String(block.placeholder || '').includes('\n'));
+  const blockPlaceholder = block.placeholder || '';
+  const blockSubtitle = block.subtitle || '';
+  const blockQuestion = block.question || '';
+  const ensureActive = () => onEnsureActive(index);
+  return (
+    <div
+      key={index}
+      onClick={() => { if (isBatched && !isActive) ensureActive(); }}
+      style={{
+        marginBottom: isBatched ? 12 : 0,
+        padding: isBatched ? '10px 12px' : 0,
+        border: isBatched
+          ? `1px solid ${isActive ? 'var(--accent)' : 'var(--line)'}`
+          : 'none',
+        background: isBatched && isActive
+          ? 'color-mix(in oklch, var(--accent) 5%, transparent)'
+          : 'transparent',
+        borderRadius: 2,
+        cursor: isBatched && !isActive ? 'pointer' : 'default',
+      }}
+    >
+      {showQuestion ? (
+        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 10, color: 'var(--fg)' }}>
+          {isBatched && (
+            <span
+              className={answered ? 'ok' : 'mute'}
+              style={{ marginRight: 8, fontSize: 12, fontWeight: 700, fontFamily: 'var(--mono)' }}
+            >
+              {answered ? '☒' : '☐'} Q{index + 1}.
+            </span>
+          )}
+          {blockQuestion}
+          {blockSubtitle && (
+            <div className="mute" style={{ fontSize: 11, fontWeight: 400, marginTop: 2 }}>
+              {blockSubtitle}
+            </div>
+          )}
+        </div>
+      ) : null}
+
+      {kind === 'multi' && blockOpts.length > 1 && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 8, fontSize: 11 }}>
+          <span
+            onClick={(ev) => {
+              ev.stopPropagation();
+              ensureActive();
+              if (onSelectAll) onSelectAll(blockOpts);
+            }}
+            style={{ cursor: 'pointer', padding: '2px 8px', border: '1px solid var(--accent)', color: 'var(--accent)', borderRadius: 2 }}
+            title="Select every option">
+            ☑ Select all
+          </span>
+          <span
+            onClick={(ev) => {
+              ev.stopPropagation();
+              ensureActive();
+              if (onClearAll) onClearAll(blockOpts);
+            }}
+            style={{ cursor: 'pointer', padding: '2px 8px', border: '1px solid var(--line)', color: 'var(--fg-mute)', borderRadius: 2 }}
+            title="Deselect every option">
+            ☐ Clear
+          </span>
+          <span className="mute" style={{ alignSelf: 'center', fontSize: 10 }}>
+            · click rows to toggle individually
+          </span>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {blockOpts.map((o, oi) => {
+          const isSel = o.selected;
+          const focused = isActive && selectedIndex === oi;
+          return (
+            <div
+              key={o.id}
+              onClick={(ev) => { ev.stopPropagation(); ensureActive(); onSelectIndex(oi); onToggleOption(o.id); }}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '24px 28px 1fr',
+                alignItems: 'baseline',
+                gap: 6,
+                padding: '4px 8px',
+                background: focused ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                borderLeft: `2px solid ${focused ? 'var(--accent)' : 'transparent'}`,
+                cursor: 'pointer',
+                fontFamily: 'var(--mono)',
+                fontSize: 13,
+                lineHeight: 1.4,
+              }}
+            >
+              <span className="mute" style={{ textAlign: 'right' }}>{oi + 1}.</span>
+              <span style={{ color: isSel ? 'var(--accent)' : 'var(--fg-mute)', fontWeight: 700 }}>
+                {kind === 'multi' ? (isSel ? '[✓]' : '[ ]') : (isSel ? '(•)' : '( )')}
+              </span>
+              <div>
+                <span style={{ color: focused ? 'var(--fg)' : (isSel ? 'var(--fg)' : 'var(--fg-dim, var(--fg))') }}>
+                  {o.label}
+                  {o.locked && <span className="mute" style={{ marginLeft: 8, fontSize: 11 }}>(required)</span>}
+                </span>
+                <div className="mute" style={{ fontSize: 11, fontFamily: 'var(--mono)', marginTop: 1 }}>
+                  {o.detail}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        <div
+          onClick={(ev) => { ev.stopPropagation(); ensureActive(); onSelectIndex(customIdx); }}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '24px 28px 1fr',
+            alignItems: 'baseline',
+            gap: 6,
+            padding: '4px 8px',
+            background: isActive && selectedIndex === customIdx ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+            borderLeft: `2px solid ${isActive && selectedIndex === customIdx ? 'var(--accent)' : 'transparent'}`,
+            cursor: 'text',
+            fontFamily: 'var(--mono)',
+            fontSize: 13,
+          }}
+        >
+          <span className="mute" style={{ textAlign: 'right' }}>{blockOpts.length + 1}.</span>
+          <span style={{ color: blockState.custom ? 'var(--warn)' : 'var(--fg-mute)', fontWeight: 700 }}>
+            {blockState.custom ? '[✓]' : '[ ]'}
+          </span>
+          <div style={{ display: 'flex', alignItems: 'stretch', gap: 6 }}>
+            {blockMultiline ? (
+              <textarea
+                className="askcustom"
+                value={blockState.custom || ''}
+                onChange={(e) => { ensureActive(); onCustom(e.target.value); }}
+                onFocus={() => { ensureActive(); onSelectIndex(customIdx); }}
+                placeholder={blockPlaceholder || 'custom answer / free-form note…'}
+                spellCheck={false}
+                style={{
+                  background: 'transparent', border: '1px solid var(--line)', outline: 'none',
+                  fontFamily: 'var(--mono)', color: 'var(--fg)', fontSize: 12, flex: 1,
+                  padding: '6px 8px', minHeight: 120, lineHeight: 1.45, resize: 'vertical',
+                  whiteSpace: 'pre-wrap',
+                }}
+              />
+            ) : (
+              <input
+                className="askcustom"
+                value={blockState.custom || ''}
+                onChange={(e) => { ensureActive(); onCustom(e.target.value); }}
+                onFocus={() => { ensureActive(); onSelectIndex(customIdx); }}
+                placeholder={blockPlaceholder || 'custom answer / free-form note…'}
+                style={{
+                  background: 'transparent', border: 'none', outline: 'none',
+                  fontFamily: 'var(--mono)', color: 'var(--fg)', fontSize: 13, flex: 1, padding: 0,
+                }}
+              />
+            )}
+            {isActive && selectedIndex === customIdx && <span className="cursor-thin" />}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSession, onBack, onRefresh, onUsePending }) => {
   const sections = Array.isArray(data?.sections) ? data.sections : [];
   const toc = Array.isArray(data?.toc) ? data.toc : [];
   const sessionRows = Array.isArray(sessions) ? sessions : [];
   const summary = data?.summary || { total: 0, approved: 0, pending: 0 };
   const hasIp = !!data?.ip;
+  const activeSessionNorm = normalizeUiSession(activeSession || data?.session || '');
+  const activeOwner = activeSessionNorm.split('/').filter(Boolean)[0] || '';
+  const activeIp = data?.ip || ssotIpFromSession(activeSessionNorm) || '';
+  const currentSessionRows = sessionRows.filter(row => {
+    const rowSession = normalizeUiSession(row?.session || '');
+    const rowParts = rowSession.split('/').filter(Boolean);
+    const rowOwner = rowParts[0] || '';
+    const rowIp = row?.ip || ssotIpFromSession(rowSession) || '';
+    const sameOwner = !activeOwner || !rowOwner || rowOwner === activeOwner;
+    const sameIp = !activeIp || rowIp === activeIp;
+    return sameOwner && sameIp;
+  });
   const t = uiLang === 'en'
     ? {
         noSession: 'No SSOT QA session selected.',
@@ -2802,12 +3258,24 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
         pending: 'pending',
         ssot: 'ssot',
         draft: 'draft',
-        sessions: 'Sessions',
+        sessions: 'Current session',
         toc: 'Table of contents',
         none: 'No QA records yet.',
-        noSaved: 'No saved SSOT sessions yet.',
+        noSaved: 'No QA records for this session/IP yet.',
         noCards: 'No section QA cards yet. Start',
         noAnswer: 'No answer captured yet.',
+        useInput: 'use input',
+        answer: 'answer',
+        close: 'close',
+        sendToInput: 'open input',
+        selectOne: 'select one option',
+        selectMany: 'select one or more options',
+        typedAnswer: 'typed answer',
+        customNote: 'custom note',
+        noOptions: 'No options provided. Type an answer below.',
+        autoInputHint: 'select or type here; the chat input updates automatically',
+        questionLoaded: 'question loaded into chat input',
+        inputUpdated: 'chat input updated',
       }
     : {
         noSession: '선택된 SSOT QA 세션이 없습니다.',
@@ -2821,58 +3289,228 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
         pending: '대기',
         ssot: 'SSOT',
         draft: '작성중',
-        sessions: '세션',
+        sessions: '현재 세션',
         toc: '목차',
         none: '아직 QA 기록이 없습니다.',
-        noSaved: '저장된 SSOT 세션이 없습니다.',
+        noSaved: '현재 session/IP의 QA 기록이 없습니다.',
         noCards: '아직 section QA 카드가 없습니다. 시작:',
         noAnswer: '아직 답변이 저장되지 않았습니다.',
+        useInput: '입력으로',
+        answer: '답변',
+        close: '닫기',
+        sendToInput: '입력창 열기',
+        selectOne: '옵션 하나를 선택하세요',
+        selectMany: '옵션을 하나 이상 선택하세요',
+        typedAnswer: '직접 입력',
+        customNote: '추가 설명',
+        noOptions: '옵션이 없습니다. 아래에 답변을 입력하세요.',
+        autoInputHint: '여기서 선택/입력하면 채팅 입력창에 자동 반영됩니다',
+        questionLoaded: '질문이 채팅 입력창에 들어갔습니다',
+        inputUpdated: '채팅 입력창이 업데이트되었습니다',
       };
+  const [openPendingKey, setOpenPendingKey] = React.useState('');
+  const [answerDrafts, setAnswerDrafts] = React.useState({});
+  const [lastInputKey, setLastInputKey] = React.useState('');
   const scrollTo = (id) => {
     try {
       document.getElementById('ssot-qa-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (_) {}
   };
-  const renderQa = (item, status) => (
-    <div
-      key={`${item.flow_id || ''}:${item.decision_key || item.question}`}
-      style={{
-        padding: '8px 10px',
-        border: '1px solid var(--line)',
-        borderLeft: `3px solid ${status === 'approved' ? 'var(--ok)' : 'var(--warn)'}`,
-        background: status === 'approved'
-          ? 'color-mix(in oklch, var(--ok) 7%, transparent)'
-          : 'color-mix(in oklch, var(--warn) 8%, transparent)',
-        marginBottom: 8,
-        fontFamily: 'var(--mono)',
-      }}
-    >
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
-        <span style={{
-          color: status === 'approved' ? 'var(--ok)' : 'var(--warn)',
-          fontSize: 10,
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-        }}>
-          {status}
-        </span>
-        <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
-          {item.decision_key || item.source || 'qa'}
-        </span>
-      </div>
-      <div style={{ color: 'var(--fg)', fontSize: 12, lineHeight: 1.45 }}>
-        {item.question || item.decision_label || 'Untitled question'}
-      </div>
-      {item.subtitle ? (
-        <div style={{ color: 'var(--fg-mute)', fontSize: 11, marginTop: 3 }}>
-          {item.subtitle}
+  const pendingItemKey = (item) => [
+    item?.flow_id || '',
+    item?.section || item?.section_id || '',
+    item?.decision_key || item?.source || item?.question || '',
+  ].join(':');
+  const optionRows = (item) => (
+    Array.isArray(item?.options) ? item.options : []
+  ).map((option, idx) => {
+    const raw = option && typeof option === 'object' ? option : { id: option, label: option };
+    const id = String(raw.id ?? raw.value ?? raw.label ?? idx);
+    const label = String(raw.label ?? raw.title ?? raw.value ?? raw.id ?? `Option ${idx + 1}`);
+    const detail = raw.detail || raw.description || '';
+    return { ...raw, id, label, detail };
+  });
+  const pendingKind = (item) => {
+    const kind = String(item?.question_kind || item?.kind || '').toLowerCase();
+    if (kind === 'multi' || kind === 'multiple' || kind === 'checkbox') return 'multi';
+    if (kind === 'input' || kind === 'text' || kind === 'freeform') return 'input';
+    return optionRows(item).length ? 'single' : 'input';
+  };
+  const pendingDraft = (item) => {
+    const key = pendingItemKey(item);
+    const stored = answerDrafts[key] || {};
+    const selected = new Set((stored.opts || []).filter(o => o.selected).map(o => String(o.id)));
+    return {
+      opts: optionRows(item).map(option => ({
+        ...option,
+        selected: selected.has(option.id),
+      })),
+      custom: stored.custom || '',
+    };
+  };
+  const hasPendingAnswer = (draft) => (
+    (draft?.opts || []).some(o => o.selected)
+  ) || String(draft?.custom || '').trim().length > 0;
+  const buildPendingInputText = (item, draft = pendingDraft(item)) => {
+    const selectedRows = (draft?.opts || []).filter(option => option.selected);
+    const selectedText = selectedRows.map(option => (
+      option.detail ? `${option.id} - ${option.label}: ${option.detail}` : `${option.id} - ${option.label}`
+    ));
+    const custom = String(draft?.custom || '').trim();
+    const parts = [
+      `Answer pending QA for ${data?.ip || activeIp || 'current IP'}${item.decision_key ? ` / ${item.decision_key}` : ''}`,
+    ];
+    if (item.decision_key) parts.push(`Decision key: ${item.decision_key}`);
+    if (item.decision_label && item.decision_label !== item.question) parts.push(`Decision: ${item.decision_label}`);
+    parts.push(`Question: ${item.question || item.decision_label || 'Untitled question'}`);
+    if (item.subtitle) parts.push(`Context: ${item.subtitle}`);
+    if (selectedText.length) parts.push(`Selected: ${selectedText.join('; ')}`);
+    if (custom) parts.push(`Answer: ${custom}`);
+    if (!selectedText.length && !custom) parts.push('Answer: <choose option or type note>');
+    parts.push('Apply this answer to SSOT-GEN QA and continue the current workflow.');
+    return parts.join(' | ');
+  };
+  const pushPendingInput = (item, draft, focusChat = false) => {
+    if (!onUsePending) return;
+    onUsePending(item, buildPendingInputText(item, draft), { focusChat });
+    setLastInputKey(pendingItemKey(item));
+  };
+  const updatePendingDraft = (item, draft, focusChat = false) => {
+    const key = pendingItemKey(item);
+    setAnswerDrafts(prev => ({ ...prev, [key]: draft }));
+    pushPendingInput(item, draft, focusChat);
+  };
+  const togglePendingOption = (item, optionId) => {
+    const draft = pendingDraft(item);
+    const kind = pendingKind(item);
+    const opts = (draft.opts || []).map(option => {
+      if (kind === 'multi') {
+        return option.id === optionId ? { ...option, selected: !option.selected } : option;
+      }
+      return { ...option, selected: option.id === optionId };
+    });
+    updatePendingDraft(item, { ...draft, opts });
+  };
+  const renderPendingAnswerBox = (item) => {
+    const key = pendingItemKey(item);
+    const draft = pendingDraft(item);
+    const kind = pendingKind(item);
+    const hasAnswer = hasPendingAnswer(draft);
+    return (
+      <div style={{
+        marginTop: 8,
+        paddingTop: 8,
+        borderTop: '1px solid var(--line)',
+      }}>
+        <div style={{ color: 'var(--fg-mute)', fontSize: 10, marginBottom: 6 }}>
+          {kind === 'multi' ? t.selectMany : (kind === 'single' ? t.selectOne : t.typedAnswer)}
         </div>
-      ) : null}
-      <div style={{ color: item.answer ? 'var(--fg)' : 'var(--fg-mute)', fontSize: 12, marginTop: 7, lineHeight: 1.45 }}>
-        {item.answer || t.noAnswer}
+        {!draft.opts.length ? (
+          <div style={{ color: 'var(--fg-mute)', fontSize: 11, marginBottom: 6 }}>{t.noOptions}</div>
+        ) : null}
+        <AskUserQuestionBlock
+          index={0}
+          block={{
+            question: item.question || item.decision_label || '',
+            subtitle: item.subtitle || '',
+            placeholder: kind === 'input' ? t.typedAnswer : t.customNote,
+            multiline: kind === 'input',
+          }}
+          blockState={draft}
+          kind={kind}
+          isBatched={false}
+          isActive={true}
+          selectedIndex={-1}
+          showQuestion={false}
+          onToggleOption={(optionId) => togglePendingOption(item, optionId)}
+          onCustom={(value) => updatePendingDraft(item, { ...pendingDraft(item), custom: value })}
+          onSelectAll={() => updatePendingDraft(item, {
+            ...draft,
+            opts: (draft.opts || []).map(option => ({ ...option, selected: true })),
+          })}
+          onClearAll={() => updatePendingDraft(item, {
+            ...draft,
+            opts: (draft.opts || []).map(option => ({ ...option, selected: false })),
+          })}
+        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+          <span style={{ color: lastInputKey === key ? 'var(--cyan)' : 'var(--fg-mute)', fontSize: 10 }}>
+            {lastInputKey === key ? (hasAnswer ? t.inputUpdated : t.questionLoaded) : t.autoInputHint}
+          </span>
+          <span style={{ flex: 1 }} />
+          <button
+            type="button"
+            className="mini-btn"
+            onClick={() => pushPendingInput(item, draft, true)}
+          >
+            {t.sendToInput}
+          </button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
+  const renderQa = (item, status) => {
+    const key = pendingItemKey(item);
+    const isPending = status === 'pending';
+    const isOpen = isPending && openPendingKey === key;
+    return (
+      <div
+        key={key}
+        style={{
+          padding: '8px 10px',
+          border: '1px solid var(--line)',
+          borderLeft: `3px solid ${status === 'approved' ? 'var(--ok)' : 'var(--warn)'}`,
+          background: status === 'approved'
+            ? 'color-mix(in oklch, var(--ok) 7%, transparent)'
+            : 'color-mix(in oklch, var(--warn) 8%, transparent)',
+          marginBottom: 8,
+          fontFamily: 'var(--mono)',
+        }}
+      >
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+          <span style={{
+            color: status === 'approved' ? 'var(--ok)' : 'var(--warn)',
+            fontSize: 10,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+          }}>
+            {status}
+          </span>
+          <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
+            {item.decision_key || item.source || 'qa'}
+          </span>
+          <span style={{ flex: 1 }} />
+          {isPending && onUsePending ? (
+            <button
+              type="button"
+              className="mini-btn"
+              onClick={(ev) => {
+                ev.stopPropagation();
+                const nextOpen = isOpen ? '' : key;
+                setOpenPendingKey(nextOpen);
+                if (nextOpen) pushPendingInput(item, pendingDraft(item), false);
+              }}
+              title="Answer this pending QA in the QA panel"
+            >
+              {isOpen ? t.close : t.answer}
+            </button>
+          ) : null}
+        </div>
+        <div style={{ color: 'var(--fg)', fontSize: 12, lineHeight: 1.45 }}>
+          {item.question || item.decision_label || 'Untitled question'}
+        </div>
+        {item.subtitle ? (
+          <div style={{ color: 'var(--fg-mute)', fontSize: 11, marginTop: 3 }}>
+            {item.subtitle}
+          </div>
+        ) : null}
+        {isOpen ? renderPendingAnswerBox(item) : null}
+        <div style={{ color: item.answer ? 'var(--fg)' : 'var(--fg-mute)', fontSize: 12, marginTop: 7, lineHeight: 1.45 }}>
+          {item.answer || t.noAnswer}
+        </div>
+      </div>
+    );
+  };
 
   if (!hasIp) {
     return (
@@ -2920,10 +3558,10 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
             {t.sessions}
           </div>
           <span style={{ flex: 1 }} />
-          <span style={{ fontSize: 10, color: 'var(--fg-mute)' }}>{sessionRows.length} ssot-gen</span>
+          <span style={{ fontSize: 10, color: 'var(--fg-mute)' }}>{currentSessionRows.length} ssot-gen</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 8 }}>
-          {sessionRows.length ? sessionRows.slice(0, 12).map(row => {
+          {currentSessionRows.length ? currentSessionRows.slice(0, 12).map(row => {
             const active = normalizeUiSession(row.session) === normalizeUiSession(activeSession || data.session || '');
             const rowSummary = row.summary || {};
             return (
@@ -3299,181 +3937,31 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
     if (e.key === 'Escape') { e.preventDefault(); onSel(0); }
   };
 
-  // ── per-question block — used both for the single-question case
-  // (rendered once) and for each entry of a batched flow (rendered as
-  // a vertical stack so the user can see and answer all questions at
-  // once instead of paging through tabs). The active block owns the
-  // keyboard cursor (`sel`); inactive blocks are still fully clickable.
-  const renderQuestionBlock = (i, block, bs, kind) => {
-    const blockOpts = bs.opts || [];
-    const blockMultiline = !!(block.multiline || String(block.placeholder || '').includes('\n'));
-    const blockPlaceholder = block.placeholder || '';
-    const blockSubtitle = block.subtitle || '';
-    const blockQuestion = block.question || '';
-    const isThisActive = !isBatched || i === active;
-    const ensureActive = () => {
-      if (isBatched && i !== active && onSetTab) onSetTab(flowId, i);
-    };
-    return (
-      <div
-        key={i}
-        onClick={() => { if (isBatched && i !== active) ensureActive(); }}
-        style={{
-          marginBottom: isBatched ? 12 : 0,
-          padding: isBatched ? '10px 12px' : 0,
-          border: isBatched
-            ? `1px solid ${isThisActive ? 'var(--accent)' : 'var(--line)'}`
-            : 'none',
-          background: isBatched && isThisActive
-            ? 'color-mix(in oklch, var(--accent) 5%, transparent)'
-            : 'transparent',
-          borderRadius: 2,
-          cursor: isBatched && !isThisActive ? 'pointer' : 'default',
-        }}
-      >
-        {/* question */}
-        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 10, color: 'var(--fg)' }}>
-          {isBatched && (
-            <span
-              className={tabAnswered(i) ? 'ok' : 'mute'}
-              style={{ marginRight: 8, fontSize: 12, fontWeight: 700, fontFamily: 'var(--mono)' }}
-            >
-              {tabAnswered(i) ? '☒' : '☐'} Q{i + 1}.
-            </span>
-          )}
-          {blockQuestion}
-          {blockSubtitle && (
-            <div className="mute" style={{ fontSize: 11, fontWeight: 400, marginTop: 2 }}>
-              {blockSubtitle}
-            </div>
-          )}
-        </div>
-
-        {/* multi-mode bulk select / clear */}
-        {kind === 'multi' && blockOpts.length > 1 && (
-          <div style={{ display: 'flex', gap: 8, marginBottom: 8, fontSize: 11 }}>
-            <span
-              onClick={(ev) => {
-                ev.stopPropagation();
-                ensureActive();
-                blockOpts.forEach(o => { if (!o.selected && !o.locked) onToggle(flowId, o.id); });
-              }}
-              style={{ cursor: 'pointer', padding: '2px 8px', border: '1px solid var(--accent)', color: 'var(--accent)', borderRadius: 2 }}
-              title="Select every option">
-              ☑ Select all
-            </span>
-            <span
-              onClick={(ev) => {
-                ev.stopPropagation();
-                ensureActive();
-                blockOpts.forEach(o => { if (o.selected && !o.locked) onToggle(flowId, o.id); });
-              }}
-              style={{ cursor: 'pointer', padding: '2px 8px', border: '1px solid var(--line)', color: 'var(--fg-mute)', borderRadius: 2 }}
-              title="Deselect every option">
-              ☐ Clear
-            </span>
-            <span className="mute" style={{ alignSelf: 'center', fontSize: 10 }}>
-              · click rows to toggle individually
-            </span>
-          </div>
-        )}
-
-        {/* numbered options */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {blockOpts.map((o, oi) => {
-            const isSel = o.selected;
-            const focused = isThisActive && sel === oi;
-            return (
-              <div
-                key={o.id}
-                onClick={(ev) => { ev.stopPropagation(); ensureActive(); onSel(oi); onToggle(flowId, o.id); }}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '24px 28px 1fr',
-                  alignItems: 'baseline',
-                  gap: 6,
-                  padding: '4px 8px',
-                  background: focused ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
-                  borderLeft: `2px solid ${focused ? 'var(--accent)' : 'transparent'}`,
-                  cursor: 'pointer',
-                  fontFamily: 'var(--mono)',
-                  fontSize: 13,
-                  lineHeight: 1.4,
-                }}
-              >
-                <span className="mute" style={{ textAlign: 'right' }}>{oi + 1}.</span>
-                <span style={{ color: isSel ? 'var(--accent)' : 'var(--fg-mute)', fontWeight: 700 }}>
-                  {kind === 'multi' ? (isSel ? '[✓]' : '[ ]') : (isSel ? '(•)' : '( )')}
-                </span>
-                <div>
-                  <span style={{ color: focused ? 'var(--fg)' : (isSel ? 'var(--fg)' : 'var(--fg-dim, var(--fg))') }}>
-                    {o.label}
-                    {o.locked && <span className="mute" style={{ marginLeft: 8, fontSize: 11 }}>(required)</span>}
-                  </span>
-                  <div className="mute" style={{ fontSize: 11, fontFamily: 'var(--mono)', marginTop: 1 }}>
-                    {o.detail}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-
-          {/* custom text line — number continues, has [✓] when non-empty */}
-          <div
-            onClick={(ev) => { ev.stopPropagation(); ensureActive(); onSel(customIdx); }}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '24px 28px 1fr',
-              alignItems: 'baseline',
-              gap: 6,
-              padding: '4px 8px',
-              background: isThisActive && sel === customIdx ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
-              borderLeft: `2px solid ${isThisActive && sel === customIdx ? 'var(--accent)' : 'transparent'}`,
-              cursor: 'text',
-              fontFamily: 'var(--mono)',
-              fontSize: 13,
-            }}
-          >
-            <span className="mute" style={{ textAlign: 'right' }}>{blockOpts.length + 1}.</span>
-            <span style={{ color: bs.custom ? 'var(--warn)' : 'var(--fg-mute)', fontWeight: 700 }}>
-              {bs.custom ? '[✓]' : '[ ]'}
-            </span>
-            <div style={{ display: 'flex', alignItems: 'stretch', gap: 6 }}>
-              {blockMultiline ? (
-                <textarea
-                  className="askcustom"
-                  value={bs.custom || ''}
-                  onChange={(e) => { ensureActive(); onCustom(flowId, e.target.value); }}
-                  onFocus={() => { ensureActive(); onSel(customIdx); }}
-                  placeholder={blockPlaceholder || 'custom answer / free-form note…'}
-                  spellCheck={false}
-                  style={{
-                    background: 'transparent', border: '1px solid var(--line)', outline: 'none',
-                    fontFamily: 'var(--mono)', color: 'var(--fg)', fontSize: 12, flex: 1,
-                    padding: '6px 8px', minHeight: 160, lineHeight: 1.45, resize: 'vertical',
-                    whiteSpace: 'pre-wrap',
-                  }}
-                />
-              ) : (
-                <input
-                  className="askcustom"
-                  value={bs.custom || ''}
-                  onChange={(e) => { ensureActive(); onCustom(flowId, e.target.value); }}
-                  onFocus={() => { ensureActive(); onSel(customIdx); }}
-                  placeholder={blockPlaceholder || 'custom answer / free-form note…'}
-                  style={{
-                    background: 'transparent', border: 'none', outline: 'none',
-                    fontFamily: 'var(--mono)', color: 'var(--fg)', fontSize: 13, flex: 1, padding: 0,
-                  }}
-                />
-              )}
-              {isThisActive && sel === customIdx && <span className="cursor-thin" />}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  const renderQuestionBlock = (i, block, bs, kind) => (
+    <AskUserQuestionBlock
+      key={i}
+      index={i}
+      block={block}
+      blockState={bs}
+      kind={kind}
+      isBatched={isBatched}
+      isActive={!isBatched || i === active}
+      answered={tabAnswered(i)}
+      selectedIndex={sel}
+      onEnsureActive={(idx) => {
+        if (isBatched && idx !== active && onSetTab) onSetTab(flowId, idx);
+      }}
+      onSelectIndex={onSel}
+      onToggleOption={(optionId) => onToggle(flowId, optionId)}
+      onCustom={(value) => onCustom(flowId, value)}
+      onSelectAll={(blockOpts) => {
+        blockOpts.forEach(o => { if (!o.selected && !o.locked) onToggle(flowId, o.id); });
+      }}
+      onClearAll={(blockOpts) => {
+        blockOpts.forEach(o => { if (o.selected && !o.locked) onToggle(flowId, o.id); });
+      }}
+    />
+  );
 
   return (
     <div
@@ -3577,6 +4065,1066 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
         <span><Kbd>Tab</Kbd> next field</span>
         {isBatched && <span><Kbd>⌘/⌃ ←→</Kbd> switch question</span>}
         <span><Kbd>Esc</Kbd> top</span>
+      </div>
+    </div>
+  );
+};
+
+const SSOT_SECTION_LABELS = {
+  schema_version: 'Schema Version',
+  metadata: 'Metadata',
+  top_module: 'Top Module',
+  sub_modules: 'Submodules',
+  parameters: 'Parameters',
+  io_list: 'I/O List',
+  features: 'Features',
+  dataflow: 'Dataflow',
+  function_model: 'Function Model',
+  cycle_model: 'Cycle Model',
+  clock_reset_domains: 'Clock / Reset Domains',
+  cdc_requirements: 'CDC Requirements',
+  rdc_requirements: 'RDC Requirements',
+  registers: 'Registers',
+  memory: 'Memory',
+  interrupts: 'Interrupts',
+  fsm: 'FSM',
+  timing: 'Timing',
+  power: 'Power',
+  security: 'Security',
+  errors: 'Errors',
+  debug: 'Debug',
+  integration: 'Integration',
+  dft: 'DFT',
+  synthesis: 'Synthesis',
+  coding_rules: 'Coding Rules',
+  reuse_modules: 'Reuse Modules',
+  custom: 'Custom Requirements',
+  dir_structure: 'Directory Structure',
+  filelist: 'File List',
+  dv_plan: 'DV Plan',
+  quality_gates: 'Quality Gates',
+  traceability: 'Traceability',
+  workflow_todos: 'Workflow Todos',
+  generation_flow: 'Generation Flow',
+  decomposition: 'Decomposition',
+};
+
+const SSOT_REVIEW_FOCUS = {
+  metadata: ['IP name, owner, source, and version are reviewable.', 'Assumptions and scope boundaries are explicit.'],
+  top_module: ['Module name, responsibility, clocks, and resets match the intended IP.', 'No implementation detail hides behind placeholder text.'],
+  sub_modules: ['Hierarchy is complete enough for RTL partitioning.', 'Module ownership and interfaces are not ambiguous.'],
+  parameters: ['Defaults, ranges, legal values, and units are specified.', 'Parameter interactions are called out where they affect behavior.'],
+  io_list: ['Every port has direction, width, clock/reset domain, and semantic description.', 'Handshake and sideband conventions are visible.'],
+  features: ['Required and optional features are separated.', 'Feature dependencies and disabled states are stated.'],
+  dataflow: ['Ingress, transformation, storage, and egress path are understandable.', 'Backpressure, buffering, and ordering rules are explicit.'],
+  function_model: ['Functional behavior is stated as reviewable rules.', 'Corner cases and invalid inputs have expected outcomes.'],
+  cycle_model: ['Latency, throughput, ordering, and cycle-level promises are concrete.', 'Reset and stall behavior are included.'],
+  clock_reset_domains: ['Clock/reset ownership, polarity, and synchronization boundaries are clear.', 'Reset release assumptions are reviewable.'],
+  cdc_requirements: ['All clock crossings name source/destination domains.', 'Synchronizer type and data-valid guarantees are explicit.'],
+  rdc_requirements: ['Reset crossings and release ordering are stated.', 'Required synchronizers or constraints are named.'],
+  registers: ['Address map, access policy, reset values, and side effects are complete.', 'Reserved bits and write-one semantics are visible.'],
+  memory: ['Depth, width, ports, arbitration, and initialization are specified.', 'ECC/parity and read-under-write behavior are stated if relevant.'],
+  interrupts: ['Sources, masks, clears, aggregation, and pulse/level behavior are reviewable.', 'Software-visible status is aligned with registers.'],
+  fsm: ['States, transitions, guards, and error paths are complete.', 'Reset state and illegal-state recovery are specified.'],
+  timing: ['Latency budgets, max frequencies, and timing exceptions are justified.', 'Handshake timing assumptions are not implicit.'],
+  power: ['Clock gating, retention, isolation, and low-power assumptions are visible.', 'Power-state behavior is consistent with reset/CDC sections.'],
+  security: ['Threat assumptions, privilege boundaries, and lock/debug behavior are visible.', 'Unsupported security scope is explicit.'],
+  errors: ['Detection, reporting, recovery, and fatal/non-fatal split are clear.', 'Error injection or observability hooks are named when needed.'],
+  debug: ['Counters, traces, debug registers, and visibility points are reviewable.', 'Debug behavior does not conflict with security/power constraints.'],
+  integration: ['SoC integration assumptions, dependencies, and external contracts are stated.', 'Tie-offs, strap values, and constraints are visible.'],
+  dft: ['Scan, MBIST/LBIST, test modes, and clock/reset handling are covered.', 'DFT exceptions are justified.'],
+  synthesis: ['Target library, constraints, generated blocks, and synthesis assumptions are visible.', 'Non-synthesizable modeling is excluded from RTL scope.'],
+  coding_rules: ['Style and lint contracts are specific enough for generated RTL.', 'Naming, reset, and clocking rules match project conventions.'],
+  reuse_modules: ['Reused IP versions, configuration, and integration contracts are explicit.', 'Ownership and verification reuse assumptions are stated.'],
+  dir_structure: ['Generated file layout is predictable.', 'Human-owned and generated files are separated.'],
+  filelist: ['Required source, include, constraint, and sim files are enumerated.', 'Generation outputs line up with downstream tools.'],
+  dv_plan: ['Test intent, coverage targets, sequences, and scoreboards trace to requirements.', 'Corner cases and negative tests are visible.'],
+  quality_gates: ['Lint, sim, formal, CDC/RDC, and signoff gates have pass criteria.', 'Known waivers or limits are tracked.'],
+  traceability: ['Requirements, SSOT sections, RTL, tests, and gates are connected.', 'Untraced or stale entries are easy to spot.'],
+  workflow_todos: ['Human decisions and agent follow-ups are separated.', 'Pending items are actionable and scoped.'],
+  generation_flow: ['Generated artifact order and handoff points are clear.', 'Review gates stop unsafe downstream generation.'],
+  decomposition: ['Blocks, ownership, dependencies, and generation order are clear.', 'Interfaces between generated units are reviewable.'],
+};
+
+const SSOT_DIGEST_VIEWS = [
+  { id: 'overview', label: 'Overview', keys: ['top_module', 'features', 'sub_modules', 'io_list'] },
+  { id: 'features', label: 'Features', keys: ['features'] },
+  { id: 'architecture', label: 'Architecture', keys: ['sub_modules', 'decomposition'] },
+  { id: 'function_model', label: 'Function Model', keys: ['function_model'] },
+  { id: 'cycle_model', label: 'Cycle Model', keys: ['cycle_model', 'timing'] },
+  { id: 'interfaces', label: 'Interfaces', keys: ['io_list'] },
+  { id: 'registers', label: 'Register Map', keys: ['registers'] },
+  { id: 'dataflow', label: 'Dataflow', keys: ['dataflow'] },
+  { id: 'clocking', label: 'Clock / CDC', keys: ['clock_reset_domains', 'cdc_requirements', 'rdc_requirements'] },
+  { id: 'memory', label: 'Memory / FIFO', keys: ['memory'] },
+  { id: 'interrupts', label: 'Interrupts', keys: ['interrupts'] },
+  { id: 'fsm_errors', label: 'FSM / Errors', keys: ['fsm', 'errors', 'error_handling'] },
+  { id: 'review_items', label: 'Review Items', keys: ['workflow_todos', 'quality_gates', 'traceability'] },
+];
+
+const ssotPathOf = (entry) => typeof entry === 'string' ? entry : (entry && entry.path) || '';
+
+const ssotTitleFor = (key) => {
+  const raw = String(key || '').trim();
+  if (!raw) return 'Untitled Section';
+  if (SSOT_SECTION_LABELS[raw]) return SSOT_SECTION_LABELS[raw];
+  return raw.split(/[_\-.]+/).filter(Boolean)
+    .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+    .join(' ');
+};
+
+const trimSsotValue = (value, max = 130) => {
+  const text = String(value ?? '').replace(/^['"]|['"]$/g, '').replace(/\s+/g, ' ').trim();
+  if (!text) return '';
+  return text.length > max ? text.slice(0, max - 1) + '...' : text;
+};
+
+const mdCell = (value) => {
+  const text = trimSsotValue(value, 220).replace(/\|/g, '\\|');
+  return text || '-';
+};
+
+const splitSsotSections = (content) => {
+  const lines = String(content || '').split(/\r?\n/);
+  const sections = [];
+  let current = null;
+  const push = () => {
+    if (!current) return;
+    const text = current.lines.join('\n').trimEnd();
+    if (text.trim()) {
+      const section = { ...current, text, lineCount: current.lines.length };
+      section.summary = summarizeSsotSection(section);
+      sections.push(section);
+    }
+  };
+
+  lines.forEach((line, idx) => {
+    const m = line.match(/^([A-Za-z_][A-Za-z0-9_.-]*):(?:\s*(.*))?$/);
+    if (m) {
+      push();
+      current = { key: m[1], value: (m[2] || '').trim(), startLine: idx + 1, lines: [line] };
+    } else if (current) {
+      current.lines.push(line);
+    }
+  });
+  push();
+  return sections;
+};
+
+const summarizeSsotSection = (section) => {
+  const lines = String(section.text || '').split(/\r?\n/);
+  const facts = [];
+  const groups = [];
+  const listPreview = [];
+  const gaps = [];
+  let listItems = 0;
+
+  lines.forEach((line, idx) => {
+    const list = line.match(/^\s*-\s+(.+)/);
+    if (list) {
+      listItems += 1;
+      if (listPreview.length < 8) listPreview.push(trimSsotValue(list[1], 180));
+    }
+
+    const group = line.match(/^\s{2}([A-Za-z0-9_.-]+):\s*(?:#.*)?$/);
+    if (group && !groups.includes(group[1]) && groups.length < 12) groups.push(group[1]);
+
+    const fact = line.match(/^\s{2,}([A-Za-z0-9_.-]+):\s*(.+?)\s*$/);
+    if (fact && facts.length < 12) {
+      const value = trimSsotValue(fact[2]);
+      if (value && !['|', '>', '{}', '[]'].includes(value)) facts.push({ key: fact[1], value });
+    }
+
+    if (/\b(TBD|TODO|FIXME|unknown|placeholder|pending|null|assumption|unspecified)\b/i.test(line)) {
+      const cleaned = trimSsotValue(line, 220);
+      if (cleaned && gaps.length < 10) gaps.push({ line: section.startLine + idx, text: cleaned });
+    }
+  });
+
+  if (section.value && facts.length < 12) facts.unshift({ key: section.key, value: section.value });
+  return { facts, groups, listItems, listPreview, gaps, lineCount: lines.length };
+};
+
+const rxEscape = (text) => String(text || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const indentOf = (line) => (String(line || '').match(/^\s*/) || [''])[0].length;
+
+const stripYamlScalar = (value) => {
+  let text = String(value ?? '').trim();
+  text = text.replace(/^['"]|['"]$/g, '');
+  return text.replace(/\s+/g, ' ').trim();
+};
+
+const fieldFromText = (text, key, max = 260) => {
+  const lines = String(text || '').split(/\r?\n/);
+  const rx = new RegExp(`^\\s*(?:-\\s*)?${rxEscape(key)}:\\s*(.*)$`);
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(rx);
+    if (!m) continue;
+    const base = indentOf(lines[i]);
+    const parts = [];
+    if (m[1] && !['|', '>'].includes(m[1].trim())) parts.push(m[1].trim());
+    for (let j = i + 1; j < lines.length; j++) {
+      const line = lines[j];
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      const ind = indentOf(line);
+      if (ind <= base) break;
+      if (ind === base + 2 && /^[A-Za-z0-9_.-]+:\s*/.test(trimmed)) break;
+      if (/^-\s+[A-Za-z0-9_.-]+:\s*/.test(trimmed)) break;
+      parts.push(trimmed.replace(/^-\s+/, ''));
+    }
+    return trimSsotValue(stripYamlScalar(parts.join(' ')), max);
+  }
+  return '';
+};
+
+const sectionByKey = (sections, key) => (sections || []).find(s => s.key === key) || null;
+const sectionsForKeys = (sections, keys) => (keys || []).map(k => sectionByKey(sections, k)).filter(Boolean);
+
+const sectionFact = (section, key, fallback = '') => {
+  if (!section) return fallback;
+  const fromText = fieldFromText(section.text, key);
+  if (fromText) return fromText;
+  const fact = ((section.summary && section.summary.facts) || []).find(f => f.key === key);
+  return fact ? fact.value : fallback;
+};
+
+const listBlocksFromText = (text, parentKey = '') => {
+  const lines = String(text || '').split(/\r?\n/);
+  let start = 0;
+  let parentIndent = -1;
+  if (parentKey) {
+    const parentRx = new RegExp(`^\\s*${rxEscape(parentKey)}:\\s*(?:#.*)?$`);
+    const idx = lines.findIndex(line => parentRx.test(line));
+    if (idx < 0) return [];
+    start = idx + 1;
+    parentIndent = indentOf(lines[idx]);
+  }
+
+  let listIndent = -1;
+  for (let i = start; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+    if (!trimmed) continue;
+    const ind = indentOf(lines[i]);
+    if (parentKey && ind < parentIndent) break;
+    if (parentKey && ind === parentIndent && !trimmed.startsWith('- ') && /^[A-Za-z0-9_.-]+:\s*/.test(trimmed)) break;
+    if (trimmed.startsWith('- ')) {
+      listIndent = ind;
+      start = i;
+      break;
+    }
+  }
+  if (listIndent < 0) return [];
+
+  const blocks = [];
+  let cur = null;
+  for (let i = start; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    const ind = indentOf(line);
+    if (parentKey && trimmed && ind < parentIndent) break;
+    if (parentKey && trimmed && ind === parentIndent && !trimmed.startsWith('- ') && /^[A-Za-z0-9_.-]+:\s*/.test(trimmed)) break;
+    if (trimmed.startsWith('- ') && ind === listIndent) {
+      if (cur) blocks.push(cur);
+      cur = { startLineOffset: i, lines: [line] };
+    } else if (cur) {
+      cur.lines.push(line);
+    }
+  }
+  if (cur) blocks.push(cur);
+  return blocks.map(b => ({ text: b.lines.join('\n'), startLineOffset: b.startLineOffset }));
+};
+
+const listBlocksFromSection = (section, parentKey = '') =>
+  section ? listBlocksFromText(section.text, parentKey).map(b => ({
+    ...b,
+    startLine: section.startLine + b.startLineOffset,
+  })) : [];
+
+const blockField = (block, key, max = 240) => fieldFromText(block && block.text, key, max);
+
+const blockListValues = (block, parentKey, max = 8) =>
+  listBlocksFromText(block && block.text, parentKey)
+    .map(b => stripYamlScalar(b.text.split(/\r?\n/)[0].replace(/^\s*-\s*/, '')))
+    .filter(Boolean)
+    .slice(0, max);
+
+const mapGroupsFromSection = (section, parentKey = '') => {
+  if (!section) return [];
+  const lines = String(section.text || '').split(/\r?\n/);
+  let start = 0;
+  let parentIndent = indentOf(lines[0] || '');
+  if (parentKey) {
+    const rx = new RegExp(`^\\s*${rxEscape(parentKey)}:\\s*(?:#.*)?$`);
+    const idx = lines.findIndex(line => rx.test(line));
+    if (idx < 0) return [];
+    start = idx + 1;
+    parentIndent = indentOf(lines[idx]);
+  }
+  const groups = [];
+  let cur = null;
+  const wantedIndent = parentKey ? parentIndent + 2 : 2;
+  for (let i = start; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const ind = indentOf(line);
+    if (parentKey && ind <= parentIndent) break;
+    const m = line.match(/^\s*([A-Za-z0-9_.-]+):\s*(.*)$/);
+    if (m && ind === wantedIndent && !trimmed.startsWith('- ')) {
+      if (cur) groups.push(cur);
+      cur = { key: m[1], startLine: section.startLine + i, lines: [line] };
+    } else if (cur) {
+      cur.lines.push(line);
+    }
+  }
+  if (cur) groups.push(cur);
+  return groups.map(g => ({ ...g, text: g.lines.join('\n') }));
+};
+
+const extractInterfaces = (section) => listBlocksFromSection(section, 'interfaces').map(block => ({
+  name: blockField(block, 'name') || 'interface',
+  type: blockField(block, 'type') || 'custom',
+  role: blockField(block, 'role'),
+  description: blockField(block, 'description', 360),
+  ports: listBlocksFromText(block.text, 'ports').map(port => ({
+    name: blockField(port, 'name') || stripYamlScalar(port.text.replace(/^\s*-\s*/, '').split(':')[0]),
+    direction: blockField(port, 'direction'),
+    width: blockField(port, 'width'),
+    description: blockField(port, 'description', 220),
+  })),
+}));
+
+const extractFeatures = (section) => listBlocksFromSection(section).map(block => ({
+  name: blockField(block, 'name') || 'Feature',
+  trigger: blockField(block, 'trigger', 360),
+  datapath: blockField(block, 'datapath', 520),
+  control: blockField(block, 'control', 300),
+  output: blockField(block, 'output', 360),
+}));
+
+const extractSubmodules = (section) => listBlocksFromSection(section).map(block => ({
+  name: blockField(block, 'name') || 'module',
+  file: blockField(block, 'file'),
+  description: blockField(block, 'description', 360),
+  implements: blockListValues(block, 'implements', 6),
+  sourceSections: blockListValues(block, 'source_sections', 6),
+}));
+
+const extractRegisters = (section) => listBlocksFromSection(section, 'register_list').map(block => ({
+  name: blockField(block, 'name') || 'REG',
+  offset: blockField(block, 'offset'),
+  width: blockField(block, 'width'),
+  access: blockField(block, 'access'),
+  reset: blockField(block, 'reset'),
+  description: blockField(block, 'description', 300),
+  fields: listBlocksFromText(block.text, 'fields').map(field => ({
+    name: blockField(field, 'name') || 'field',
+    access: blockField(field, 'access'),
+    reset: blockField(field, 'reset'),
+    description: blockField(field, 'description', 240),
+  })),
+}));
+
+const digestViewsForSections = (sections) => {
+  const has = (key) => !!sectionByKey(sections, key);
+  return SSOT_DIGEST_VIEWS.filter(view => view.id === 'overview' || view.keys.some(has));
+};
+
+const ssotProgressStatusMap = () => {
+  const data = window.ATLAS_PROGRESS || {};
+  const selected = data.selected || (Array.isArray(data.modules) ? data.modules[0] : null) || {};
+  const ssot = (((selected.progress || {}).ssot) || {});
+  const rows = Array.isArray(ssot.sections) ? ssot.sections : [];
+  return rows.reduce((acc, row) => {
+    const key = row.key || row.id || row.section || row.name;
+    if (key) acc[key] = row.status || row.state || row.approval || '';
+    return acc;
+  }, {});
+};
+
+const ssotSectionStatus = (section, statusByKey) => {
+  const fromProgress = statusByKey[section.key];
+  if (fromProgress) return String(fromProgress).toLowerCase();
+  const body = section.text || '';
+  if (/(approved|approval|status|state)\s*:\s*['"]?(approved|done|pass|ok|true)/i.test(body)) return 'approved';
+  if (section.summary.gaps.length) return 'needs review';
+  if (/(pending|blocked|draft|partial|todo|tbd)/i.test(body)) return 'pending';
+  return 'review';
+};
+
+const ssotStatusColor = (status) => {
+  const s = String(status || '').toLowerCase();
+  if (['approved', 'done', 'pass', 'ok'].includes(s)) return 'var(--ok)';
+  if (['fail', 'failed', 'error', 'rejected', 'blocked'].includes(s)) return 'var(--err)';
+  if (['pending', 'needs review', 'draft', 'partial', 'todo'].includes(s)) return 'var(--warn)';
+  return 'var(--fg-mute)';
+};
+
+const ssotReviewMarkdown = (section, status) => {
+  const title = ssotTitleFor(section.key);
+  const summary = section.summary || summarizeSsotSection(section);
+  const focus = SSOT_REVIEW_FOCUS[section.key] || [
+    'Review that this section is specific enough for downstream generation.',
+    'Check for missing constraints, ambiguous wording, and stale assumptions.',
+  ];
+  const rows = [
+    ['Status', status || 'review'],
+    ['Source line', section.startLine],
+    ['YAML lines', summary.lineCount],
+    ['List items', summary.listItems],
+    ['Nested groups', summary.groups.length ? summary.groups.join(', ') : '-'],
+  ];
+
+  const facts = summary.facts.length
+    ? summary.facts.map(f => `| \`${mdCell(f.key)}\` | ${mdCell(f.value)} |`).join('\n')
+    : '| - | No compact key facts detected. Review raw section below. |';
+  const listItems = summary.listPreview.length
+    ? summary.listPreview.map(x => `- ${x}`).join('\n')
+    : '- No top-level list preview detected.';
+  const gaps = summary.gaps.length
+    ? summary.gaps.map(g => `- Line ${g.line}: ${g.text}`).join('\n')
+    : '- No obvious TBD, null, pending, or placeholder text detected.';
+
+  return [
+    `### ${title}`,
+    '',
+    `\`${section.key}\``,
+    '',
+    '| Review item | Value |',
+    '| --- | --- |',
+    rows.map(([k, v]) => `| ${mdCell(k)} | ${mdCell(v)} |`).join('\n'),
+    '',
+    '#### Reviewer Focus',
+    focus.map(x => `- ${x}`).join('\n'),
+    '',
+    '#### Key Facts',
+    '| Field | Value |',
+    '| --- | --- |',
+    facts,
+    '',
+    '#### List Preview',
+    listItems,
+    '',
+    '#### Review Flags',
+    gaps,
+  ].join('\n');
+};
+
+const DigestCard = ({ title, meta, children }) => (
+  <div style={{
+    border: '1px solid var(--line)', borderRadius: 4,
+    background: 'var(--bg-2)', padding: '10px 12px', minWidth: 0,
+  }}>
+    <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 7 }}>
+      <span style={{ color: 'var(--accent)', fontWeight: 800, fontSize: 12 }}>{title}</span>
+      {meta ? <span className="mute trunc" style={{ fontSize: 10, fontFamily: 'var(--mono)' }}>{meta}</span> : null}
+    </div>
+    {children}
+  </div>
+);
+
+const DigestKV = ({ rows }) => (
+  <div style={{ display: 'grid', gridTemplateColumns: '112px minmax(0, 1fr)', gap: '5px 10px', fontSize: 12 }}>
+    {(rows || []).filter(r => r && r[1] !== '' && r[1] != null).map(([k, v]) => (
+      <React.Fragment key={k}>
+        <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>{k}</span>
+        <span style={{ minWidth: 0, wordBreak: 'break-word' }}>{String(v)}</span>
+      </React.Fragment>
+    ))}
+  </div>
+);
+
+const DigestEmpty = ({ text = 'No structured data in this section yet.' }) => (
+  <div className="mute" style={{ fontSize: 12, fontFamily: 'var(--mono)' }}>{text}</div>
+);
+
+const ModuleTree = ({ topName, modules }) => (
+  <div className="code" style={{
+    margin: 0, padding: '10px 12px', fontSize: 12, lineHeight: 1.55,
+    whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+  }}>
+    <div><span style={{ color: 'var(--magenta)', fontWeight: 800 }}>{topName || 'top'}</span></div>
+    {(modules || []).map((m, idx) => {
+      const last = idx === modules.length - 1;
+      const branch = last ? '└─ ' : '├─ ';
+      const pad = last ? '   ' : '│  ';
+      const meta = m.file ? `  ${m.file}` : '';
+      const desc = m.description ? `${pad}   ${trimSsotValue(m.description, 140)}` : '';
+      return (
+        <div key={m.name || idx}>
+          <div>{branch}<span style={{ color: 'var(--cyan)', fontWeight: 700 }}>{m.name || 'module'}</span><span className="mute">{meta}</span></div>
+          {desc ? <div className="mute">{desc}</div> : null}
+        </div>
+      );
+    })}
+  </div>
+);
+
+const DigestSourceSections = ({ view, sections, statusByKey, t }) => {
+  const source = sectionsForKeys(sections, view.keys);
+  if (!source.length) return null;
+  return (
+    <details style={{
+      marginTop: 12, border: '1px solid var(--line)', borderRadius: 4,
+      background: 'var(--bg-2)',
+    }}>
+      <summary style={{
+        cursor: 'pointer', padding: '8px 12px',
+        color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 11,
+      }}>{t.sourceSections}</summary>
+      <div style={{ borderTop: '1px solid var(--line)', padding: '10px 12px', display: 'grid', gap: 10 }}>
+        {source.map(section => {
+          const status = ssotSectionStatus(section, statusByKey);
+          return (
+            <div key={section.key} style={{ borderLeft: `2px solid ${ssotStatusColor(status)}`, paddingLeft: 10 }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 4 }}>
+                <span style={{ color: 'var(--fg)', fontWeight: 700 }}>{ssotTitleFor(section.key)}</span>
+                <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>{section.key} · line {section.startLine}</span>
+              </div>
+              <div className="md-agent"
+                dangerouslySetInnerHTML={{ __html: _markdownHtml(ssotReviewMarkdown(section, status)) }} />
+            </div>
+          );
+        })}
+      </div>
+    </details>
+  );
+};
+
+const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
+  const t = uiLang === 'en'
+    ? { sourceSections: 'Source section review', ports: 'ports', fields: 'fields' }
+    : { sourceSections: '원본 섹션 리뷰', ports: 'ports', fields: 'fields' };
+  const top = sectionByKey(sections, 'top_module');
+  const io = sectionByKey(sections, 'io_list');
+  const featuresSection = sectionByKey(sections, 'features');
+  const submodsSection = sectionByKey(sections, 'sub_modules');
+  const decompSection = sectionByKey(sections, 'decomposition');
+  const functionSection = sectionByKey(sections, 'function_model');
+  const cycleSection = sectionByKey(sections, 'cycle_model');
+  const timingSection = sectionByKey(sections, 'timing');
+  const registersSection = sectionByKey(sections, 'registers');
+  const dataflowSection = sectionByKey(sections, 'dataflow');
+  const clockSection = sectionByKey(sections, 'clock_reset_domains');
+  const cdcSection = sectionByKey(sections, 'cdc_requirements');
+  const rdcSection = sectionByKey(sections, 'rdc_requirements');
+  const memorySection = sectionByKey(sections, 'memory');
+  const interruptsSection = sectionByKey(sections, 'interrupts');
+  const fsmSection = sectionByKey(sections, 'fsm');
+  const errorsSection = sectionByKey(sections, 'errors') || sectionByKey(sections, 'error_handling');
+
+  const interfaces = extractInterfaces(io);
+  const features = extractFeatures(featuresSection);
+  const submods = extractSubmodules(submodsSection);
+  const registers = extractRegisters(registersSection);
+  const clockDomains = listBlocksFromSection(clockSection, 'domains').map(block => ({
+    name: blockField(block, 'name'),
+    frequency: blockField(block, 'frequency_mhz'),
+    description: blockField(block, 'description', 260),
+  }));
+  const resets = listBlocksFromSection(io, 'resets').map(block => ({
+    name: blockField(block, 'name'),
+    polarity: blockField(block, 'polarity'),
+    type: blockField(block, 'sync_async') || blockField(block, 'type'),
+    description: blockField(block, 'description', 220),
+  }));
+  const cdcCrossings = listBlocksFromSection(cdcSection, 'crossings').map(block => ({
+    name: blockField(block, 'name'),
+    from: blockField(block, 'source_domain'),
+    to: blockField(block, 'dest_domain'),
+    synchronizer: blockField(block, 'synchronizer'),
+    description: blockField(block, 'description', 260),
+  }));
+  const dataflowGroups = mapGroupsFromSection(dataflowSection).filter(g => g.key !== 'locked_decisions');
+  const transactions = listBlocksFromSection(functionSection, 'transactions');
+  const stateVars = listBlocksFromSection(functionSection, 'state_variables');
+  const latencyGroups = mapGroupsFromSection(cycleSection, 'latency');
+  const handshakeRules = listBlocksFromSection(cycleSection, 'handshake_rules');
+  const pipeline = listBlocksFromSection(cycleSection, 'pipeline');
+
+  const header = (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ color: 'var(--magenta)', fontWeight: 900, fontSize: 18, letterSpacing: 0 }}>
+        {sectionFact(top, 'name', 'SSOT')}
+      </div>
+      <div style={{ color: 'var(--fg)', lineHeight: 1.45, marginTop: 4, maxWidth: 920 }}>
+        {sectionFact(top, 'description', 'No top_module.description available yet.')}
+      </div>
+    </div>
+  );
+
+  const renderOverview = () => (
+    <>
+      {header}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }}>
+        <DigestCard title="Top Module" meta={top ? `line ${top.startLine}` : ''}>
+          <DigestKV rows={[
+            ['name', sectionFact(top, 'name')],
+            ['type', sectionFact(top, 'type')],
+            ['version', sectionFact(top, 'version')],
+            ['reference', sectionFact(top, 'reference_spec')],
+            ['technology', sectionFact(top, 'technology')],
+            ['target clock', sectionFact(top, 'clock_freq_mhz') ? `${sectionFact(top, 'clock_freq_mhz')} MHz` : ''],
+          ]} />
+        </DigestCard>
+        <DigestCard title="Interfaces" meta={`${interfaces.length} interfaces`}>
+          {interfaces.length ? interfaces.map(iface => (
+            <div key={iface.name} style={{ marginBottom: 8 }}>
+              <div style={{ fontWeight: 700 }}>{iface.name} <span className="mute">· {iface.type}{iface.role ? ` ${iface.role}` : ''}</span></div>
+              <div className="mute" style={{ fontSize: 11 }}>{iface.description}</div>
+              <div style={{ marginTop: 2, color: 'var(--cyan)', fontFamily: 'var(--mono)', fontSize: 10 }}>{iface.ports.length} {t.ports}</div>
+            </div>
+          )) : <DigestEmpty />}
+        </DigestCard>
+        <DigestCard title="Features" meta={`${features.length} features`}>
+          {features.length ? (
+            <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.5 }}>
+              {features.slice(0, 8).map(f => <li key={f.name}><b>{f.name}</b>{f.output ? <span className="mute"> - {f.output}</span> : null}</li>)}
+            </ul>
+          ) : <DigestEmpty />}
+        </DigestCard>
+        <DigestCard title="Architecture Split" meta={`${submods.length} modules`}>
+          {submods.length ? submods.slice(0, 8).map(m => (
+            <div key={m.name} style={{ marginBottom: 7 }}>
+              <b>{m.name}</b> <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>{m.file}</span>
+              <div className="mute" style={{ fontSize: 11 }}>{m.description}</div>
+            </div>
+          )) : <DigestEmpty />}
+        </DigestCard>
+      </div>
+    </>
+  );
+
+  const renderFeatures = () => (
+    <>
+      {header}
+      <div style={{ display: 'grid', gap: 10 }}>
+        {features.length ? features.map(f => (
+          <DigestCard key={f.name} title={f.name} meta={f.trigger}>
+            <DigestKV rows={[
+              ['datapath', f.datapath],
+              ['control', f.control],
+              ['output', f.output],
+            ]} />
+          </DigestCard>
+        )) : <DigestEmpty />}
+      </div>
+    </>
+  );
+
+  const renderArchitecture = () => (
+    <>
+      {header}
+      <div style={{ display: 'grid', gap: 10 }}>
+        <DigestCard title="Module Tree" meta={`${sectionFact(top, 'name', 'top')} + ${submods.length} submodules`}>
+          {submods.length ? (
+            <ModuleTree topName={sectionFact(top, 'name', 'top')} modules={submods} />
+          ) : <DigestEmpty />}
+        </DigestCard>
+        <DigestCard title="Module Split" meta={`${submods.length} submodules`}>
+          {submods.length ? (
+            <div style={{ display: 'grid', gap: 9 }}>
+              {submods.map(m => (
+                <div key={m.name} style={{ borderBottom: '1px solid var(--line)', paddingBottom: 7 }}>
+                  <div><b>{m.name}</b> <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>{m.file}</span></div>
+                  <div className="mute" style={{ marginTop: 2 }}>{m.description}</div>
+                  {m.implements.length ? <div style={{ marginTop: 3, color: 'var(--cyan)', fontFamily: 'var(--mono)', fontSize: 10 }}>implements: {m.implements.join(', ')}</div> : null}
+                </div>
+              ))}
+            </div>
+          ) : <DigestEmpty />}
+        </DigestCard>
+        {decompSection ? <DigestSourceSections view={{ keys: ['decomposition'] }} sections={sections} statusByKey={statusByKey} t={t} /> : null}
+      </div>
+    </>
+  );
+
+  const renderFunctionModel = () => (
+    <>
+      {header}
+      <div style={{ display: 'grid', gap: 10 }}>
+        <DigestCard title="Purpose">
+          <div>{sectionFact(functionSection, 'purpose', 'No function model purpose available yet.')}</div>
+        </DigestCard>
+        <DigestCard title="Transactions" meta={`${transactions.length} transactions`}>
+          {transactions.length ? transactions.map(tx => (
+            <div key={blockField(tx, 'id') || blockField(tx, 'name')} style={{ marginBottom: 10, borderBottom: '1px solid var(--line)', paddingBottom: 8 }}>
+              <div><b>{blockField(tx, 'id')}</b> {blockField(tx, 'name')}</div>
+              <DigestKV rows={[
+                ['preconditions', blockListValues(tx, 'preconditions', 4).join('; ')],
+                ['inputs', blockListValues(tx, 'inputs', 4).join('; ')],
+                ['outputs', blockListValues(tx, 'outputs', 4).join('; ')],
+                ['side effects', blockListValues(tx, 'side_effects', 4).join('; ')],
+              ]} />
+            </div>
+          )) : <DigestEmpty />}
+        </DigestCard>
+        <DigestCard title="State Variables" meta={`${stateVars.length} variables`}>
+          {stateVars.length ? (
+            <div style={{ display: 'grid', gap: 5 }}>
+              {stateVars.map(v => <DigestKV key={blockField(v, 'name')} rows={[[blockField(v, 'name'), `${blockField(v, 'source')} · reset ${blockField(v, 'reset')} · ${blockField(v, 'description')}`]]} />)}
+            </div>
+          ) : <DigestEmpty />}
+        </DigestCard>
+      </div>
+    </>
+  );
+
+  const renderCycleModel = () => (
+    <>
+      {header}
+      <div style={{ display: 'grid', gap: 10 }}>
+        <DigestCard title="Cycle Contract">
+          <DigestKV rows={[
+            ['purpose', sectionFact(cycleSection, 'purpose')],
+            ['clock', sectionFact(cycleSection, 'clock')],
+            ['reset assertion', sectionFact(cycleSection, 'assertion')],
+            ['reset deassertion', sectionFact(cycleSection, 'deassertion')],
+          ]} />
+        </DigestCard>
+        <DigestCard title="Latency" meta={`${latencyGroups.length} paths`}>
+          {latencyGroups.length ? latencyGroups.map(g => (
+            <DigestKV key={g.key} rows={[[g.key, `${fieldFromText(g.text, 'min_cycles') || '?'}-${fieldFromText(g.text, 'max_cycles') || '?'} cycles · ${fieldFromText(g.text, 'description')}`]]} />
+          )) : <DigestEmpty />}
+        </DigestCard>
+        <DigestCard title="Handshake / Pipeline" meta={`${handshakeRules.length} rules · ${pipeline.length} stages`}>
+          {handshakeRules.slice(0, 8).map(r => <div key={blockField(r, 'signal')} style={{ marginBottom: 4 }}><b>{blockField(r, 'signal')}</b> <span className="mute">{blockField(r, 'rule', 320)}</span></div>)}
+          {pipeline.length ? <hr style={{ border: 0, borderTop: '1px solid var(--line)', margin: '8px 0' }} /> : null}
+          {pipeline.map(p => <div key={blockField(p, 'stage')} style={{ marginBottom: 4 }}><b>{blockField(p, 'stage')}</b> <span className="mute">{blockField(p, 'cycle')} · {blockField(p, 'action', 320)}</span></div>)}
+        </DigestCard>
+      </div>
+    </>
+  );
+
+  const renderInterfaces = () => (
+    <>
+      {header}
+      <div style={{ display: 'grid', gap: 10 }}>
+        {interfaces.length ? interfaces.map(iface => (
+          <DigestCard key={iface.name} title={iface.name} meta={`${iface.type}${iface.role ? ` · ${iface.role}` : ''} · ${iface.ports.length} ${t.ports}`}>
+            <div className="mute" style={{ marginBottom: 8 }}>{iface.description}</div>
+            <div style={{ display: 'grid', gap: 4 }}>
+              {iface.ports.map(port => (
+                <div key={port.name} style={{ display: 'grid', gridTemplateColumns: 'minmax(120px, 0.8fr) 60px 70px minmax(0, 1.4fr)', gap: 8, fontFamily: 'var(--mono)', fontSize: 11 }}>
+                  <span style={{ color: 'var(--fg)' }}>{port.name}</span>
+                  <span className="mute">{port.direction}</span>
+                  <span className="mute">[{port.width || 1}]</span>
+                  <span className="mute">{port.description}</span>
+                </div>
+              ))}
+            </div>
+          </DigestCard>
+        )) : <DigestEmpty />}
+      </div>
+    </>
+  );
+
+  const renderRegisters = () => (
+    <>
+      {header}
+      <DigestCard title="Register Map" meta={`${registers.length} registers`}>
+        {registers.length ? registers.map(reg => (
+          <div key={reg.name} style={{ marginBottom: 11, borderBottom: '1px solid var(--line)', paddingBottom: 8 }}>
+            <div><b>{reg.name}</b> <span className="mute" style={{ fontFamily: 'var(--mono)' }}>@ {reg.offset} · {reg.access} · reset {reg.reset}</span></div>
+            <div className="mute" style={{ marginTop: 2 }}>{reg.description}</div>
+            {reg.fields.length ? <div style={{ marginTop: 5, color: 'var(--cyan)', fontFamily: 'var(--mono)', fontSize: 10 }}>{reg.fields.slice(0, 10).map(f => `${f.name}(${f.access})`).join(', ')}</div> : null}
+          </div>
+        )) : <DigestEmpty />}
+      </DigestCard>
+    </>
+  );
+
+  const renderDataflow = () => (
+    <>
+      {header}
+      <div style={{ display: 'grid', gap: 10 }}>
+        {dataflowGroups.length ? dataflowGroups.map(g => (
+          <DigestCard key={g.key} title={ssotTitleFor(g.key)}>
+            <DigestKV rows={[
+              ['source', fieldFromText(g.text, 'source')],
+              ['sequence', blockListValues(g, 'sequence', 8).join(' -> ')],
+              ['buffer', fieldFromText(g.text, 'buffer')],
+              ['backpressure', fieldFromText(g.text, 'backpressure', 360)],
+              ['description', fieldFromText(g.text, 'description', 360)],
+            ]} />
+          </DigestCard>
+        )) : <DigestEmpty />}
+      </div>
+    </>
+  );
+
+  const renderClocking = () => (
+    <>
+      {header}
+      <div style={{ display: 'grid', gap: 10 }}>
+        <DigestCard title="Clock Domains" meta={`${clockDomains.length} domains`}>
+          {clockDomains.length ? clockDomains.map(d => <DigestKV key={d.name} rows={[[d.name, `${d.frequency || '?'} MHz · ${d.description}`]]} />) : <DigestEmpty />}
+        </DigestCard>
+        <DigestCard title="Reset">
+          {resets.length ? resets.map(r => <DigestKV key={r.name} rows={[[r.name, `${r.polarity} · ${r.type} · ${r.description}`]]} />) : <DigestKV rows={[['scheme', sectionFact(clockSection, 'type') || sectionFact(clockSection, 'reset_scheme')]]} />}
+        </DigestCard>
+        <DigestCard title="CDC / RDC" meta={`${cdcCrossings.length} CDC crossings`}>
+          {cdcCrossings.length ? cdcCrossings.map(c => <DigestKV key={c.name} rows={[[c.name, `${c.from} -> ${c.to} · ${c.synchronizer} · ${c.description}`]]} />) : <DigestEmpty text={sectionFact(rdcSection, 'note') || 'No CDC crossings listed.'} />}
+        </DigestCard>
+      </div>
+    </>
+  );
+
+  const renderGeneric = (title, sourceSections) => (
+    <>
+      {header}
+      {sourceSections.length ? <DigestSourceSections view={{ keys: sourceSections.map(s => s.key) }} sections={sections} statusByKey={statusByKey} t={t} /> : <DigestEmpty />}
+    </>
+  );
+
+  const sourceSections = sectionsForKeys(sections, view.keys);
+  let body;
+  if (view.id === 'overview') body = renderOverview();
+  else if (view.id === 'features') body = renderFeatures();
+  else if (view.id === 'architecture') body = renderArchitecture();
+  else if (view.id === 'function_model') body = renderFunctionModel();
+  else if (view.id === 'cycle_model') body = renderCycleModel();
+  else if (view.id === 'interfaces') body = renderInterfaces();
+  else if (view.id === 'registers') body = renderRegisters();
+  else if (view.id === 'dataflow') body = renderDataflow();
+  else if (view.id === 'clocking') body = renderClocking();
+  else body = renderGeneric(view.label, sourceSections);
+
+  return (
+    <>
+      {body}
+      {!['architecture'].includes(view.id) ? (
+        <DigestSourceSections view={view} sections={sections} statusByKey={statusByKey} t={t} />
+      ) : null}
+    </>
+  );
+};
+
+const chooseSsotFile = (files, preferredPath = '') => {
+  const paths = (Array.isArray(files) ? files : []).map(ssotPathOf).filter(Boolean);
+  if (preferredPath && (paths.includes(preferredPath) || isSsotYamlPath(preferredPath))) return preferredPath;
+  const scope = String(window.SCOPE_PATH || '').split('/').filter(Boolean).pop() || '';
+  const sessionIp = ssotIpFromSession(window.ACTIVE_SESSION || '');
+  const ip = sessionIp || scope;
+  return paths.find(p => ip && (p === `${ip}.ssot.yaml` || p.includes(`${ip}/`) || p.includes(`/${ip}.`)))
+    || paths.find(p => /\.ssot\.ya?ml$/i.test(p))
+    || paths[0]
+    || '';
+};
+
+const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
+  const files = window.SSOT_FILES || [];
+  const [selected, setSelected] = React.useState('');
+  const [content, setContent] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [activeKey, setActiveKey] = React.useState('');
+  const lastInitialPath = React.useRef('');
+
+  const t = uiLang === 'en'
+    ? {
+        title: 'SSOT Design Preview',
+        subtitle: 'Human-readable IP digest from SSOT sections.',
+        file: 'file',
+        empty: 'No *.ssot.yaml files in this project yet.',
+        sections: 'views',
+        flags: 'flags',
+        approved: 'approved',
+        raw: 'Raw YAML section',
+        reload: 'refresh',
+      }
+    : {
+        title: 'SSOT 설계 프리뷰',
+        subtitle: 'SSOT 섹션을 사람이 읽는 IP digest로 보여줍니다.',
+        file: '파일',
+        empty: '아직 프로젝트에 *.ssot.yaml 파일이 없습니다.',
+        sections: '뷰',
+        flags: '리뷰 플래그',
+        approved: '승인',
+        raw: '원본 YAML 섹션',
+        reload: '새로고침',
+      };
+
+  const filePaths = React.useMemo(() => {
+    const paths = files.map(ssotPathOf).filter(Boolean);
+    if (initialPath && isSsotYamlPath(initialPath) && !paths.includes(initialPath)) {
+      return [initialPath, ...paths];
+    }
+    return paths;
+  }, [files.length, initialPath]);
+  const filePathKey = filePaths.join('|');
+
+  React.useEffect(() => {
+    if (initialPath && initialPath !== lastInitialPath.current && filePaths.includes(initialPath)) {
+      lastInitialPath.current = initialPath;
+      setSelected(initialPath);
+    }
+  }, [initialPath, filePathKey]);
+
+  React.useEffect(() => {
+    if (!selected && filePaths.length > 0) setSelected(chooseSsotFile(files, initialPath));
+  }, [filePathKey, selected, initialPath]);
+
+  React.useEffect(() => {
+    if (!selected) { setContent(''); return; }
+    let cancelled = false;
+    setLoading(true);
+    window.atlasData.fetchSsot(selected).then(d => {
+      if (cancelled) return;
+      setContent(d?.content || `# could not read ${selected}`);
+      setLoading(false);
+    }).catch(() => {
+      if (!cancelled) {
+        setContent('');
+        setLoading(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [selected, files.length]);
+
+  const sections = React.useMemo(() => splitSsotSections(content), [content]);
+  const statusByKey = React.useMemo(() => ssotProgressStatusMap(), [content, files.length]);
+  const digestViews = React.useMemo(() => digestViewsForSections(sections), [sections]);
+  const digestViewKey = digestViews.map(v => v.id).join('|');
+
+  React.useEffect(() => {
+    if (!digestViews.length) {
+      setActiveKey('');
+      return;
+    }
+    if (!activeKey || !digestViews.some(v => v.id === activeKey)) setActiveKey(digestViews[0].id);
+  }, [digestViewKey, activeKey]);
+
+  const activeView = digestViews.find(v => v.id === activeKey) || digestViews[0] || null;
+  const approvedCount = sections.filter(s => ssotSectionStatus(s, statusByKey) === 'approved').length;
+  const flagCount = sections.reduce((sum, s) => sum + ((s.summary && s.summary.gaps.length) || 0), 0);
+
+  if (!filePaths.length) {
+    return (
+      <div style={{ flex: 1, minHeight: 0, padding: '16px 18px', overflow: 'auto' }}>
+        <div className="code" style={{ padding: 16, color: 'var(--fg-mute)' }}>
+          # {t.empty}<br />
+          # /grill-me → /to-ssot writes the review source.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
+      overflow: 'hidden', background: 'var(--bg)',
+    }}>
+      <div style={{
+        padding: '10px 14px', borderBottom: '1px solid var(--line)',
+        display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto',
+        gap: 12, alignItems: 'center', background: 'var(--bg-2)',
+      }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{
+            color: 'var(--magenta)', fontWeight: 800, fontSize: 12,
+            letterSpacing: '0.08em', textTransform: 'uppercase',
+          }}>{t.title}</div>
+          <div className="mute trunc" style={{ marginTop: 3, fontSize: 11, fontFamily: 'var(--mono)' }}>
+            {selected || t.file} · {loading ? 'loading' : `${sections.length} ${t.sections}`} · {approvedCount} {t.approved} · {flagCount} {t.flags}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', minWidth: 0 }}>
+          <select
+            value={selected}
+            onChange={e => setSelected(e.target.value)}
+            style={{
+              maxWidth: 340, minWidth: 180, background: 'var(--bg)', color: 'var(--fg)',
+              border: '1px solid var(--line)', borderRadius: 2,
+              fontFamily: 'var(--mono)', fontSize: 11, padding: '4px 6px',
+            }}
+          >
+            {filePaths.map(path => <option key={path} value={path}>{path}</option>)}
+          </select>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => {
+              const path = selected;
+              setSelected('');
+              setTimeout(() => setSelected(path), 0);
+            }}
+            style={{ fontSize: 10 }}
+          >{t.reload}</button>
+          <button type="button" className="btn" onClick={onBack} style={{ fontSize: 10 }}>chat</button>
+        </div>
+      </div>
+
+      <div style={{
+        flex: 1, minHeight: 0, display: 'grid',
+        gridTemplateColumns: 'minmax(190px, 240px) minmax(0, 1fr)',
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          minHeight: 0, overflow: 'auto', borderRight: '1px solid var(--line)',
+          background: 'color-mix(in oklch, var(--bg-2) 72%, transparent)',
+          padding: '10px 8px',
+        }}>
+          {digestViews.map((view, idx) => {
+            const sourceSections = sectionsForKeys(sections, view.keys);
+            const gaps = sourceSections.reduce((sum, section) => sum + ((section.summary && section.summary.gaps.length) || 0), 0);
+            const approved = sourceSections.length > 0 && sourceSections.every(section => ssotSectionStatus(section, statusByKey) === 'approved');
+            const status = gaps ? 'needs review' : approved ? 'approved' : 'review';
+            const activeRow = activeView && activeView.id === view.id;
+            const color = ssotStatusColor(status);
+            return (
+              <button
+                key={view.id + ':' + idx}
+                type="button"
+                onClick={() => setActiveKey(view.id)}
+                title={`${view.keys.join(', ')} · ${status}`}
+                style={{
+                  width: '100%', textAlign: 'left', display: 'grid',
+                  gridTemplateColumns: '22px minmax(0, 1fr) auto',
+                  gap: 8, alignItems: 'center',
+                  background: activeRow ? 'color-mix(in oklch, var(--magenta) 14%, transparent)' : 'transparent',
+                  color: activeRow ? 'var(--fg)' : 'var(--fg-mute)',
+                  border: '1px solid ' + (activeRow ? 'var(--magenta)' : 'transparent'),
+                  borderRadius: 3, padding: '6px 7px', marginBottom: 4,
+                  cursor: 'pointer', fontFamily: 'var(--mono)',
+                }}
+              >
+                <span style={{ color, fontSize: 12, textAlign: 'center' }}>
+                  {status === 'approved' ? 'OK' : gaps ? '!' : '·'}
+                </span>
+                <span style={{ minWidth: 0 }}>
+                  <span className="trunc" style={{ display: 'block', fontSize: 12, fontWeight: activeRow ? 800 : 600 }}>
+                    {view.label}
+                  </span>
+                  <span className="trunc" style={{ display: 'block', fontSize: 10, color: 'var(--fg-mute)' }}>
+                    {view.keys.join(' + ')}
+                  </span>
+                </span>
+                <span style={{
+                  color, fontSize: 10, border: `1px solid ${color}`,
+                  borderRadius: 2, padding: '0 4px', whiteSpace: 'nowrap',
+                }}>
+                  {gaps || sourceSections.length}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div style={{ minHeight: 0, overflow: 'auto', padding: '14px 18px' }}>
+          {loading ? (
+            <div className="code" style={{ padding: 16, color: 'var(--fg-mute)' }}># loading SSOT...</div>
+          ) : activeView ? (
+            <SsotDigestContent
+              view={activeView}
+              sections={sections}
+              statusByKey={statusByKey}
+              uiLang={uiLang}
+            />
+          ) : (
+            <div className="code" style={{ padding: 16, color: 'var(--fg-mute)' }}># no sections parsed</div>
+          )}
+        </div>
       </div>
     </div>
   );
