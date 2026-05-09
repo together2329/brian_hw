@@ -10168,8 +10168,23 @@ def create_app():
             return JSONResponse({"error": str(e)}, status_code=500)
 
     @app.post("/api/sessions/{session_id}/activate")
-    async def api_activate_session(session_id: str):
+    async def api_activate_session(session_id: str, request: Request):
+        # Activate the session: verify the caller owns it, then make the
+        # backend bridge actually point at it. The previous version was a
+        # no-op stub that returned {"activated": True} without binding
+        # anything — UI session-switcher believed the swap took effect
+        # while subsequent prompts still routed to the stale session.
         try:
+            user_id = _request_user_id(request)
+            with _atlas_db() as db:
+                session = db.get_session(session_id)
+                if not _owns_session(session, user_id):
+                    return JSONResponse(
+                        {"error": "session not found or not owned by user"},
+                        status_code=404,
+                    )
+            # Bind on the bridge so emit/inbox/outbox routing follows.
+            bridge.activate_session(session_id)
             return JSONResponse({"activated": True, "session_id": session_id})
         except Exception as e:
             print(f"api_activate_session error: {e}")
