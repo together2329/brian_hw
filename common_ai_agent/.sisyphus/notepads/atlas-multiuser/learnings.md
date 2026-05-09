@@ -84,3 +84,11 @@
 
 ### Verification Script
 - Created `tests/verify_single_user_compat.py` with 4 focused assertions for regression testing.
+
+## 2026-05-09: CRIT-2 session ownership and WebSocket cookie auth
+
+- `AuthMiddleware` only handles HTTP scopes, so `/ws/agent` must verify `atlas_session` manually inside `ws_agent` before binding a bridge client.
+- Starlette `WebSocket` can expose cookies via `websocket.cookies`; fallback to `websocket.scope["cookies"]` keeps compatibility with the task constraint.
+- `/api/sessions` endpoints should ignore client-supplied `user_id` and use `request.scope["user"]["id"]`; non-owner GET/PATCH/DELETE returns the same 404 as missing sessions.
+- Cookie-backed single-user WebSocket still binds to the implicit `default` session; direct WebSocket connections without any prior auth cookie now close as unauthenticated by design.
+- Focused verification: `python3 -m py_compile src/atlas_ui.py`, `python3 tests/test_e2e_api.py`, manual owner/non-owner HTTP+WS script, manual missing-cookie vs cookie-backed WS script. `pytest` collection is still blocked by the installed PyMTL3 plugin's removed `pytest_cmdline_preparse` hook under pytest 8.
