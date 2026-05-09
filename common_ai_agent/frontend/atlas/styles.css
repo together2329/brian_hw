@@ -2,11 +2,11 @@
    EDA workstation aesthetic, monospace, schematic-y, neutral grays
 */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
 :root {
   --mono-base: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
-  --sans: 'Inter', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --sans: 'Inter', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   /* Default UI font is sans-serif so prose-heavy panels (chat, ask_user,
      status pills, headers) read like a chat client instead of a terminal.
      Mono is still used for code/SSOT/diff via --code-font and the .mono
@@ -25,7 +25,7 @@
      and headers don't overflow their fixed-pixel boxes. */
   --ui-agent-font-size: 15px;
   --ui-code-font-size: 13px;
-  --ui-line-height: 1.5;
+  --ui-line-height: 1.55;
   --ui-agent-line-height: 1.72;
   --ui-text-weight: 400;
   --ui-control-weight: 500;
@@ -63,7 +63,7 @@
   --ui-small-font-size: 10px;
   --ui-agent-font-size: 15px;
   --ui-code-font-size: 13px;
-  --ui-line-height: 1.5;
+  --ui-line-height: 1.55;
   --ui-agent-line-height: 1.72;
 }
 [data-font-scale="large"] {
@@ -72,7 +72,7 @@
   --ui-small-font-size: 11px;
   --ui-agent-font-size: 15px;
   --ui-code-font-size: 13px;
-  --ui-line-height: 1.56;
+  --ui-line-height: 1.58;
   --ui-agent-line-height: 1.76;
 }
 [data-font-scale="xl"] {
@@ -81,7 +81,7 @@
   --ui-small-font-size: 12px;
   --ui-agent-font-size: 16px;
   --ui-code-font-size: 14px;
-  --ui-line-height: 1.62;
+  --ui-line-height: 1.64;
   --ui-agent-line-height: 1.82;
 }
 
@@ -97,7 +97,10 @@
   --line-2:    #2d3744;
   --fg:        #c8d1dc;
   --fg-dim:    #7a8696;
-  --fg-mute:   #4d5868;
+  /* Lifted from #4d5868 so muted UI chrome (decision keys, toc counts,
+     iter labels, hint text) stays readable. Reasoning thoughts keep their
+     own opacity dim via .react-block.thought (independent of this token). */
+  --fg-mute:   #98a2b0;
   --accent:    #6ea8ff;       /* signal blue */
   --accent-2:  #4d8de8;
   --accent-fg: #071018;
@@ -123,7 +126,7 @@
   --line-2:    #aeb9c7;
   --fg:        #101722;
   --fg-dim:    #303b4c;
-  --fg-mute:   #5c6778;
+  --fg-mute:   #3a4554;
   --accent:    #1559c7;
   --accent-2:  #0f45a3;
   --accent-fg: #ffffff;
@@ -154,7 +157,7 @@
   --line-2:    #3a4756;
   --fg:        #d6dde6;
   --fg-dim:    #8893a3;
-  --fg-mute:   #5a6675;
+  --fg-mute:   #a3aebb;
   --accent:    #f0c674;       /* amber blueprint accent */
   --accent-2:  #d9a94a;
   --accent-fg: #171108;
@@ -182,7 +185,7 @@
   --line-2:    #a9b6c5;
   --fg:        #101720;
   --fg-dim:    #303b4b;
-  --fg-mute:   #586577;
+  --fg-mute:   #38445c;
   --accent:    #9a5416;       /* sienna ink */
   --accent-2:  #76400f;
   --accent-fg: #ffffff;
@@ -241,7 +244,7 @@
   background-color: var(--bg);
 }
 
-.mono { font-family: var(--mono); }
+.mono { font-family: var(--code-font); }
 .dim  { color: var(--fg-dim); }
 .mute { color: var(--fg-mute); }
 .ok   { color: var(--ok); }

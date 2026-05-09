@@ -848,7 +848,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // 'qa' is only available when centerLayout === 'tabbed' — it surfaces
   // the dedicated ask_user pane with breadcrumb-tabbed batched questions.
   // Double-clicking a file in the left tree sets previewPath + flips tab.
-  const [mainTab, setMainTab] = React.useState('chat');     // chat | preview | split | ssot | qa
+  const [mainTab, setMainTab] = React.useState('split');    // chat | ssot | qa | split | preview (full view)
   const [previewPath, setPreviewPath] = React.useState(null);
   // Center layout: 'classic' (chat with inline ask_user) or 'tabbed'
   // (Chat / Preview / Q&A tab strip with auto-switch). Comes from the
@@ -927,6 +927,25 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     const scoped = String(window.SCOPE_PATH || '').split('/').filter(Boolean).pop() || '';
     return /^[A-Za-z][A-Za-z0-9_]*$/.test(scoped) ? scoped : '';
   }, [currentSession]);
+
+  // Single-source-of-truth pivot: whenever the canonical (session_id, ip,
+  // workflow) triple resolves to a real IP, point the preview pane at
+  // that IP's SSOT yaml. Without this, /new-ip <new> leaves the preview
+  // pinned to the previous IP's file and the right pane disagrees with
+  // the chat about what we are actually editing. Skips overwriting paths
+  // the user explicitly chose in the file tree (anything outside the
+  // <ip>/yaml folder is preserved).
+  React.useEffect(() => {
+    const ip = activeSsotIp();
+    if (!ip) return;
+    const canonical = `${ip}/yaml/${ip}.ssot.yaml`;
+    if (previewPath === canonical) return;
+    const cur = String(previewPath || '');
+    const looksLikeStaleSsot = !cur || /\/ssot\.yaml$/i.test(cur) || /^[A-Za-z0-9_]+\/yaml\/[^/]+\.ssot\.yaml$/.test(cur);
+    if (looksLikeStaleSsot) {
+      setPreviewPath(canonical);
+    }
+  }, [activeSsotIp, previewPath]);
 
   const refreshSsotQa = React.useCallback(async (sessionOverride) => {
     const session = normalizeUiSession(sessionOverride || currentSession || window.ACTIVE_SESSION || '');
@@ -2337,7 +2356,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
 
         <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <div className="box-h">
-            <span>▸ workspace</span>
+            <span>▸ ip</span>
             <span style={{ flex: 1 }} />
             <span className="acc" style={{ textTransform: 'none', fontSize: 11, letterSpacing: 0 }}>
               {(window.SCOPE_PATH || '').split('/').pop() || 'project root'}
@@ -2582,8 +2601,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
         )}
         <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <div className="box-h">
-            {/* Tab strip: chat ↔ preview. Preview stays reachable even
-                before a file is selected so the empty-state is visible. */}
+            {/* Tab strip — order: chat · ssot · Q&A · split view · full view.
+                "full view" is the file-only pane (was "preview").
+                "split view" puts chat and the preview side by side. */}
             <span
               className="tab-chip"
               onClick={() => setMainTab('chat')}
@@ -2595,32 +2615,6 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
               }}
             >chat</span>
-            <span
-              className="tab-chip"
-              onClick={() => setMainTab('preview')}
-              title={previewPath ? 'View ' + previewPath : 'Open preview pane'}
-              style={{
-                cursor: 'pointer',
-                padding: '2px 8px', borderRadius: 2, marginLeft: 4,
-                color: mainTab === 'preview' ? 'var(--accent)' : 'var(--fg-mute)',
-                background: mainTab === 'preview' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
-                border: '1px solid ' + (mainTab === 'preview' ? 'var(--accent)' : 'transparent'),
-                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
-              }}
-            >preview</span>
-            <span
-              className="tab-chip"
-              onClick={() => setMainTab('split')}
-              title="Show chat and preview side by side"
-              style={{
-                cursor: 'pointer',
-                padding: '2px 8px', borderRadius: 2, marginLeft: 4,
-                color: mainTab === 'split' ? 'var(--accent)' : 'var(--fg-mute)',
-                background: mainTab === 'split' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
-                border: '1px solid ' + (mainTab === 'split' ? 'var(--accent)' : 'transparent'),
-                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
-              }}
-            >split</span>
             {showSsotTab && (
               <span
                 className="tab-chip"
@@ -2662,6 +2656,32 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 )}
               </span>
             )}
+            <span
+              className="tab-chip"
+              onClick={() => setMainTab('split')}
+              title="Show chat and preview side by side"
+              style={{
+                cursor: 'pointer',
+                padding: '2px 8px', borderRadius: 2, marginLeft: 4,
+                color: mainTab === 'split' ? 'var(--accent)' : 'var(--fg-mute)',
+                background: mainTab === 'split' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                border: '1px solid ' + (mainTab === 'split' ? 'var(--accent)' : 'transparent'),
+                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+              }}
+            >split view</span>
+            <span
+              className="tab-chip"
+              onClick={() => setMainTab('preview')}
+              title={previewPath ? 'Full view: ' + previewPath : 'Open the preview pane in full view'}
+              style={{
+                cursor: 'pointer',
+                padding: '2px 8px', borderRadius: 2, marginLeft: 4,
+                color: mainTab === 'preview' ? 'var(--accent)' : 'var(--fg-mute)',
+                background: mainTab === 'preview' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                border: '1px solid ' + (mainTab === 'preview' ? 'var(--accent)' : 'transparent'),
+                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+              }}
+            >full view</span>
             <span className="mute" style={{ margin: '0 6px' }}>·</span>
             {mainTab === 'chat' ? (
               <>
@@ -2715,39 +2735,56 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
           </div>
           {mainTab === 'chat' ? (
             renderChatPane()
-          ) : mainTab === 'preview' ? (
-            <PreviewPane path={previewPath} onClose={() => setMainTab('chat')} />
-          ) : mainTab === 'split' ? (
-            <div style={{
-              flex: 1, minHeight: 0, display: 'grid',
-              gridTemplateColumns: `minmax(280px, 1fr) 4px minmax(300px, ${splitRightW}px)`,
-              overflow: 'hidden',
-            }}>
-              <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          ) : (mainTab === 'split' || mainTab === 'preview') ? (() => {
+            // Unified split/full-view layout — chat | splitter | preview.
+            // Going to full view animates the chat column to 0 and the
+            // preview column to 100% so the right pane "slides open" toward
+            // the left without a hard DOM swap.
+            const fullView = mainTab === 'preview';
+            const chatPct = fullView ? 0 : 50;        // % of grid
+            const previewPct = fullView ? 100 : 50;
+            return (
+              <div style={{
+                flex: 1, minHeight: 0, display: 'grid',
+                gridTemplateColumns: `${chatPct}% 4px ${previewPct}%`,
+                transition: 'grid-template-columns 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                overflow: 'hidden',
+              }}>
                 <div style={{
-                  padding: '4px 10px', borderBottom: '1px solid var(--line)',
-                  color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10,
-                  letterSpacing: '0.06em', textTransform: 'uppercase',
+                  minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column',
+                  overflow: 'hidden',
+                  visibility: fullView ? 'hidden' : 'visible',
                 }}>
-                  chat stream
+                  <div style={{
+                    padding: '4px 10px', borderBottom: '1px solid var(--line)',
+                    color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10,
+                    letterSpacing: '0.06em', textTransform: 'uppercase',
+                  }}>
+                    chat stream
+                  </div>
+                  {renderChatPane({ padding: '10px 12px' })}
                 </div>
-                {renderChatPane({ padding: '10px 12px' })}
+                <div style={{
+                  visibility: fullView ? 'hidden' : 'visible',
+                  pointerEvents: fullView ? 'none' : 'auto',
+                }}>
+                  <Splitter
+                    width={splitRightW}
+                    side="right"
+                    onResize={setSplitRightW}
+                    title="drag to resize chat / preview split"
+                  />
+                </div>
+                <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                  {isSsotYamlPath(previewPath) ? (
+                    <SsotReviewPane uiLang={uiLang} initialPath={previewPath} onBack={() => setMainTab('chat')} />
+                  ) : (
+                    <PreviewPane path={previewPath} onClose={() => setMainTab('chat')} />
+                  )}
+                </div>
               </div>
-              <Splitter
-                width={splitRightW}
-                side="right"
-                onResize={setSplitRightW}
-                title="drag to resize chat / preview split"
-              />
-              <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-                {isSsotYamlPath(previewPath) ? (
-                  <SsotReviewPane uiLang={uiLang} initialPath={previewPath} onBack={() => setMainTab('chat')} />
-                ) : (
-                  <PreviewPane path={previewPath} onClose={() => setMainTab('chat')} />
-                )}
-              </div>
-            </div>
-          ) : mainTab === 'ssot' ? (
+            );
+          })() : mainTab === 'ssot' ? (
             <SsotReviewPane
               uiLang={uiLang}
               initialPath={isSsotYamlPath(previewPath) ? previewPath : ''}
@@ -3831,15 +3868,15 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
         send: '전송',
         sendNeedAnswer: '옵션을 선택하거나 답변을 입력한 후 전송하세요',
       };
-  // Pending QA cards default to expanded; user can collapse individual cards.
-  // Tracking the *closed* set (not the open one) keeps the open-by-default
-  // semantics even as new pending items stream in.
-  const [closedPendingKeys, setClosedPendingKeys] = React.useState(() => new Set());
+  // All QA cards (pending AND approved) default to expanded. Track the
+  // *closed* set so newly-streamed items inherit the open-by-default rule.
+  const [closedCardKeys, setClosedCardKeys] = React.useState(() => new Set());
   const [answerDrafts, setAnswerDrafts] = React.useState({});
   // Active section tab — null means "first section with pending items, else first section".
   const [activeSectionId, setActiveSectionId] = React.useState(null);
-  // Per-status group collapse: by default PENDING is open, APPROVED is closed.
-  const [closedStatusGroups, setClosedStatusGroups] = React.useState(() => new Set(['approved']));
+  // Per-status group collapse: both groups default open. Tracking the
+  // closed set keeps the default-open rule stable across re-renders.
+  const [closedStatusGroups, setClosedStatusGroups] = React.useState(() => new Set());
   const [lastInputKey, setLastInputKey] = React.useState('');
   const pendingItemKey = (item) => [
     item?.flow_id || '',
@@ -3863,14 +3900,41 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
   };
   const pendingDraft = (item) => {
     const key = pendingItemKey(item);
-    const stored = answerDrafts[key] || {};
-    const selected = new Set((stored.opts || []).filter(o => o.selected).map(o => String(o.id)));
+    const stored = answerDrafts[key];
+    const rows = optionRows(item);
+    if (stored) {
+      const selected = new Set((stored.opts || []).filter(o => o.selected).map(o => String(o.id)));
+      return {
+        opts: rows.map(option => ({ ...option, selected: selected.has(option.id) })),
+        custom: stored.custom || '',
+      };
+    }
+    // No in-memory edit yet → seed from the saved answer so approved/answered
+    // cards open with their previous selection pre-checked. The seed is
+    // matched by option id, label, or value (whichever is in the answer
+    // payload). If we cannot match an option, fall back to dropping the
+    // entire saved blob into the custom note.
+    const ans = item?.answer_data || item?.answer || '';
+    const seedSelected = new Set();
+    let seedCustom = '';
+    if (ans && typeof ans === 'object') {
+      const sel = Array.isArray(ans.selected) ? ans.selected : [];
+      sel.forEach(s => {
+        const tok = String(s || '').trim();
+        if (!tok) return;
+        const match = rows.find(o => String(o.id) === tok || String(o.label) === tok);
+        if (match) seedSelected.add(String(match.id));
+      });
+      seedCustom = String(ans.answer || ans.note || ans.custom || '').trim();
+    } else if (typeof ans === 'string' && ans.trim()) {
+      const txt = ans.trim();
+      const match = rows.find(o => String(o.label) === txt || String(o.id) === txt);
+      if (match) seedSelected.add(String(match.id));
+      else seedCustom = txt;
+    }
     return {
-      opts: optionRows(item).map(option => ({
-        ...option,
-        selected: selected.has(option.id),
-      })),
-      custom: stored.custom || '',
+      opts: rows.map(option => ({ ...option, selected: seedSelected.has(option.id) })),
+      custom: seedCustom,
     };
   };
   const hasPendingAnswer = (draft) => (
@@ -4005,21 +4069,24 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
   const renderQa = (item, status) => {
     const key = pendingItemKey(item);
     const isPending = status === 'pending';
-    // Pending cards default to OPEN. The user can collapse individual cards;
-    // we track the closed set so newly-streamed pending items stay open.
-    const isOpen = isPending && !closedPendingKeys.has(key);
+    const isApproved = status === 'approved';
+    // All QA cards (pending and approved) default OPEN. Approved cards
+    // can be re-opened to amend the saved answer (re-select / re-submit).
+    const isOpen = (isPending || isApproved) && !closedCardKeys.has(key);
     const statusColor = atlasStatusMeta(status).color;
-    const cardToggleable = isPending && onUsePending;
+    const cardToggleable = (isPending || isApproved) && onUsePending;
     const togglePendingCard = () => {
       if (!cardToggleable) return;
-      setClosedPendingKeys(prev => {
+      const wasOpen = isOpen;
+      setClosedCardKeys(prev => {
         const next = new Set(prev);
         if (next.has(key)) next.delete(key);
         else next.add(key);
         return next;
       });
-      // When opening (was closed), seed chat input with current draft.
-      if (closedPendingKeys.has(key)) {
+      // When opening, seed chat input with current draft so the user sees
+      // what will be sent if they hit "send".
+      if (!wasOpen) {
         pushPendingInput(item, pendingDraft(item), false);
       }
     };

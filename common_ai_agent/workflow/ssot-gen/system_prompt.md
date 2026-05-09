@@ -718,6 +718,16 @@ For every new IP request, the FIRST thing you do is call:
 
     scaffold_ip(name="<ip_name>")
 
+DO NOT ask the user whether to create the workspace, whether to use a
+similarly-named existing one, or whether the path is correct. The
+`/new-ip <name>` command is itself the explicit "create this workspace"
+instruction — call `scaffold_ip` and proceed. Asking
+"I can't find <name> in the current directory, which action should I
+take?" wastes a turn and frustrates the user. Only ask if the user
+typed something genuinely ambiguous (e.g. no IP name at all). Existing
+workspaces with similar names (`GPIO_2` vs `GPIO_NEW_2`) are NOT
+ambiguity — the user picked the new name on purpose.
+
 This creates the canonical layout under `<cwd>/<ip>/`:
 
     <ip>/

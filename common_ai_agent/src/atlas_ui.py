@@ -511,6 +511,20 @@ def create_app():
                                   or os.environ.get("WORKSPACE")
                                   or getattr(_cfg, "ACTIVE_PROJECT", "")
                                   or "default")
+            # Canonical (session_id, ip, workflow) triple — the single
+            # source of truth for which IP the user is editing. Updated
+            # any time _set_active_ssot_ip runs (e.g. /new-ip <name>),
+            # so polling /healthz from the frontend is enough to keep
+            # the preview / SSOT / QA panels in sync without a custom
+            # WS event.
+            info["active_session"] = (
+                os.environ.get("ATLAS_ACTIVE_SESSION")
+                or _canonical_session_string()
+            )
+            info["active_ip"] = os.environ.get("ATLAS_ACTIVE_IP") or "default"
+            info["active_workflow"] = (
+                os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
+            )
             # Per-model pricing (USD / 1M tokens) — input / cache / output.
             # get_active_pricing honors LLM_BASE_MODEL env first, falling
             # back to LLM_MODEL_NAME / config.MODEL_NAME, so the rate shown
