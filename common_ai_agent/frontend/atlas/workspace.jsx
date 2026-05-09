@@ -8921,22 +8921,53 @@ const PreviewPane = ({ path, onClose }) => {
         ) : isMarkdown ? (
           <DeferredMarkdownPreview body={body} />
         ) : (
-          <pre style={{
-            margin: 0, padding: '12px 16px',
+          /* 2-column layout: line numbers (sticky left gutter) +
+             code body. Both columns share the SAME font-size and
+             line-height so each gutter row aligns with its code
+             row, even when the body is Prism-highlighted (the
+             highlighted HTML stays a single block — splitting it
+             per-line would break partial syntax spans). */
+          <div style={{
+            display: 'flex',
             fontFamily: 'var(--code-font, var(--mono))', fontSize: 12, lineHeight: 1.55,
-            whiteSpace: 'pre', tabSize: 4,
+            tabSize: 4,
             background: 'transparent',
-            color: 'var(--fg)',
           }}>
-            {highlightedHtml ? (
-              <code
-                className={canHighlight ? ('language-' + lang) : ''}
-                dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-              />
-            ) : (
-              <code className={canHighlight ? ('language-' + lang) : ''}>{body}</code>
-            )}
-          </pre>
+            <div
+              aria-hidden="true"
+              style={{
+                userSelect: 'none',
+                padding: '12px 8px 12px 12px',
+                textAlign: 'right',
+                color: 'var(--fg-mute)',
+                borderRight: '1px solid var(--line)',
+                minWidth: `${String(lineCount).length + 1}ch`,
+                whiteSpace: 'pre',
+                opacity: 0.7,
+                position: 'sticky', left: 0,
+                background: 'var(--bg-3)',
+              }}
+            >
+              {Array.from({ length: lineCount }, (_, i) => `${i + 1}\n`).join('')}
+            </div>
+            <pre style={{
+              margin: 0, flex: 1,
+              padding: '12px 16px',
+              fontFamily: 'inherit', fontSize: 'inherit', lineHeight: 'inherit',
+              whiteSpace: 'pre',
+              background: 'transparent',
+              color: 'var(--fg)',
+            }}>
+              {highlightedHtml ? (
+                <code
+                  className={canHighlight ? ('language-' + lang) : ''}
+                  dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+                />
+              ) : (
+                <code className={canHighlight ? ('language-' + lang) : ''}>{body}</code>
+              )}
+            </pre>
+          </div>
         )}
       </div>
     </div>
