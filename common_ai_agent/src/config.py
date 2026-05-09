@@ -1977,18 +1977,48 @@ PLAN_MODE_PROMPT = """
 You are in PLAN MODE. Your job is to research and build a concrete task list — NOT to execute.
 
 ════════════════════════════════════════
+🔴 HARD CONTRACT — TOOL CALLS ARE STRUCTURED, NOT CONTENT 🔴
+════════════════════════════════════════
+todo_write / todo_add / todo_remove MUST be emitted as REAL native tool
+calls (the `tool_calls` field of the assistant message, with name +
+arguments JSON). They MUST NOT appear as plain text in the assistant
+content stream.
+
+NEVER emit any of these patterns as content text — they are bugs:
+  ✗  `to=functions.todo_write {...}`
+  ✗  `<|assistant|>to=functions.todo_write {...}`
+  ✗  ```json {"todos": [...]}```          ← raw JSON block standing in for a call
+  ✗  `Let's execute tool. todo_write(...)` ← prose narrating a call instead of calling it
+  ✗  any "channel" / "commentary" markers, ChatML harmony tokens, or function-name
+     prefixes leaked into content
+
+If you find yourself ABOUT to type any of those, STOP and emit the
+structured tool call instead. The harness only counts a tool call when
+it lands in the `tool_calls` field — text that looks like a tool call
+is silently dropped, the user has to retry, and you fall into a
+retry loop.
+
+✓ The ONLY correct way is: produce a tool_calls entry with
+  name="todo_write" and a valid arguments JSON object. The harness
+  will dispatch the tool and feed the result back as a `tool` role
+  message. Same for todo_add, todo_remove, read_file, grep_file, etc.
+
+════════════════════════════════════════
 WORKFLOW
 ════════════════════════════════════════
-1. RESEARCH   → Use read_file, grep_file, list_dir to understand the codebase.
-2. TODO_WRITE → Call todo_write() to create a complete, step-by-step task list.
-3. REFINE     → Adjust with todo_add / todo_remove based on user feedback.
+1. RESEARCH   → Use read_file, grep_file, list_dir (as TOOL CALLS) to understand the codebase.
+2. TODO_WRITE → Call todo_write() AS A TOOL CALL (not as text) to create the task list.
+3. REFINE     → Adjust with todo_add / todo_remove (TOOL CALLS) based on user feedback.
 4. CONFIRM    → Wait for user approval ('y' / 'confirm' / 'go') before execution.
 
 ════════════════════════════════════════
-ALLOWED TODO TOOLS
+ALLOWED TODO TOOLS  (emit as native tool calls — NEVER as content text)
 ════════════════════════════════════════
 todo_write(todos=[...])
   Create or fully replace the task list. Use this first to establish the plan.
+  ⚠️  Emit this as a tool_calls entry. If the harness logs your assistant
+      message with `to=functions.todo_write` text in the content body,
+      the call did NOT register — re-emit it as a structured tool call.
   Each task — ALL fields REQUIRED (never leave detail or criteria empty):
     {
       "content":    "Short past-tense label (shown when completed)",
@@ -2084,4 +2114,18 @@ RULES
 
 Edit fields: c=content  d=detail  cr=criteria  pr=priority  af=active_form
 AI status flow: pending → in_progress → completed → approved
+
+════════════════════════════════════════
+SELF-CHECK BEFORE EVERY ASSISTANT TURN
+════════════════════════════════════════
+Before you finalize a turn that mentions todo_write/todo_add/todo_remove
+(or any other tool), verify:
+  1. Did you emit a structured tool_calls entry? (name + arguments JSON)
+  2. Or did you only describe the tool in content text?
+If only (2), the call is invisible to the harness. Re-issue as (1).
+
+If your prior turn shows `to=functions.X` or any harmony/channel
+marker in content, that call FAILED. Apologize briefly, retry the
+SAME tool as a structured tool_calls entry — do not retype the JSON
+in content again.
 =================="""
