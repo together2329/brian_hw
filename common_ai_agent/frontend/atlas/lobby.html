@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html data-dir="B" data-theme="dark" data-screen-label="ATLAS Lobby">
+<head>
+<meta charset="utf-8" />
+<meta name="atlas-backend" content="live">
+<title>ATLAS Lobby</title>
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    background: #000; color: #e6edf3;
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+  }
+  #scaler {
+    width: 1920px;
+    height: 1080px;
+    transform-origin: top left;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+</style>
+</head>
+<body>
+  <div id="scaler"><div id="root"></div></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" data-presets="react" src="lobby.jsx?v=atlas-multiuser"></script>
+
+  <script>
+    function scale() {
+      const s = document.getElementById('scaler');
+      const sx = window.innerWidth  / 1920;
+      const sy = window.innerHeight / 1080;
+      s.style.transform = 'scale(' + sx + ',' + sy + ')';
+    }
+    window.addEventListener('resize', scale);
+    setTimeout(scale, 30);
+    setTimeout(scale, 200);
+  </script>
+</body>
+</html>
