@@ -806,6 +806,148 @@ const workflowFromSession = (session) => {
   return (window.FLOW_STAGES || []).some(s => s.id === last) ? last : '';
 };
 
+const SessionSwitcher = ({ currentSession, streaming, onSwitch }) => {
+  const [open, setOpen] = React.useState(false);
+  const [options, setOptions] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
+  const [confirmId, setConfirmId] = React.useState(null);
+  const wrapRef = React.useRef(null);
+
+  const fetchOptions = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = await fetch('/api/sessions');
+      const d = await r.json();
+      setOptions(Array.isArray(d.sessions) ? d.sessions : []);
+    } catch (_) {
+      setOptions([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (!open) return;
+    fetchOptions();
+    const onDocClick = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [open, fetchOptions]);
+
+  const currentLabel = (currentSession || '').split('/')[0] || 'default';
+
+  const handleSelect = (id) => {
+    setOpen(false);
+    if (id === currentLabel) return;
+    if (streaming) {
+      setConfirmId(id);
+      return;
+    }
+    onSwitch(id);
+  };
+
+  return (
+    <>
+      <div ref={wrapRef} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          title="Switch session"
+          style={{
+            background: 'transparent',
+            border: '1px solid var(--line)',
+            color: 'var(--fg-mute)',
+            fontSize: 11,
+            fontFamily: 'var(--mono)',
+            padding: '2px 8px',
+            borderRadius: 2,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          <span style={{ color: 'var(--accent)' }}>◈</span>
+          <span className="trunc" style={{ maxWidth: 140 }}>{currentLabel}</span>
+          <span style={{ fontSize: 9 }}>{open ? '▲' : '▼'}</span>
+        </button>
+        {open && (
+          <div style={{
+            position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 50,
+            minWidth: 220, maxWidth: 300, maxHeight: 260, overflow: 'auto',
+            background: 'var(--panel)', border: '1px solid var(--line)',
+            borderRadius: 2, boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+          }}>
+            <div style={{ padding: '6px 10px', borderBottom: '1px solid var(--line)', fontSize: 10, color: 'var(--fg-dim)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              Switch session
+            </div>
+            {loading && (
+              <div style={{ padding: '8px 10px', fontSize: 11, color: 'var(--fg-mute)' }}>Loading…</div>
+            )}
+            {!loading && options.length === 0 && (
+              <div style={{ padding: '8px 10px', fontSize: 11, color: 'var(--fg-mute)' }}>No sessions</div>
+            )}
+            {options.map(s => (
+              <div
+                key={s.id}
+                onClick={() => handleSelect(s.id)}
+                style={{
+                  padding: '6px 10px', fontSize: 11, cursor: 'pointer',
+                  color: s.id === currentLabel ? 'var(--accent)' : 'var(--fg)',
+                  background: s.id === currentLabel ? 'color-mix(in oklch, var(--accent) 10%, transparent)' : 'transparent',
+                  borderBottom: '1px solid var(--line-2)',
+                }}
+                onMouseEnter={(e) => { if (s.id !== currentLabel) e.currentTarget.style.background = 'var(--bg-2)'; }}
+                onMouseLeave={(e) => { if (s.id !== currentLabel) e.currentTarget.style.background = 'transparent'; }}
+              >
+                <div style={{ fontWeight: 500 }}>{s.title || s.id}</div>
+                <div style={{ fontSize: 10, color: 'var(--fg-mute)', marginTop: 2 }}>{s.project_id || s.id}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      {confirmId && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 100,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+        onClick={(e) => { if (e.target === e.currentTarget) setConfirmId(null); }}
+        >
+          <div style={{
+            background: 'var(--panel)', border: '1px solid var(--line)',
+            borderRadius: 4, padding: '20px 24px', maxWidth: 360, width: 'min(90vw, 360px)',
+          }}>
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: 'var(--fg)' }}>
+              Agent is running
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--fg-mute)', marginBottom: 16, lineHeight: 1.5 }}>
+              Switching sessions will interrupt the current agent. Switch anyway?
+            </div>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button className="btn" type="button" onClick={() => setConfirmId(null)} style={{ fontSize: 11 }}>
+                Cancel
+              </button>
+              <button
+                className="btn" type="button"
+                onClick={() => { const id = confirmId; setConfirmId(null); onSwitch(id); }}
+                style={{ fontSize: 11, background: 'var(--warn)', color: 'var(--bg)', borderColor: 'var(--warn)' }}
+              >
+                Switch
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
 const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // Two-axis mode model:
   //   intent: 'normal' | 'plan'   (top-level — shift+tab to swap)
@@ -927,6 +1069,36 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     return sid;
   }, []);
 
+  const handleSwitchSession = React.useCallback(async (sessionId) => {
+    const current = normalizeUiSession(activeSession || window.ACTIVE_SESSION || '');
+    const suffix = current.split('/').slice(1).join('/');
+    const newNamespace = suffix ? `${sessionId}/${suffix}` : sessionId;
+
+    try {
+      await fetch('/api/sessions/' + encodeURIComponent(sessionId) + '/activate', { method: 'POST' });
+    } catch (_) {}
+
+    window.history.replaceState(null, '', '/?session_id=' + encodeURIComponent(sessionId));
+
+    if (window.backend && window.backend.connect) {
+      window.backend.connect(sessionId);
+    }
+
+    window.ACTIVE_SESSION = newNamespace;
+    setActiveSession(newNamespace);
+    try { localStorage.setItem('atlasActiveSession', newNamespace); } catch (_) {}
+
+    setStreaming(false);
+    streamBufferRef.current = '';
+    setStreamText('');
+
+    if (window.atlasData && window.atlasData.refreshSessionState) {
+      window.atlasData.refreshSessionState(newNamespace);
+    }
+
+    window.dispatchEvent(new CustomEvent('atlas-session-switched', { detail: { sessionId, namespace: newNamespace } }));
+  }, [activeSession]);
+
   const switchIntent = (i) => {
     setIntent(i);
     refreshFeed(i, workflow);
@@ -987,6 +1159,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     if (!window.backend) return 'missing';
     return window.backend.getConnectionState ? window.backend.getConnectionState() : 'connecting';
   });
+  const [peerCount, setPeerCount] = React.useState(1);
   const [streamText, setStreamText] = React.useState('');
   const [openFile, setOpenFile] = React.useState(null);
   const [rightTab, setRightTab] = React.useState('progress'); // progress | todo | git
@@ -1697,6 +1870,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
         setStreamText('');
         setStreaming(false);
       }
+    }));
+    subs.push(window.backend.subscribe('peer_joined', (m) => {
+      setPeerCount(m.peers || 1);
+    }));
+    subs.push(window.backend.subscribe('peer_left', (m) => {
+      setPeerCount(m.peers || 1);
     }));
     subs.push(window.backend.subscribe('token', (m) => {
       const t = m.text || '';
@@ -2928,12 +3107,16 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                   </>
                 )}
                 <span className="mute" style={{ margin: '0 6px' }}>›</span>
-                <span className="trunc"
-                      title={`.session/${activeSession || 'default'}\nclick to switch to .session/default`}
-                      onClick={switchToDefaultSession}
-                      style={{ color: 'var(--fg-mute)', fontSize: 11, maxWidth: 220, cursor: 'pointer' }}>
-                  session: {activeSession || 'default'}
-                </span>
+                <SessionSwitcher
+                  currentSession={activeSession || window.ACTIVE_SESSION || 'default'}
+                  streaming={streaming}
+                  onSwitch={handleSwitchSession}
+                />
+                {peerCount > 1 && (
+                  <span style={{ fontSize: 10, color: 'var(--fg-mute)', marginLeft: 6, fontFamily: 'var(--mono)' }}>
+                    {peerCount} peers
+                  </span>
+                )}
               </>
             ) : mainTab === 'split' ? (
               <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}

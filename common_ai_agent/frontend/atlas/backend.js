@@ -133,14 +133,17 @@
     mode,
     subscribe,
     send: liveSend,
-    connect: liveConnect,
+    connect: (sessionId) => liveConnect(sessionId || wsSessionId),
     disconnect: liveDisconnect,
     getConnectionState: () => connectionState,
     // Test/debug hook — lets UI code synthesize events in tests.
     _emit: emit,
   };
 
-  liveConnect();
+  const urlParams = new URLSearchParams(window.location.search);
+  const wsSessionId = urlParams.get('session_id') || urlParams.get('session') || '';
+
+  liveConnect(wsSessionId);
 
   window.backend = api;
   console.info('[atlas] backend ready · mode=live');

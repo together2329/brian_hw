@@ -379,6 +379,23 @@ const App = () => {
     };
   }, [activeIp, activeNamespace, activeSessionId, currentWorkflow, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace]);
 
+  React.useEffect(() => {
+    const onSwitch = (ev) => {
+      const sessionId = ev?.detail?.sessionId;
+      const namespace = ev?.detail?.namespace;
+      if (!sessionId) return;
+      const parsed = splitSessionNamespace(namespace || window.ACTIVE_SESSION || '');
+      const owner = normalizeSession(parsed.sessionId || sessionId);
+      setActiveSessionId(owner);
+      setActiveNamespace(namespace || window.ACTIVE_SESSION || namespaceFor(owner, activeIp, currentWorkflow()));
+      setActiveIp(parsed.ipId === 'soc' ? '' : (parsed.ipId || activeIp || ''));
+      syncNamespaceUrl(namespace || window.ACTIVE_SESSION || '', owner, parsed.ipId === 'soc' ? '' : (parsed.ipId || ''), parsed.workflow || '');
+      refreshTopTargets();
+    };
+    window.addEventListener('atlas-session-switched', onSwitch);
+    return () => window.removeEventListener('atlas-session-switched', onSwitch);
+  }, [activeIp, currentWorkflow, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace, syncNamespaceUrl]);
+
   const selectSessionId = (rawSessionId) => {
     const owner = normalizeSession(rawSessionId) || 'default';
     const wf = activeIp ? currentWorkflow() : '';
