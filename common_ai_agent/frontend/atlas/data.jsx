@@ -703,6 +703,22 @@
         setTimeout(attach, 200);
         return;
       }
+      // 'hello' fires on every WS connect (initial + every reconnect
+      // after a transient drop). Re-run /healthz so the UI's session/
+      // ip/workflow chips and URL params re-sync to whatever the
+      // server now reports — without this, a brief WS drop left the
+      // browser cached on the OLD triple while the backend may have
+      // pivoted to a new IP via /ip / /session / /wf during the gap.
+      window.backend.subscribe('hello', () => {
+        refreshHealth().then(() => {
+          // /healthz lands → CONTEXT.active_session is fresh →
+          // syncCurrent in app.jsx will pull the URL into line via
+          // its atlas-data-changed listener.
+          window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'CONTEXT' }));
+        }).catch(() => {});
+        refreshSlashCommands();
+        refreshWorkflows();
+      });
       window.backend.subscribe('todo_line', (m) => {
         const raw = Array.isArray(m && m.todos)
           ? m.todos

@@ -617,6 +617,13 @@
 .tool-output-pre code[class*="language-"] {
   text-shadow: none;
   background: transparent;
+  /* Prism Tomorrow base ships `color: #ccc` for `code[class*="language-"]`,
+     which renders signal/identifier names (any token Prism doesn't
+     classify, e.g. `pclk_i`, `presetn_i`, `gpio_regs` outside of the
+     language's known keyword/function/property buckets) as washed-out
+     light grey on the cream `--bg-3` light backdrop. Force theme-aware
+     foreground here so unmatched tokens read like normal text. */
+  color: var(--fg);
 }
 [data-theme="dark"] .token.comment,
 [data-theme="dark"] .token.prolog,

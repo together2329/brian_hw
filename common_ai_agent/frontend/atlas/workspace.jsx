@@ -8927,7 +8927,7 @@ const PreviewPane = ({ path, onClose }) => {
              row, even when the body is Prism-highlighted (the
              highlighted HTML stays a single block — splitting it
              per-line would break partial syntax spans). */
-          <div style={{
+          <div className="code-pane" style={{
             display: 'flex',
             fontFamily: 'var(--code-font, var(--mono))', fontSize: 12, lineHeight: 1.55,
             tabSize: 4,
