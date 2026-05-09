@@ -6832,7 +6832,7 @@ const DigestSourceSections = ({ view, sections, statusByKey, t }) => {
   );
 };
 
-const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
+const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content = '', selected = '' }) => {
   const t = uiLang === 'en'
     ? { sourceSections: 'Source section review', ports: 'ports', fields: 'fields' }
     : { sourceSections: '원본 섹션 리뷰', ports: 'ports', fields: 'fields' };
@@ -7705,6 +7705,8 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
               sections={sections}
               statusByKey={statusByKey}
               uiLang={uiLang}
+              content={content}
+              selected={selected}
             />
           ) : (
             <div className="code" style={{ padding: 16, color: 'var(--fg-mute)' }}># no sections parsed</div>
