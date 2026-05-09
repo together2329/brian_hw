@@ -3244,6 +3244,19 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                     "scripts",
                 }
                 _base_dirs = [_cwd]
+                # Always also try `<cwd>/<active-ip>/` as a base dir so
+                # the agent can declare `rtl/<ip>_wrapper.sv` (relative
+                # to the IP root) without the validator rejecting it
+                # because the file actually lives under
+                # `<cwd>/<ip>/rtl/<ip>_wrapper.sv`. Without this, every
+                # IP-rooted task declared a path the validator couldn't
+                # resolve, producing the "Cannot approve … fake-DONE"
+                # banner even when the file genuinely existed.
+                _active_ip = (_os_fs.environ.get("ATLAS_ACTIVE_IP") or "").strip()
+                if _active_ip and _re.match(r"^[A-Za-z][A-Za-z0-9_-]*$", _active_ip):
+                    _ip_base = _os_fs.path.join(_cwd, _active_ip)
+                    if _ip_base not in _base_dirs and _os_fs.path.isdir(_ip_base):
+                        _base_dirs.append(_ip_base)
                 for _p in _candidates:
                     _parts = [part for part in _p.split("/") if part]
                     for _idx, _part in enumerate(_parts):

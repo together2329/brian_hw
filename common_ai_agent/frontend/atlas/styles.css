@@ -1148,26 +1148,51 @@
   background: transparent;
   border-left: 2px solid transparent;
   padding-left: 6px;
+  /* Force whitespace preservation so leading indentation in the
+     `<rest>` capture (the actual code after the marker) renders
+     verbatim — without `pre-wrap`, the inline <code> render would
+     collapse runs of spaces and the +/- lines would lose their
+     indentation relative to context lines. */
+  white-space: pre;
 }
 .tool-output-diff .diff-line.add {
   border-left-color: var(--ok);
+  background: color-mix(in oklch, var(--ok) 16%, transparent);
 }
 .tool-output-diff .diff-line.del {
   border-left-color: var(--err);
+  background: color-mix(in oklch, var(--err) 16%, transparent);
 }
 .tool-output-diff .diff-prefix {
   color: var(--fg-mute);
+  /* Fixed-width column for the line number gutter so the marker +
+     code body line up vertically across context (no marker) and diff
+     (with +/-) rows. The numbers themselves stay right-aligned in
+     their slot via inline-block. */
+  display: inline-block;
+  min-width: 5ch;
+  text-align: right;
+  padding-right: 6px;
 }
 .tool-output-diff .diff-marker {
   display: inline-block;
-  min-width: 1ch;
+  min-width: 1.5ch;
+  margin-right: 4px;
   font-weight: 800;
+  text-align: center;
 }
 .tool-output-diff .diff-marker.add {
   color: var(--ok);
 }
 .tool-output-diff .diff-marker.del {
   color: var(--err);
+}
+/* Context lines (no marker) need a 1.5ch placeholder so they line up
+   with the +/- column, otherwise the unmarked code body shifts
+   leftward by one marker-width and looks misaligned. */
+.tool-output-diff .diff-line:not(.add):not(.del) > .diff-prefix + code,
+.tool-output-diff .diff-line:not(.add):not(.del) > code:first-of-type {
+  padding-left: calc(1.5ch + 4px);
 }
 
 [data-theme="light"] .titlebar,

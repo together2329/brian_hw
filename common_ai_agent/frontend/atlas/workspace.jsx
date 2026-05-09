@@ -3451,7 +3451,20 @@ const ToolCard = ({ action, obs, summaryMode = true }) => {
   const obsText = obsTextRaw.replace(/\x1b\[[\d;]*m/g, '');
   const status = obs ? _obsStatus(obsText) : 'neutral';
   const borderColor = status === 'err' ? '#f85149' : theme.color;
-  const argsText = action && action.text ? action.text.replace(/^▶\s*/, '').replace(new RegExp('^' + tool + '\\s*'), '') : '';
+  let argsText = action && action.text ? action.text.replace(/^▶\s*/, '').replace(new RegExp('^' + tool + '\\s*'), '') : '';
+  // Replace/write/edit tools dump the new file content into args, which
+  // produces a noisy single-line preview next to the tool name (just
+  // the first 80 chars of a 500-line `===========\n//comment...` blob).
+  // The diff body shows the actual change, so the header only needs
+  // the file path. Heuristics: pull `path="..."` / `path: '...'`
+  // / first .sv|.v|.svh|.yaml|.json|.md path-like token, fall back to
+  // empty string when nothing recognizable shows up.
+  if (tool && /^(replace_in_file|replace_lines|write_file|edit|patch|update_file)/i.test(tool)) {
+    const pathMatch = argsText.match(/path\s*[:=]\s*["']([^"']+)["']/i)
+      || argsText.match(/^\s*["']([^"']+\.(?:sv|v|vh|svh|yaml|yml|md|f|txt|log|json|py|sdc|upf|tcl))["']/i)
+      || argsText.match(/^\s*([^\s"',{}\[\]]+\.(?:sv|v|vh|svh|yaml|yml|md|f|txt|log|json|py|sdc|upf|tcl))/i);
+    argsText = pathMatch ? pathMatch[1] : '';
+  }
   const ts = (action && action.createdAt) || (obs && obs.createdAt) || 0;
   // Replace/edit tools default to OPEN so the diff is visible without an
   // extra click. Other tools default to closed in summary mode.
