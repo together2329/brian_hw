@@ -5023,7 +5023,96 @@ def create_app():
             path = PROJECT_ROOT / ip / rel
             path.mkdir(parents=True, exist_ok=True)
             created.append(f"{ip}/{rel}")
+        # Per-IP git repo. Each IP gets its OWN .git so the agent's
+        # write_file / replace_in_file calls can auto-commit and the
+        # user has a per-IP history independent of the outer project
+        # repo. Idempotent — `git init` on an existing repo is a no-op.
+        _ip_root = PROJECT_ROOT / ip
+        _git_dir = _ip_root / ".git"
+        try:
+            import subprocess as _sp_init
+            if not _git_dir.is_dir():
+                _sp_init.run(
+                    ["git", "init", "-q", "-b", "main"],
+                    cwd=str(_ip_root),
+                    capture_output=True,
+                    timeout=10,
+                )
+                # Pin the committer to a benign default so `git commit`
+                # doesn't fail with "Please tell me who you are" on
+                # fresh boxes that have no global git config.
+                for _k, _v in (("user.email", "atlas@local"),
+                                ("user.name",  "Atlas Agent")):
+                    _sp_init.run(
+                        ["git", "config", _k, _v],
+                        cwd=str(_ip_root),
+                        capture_output=True,
+                        timeout=5,
+                    )
+                # Initial commit so subsequent auto-commits have a
+                # parent — `git commit --allow-empty` keeps it clean
+                # even when the dirs are empty at scaffold time.
+                _sp_init.run(
+                    ["git", "commit", "--allow-empty",
+                     "-m", f"atlas: scaffold {ip}"],
+                    cwd=str(_ip_root),
+                    capture_output=True,
+                    timeout=10,
+                )
+        except Exception:
+            # Best-effort — never block /new-ip on a git failure.
+            pass
         return created
+
+    def _auto_commit_for_path(path: Path | str, tool: str = "edit") -> None:
+        """After a write/replace tool call, auto-commit the change in
+        the nearest enclosing per-IP git repo. Silent-best-effort: any
+        git error is swallowed so a write to a non-IP location never
+        blocks the agent. Walks up from `path` looking for `.git`,
+        stops at PROJECT_ROOT — never escapes the project boundary."""
+        try:
+            import subprocess as _sp_ac
+            p = Path(path).resolve()
+            project_root = PROJECT_ROOT.resolve()
+            try:
+                p.relative_to(project_root)
+            except ValueError:
+                return
+            # Walk up looking for .git, but stop before / and don't
+            # land on the outer project's git repo (we only want per-IP).
+            cur = p if p.is_dir() else p.parent
+            git_root: Path | None = None
+            while cur != project_root and cur != cur.parent:
+                if (cur / ".git").is_dir() and cur != project_root:
+                    git_root = cur
+                    break
+                cur = cur.parent
+            if git_root is None:
+                return
+            rel = ""
+            try:
+                rel = str(p.relative_to(git_root))
+            except ValueError:
+                rel = str(p.name)
+            _sp_ac.run(
+                ["git", "add", "--", "."],
+                cwd=str(git_root),
+                capture_output=True,
+                timeout=15,
+            )
+            # `git commit` returns non-zero when there's nothing to
+            # commit — that's fine, just means the file content didn't
+            # change. We don't surface it.
+            _sp_ac.run(
+                ["git", "commit",
+                 "-m", f"{tool}: {rel}",
+                 "--allow-empty-message"],
+                cwd=str(git_root),
+                capture_output=True,
+                timeout=15,
+            )
+        except Exception:
+            pass
 
     def _relative_project_path(path: Path) -> str:
         try:
@@ -9581,10 +9670,13 @@ def create_app():
     # and return their stdout/stderr. Push includes an explicit
     # confirm flag because it's destructive (remote-visible).
     import subprocess as _sp_git
-    def _git(*args, check_root: bool = True):
+    def _git(*args, check_root: bool = True, cwd: str | None = None):
+        # `cwd` lets callers target the per-IP repo (PROJECT_ROOT/<ip>)
+        # instead of the outer project repo. Defaults to PROJECT_ROOT
+        # for backwards compatibility with existing /api/git/* paths.
         try:
             r = _sp_git.run(
-                ["git", *args], cwd=str(PROJECT_ROOT),
+                ["git", *args], cwd=cwd or str(PROJECT_ROOT),
                 capture_output=True, text=True, timeout=30,
             )
             return r.returncode, r.stdout, r.stderr
@@ -9593,13 +9685,27 @@ def create_app():
         except FileNotFoundError:
             return 127, "", "git executable not found"
 
+    def _git_cwd_for_ip(ip: str) -> str:
+        """Resolve the cwd for a per-IP git repo. Falls back to
+        PROJECT_ROOT when `ip` is empty or its dir has no `.git`."""
+        if not ip or not _valid_ip_name(ip):
+            return str(PROJECT_ROOT)
+        candidate = PROJECT_ROOT / ip
+        if (candidate / ".git").is_dir():
+            return str(candidate)
+        return str(PROJECT_ROOT)
+
     @app.get("/api/git/status")
-    async def api_git_status():
+    async def api_git_status(ip: str = ""):
+        # `ip` query param routes to the per-IP repo. When omitted the
+        # endpoint behaves as before (outer project repo). Empty `ip`
+        # AND empty active env var = outer repo; otherwise per-IP.
+        cwd = _git_cwd_for_ip(ip or os.environ.get("ATLAS_ACTIVE_IP", ""))
         # Branch
-        rc, branch, _ = _git("rev-parse", "--abbrev-ref", "HEAD")
+        rc, branch, _ = _git("rev-parse", "--abbrev-ref", "HEAD", cwd=cwd)
         branch = branch.strip() if rc == 0 else ""
         # Porcelain status with numstat-ish summary
-        rc, out, err = _git("status", "--porcelain=v1", "--branch")
+        rc, out, err = _git("status", "--porcelain=v1", "--branch", cwd=cwd)
         if rc != 0:
             return JSONResponse({"error": err.strip() or "git status failed",
                                  "branch": branch, "files": []}, status_code=200)
@@ -9626,7 +9732,7 @@ def create_app():
                 "unstaged": xy[1] != " ",
             })
         # Per-file numstat (added/removed lines) — best-effort
-        rc, ns_out, _ = _git("diff", "--numstat", "HEAD")
+        rc, ns_out, _ = _git("diff", "--numstat", "HEAD", cwd=cwd)
         numstat = {}
         if rc == 0:
             for line in ns_out.splitlines():
@@ -9643,6 +9749,123 @@ def create_app():
             if ns: f.update(ns)
         return JSONResponse({"branch": branch, "ahead": ahead,
                               "behind": behind, "files": files})
+
+    @app.get("/api/git/log")
+    async def api_git_log(ip: str = "", limit: int = 60):
+        """Per-IP commit history. Returns an array of commits with
+        sha/short/author/date/subject + numstat counts. Used by the
+        right-sidebar GIT tab to render a clickable commit list.
+
+        Format negotiated with the frontend: pipe-separated record
+        terminator + LF field separator, robust against subjects
+        containing tabs/quotes which `--pretty=format:` would otherwise
+        eat or escape oddly."""
+        cwd = _git_cwd_for_ip(ip or os.environ.get("ATLAS_ACTIVE_IP", ""))
+        if not (Path(cwd) / ".git").is_dir():
+            return JSONResponse({"commits": [], "branch": "", "ip": ip})
+        rc, branch, _ = _git("rev-parse", "--abbrev-ref", "HEAD", cwd=cwd)
+        branch = branch.strip() if rc == 0 else ""
+        # %x1e = record separator, %x1f = field separator
+        fmt = "%H%x1f%h%x1f%an%x1f%ae%x1f%aI%x1f%s%x1e"
+        rc, out, err = _git(
+            "log",
+            f"-n{max(1, min(limit, 500))}",
+            f"--pretty=format:{fmt}",
+            cwd=cwd,
+        )
+        if rc != 0:
+            return JSONResponse({
+                "error": err.strip() or "git log failed",
+                "commits": [], "branch": branch, "ip": ip,
+            }, status_code=200)
+        commits = []
+        for record in out.split("\x1e"):
+            record = record.strip("\n")
+            if not record:
+                continue
+            parts = record.split("\x1f")
+            if len(parts) < 6:
+                continue
+            sha, short, author, email, iso_date, subject = parts[:6]
+            commits.append({
+                "sha": sha,
+                "short": short,
+                "author": author,
+                "email": email,
+                "date": iso_date,
+                "subject": subject,
+            })
+        # Per-commit numstat — single shotstat call across all commits
+        # (much cheaper than N separate `git show` calls).
+        if commits:
+            rc, ns, _ = _git(
+                "log",
+                f"-n{len(commits)}",
+                "--no-renames", "--numstat", "--format=__SHA__%H__",
+                cwd=cwd,
+            )
+            if rc == 0:
+                cur_sha = None
+                added_total = removed_total = 0
+                files_changed = 0
+                by_sha: dict[str, dict[str, int]] = {}
+                for line in ns.splitlines():
+                    if line.startswith("__SHA__"):
+                        if cur_sha is not None:
+                            by_sha[cur_sha] = {
+                                "added": added_total,
+                                "removed": removed_total,
+                                "files": files_changed,
+                            }
+                        cur_sha = line[len("__SHA__"):].rstrip("_")
+                        added_total = removed_total = files_changed = 0
+                    elif line.strip():
+                        try:
+                            a, d, _p = line.split("\t", 2)
+                            added_total += 0 if a == "-" else int(a)
+                            removed_total += 0 if d == "-" else int(d)
+                            files_changed += 1
+                        except ValueError:
+                            pass
+                if cur_sha is not None:
+                    by_sha[cur_sha] = {
+                        "added": added_total,
+                        "removed": removed_total,
+                        "files": files_changed,
+                    }
+                for c in commits:
+                    s = by_sha.get(c["sha"], {})
+                    c["added"] = s.get("added", 0)
+                    c["removed"] = s.get("removed", 0)
+                    c["files"] = s.get("files", 0)
+        return JSONResponse({
+            "commits": commits,
+            "branch": branch,
+            "ip": ip,
+            "cwd": cwd,
+        })
+
+    @app.get("/api/git/show")
+    async def api_git_show(sha: str, ip: str = ""):
+        """Return the unified diff for a single commit, formatted for
+        the frontend's diff viewer. Caller passes either the full SHA
+        or the short SHA. `ip` query param routes to the per-IP repo."""
+        if not sha or not re.match(r"^[0-9a-f]{4,40}$", sha):
+            return JSONResponse({"error": "invalid sha"}, status_code=400)
+        cwd = _git_cwd_for_ip(ip or os.environ.get("ATLAS_ACTIVE_IP", ""))
+        rc, out, err = _git(
+            "show", sha, "--no-color", "--unified=3",
+            cwd=cwd,
+        )
+        if rc != 0:
+            return JSONResponse({
+                "error": err.strip() or f"git show {sha} failed",
+                "diff": "",
+            }, status_code=200)
+        # Body header lines come BEFORE the diff (commit/Author/Date/blank/subject).
+        # The frontend can split on the first `diff --git` line if it wants
+        # to separate metadata from the patch.
+        return JSONResponse({"sha": sha, "diff": out})
 
     @app.get("/api/git/diff")
     async def api_git_diff(path: str = "", staged: int = 0):
@@ -10083,6 +10306,28 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
             tool=tool,
             truncated=len(cleaned) > _ws_tool_max,
         )
+        # Auto-commit for write/replace/edit tools — capture the
+        # operated-on path from the tool result body and snapshot the
+        # change into the per-IP .git so each agent edit becomes a
+        # discrete commit. Best-effort: any parse miss or git failure
+        # is silent (Atlas should never refuse to display a result
+        # because the optional commit failed).
+        try:
+            if tool and re.match(
+                r"^(write_file|replace_in_file|replace_lines|edit_file|patch|update_file)\b",
+                tool, re.IGNORECASE
+            ):
+                m = re.search(
+                    r"(?:wrote to|wrote)\s+['\"`]([^'\"`]+)['\"`]"
+                    r"|(?:in|to)\s+([\w./_-]+\.(?:sv|v|vh|svh|yaml|yml|md|f|txt|log|json|py|sdc|upf|tcl))"
+                    r"|^Update\(([^)]+)\)",
+                    cleaned, re.MULTILINE,
+                )
+                _path_hit = m and (m.group(1) or m.group(2) or m.group(3))
+                if _path_hit:
+                    _auto_commit_for_path(_path_hit, tool=tool)
+        except Exception:
+            pass
     _main._textual_emit_tool_result_fn = _emit_tool_result
 
     def _ctx_update(tokens, max_tok):

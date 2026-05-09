@@ -983,6 +983,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // Double-clicking a file in the left tree sets previewPath + flips tab.
   const [mainTab, setMainTab] = React.useState('split');    // chat | ssot | qa | split | preview (full view)
   const [previewPath, setPreviewPath] = React.useState(null);
+  // Git diff display: when the GitPanel emits atlas-git-show with a
+  // commit sha, the center pane swaps in GitDiffPane to render the
+  // unified diff instead of the file preview. Setting it back to null
+  // (Esc / "back to preview") restores the regular preview flow.
+  const [gitShow, setGitShow] = React.useState(null); // {sha, ip, subject} | null
+  React.useEffect(() => {
+    const onShow = (ev) => {
+      const d = ev && ev.detail || {};
+      if (!d.sha) return;
+      setGitShow({ sha: d.sha, ip: d.ip || '', subject: d.subject || '' });
+      setMainTab(t => (t === 'chat' || t === 'qa') ? 'split' : t);
+    };
+    window.addEventListener('atlas-git-show', onShow);
+    return () => window.removeEventListener('atlas-git-show', onShow);
+  }, []);
   // Center layout: 'classic' (chat with inline ask_user) or 'tabbed'
   // (Chat / Preview / Q&A tab strip with auto-switch). Comes from the
   // server hello payload (driven by ATLAS_CENTER_LAYOUT in .config).
@@ -2976,7 +2991,14 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                   />
                 </div>
                 <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-                  {isSsotYamlPath(previewPath) ? (
+                  {gitShow ? (
+                    <GitDiffPane
+                      sha={gitShow.sha}
+                      ip={gitShow.ip}
+                      subject={gitShow.subject}
+                      onClose={() => setGitShow(null)}
+                    />
+                  ) : isSsotYamlPath(previewPath) ? (
                     <SsotReviewPane uiLang={uiLang} initialPath={previewPath} onBack={() => setMainTab('chat')} />
                   ) : (
                     <PreviewPane path={previewPath} onClose={() => setMainTab('chat')} />
@@ -8532,6 +8554,7 @@ const GitPanel = () => {
   const [ahead, setAhead]   = React.useState(0);
   const [behind, setBehind] = React.useState(0);
   const [files, setFiles]   = React.useState([]);
+  const [commits, setCommits] = React.useState([]);
   const [error, setError]   = React.useState('');
   const [selected, setSelected] = React.useState(null);
   const [diff, setDiff]     = React.useState('');
@@ -8540,14 +8563,28 @@ const GitPanel = () => {
   const [busy, setBusy]     = React.useState('');   // '' | 'commit' | 'push'
   const [lastResult, setLastResult] = React.useState(null);
 
+  // Active IP drives which per-IP repo we hit. window.ACTIVE_SESSION
+  // parses to <owner>/<ip>/<wf>; we only need the ip segment.
+  const activeIp = React.useMemo(() => {
+    const segs = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+    return segs.length >= 2 ? segs[1] : '';
+  }, []);
+
   const refresh = React.useCallback(async () => {
     try {
-      const r = await fetch('/api/git/status');
+      const ipQ = activeIp ? `?ip=${encodeURIComponent(activeIp)}` : '';
+      const r = await fetch('/api/git/status' + ipQ);
       const d = await r.json();
       setBranch(d.branch || ''); setAhead(d.ahead || 0); setBehind(d.behind || 0);
       setFiles(d.files || []); setError(d.error || '');
     } catch (e) { setError(String(e)); }
-  }, []);
+    try {
+      const ipQ = activeIp ? `?ip=${encodeURIComponent(activeIp)}&limit=80` : '?limit=80';
+      const r = await fetch('/api/git/log' + ipQ);
+      const d = await r.json();
+      setCommits(Array.isArray(d.commits) ? d.commits : []);
+    } catch (_) {}
+  }, [activeIp]);
 
   React.useEffect(() => { refresh(); const id = setInterval(refresh, 5000); return () => clearInterval(id); }, [refresh]);
 
@@ -8609,6 +8646,55 @@ const GitPanel = () => {
         <span onClick={refresh} title="refresh git status"
               style={{ cursor: 'pointer', color: 'var(--accent)', fontSize: 13, padding: '0 6px' }}>↻</span>
       </div>
+
+      {/* Commit history — clickable; emits atlas-git-show so the
+          center pane can render the unified diff for the chosen
+          commit (matches "branch / changes / commit msg + click =
+          show diff in center" UX request). */}
+      {commits.length ? (
+        <div style={{
+          borderBottom: '1px solid var(--line)',
+          maxHeight: 220,
+          overflow: 'auto',
+          background: 'var(--bg-2)',
+        }}>
+          <div className="mute" style={{
+            padding: '4px 10px', fontSize: 10,
+            textTransform: 'uppercase', letterSpacing: '0.08em',
+            borderBottom: '1px solid var(--line)',
+          }}>history · {commits.length}</div>
+          {commits.map(c => (
+            <div
+              key={c.sha}
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('atlas-git-show', {
+                  detail: { sha: c.sha, ip: activeIp, subject: c.subject },
+                }));
+              }}
+              title={`${c.short} · ${c.author} · ${c.date}\n${c.subject}\n+${c.added || 0} −${c.removed || 0} across ${c.files || 0} file(s)`}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr auto',
+                gap: 6,
+                padding: '3px 10px',
+                cursor: 'pointer',
+                fontFamily: 'var(--mono)',
+                fontSize: 11,
+                borderLeft: '2px solid transparent',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-3)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{c.short}</span>
+              <span className="trunc" style={{ color: 'var(--fg)' }}>{c.subject}</span>
+              <span style={{ fontSize: 10, color: 'var(--fg-mute)' }}>
+                {c.added != null && <span className="ok"  style={{ marginRight: 2 }}>+{c.added}</span>}
+                {c.removed != null && <span className="err">−{c.removed}</span>}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
 
       {/* File list */}
       <div style={{ borderBottom: '1px solid var(--line)', maxHeight: 200, overflow: 'auto' }}>
@@ -8969,6 +9055,98 @@ const PreviewPane = ({ path, onClose }) => {
             </pre>
           </div>
         )}
+      </div>
+    </div>
+  );
+};
+
+// Renders the unified diff for one commit. Fetched from /api/git/show.
+// Reuses DiffOutputPre's row format (red/green backgrounds, indented
+// line numbers, marker column) so a per-commit diff feels visually
+// identical to the in-flight `replace_in_file` previews.
+const GitDiffPane = ({ sha, ip, subject, onClose }) => {
+  const [body, setBody] = React.useState('');
+  const [err, setErr] = React.useState('');
+  const [loading, setLoading] = React.useState(true);
+  React.useEffect(() => {
+    if (!sha) { setBody(''); return undefined; }
+    let cancelled = false;
+    setLoading(true); setErr('');
+    const ipQ = ip ? `&ip=${encodeURIComponent(ip)}` : '';
+    fetch(`/api/git/show?sha=${encodeURIComponent(sha)}${ipQ}`)
+      .then(r => r.json())
+      .then(d => {
+        if (cancelled) return;
+        if (d.error) setErr(d.error);
+        setBody(String(d.diff || ''));
+        setLoading(false);
+      })
+      .catch(e => {
+        if (cancelled) return;
+        setErr(String(e));
+        setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [sha, ip]);
+  // Split body into header (commit/author/date/subject) and patch
+  // (everything from the first `diff --git` onwards) so the header
+  // can be styled differently.
+  const splitIdx = body.indexOf('\ndiff --git');
+  const header = splitIdx >= 0 ? body.slice(0, splitIdx) : body;
+  const patch = splitIdx >= 0 ? body.slice(splitIdx + 1) : '';
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      <div style={{
+        padding: '6px 14px', borderBottom: '1px solid var(--line)',
+        display: 'flex', alignItems: 'center', gap: 10, fontSize: 11,
+        color: 'var(--fg-mute)', fontFamily: 'var(--mono)',
+        background: 'var(--bg-2)',
+      }}>
+        <span className="acc" style={{ fontWeight: 600 }}>{(sha || '').slice(0, 8)}</span>
+        {ip && <><span className="mute">·</span><span>{ip}</span></>}
+        {subject && <><span className="mute">·</span><span style={{
+          color: 'var(--fg)',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          flex: 1, minWidth: 0,
+        }}>{subject}</span></>}
+        {loading && <span className="mute">loading…</span>}
+        <span style={{ flex: 1 }} />
+        <span onClick={onClose} title="close diff (back to preview)"
+          style={{ cursor: 'pointer', padding: '2px 8px', border: '1px solid var(--line)', borderRadius: 2 }}>
+          × close
+        </span>
+      </div>
+      {err && (
+        <div style={{
+          padding: '6px 14px', color: 'var(--err)', fontFamily: 'var(--mono)',
+          fontSize: 11, borderBottom: '1px solid var(--err)',
+        }}>{err}</div>
+      )}
+      <div style={{ flex: 1, overflow: 'auto', background: 'var(--bg-3)' }}>
+        {header && (
+          <pre style={{
+            margin: 0, padding: '10px 14px',
+            fontFamily: 'var(--code-font, var(--mono))', fontSize: 11, lineHeight: 1.55,
+            color: 'var(--fg-mute)',
+            whiteSpace: 'pre-wrap',
+            borderBottom: patch ? '1px solid var(--line)' : 'none',
+            background: 'var(--bg-2)',
+          }}>{header}</pre>
+        )}
+        {patch ? (
+          <pre className="tool-output-pre tool-output-diff language-none" style={{
+            margin: 0, padding: '8px 0',
+            fontFamily: 'var(--code-font, var(--mono))', fontSize: 11, lineHeight: 1.55,
+            background: 'transparent',
+          }}>
+            {patch.split('\n').map((line, i) => {
+              let cls = 'diff-line';
+              if (line.startsWith('+') && !line.startsWith('+++')) cls += ' add';
+              else if (line.startsWith('-') && !line.startsWith('---')) cls += ' del';
+              return <div className={cls} key={i}>{line || ' '}</div>;
+            })}
+          </pre>
+        ) : null}
       </div>
     </div>
   );
