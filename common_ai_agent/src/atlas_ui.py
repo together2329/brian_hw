@@ -370,6 +370,9 @@ def create_app():
         sys.exit(1)
 
     app = FastAPI(title="ATLAS · common_ai_agent")
+    if os.environ.get("ATLAS_MULTI_USER", "").lower() in ("1", "true", "yes"):
+        os.environ["ATLAS_MULTI_USER_PROC"] = "1"
+        print("[atlas] Multi-user enabled: forcing process isolation (ATLAS_MULTI_USER_PROC=1)")
     _use_proc = os.environ.get("ATLAS_MULTI_USER_PROC", "").lower() in ("1", "true", "yes")
     bridge = _MultiUserBridge(use_processes=_use_proc)
     clients: set[Any] = set()
@@ -10062,9 +10065,19 @@ def create_app():
             fields.append("summary")
         return {key: session.get(key) for key in fields}
 
+    def _request_user_id(request: Request) -> str:
+        user = request.scope.get("user") or {}
+        return str(user.get("id") or "default").strip() or "default"
+
+    def _session_not_found() -> JSONResponse:
+        return JSONResponse({"error": "session not found"}, status_code=404)
+
+    def _owns_session(session: Optional[dict], user_id: str) -> bool:
+        return session is not None and session.get("user_id") == user_id
+
     @app.get("/api/sessions")
-    async def api_sessions(user_id: str = "default"):
-        user_id = str(user_id or "default").strip() or "default"
+    async def api_sessions(request: Request):
+        user_id = _request_user_id(request)
         try:
             with _atlas_db() as db:
                 listed = db.list_sessions(user_id)
@@ -10087,7 +10100,7 @@ def create_app():
             return JSONResponse({"error": "invalid json body"}, status_code=400)
         if not isinstance(body, dict):
             return JSONResponse({"error": "expected JSON object"}, status_code=400)
-        user_id = str(body.get("user_id") or "default").strip() or "default"
+        user_id = _request_user_id(request)
         title = str(body.get("title") or "").strip()
         project_id = str(body.get("project_id") or "").strip()
         if not title:
@@ -10102,12 +10115,13 @@ def create_app():
             return JSONResponse({"error": str(e)}, status_code=500)
 
     @app.get("/api/sessions/{session_id}")
-    async def api_get_session(session_id: str):
+    async def api_get_session(session_id: str, request: Request):
+        user_id = _request_user_id(request)
         try:
             with _atlas_db() as db:
                 session = db.get_session(session_id)
-                if session is None:
-                    return JSONResponse({"error": "session not found"}, status_code=404)
+                if not _owns_session(session, user_id):
+                    return _session_not_found()
                 return JSONResponse(_public_session(session, include_summary=True))
         except Exception as e:
             print(f"api_get_session error: {e}")
@@ -10123,26 +10137,30 @@ def create_app():
             return JSONResponse({"error": "expected JSON object"}, status_code=400)
         allowed = {"title", "project_id", "status", "summary"}
         fields = {key: body[key] for key in allowed if key in body}
+        user_id = _request_user_id(request)
         try:
             with _atlas_db() as db:
-                if db.get_session(session_id) is None:
-                    return JSONResponse({"error": "session not found"}, status_code=404)
+                session = db.get_session(session_id)
+                if not _owns_session(session, user_id):
+                    return _session_not_found()
                 if fields:
                     db.update_session(session_id, **fields)
                 updated = db.get_session(session_id)
-                if updated is None:
-                    return JSONResponse({"error": "session not found"}, status_code=404)
+                if not _owns_session(updated, user_id):
+                    return _session_not_found()
                 return JSONResponse(_public_session(updated, include_summary=True))
         except Exception as e:
             print(f"api_update_session error: {e}")
             return JSONResponse({"error": str(e)}, status_code=500)
 
     @app.delete("/api/sessions/{session_id}")
-    async def api_delete_session(session_id: str):
+    async def api_delete_session(session_id: str, request: Request):
+        user_id = _request_user_id(request)
         try:
             with _atlas_db() as db:
-                if db.get_session(session_id) is None:
-                    return JSONResponse({"error": "session not found"}, status_code=404)
+                session = db.get_session(session_id)
+                if not _owns_session(session, user_id):
+                    return _session_not_found()
                 db.delete_session(session_id)
                 return JSONResponse({"deleted": True})
         except Exception as e:
@@ -10206,7 +10224,10 @@ def create_app():
             return JSONResponse({"error": str(e)}, status_code=500)
 
     @app.get("/admin")
-    async def admin_page():
+    async def admin_page(request: Request):
+        user = request.scope.get("user")
+        if not user or user.get("role") != "admin":
+            raise HTTPException(status_code=403, detail="Admin access required")
         html = (FRONTEND / "admin.html").read_text(encoding="utf-8")
 
         def _inline_script(match):
@@ -10243,11 +10264,25 @@ def create_app():
         await websocket.accept()
         session_id = websocket.query_params.get("session_id", "default")
         _multi_user = os.environ.get("ATLAS_MULTI_USER", "").lower() in ("1", "true", "yes")
-        if _multi_user:
-            # Derive session from client IP to prevent arbitrary session claims
-            _client_ip = websocket.client.host if websocket.client else "unknown"
-            _ip_session = hashlib.sha256(_client_ip.encode()).hexdigest()[:16]
-            session_id = _ip_session
+
+        class _WebSocketCookieRequest:
+            def __init__(self, cookies: dict):
+                self.cookies = cookies
+
+        cookies = getattr(websocket, "cookies", None)
+        if cookies is None:
+            cookies = websocket.scope.get("cookies") or {}
+        user = auth.get_user_from_cookie(_WebSocketCookieRequest(cookies))
+        if user is None:
+            await websocket.close(code=1008, reason="unauthenticated")
+            return
+
+        if _multi_user and session_id != "default":
+            with _atlas_db() as db:
+                session = db.get_session(session_id)
+            if not _owns_session(session, user["id"]):
+                await websocket.close(code=1008, reason="forbidden")
+                return
         bridge.bind_client(websocket, session_id)
         _ensure_broadcaster()
         # Greeting — surface user-tunable layout settings so the frontend
@@ -11030,8 +11065,10 @@ def main() -> None:
                     help="workflow segment (default: 'default')")
     args = ap.parse_args()
     # Seed environment so all path resolvers see the canonical 3-part string.
-    os.environ["ATLAS_ACTIVE_SESSION"] = f"{args.session_id}/{args.ip}/{args.workflow}"
-    os.environ["ATLAS_ACTIVE_IP"] = args.ip
+    new_session = f"{args.session_id}/{args.ip}/{args.workflow}"
+    _atlas_active_session_cv.set(new_session)
+    _atlas_active_ip_cv.set(args.ip)
+    _sync_env_to_context()
     os.environ.setdefault("ATLAS_DEFAULT_SESSION_ID", args.session_id)
     os.environ.setdefault("ATLAS_DEFAULT_WORKFLOW", args.workflow)
     run_atlas_ui(port=args.port, host=args.host)
