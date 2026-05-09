@@ -8308,14 +8308,13 @@ const TodoPanel = () => {
                                       opacity: 0.5, marginLeft: 6 }} />
                     </div>
                     {!collapsed && items.map(t => {
-                      const tcfg = stateCfg(t.state);
                       const open = openId === t.id;
                       return (
                         <div key={t.id}>
                           <div
                             onClick={() => setOpenId(open ? null : t.id)}
                             style={{
-                              display: 'grid', gridTemplateColumns: '96px 36px minmax(0, 1fr) 16px',
+                              display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 16px',
                               alignItems: 'baseline', gap: 8, padding: '6px 12px',
                               cursor: 'pointer', fontFamily: 'var(--mono)', fontSize: 13,
                               background: t.state === 'active' || t.state === 'in_progress'
@@ -8325,8 +8324,6 @@ const TodoPanel = () => {
                                 ? '2px solid var(--accent)' : '2px solid transparent',
                             }}
                           >
-                            <AtlasStatusBadge status={t.state} label={tcfg.label} compact soft />
-                            <span className="mute" style={{ fontSize: 11 }}>{t.section}</span>
                             <span style={{ color: t.state === 'pending' ? 'var(--fg-dim)' : 'var(--fg)' }}>{t.title}</span>
                             <span className="mute" style={{ fontSize: 10 }}>{open ? '▾' : '▸'}</span>
                           </div>

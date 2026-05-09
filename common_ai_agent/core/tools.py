@@ -1061,8 +1061,12 @@ def grep_file(pattern=None, path=None, context_lines=2, recursive=False, **kwarg
                 current_file = fname
                 current_matches = []
             
-            prefix = ">>> " if is_match else "    "
-            current_matches.append(f"{prefix}{lineno:4d}: {content}")
+            # Uniform width — no >>> / spaces prefix.
+            # Some UIs (atlas web, textual) post-process the >>> marker for
+            # match lines only, which broke alignment between match and
+            # context rows. Right-align the line number in a fixed column
+            # so every row lines up regardless of UI handling.
+            current_matches.append(f"{lineno:>5d}: {content}")
 
         dump_current()
         
