@@ -3573,13 +3573,49 @@ class AgentTUI(App):
     def _refresh_model_sidebar(self) -> None:
         """Update #model widget with current active model name, and reload pricing."""
         try:
+            def _normalize_effort(raw: str) -> str:
+                v = (raw or "").strip().lower()
+                if not v:
+                    return ""
+                aliases = {
+                    "m": "medium",
+                    "med": "medium",
+                    "mid": "medium",
+                    "h": "high",
+                    "xh": "xhigh",
+                    "o": "off",
+                    "f": "off",
+                    "disable": "off",
+                    "disabled": "off",
+                    "false": "off",
+                }
+                v = aliases.get(v, v)
+                return v if v in ("none", "minimal", "low", "medium", "high", "xhigh", "off") else v
+
             def _short(name: str) -> str:
                 return name.split("/")[-1] if "/" in name else name
 
             active = _short(self._active_model) if self._active_model else _short(self._primary_model)
+            effort = _normalize_effort(
+                os.environ.get("REASONING_MODE", "")
+                or os.environ.get("REASONING_EFFORT", "")
+            )
+            if not effort:
+                try:
+                    import config as _cfg
+                    effort = _normalize_effort(
+                        getattr(_cfg, "REASONING_MODE", "")
+                        or getattr(_cfg, "REASONING_EFFORT", "")
+                    )
+                except Exception:
+                    effort = ""
             t = RichText()
             if active:
                 t.append(active, style=_TEXT_DIM)
+            if effort:
+                if active:
+                    t.append("  ")
+                t.append(f"effort:{effort}", style=f"dim {_ACCENT}")
             self.query_one("#model", Static).update(t)
 
             # Load pricing from model_pricing.py based on active model
@@ -3710,6 +3746,11 @@ class AgentTUI(App):
         elif re.match(r"^\s*Model:\s*(\S+)", _plain):
             m_ml = re.match(r"^\s*Model:\s*(\S+)", _plain)
             self._active_model = m_ml.group(1)
+            self._refresh_model_sidebar()
+        elif ("reasoning.effort=" in _plain.lower()
+              or re.search(r"\breasoning effort set to\b", _plain, re.IGNORECASE)):
+            # /effort or --effort updates don't change model name, so refresh
+            # model row explicitly to reflect the new effort immediately.
             self._refresh_model_sidebar()
 
         # Skill dynamically routed: "  [skill] <name> (llm-routed)" or "[skill] <name>"

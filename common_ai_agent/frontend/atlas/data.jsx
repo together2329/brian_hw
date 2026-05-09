@@ -413,13 +413,18 @@
     };
   }
 
-  async function refreshFileTree(path) {
+  async function refreshFileTree(path, opts) {
     const reqPath = normalizeScopePath(path || '');
     // When the user has narrowed to a sub-scope we go recursive so the
     // panel shows every file inside, not just the top level. At the
     // project root we keep it shallow (94 top-level entries already
     // crowd the panel — sub-dirs are reachable by clicking in).
-    const recursive = (reqPath && reqPath.length > 0) ? '&recursive=1' : '';
+    // `opts.recursive=true` overrides this — used by the "expand all"
+    // button to force a deep refresh even at root scope. opts.recursive
+    // false keeps the auto behavior (avoids fighting against scope-narrowed
+    // recursive defaults).
+    let recursive = (reqPath && reqPath.length > 0) ? '&recursive=1' : '';
+    if (opts && opts.recursive === true) recursive = '&recursive=1';
     try {
       const r = await fetch('/api/files?path=' + encodeURIComponent(reqPath) + recursive);
       if (!r.ok) return;

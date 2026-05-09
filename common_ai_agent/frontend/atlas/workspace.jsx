@@ -819,6 +819,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     try { localStorage.setItem('atlasFileSort', fileSort); } catch (_) {}
   }, [fileSort]);
 
+  // File-tree expand mode — 'shallow' (top level only at root) or
+  // 'deep' (recursive descent up to backend max_depth). Toggling
+  // 'expand all' / 'collapse all' triggers a refresh with the chosen
+  // recursive flag. Persisted across reloads.
+  const [fileExpand, setFileExpand] = React.useState(() => {
+    try { return localStorage.getItem('atlasFileExpand') === 'deep' ? 'deep' : 'shallow'; }
+    catch (_) { return 'shallow'; }
+  });
+  React.useEffect(() => {
+    try { localStorage.setItem('atlasFileExpand', fileExpand); } catch (_) {}
+    if (window.atlasData && window.atlasData.refreshFileTree) {
+      window.atlasData.refreshFileTree(window.SCOPE_PATH || '', { recursive: fileExpand === 'deep' });
+    }
+  }, [fileExpand]);
+
   const NORMAL_FEED = [
     { kind: 'agent', text: 'Connected. Type a message and press Enter to talk to the agent.' },
   ];
@@ -915,6 +930,15 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     // to default on both the UI and backend; otherwise CONTEXT refresh
     // can re-enter the old workflow after local React state cleared.
     const next = workflow === w ? null : w;
+    // Always halt the agent before flipping workflow. Without this, an
+    // in-flight react_loop can keep iterating against the OLD workspace
+    // after the UI has pivoted, generating "wrote to wrong workflow"
+    // surprises. Fire-and-forget — backend stop is idempotent.
+    try {
+      fetch('/api/control/stop', {
+        method: 'POST', cache: 'no-store', keepalive: true,
+      }).catch(() => {});
+    } catch (_) {}
     setWorkflow(next);
     window.CONTEXT = Object.assign({}, window.CONTEXT || {}, { workspace: next || '' });
     refreshFeed(intent, next);
@@ -2335,19 +2359,28 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   const effRightW = isSimDebug ? 0 : rightW;
   const renderFeedEntries = () => {
     // Pairing pre-pass: when an action entry is immediately followed by
-    // an obs entry whose tool matches, fuse them into one ToolCard.
+    // an obs entry, fuse them into one ToolCard. Adjacency is enough —
+    // strict tool-name match is too brittle (legacy/normalized entries
+    // sometimes leave .tool empty on one side, causing a standalone
+    // "OBS" row to leak into the feed).
     const out = [];
     for (let i = 0; i < feed.length; i++) {
       const cur = feed[i];
       const nxt = feed[i + 1];
-      if (cur && cur.kind === 'action' && nxt && nxt.kind === 'obs'
-          && cur.tool && nxt.tool && cur.tool === nxt.tool) {
+      if (cur && cur.kind === 'action' && nxt && nxt.kind === 'obs') {
         out.push(<ToolCard key={i} action={cur} obs={nxt} summaryMode={chatFeedSummary} />);
         i++;
         continue;
       }
       if (cur && cur.kind === 'action' && cur.tool) {
         out.push(<ToolCard key={i} action={cur} obs={null} summaryMode={chatFeedSummary} />);
+        continue;
+      }
+      // Orphan obs (action got swallowed, or hydration ordering anomaly):
+      // wrap it in a ToolCard so it gets the same single-row collapsed
+      // look as paired tools, instead of a separate "OBS" header line.
+      if (cur && cur.kind === 'obs') {
+        out.push(<ToolCard key={i} action={null} obs={cur} summaryMode={chatFeedSummary} />);
         continue;
       }
       out.push(
@@ -2572,11 +2605,31 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 fontFamily: 'var(--mono)',
               }}
             >{fileSort === 'recent' ? '⏱ recent' : 'A→Z'}</span>
+            {/* Expand-all / collapse-all toggle. 'shallow' = top level
+                only at root (default — avoids dumping the whole project
+                tree); 'deep' = recursive (backend max_depth=4). Persisted
+                across reloads via localStorage. */}
+            <span
+              title={fileExpand === 'deep'
+                ? 'expanded — click to collapse to top level'
+                : 'top level only — click to expand all'}
+              onClick={() => setFileExpand(v => v === 'deep' ? 'shallow' : 'deep')}
+              style={{
+                cursor: 'pointer',
+                fontSize: 10,
+                padding: '1px 6px',
+                borderRadius: 2,
+                userSelect: 'none',
+                color: fileExpand === 'deep' ? 'var(--accent)' : 'var(--fg-mute)',
+                border: '1px solid ' + (fileExpand === 'deep' ? 'var(--accent)' : 'var(--line)'),
+                fontFamily: 'var(--mono)',
+              }}
+            >{fileExpand === 'deep' ? '▾ all' : '▸ all'}</span>
             <span
               title="refresh — pull the latest file list now"
               style={{ cursor: 'pointer', color: 'var(--accent)', fontSize: 13,
                        padding: '0 6px', fontWeight: 600, userSelect: 'none' }}
-              onClick={() => window.atlasData.refreshFileTree(window.SCOPE_PATH || '')}
+              onClick={() => window.atlasData.refreshFileTree(window.SCOPE_PATH || '', { recursive: fileExpand === 'deep' })}
             >↻</span>
           </div>
           <div style={{ flex: 1, overflow: 'auto', padding: '4px 0' }}>
@@ -3340,28 +3393,34 @@ const ObsCard = ({ entry, embedded, summaryMode = true }) => {
     );
   }
 
-  // Multi-line: collapsible header + hidden body.
+  // Multi-line: collapsible header + hidden body. When embedded inside
+  // a ToolCard, the parent already shows the line count + arrow on its
+  // own clickable head, so rendering another header here would force
+  // the user to click twice ("first row to peek, second to expand").
+  // Skip the inner header in embedded mode and just render the body.
   return (
     <Wrapper {...wrapperProps}>
       {!embedded && <CopyBtn text={txt} />}
-      <div
-        onClick={() => setOpen(o => !o)}
-        title={open ? 'click to collapse' : 'click to expand full result'}
-        style={{
-          display: 'flex', alignItems: 'baseline', gap: 8,
-          cursor: 'pointer', userSelect: 'none',
-        }}
-      >
-        {!embedded && <span className="rb-tag">obs{entry.tool ? ` · ${entry.tool}` : ''}</span>}
-        {statusBadge && <span style={{ fontSize: 12 }}>{statusBadge}</span>}
-        <span style={{ flex: 1 }} />
-        <span className="mute" style={{ fontSize: 'var(--ui-small-font-size)' }}>
-          {lineCount} line{lineCount === 1 ? '' : 's'}
-          {entry.truncated ? ' · truncated' : ''}
-        </span>
-        <span className="mute" style={{ fontSize: 'var(--ui-control-font-size)' }}>{open ? '▾' : '▸'}</span>
-      </div>
-      {open && (
+      {!embedded ? (
+        <div
+          onClick={() => setOpen(o => !o)}
+          title={open ? 'click to collapse' : 'click to expand full result'}
+          style={{
+            display: 'flex', alignItems: 'baseline', gap: 8,
+            cursor: 'pointer', userSelect: 'none',
+          }}
+        >
+          <span className="rb-tag">obs{entry.tool ? ` · ${entry.tool}` : ''}</span>
+          {statusBadge && <span style={{ fontSize: 12 }}>{statusBadge}</span>}
+          <span style={{ flex: 1 }} />
+          <span className="mute" style={{ fontSize: 'var(--ui-small-font-size)' }}>
+            {lineCount} line{lineCount === 1 ? '' : 's'}
+            {entry.truncated ? ' · truncated' : ''}
+          </span>
+          <span className="mute" style={{ fontSize: 'var(--ui-control-font-size)' }}>{open ? '▾' : '▸'}</span>
+        </div>
+      ) : null}
+      {(embedded || open) && (
         looksLikeDiff || !useMarkdownResult ? (
           looksLikeDiff ? (
             <DiffOutputPre text={txt} tool={entry.tool} truncated={entry.truncated} />
@@ -3488,18 +3547,11 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir, summaryM
     return <CollapsibleThought text={entry.text || ''} summaryMode={summaryMode} />;
   }
   if (entry.kind === 'iter_marker') {
-    // Thin right-aligned label for the per-iteration banner. Replaces
-    // the loud full-width "── Iter N / M  [model]" separator that used
-    // to break the visual flow between an action and its obs.
-    return (
-      <div className="iter-marker">
-        <span className="iter-marker-line" />
-        <span className="iter-marker-label">
-          iter {entry.n}{entry.max ? ` / ${entry.max}` : ''}
-          {entry.model ? <span className="iter-marker-model"> · {entry.model}</span> : null}
-        </span>
-      </div>
-    );
+    // Hidden from display per user feedback — iteration counter +
+    // model badge above every tool was visual noise. Marker entries
+    // are still preserved in the feed (so logs / replay still see
+    // them) but render nothing.
+    return null;
   }
   if (entry.kind === 'action') {
     const planned = entry.planned;
@@ -5364,7 +5416,13 @@ const extractFeatures = (section) => listBlocksFromSection(section).map(block =>
   output: blockField(block, 'output', 360),
 }));
 
-const extractSubmodules = (section) => listBlocksFromSection(section).map(block => ({
+// Recursively parse a sub-module block, descending into any nested
+// `sub_modules: …` lists declared on the block. Without recursion, the
+// BlockDiagram could only ever render one level — adding nested support
+// lets a top module wrap its mid-level modules, which themselves wrap
+// leaf modules. Only depth-aware code paths use the `children` field;
+// existing flat-list consumers ignore it.
+const _parseSubmoduleBlock = (block) => ({
   name: blockField(block, 'name') || 'module',
   file: blockField(block, 'file'),
   description: blockField(block, 'description', 360),
@@ -5376,7 +5434,10 @@ const extractSubmodules = (section) => listBlocksFromSection(section).map(block 
     inputs: blockListValues(iface, 'inputs', 8),
     outputs: blockListValues(iface, 'outputs', 8),
   })),
-}));
+  children: listBlocksFromText(block.text, 'sub_modules').map(_parseSubmoduleBlock),
+});
+
+const extractSubmodules = (section) => listBlocksFromSection(section).map(_parseSubmoduleBlock);
 
 const extractModuleContracts = (section) => listBlocksFromSection(section, 'module_contracts').map(block => ({
   module: blockField(block, 'module') || blockField(block, 'name') || 'module',
@@ -5745,12 +5806,36 @@ const _ifaceKind = (name, type) => {
   return 'data';
 };
 
+// Pin connector colors. Clock/reset use a green family (the "ground
+// reference" convention from most SoC schematic tools); bus/data/irq
+// share a deep navy so the user can tell signal-domain pins from
+// timing-domain pins at a glance. Matches the soc-architect ModuleCard
+// palette so the two views feel consistent.
+// Format a port width hint into SystemVerilog range notation.
+// • "" / "1" / 1 → ""        (single-bit, no range)
+// • numeric "8"  → "[7:0]"     (concrete range)
+// • symbolic "NUM_PINS" → "[NUM_PINS-1:0]" (parametric range)
+// • already-shaped "NUM_PINS-1:0" or "[7:0]" → preserved
+const _formatWidth = (w) => {
+  if (w === undefined || w === null || w === '') return '';
+  const s = String(w).trim();
+  if (!s || s === '1') return '';
+  if (s.startsWith('[') && s.endsWith(']')) return s;
+  if (/[:]/.test(s)) return `[${s}]`;
+  if (/^\d+$/.test(s)) {
+    const n = parseInt(s, 10);
+    if (n <= 1) return '';
+    return `[${n - 1}:0]`;
+  }
+  return `[${s}-1:0]`;
+};
+
 const _ifaceColor = (kind) => ({
-  clock: 'var(--cyan)',
-  reset: 'var(--err)',
-  bus:   'var(--accent)',
-  irq:   'var(--warn)',
-  data:  'var(--magenta)',
+  clock: '#3a8f4f',
+  reset: '#3a8f4f',
+  bus:   '#1f3552',
+  irq:   '#1f3552',
+  data:  '#1f3552',
 }[kind] || 'var(--fg-mute)');
 
 // Pure HTML/CSS block diagram for the Architecture section.
@@ -5760,11 +5845,227 @@ const _ifaceColor = (kind) => ({
 // chips around the outer frame edges so the user sees the IP's
 // "shape" (what plugs in where) at a glance. Each interface chip
 // expands to show its full port list when clicked.
-const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = [], clockSection }) => {
+// Recursive submodule cell. When the module has `children`, it renders
+// as a mini-frame containing nested cells (capped by `depthLimit` —
+// any nesting deeper than the limit collapses into a "+N hidden" hint
+// so the user can dial up the level via the BlockDiagram header).
+const SubmoduleCell = ({ module: m, contractByModule, depth, depthLimit }) => {
+  // Submodule pin/interface display — surfaces the per-module local
+  // interfaces (apb_slave, gpio_pad, …) as small chips inside the cell
+  // so the user can see what each submodule plugs into without leaving
+  // the diagram. Contract data (richer: includes role/description)
+  // wins over the raw sub_modules[].interfaces list.
+  const localIfaces = (contractByModule[m.name]?.interfaces && contractByModule[m.name].interfaces.length
+    ? contractByModule[m.name].interfaces
+    : (Array.isArray(m.interfaces) ? m.interfaces : []));
+  const wiringOnly = !!m.wiring_only;
+  const blockColor = wiringOnly ? 'var(--magenta)' : 'var(--cyan)';
+  // Per-cell expand state — clicking a chip toggles its drawer
+  // independent of the top-level pin-row state.
+  const [openLocal, setOpenLocal] = React.useState(() => new Set());
+  const toggleLocal = (id) => setOpenLocal(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+  const childList = Array.isArray(m.children) ? m.children : [];
+  const showChildren = childList.length > 0 && depth < depthLimit;
+  const hiddenChildren = childList.length > 0 && depth >= depthLimit ? childList.length : 0;
+  const orderedChildren = [...childList].sort((a, b) => Number(!!a.wiring_only) - Number(!!b.wiring_only));
+  return (
+    <div
+      style={{
+        border: `${wiringOnly ? '1.5px dashed' : '1.5px solid'} ${blockColor}`,
+        background: 'var(--bg-1)',
+        borderRadius: 5,
+        padding: '7px 10px 8px',
+        minWidth: 0,
+      }}
+    >
+      <div
+        title={m.name}
+        style={{
+          color: blockColor, fontWeight: 700, fontSize: 12,
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        }}
+      >
+        {m.name}
+      </div>
+      {m.file ? (
+        <div
+          className="mute"
+          title={m.file}
+          style={{
+            fontSize: 9, marginTop: 2,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}
+        >
+          {m.file}
+        </div>
+      ) : null}
+      {localIfaces.length ? (
+        <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {localIfaces.map((iface, ifIdx) => {
+            const kind = _ifaceKind(iface.name, iface.type);
+            const color = _ifaceColor(kind);
+            const id = `${m.name}:${iface.name || ifIdx}`;
+            const isOpen = openLocal.has(id);
+            const allPorts = Array.isArray(iface.ports) && iface.ports.length
+              ? iface.ports
+              : [
+                  ...(Array.isArray(iface.inputs) ? iface.inputs : []).map(n =>
+                    typeof n === 'string' ? { name: n, dir: 'input' } : ({ ...n, dir: n.dir || 'input' })
+                  ),
+                  ...(Array.isArray(iface.outputs) ? iface.outputs : []).map(n =>
+                    typeof n === 'string' ? { name: n, dir: 'output' } : ({ ...n, dir: n.dir || 'output' })
+                  ),
+                ];
+            return (
+              <div key={id}>
+                <span
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => { e.stopPropagation(); toggleLocal(id); }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleLocal(id);
+                    }
+                  }}
+                  title={iface.description || iface.role || iface.type || iface.name}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    padding: '1px 6px',
+                    border: `1px solid ${color}`,
+                    background: `color-mix(in oklch, ${color} 6%, transparent)`,
+                    borderRadius: 10,
+                    fontSize: 9,
+                    cursor: 'pointer', userSelect: 'none',
+                    fontFamily: 'var(--mono)',
+                  }}
+                >
+                  <span style={{
+                    width: 6, height: 6, borderRadius: '50%', background: color,
+                  }} />
+                  <span style={{ color: 'var(--fg)', fontWeight: 600 }}>{iface.name || iface.type}</span>
+                  {allPorts.length ? (
+                    <span style={{ color: 'var(--fg-mute)' }}>{allPorts.length}</span>
+                  ) : null}
+                  <span style={{ color: 'var(--fg-mute)' }}>{isOpen ? '▾' : '▸'}</span>
+                </span>
+                {isOpen && allPorts.length ? (
+                  <div style={{
+                    marginTop: 3,
+                    border: `1px solid ${color}`,
+                    borderRadius: 3,
+                    background: 'var(--bg-1)',
+                    padding: '4px 6px',
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(0, 1fr) auto auto',
+                    gap: '1px 8px',
+                    fontSize: 9,
+                  }}>
+                    {allPorts.slice(0, 12).map((p, i) => (
+                      <React.Fragment key={p.name || i}>
+                        <span style={{ color: 'var(--fg)', fontFamily: 'var(--mono)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                        <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)' }}>{p.dir || p.direction || ''}</span>
+                        <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)' }}>{_formatWidth(p.width)}</span>
+                      </React.Fragment>
+                    ))}
+                    {allPorts.length > 12 ? (
+                      <span style={{ gridColumn: '1 / -1', color: 'var(--fg-mute)', fontSize: 8 }}>
+                        +{allPorts.length - 12} more
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+      {wiringOnly ? (
+        <div
+          style={{
+            marginTop: 4,
+            fontSize: 9, color: 'var(--fg-mute)',
+            textTransform: 'uppercase', letterSpacing: '0.06em',
+          }}
+        >
+          wiring only
+        </div>
+      ) : null}
+      {showChildren ? (
+        <div style={{
+          marginTop: 6,
+          padding: '6px',
+          border: `1px dashed color-mix(in oklch, ${blockColor} 40%, var(--line))`,
+          borderRadius: 4,
+          background: `color-mix(in oklch, ${blockColor} 3%, transparent)`,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+          gap: 6,
+        }}>
+          {orderedChildren.map(child => (
+            <SubmoduleCell
+              key={child.name}
+              module={child}
+              contractByModule={contractByModule}
+              depth={depth + 1}
+              depthLimit={depthLimit}
+            />
+          ))}
+        </div>
+      ) : null}
+      {hiddenChildren ? (
+        <div className="mute" style={{
+          marginTop: 4, fontSize: 9, color: 'var(--fg-mute)',
+          fontStyle: 'italic',
+        }}>
+          ↳ +{hiddenChildren} nested submodule{hiddenChildren === 1 ? '' : 's'} (raise depth to view)
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
+// Walk a module tree to find the deepest level present so the depth
+// selector can offer just-enough options (no "5" button when the data
+// only goes 2 deep).
+const _maxNestingDepth = (modules) => {
+  if (!Array.isArray(modules) || !modules.length) return 1;
+  let best = 1;
+  for (const m of modules) {
+    const childDepth = m && Array.isArray(m.children) && m.children.length
+      ? 1 + _maxNestingDepth(m.children)
+      : 1;
+    if (childDepth > best) best = childDepth;
+  }
+  return best;
+};
+
+const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = [], clockSection, parameters = [] }) => {
   const list = Array.isArray(modules) ? modules : [];
   if (!list.length) return null;
-  const [openIface, setOpenIface] = React.useState('');
+  // Multi-open: clicking a pin row toggles ITS drawer without closing
+  // the others. The user wants to compare port lists side-by-side, so
+  // restricting to one open drawer at a time would force back-and-forth
+  // re-expansion. Persisted only for the lifetime of the component.
+  const [openIfaces, setOpenIfaces] = React.useState(() => new Set());
+  const toggleIface = (id) => setOpenIfaces(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
   const [showAllSignals, setShowAllSignals] = React.useState(false);
+  const [showParams, setShowParams] = React.useState(true);
+  const maxDepth = _maxNestingDepth(list);
+  // Default to 1 level so the diagram stays clean even when the SSOT
+  // declares a deep hierarchy. User can raise to 2 / 3 / all from the
+  // header. When SSOT has no nesting at all, the selector is hidden.
+  const [depthLimit, setDepthLimit] = React.useState(1);
+  const paramRows = Array.isArray(parameters) ? parameters.filter(p => p && p.name) : [];
   // Wiring-only wrappers (e.g. <ip>_wrapper) get pushed to the right so
   // the implementation submodules read first; rendering order doesn't
   // imply hardware ordering, just visual grouping.
@@ -5788,10 +6089,105 @@ const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = []
     buckets.reset.push({ name: 'rst_n', type: 'reset', kind: 'reset', description: 'async reset', ports: [] });
   }
 
+  // External pin row — used by the new left-column layout. Renders
+  // `<name · type role>  ─── ●`, with the colored line + dot
+  // visually "plugging into" the right-hand top-module frame.
+  // Clicking the row toggles a port detail drawer underneath.
+  const renderPinRow = (iface, idx) => {
+    const color = _ifaceColor(iface.kind);
+    const id = `${iface.kind}:${iface.name || idx}`;
+    const isOpen = openIfaces.has(id);
+    const ports = Array.isArray(iface.ports) ? iface.ports
+                : Array.isArray(iface.inputs) || Array.isArray(iface.outputs)
+                  ? [...(iface.inputs || []).map(n => ({ name: n, dir: 'in' })),
+                     ...(iface.outputs || []).map(n => ({ name: n, dir: 'out' }))]
+                  : [];
+    const visible = showAllSignals ? ports : ports.slice(0, 8);
+    // "APB4 S" / "CLK S" / "custom S" — short type tag + role abbrev.
+    const typeStr = (iface.type || '').trim() || iface.kind || 'custom';
+    const role = (iface.role || '').toLowerCase().startsWith('mast') ? 'M' : 'S';
+    return (
+      <div key={id} style={{ display: 'flex', flexDirection: 'column' }}>
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => toggleIface(id)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleIface(id);
+            }
+          }}
+          title={iface.description || iface.role || iface.type || iface.name}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 0,
+            cursor: 'pointer', userSelect: 'none',
+            padding: '2px 0',
+          }}
+        >
+          <span style={{
+            flex: 1, textAlign: 'right',
+            paddingRight: 6,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            fontSize: 11,
+          }}>
+            <span style={{ color: 'var(--fg)', fontWeight: 600 }}>{iface.name || iface.type}</span>
+            <span style={{ color: 'var(--fg-mute)' }}> · {typeStr} {role}</span>
+          </span>
+          <span style={{ width: 22, height: 1.5, background: color, flexShrink: 0 }} />
+          <span style={{
+            width: 9, height: 9, borderRadius: '50%',
+            background: color,
+            flexShrink: 0,
+            border: `1px solid ${color}`,
+          }} />
+          {ports.length ? (
+            <span style={{
+              marginLeft: 4, fontSize: 9,
+              color: 'var(--fg-mute)',
+            }}>
+              {isOpen ? '▾' : '▸'}
+            </span>
+          ) : null}
+        </div>
+        {isOpen && ports.length ? (
+          <div style={{
+            margin: '4px 0 4px 8px',
+            border: `1px solid ${color}`,
+            borderRadius: 3,
+            background: 'var(--bg-1)',
+            padding: '5px 8px',
+            display: 'grid',
+            gridTemplateColumns: 'minmax(120px, 1fr) auto minmax(80px, auto)',
+            gap: '2px 10px',
+            fontSize: 10,
+            alignItems: 'baseline',
+          }}>
+            {visible.map((p, i) => (
+              <React.Fragment key={p.name || i}>
+                <span style={{ color: 'var(--fg)', fontFamily: 'var(--mono)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)' }}>{p.dir || p.direction || ''}</span>
+                <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)' }}>{_formatWidth(p.width)}</span>
+              </React.Fragment>
+            ))}
+            {!showAllSignals && ports.length > 8 ? (
+              <span style={{ gridColumn: '1 / -1', color: 'var(--fg-mute)', fontSize: 9 }}>
+                +{ports.length - 8} more · click "show all" above
+              </span>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    );
+  };
+
+  // Legacy chip renderer — retained for any caller that still wants
+  // the in-frame chip style. Kept inert until/unless wired back in.
+  // eslint-disable-next-line no-unused-vars
   const renderIfaceChip = (iface, idx) => {
     const color = _ifaceColor(iface.kind);
     const id = `${iface.kind}:${iface.name || idx}`;
-    const isOpen = openIface === id;
+    const isOpen = openIfaces.has(id);
     const ports = Array.isArray(iface.ports) ? iface.ports : [];
     const visible = showAllSignals ? ports : ports.slice(0, 8);
     return (
@@ -5804,11 +6200,11 @@ const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = []
         <div
           role="button"
           tabIndex={0}
-          onClick={() => setOpenIface(o => (o === id ? '' : id))}
+          onClick={() => toggleIface(id)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
-              setOpenIface(o => (o === id ? '' : id));
+              toggleIface(id);
             }
           }}
           title={iface.description || iface.role || iface.type || iface.name}
@@ -5877,9 +6273,60 @@ const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = []
       fontFamily: 'var(--mono)',
       fontSize: 11,
     }}>
-      {/* Detail toggle */}
+      {/* Detail toggle + depth selector. The depth chip group only
+          appears when the SSOT declares any nesting (maxDepth > 1) —
+          otherwise the buttons would be no-ops and just clutter the
+          header. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+        {maxDepth > 1 ? (
+          <>
+            <span className="mute" style={{ fontSize: 10 }}>depth</span>
+            {[1, 2, 3].filter(d => d <= maxDepth).map(d => (
+              <button
+                key={d}
+                type="button"
+                className="mini-btn"
+                onClick={() => setDepthLimit(d)}
+                title={`show ${d} level${d === 1 ? '' : 's'} of submodules`}
+                style={depthLimit === d ? {
+                  borderColor: 'var(--accent)',
+                  color: 'var(--accent)',
+                } : undefined}
+              >
+                {d}
+              </button>
+            ))}
+            {maxDepth > 3 ? (
+              <button
+                type="button"
+                className="mini-btn"
+                onClick={() => setDepthLimit(maxDepth)}
+                title="show every nested submodule level"
+                style={depthLimit >= maxDepth ? {
+                  borderColor: 'var(--accent)',
+                  color: 'var(--accent)',
+                } : undefined}
+              >
+                all
+              </button>
+            ) : null}
+          </>
+        ) : null}
         <span style={{ flex: 1 }} />
+        {paramRows.length ? (
+          <button
+            type="button"
+            className="mini-btn"
+            onClick={() => setShowParams(v => !v)}
+            title={`toggle parameter chips (${paramRows.length})`}
+            style={showParams ? {
+              borderColor: 'var(--accent)',
+              color: 'var(--accent)',
+            } : undefined}
+          >
+            {showParams ? '▾ params' : '▸ params'}
+          </button>
+        ) : null}
         <button
           type="button"
           className="mini-btn"
@@ -5890,147 +6337,155 @@ const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = []
         </button>
       </div>
 
-      {/* Outer frame == top module. Title sits on the top edge so the
-          frame visually "contains" the children. */}
+      {/* Two-column layout: external pin labels (left) connect to the
+          framed top module (right) via a short colored line + dot,
+          mirroring the soc-architect block-card visual. Pin order:
+          bus → data → irq grouped at top, clock → reset grouped at
+          bottom (clock/reset are the conventional "ground reference"
+          on most block diagrams). */}
       <div style={{
-        position: 'relative',
-        border: `2px solid ${accent}`,
-        borderRadius: 8,
-        background: 'color-mix(in oklch, var(--accent) 5%, var(--bg-2))',
-        padding: '24px 14px 14px',
+        display: 'grid',
+        gridTemplateColumns: 'minmax(120px, 220px) 1fr',
+        gap: 0,
+        alignItems: 'stretch',
       }}>
-        {/* Top-edge label badge */}
+        {/* LEFT — pin column. Each row: label · type role  ─── ● */}
         <div style={{
-          position: 'absolute',
-          top: -11,
-          left: 16,
-          padding: '2px 12px',
-          background: 'var(--bg-1)',
-          border: `2px solid ${accent}`,
-          borderRadius: 4,
-          fontSize: 11,
-          fontWeight: 700,
-          color: 'var(--accent)',
-          letterSpacing: '0.04em',
-          lineHeight: 1.2,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: '36px 0 18px',
+          gap: 4,
         }}>
-          {topName || 'top'}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {[...buckets.bus, ...buckets.data, ...buckets.irq].map((iface, i) =>
+              renderPinRow(iface, `top${i}`)
+            )}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 8 }}>
+            {[...buckets.clock, ...buckets.reset].map((iface, i) =>
+              renderPinRow(iface, `bot${i}`)
+            )}
+          </div>
         </div>
 
-        {/* Top edge — clock + reset chips on the left, bus + irq on
-            the right. Each chip click toggles a port detail drawer. */}
-        {(buckets.clock.length + buckets.reset.length + buckets.bus.length + buckets.irq.length) ? (
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            gap: 8,
-            marginBottom: 12,
-            flexWrap: 'wrap',
-          }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, flex: '0 1 auto' }}>
-              {buckets.clock.map((iface, i) => renderIfaceChip(iface, `clk${i}`))}
-              {buckets.reset.map((iface, i) => renderIfaceChip(iface, `rst${i}`))}
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, flex: '0 1 auto', alignItems: 'flex-end' }}>
-              {buckets.bus.map((iface, i) => renderIfaceChip(iface, `bus${i}`))}
-              {buckets.irq.map((iface, i) => renderIfaceChip(iface, `irq${i}`))}
-            </div>
-          </div>
-        ) : null}
-
-        {/* Inner grid of submodule blocks. Auto-fit columns let the
-            layout reflow when the panel is narrow, and the dashed
-            wiring-only blocks sit alongside solid implementation ones
-            so the user can still tell them apart. */}
+        {/* RIGHT — framed top module. Title + category badges on the
+            top edge, parameters + submodules inside. */}
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-          gap: 10,
+          position: 'relative',
+          border: `2px solid ${accent}`,
+          borderRadius: 8,
+          background: 'color-mix(in oklch, var(--accent) 5%, var(--bg-2))',
+          padding: '28px 16px 16px',
+          marginLeft: -1,
         }}>
-          {ordered.map(m => {
-            const owns = (contractByModule[m.name]?.owns) || m.implements || [];
-            const wiringOnly = !!m.wiring_only;
-            const blockColor = wiringOnly ? 'var(--magenta)' : 'var(--cyan)';
-            return (
-              <div
-                key={m.name}
-                style={{
-                  border: `${wiringOnly ? '1.5px dashed' : '1.5px solid'} ${blockColor}`,
-                  background: 'var(--bg-1)',
-                  borderRadius: 5,
-                  padding: '7px 10px 8px',
-                  minWidth: 0,
-                }}
-              >
-                <div
-                  title={m.name}
+          {/* Top header strip — diamond + module name on the left,
+              category badge on the right. Sits FULLY inside the frame
+              so the outer border doesn't draw a strikethrough across
+              the badge text. */}
+          <div style={{
+            position: 'absolute',
+            top: 8,
+            left: 14,
+            right: 14,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8,
+            pointerEvents: 'none',
+          }}>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 12,
+              fontWeight: 700,
+              color: 'var(--accent)',
+              letterSpacing: '0.04em',
+            }}>
+              <span style={{ fontSize: 13, lineHeight: 1, color: accent }}>◇</span>
+              <span>{topName || 'top'}</span>
+            </div>
+            <span style={{
+              padding: '1px 8px',
+              background: 'transparent',
+              border: `1px solid color-mix(in oklch, ${accent} 50%, var(--line))`,
+              borderRadius: 3,
+              fontSize: 9,
+              fontWeight: 700,
+              color: 'var(--fg-mute)',
+              letterSpacing: '0.08em',
+              lineHeight: 1.4,
+              whiteSpace: 'nowrap',
+            }}>
+              {(() => {
+                const allChips = [...(buckets.bus || []), ...(buckets.irq || []), ...(buckets.data || [])];
+                const text = allChips.map(c => `${c.name || ''} ${c.type || ''}`).join(' ').toLowerCase();
+                if (/(apb|axi|ahb|wishbone|amba)/.test(text)) return 'PERIPH';
+                if (/(cpu|core|fetch|decode|exec)/.test(text)) return 'CORE';
+                if (/(dma|dmac)/.test(text)) return 'DMA';
+                if (/(mem|cache|sram|dram)/.test(text)) return 'MEM';
+                return 'TOP';
+              })()}
+            </span>
+          </div>
+
+          {/* Parameter chips (KEY=value) inside the frame, above
+              submodules. Hidden when paramRows empty or user toggled
+              off via the header `params` button. */}
+          {showParams && paramRows.length ? (
+            <div style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 6,
+              marginBottom: 14,
+            }}>
+              {paramRows.map(p => (
+                <span
+                  key={p.name}
+                  title={p.description || `${p.name}=${p.value}`}
                   style={{
-                    color: blockColor, fontWeight: 700, fontSize: 12,
-                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                    display: 'inline-flex',
+                    alignItems: 'baseline',
+                    gap: 0,
+                    padding: '3px 10px',
+                    background: 'var(--bg-1)',
+                    border: '1px solid var(--line)',
+                    borderRadius: 14,
+                    fontSize: 10,
+                    color: 'var(--fg-mute)',
+                    fontFamily: 'var(--mono)',
                   }}
                 >
-                  {m.name}
-                </div>
-                {m.file ? (
-                  <div
-                    className="mute"
-                    title={m.file}
-                    style={{
-                      fontSize: 9, marginTop: 2,
-                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {m.file}
-                  </div>
-                ) : null}
-                {owns.length ? (
-                  <div style={{ marginTop: 5, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-                    {owns.slice(0, 4).map(o => (
-                      <span
-                        key={o}
-                        style={{
-                          fontSize: 9,
-                          padding: '1px 5px',
-                          border: `1px solid color-mix(in oklch, ${blockColor} 40%, var(--line))`,
-                          borderRadius: 2,
-                          color: blockColor,
-                          background: `color-mix(in oklch, ${blockColor} 6%, transparent)`,
-                        }}
-                      >
-                        {o}
-                      </span>
-                    ))}
-                    {owns.length > 4 ? (
-                      <span className="mute" style={{ fontSize: 9 }}>+{owns.length - 4}</span>
-                    ) : null}
-                  </div>
-                ) : null}
-                {wiringOnly ? (
-                  <div
-                    style={{
-                      marginTop: 4,
-                      fontSize: 9, color: 'var(--fg-mute)',
-                      textTransform: 'uppercase', letterSpacing: '0.06em',
-                    }}
-                  >
-                    wiring only
-                  </div>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
+                  <span>{p.name}</span>
+                  {p.value ? (
+                    <>
+                      <span style={{ color: 'var(--fg-mute)' }}>=</span>
+                      <span style={{ color: 'var(--fg)', fontWeight: 700 }}>{p.value}</span>
+                    </>
+                  ) : null}
+                </span>
+              ))}
+            </div>
+          ) : null}
 
-        {/* Bottom edge — data / pad interfaces (gpio_in, gpio_out, etc.). */}
-        {buckets.data.length ? (
+          {/* Inner grid of submodule blocks. */}
           <div style={{
-            marginTop: 12,
-            display: 'flex', flexWrap: 'wrap', gap: 5,
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+            gap: 10,
           }}>
-            {buckets.data.map((iface, i) => renderIfaceChip(iface, `data${i}`))}
+            {ordered.map(m => (
+              <SubmoduleCell
+                key={m.name}
+                module={m}
+                contractByModule={contractByModule}
+                depth={1}
+                depthLimit={depthLimit}
+              />
+            ))}
           </div>
-        ) : null}
+        </div>
       </div>
     </div>
   );
@@ -6093,6 +6548,25 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
   const interruptsSection = sectionByKey(sections, 'interrupts');
   const fsmSection = sectionByKey(sections, 'fsm');
   const errorsSection = sectionByKey(sections, 'errors') || sectionByKey(sections, 'error_handling');
+  const parametersSection = sectionByKey(sections, 'parameters')
+    || sectionByKey(sections, 'top_module_parameters');
+  // Extract `parameters` blocks → [{name, default, description}]. The
+  // SSOT schema lists parameters as a sub-list inside the `parameters`
+  // section; some IPs nest them under top_module instead, so we accept
+  // both shapes.
+  const parameters = (() => {
+    const collect = (blocks) => blocks.map(b => ({
+      name: blockField(b, 'name') || blockField(b, 'key') || '',
+      value: blockField(b, 'default') || blockField(b, 'value') || blockField(b, 'default_value') || '',
+      description: blockField(b, 'description', 200),
+    })).filter(p => p.name);
+    let rows = collect(listBlocksFromSection(parametersSection));
+    if (!rows.length) {
+      // Fall back to top_module.parameters if the standalone section is absent.
+      rows = collect(listBlocksFromSection(top, 'parameters'));
+    }
+    return rows;
+  })();
 
   const interfaces = extractReviewInterfaces(sections, io);
   const parsedFeatures = extractFeatures(featuresSection);
@@ -6344,6 +6818,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
               contractByModule={contractByModule}
               interfaces={interfaces}
               clockSection={clockSection}
+              parameters={parameters}
             />
           ) : <DigestEmpty />}
         </DigestCard>
@@ -6466,11 +6941,11 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
             <div className="mute" style={{ marginBottom: 8 }}>{iface.description}</div>
             <div style={{ display: 'grid', gap: 4 }}>
               {iface.ports.map(port => (
-                <div key={port.name} style={{ display: 'grid', gridTemplateColumns: 'minmax(120px, 0.8fr) 60px 70px minmax(0, 1.4fr)', gap: 8, fontFamily: 'var(--mono)', fontSize: 11 }}>
-                  <span style={{ color: 'var(--fg)' }}>{port.name}</span>
+                <div key={port.name} style={{ display: 'grid', gridTemplateColumns: 'minmax(110px, 0.7fr) 56px minmax(70px, max-content) minmax(0, 1.4fr)', gap: 10, fontFamily: 'var(--mono)', fontSize: 11, alignItems: 'baseline' }}>
+                  <span style={{ color: 'var(--fg)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{port.name}</span>
                   <span className="mute">{port.direction}</span>
-                  <span className="mute">[{port.width || 1}]</span>
-                  <span className="mute">{port.description}</span>
+                  <span className="mute" style={{ whiteSpace: 'nowrap' }}>[{port.width || 1}]</span>
+                  <span className="mute" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{port.description}</span>
                 </div>
               ))}
             </div>

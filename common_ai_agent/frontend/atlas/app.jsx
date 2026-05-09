@@ -194,6 +194,20 @@ const App = () => {
     const ip = normalizeSession(ipId || '');
     const wf = normalizeSession(workflow || '');
     const namespace = namespaceFor(owner, ip, wf);
+    // Stop the running agent BEFORE flipping the workspace whenever any
+    // of the triple changes. Without this, in-flight tool calls keep
+    // running against the old IP/workflow even after the UI has pivoted,
+    // which produces "wrote to wrong workspace" surprises that are hard
+    // to back out of. Fire-and-forget — `/api/control/stop` is idempotent
+    // and the activate POST below doesn't wait on it. Only triggers on
+    // an actual change (no-op activates from re-renders won't bother
+    // the bridge).
+    const prev = window.ACTIVE_SESSION || '';
+    if (prev && prev !== namespace) {
+      try {
+        fetch('/api/control/stop', { method: 'POST' }).catch(() => {});
+      } catch (_) {}
+    }
     syncNamespaceUrl(namespace, owner, ip, wf);
     setActiveSessionId(owner);
     setActiveIp(ip);
@@ -446,6 +460,35 @@ const App = () => {
     document.documentElement.setAttribute('data-font', fontMode);
     document.documentElement.setAttribute('data-font-scale', fontScale);
   }, [dir, theme, fontMode, fontScale]);
+
+  // Page-load stop guard. Whenever the App mounts (fresh reload, new
+  // tab) we fire /api/control/stop so any agent run left over from a
+  // prior session halts immediately, instead of resuming for 1000
+  // iterations under the user's nose. The backend handler is
+  // idempotent — sending stop when nothing is running is a no-op.
+  // Followed by a /healthz refresh so the workspace state visible in
+  // the UI matches whatever the backend ended up settling on.
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        await fetch('/api/control/stop', {
+          method: 'POST',
+          cache: 'no-store',
+          keepalive: true,
+        });
+      } catch (_) {}
+      if (cancelled) return;
+      // Immediately re-read /healthz so the UI's session/ip/workflow
+      // chips reflect the post-stop server state.
+      try {
+        if (window.atlasData && typeof window.atlasData.refreshHealth === 'function') {
+          await window.atlasData.refreshHealth();
+        }
+      } catch (_) {}
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const sendControl = React.useCallback((type) => {
     if (!type) return;
