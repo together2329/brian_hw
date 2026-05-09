@@ -9432,9 +9432,9 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
       </div>
       {floating && (
         <button className="fold-floating-comment"
-                style={{ position: 'absolute', right: 16, top: floating.top + 4 }}
+                style={{ position: 'absolute', left: 80, top: floating.top + 4 }}
                 onClick={() => dispatchComment(floating.lo, floating.hi, '')}>
-          💬 Comment selection
+          💬 Comment L{floating.lo}-L{floating.hi}
         </button>
       )}
     </div>
