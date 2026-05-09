@@ -390,7 +390,9 @@ def create_app():
         # requesting client's IPv4 + a derived `u-<ipv4-dashed>`
         # session id; the frontend's first-visit seed in data.jsx
         # only fires when these fields are present.
-        if os.environ.get("ATLAS_MULTI_USER", "").strip().lower() in ("1", "true", "yes", "on"):
+        _multi_user_on = os.environ.get("ATLAS_MULTI_USER", "").strip().lower() in ("1", "true", "yes", "on")
+        info["multi_user"] = _multi_user_on
+        if _multi_user_on:
             client_host = (request.client.host if request.client else "") or "127.0.0.1"
             if client_host.startswith("::ffff:"):  # IPv4-mapped IPv6
                 client_host = client_host[7:]

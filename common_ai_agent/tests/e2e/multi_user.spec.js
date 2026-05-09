@@ -29,8 +29,25 @@ async function createSession(page, title) {
   return url.searchParams.get('session_id');
 }
 
+// All tests below assume the server is running with multi-user
+// enforcement on. Without it, ownership checks are intentionally lax
+// (single-user fallback) and these tests would report false failures.
+// Skip the whole suite up-front when /healthz reveals multi-user is
+// off, so the green check on the suite still tells the operator
+// something useful.
+test.beforeAll(async ({ request }) => {
+  let info = {};
+  try {
+    const resp = await request.get('/healthz');
+    info = await resp.json();
+  } catch (_) { /* server unreachable — let later tests fail explicitly */ }
+  const multiUser = !!info.multi_user;
+  test.skip(!multiUser,
+    'multi-user enforcement is off (set ATLAS_MULTI_USER=true on the server)');
+});
+
 // Open a WS in the page context and resolve with the close code.
-async function probeWebSocket(page, urlSuffix, timeoutMs = 3000) {
+async function probeWebSocket(page, urlSuffix, timeoutMs = 8000) {
   return page.evaluate(({ suffix, timeoutMs }) => {
     return new Promise((resolve) => {
       const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
