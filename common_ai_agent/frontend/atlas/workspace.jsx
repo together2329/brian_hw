@@ -1152,16 +1152,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
         const label = String(d.label || '').trim();
         if (!path || !lo || !hi) return;
         const labelStr = label ? ` (${label})` : '';
-        setInput(`@${path} L${lo}-${hi}${labelStr}\n\n`);
-        setTimeout(() => {
+        const next = `@${path} L${lo}-${hi}${labelStr}\n\n`;
+        setInput(next);
+        // After React paints the new value into the textarea, trigger
+        // the same auto-grow that onChange does so the multi-line
+        // prefill is fully visible (rows={1} otherwise clips it).
+        // Two RAFs because React schedules its render via the first
+        // and the layout settles in the second.
+        requestAnimationFrame(() => requestAnimationFrame(() => {
           const el = inputRef.current;
-          if (el) {
-            el.focus();
-            try {
-              el.selectionStart = el.selectionEnd = el.value.length;
-            } catch (_) {}
-          }
-        }, 0);
+          if (!el) return;
+          el.focus();
+          try { el.selectionStart = el.selectionEnd = el.value.length; } catch (_) {}
+          el.style.height = 'auto';
+          el.style.height = Math.min(el.scrollHeight, 192) + 'px';
+        }));
       } catch (_) {}
     };
     window.addEventListener('atlas-fold-comment', handler);
@@ -2266,12 +2271,31 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     }
     // Plain Enter submits. Shift+Enter and Alt/Option+Enter both
     // insert a literal newline so multi-line prompts (paste, code
-    // snippet, structured questions) compose naturally. Without the
-    // Alt branch, macOS users with Shift mapped elsewhere had no
-    // way to break a line.
-    if (e.key === 'Enter' && !e.shiftKey && !e.altKey) {
-      e.preventDefault();
-      submitMsg();
+    // snippet, structured questions) compose naturally. macOS
+    // Safari/Chromium textarea does NOT insert \n on Alt+Enter by
+    // default — we splice it in manually so Option+Enter behaves the
+    // same as Shift+Enter regardless of OS.
+    if (e.key === 'Enter') {
+      if (e.altKey) {
+        e.preventDefault();
+        const el = e.target;
+        const lo = el.selectionStart;
+        const hi = el.selectionEnd;
+        const next = el.value.slice(0, lo) + '\n' + el.value.slice(hi);
+        setInput(next);
+        requestAnimationFrame(() => {
+          el.selectionStart = el.selectionEnd = lo + 1;
+          el.style.height = 'auto';
+          el.style.height = Math.min(el.scrollHeight, 192) + 'px';
+        });
+        return;
+      }
+      if (!e.shiftKey) {
+        e.preventDefault();
+        submitMsg();
+      }
+      // Shift+Enter: textarea native handles newline insertion;
+      // onChange will fire the auto-grow.
     }
   };
 
@@ -9240,19 +9264,19 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
       const lineEl = pane.querySelector(`.line-row[data-ln="${hi}"]`)
                   || pane.querySelector(`[data-ln="${hi}"]`);
       if (!lineEl) return;
-      // Walk up the offsetParent chain until we hit .foldable-body
-      // so the coordinates land in the same reference frame as the
-      // absolutely-positioned button.
-      let top = lineEl.offsetTop + lineEl.offsetHeight + 4;
-      let left = lineEl.offsetLeft + 80;
+      // Anchor BELOW the last-selected line, pinned to the pane's
+      // RIGHT edge so the button never overlaps source code. We
+      // measure offsetTop relative to .foldable-body (the
+      // position-relative ancestor) by walking up the offsetParent
+      // chain until we hit it. Right edge is via inline `right: 8px`.
+      let top = lineEl.offsetTop + lineEl.offsetHeight;
       let p = lineEl.offsetParent;
       const stop = pane.querySelector('.foldable-body');
       while (p && p !== stop && p !== pane) {
-        top  += p.offsetTop;
-        left += p.offsetLeft;
+        top += p.offsetTop;
         p = p.offsetParent;
       }
-      setFloating({ top, left, lo, hi });
+      setFloating({ top, lo, hi });
     };
     window.addEventListener('mouseup', onUp);
     return () => window.removeEventListener('mouseup', onUp);
@@ -9278,7 +9302,16 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
     catch (_) { return line; }
   }, [lang]);
 
-  const srcLines = React.useMemo(() => body.split('\n'), [body]);
+  // Strip Verilator coverage annotation markers (`%FFFFFF`, `%000000`,
+  // ...) that some toolflows insert at the start of each line. These
+  // are only meaningful inside the coverage workflow's dedicated
+  // viewer; in the regular PreviewPane they look like noise. Pattern
+  // is anchored at the line start so identifier `%foo` mid-line
+  // is not affected.
+  const srcLines = React.useMemo(
+    () => body.split('\n').map(line => line.replace(/^%[0-9A-Fa-f]{4,}\s?/, '')),
+    [body],
+  );
   const tree = React.useMemo(() => _buildFoldTree(ranges), [ranges]);
 
   // Render the source as nested <details> + line-rows. The single
@@ -9364,7 +9397,7 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
         {trail}
         {floating && (
           <button className="fold-floating-comment"
-                  style={{ position: 'absolute', left: floating.left, top: floating.top }}
+                  style={{ position: 'absolute', right: 12, top: floating.top }}
                   onClick={() => dispatchComment(floating.lo, floating.hi, '')}>
             💬 Comment selection
           </button>
