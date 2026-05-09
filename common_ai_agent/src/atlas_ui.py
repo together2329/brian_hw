@@ -1318,6 +1318,100 @@ def create_app():
     async def api_ssot_qa_sessions():
         return JSONResponse(_ssot_qa_sessions_view())
 
+    @app.post("/api/ssot/qa/answer")
+    async def api_ssot_qa_answer(req: Request):
+        """Persist a user-supplied answer for a single QA item to qa.json.
+
+        Body shape:
+          {
+            "ip": "<ip_name>",
+            "session": "<owner>/<ip>/<workflow>",   # optional, falls back to active
+            "items": [
+              {
+                "decision_key": "<key>",
+                "answer": "<text>",
+                "selected": ["opt1", "opt2"],         # optional
+                "section_id": "...", "section_title": "...",  # optional
+                "question": "...", "subtitle": "..."          # optional metadata
+              },
+              ...
+            ],
+            "submitted_text": "<full prompt that was sent>"  # optional, mirrored to chat history
+          }
+        """
+        try:
+            body = await req.json()
+        except Exception:
+            return JSONResponse({"error": "invalid json body"}, status_code=400)
+        ip = str((body or {}).get("ip") or "").strip()
+        if not ip or not _valid_ip_name(ip):
+            return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
+        session_name = normalize_session_name(str((body or {}).get("session") or ""))
+        if not session_name:
+            session_name = _canonical_session_string(ip)
+        items_in = (body or {}).get("items") or []
+        if not isinstance(items_in, list) or not items_in:
+            return JSONResponse({"error": "items[] required"}, status_code=400)
+
+        q_pairs: list[tuple[str, str, dict[str, Any]]] = []
+        answers: dict[str, dict[str, Any]] = {}
+        for entry in items_in:
+            if not isinstance(entry, dict):
+                continue
+            key_src = entry.get("decision_key") or entry.get("id") or entry.get("question")
+            if not key_src:
+                continue
+            key = _qa_slug(str(key_src), f"qa_{len(q_pairs) + 1}")
+            label = str(entry.get("decision_label") or entry.get("question") or key)[:240]
+            qmeta = {
+                "decision_key": key,
+                "decision_label": label,
+                "section_id": entry.get("section_id") or "",
+                "section_title": entry.get("section_title") or entry.get("section") or "",
+                "question": entry.get("question") or label,
+                "subtitle": entry.get("subtitle") or "",
+            }
+            q_pairs.append((key, label or key, qmeta))
+            answer_text = str(entry.get("answer") or "").strip()
+            selected = entry.get("selected") if isinstance(entry.get("selected"), list) else []
+            if not answer_text and selected:
+                answer_text = "; ".join(str(s) for s in selected if s)
+            answers[key] = {
+                "answer": answer_text,
+                "selected": [str(s) for s in selected if s],
+                "submitted_at": time.time(),
+                "source": "atlas-ui",
+            }
+
+        if not q_pairs:
+            return JSONResponse({"error": "no valid items to record"}, status_code=400)
+
+        flow_id = "atlas_qa_" + str(int(time.time() * 1000))
+        _upsert_ssot_qa_items(
+            ip,
+            flow_id=flow_id,
+            kind=str((_load_ssot_state(ip) or {}).get("kind") or "general IP"),
+            q_pairs=q_pairs,
+            status="approved",   # user explicitly answered
+            answers=answers,
+            session=session_name,
+            source="atlas-ui-pending",
+        )
+
+        # Mirror the submitted prompt into the conversation log for traceability.
+        submitted_text = str((body or {}).get("submitted_text") or "").strip()
+        if submitted_text:
+            _append_session_message(session_name, "user", submitted_text)
+
+        return JSONResponse({
+            "ok": True,
+            "ip": ip,
+            "session": session_name,
+            "flow_id": flow_id,
+            "count": len(q_pairs),
+            "qa_path": str(_ssot_qa_path(ip, session_name).relative_to(PROJECT_ROOT)),
+        })
+
     @app.get("/api/soc")
     async def api_soc():
         """Build a SoC-Architect-friendly view of the project's IPs.
@@ -3944,8 +4038,40 @@ def create_app():
         return parts[0].lstrip("/").lower(), (parts[1] if len(parts) > 1 else "").strip()
 
     def _session_json_path(session: str) -> Path:
-        clean = normalize_session_name(session)
-        return PROJECT_ROOT / ".session" / clean / "conversation.json"
+        """Map any session string (1/2/3-part) to the canonical
+        .session/<session_id>/<ip>/<workflow>/conversation.json path.
+
+        Legacy (shorter) on-disk locations are auto-migrated on read.
+        """
+        clean = normalize_session_name(session or "")
+        parts = [p for p in clean.split("/") if p]
+        owner_default = os.environ.get("ATLAS_DEFAULT_SESSION_ID") or "default"
+        ip_default = os.environ.get("ATLAS_ACTIVE_IP") or "default"
+        wf_default = os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
+        owner = _resolve_session_owner() or owner_default
+        if len(parts) >= 3:
+            owner, ip, wf = parts[0], parts[1], parts[2]
+        elif len(parts) == 2:
+            ip, wf = parts[0], parts[1]
+        elif len(parts) == 1:
+            ip, wf = ip_default, parts[0]
+        else:
+            ip, wf = ip_default, wf_default
+        canon = PROJECT_ROOT / ".session" / owner / ip / wf
+        # Migrate legacy 2-part / 1-part dirs to canonical on first access.
+        if not canon.exists():
+            for legacy in (
+                PROJECT_ROOT / ".session" / ip / wf,    # 2-part: ip/wf
+                PROJECT_ROOT / ".session" / wf,          # 1-part: wf only
+            ):
+                try:
+                    if legacy != canon and legacy.exists() and legacy.is_dir():
+                        canon.parent.mkdir(parents=True, exist_ok=True)
+                        legacy.rename(canon)
+                        break
+                except OSError:
+                    continue
+        return canon / "conversation.json"
 
     def _append_session_message(session: str, role: str, content: str) -> None:
         session = normalize_session_name(session)
@@ -4005,7 +4131,7 @@ def create_app():
         _append_session_message(workflow, role, content)
 
     def _ssot_state_path(ip: str) -> Path:
-        return PROJECT_ROOT / ".session" / ip / "ssot-gen" / "state.json"
+        return _ssot_session_dir(ip) / "state.json"
 
     def _load_ssot_state(ip: str) -> dict[str, Any]:
         path = _ssot_state_path(ip)
@@ -4036,11 +4162,16 @@ def create_app():
     }
 
     def _ssot_session_dir(ip: str, session: str | None = None) -> Path:
-        clean = normalize_session_name(str(session or os.environ.get("ATLAS_ACTIVE_SESSION") or ""))
-        parts = [p for p in clean.split("/") if p]
-        if len(parts) >= 2 and parts[-1] == "ssot-gen" and parts[-2] == ip:
-            return PROJECT_ROOT / ".session" / clean
-        return PROJECT_ROOT / ".session" / ip / "ssot-gen"
+        # Canonical layout under --ui atlas: .session/<session_id>/<ip>/ssot-gen
+        # Honor an explicitly-passed canonical session string (3-part). For all
+        # other cases delegate to the central canonical resolver, so the
+        # session_id is never silently dropped from the path.
+        if session:
+            clean = normalize_session_name(str(session))
+            parts = [p for p in clean.split("/") if p]
+            if len(parts) >= 3 and parts[-1] == "ssot-gen" and parts[-2] == ip:
+                return PROJECT_ROOT / ".session" / clean
+        return PROJECT_ROOT / ".session" / _canonical_session_string(ip, "ssot-gen")
 
     def _legacy_ssot_session_dir(ip: str) -> Path:
         return PROJECT_ROOT / ".session" / ip / "ssot-gen"
@@ -4119,7 +4250,7 @@ def create_app():
             return parts[-2], session
         ip = str(os.environ.get("ATLAS_ACTIVE_IP") or "").strip()
         if _valid_ip_name(ip):
-            return ip, f"{ip}/ssot-gen"
+            return ip, _canonical_session_string(ip)
         return "", ""
 
     def _upsert_ssot_qa_items(
@@ -4274,7 +4405,7 @@ def create_app():
         return {
             "ip": ip,
             "workflow": "ssot-gen",
-            "session": normalize_session_name(str(session or os.environ.get("ATLAS_ACTIVE_SESSION") or f"{ip}/ssot-gen")),
+            "session": normalize_session_name(str(session or os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip))),
             "approved": bool(state.get("approved")),
             "state_status": state.get("status") or "",
             "toc": toc,
@@ -4483,18 +4614,86 @@ def create_app():
         candidates.sort(reverse=True)
         return candidates[0][1] if candidates else ""
 
+    def _resolve_session_owner() -> str:
+        """Extract the session_id (owner) from ATLAS_ACTIVE_SESSION env.
+
+        Canonical session string layout for --ui atlas is always 3-part:
+            <session_id>/<ip>/<workflow>
+        This helper returns just the session_id (or empty string if no owner
+        can be determined).
+
+        Accepted current-env shapes:
+          - 3+ parts:                       owner/ip/wf[/...] -> owner = parts[0]
+          - 2 parts ending in 'default':    owner/default     -> owner = parts[0]
+          - 1 part that is NOT an IP-like:  bare session_id   -> owner = parts[0]
+        """
+        current = normalize_session_name(str(os.environ.get("ATLAS_ACTIVE_SESSION") or ""))
+        parts = [p for p in current.split("/") if p]
+        if len(parts) >= 3:
+            return parts[0]
+        if len(parts) == 2 and parts[-1] == "default":
+            return parts[0]
+        if len(parts) == 1 and parts[0] and not _valid_ip_name(parts[0]):
+            return parts[0]
+        return ""
+
+    def _canonical_session_string(ip: str | None = None,
+                                   workflow: str | None = None) -> str:
+        """Return canonical 3-part session path string for --ui atlas:
+            <session_id>/<ip>/<workflow>
+
+        Any segment that is empty/None falls back to "default", so the
+        on-disk layout is always 3 levels deep. Defaults can be overridden
+        from CLI via `-s/-ip/-w` (env: ATLAS_DEFAULT_SESSION_ID,
+        ATLAS_ACTIVE_IP, ATLAS_DEFAULT_WORKFLOW).
+        """
+        owner = _resolve_session_owner() or os.environ.get("ATLAS_DEFAULT_SESSION_ID") or "default"
+        ip = ip or os.environ.get("ATLAS_ACTIVE_IP") or "default"
+        workflow = workflow or os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
+        return f"{owner}/{ip}/{workflow}"
+
+    def _canonical_session_dir(ip: str | None = None,
+                                workflow: str | None = None) -> Path:
+        """Filesystem dir for the canonical session path (3 segments)."""
+        return PROJECT_ROOT / ".session" / _canonical_session_string(ip, workflow)
+
+    def _legacy_session_candidates(ip: str | None,
+                                    workflow: str | None) -> list[Path]:
+        """Legacy on-disk locations used before path canonicalization.
+        Used by readers to recover history from older runs."""
+        ip_seg = ip or "default"
+        wf_seg = workflow or "default"
+        cands: list[Path] = []
+        # 2-part: <ip>/<workflow>
+        cands.append(PROJECT_ROOT / ".session" / ip_seg / wf_seg)
+        # 1-part: <workflow> alone (very old)
+        cands.append(PROJECT_ROOT / ".session" / wf_seg)
+        # 1-part: <ip> alone
+        cands.append(PROJECT_ROOT / ".session" / ip_seg)
+        return cands
+
+    def _migrate_legacy_session(ip: str | None,
+                                 workflow: str | None) -> Path:
+        """Locate canonical path; if absent and a legacy path exists, move it
+        in-place. Returns the canonical path (whether or not migration ran)."""
+        canon = _canonical_session_dir(ip, workflow)
+        if canon.exists():
+            return canon
+        for legacy in _legacy_session_candidates(ip, workflow):
+            try:
+                if legacy.exists() and legacy != canon and legacy.is_dir():
+                    canon.parent.mkdir(parents=True, exist_ok=True)
+                    legacy.rename(canon)
+                    break
+            except OSError:
+                continue
+        return canon
+
     def _set_active_ssot_ip(ip: str) -> None:
         if not _valid_ip_name(ip):
             return
-        owner = ""
-        current = normalize_session_name(str(os.environ.get("ATLAS_ACTIVE_SESSION") or ""))
-        current_parts = [p for p in current.split("/") if p]
-        if len(current_parts) >= 3:
-            owner = current_parts[0]
-        elif len(current_parts) >= 2 and current_parts[-1] == "default":
-            owner = current_parts[0]
         os.environ["ATLAS_ACTIVE_IP"] = ip
-        os.environ["ATLAS_ACTIVE_SESSION"] = f"{owner}/{ip}/ssot-gen" if owner else f"{ip}/ssot-gen"
+        os.environ["ATLAS_ACTIVE_SESSION"] = _canonical_session_string(ip, "ssot-gen")
 
     def _active_ssot_ip() -> str:
         env_ip = str(os.environ.get("ATLAS_ACTIVE_IP") or "").strip()
@@ -4568,7 +4767,7 @@ def create_app():
         return ip, kind, import_paths, ""
 
     def _render_ssot_llm_qna_prompt(ip: str, kind: str, state: dict[str, Any]) -> str:
-        session = normalize_session_name(str(os.environ.get("ATLAS_ACTIVE_SESSION") or f"{ip}/ssot-gen"))
+        session = normalize_session_name(str(os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip)))
         imported = state.get("imported_artifacts") if isinstance(state.get("imported_artifacts"), list) else []
         imported_paths = [
             str(item.get("path") or "").strip()
@@ -4669,7 +4868,7 @@ def create_app():
             "approved": False,
             "approved_at": 0,
             "status": "planned",
-            "active_session": os.environ.get("ATLAS_ACTIVE_SESSION") or f"{ip}/ssot-gen",
+            "active_session": os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip),
             "last_step": "new-ip",
             "created_at": time.time(),
         }
@@ -5210,7 +5409,7 @@ def create_app():
         filled, conflicts = _merge_import_candidates(ip, kind, state, artifacts, candidates, sources)
         state.setdefault("ip", ip)
         state.setdefault("kind", kind)
-        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or f"{ip}/ssot-gen"
+        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip)
         _save_ssot_state(ip, state)
         return filled, conflicts, artifacts, errors
 
@@ -5522,7 +5721,7 @@ def create_app():
             return True
 
         ctx_ip, ctx_session = _active_ssot_qa_context()
-        ssot_session = ctx_session if ctx_ip == ip and ctx_session else f"{ip}/ssot-gen"
+        ssot_session = ctx_session if ctx_ip == ip and ctx_session else _canonical_session_string(ip)
         qa_flow_id = _rtl_blocker_flow_id(blocker)
         qa_questions = _rtl_blocker_qa_questions(ip, blocker, cards, reason=reason)
         qa_pairs = _ssot_q_pairs_from_questions(qa_questions)
@@ -5552,7 +5751,7 @@ def create_app():
                 "next: answer from SSOT QA/Preview, or run /resolve-rtl-blockers "
                 f"{ip} when ready to apply the decisions."
             )
-            _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
+            _append_session_message(_canonical_session_string(ip), "assistant", msg)
             _append_workflow_history("ssot-gen", "assistant", msg)
             _append_active_history("assistant", "```\n" + msg + "\n```")
             _emit_workflow_result(msg, "resolve-rtl-blockers")
@@ -5574,7 +5773,7 @@ def create_app():
                     f"[RTL BLOCKER Q&A] {ip}: no answer received; SSOT remains blocked.\n"
                     f"source: {_rtl_blocker_path(ip).relative_to(PROJECT_ROOT)}"
                 )
-                _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
+                _append_session_message(_canonical_session_string(ip), "assistant", msg)
                 _append_workflow_history("ssot-gen", "assistant", msg)
                 _append_active_history("assistant", "```\n" + msg + "\n```")
                 _emit_workflow_result(msg, "resolve-rtl-blockers")
@@ -5621,7 +5820,7 @@ def create_app():
                 msg = _run_rtl_blocker_resolution(ip, blocker, answer_entries)
             except Exception as exc:
                 msg = f"[RTL BLOCKER Q&A] {ip}: failed to apply answers: {exc}"
-            _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
+            _append_session_message(_canonical_session_string(ip), "assistant", msg)
             _append_workflow_history("ssot-gen", "assistant", msg)
             _append_active_history("assistant", "```\n" + msg + "\n```")
             _emit_workflow_result(msg, "resolve-rtl-blockers")
@@ -5825,8 +6024,8 @@ def create_app():
             )
             if errors:
                 msg += "\n\nnotes:\n" + "\n".join(f"- {e}" for e in errors[:8])
-            _append_session_message(f"{ip}/ssot-gen", "user", text)
-            _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
+            _append_session_message(_canonical_session_string(ip), "user", text)
+            _append_session_message(_canonical_session_string(ip), "assistant", msg)
             _append_workflow_history("ssot-gen", "user", text)
             _append_workflow_history("ssot-gen", "assistant", msg)
             _append_active_history("user", text)
@@ -5839,7 +6038,7 @@ def create_app():
         filled, conflicts = _merge_import_candidates(ip, kind, state, artifacts, candidates, sources)
         state.setdefault("ip", ip)
         state.setdefault("kind", kind)
-        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or f"{ip}/ssot-gen"
+        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip)
         _save_ssot_state(ip, state)
 
         missing = _missing_ssot_decisions(ip, state)
@@ -5880,8 +6079,8 @@ def create_app():
             "  /to-ssot after approval",
         ]
         msg = "\n".join(lines)
-        _append_session_message(f"{ip}/ssot-gen", "user", text)
-        _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
+        _append_session_message(_canonical_session_string(ip), "user", text)
+        _append_session_message(_canonical_session_string(ip), "assistant", msg)
         _append_workflow_history("ssot-gen", "user", text)
         _append_workflow_history("ssot-gen", "assistant", msg)
         _append_active_history("user", text)
@@ -5917,7 +6116,7 @@ def create_app():
             return True
         state = _load_ssot_state(ip) or _new_ssot_state(ip)
         _ensure_ssot_draft(ip, str(state.get("kind") or "simple APB peripheral"))
-        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or f"{ip}/ssot-gen"
+        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip)
         state["last_step"] = "grill-me"
         _save_ssot_state(ip, state)
         missing = _missing_ssot_decisions(ip, state)
@@ -5926,8 +6125,8 @@ def create_app():
             f"backend baseline missing keys: {', '.join(missing) if missing else '(none)'}\n"
             "Fixed question templates are bypassed; questions must be derived from the current SSOT/imported evidence."
         )
-        _append_session_message(f"{ip}/ssot-gen", "user", text)
-        _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
+        _append_session_message(_canonical_session_string(ip), "user", text)
+        _append_session_message(_canonical_session_string(ip), "assistant", msg)
         _append_workflow_history("ssot-gen", "user", text)
         _append_workflow_history("ssot-gen", "assistant", msg)
         _append_active_history("user", text)
@@ -5977,7 +6176,7 @@ def create_app():
                 "Run `/import " + ip + " " + " ".join(import_paths) + "` to populate SSOT TODOs."
             )
         _save_ssot_state(ip, state)
-        session = f"{ip}/ssot-gen"
+        session = _canonical_session_string(ip)
         plan = _render_new_ip_plan(ip, kind, state)
         if import_notes:
             plan += "\n\nImport:\n" + "\n".join(f"- {line}" for line in import_notes)
@@ -6017,8 +6216,8 @@ def create_app():
                 f"missing decisions: {', '.join(missing)}\n"
                 "Use /import to seed existing evidence, then /grill-me to answer only the gaps."
             )
-            _append_session_message(f"{ip}/ssot-gen", "user", text)
-            _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
+            _append_session_message(_canonical_session_string(ip), "user", text)
+            _append_session_message(_canonical_session_string(ip), "assistant", msg)
             _append_workflow_history("ssot-gen", "user", text)
             _append_workflow_history("ssot-gen", "assistant", msg)
             _append_active_history("user", text)
@@ -6029,7 +6228,7 @@ def create_app():
         state["approved"] = True
         state["approved_at"] = time.time()
         state["status"] = "approved"
-        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or f"{ip}/ssot-gen"
+        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip)
         state["last_step"] = "approve"
         _save_ssot_state(ip, state)
         spec = _render_approved_ssot_spec(ip, state)
@@ -6038,7 +6237,7 @@ def create_app():
             f"YAML write is now allowed.\n"
             "Next: type /to-ssot in the Web UI when the summary looks correct."
         )
-        session = f"{ip}/ssot-gen"
+        session = _canonical_session_string(ip)
         _append_session_message(session, "user", text)
         _append_session_message(session, "assistant", spec)
         _append_session_message(session, "assistant", msg)
@@ -6077,13 +6276,13 @@ def create_app():
                 )
                 if errors:
                     note += "\nnotes:\n" + "\n".join(f"- {err}" for err in errors[:8])
-                _append_session_message(f"{ip}/ssot-gen", "assistant", note)
+                _append_session_message(_canonical_session_string(ip), "assistant", note)
                 _append_workflow_history("ssot-gen", "assistant", note)
                 _append_active_history("assistant", "```\n" + note + "\n```")
             if _auto_approve_if_complete(ip, state, reason="auto_approve_from_import_before_to_ssot"):
                 state = _load_ssot_state(ip)
                 note = f"[SSOT APPROVED] {ip}: auto-approved because imported evidence filled all required decisions."
-                _append_session_message(f"{ip}/ssot-gen", "assistant", note)
+                _append_session_message(_canonical_session_string(ip), "assistant", note)
                 _append_workflow_history("ssot-gen", "assistant", note)
                 _append_active_history("assistant", "```\n" + note + "\n```")
         if not state.get("approved"):
@@ -6094,8 +6293,8 @@ def create_app():
                 f"missing decisions: {', '.join(missing) if missing else '(review not approved)'}\n\n"
                 f"Put files under {ip}/doc/ or run /import @doc, then /to-ssot again. Use /grill-me only for the listed gaps."
             )
-            _append_session_message(f"{ip}/ssot-gen", "user", text)
-            _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
+            _append_session_message(_canonical_session_string(ip), "user", text)
+            _append_session_message(_canonical_session_string(ip), "assistant", msg)
             _append_active_history("user", text)
             _append_active_history("assistant", "```\n" + msg + "\n```")
             _emit_workflow_result(msg, "to-ssot")
@@ -6103,8 +6302,8 @@ def create_app():
                 _emit_ssot_approval_ready(ip, state, missing)
             return True
         spec = _render_approved_ssot_spec(ip, state)
-        _append_session_message(f"{ip}/ssot-gen", "user", text)
-        _append_session_message(f"{ip}/ssot-gen", "assistant", spec)
+        _append_session_message(_canonical_session_string(ip), "user", text)
+        _append_session_message(_canonical_session_string(ip), "assistant", spec)
         _append_workflow_history("ssot-gen", "user", text)
         _append_workflow_history("ssot-gen", "assistant", spec)
         _append_active_history("user", text)
@@ -6152,7 +6351,7 @@ def create_app():
                 bridge_parts += ["", "validator stderr:", validate.stderr.strip()]
             bridge_msg = "\n".join(bridge_parts)
 
-        _append_session_message(f"{ip}/ssot-gen", "assistant", bridge_msg)
+        _append_session_message(_canonical_session_string(ip), "assistant", bridge_msg)
         _append_workflow_history("ssot-gen", "assistant", bridge_msg)
         _append_active_history("assistant", "```\n" + bridge_msg + "\n```")
         _emit_workflow_result(bridge_msg, "to-ssot")
@@ -6213,7 +6412,7 @@ def create_app():
         script = SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "repair_ssot_schema.py"
         validator = SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
         ssot_path = PROJECT_ROOT / ip / "yaml" / f"{ip}.ssot.yaml"
-        session = f"{ip}/ssot-gen"
+        session = _canonical_session_string(ip)
         _append_session_message(session, "user", text)
         _append_workflow_history("ssot-gen", "user", text)
         _append_active_history("user", text)
@@ -9978,7 +10177,20 @@ def main() -> None:
                                   description="Atlas frontend for common_ai_agent")
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--host", default="127.0.0.1")
+    # Canonical 3-part session path: <session_id>/<ip>/<workflow>
+    # All three default to "default" so the directory layout is uniform.
+    ap.add_argument("-s", "--session", dest="session_id", default="default",
+                    help="session_id segment (default: 'default')")
+    ap.add_argument("-ip", "--ip", dest="ip", default="default",
+                    help="ip segment (default: 'default')")
+    ap.add_argument("-w", "--workflow", dest="workflow", default="default",
+                    help="workflow segment (default: 'default')")
     args = ap.parse_args()
+    # Seed environment so all path resolvers see the canonical 3-part string.
+    os.environ["ATLAS_ACTIVE_SESSION"] = f"{args.session_id}/{args.ip}/{args.workflow}"
+    os.environ["ATLAS_ACTIVE_IP"] = args.ip
+    os.environ.setdefault("ATLAS_DEFAULT_SESSION_ID", args.session_id)
+    os.environ.setdefault("ATLAS_DEFAULT_WORKFLOW", args.workflow)
     run_atlas_ui(port=args.port, host=args.host)
 
 

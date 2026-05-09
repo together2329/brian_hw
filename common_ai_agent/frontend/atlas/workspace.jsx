@@ -2453,7 +2453,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               ? [...window.FILE_TREE].sort((a, b) => (b.mtime || 0) - (a.mtime || 0))
               : window.FILE_TREE
             ).map((n, i) => {
-              const fullPath = (window.SCOPE_PATH ? window.SCOPE_PATH + '/' : '') + n.name;
+              const baseScope = String(window.SCOPE_PATH || '').replace(/^\/+|\/+$/g, '');
+              const relName = String(n.name || '').replace(/^\/+/g, '');
+              const fullPath = (baseScope ? `${baseScope}/` : '') + relName;
               const isSelected = n.type === 'file' && previewPath === fullPath;
               return (
                 <div key={i}
@@ -2784,6 +2786,65 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                       setTimeout(() => inputRef.current?.focus(), 0);
                     }
                   }}
+                  onSubmitPending={(bundle, text) => {
+                    const payload = String(text || '').trim();
+                    if (!payload) return;
+                    const items = Array.isArray(bundle) ? bundle : [];
+                    setInput('');
+                    // 1) Mirror submitted text into chat feed for traceability.
+                    setFeed(f => [...f, { kind: 'user', text: payload, createdAt: Date.now() }]);
+                    let session = 'default';
+                    try {
+                      session = normalizeUiSession(window.ACTIVE_SESSION || '') || 'default';
+                    } catch (_) {}
+                    // 2) Persist answered items into qa.json via the backend.
+                    try {
+                      const ip = ssotQa?.ip || activeIp || '';
+                      if (ip && items.length) {
+                        const qaItems = items.map(({ item, draft }) => {
+                          const selected = (draft?.opts || []).filter(o => o.selected).map(o => o.label);
+                          const customNote = String(draft?.custom || '').trim();
+                          return {
+                            decision_key: item?.decision_key || item?.source || item?.id || '',
+                            decision_label: item?.decision_label || '',
+                            section_id: item?.section_id || item?.section || '',
+                            section_title: item?.section_title || '',
+                            question: item?.question || '',
+                            subtitle: item?.subtitle || '',
+                            selected,
+                            answer: customNote || selected.join('; '),
+                          };
+                        }).filter(x => x.decision_key);
+                        if (qaItems.length) {
+                          fetch('/api/ssot/qa/answer', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              ip,
+                              session,
+                              items: qaItems,
+                              submitted_text: payload,
+                            }),
+                          })
+                            .then(r => r.ok ? r.json() : null)
+                            .then(_resp => {
+                              try { refreshSsotQa?.(); } catch (_) {}
+                            })
+                            .catch(() => {});
+                        }
+                      }
+                    } catch (_) {}
+                    // 3) Send the prompt to the backend for LLM processing.
+                    try {
+                      window.backend?.send?.({
+                        type: 'prompt',
+                        text: payload,
+                        session,
+                        ui_lang: window.ATLAS_UI_LANG || 'ko',
+                      });
+                    } catch (_) {}
+                    setMainTab('chat');
+                  }}
                 />
               )}
               {qaHistory.length > 0 && (
@@ -3036,14 +3097,19 @@ const CollapsibleThought = ({ text, summaryMode = true }) => {
 // react-block wrapper (used by ToolCard which provides its own
 // outer container).
 const ObsCard = ({ entry, embedded, summaryMode = true }) => {
-  // In summary mode, multi-line tool output stays closed by default:
-  // tool name + args + first result line + line count are enough for the
-  // normal chat feed. Full stdout/diffs remain one click away.
-  const [open, setOpen] = React.useState(!summaryMode);
+  // Replace/edit tools default to OPEN even in summary mode so the user
+  // can see the actual diff without an extra click. Other tools stay
+  // collapsed in summary mode.
+  const isReplaceTool = entry?.tool && /^(replace_in_file|replace_lines|write_file|edit|patch|update_file)/i.test(entry.tool);
+  const [open, setOpen] = React.useState(!summaryMode || isReplaceTool);
   React.useEffect(() => {
-    setOpen(!summaryMode);
-  }, [summaryMode]);
+    setOpen(!summaryMode || isReplaceTool);
+  }, [summaryMode, isReplaceTool]);
   let txt = summaryMode ? _cleanTodoToolText(entry.text || '', entry.tool) : (entry.text || '');
+  // Strip ANSI escape sequences leaked from terminal-style backends
+  // (e.g. `\x1b[1m`, `\x1b[38;5;71m`, `\x1b[0m`) so they don't show as
+  // raw `[1m`, `[96m`, etc. in the chat feed.
+  txt = txt.replace(/\x1b\[[\d;]*m/g, '');
 
   const lines = txt.split('\n');
   const isMulti = lines.length > 1;
@@ -3099,9 +3165,7 @@ const ObsCard = ({ entry, embedded, summaryMode = true }) => {
       >
         {!embedded && <span className="rb-tag">obs{entry.tool ? ` · ${entry.tool}` : ''}</span>}
         {statusBadge && <span style={{ fontSize: 12 }}>{statusBadge}</span>}
-        <span className="mute trunc" style={{ flex: 1, fontSize: 'var(--ui-control-font-size)' }}>
-          {firstLine}
-        </span>
+        <span style={{ flex: 1 }} />
         <span className="mute" style={{ fontSize: 'var(--ui-small-font-size)' }}>
           {lineCount} line{lineCount === 1 ? '' : 's'}
           {entry.truncated ? ' · truncated' : ''}
@@ -3640,9 +3704,8 @@ const AskUserQuestionBlock = ({
   );
 };
 
-const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSession, onBack, onRefresh, onUsePending }) => {
+const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSession, onBack, onRefresh, onUsePending, onSubmitPending }) => {
   const sections = Array.isArray(data?.sections) ? data.sections : [];
-  const toc = Array.isArray(data?.toc) ? data.toc : [];
   const sessionRows = Array.isArray(sessions) ? sessions : [];
   const summary = data?.summary || { total: 0, approved: 0, pending: 0 };
   const hasIp = !!data?.ip;
@@ -3689,6 +3752,8 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
         autoInputHint: 'select or type here; the chat input updates automatically',
         questionLoaded: 'question loaded into chat input',
         inputUpdated: 'chat input updated',
+        send: 'send',
+        sendNeedAnswer: 'select an option or type an answer first',
       }
     : {
         noSession: '선택된 SSOT QA 세션이 없습니다.',
@@ -3720,15 +3785,17 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
         autoInputHint: '여기서 선택/입력하면 채팅 입력창에 자동 반영됩니다',
         questionLoaded: '질문이 채팅 입력창에 들어갔습니다',
         inputUpdated: '채팅 입력창이 업데이트되었습니다',
+        send: '전송',
+        sendNeedAnswer: '옵션을 선택하거나 답변을 입력한 후 전송하세요',
       };
-  const [openPendingKey, setOpenPendingKey] = React.useState('');
+  // Pending QA cards default to expanded; user can collapse individual cards.
+  // Tracking the *closed* set (not the open one) keeps the open-by-default
+  // semantics even as new pending items stream in.
+  const [closedPendingKeys, setClosedPendingKeys] = React.useState(() => new Set());
   const [answerDrafts, setAnswerDrafts] = React.useState({});
+  // Active section tab — null means "first section with pending items, else first section".
+  const [activeSectionId, setActiveSectionId] = React.useState(null);
   const [lastInputKey, setLastInputKey] = React.useState('');
-  const scrollTo = (id) => {
-    try {
-      document.getElementById('ssot-qa-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } catch (_) {}
-  };
   const pendingItemKey = (item) => [
     item?.flow_id || '',
     item?.section || item?.section_id || '',
@@ -3766,22 +3833,29 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
   ) || String(draft?.custom || '').trim().length > 0;
   const buildPendingInputText = (item, draft = pendingDraft(item)) => {
     const selectedRows = (draft?.opts || []).filter(option => option.selected);
-    const selectedText = selectedRows.map(option => (
-      option.detail ? `${option.id} - ${option.label}: ${option.detail}` : `${option.id} - ${option.label}`
+    const selectedLines = selectedRows.map(option => (
+      option.detail ? `  - ${option.label} (${option.id}): ${option.detail}` : `  - ${option.label} (${option.id})`
     ));
     const custom = String(draft?.custom || '').trim();
-    const parts = [
-      `Answer pending QA for ${data?.ip || activeIp || 'current IP'}${item.decision_key ? ` / ${item.decision_key}` : ''}`,
-    ];
-    if (item.decision_key) parts.push(`Decision key: ${item.decision_key}`);
-    if (item.decision_label && item.decision_label !== item.question) parts.push(`Decision: ${item.decision_label}`);
-    parts.push(`Question: ${item.question || item.decision_label || 'Untitled question'}`);
-    if (item.subtitle) parts.push(`Context: ${item.subtitle}`);
-    if (selectedText.length) parts.push(`Selected: ${selectedText.join('; ')}`);
-    if (custom) parts.push(`Answer: ${custom}`);
-    if (!selectedText.length && !custom) parts.push('Answer: <choose option or type note>');
-    parts.push('Apply this answer to SSOT-GEN QA and continue the current workflow.');
-    return parts.join(' | ');
+    const ip = data?.ip || activeIp || 'current IP';
+    const lines = [];
+    const headerKey = item.decision_key ? ` · ${item.decision_key}` : '';
+    lines.push(`### Answer pending QA — ${ip}${headerKey}`);
+    if (item.decision_label && item.decision_label !== item.question) {
+      lines.push(`Decision: ${item.decision_label}`);
+    }
+    lines.push(`Question: ${item.question || item.decision_label || 'Untitled question'}`);
+    if (item.subtitle) lines.push(`Context : ${item.subtitle}`);
+    if (selectedLines.length) {
+      lines.push('Selected:');
+      lines.push(...selectedLines);
+    }
+    if (custom) lines.push(`Note    : ${custom}`);
+    if (!selectedLines.length && !custom) {
+      lines.push('Answer  : <choose option or type note>');
+    }
+    lines.push('Apply this answer to SSOT-GEN QA and continue the current workflow.');
+    return lines.join('\n');
   };
   const pushPendingInput = (item, draft, focusChat = false) => {
     if (!onUsePending) return;
@@ -3810,10 +3884,13 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
     const kind = pendingKind(item);
     const hasAnswer = hasPendingAnswer(draft);
     return (
-      <div style={{
-        marginTop: 8,
-        paddingTop: 8,
-        borderTop: '1px solid var(--line)',
+      <div
+        onClick={(ev) => ev.stopPropagation()}
+        onKeyDown={(ev) => ev.stopPropagation()}
+        style={{
+          marginTop: 8,
+          paddingTop: 8,
+          borderTop: '1px solid var(--line)',
       }}>
         <div style={{ color: 'var(--fg-mute)', fontSize: 10, marginBottom: 6 }}>
           {kind === 'multi' ? t.selectMany : (kind === 'single' ? t.selectOne : t.typedAnswer)}
@@ -3851,13 +3928,31 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
             {lastInputKey === key ? (hasAnswer ? t.inputUpdated : t.questionLoaded) : t.autoInputHint}
           </span>
           <span style={{ flex: 1 }} />
-          <button
-            type="button"
-            className="mini-btn"
-            onClick={() => pushPendingInput(item, draft, true)}
-          >
-            {t.sendToInput}
-          </button>
+          {onSubmitPending ? (
+            <button
+              type="button"
+              className="mini-btn"
+              disabled={!hasAnswer}
+              title={hasAnswer ? '' : t.sendNeedAnswer}
+              onClick={(ev) => {
+                ev.stopPropagation();
+                if (!hasAnswer) return;
+                onSubmitPending(
+                  [{ item, draft }],
+                  buildPendingInputText(item, draft),
+                );
+              }}
+              style={{
+                background: hasAnswer ? 'var(--cyan)' : undefined,
+                color: hasAnswer ? 'var(--bg-0)' : undefined,
+                fontWeight: hasAnswer ? 600 : undefined,
+                opacity: hasAnswer ? 1 : 0.45,
+                cursor: hasAnswer ? 'pointer' : 'not-allowed',
+              }}
+            >
+              {t.send}
+            </button>
+          ) : null}
         </div>
       </div>
     );
@@ -3865,11 +3960,39 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
   const renderQa = (item, status) => {
     const key = pendingItemKey(item);
     const isPending = status === 'pending';
-    const isOpen = isPending && openPendingKey === key;
+    // Pending cards default to OPEN. The user can collapse individual cards;
+    // we track the closed set so newly-streamed pending items stay open.
+    const isOpen = isPending && !closedPendingKeys.has(key);
     const statusColor = atlasStatusMeta(status).color;
+    const cardToggleable = isPending && onUsePending;
+    const togglePendingCard = () => {
+      if (!cardToggleable) return;
+      setClosedPendingKeys(prev => {
+        const next = new Set(prev);
+        if (next.has(key)) next.delete(key);
+        else next.add(key);
+        return next;
+      });
+      // When opening (was closed), seed chat input with current draft.
+      if (closedPendingKeys.has(key)) {
+        pushPendingInput(item, pendingDraft(item), false);
+      }
+    };
+    const handleCardKey = (ev) => {
+      if (!cardToggleable) return;
+      if (ev.key === 'Enter' || ev.key === ' ') {
+        ev.preventDefault();
+        togglePendingCard();
+      }
+    };
     return (
       <div
         key={key}
+        role={cardToggleable ? 'button' : undefined}
+        tabIndex={cardToggleable ? 0 : undefined}
+        onClick={cardToggleable ? togglePendingCard : undefined}
+        onKeyDown={cardToggleable ? handleCardKey : undefined}
+        title={cardToggleable ? (isOpen ? 'Click to collapse' : 'Click to expand — chat input auto-fills') : undefined}
         style={{
           padding: '8px 10px',
           border: '1px solid var(--line)',
@@ -3879,6 +4002,7 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
             : 'color-mix(in oklch, var(--warn) 8%, transparent)',
           marginBottom: 8,
           fontFamily: 'var(--mono)',
+          cursor: cardToggleable ? 'pointer' : 'default',
         }}
       >
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
@@ -3887,20 +4011,18 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
             {item.decision_key || item.source || 'qa'}
           </span>
           <span style={{ flex: 1 }} />
-          {isPending && onUsePending ? (
-            <button
-              type="button"
-              className="mini-btn"
-              onClick={(ev) => {
-                ev.stopPropagation();
-                const nextOpen = isOpen ? '' : key;
-                setOpenPendingKey(nextOpen);
-                if (nextOpen) pushPendingInput(item, pendingDraft(item), false);
+          {cardToggleable ? (
+            <span
+              aria-hidden="true"
+              style={{
+                color: 'var(--fg-mute)',
+                fontSize: 10,
+                fontFamily: 'var(--mono)',
+                userSelect: 'none',
               }}
-              title="Answer this pending QA in the QA panel"
             >
-              {isOpen ? t.close : t.answer}
-            </button>
+              {isOpen ? '▾' : '▸'}
+            </span>
           ) : null}
         </div>
         <div style={{ color: 'var(--fg)', fontSize: 12, lineHeight: 1.45 }}>
@@ -4008,69 +4130,153 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
         </div>
       </div>
 
-      <div style={{
-        border: '1px solid var(--line)',
-        padding: 10,
-        background: 'color-mix(in oklch, var(--bg-1) 75%, transparent)',
-      }}>
-        <div style={{ fontSize: 11, color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
-          {t.toc}
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 6 }}>
-          {toc.length ? toc.map(section => (
-            <button
-              key={section.id}
-              type="button"
-              onClick={() => scrollTo(section.id)}
-              style={{
-                textAlign: 'left',
-                border: '1px solid var(--line)',
-                background: 'transparent',
-                color: 'var(--fg)',
-                padding: '6px 8px',
-                cursor: 'pointer',
-                fontFamily: 'var(--mono)',
-              }}
-            >
-              <div style={{ fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {section.title}
+      {sections.length ? (() => {
+        const sectionsList = sections;
+        // Resolve which section to show. If user clicked one, honor that.
+        // Otherwise default to the first section that still has pending QAs,
+        // falling back to the first section.
+        const firstWithPending = sectionsList.find(s => (s.pending || []).length > 0);
+        const fallbackId = (firstWithPending || sectionsList[0])?.id;
+        const activeId = activeSectionId && sectionsList.some(s => s.id === activeSectionId)
+          ? activeSectionId
+          : fallbackId;
+        const active = sectionsList.find(s => s.id === activeId) || sectionsList[0];
+        // Collect all pending items across all sections for the global submit bar.
+        const allPending = sectionsList.flatMap(s => (s.pending || []));
+        const answerableAllPending = allPending.filter(item => hasPendingAnswer(pendingDraft(item)));
+        const submitAll = () => {
+          if (!onSubmitPending) return;
+          if (!answerableAllPending.length) return;
+          const bundle = answerableAllPending.map(item => ({ item, draft: pendingDraft(item) }));
+          // Build a single combined prompt that lists every answered pending QA.
+          const ip = data?.ip || activeIp || 'current IP';
+          const header = `# Submit ${bundle.length} pending QA answer${bundle.length === 1 ? '' : 's'} for ${ip}`;
+          const segments = bundle.map(({ item, draft }, i) => {
+            const body = buildPendingInputText(item, draft).replace(/^### .*\n?/, '');
+            return `## [${i + 1}/${bundle.length}] ${item.decision_key || 'qa'}\n${body}`;
+          });
+          const combined = [header, '', ...segments].join('\n\n');
+          onSubmitPending(bundle, combined);
+        };
+        return (
+          <div style={{
+            border: '1px solid var(--line)',
+            background: 'var(--bg-1)',
+            display: 'flex',
+            minHeight: 0,
+          }}>
+            {/* Left column — section tabs (vertical) */}
+            <div style={{
+              width: 260,
+              flex: '0 0 260px',
+              borderRight: '1px solid var(--line)',
+              padding: 10,
+              maxHeight: '70vh',
+              overflowY: 'auto',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                <div style={{ fontSize: 11, color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  {t.toc}
+                </div>
+                <span style={{ flex: 1 }} />
+                {onSubmitPending && allPending.length > 0 ? (
+                  <button
+                    type="button"
+                    className="mini-btn"
+                    disabled={!answerableAllPending.length}
+                    title={answerableAllPending.length
+                      ? `${t.send} all ${answerableAllPending.length} pending`
+                      : t.sendNeedAnswer}
+                    onClick={submitAll}
+                    style={{
+                      background: answerableAllPending.length ? 'var(--cyan)' : undefined,
+                      color: answerableAllPending.length ? 'var(--bg-0)' : undefined,
+                      fontWeight: answerableAllPending.length ? 600 : undefined,
+                      opacity: answerableAllPending.length ? 1 : 0.45,
+                      cursor: answerableAllPending.length ? 'pointer' : 'not-allowed',
+                      fontSize: 10,
+                    }}
+                  >
+                    {t.send} {answerableAllPending.length || ''}
+                  </button>
+                ) : null}
               </div>
-              <div style={{ fontSize: 10, color: 'var(--fg-mute)', marginTop: 3 }}>
-                {section.approved || 0} {t.approved} / {section.pending || 0} {t.pending}
-              </div>
-            </button>
-          )) : (
-            <div style={{ color: 'var(--fg-mute)', fontSize: 12 }}>{t.none}</div>
-          )}
-        </div>
-      </div>
+              {sectionsList.map(section => {
+                const pendingCount = (section.pending || []).length;
+                const approvedCount = (section.approved || []).length;
+                const isActive = section.id === activeId;
+                return (
+                  <button
+                    key={section.id}
+                    type="button"
+                    onClick={() => setActiveSectionId(section.id)}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      textAlign: 'left',
+                      border: '1px solid var(--line)',
+                      borderLeft: `3px solid ${isActive
+                        ? 'var(--cyan)'
+                        : (pendingCount > 0 ? 'var(--warn)' : 'var(--ok)')}`,
+                      background: isActive
+                        ? 'color-mix(in oklch, var(--cyan) 8%, transparent)'
+                        : 'transparent',
+                      color: 'var(--fg)',
+                      padding: '6px 8px',
+                      cursor: 'pointer',
+                      fontFamily: 'var(--mono)',
+                      marginBottom: 4,
+                    }}
+                  >
+                    <div style={{ fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {section.title}
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--fg-mute)', marginTop: 3 }}>
+                      {approvedCount} {t.approved} / {pendingCount} {t.pending}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
 
-      {sections.length ? sections.map(section => (
-        <section
-          key={section.id}
-          id={'ssot-qa-' + section.id}
-          style={{ border: '1px solid var(--line)', background: 'var(--bg-1)', padding: 12 }}
-        >
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 10 }}>
-            <div style={{ color: 'var(--fg)', fontSize: 13, fontWeight: 700 }}>{section.title}</div>
-            <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
-              {(section.approved || []).length} {t.approved} / {(section.pending || []).length} {t.pending}
-            </span>
+            {/* Right column — active section's QA cards */}
+            <div style={{
+              flex: 1,
+              padding: 12,
+              maxHeight: '70vh',
+              overflowY: 'auto',
+              minWidth: 0,
+            }}>
+              {active ? (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 10 }}>
+                    <div style={{ color: 'var(--fg)', fontSize: 13, fontWeight: 700 }}>{active.title}</div>
+                    <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
+                      {(active.approved || []).length} {t.approved} / {(active.pending || []).length} {t.pending}
+                    </span>
+                  </div>
+                  {(active.pending || []).length ? (
+                    <div style={{ marginBottom: 10 }}>
+                      <div style={{ marginBottom: 6 }}>
+                        <AtlasStatusBadge status="pending" label={t.pending} count={(active.pending || []).length} compact soft />
+                      </div>
+                      {(active.pending || []).map(item => renderQa(item, 'pending'))}
+                    </div>
+                  ) : null}
+                  {(active.approved || []).length ? (
+                    <div>
+                      <div style={{ marginBottom: 6 }}>
+                        <AtlasStatusBadge status="approved" label={t.approved} count={(active.approved || []).length} compact soft />
+                      </div>
+                      {(active.approved || []).map(item => renderQa(item, 'approved'))}
+                    </div>
+                  ) : null}
+                </>
+              ) : null}
+            </div>
           </div>
-          {(section.pending || []).length ? (
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ marginBottom: 6 }}><AtlasStatusBadge status="pending" label={t.pending} count={(section.pending || []).length} compact soft /></div>
-              {(section.pending || []).map(item => renderQa(item, 'pending'))}
-            </div>
-          ) : null}
-          {(section.approved || []).length ? (
-            <div>
-              <div style={{ marginBottom: 6 }}><AtlasStatusBadge status="approved" label={t.approved} count={(section.approved || []).length} compact soft /></div>
-              {(section.approved || []).map(item => renderQa(item, 'approved'))}
-            </div>
-          ) : null}
-        </section>
-      )) : (
+        );
+      })() : (
         <div style={{ padding: 20, color: 'var(--fg-mute)', fontSize: 12 }}>
           {t.noCards} <code style={{ color: 'var(--cyan)' }}>/new-ip</code> / <code style={{ color: 'var(--cyan)' }}>/grill-me</code>.
         </div>
@@ -6504,6 +6710,135 @@ const TodoPanel = () => {
     }
   };
 
+  const todoLines = (value, { splitCommas = false } = {}) => {
+    if (Array.isArray(value)) {
+      return value.flatMap(v => todoLines(v, { splitCommas }));
+    }
+    if (value && typeof value === 'object') {
+      return Object.entries(value).flatMap(([k, v]) => {
+        const vv = String(v ?? '').trim();
+        return vv ? [`${k}: ${vv}`] : [String(k)];
+      }).filter(Boolean);
+    }
+    const raw = String(value ?? '').trim();
+    if (!raw) return [];
+    const prepared = raw.replace(/\s+(Each\s+TODO\s+gets:)/gi, '\n$1');
+    return prepared
+      .split(/\r?\n+/)
+      .map(line => line.trim())
+      .filter(Boolean)
+      .flatMap((line) => {
+        const clean = line.replace(/^[-*•]\s*/, '').trim();
+        if (!clean) return [];
+        if (!splitCommas) return [clean];
+        const m = clean.match(/^([^:]{2,48}):\s*(.+)$/);
+        if (m) return [clean];
+        const items = clean.split(/\s*,\s*/).map(s => s.trim()).filter(Boolean);
+        if (items.length >= 4 && clean.length > 120) return items;
+        return [clean];
+      });
+  };
+
+  const todoDetailBlocks = (detail) => {
+    const blocks = [];
+    todoLines(detail, { splitCommas: false }).forEach((line) => {
+      const parts = line.length > 180
+        ? line.split(/(?<=\.)\s+|;\s+/).map(s => s.trim()).filter(Boolean)
+        : [line];
+      parts.forEach((part) => {
+        const listMatch = part.match(/^([^:]{2,48}):\s*(.+)$/);
+        if (listMatch && listMatch[2].includes(',')) {
+          const items = listMatch[2].split(/\s*,\s*/).map(s => s.trim()).filter(Boolean);
+          if (items.length >= 3) {
+            blocks.push({ type: 'list', label: listMatch[1], items });
+            return;
+          }
+        }
+        blocks.push({ type: 'text', text: part });
+      });
+    });
+    return blocks;
+  };
+
+  const TodoField = ({ label, children }) => (
+    <div style={{ display: 'grid', gap: 3 }}>
+      <div style={{
+        color: 'var(--cyan)',
+        fontSize: 10,
+        letterSpacing: '0.08em',
+        textTransform: 'uppercase',
+        fontWeight: 700,
+      }}>{label}</div>
+      <div style={{ color: 'var(--fg-dim)', lineHeight: 1.62 }}>{children}</div>
+    </div>
+  );
+
+  const TodoBulletList = ({ items }) => (
+    <div style={{ display: 'grid', gap: 2 }}>
+      {items.map((item, idx) => (
+        <div key={`${item}-${idx}`} style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+          <span className="mute" style={{ lineHeight: 1.6 }}>•</span>
+          <span style={{ flex: 1 }}>{item}</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  const TodoStructuredBody = ({ todo }) => {
+    const detail = todoDetailBlocks(todo.detail);
+    const criteria = todoLines(todo.criteria, { splitCommas: true });
+    const sourceRefs = todoLines(todo.sourceRefs, { splitCommas: true });
+    const owner = [String(todo.ownerModule || '').trim(), String(todo.ownerFile || '').trim()].filter(Boolean);
+    const required = typeof todo.required === 'boolean'
+      ? (todo.required ? 'yes' : 'no')
+      : (todo.required == null ? '' : String(todo.required).trim());
+    return (
+      <div style={{ display: 'grid', gap: 8, overflowWrap: 'anywhere' }}>
+        {detail.length > 0 && (
+          <TodoField label="Detail">
+            <div style={{ display: 'grid', gap: 4 }}>
+              {detail.map((blk, idx) => (
+                blk.type === 'list' ? (
+                  <div key={`dlist-${idx}`} style={{ display: 'grid', gap: 3 }}>
+                    <span style={{ color: 'var(--fg)' }}>{blk.label}</span>
+                    <TodoBulletList items={blk.items} />
+                  </div>
+                ) : (
+                  <div key={`dtext-${idx}`}>{blk.text}</div>
+                )
+              ))}
+            </div>
+          </TodoField>
+        )}
+        {criteria.length > 0 && (
+          <TodoField label="Criteria">
+            <TodoBulletList items={criteria} />
+          </TodoField>
+        )}
+        {sourceRefs.length > 0 && (
+          <TodoField label="Source Refs">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {sourceRefs.map((ref, idx) => (
+                <span key={`src-${idx}`} style={{
+                  border: '1px solid var(--line)',
+                  borderRadius: 2,
+                  padding: '1px 6px',
+                  color: 'var(--fg)',
+                }}>{ref}</span>
+              ))}
+            </div>
+          </TodoField>
+        )}
+        {owner.length > 0 && (
+          <TodoField label="Owner">{owner.join(' · ')}</TodoField>
+        )}
+        {required && (
+          <TodoField label="Required">{required}</TodoField>
+        )}
+      </div>
+    );
+  };
+
   const TodoReason = ({ todo }) => {
     const approved = todo.state === 'approved' || todo.state === 'done';
     const rejected = todo.state === 'rejected';
@@ -6515,13 +6850,13 @@ const TodoPanel = () => {
       <div style={{
         marginTop: 5,
         fontFamily: 'var(--mono)',
-        fontSize: 'var(--ui-control-font-size)',
-        lineHeight: 1.45,
+        fontSize: 'var(--ui-font-size)',
+        lineHeight: 1.55,
         whiteSpace: 'pre-wrap',
       }}>
         <span style={{ color, fontWeight: 700 }}>{label}</span>
         <span className="mute"> : </span>
-        <span className="mute">{_limitAtlasLines(reason, 5)}</span>
+        <span style={{ color: 'var(--fg-dim)' }}>{_limitAtlasLines(reason, 5)}</span>
       </div>
     );
   };
@@ -6535,13 +6870,13 @@ const TodoPanel = () => {
       <div style={{
         marginTop: 5,
         fontFamily: 'var(--mono)',
-        fontSize: 'var(--ui-control-font-size)',
-        lineHeight: 1.45,
+        fontSize: 'var(--ui-font-size)',
+        lineHeight: 1.55,
         whiteSpace: 'pre-wrap',
       }}>
         <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>Notes</span>
         <span className="mute"> : </span>
-        <span className="mute">[{lastIndex}] {_limitAtlasLines(last, 5)}</span>
+        <span style={{ color: 'var(--fg-dim)' }}>[{lastIndex}] {_limitAtlasLines(last, 5)}</span>
         {notes.length > 1 && (
           <span className="mute" style={{ marginLeft: 6 }}>+{notes.length - 1} earlier</span>
         )}
@@ -6661,7 +6996,7 @@ const TodoPanel = () => {
                       style={{
                         display: 'flex', alignItems: 'center', gap: 6,
                         padding: '4px 12px 2px', cursor: 'pointer',
-                        fontFamily: 'var(--mono)', fontSize: 9,
+                        fontFamily: 'var(--mono)', fontSize: 10,
                         letterSpacing: '0.1em', textTransform: 'uppercase',
                         color: cfg.color, userSelect: 'none',
                       }}
@@ -6680,8 +7015,8 @@ const TodoPanel = () => {
                             onClick={() => setOpenId(open ? null : t.id)}
                             style={{
                               display: 'grid', gridTemplateColumns: '96px 36px minmax(0, 1fr) 16px',
-                              alignItems: 'baseline', gap: 6, padding: '4px 12px',
-                              cursor: 'pointer', fontFamily: 'var(--mono)', fontSize: 12,
+                              alignItems: 'baseline', gap: 8, padding: '6px 12px',
+                              cursor: 'pointer', fontFamily: 'var(--mono)', fontSize: 13,
                               background: t.state === 'active' || t.state === 'in_progress'
                                 ? 'color-mix(in oklch, var(--accent) 8%, transparent)'
                                 : 'transparent',
@@ -6691,20 +7026,26 @@ const TodoPanel = () => {
                           >
                             <AtlasStatusBadge status={t.state} label={tcfg.label} compact soft />
                             <span className="mute" style={{ fontSize: 11 }}>{t.section}</span>
-                            <span style={{ color: t.state === 'pending' ? 'var(--fg-mute)' : 'var(--fg)' }}>{t.title}</span>
+                            <span style={{ color: t.state === 'pending' ? 'var(--fg-dim)' : 'var(--fg)' }}>{t.title}</span>
                             <span className="mute" style={{ fontSize: 10 }}>{open ? '▾' : '▸'}</span>
                           </div>
                           {open && (
-                            <div className="mute fade-in" style={{
-                              padding: '6px 12px 10px 64px', fontSize: 11, lineHeight: 1.5,
-                              borderLeft: '2px solid var(--line)', marginLeft: 12, marginRight: 12,
-                              background: 'var(--bg-2)',
+                            <div className="fade-in" style={{
+                              padding: '10px 14px 12px 64px',
+                              fontSize: 13,
+                              lineHeight: 1.68,
+                              color: 'var(--fg-dim)',
+                              borderLeft: '2px solid var(--line-2)',
+                              borderTop: '1px solid var(--line)',
+                              marginLeft: 12,
+                              marginRight: 12,
+                              background: 'color-mix(in oklch, var(--bg-2) 92%, var(--fg) 8%)',
                             }}>
-                              {t.detail}
+                              <TodoStructuredBody todo={t} />
                               <TodoNotes todo={t} />
                               <TodoReason todo={t} />
                               {t.deps && t.deps.length > 0 && (
-                                <div style={{ marginTop: 4, fontSize: 10 }}>
+                                <div style={{ marginTop: 6, fontSize: 11, lineHeight: 1.5 }}>
                                   <span className="mute">deps:</span>{' '}
                                   {t.deps.map(d => <span key={d} className="acc">§{d} </span>)}
                                 </div>
@@ -6734,9 +7075,17 @@ const TodoPanel = () => {
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                     <AtlasStatusBadge status={t.state} label={cfg.label} compact soft />
                     <span className="mute" style={{ fontSize: 11 }}>{t.section}</span>
-                    <span style={{ fontWeight: t.state === 'active' ? 500 : 400, flex: 1, fontSize: 12 }}>{t.title}</span>
+                    <span style={{ fontWeight: t.state === 'active' ? 600 : 500, flex: 1, fontSize: 13, color: 'var(--fg)' }}>{t.title}</span>
                   </div>
-                  <div className="mute" style={{ fontSize: 11, marginTop: 4, marginLeft: 22, lineHeight: 1.4 }}>{t.detail}</div>
+                  <div style={{
+                    color: 'var(--fg-dim)',
+                    fontSize: 13,
+                    marginTop: 6,
+                    marginLeft: 22,
+                    lineHeight: 1.62,
+                  }}>
+                    <TodoStructuredBody todo={t} />
+                  </div>
                   <div style={{ marginLeft: 22 }}>
                     <TodoNotes todo={t} />
                     <TodoReason todo={t} />
