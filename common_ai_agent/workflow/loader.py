@@ -741,20 +741,28 @@ def register_workspace_commands(ws: "WorkspaceConfig", slash_registry) -> list:
 
     for f in sorted(ws.commands_dir.glob("*.json")):
         try:
-            spec = json.loads(f.read_text(encoding="utf-8"))
-            handler = _make_command_handler(spec, ws)
-            cmd_name = spec["name"]
-            slash_registry.register(
-                name=cmd_name,
-                handler=handler,
-                description=spec.get("description", ""),
-                aliases=spec.get("aliases", []),
-                usage=spec.get("usage", f"/{cmd_name}"),
-            )
-            registered_names.append(cmd_name)
-            registered_names.extend(spec.get("aliases", []))
+            raw = json.loads(f.read_text(encoding="utf-8"))
+            # Accept both single-dict files (one command per file) and
+            # list-of-dicts files (e.g. architect/commands/architect.json
+            # which packs add-ip / import-ipxact / connect / ... into one
+            # JSON array). Without this branch the list form crashed with
+            # "'list' object has no attribute 'get'".
+            specs = raw if isinstance(raw, list) else [raw]
+            for spec in specs:
+                if not isinstance(spec, dict) or "name" not in spec:
+                    continue
+                handler = _make_command_handler(spec, ws)
+                cmd_name = spec["name"]
+                slash_registry.register(
+                    name=cmd_name,
+                    handler=handler,
+                    description=spec.get("description", ""),
+                    aliases=spec.get("aliases", []),
+                    usage=spec.get("usage", f"/{cmd_name}"),
+                )
+                registered_names.append(cmd_name)
+                registered_names.extend(spec.get("aliases", []))
         except Exception as e:
-            # Non-fatal: log and continue
             import sys as _sys
             print(f"[Workspace] Failed to load command {f.name}: {e}", file=_sys.stderr)
 

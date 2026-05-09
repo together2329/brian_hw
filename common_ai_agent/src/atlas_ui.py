@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import collections
+import contextvars
 import hashlib
 import json
 import os
@@ -33,7 +34,7 @@ import sys
 import threading
 import time
 from pathlib import Path
-from typing import Any, Callable, TYPE_CHECKING
+from typing import Any, Callable, Optional, TYPE_CHECKING
 
 # `from __future__ import annotations` turns every type annotation into
 # a string. FastAPI's `get_type_hints()` then needs to resolve those
@@ -64,6 +65,37 @@ FRONTEND     = SOURCE_ROOT / "frontend" / "atlas"
 PROJECT_ROOT = Path(os.getcwd()).resolve()
 # Backwards compat alias — older code references ROOT.
 ROOT         = SOURCE_ROOT
+
+_atlas_active_session_cv = contextvars.ContextVar("atlas_active_session", default="")
+_atlas_active_ip_cv = contextvars.ContextVar("atlas_active_ip", default="")
+_atlas_ui_lang_cv = contextvars.ContextVar("atlas_ui_lang", default="")
+_agent_mode_override_cv = contextvars.ContextVar("agent_mode_override", default="")
+_plan_mode_cv = contextvars.ContextVar("plan_mode", default="false")
+
+
+def _active_session_value() -> str:
+    return _atlas_active_session_cv.get() or os.environ.get("ATLAS_ACTIVE_SESSION", "")
+
+
+def _active_ip_value() -> str:
+    return _atlas_active_ip_cv.get() or os.environ.get("ATLAS_ACTIVE_IP", "")
+
+
+def _ui_lang_value() -> str:
+    return _atlas_ui_lang_cv.get() or os.environ.get("ATLAS_UI_LANG", "")
+
+
+def _plan_mode_value() -> str:
+    return _plan_mode_cv.get() or os.environ.get("PLAN_MODE", "false")
+
+
+def _sync_env_to_context() -> None:
+    """Copy contextvars back to os.environ for legacy main.py reads."""
+    os.environ["ATLAS_ACTIVE_SESSION"] = _atlas_active_session_cv.get()
+    os.environ["ATLAS_ACTIVE_IP"] = _atlas_active_ip_cv.get()
+    os.environ["ATLAS_UI_LANG"] = _atlas_ui_lang_cv.get()
+    os.environ["AGENT_MODE_OVERRIDE"] = _agent_mode_override_cv.get()
+    os.environ["PLAN_MODE"] = _plan_mode_cv.get()
 
 
 def _python_cmd() -> str:
@@ -102,224 +134,6 @@ def _format_answer(ans: dict[str, Any], options: list[dict[str, Any]]) -> str:
     return " · ".join(parts)
 
 
-# ── Bridge between agent thread and async WS handlers ──────────────
-class _AtlasBridge:
-    """Queues prompts from the WS into the sync agent loop and pushes
-    agent events back out to all connected WS clients.
-    """
-
-    def __init__(self) -> None:
-        self._inbox: queue.Queue[str] = queue.Queue()
-        self._interrupts: queue.Queue[str] = queue.Queue()
-        self._outbox: queue.Queue[dict[str, Any]] = queue.Queue()
-        self._answer_qs: dict[str, queue.Queue[Any]] = {}            # flow_id → queue.Queue
-        self._answer_lock = threading.Lock()
-        self._pending_ask_user: dict[str, dict[str, Any]] = {}
-        self._pending_ask_user_lock = threading.Lock()
-        self.agent_running: bool = False
-        self.agent_alive: bool = False
-        self._agent_lock = threading.Lock()
-        self._agent_starter: Callable[[], None] | None = None
-        # Esc-style abort flag — checked once per poll by react_loop.
-        # Set when the UI sends {type:'stop'}; cleared by check_stop().
-        self._stop_flag: bool = False
-        # Bounded LRU of WS message ids we've already submitted, used to
-        # dedupe retransmits when the frontend resends a prompt because
-        # it didn't receive an `agent_received` ack in time.
-        self._seen_msg_ids: collections.OrderedDict[str, float] = collections.OrderedDict()
-        self._seen_msg_ids_lock = threading.Lock()
-        self._SEEN_MSG_LIMIT = 256
-
-    # — agent-side (sync) —
-    def get_input(self, prompt: str = "") -> str:
-        return self._inbox.get()
-
-    def poll_interrupt(self) -> str | None:
-        try:
-            return self._interrupts.get_nowait()
-        except queue.Empty:
-            return None
-
-    def emit(self, msg_type: str, **payload: Any) -> None:
-        msg = {"type": msg_type, **payload}
-        if msg_type == "ask_user":
-            session = normalize_session_name(str(msg.get("session") or os.environ.get("ATLAS_ACTIVE_SESSION") or ""))
-            if session:
-                msg.setdefault("session", session)
-            ip = str(msg.get("ip") or os.environ.get("ATLAS_ACTIVE_IP") or "").strip()
-            if ip:
-                msg.setdefault("ip", ip)
-        flow_id = str(payload.get("flow_id") or "")
-        if flow_id:
-            with self._pending_ask_user_lock:
-                if msg_type == "ask_user":
-                    self._pending_ask_user[flow_id] = dict(msg)
-                elif msg_type in {"ask_user_answered", "ask_user_closed"}:
-                    self._pending_ask_user.pop(flow_id, None)
-        self._outbox.put_nowait(msg)
-
-    def pending_ask_user_events(self) -> list[dict[str, Any]]:
-        with self._pending_ask_user_lock:
-            return [dict(event) for event in self._pending_ask_user.values()]
-
-    # ask_user lifecycle (agent-side, sync) —
-    def open_question(self, flow_id: str) -> "queue.Queue[Any]":
-        q: queue.Queue[Any] = queue.Queue()
-        with self._answer_lock:
-            self._answer_qs[flow_id] = q
-        return q
-
-    def close_question(self, flow_id: str) -> None:
-        with self._answer_lock:
-            self._answer_qs.pop(flow_id, None)
-        self.emit("ask_user_closed", flow_id=flow_id)
-
-    def wait_answer(self, flow_id: str, timeout: float | None = None) -> Any | None:
-        with self._answer_lock:
-            q = self._answer_qs.get(flow_id)
-        if q is None:
-            return None
-        try:
-            return q.get(timeout=timeout)
-        except queue.Empty:
-            return None
-
-    # — ws-side (async) —
-    def set_agent_starter(self, fn: Callable[[], None]) -> None:
-        self._agent_starter = fn
-
-    def ensure_agent_alive(self) -> None:
-        starter = self._agent_starter
-        if starter is None:
-            return
-        with self._agent_lock:
-            if self.agent_alive:
-                return
-            self.agent_alive = True
-            # Clear any stale stop flag set BEFORE this thread existed.
-            # Mount-time stop / activate-on-triple-change can set the
-            # flag while no agent thread is running; the very next
-            # thread we spin up would otherwise see the flag on its
-            # first check_stop poll and exit immediately, swallowing
-            # the user's first prompt. Resetting here ensures stop
-            # semantics only ever apply to a CURRENTLY RUNNING agent.
-            self._stop_flag = False
-        starter()
-
-    def submit_prompt(self, text: str) -> None:
-        # A fresh user message means any prior stop has been honored
-        # (or is being overridden by the user's intent to continue).
-        # Without this reset, an in-flight `_stop_flag` set by mount-
-        # time /api/control/stop or by triple-change halt could be
-        # consumed by the agent thread on its first poll, killing the
-        # turn before it processes the just-queued message — which is
-        # exactly the "first message after reload gets swallowed"
-        # symptom that required a second submission to recover.
-        self._stop_flag = False
-        self.ensure_agent_alive()
-        # Slash-prefixed input always lands in the _inbox so the slash
-        # dispatcher can pick it up on the next turn boundary —
-        # otherwise mid-run /wf, /mode, /plan etc. were treated as
-        # conversational interrupts (they ended up as a free-form
-        # user message dumped into the agent's context instead of
-        # being executed as commands). Only non-slash text goes to
-        # _interrupts when the agent is running.
-        if (text or "").lstrip().startswith("/"):
-            self._inbox.put(text)
-            return
-        if self.agent_running:
-            self._interrupts.put(text)
-        else:
-            self._inbox.put(text)
-
-    def msg_id_seen(self, msg_id: str) -> bool:
-        """Idempotency check for WS-delivered prompts.
-
-        The frontend re-sends a prompt if it doesn't receive an
-        `agent_received` ack within ~3s (catches WS-open race +
-        backpressure). Each send carries the same `msg_id`, so the
-        backend uses this LRU to detect duplicates and skip a second
-        submit. Returns True iff this id was already seen — caller
-        should still emit the ack but skip submit_prompt.
-        """
-        if not msg_id:
-            return False
-        with self._seen_msg_ids_lock:
-            if msg_id in self._seen_msg_ids:
-                # Refresh recency
-                self._seen_msg_ids.move_to_end(msg_id)
-                return True
-            self._seen_msg_ids[msg_id] = time.monotonic()
-            while len(self._seen_msg_ids) > self._SEEN_MSG_LIMIT:
-                self._seen_msg_ids.popitem(last=False)
-            return False
-
-    def queue_prompt(self, text: str) -> None:
-        """Queue a prompt for the next top-level turn.
-
-        Slash/workflow commands must go through `_inbox`, not
-        `_interrupts`, because main.py only runs the slash dispatcher
-        between turns. This keeps Web UI workflow commands from being
-        interpreted as conversational text when a prior agent turn is
-        still running.
-        """
-        self.ensure_agent_alive()
-        self._inbox.put(text)
-
-    def submit_answer(self, flow_id: str, payload: dict[str, Any]) -> bool:
-        with self._answer_lock:
-            q = self._answer_qs.get(flow_id)
-        if q is None:
-            return False
-        q.put(payload)
-        self.emit("ask_user_answered", flow_id=flow_id)
-        return True
-
-    # Esc / abort handling
-    def request_stop(self) -> None:
-        """Mark a stop request — react_loop will see it on its next poll.
-
-        Drains queued **slash/workflow** prompts (`/wf …`, `/clear`,
-        `/todo template …`) from `_inbox` so a stop genuinely halts
-        the workflow chain queued by `bridge.queue_prompt(...)`. We
-        keep free-form (non-slash) entries on both queues because
-        those represent legitimate user input — typed "go", "approve",
-        follow-up instructions — that the operator does NOT expect
-        the Stop button or a workspace switch to silently swallow.
-        """
-        self._stop_flag = True
-        # Re-queue user-typed (non-slash) inbox entries; drop slash
-        # entries (the workflow-runner chain). _interrupts is left
-        # alone — it never carries slash commands by construction.
-        _user_kept: list[str] = []
-        try:
-            while True:
-                _item = self._inbox.get_nowait()
-                if not str(_item or "").lstrip().startswith("/"):
-                    _user_kept.append(_item)
-        except queue.Empty:
-            pass
-        for _kept in _user_kept:
-            self._inbox.put(_kept)
-
-    def check_stop(self) -> bool:
-        """Read-and-clear the stop flag (drop-in for esc_check_fn)."""
-        if self._stop_flag:
-            self._stop_flag = False
-            return True
-        return False
-
-    async def next_event(self, timeout: float = 0.25) -> dict[str, Any] | None:
-        loop = asyncio.get_event_loop()
-        def _poll() -> dict[str, Any] | None:
-            try:
-                return self._outbox.get(timeout=timeout)
-            except queue.Empty:
-                return None
-
-        return await loop.run_in_executor(None, _poll)
-
-
 # ── App factory ────────────────────────────────────────────────────
 def create_app():
     try:
@@ -330,15 +144,30 @@ def create_app():
     except ImportError:
         print("ERROR: fastapi not installed. Run: pip install fastapi uvicorn websockets")
         sys.exit(1)
+    from core.atlas_db import AtlasDB
+    from core.atlas_multiuser import _MultiUserBridge, set_atlas_bridge_session_id
 
     if not FRONTEND.exists():
         print(f"ERROR: frontend bundle not found at {FRONTEND}")
         sys.exit(1)
 
     app = FastAPI(title="ATLAS · common_ai_agent")
-    bridge = _AtlasBridge()
+    if os.environ.get("ATLAS_MULTI_USER", "").lower() in ("1", "true", "yes"):
+        os.environ["ATLAS_MULTI_USER_PROC"] = "1"
+        print("[atlas] Multi-user enabled: forcing process isolation (ATLAS_MULTI_USER_PROC=1)")
+    _use_proc = os.environ.get("ATLAS_MULTI_USER_PROC", "").lower() in ("1", "true", "yes")
+    bridge = _MultiUserBridge(use_processes=_use_proc)
     clients: set[Any] = set()
     broadcaster_task: asyncio.Task | None = None
+
+    def _session_emit_target(client_session: Any | None) -> str | None:
+        return getattr(client_session, "session_id", None) if client_session is not None else None
+
+    def _queue_prompt_for_session(client_session: Any | None, text: str) -> None:
+        if client_session is not None:
+            client_session.queue_prompt(text)
+            return
+        bridge.queue_prompt(text)
 
     def _input_history_path() -> Path:
         try:
@@ -405,21 +234,45 @@ def create_app():
         a browser tab plus an automation client, events were load-balanced
         between clients instead of broadcast, so ask_user cards and slash
         output could disappear from one surface.
+
+        The whole loop body is wrapped in try/except so a transient lookup
+        miss (e.g. ``get_session`` raising KeyError for a session that was
+        deleted between event emit and broadcast) never kills the task —
+        a dead broadcaster silently strands every connected WS client and
+        looks to the frontend like "Backend disconnected" even though the
+        agent process is still alive.
         """
         while True:
-            msg = await bridge.next_event()
-            if msg is None:
+            try:
+                msg, session_id = await bridge.next_event()
+                if msg is None:
+                    continue
+                # _ensure_session is non-raising; get_session raises KeyError
+                # for unknown ids which would propagate up and kill the task.
+                try:
+                    session = bridge.get_session(session_id)
+                except Exception:
+                    session = bridge._ensure_session(session_id)
+                snapshot = list(session.clients)
+                if not snapshot:
+                    continue
+                results = await asyncio.gather(
+                    *(_send_one(c, msg) for c in snapshot),
+                    return_exceptions=True,
+                )
+                for stale_client in results:
+                    if stale_client is None or isinstance(stale_client, BaseException):
+                        continue
+                    session.clients.discard(stale_client)
+            except asyncio.CancelledError:
+                raise
+            except Exception as _bcast_err:
+                # Never let the broadcaster die. A killed broadcaster
+                # produces the exact "WS open but no events flowing" symptom
+                # users see as "Backend disconnected" with the chat empty.
+                import sys as _sys
+                print(f"[broadcaster] swallowed: {_bcast_err!r}", file=_sys.stderr)
                 continue
-            snapshot = list(clients)
-            if not snapshot:
-                continue
-            results = await asyncio.gather(
-                *(_send_one(c, msg) for c in snapshot),
-                return_exceptions=False,
-            )
-            for stale_client in results:
-                if stale_client is not None:
-                    clients.discard(stale_client)
 
     def _ensure_broadcaster() -> None:
         nonlocal broadcaster_task
@@ -436,6 +289,32 @@ def create_app():
         dev-time Babel path but removes the fragile second fetch.
         """
         html = (FRONTEND / "index.html").read_text(encoding="utf-8")
+
+        def _inline_script(match):
+            attrs = match.group("attrs")
+            src = match.group("src").split("?", 1)[0]
+            if not src.endswith((".jsx", ".js")):
+                return match.group(0)
+            path = (FRONTEND / src).resolve()
+            try:
+                path.relative_to(FRONTEND.resolve())
+            except Exception:
+                return match.group(0)
+            if not path.is_file():
+                return match.group(0)
+            code = path.read_text(encoding="utf-8")
+            return f'<script type="text/babel" {attrs}>{code}</script>'
+
+        html = re.sub(
+            r'<script\s+type="text/babel"\s+(?P<attrs>[^>]*?)src="(?P<src>[^"]+)"[^>]*>\s*</script>',
+            _inline_script,
+            html,
+        )
+        return HTMLResponse(html)
+
+    @app.get("/lobby")
+    async def lobby():
+        html = (FRONTEND / "lobby.html").read_text(encoding="utf-8")
 
         def _inline_script(match):
             attrs = match.group("attrs")
@@ -511,7 +390,9 @@ def create_app():
         # requesting client's IPv4 + a derived `u-<ipv4-dashed>`
         # session id; the frontend's first-visit seed in data.jsx
         # only fires when these fields are present.
-        if os.environ.get("ATLAS_MULTI_USER", "").strip().lower() in ("1", "true", "yes", "on"):
+        _multi_user_on = os.environ.get("ATLAS_MULTI_USER", "").strip().lower() in ("1", "true", "yes", "on")
+        info["multi_user"] = _multi_user_on
+        if _multi_user_on:
             client_host = (request.client.host if request.client else "") or "127.0.0.1"
             if client_host.startswith("::ffff:"):  # IPv4-mapped IPv6
                 client_host = client_host[7:]
@@ -586,10 +467,10 @@ def create_app():
             # the preview / SSOT / QA panels in sync without a custom
             # WS event.
             info["active_session"] = (
-                os.environ.get("ATLAS_ACTIVE_SESSION")
+                _active_session_value()
                 or _canonical_session_string()
             )
-            info["active_ip"] = os.environ.get("ATLAS_ACTIVE_IP") or "default"
+            info["active_ip"] = _active_ip_value() or "default"
             info["active_workflow"] = (
                 os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
             )
@@ -1244,7 +1125,7 @@ def create_app():
                 candidates.append(cfg_todo if cfg_todo.is_absolute() else PROJECT_ROOT / cfg_todo)
             except Exception:
                 pass
-            active_session = normalize_session_name(os.environ.get("ATLAS_ACTIVE_SESSION", ""))
+            active_session = normalize_session_name(_active_session_value())
             if active_session:
                 candidates.append(PROJECT_ROOT / ".session" / active_session / "todo.json")
             candidates.extend([
@@ -1445,7 +1326,7 @@ def create_app():
         # POST /api/control/stop is fire-and-forget and races with the
         # /wf prompt sent on the same flip — anchoring the halt here
         # makes the transition deterministic regardless of order.
-        prev = os.environ.get("ATLAS_ACTIVE_SESSION") or ""
+        prev = _active_session_value() or ""
         triple_changed = prev != canonical
         if triple_changed:
             try:
@@ -1453,8 +1334,8 @@ def create_app():
                 bridge.emit("agent_state", running=False)
             except Exception:
                 pass
-        os.environ["ATLAS_ACTIVE_SESSION"] = canonical
-        os.environ["ATLAS_ACTIVE_IP"] = ip
+        _atlas_active_session_cv.set(canonical)
+        _atlas_active_ip_cv.set(ip)
         os.environ["ATLAS_DEFAULT_SESSION_ID"] = sid
         os.environ["ATLAS_DEFAULT_WORKFLOW"] = wf
         if triple_changed:
@@ -4207,7 +4088,7 @@ def create_app():
         clean = normalize_session_name(session or "")
         parts = [p for p in clean.split("/") if p]
         owner_default = os.environ.get("ATLAS_DEFAULT_SESSION_ID") or "default"
-        ip_default = os.environ.get("ATLAS_ACTIVE_IP") or "default"
+        ip_default = _active_ip_value() or "default"
         wf_default = os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
         owner = _resolve_session_owner() or owner_default
         if len(parts) >= 3:
@@ -4405,11 +4286,11 @@ def create_app():
         return pairs
 
     def _active_ssot_qa_context() -> tuple[str, str]:
-        session = normalize_session_name(str(os.environ.get("ATLAS_ACTIVE_SESSION") or ""))
+        session = normalize_session_name(str(_active_session_value() or ""))
         parts = [p for p in session.split("/") if p]
         if len(parts) >= 2 and parts[-1] == "ssot-gen" and _valid_ip_name(parts[-2]):
             return parts[-2], session
-        ip = str(os.environ.get("ATLAS_ACTIVE_IP") or "").strip()
+        ip = str(_active_ip_value() or "").strip()
         if _valid_ip_name(ip):
             return ip, _canonical_session_string(ip)
         return "", ""
@@ -4566,7 +4447,7 @@ def create_app():
         return {
             "ip": ip,
             "workflow": "ssot-gen",
-            "session": normalize_session_name(str(session or os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip))),
+            "session": normalize_session_name(str(session or _active_session_value() or _canonical_session_string(ip))),
             "approved": bool(state.get("approved")),
             "state_status": state.get("status") or "",
             "toc": toc,
@@ -4797,7 +4678,7 @@ def create_app():
           - 2 parts ending in 'default':    owner/default     -> owner = parts[0]
           - 1 part that is NOT an IP-like:  bare session_id   -> owner = parts[0]
         """
-        current = normalize_session_name(str(os.environ.get("ATLAS_ACTIVE_SESSION") or ""))
+        current = normalize_session_name(str(_active_session_value() or ""))
         parts = [p for p in current.split("/") if p]
         if len(parts) >= 3:
             return parts[0]
@@ -4818,7 +4699,7 @@ def create_app():
         ATLAS_ACTIVE_IP, ATLAS_DEFAULT_WORKFLOW).
         """
         owner = _resolve_session_owner() or os.environ.get("ATLAS_DEFAULT_SESSION_ID") or "default"
-        ip = ip or os.environ.get("ATLAS_ACTIVE_IP") or "default"
+        ip = ip or _active_ip_value() or "default"
         workflow = workflow or os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
         return f"{owner}/{ip}/{workflow}"
 
@@ -4862,14 +4743,14 @@ def create_app():
     def _set_active_ssot_ip(ip: str) -> None:
         if not _valid_ip_name(ip):
             return
-        os.environ["ATLAS_ACTIVE_IP"] = ip
-        os.environ["ATLAS_ACTIVE_SESSION"] = _canonical_session_string(ip, "ssot-gen")
+        _atlas_active_ip_cv.set(ip)
+        _atlas_active_session_cv.set(_canonical_session_string(ip, "ssot-gen"))
 
     def _active_ssot_ip() -> str:
-        env_ip = str(os.environ.get("ATLAS_ACTIVE_IP") or "").strip()
+        env_ip = str(_active_ip_value() or "").strip()
         if _valid_ip_name(env_ip):
             return env_ip
-        session = normalize_session_name(str(os.environ.get("ATLAS_ACTIVE_SESSION") or ""))
+        session = normalize_session_name(str(_active_session_value() or ""))
         parts = [p for p in session.split("/") if p]
         if len(parts) >= 2 and parts[-1] == "ssot-gen" and _valid_ip_name(parts[-2]):
             return parts[-2]
@@ -4937,7 +4818,7 @@ def create_app():
         return ip, kind, import_paths, ""
 
     def _render_ssot_llm_qna_prompt(ip: str, kind: str, state: dict[str, Any]) -> str:
-        session = normalize_session_name(str(os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip)))
+        session = normalize_session_name(str(_active_session_value() or _canonical_session_string(ip)))
         imported = state.get("imported_artifacts") if isinstance(state.get("imported_artifacts"), list) else []
         imported_paths = [
             str(item.get("path") or "").strip()
@@ -5038,7 +4919,7 @@ def create_app():
             "approved": False,
             "approved_at": 0,
             "status": "planned",
-            "active_session": os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip),
+            "active_session": _active_session_value() or _canonical_session_string(ip),
             "last_step": "new-ip",
             "created_at": time.time(),
         }
@@ -5668,7 +5549,7 @@ def create_app():
         filled, conflicts = _merge_import_candidates(ip, kind, state, artifacts, candidates, sources)
         state.setdefault("ip", ip)
         state.setdefault("kind", kind)
-        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip)
+        state["active_session"] = _active_session_value() or _canonical_session_string(ip)
         _save_ssot_state(ip, state)
         return filled, conflicts, artifacts, errors
 
@@ -5883,7 +5764,7 @@ def create_app():
             })
         return questions
 
-    def _run_rtl_blocker_resolution(ip: str, blocker: dict[str, Any], answer_entries: list[dict[str, Any]]) -> str:
+    def _run_rtl_blocker_resolution(ip: str, blocker: dict[str, Any], answer_entries: list[dict[str, Any]], client_session: Any | None = None) -> str:
         import subprocess
 
         state = _load_ssot_state(ip)
@@ -5961,7 +5842,7 @@ def create_app():
         if preflight_rc == 0:
             lines.append("")
             lines.append("next: queued /ssot-rtl to start RTL implementation from the repaired SSOT")
-            bridge.queue_prompt(f"/ssot-rtl {ip}")
+            _queue_prompt_for_session(client_session, f"/ssot-rtl {ip}")
         return "\n".join(lines)
 
     def _start_rtl_blocker_qna(
@@ -5969,6 +5850,7 @@ def create_app():
         *,
         reason: str = "rtl-gen preflight",
         interactive: bool = True,
+        client_session: Any | None = None,
     ) -> bool:
         blocker = _load_rtl_blocker(ip)
         cards = _rtl_blocker_cards(blocker)
@@ -6076,7 +5958,7 @@ def create_app():
                     session=ssot_session,
                 )
             try:
-                msg = _run_rtl_blocker_resolution(ip, blocker, answer_entries)
+                msg = _run_rtl_blocker_resolution(ip, blocker, answer_entries, client_session)
             except Exception as exc:
                 msg = f"[RTL BLOCKER Q&A] {ip}: failed to apply answers: {exc}"
             _append_session_message(_canonical_session_string(ip), "assistant", msg)
@@ -6084,7 +5966,8 @@ def create_app():
             _append_active_history("assistant", "```\n" + msg + "\n```")
             _emit_workflow_result(msg, "resolve-rtl-blockers")
 
-        threading.Thread(target=_worker, daemon=True).start()
+        ctx = contextvars.copy_context()
+        threading.Thread(target=ctx.run, args=(_worker,), daemon=True).start()
         return True
 
     def _sim_human_gate_cards(ip: str, classify_doc: dict[str, Any]) -> list[dict[str, Any]]:
@@ -6163,7 +6046,7 @@ def create_app():
 
         return out_path
 
-    def _start_sim_human_gate_qna(ip: str, classify_doc: dict[str, Any], *, reason: str = "sim-debug") -> bool:
+    def _start_sim_human_gate_qna(ip: str, classify_doc: dict[str, Any], *, reason: str = "sim-debug", client_session: Any | None = None) -> bool:
         cards = _sim_human_gate_cards(ip, classify_doc)
         if not cards:
             return False
@@ -6220,10 +6103,11 @@ def create_app():
             _append_active_history("assistant", "```\n" + msg + "\n```")
             _emit_workflow_result(msg, "sim-debug")
 
-        threading.Thread(target=_worker, daemon=True).start()
+        ctx = contextvars.copy_context()
+        threading.Thread(target=ctx.run, args=(_worker,), daemon=True).start()
         return True
 
-    def _handle_resolve_rtl_blockers_command(text: str) -> bool:
+    def _handle_resolve_rtl_blockers_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         if cmd not in ("resolve-rtl-blockers", "rrb"):
             return False
@@ -6235,7 +6119,7 @@ def create_app():
                 "resolve-rtl-blockers",
             )
             return True
-        return _start_rtl_blocker_qna(ip, reason="manual /resolve-rtl-blockers")
+        return _start_rtl_blocker_qna(ip, reason="manual /resolve-rtl-blockers", client_session=client_session)
 
     app.state.atlas_bridge = bridge
     app.state.start_rtl_blocker_qna = _start_rtl_blocker_qna
@@ -6255,7 +6139,7 @@ def create_app():
         bridge.emit("commands_changed")
         bridge.emit("agent_state", running=False)
 
-    def _handle_import_command(text: str) -> bool:
+    def _handle_import_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         if cmd not in ("import", "imp"):
             return False
@@ -6297,7 +6181,7 @@ def create_app():
         filled, conflicts = _merge_import_candidates(ip, kind, state, artifacts, candidates, sources)
         state.setdefault("ip", ip)
         state.setdefault("kind", kind)
-        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip)
+        state["active_session"] = _active_session_value() or _canonical_session_string(ip)
         _save_ssot_state(ip, state)
 
         missing = _missing_ssot_decisions(ip, state)
@@ -6348,7 +6232,7 @@ def create_app():
         _emit_ssot_approval_ready(ip, state, missing)
         return True
 
-    def _handle_grill_me_command(text: str) -> bool:
+    def _handle_grill_me_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         if cmd not in ("grill-me", "grill", "g"):
             return False
@@ -6375,7 +6259,7 @@ def create_app():
             return True
         state = _load_ssot_state(ip) or _new_ssot_state(ip)
         _ensure_ssot_draft(ip, str(state.get("kind") or "simple APB peripheral"))
-        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip)
+        state["active_session"] = _active_session_value() or _canonical_session_string(ip)
         state["last_step"] = "grill-me"
         _save_ssot_state(ip, state)
         missing = _missing_ssot_decisions(ip, state)
@@ -6391,13 +6275,13 @@ def create_app():
         _append_active_history("user", text)
         _append_active_history("assistant", "```\n" + msg + "\n```")
         _emit_workflow_result(msg, "grill-me")
-        bridge.queue_prompt("/mode normal")
-        bridge.queue_prompt("/wf ssot-gen")
-        bridge.queue_prompt(_render_ssot_llm_qna_prompt(ip, str(state.get("kind") or "simple APB peripheral"), state))
+        _queue_prompt_for_session(client_session, "/mode normal")
+        _queue_prompt_for_session(client_session, "/wf ssot-gen")
+        _queue_prompt_for_session(client_session, _render_ssot_llm_qna_prompt(ip, str(state.get("kind") or "simple APB peripheral"), state))
         bridge.emit("agent_state", running=True)
         return True
 
-    def _handle_new_ip_command(text: str) -> bool:
+    def _handle_new_ip_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         if cmd not in ("new-ip", "ni"):
             return False
@@ -6449,7 +6333,7 @@ def create_app():
         _emit_ssot_approval_ready(ip, state)
         return True
 
-    def _handle_ip_command(text: str) -> bool:
+    def _handle_ip_command(text: str, client_session: Any | None = None) -> bool:
         """`/ip <name>` — switch the active IP without spinning up a turn.
 
         Halts any running agent first (drains the inbox so queued
@@ -6485,7 +6369,7 @@ def create_app():
         bridge.emit("commands_changed")
         return True
 
-    def _handle_session_command(text: str) -> bool:
+    def _handle_session_command(text: str, client_session: Any | None = None) -> bool:
         """`/session <id>` — switch the active session_id (owner namespace).
 
         Halts the agent, sets ATLAS_ACTIVE_SESSION to the canonical
@@ -6509,7 +6393,7 @@ def create_app():
         bridge.emit("agent_state", running=False)
         ip = _active_ssot_ip() or "default"
         wf = os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
-        os.environ["ATLAS_ACTIVE_SESSION"] = f"{sid}/{ip}/{wf}"
+        _atlas_active_session_cv.set(f"{sid}/{ip}/{wf}")
         _emit_workflow_result(
             f"[SESSION] active session -> {sid}/{ip}/{wf}",
             "session",
@@ -6517,7 +6401,7 @@ def create_app():
         bridge.emit("commands_changed")
         return True
 
-    def _handle_approval_command(text: str) -> bool:
+    def _handle_approval_command(text: str, client_session: Any | None = None) -> bool:
         raw = (text or "").strip()
         low = raw.lower()
         if not (low.startswith("approve") or raw.startswith("승인")):
@@ -6555,7 +6439,7 @@ def create_app():
         state["approved"] = True
         state["approved_at"] = time.time()
         state["status"] = "approved"
-        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip)
+        state["active_session"] = _active_session_value() or _canonical_session_string(ip)
         state["last_step"] = "approve"
         _save_ssot_state(ip, state)
         spec = _render_approved_ssot_spec(ip, state)
@@ -6577,7 +6461,7 @@ def create_app():
         _emit_ssot_approval_ready(ip, state, [])
         return True
 
-    def _handle_to_ssot_gate(text: str) -> bool:
+    def _handle_to_ssot_gate(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         if cmd not in ("to-ssot", "ssot", "ts"):
             return False
@@ -6686,10 +6570,10 @@ def create_app():
         if draft is not None and validate is not None and draft.returncode == 0 and validate.returncode == 0:
             return True
 
-        bridge.queue_prompt("/mode normal")
-        bridge.queue_prompt("/wf ssot-gen")
-        bridge.queue_prompt("/clear")
-        bridge.queue_prompt(
+        _queue_prompt_for_session(client_session, "/mode normal")
+        _queue_prompt_for_session(client_session, "/wf ssot-gen")
+        _queue_prompt_for_session(client_session, "/clear")
+        _queue_prompt_for_session(client_session,
             f"/to-ssot {ip}\n\n"
             f"Hard workspace boundary for this run:\n"
             f"- Project root / IP artifacts: `{PROJECT_ROOT}`\n"
@@ -6724,7 +6608,7 @@ def create_app():
         bridge.emit("agent_state", running=True)
         return True
 
-    def _handle_repair_ssot_command(text: str) -> bool:
+    def _handle_repair_ssot_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         if cmd not in ("repair-ssot", "rs"):
             return False
@@ -6802,7 +6686,7 @@ def create_app():
         _emit_workflow_result(msg, "repair-ssot")
         return True
 
-    def _handle_repair_rtl_command(text: str) -> bool:
+    def _handle_repair_rtl_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         if cmd not in ("repair-rtl", "rrtl"):
             return False
@@ -6836,11 +6720,11 @@ def create_app():
         _append_session_message(session, "assistant", "```\n" + queued + "\n```")
         _append_active_history("user", text)
         _append_active_history("assistant", "```\n" + queued + "\n```")
-        bridge.queue_prompt("/mode normal")
-        bridge.queue_prompt("/wf rtl-gen")
-        bridge.queue_prompt("/clear")
-        bridge.queue_prompt(f"/todo template ssot-rtl {ip}")
-        bridge.queue_prompt(
+        _queue_prompt_for_session(client_session, "/mode normal")
+        _queue_prompt_for_session(client_session, "/wf rtl-gen")
+        _queue_prompt_for_session(client_session, "/clear")
+        _queue_prompt_for_session(client_session, f"/todo template ssot-rtl {ip}")
+        _queue_prompt_for_session(client_session,
             f"Repair RTL for {ip} using only SSOT-driven rtl-gen ownership.\n\n"
             f"Read these evidence files first:\n"
             f"- SSOT: `{ssot_path}`\n"
@@ -6874,7 +6758,7 @@ def create_app():
         bridge.emit("agent_state", running=True)
         return True
 
-    def _handle_repair_equiv_command(text: str) -> bool:
+    def _handle_repair_equiv_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         if cmd not in ("repair-equiv", "repair-equivalence", "reqv"):
             return False
@@ -6966,12 +6850,12 @@ def create_app():
         ]
         for (workflow, template), items in grouped.items():
             queued_lines.append(f"- {workflow}: {len(items)} classification(s)")
-            bridge.queue_prompt("/mode normal")
-            bridge.queue_prompt(f"/wf {workflow}")
-            bridge.queue_prompt("/clear")
-            bridge.queue_prompt(f"/todo template {template} {ip}")
+            _queue_prompt_for_session(client_session, "/mode normal")
+            _queue_prompt_for_session(client_session, f"/wf {workflow}")
+            _queue_prompt_for_session(client_session, "/clear")
+            _queue_prompt_for_session(client_session, f"/todo template {template} {ip}")
             payload = json.dumps(items, indent=2, ensure_ascii=False)[:12000]
-            bridge.queue_prompt(
+            _queue_prompt_for_session(client_session,
                 f"Execute classified FL-vs-RTL repair for {ip}.\n\n"
                 "Hard rules:\n"
                 "- Use SSOT YAML, FunctionalModel, equivalence_goals.json, scoreboard_events.jsonl, "
@@ -6995,7 +6879,7 @@ def create_app():
         bridge.emit("agent_state", running=True)
         return True
 
-    def _run_stage_command(text: str) -> bool:
+    def _run_stage_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         alias = {
             "sr": "ssot-rtl",
@@ -7119,10 +7003,10 @@ def create_app():
             _emit_workflow_result(msg, engine_alias)
 
             if surface.rtl_blocked:
-                _start_rtl_blocker_qna(ip, reason="automatic /ssot-rtl preflight", interactive=False)
+                _start_rtl_blocker_qna(ip, reason="automatic /ssot-rtl preflight", interactive=False, client_session=client_session)
                 return True
             for prompt in surface.queue_prompts:
-                bridge.queue_prompt(prompt)
+                _queue_prompt_for_session(client_session, prompt)
             if surface.queue_prompts:
                 bridge.emit("agent_state", running=True)
                 return True
@@ -7131,6 +7015,7 @@ def create_app():
                     ip,
                     surface.sim_human_gate_doc,
                     reason="automatic /sim-debug",
+                    client_session=client_session,
                 )
                 if opened_human_gate:
                     note = f"[sim-debug] opened ATLAS human-gate question(s) from {ip}/sim/mismatch_classification.json"
@@ -7404,15 +7289,15 @@ def create_app():
             _append_active_history("assistant", "```\n" + msg + "\n```")
             _emit_workflow_result(msg, alias)
             if blocked_doc:
-                _start_rtl_blocker_qna(ip, reason="automatic /ssot-rtl preflight", interactive=False)
+                _start_rtl_blocker_qna(ip, reason="automatic /ssot-rtl preflight", interactive=False, client_session=client_session)
             elif gen_rc == 0 and (compile_rc != 0 or lint_rc != 0):
                 workflow = str(spec["workflow"])
                 template = str(spec.get("template") or alias)
-                bridge.queue_prompt("/mode normal")
-                bridge.queue_prompt(f"/wf {workflow}")
-                bridge.queue_prompt("/clear")
-                bridge.queue_prompt(f"/todo template {template} {ip}")
-                bridge.queue_prompt(
+                _queue_prompt_for_session(client_session, "/mode normal")
+                _queue_prompt_for_session(client_session, f"/wf {workflow}")
+                _queue_prompt_for_session(client_session, "/clear")
+                _queue_prompt_for_session(client_session, f"/todo template {template} {ip}")
+                _queue_prompt_for_session(client_session,
                     f"Execute {alias} for {ip} from {ip}/yaml/{ip}.ssot.yaml. "
                     "The SSOT-driven RTL generator produced artifacts but compile/lint did not approve them. "
                     "Repair only the generated RTL against function_model, cycle_model, interfaces, "
@@ -7647,11 +7532,11 @@ def create_app():
             if gen_rc == 0 and not (structure_rc == 0 and self_check_rc == 0):
                 workflow = str(spec["workflow"])
                 template = str(spec.get("template") or canonical_alias)
-                bridge.queue_prompt("/mode normal")
-                bridge.queue_prompt(f"/wf {workflow}")
-                bridge.queue_prompt("/clear")
-                bridge.queue_prompt(f"/todo template {template} {ip}")
-                bridge.queue_prompt(
+                _queue_prompt_for_session(client_session, "/mode normal")
+                _queue_prompt_for_session(client_session, f"/wf {workflow}")
+                _queue_prompt_for_session(client_session, "/clear")
+                _queue_prompt_for_session(client_session, f"/todo template {template} {ip}")
+                _queue_prompt_for_session(client_session,
                     f"Repair generated pyuvm/cocotb TB for {ip} using SSOT, FunctionalModel, "
                     "equivalence_goals.json, rtl_contract.json, and the validator output below. "
                     "Do not use fixed IP templates. Keep the TB goal-driven, instantiate "
@@ -7739,7 +7624,7 @@ def create_app():
                     classify_doc = loaded if isinstance(loaded, dict) else {}
                 except Exception:
                     classify_doc = {}
-                opened_human_gate = _start_sim_human_gate_qna(ip, classify_doc, reason="automatic /sim-debug")
+                opened_human_gate = _start_sim_human_gate_qna(ip, classify_doc, reason="automatic /sim-debug", client_session=client_session)
                 if opened_human_gate:
                     note = f"[sim-debug] opened ATLAS human-gate question(s) from {ip}/sim/mismatch_classification.json"
                     _append_session_message(session, "assistant", note)
@@ -7888,14 +7773,14 @@ def create_app():
         _append_session_message(session, "assistant", "```\n" + queued + "\n```")
         _append_active_history("user", text)
         _append_active_history("assistant", "```\n" + queued + "\n```")
-        bridge.queue_prompt("/mode normal")
-        bridge.queue_prompt(f"/wf {workflow}")
+        _queue_prompt_for_session(client_session, "/mode normal")
+        _queue_prompt_for_session(client_session, f"/wf {workflow}")
         # Per-IP stage runs must not inherit stale workflow-level chat/todo
         # context from a previous IP. The concrete SSOT path and rerun prompt
         # below re-establish the only context the worker should use.
-        bridge.queue_prompt("/clear")
-        bridge.queue_prompt(f"/todo template {template} {ip}")
-        bridge.queue_prompt(
+        _queue_prompt_for_session(client_session, "/clear")
+        _queue_prompt_for_session(client_session, f"/todo template {template} {ip}")
+        _queue_prompt_for_session(client_session,
             f"Execute {alias} for {ip} from {ip}/yaml/{ip}.ssot.yaml. "
             "Use the workflow todo detail/criteria. Do not use fixed IP templates; "
             "derive implementation from SSOT and verify with real commands. "
@@ -9738,7 +9623,7 @@ def create_app():
         # `ip` query param routes to the per-IP repo. When omitted the
         # endpoint behaves as before (outer project repo). Empty `ip`
         # AND empty active env var = outer repo; otherwise per-IP.
-        cwd = _git_cwd_for_ip(ip or os.environ.get("ATLAS_ACTIVE_IP", ""))
+        cwd = _git_cwd_for_ip(ip or _active_ip_value())
         # Branch
         rc, branch, _ = _git("rev-parse", "--abbrev-ref", "HEAD", cwd=cwd)
         branch = branch.strip() if rc == 0 else ""
@@ -9798,7 +9683,7 @@ def create_app():
         terminator + LF field separator, robust against subjects
         containing tabs/quotes which `--pretty=format:` would otherwise
         eat or escape oddly."""
-        cwd = _git_cwd_for_ip(ip or os.environ.get("ATLAS_ACTIVE_IP", ""))
+        cwd = _git_cwd_for_ip(ip or _active_ip_value())
         if not (Path(cwd) / ".git").is_dir():
             return JSONResponse({"commits": [], "branch": "", "ip": ip})
         rc, branch, _ = _git("rev-parse", "--abbrev-ref", "HEAD", cwd=cwd)
@@ -9890,7 +9775,7 @@ def create_app():
         or the short SHA. `ip` query param routes to the per-IP repo."""
         if not sha or not re.match(r"^[0-9a-f]{4,40}$", sha):
             return JSONResponse({"error": "invalid sha"}, status_code=400)
-        cwd = _git_cwd_for_ip(ip or os.environ.get("ATLAS_ACTIVE_IP", ""))
+        cwd = _git_cwd_for_ip(ip or _active_ip_value())
         rc, out, err = _git(
             "show", sha, "--no-color", "--unified=3",
             cwd=cwd,
@@ -9949,6 +9834,223 @@ def create_app():
         return JSONResponse({"ok": rc == 0, "stdout": out, "stderr": err,
                               "branch": branch, "returncode": rc})
 
+    # ── Atlas SQLite session API ─────────────────────────────────
+    def _atlas_db() -> AtlasDB:
+        db = AtlasDB()
+        try:
+            Path(str(db.db_path)).expanduser().parent.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+        return db
+
+    def _public_session(session: dict, include_summary: bool = False) -> dict:
+        fields = ["id", "user_id", "title", "project_id", "status", "created_at", "updated_at"]
+        if include_summary:
+            fields.append("summary")
+        return {key: session.get(key) for key in fields}
+
+    def _request_user_id(request: Request) -> str:
+        user = request.scope.get("user") or {}
+        return str(user.get("id") or "default").strip() or "default"
+
+    def _session_not_found() -> JSONResponse:
+        return JSONResponse({"error": "session not found"}, status_code=404)
+
+    def _owns_session(session: Optional[dict], user_id: str) -> bool:
+        return session is not None and session.get("user_id") == user_id
+
+    @app.get("/api/sessions")
+    async def api_sessions(request: Request):
+        user_id = _request_user_id(request)
+        try:
+            with _atlas_db() as db:
+                listed = db.list_sessions(user_id)
+                sessions = []
+                for item in listed:
+                    session_id = item.get("id") if isinstance(item, dict) else None
+                    session = db.get_session(session_id) if session_id else None
+                    if session is not None:
+                        sessions.append(_public_session(session))
+                return JSONResponse({"sessions": sessions})
+        except Exception as e:
+            print(f"api_sessions error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.post("/api/sessions")
+    async def api_create_session(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            return JSONResponse({"error": "invalid json body"}, status_code=400)
+        if not isinstance(body, dict):
+            return JSONResponse({"error": "expected JSON object"}, status_code=400)
+        user_id = _request_user_id(request)
+        title = str(body.get("title") or "").strip()
+        project_id = str(body.get("project_id") or "").strip()
+        if not title:
+            return JSONResponse({"error": "title required"}, status_code=400)
+        try:
+            with _atlas_db() as db:
+                created = db.create_session(user_id, title, project_id)
+                session_id = created.get("id") if isinstance(created, dict) else created
+                return JSONResponse({"session_id": session_id, "status": "created"})
+        except Exception as e:
+            print(f"api_create_session error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.get("/api/sessions/{session_id}")
+    async def api_get_session(session_id: str, request: Request):
+        user_id = _request_user_id(request)
+        try:
+            with _atlas_db() as db:
+                session = db.get_session(session_id)
+                if not _owns_session(session, user_id):
+                    return _session_not_found()
+                return JSONResponse(_public_session(session, include_summary=True))
+        except Exception as e:
+            print(f"api_get_session error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.patch("/api/sessions/{session_id}")
+    async def api_update_session(session_id: str, request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            return JSONResponse({"error": "invalid json body"}, status_code=400)
+        if not isinstance(body, dict):
+            return JSONResponse({"error": "expected JSON object"}, status_code=400)
+        allowed = {"title", "project_id", "status", "summary"}
+        fields = {key: body[key] for key in allowed if key in body}
+        user_id = _request_user_id(request)
+        try:
+            with _atlas_db() as db:
+                session = db.get_session(session_id)
+                if not _owns_session(session, user_id):
+                    return _session_not_found()
+                if fields:
+                    db.update_session(session_id, **fields)
+                updated = db.get_session(session_id)
+                if not _owns_session(updated, user_id):
+                    return _session_not_found()
+                return JSONResponse(_public_session(updated, include_summary=True))
+        except Exception as e:
+            print(f"api_update_session error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.delete("/api/sessions/{session_id}")
+    async def api_delete_session(session_id: str, request: Request):
+        user_id = _request_user_id(request)
+        try:
+            with _atlas_db() as db:
+                session = db.get_session(session_id)
+                if not _owns_session(session, user_id):
+                    return _session_not_found()
+                db.delete_session(session_id)
+                return JSONResponse({"deleted": True})
+        except Exception as e:
+            print(f"api_delete_session error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.post("/api/sessions/{session_id}/activate")
+    async def api_activate_session(session_id: str, request: Request):
+        # Activate the session: verify the caller owns it, then make the
+        # backend bridge actually point at it. The previous version was a
+        # no-op stub that returned {"activated": True} without binding
+        # anything — UI session-switcher believed the swap took effect
+        # while subsequent prompts still routed to the stale session.
+        try:
+            user_id = _request_user_id(request)
+            with _atlas_db() as db:
+                session = db.get_session(session_id)
+                if not _owns_session(session, user_id):
+                    return JSONResponse(
+                        {"error": "session not found or not owned by user"},
+                        status_code=404,
+                    )
+            # Bind on the bridge so emit/inbox/outbox routing follows.
+            bridge.activate_session(session_id)
+            return JSONResponse({"activated": True, "session_id": session_id})
+        except Exception as e:
+            print(f"api_activate_session error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── Admin endpoints ──────────────────────────────────────────
+    def _admin_required(request: Request) -> Optional[dict]:
+        user = request.scope.get("user")
+        if not user or user.get("role") != "admin":
+            return None
+        return user
+
+    @app.get("/api/admin/users")
+    async def api_admin_users(request: Request):
+        if _admin_required(request) is None:
+            return JSONResponse({"error": "Forbidden"}, status_code=403)
+        try:
+            with _atlas_db() as db:
+                users = db.list_all_users()
+                counts = db.count_sessions_by_user()
+                for u in users:
+                    u["session_count"] = counts.get(u["id"], 0)
+                return JSONResponse({"users": users})
+        except Exception as e:
+            print(f"api_admin_users error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.get("/api/admin/sessions")
+    async def api_admin_sessions(request: Request):
+        if _admin_required(request) is None:
+            return JSONResponse({"error": "Forbidden"}, status_code=403)
+        try:
+            with _atlas_db() as db:
+                sessions = db.list_all_sessions()
+                return JSONResponse({"sessions": sessions})
+        except Exception as e:
+            print(f"api_admin_sessions error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.delete("/api/admin/sessions/{session_id}")
+    async def api_admin_delete_session(session_id: str, request: Request):
+        if _admin_required(request) is None:
+            return JSONResponse({"error": "Forbidden"}, status_code=403)
+        try:
+            with _atlas_db() as db:
+                if db.get_session(session_id) is None:
+                    return JSONResponse({"error": "session not found"}, status_code=404)
+                db.delete_session(session_id)
+                return JSONResponse({"deleted": True})
+        except Exception as e:
+            print(f"api_admin_delete_session error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.get("/admin")
+    async def admin_page(request: Request):
+        user = request.scope.get("user")
+        if not user or user.get("role") != "admin":
+            raise HTTPException(status_code=403, detail="Admin access required")
+        html = (FRONTEND / "admin.html").read_text(encoding="utf-8")
+
+        def _inline_script(match):
+            attrs = match.group("attrs")
+            src = match.group("src").split("?", 1)[0]
+            if not src.endswith((".jsx", ".js")):
+                return match.group(0)
+            path = (FRONTEND / src).resolve()
+            try:
+                path.relative_to(FRONTEND.resolve())
+            except Exception:
+                return match.group(0)
+            if not path.is_file():
+                return match.group(0)
+            code = path.read_text(encoding="utf-8")
+            return f'<script type="text/babel" {attrs}>{code}</script>'
+
+        html = re.sub(
+            r'<script\s+type="text/babel"\s+(?P<attrs>[^>]*?)src="(?P<src>[^"]+)"[^>]*>\s*</script>',
+            _inline_script,
+            html,
+        )
+        return HTMLResponse(html)
+
     # NOTE: WebSocket endpoint is registered via Starlette's WebSocketRoute
     # (added to app.router.routes below) instead of the @app.websocket
     # decorator. The decorator routes through FastAPI's dependency-injection
@@ -9959,7 +10061,28 @@ def create_app():
     # parameter annotations entirely.
     async def ws_agent(websocket: WebSocket):
         await websocket.accept()
-        clients.add(websocket)
+        session_id = websocket.query_params.get("session_id", "default")
+        _multi_user = os.environ.get("ATLAS_MULTI_USER", "").lower() in ("1", "true", "yes")
+
+        class _WebSocketCookieRequest:
+            def __init__(self, cookies: dict):
+                self.cookies = cookies
+
+        cookies = getattr(websocket, "cookies", None)
+        if cookies is None:
+            cookies = websocket.scope.get("cookies") or {}
+        user = auth.get_user_from_cookie(_WebSocketCookieRequest(cookies))
+        if user is None:
+            await websocket.close(code=1008, reason="unauthenticated")
+            return
+
+        if _multi_user and session_id != "default":
+            with _atlas_db() as db:
+                session = db.get_session(session_id)
+            if not _owns_session(session, user["id"]):
+                await websocket.close(code=1008, reason="forbidden")
+                return
+        bridge.bind_client(websocket, session_id)
         _ensure_broadcaster()
         # Greeting — surface user-tunable layout settings so the frontend
         # can pick its center-column shape (classic vs tabbed Chat/Preview/Q&A).
@@ -9979,7 +10102,7 @@ def create_app():
                                     "running": bridge.agent_running,
                                     "center_layout": _center_layout,
                                     "chat_feed_summary": _chat_feed_summary})
-        for pending_event in bridge.pending_ask_user_events():
+        for pending_event in bridge.session_pending_ask_user_events(session_id):
             await websocket.send_json(pending_event)
         try:
             while True:
@@ -9988,6 +10111,10 @@ def create_app():
                     msg = json.loads(data)
                 except Exception:
                     continue
+                session = bridge.get_client_session(websocket)
+                if session is None:
+                    continue
+                set_atlas_bridge_session_id(session.session_id)
                 t = msg.get("type")
                 if t in ("prompt", "send") and msg.get("text"):
                     # Idempotent submit + ack:
@@ -9998,16 +10125,16 @@ def create_app():
                     # submit_prompt the first time.
                     _msg_id = str(msg.get("msg_id") or "").strip()
                     _txt_preview = str(msg.get("text") or "")[:80].replace("\n", " ")
-                    bridge.emit(
+                    session.emit(
                         "agent_received",
                         msg_id=_msg_id,
                         text_preview=_txt_preview,
                     )
-                    if _msg_id and bridge.msg_id_seen(_msg_id):
+                    if _msg_id and session.msg_id_seen(_msg_id):
                         continue
                     _txt = msg["text"].strip()
                     import os as _os
-                    _ui_lang_raw = str(msg.get("ui_lang") or _os.environ.get("ATLAS_UI_LANG") or "").strip().lower()
+                    _ui_lang_raw = str(msg.get("ui_lang") or _ui_lang_value() or "").strip().lower()
                     _ui_lang = {
                         "ko": "ko",
                         "kr": "ko",
@@ -10018,14 +10145,14 @@ def create_app():
                         "english": "en",
                     }.get(_ui_lang_raw, "")
                     if _ui_lang:
-                        _os.environ["ATLAS_UI_LANG"] = _ui_lang
+                        _atlas_ui_lang_cv.set(_ui_lang)
                     _session_raw = str(msg.get("session") or "").strip()
                     _session = normalize_session_name(_session_raw)
                     if _session_raw:
                         if not _session:
-                            bridge.emit("error", message=f"invalid session: {_session_raw!r}")
+                            session.emit("error", message=f"invalid session: {_session_raw!r}")
                             continue
-                        _os.environ["ATLAS_ACTIVE_SESSION"] = _session
+                        _atlas_active_session_cv.set(_session)
                     # ── Mode-flip slashes need to apply mid-loop ──
                     # `/mode normal` and `/plan` typed while the agent is
                     # running normally land in the _interrupts queue,
@@ -10038,38 +10165,38 @@ def create_app():
                     # AGENT_MODE_OVERRIDE in the environment; react_loop
                     # reads it at the top of each iteration.
                     _low = _txt.lower()
-                    if _handle_new_ip_command(_txt):
+                    if _handle_new_ip_command(_txt, client_session=session):
                         continue
-                    if _handle_ip_command(_txt):
+                    if _handle_ip_command(_txt, client_session=session):
                         continue
-                    if _handle_session_command(_txt):
+                    if _handle_session_command(_txt, client_session=session):
                         continue
-                    if _handle_import_command(_txt):
+                    if _handle_import_command(_txt, client_session=session):
                         continue
-                    if _handle_grill_me_command(_txt):
+                    if _handle_grill_me_command(_txt, client_session=session):
                         continue
-                    if _handle_approval_command(_txt):
+                    if _handle_approval_command(_txt, client_session=session):
                         continue
-                    if _handle_resolve_rtl_blockers_command(_txt):
+                    if _handle_resolve_rtl_blockers_command(_txt, client_session=session):
                         continue
-                    if _handle_repair_ssot_command(_txt):
+                    if _handle_repair_ssot_command(_txt, client_session=session):
                         continue
-                    if _handle_repair_rtl_command(_txt):
+                    if _handle_repair_rtl_command(_txt, client_session=session):
                         continue
-                    if _handle_repair_equiv_command(_txt):
+                    if _handle_repair_equiv_command(_txt, client_session=session):
                         continue
-                    if _handle_to_ssot_gate(_txt):
+                    if _handle_to_ssot_gate(_txt, client_session=session):
                         continue
-                    if _run_stage_command(_txt):
+                    if _run_stage_command(_txt, client_session=session):
                         continue
                     if _low in ("/plan", "/mode plan", "/mode normal", "/normal"):
                         is_plan = _low in ("/plan", "/mode plan")
                         if is_plan:
-                            _os.environ["AGENT_MODE_OVERRIDE"] = "plan_q"
-                            _os.environ["PLAN_MODE"] = "true"
+                            _agent_mode_override_cv.set("plan_q")
+                            _plan_mode_cv.set("true")
                         else:
-                            _os.environ["AGENT_MODE_OVERRIDE"] = "normal"
-                            _os.environ["PLAN_MODE"] = "false"
+                            _agent_mode_override_cv.set("normal")
+                            _plan_mode_cv.set("false")
                             _os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
                         # Immediate UI feedback so the chat reflects the
                         # mode flip the moment the user clicks the
@@ -10081,16 +10208,16 @@ def create_app():
                         # until the user typed a message.
                         try:
                             if is_plan:
-                                bridge.emit("agent", text=(
+                                session.emit("agent", text=(
                                     "✅ Plan mode — read-only. "
                                     "The agent will analyze and propose without mutating tools. "
                                     "Type `apply` or click NORMAL to execute."
                                 ))
                             else:
-                                bridge.emit("agent", text=(
+                                session.emit("agent", text=(
                                     "✅ Normal mode — tools enabled."
                                 ))
-                            bridge.emit("flush")
+                            session.emit("flush")
                         except Exception:
                             pass
                         # Two-pronged dispatch:
@@ -10106,7 +10233,7 @@ def create_app():
                         #     across turns. Without this submit, the
                         #     UI's "● NORMAL" pill could click without
                         #     ever telling main.py to flip — desync.
-                        bridge.submit_prompt(_txt)
+                        session.submit_prompt(_txt)
                         continue
 
                     # `y` / `yc` / `yes` / `confirm` mid-loop while agent
@@ -10117,19 +10244,19 @@ def create_app():
                     # against _inbox between turns. So `y` after the
                     # agent shows the [Plan Mode] Plan ready prompt does
                     # nothing if the agent is still mid-iteration.
-                    if (_os.environ.get("PLAN_MODE") == "true"
+                    if (_plan_mode_value() == "true"
                             and bridge.agent_running
                             and _low in ("y", "yes", "yc", "confirm", "ok",
                                          "proceed", "ㅇㅇ", "확인", "진행")):
-                        _os.environ["AGENT_MODE_OVERRIDE"] = "normal"
-                        _os.environ["PLAN_MODE"] = "false"
+                        _agent_mode_override_cv.set("normal")
+                        _plan_mode_cv.set("false")
                         _os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
-                        bridge.emit("token", text="\n✅ Plan confirmed (mid-loop): tools enabled. Executing.\n")
-                        bridge.emit("flush")
+                        session.emit("token", text="\n✅ Plan confirmed (mid-loop): tools enabled. Executing.\n")
+                        session.emit("flush")
                         # Inject an instruction so the agent knows to start
                         # executing the agreed-upon plan. This goes to
                         # _interrupts (since agent is running), fed mid-loop.
-                        bridge.submit_prompt(
+                        session.submit_prompt(
                             "Confirmed. Execute all tasks in order. "
                             "For EACH task: todo_update(in_progress) → do work "
                             "→ todo_update(completed) → verify → todo_update(approved)."
@@ -10152,15 +10279,15 @@ def create_app():
                                 "Keep code, file paths, commands, signal names, protocol names, and exact identifiers unchanged.\n\n"
                                 + _txt
                             )
-                    bridge.submit_prompt(_txt)
+                    session.submit_prompt(_txt)
                 elif t == "interrupt":
-                    bridge.submit_prompt(msg.get("text", ""))
+                    session.submit_prompt(msg.get("text", ""))
                 elif t == "answer" and msg.get("flow_id"):
-                    accepted = bridge.submit_answer(msg["flow_id"], msg)
+                    accepted = session.submit_answer(msg["flow_id"], msg)
                     if accepted:
-                        bridge.emit("agent_state", running=True)
+                        session.emit("agent_state", running=True)
                     else:
-                        bridge.emit(
+                        session.emit(
                             "error",
                             message=(
                                 "answer rejected: no pending ask_user flow "
@@ -10172,22 +10299,28 @@ def create_app():
                     # Surface the stop on the chat feed so the user sees
                     # the backend acknowledged the ESC immediately,
                     # before the agent thread gets to its next poll.
-                    bridge.emit("token", text="\n⏹  stop received\n")
-                    bridge.emit("flush")
-                    bridge.request_stop()
-                    bridge.emit("agent_state", running=False)
+                    session.emit("token", text="\n⏹  stop received\n")
+                    session.emit("flush")
+                    session.request_stop()
+                    session.emit("agent_state", running=False)
                 elif t == "shutdown":
                     # Exit button — kill the whole Python process so the
                     # user's terminal returns to a normal prompt.
-                    bridge.emit("error", message="server is shutting down")
-                    bridge.emit("done")
+                    session.emit("error", message="server is shutting down")
+                    session.emit("done")
                     import os as _os, threading as _t
                     _t.Timer(0.4, lambda: _os._exit(0)).start()
                 # Other types (e.g. run_stage, tool_call) can be wired later
         except WebSocketDisconnect:
             pass
         finally:
-            clients.discard(websocket)
+            bridge.unbind_client(websocket)
+
+    from core.atlas_auth import GuestAuth, AuthMiddleware, create_auth_endpoints
+    auth = GuestAuth(AtlasDB())
+    app.state.auth = auth
+    app.add_middleware(AuthMiddleware, auth=auth)
+    create_auth_endpoints(app, auth)
 
     # Register the WebSocket endpoint via Starlette so we don't go through
     # FastAPI's DI layer (see the long comment above the ws_agent definition).
@@ -10233,7 +10366,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     import main as _main  # noqa: WPS433  (intentional runtime import)
 
     app = create_app()
-    bridge: _AtlasBridge = app.state.bridge
+    bridge = app.state.bridge
 
     # Rebind SSOT-QA helpers from create_app's closure (exposed via
     # app.state) so the nested _ask_user_cb / _record_ssot_qa_cb defined
@@ -10253,6 +10386,12 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     # via esc_check_fn and aborts the current iteration cleanly.
     _main._textual_esc_check_fn = bridge.check_stop
     _main._textual_poll_human_input_fn = bridge.poll_interrupt
+    # Per-thread active-session reader. main.py used to read
+    # os.environ["ATLAS_ACTIVE_SESSION"] directly which races between
+    # concurrent users in multi-user mode. By exposing the contextvar
+    # via a callback, main.py can resolve the per-thread value first.
+    _main._textual_active_session_fn = _active_session_value
+    _main._textual_active_ip_fn      = _active_ip_value
 
     # Strip ANSI escape sequences from ANY text destined for the browser.
     # The terminal-targeting Color class wraps lines in \x1b[2m … \x1b[0m;
@@ -10668,6 +10807,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         _tools.set_record_ssot_qa_callback(_record_ssot_qa_cb)
 
     def _run_agent():
+        _sync_env_to_context()
         try:
             _main.chat_loop()
         except Exception as e:
@@ -10680,7 +10820,8 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
             bridge.emit("done")
 
     def _start_agent_thread():
-        threading.Thread(target=_run_agent, daemon=True).start()
+        ctx = contextvars.copy_context()
+        threading.Thread(target=ctx.run, args=(_run_agent,), daemon=True).start()
 
     bridge.set_agent_starter(_start_agent_thread)
     bridge.ensure_agent_alive()
@@ -10729,8 +10870,10 @@ def main() -> None:
                     help="workflow segment (default: 'default')")
     args = ap.parse_args()
     # Seed environment so all path resolvers see the canonical 3-part string.
-    os.environ["ATLAS_ACTIVE_SESSION"] = f"{args.session_id}/{args.ip}/{args.workflow}"
-    os.environ["ATLAS_ACTIVE_IP"] = args.ip
+    new_session = f"{args.session_id}/{args.ip}/{args.workflow}"
+    _atlas_active_session_cv.set(new_session)
+    _atlas_active_ip_cv.set(args.ip)
+    _sync_env_to_context()
     os.environ.setdefault("ATLAS_DEFAULT_SESSION_ID", args.session_id)
     os.environ.setdefault("ATLAS_DEFAULT_WORKFLOW", args.workflow)
     run_atlas_ui(port=args.port, host=args.host)

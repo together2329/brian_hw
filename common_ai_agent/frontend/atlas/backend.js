@@ -71,10 +71,12 @@
     }, ACK_TIMEOUT_MS);
   }
 
-  function liveConnect() {
+  function liveConnect(sessionId) {
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const url   = `${proto}//${location.host}/ws/agent`;
+    const url   = sessionId
+        ? `${proto}//${location.host}/ws/agent?session_id=${encodeURIComponent(sessionId)}`
+        : `${proto}//${location.host}/ws/agent`;
     try {
       ws = new WebSocket(url);
     } catch (e) {
@@ -131,14 +133,17 @@
     mode,
     subscribe,
     send: liveSend,
-    connect: liveConnect,
+    connect: (sessionId) => liveConnect(sessionId || wsSessionId),
     disconnect: liveDisconnect,
     getConnectionState: () => connectionState,
     // Test/debug hook — lets UI code synthesize events in tests.
     _emit: emit,
   };
 
-  liveConnect();
+  const urlParams = new URLSearchParams(window.location.search);
+  const wsSessionId = urlParams.get('session_id') || urlParams.get('session') || '';
+
+  liveConnect(wsSessionId);
 
   window.backend = api;
   console.info('[atlas] backend ready · mode=live');

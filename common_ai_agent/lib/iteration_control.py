@@ -156,39 +156,28 @@ def detect_completion_signal(content: str) -> bool:
     """
     Detects explicit completion signals in agent's response.
 
+    Only matches strict sentinel tokens, not casual conversation.
+    Korean "완료" alone does NOT trigger completion.
+
     Args:
         content: Agent's response text
 
     Returns:
         True if task appears complete
     """
-    content_lower = content.lower()
-
-    # English completion patterns
-    completion_patterns = [
-        r'\btask\s+(is\s+)?complete',
-        r'\btask\s+(is\s+)?completed',
-        r'\bsuccessfully\s+completed',
-        r'\bi\s+have\s+finished',
-        r'\bi\'ve\s+finished',
-        r'\ball\s+done',
-        r'\bfinished\s+the\s+task',
-        r'\bcompleted\s+the\s+task',
+    completion_sentinels = [
+        r'\[COMPLETED\]',
+        r'\[TASK_DONE\]',
+        r'\[DONE\]',
+        r'===\s*TASK\s+COMPLETED\s*===',
+        r'===\s*COMPLETED\s*===',
+        r'===\s*DONE\s*===',
+        r'"status"\s*:\s*"completed"',
+        r'"status"\s*:\s*"done"',
     ]
 
-    # Korean completion patterns
-    korean_patterns = [
-        r'작업\s*완료',
-        r'완료했습니다',
-        r'완료되었습니다',
-        r'모두\s*완료',
-        r'작업이\s*끝났습니다',
-    ]
-
-    all_patterns = completion_patterns + korean_patterns
-
-    for pattern in all_patterns:
-        if re.search(pattern, content_lower):
+    for pattern in completion_sentinels:
+        if re.search(pattern, content):
             return True
 
     return False

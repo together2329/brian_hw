@@ -2761,7 +2761,7 @@ def _todo_template_lock_error(op_name: str) -> str:
     )
 
 
-def todo_write(todos=None, tasks=None):
+def todo_write(todos=None, tasks=None, **kwargs):
     """
     Create or update task list to track multi-step task progress.
 
@@ -2828,8 +2828,25 @@ def todo_write(todos=None, tasks=None):
             {"content": "Write tests", "activeForm": "Writing tests", "status": "pending"}
         ])
     """
-    # Accept either parameter name
+    # Accept either parameter name. LLMs (especially gpt-5.x-codex)
+    # sometimes emit the list under non-standard keys like `items`,
+    # `list`, `todo_list`, `task_list`, `data`. Without this fallback
+    # the call fails with "'todos' parameter is required" and the LLM
+    # gets stuck in a retry loop emitting the same wrong key.
     todos = todos or tasks
+    if not todos and kwargs:
+        for _alias in ("items", "list", "todo_list", "task_list",
+                       "tasks_list", "data", "body", "payload", "entries"):
+            _v = kwargs.get(_alias)
+            if _v:
+                todos = _v
+                break
+        if not todos:
+            # Last-resort: if exactly one kwarg holds a non-empty list,
+            # treat it as the todos list.
+            _list_kwargs = [v for v in kwargs.values() if isinstance(v, list) and v]
+            if len(_list_kwargs) == 1:
+                todos = _list_kwargs[0]
     _locked = _todo_template_lock_error("todo_write")
     if _locked:
         _save_todo_write_error(_locked, todos)
@@ -3256,7 +3273,12 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                 # IP-rooted task declared a path the validator couldn't
                 # resolve, producing the "Cannot approve … fake-DONE"
                 # banner even when the file genuinely existed.
-                _active_ip = (_os_fs.environ.get("ATLAS_ACTIVE_IP") or "").strip()
+                # Prefer the per-thread contextvar (atlas_ui mode). Falls
+                # back to env when main.py hasn't been wired or in CLI mode.
+                _main_mod = sys.modules.get('main')
+                _ip_resolver = getattr(_main_mod, "_get_active_ip_str", None) if _main_mod else None
+                _active_ip = (_ip_resolver() if _ip_resolver
+                              else _os_fs.environ.get("ATLAS_ACTIVE_IP") or "").strip()
                 if _active_ip and _re.match(r"^[A-Za-z][A-Za-z0-9_-]*$", _active_ip):
                     _ip_base = _os_fs.path.join(_cwd, _active_ip)
                     if _ip_base not in _base_dirs and _os_fs.path.isdir(_ip_base):
@@ -3571,7 +3593,7 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
 
 
 def todo_add(content="", activeForm="", priority="medium", detail="", criteria="", index=None,
-             command="", on_reject=0, on_success=0, on_condition=None):
+             command="", on_reject=0, on_success=0, on_condition=None, **kwargs):
     """
     Add a single task to the existing todo list.
     More efficient than todo_write for adding tasks mid-execution.
@@ -3604,6 +3626,17 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
 
     if todo_tracker is None:
         return ""
+
+    # Accept LLM-leaked alias names for `content` (Codex/gpt-5.x sometimes
+    # emit `text=`, `task=`, `description=`, `title=` instead). Without
+    # this the call returns "'content' is required" and the LLM retries
+    # with the same wrong key.
+    if not content and kwargs:
+        for _alias in ("text", "task", "description", "title", "name", "label", "body"):
+            _v = kwargs.get(_alias)
+            if isinstance(_v, str) and _v.strip():
+                content = _v
+                break
 
     if not content:
         return "Error: 'content' is required."

@@ -1238,15 +1238,9 @@ def run_react_agent_impl(
         # next read of the tracker is consistent:
         #   completed   → approved   (agent finished it)
         #   in_progress → approved   (agent declared the turn done)
-        #   pending     → approved   (optimistic — agent emitted a
-        #                             completion signal, so it claims
-        #                             everything was done. The agent
-        #                             often forgets to call todo_update
-        #                             between iterations; flipping to
-        #                             rejected made the sidebar show
-        #                             ❌ for tasks the agent had clearly
-        #                             completed in chat. User can
-        #                             downgrade manually if needed.)
+        #   pending     → stays pending (CRIT-4: user must explicitly
+        #                                  approve; auto-approving hid
+        #                                  unfinished work from view)
         #   approved/rejected stay as-is.
         if not actions and deps.detect_completion_fn(collected_content):
             if todo_tracker and todo_tracker.todos:
@@ -1266,13 +1260,10 @@ def run_react_agent_impl(
                             )
                         _resolved["in_progress"] += 1
                     elif _from == "pending":
-                        _t.status = "approved"
-                        if not _t.approved_reason:
-                            _t.approved_reason = (
-                                "auto-approved at completion — agent finished "
-                                "without explicit todo_update; verify manually"
-                            )
-                        _resolved["pending"] += 1
+                        # CRIT-4: Do NOT auto-approve pending todos.
+                        # They stay pending so the user can see what was
+                        # left undone and decide what to do next.
+                        pass
                 try:
                     todo_tracker.save()
                 except Exception:
@@ -1294,9 +1285,12 @@ def run_react_agent_impl(
                         _summary_parts.append(
                             f"{_resolved['in_progress']} in-progress→approved"
                         )
-                    if _resolved["pending"]:
+                    _pending_left = sum(
+                        1 for _t in todo_tracker.todos if _t.status == "pending"
+                    )
+                    if _pending_left:
                         _summary_parts.append(
-                            f"{_resolved['pending']} pending→approved (verify manually)"
+                            f"{_pending_left} pending (left as-is)"
                         )
                     try:
                         deps.emit_content_fn(
