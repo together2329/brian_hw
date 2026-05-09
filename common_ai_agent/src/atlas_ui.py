@@ -233,25 +233,28 @@ class _AtlasBridge:
     def request_stop(self) -> None:
         """Mark a stop request — react_loop will see it on its next poll.
 
-        Also drains any queued prompts in `_inbox` and `_interrupts` so
-        a stop genuinely halts the run instead of letting follow-up
-        `/wf <name>` / `/clear` / template prompts (queued via
-        `bridge.queue_prompt(...)`) auto-fire the agent again as soon as
-        the current iteration finishes. Without this, the user would see
-        "stop, then it kept running" because the inbox was full of
-        pending workflow prompts ready to drive the next turn.
+        Drains queued **slash/workflow** prompts (`/wf …`, `/clear`,
+        `/todo template …`) from `_inbox` so a stop genuinely halts
+        the workflow chain queued by `bridge.queue_prompt(...)`. We
+        keep free-form (non-slash) entries on both queues because
+        those represent legitimate user input — typed "go", "approve",
+        follow-up instructions — that the operator does NOT expect
+        the Stop button or a workspace switch to silently swallow.
         """
         self._stop_flag = True
+        # Re-queue user-typed (non-slash) inbox entries; drop slash
+        # entries (the workflow-runner chain). _interrupts is left
+        # alone — it never carries slash commands by construction.
+        _user_kept: list[str] = []
         try:
             while True:
-                self._inbox.get_nowait()
+                _item = self._inbox.get_nowait()
+                if not str(_item or "").lstrip().startswith("/"):
+                    _user_kept.append(_item)
         except queue.Empty:
             pass
-        try:
-            while True:
-                self._interrupts.get_nowait()
-        except queue.Empty:
-            pass
+        for _kept in _user_kept:
+            self._inbox.put(_kept)
 
     def check_stop(self) -> bool:
         """Read-and-clear the stop flag (drop-in for esc_check_fn)."""
