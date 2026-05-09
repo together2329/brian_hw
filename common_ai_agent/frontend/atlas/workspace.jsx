@@ -7400,19 +7400,25 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
   };
 
   const renderRawYaml = () => {
-    const list = sections || [];
+    // Use FoldablePane on the full SSOT body so the Raw YAML view
+    // gets the same depth-unlimited fold + drag-select-comment + 💬
+    // chat-anchor UX that the file PreviewPane uses for *.ssot.yaml.
+    // The previous YamlSectionCard rendering split into 35 top-level
+    // sections, which lost nested fold control and didn't expose a
+    // "send this section to chat" affordance.
+    const lineCount = (content || '').split('\n').length;
     return (
       <>
         {header}
-        <DigestCard title="Raw YAML" meta={`${list.length} sections`}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {list.map(s => (
-              <YamlSectionCard
-                key={s.id || s.key || s.title || s.label}
-                section={s}
-                statusByKey={statusByKey}
-              />
-            ))}
+        <DigestCard title="Raw YAML" meta={`${(sections || []).length} sections · ${lineCount} lines`}>
+          <div style={{ minHeight: 200, display: 'flex', flexDirection: 'column' }}>
+            {selected && content ? (
+              <FoldablePane path={selected} body={content} lang="yaml" lineCount={lineCount} />
+            ) : (
+              <div style={{ padding: 12, color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 12 }}>
+                {selected ? 'loading…' : 'no SSOT file selected'}
+              </div>
+            )}
           </div>
         </DigestCard>
       </>
