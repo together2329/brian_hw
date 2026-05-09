@@ -9355,8 +9355,9 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
     const html = highlightLine(text);
     const inSel = sel && ln >= sel.lo && ln <= sel.hi;
     return (
-      <div key={`L${ln}`} className={'line-row' + (inSel ? ' sel' : '')}>
+      <div key={`L${ln}`} className={'line-row' + (inSel ? ' sel' : '')} data-ln={ln}>
         <span className="lineno"
+              data-ln={ln}
               onMouseDown={(ev) => onLineMouseDown(ln, ev)}
               onMouseEnter={() => onLineMouseEnter(ln)}>
           {ln}
