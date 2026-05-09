@@ -7424,27 +7424,29 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
   };
 
   const renderRawYaml = () => {
-    // Use FoldablePane on the full SSOT body so the Raw YAML view
-    // gets the same depth-unlimited fold + drag-select-comment + 💬
-    // chat-anchor UX that the file PreviewPane uses for *.ssot.yaml.
-    // The previous YamlSectionCard rendering split into 35 top-level
-    // sections, which lost nested fold control and didn't expose a
-    // "send this section to chat" affordance.
+    // Embed FoldablePane directly without the DigestCard wrapper —
+    // DigestCard pins height for chip-sized content and clipped the
+    // scrollable fold body. Now matches /tmp/ssot_fold_engine.html
+    // exactly: a single full-bleed fold pane with the toolbar at top,
+    // the chat input is the global ATLAS textarea reached via the
+    // atlas-fold-comment custom event.
     const lineCount = (content || '').split('\n').length;
+    if (!selected || !content) {
+      return (
+        <>
+          {header}
+          <div style={{ padding: 16, color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 12 }}>
+            {selected ? 'loading…' : 'no SSOT file selected'}
+          </div>
+        </>
+      );
+    }
     return (
       <>
         {header}
-        <DigestCard title="Raw YAML" meta={`${(sections || []).length} sections · ${lineCount} lines`}>
-          <div style={{ minHeight: 200, display: 'flex', flexDirection: 'column' }}>
-            {selected && content ? (
-              <FoldablePane path={selected} body={content} lang="yaml" lineCount={lineCount} />
-            ) : (
-              <div style={{ padding: 12, color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 12 }}>
-                {selected ? 'loading…' : 'no SSOT file selected'}
-              </div>
-            )}
-          </div>
-        </DigestCard>
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
+          <FoldablePane path={selected} body={content} lang="yaml" lineCount={lineCount} />
+        </div>
       </>
     );
   };
