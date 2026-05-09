@@ -9226,21 +9226,32 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
       if (start == null || end == null) return;
       const hi = Math.max(start, end);
       const lo = Math.min(start, end);
-      // Anchor the floating button to the LAST selected line within
-      // the pane's own offset frame. Using mouse clientX/Y broke
-      // because ATLAS wraps the whole UI in a #scaler with a CSS
-      // transform — `position: fixed` inside a transformed ancestor
-      // is positioned relative to that ancestor, not the viewport,
-      // so the button drifted hundreds of pixels off cursor.
+      // Anchor next to the LAST selected line. We use offsetTop /
+      // offsetLeft because ATLAS wraps the whole UI in a CSS
+      // transform-scaled #scaler — getBoundingClientRect returns
+      // scaled pixels while scrollTop returns unscaled, so mixing
+      // them shifted the button off-screen. offset* are unscaled
+      // relative to the nearest positioned ancestor (.foldable-body
+      // is position:relative), so they line up correctly.
       const pane = paneRef.current;
       if (!pane) return;
-      const lineEl = pane.querySelector(`[data-ln="${hi}"]`);
+      // Prefer the .line-row (outer) over the .lineno span so we
+      // measure the row's full vertical extent.
+      const lineEl = pane.querySelector(`.line-row[data-ln="${hi}"]`)
+                  || pane.querySelector(`[data-ln="${hi}"]`);
       if (!lineEl) return;
-      const paneRect = pane.getBoundingClientRect();
-      const lineRect = lineEl.getBoundingClientRect();
-      // offset within the pane's scroll container
-      const top  = lineRect.top  - paneRect.top  + pane.scrollTop  + lineRect.height;
-      const left = lineRect.left - paneRect.left + pane.scrollLeft + 60;
+      // Walk up the offsetParent chain until we hit .foldable-body
+      // so the coordinates land in the same reference frame as the
+      // absolutely-positioned button.
+      let top = lineEl.offsetTop + lineEl.offsetHeight + 4;
+      let left = lineEl.offsetLeft + 80;
+      let p = lineEl.offsetParent;
+      const stop = pane.querySelector('.foldable-body');
+      while (p && p !== stop && p !== pane) {
+        top  += p.offsetTop;
+        left += p.offsetLeft;
+        p = p.offsetParent;
+      }
       setFloating({ top, left, lo, hi });
     };
     window.addEventListener('mouseup', onUp);
