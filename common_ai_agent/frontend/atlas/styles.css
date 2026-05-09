@@ -1488,6 +1488,7 @@ body.atlas-sim-debug-fullscreen #scaler > #root > div > div {
 }
 .foldable-body {
   padding: 4px 0 4px 0;
+  position: relative;   /* anchor for the floating "Comment selection" button */
 }
 .foldable-pane .line-row {
   display: grid;
@@ -1568,7 +1569,10 @@ body.atlas-sim-debug-fullscreen #scaler > #root > div > div {
   border-color: var(--ok);
 }
 .foldable-pane .fold-floating-comment {
-  position: fixed;
+  /* position is set inline (absolute) via React so it anchors next
+     to the last selected line within the .foldable-body offset
+     parent. ATLAS wraps the whole UI in a transformed #scaler so
+     position: fixed + clientX/Y was off by hundreds of px. */
   background: color-mix(in oklch, var(--ok) 22%, transparent);
   color: var(--ok);
   border: 1px solid var(--ok);

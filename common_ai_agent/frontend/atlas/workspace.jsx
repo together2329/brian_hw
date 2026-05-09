@@ -9177,9 +9177,10 @@ const _FOLD_KIND_COLOR = {
 const FoldablePane = ({ path, body, lang, lineCount }) => {
   const [ranges, setRanges] = React.useState([]);
   const [skipped, setSkipped] = React.useState(null);
-  const [floating, setFloating] = React.useState(null);  // {x, y, lo, hi}
+  const [floating, setFloating] = React.useState(null);  // {top, left, lo, hi}
   const [sel, setSel] = React.useState(null);            // {lo, hi}
   const dragRef = React.useRef({ start: null, end: null, on: false });
+  const paneRef = React.useRef(null);
 
   // Fetch fold ranges per (path, body-length) — body-length acts as a
   // cheap content-changed signal so reloaded files refetch.
@@ -9212,13 +9213,29 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
     setSel({ lo: Math.min(a, b), hi: Math.max(a, b) });
   };
   React.useEffect(() => {
-    const onUp = (ev) => {
+    const onUp = () => {
       if (!dragRef.current.on) return;
       dragRef.current.on = false;
       const { start, end } = dragRef.current;
       if (start == null || end == null) return;
-      setFloating({ x: ev.clientX + 12, y: ev.clientY - 8,
-                    lo: Math.min(start, end), hi: Math.max(start, end) });
+      const hi = Math.max(start, end);
+      const lo = Math.min(start, end);
+      // Anchor the floating button to the LAST selected line within
+      // the pane's own offset frame. Using mouse clientX/Y broke
+      // because ATLAS wraps the whole UI in a #scaler with a CSS
+      // transform — `position: fixed` inside a transformed ancestor
+      // is positioned relative to that ancestor, not the viewport,
+      // so the button drifted hundreds of pixels off cursor.
+      const pane = paneRef.current;
+      if (!pane) return;
+      const lineEl = pane.querySelector(`[data-ln="${hi}"]`);
+      if (!lineEl) return;
+      const paneRect = pane.getBoundingClientRect();
+      const lineRect = lineEl.getBoundingClientRect();
+      // offset within the pane's scroll container
+      const top  = lineRect.top  - paneRect.top  + pane.scrollTop  + lineRect.height;
+      const left = lineRect.left - paneRect.left + pane.scrollLeft + 60;
+      setFloating({ top, left, lo, hi });
     };
     window.addEventListener('mouseup', onUp);
     return () => window.removeEventListener('mouseup', onUp);
@@ -9310,7 +9327,7 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
   while (cur <= lineCount) { trail.push(renderLineRow(cur)); cur += 1; }
 
   return (
-    <div className="foldable-pane">
+    <div className="foldable-pane" ref={paneRef}>
       {skipped && (
         <div style={{ padding: '6px 14px', color: 'var(--warn)', fontSize: 11, fontFamily: 'var(--mono)' }}>
           fold disabled — {skipped}
@@ -9318,24 +9335,24 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
       )}
       {ranges.length > 1 && (
         <div className="foldable-toolbar">
-          <button onClick={() => document.querySelectorAll('.foldable-pane details').forEach(d => d.open = true)}>▾ Expand all</button>
-          <button onClick={() => document.querySelectorAll('.foldable-pane details').forEach(d => d.open = false)}>▸ Collapse all</button>
+          <button onClick={() => paneRef.current?.querySelectorAll('details').forEach(d => d.open = true)}>▾ Expand all</button>
+          <button onClick={() => paneRef.current?.querySelectorAll('details').forEach(d => d.open = false)}>▸ Collapse all</button>
           <button onClick={() => {
-            document.querySelectorAll('.foldable-pane details').forEach(d => { d.open = (d.dataset.kind === 'section' || d.dataset.kind === 'module'); });
+            paneRef.current?.querySelectorAll('details').forEach(d => { d.open = (d.dataset.kind === 'section' || d.dataset.kind === 'module'); });
           }}>▾ Top sections only</button>
         </div>
       )}
       <div className="foldable-body">
         {renderedTree.elements}
         {trail}
+        {floating && (
+          <button className="fold-floating-comment"
+                  style={{ position: 'absolute', left: floating.left, top: floating.top }}
+                  onClick={() => dispatchComment(floating.lo, floating.hi, '')}>
+            💬 Comment selection
+          </button>
+        )}
       </div>
-      {floating && (
-        <button className="fold-floating-comment"
-                style={{ left: floating.x, top: floating.y }}
-                onClick={() => dispatchComment(floating.lo, floating.hi, '')}>
-          💬 Comment selection
-        </button>
-      )}
     </div>
   );
 };

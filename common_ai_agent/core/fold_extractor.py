@@ -201,6 +201,106 @@ def extract_verilog_folds(text: str) -> List[Dict[str, Any]]:
     return ranges
 
 
+def extract_json_folds(text: str) -> List[Dict[str, Any]]:
+    """Return fold ranges for every JSON object/array spanning 2+ lines.
+
+    Hand-rolled brace/bracket counter — Python's json module discards
+    line info, so we scan the source ourselves while tracking string
+    state (quotes, escapes) so braces inside strings don't open a
+    fold. Records the most-recent string token before ``{``/``[`` as
+    a label hint when the parent context is an object key.
+    """
+    if not text or not text.strip():
+        return []
+    # Quick validity pre-check via stdlib json. If it doesn't parse we
+    # still attempt fold extraction — most JSON-ish files (jsonc,
+    # json5 with comments) are usable for structural folding even
+    # when strict json.loads rejects them.
+    try:
+        import json as _json
+        _json.loads(text)
+    except Exception:
+        pass
+
+    ranges: List[Dict[str, Any]] = []
+    stack = []  # each entry: {open_line, open_char, kind, label}
+    line_no = 1
+    i = 0
+    n = len(text)
+    last_string = ""           # most recent string literal we saw
+    last_string_was_key = False  # True if it was followed by ':'
+    in_string = False
+    string_buf = []
+
+    while i < n:
+        ch = text[i]
+        if in_string:
+            if ch == "\\" and i + 1 < n:
+                string_buf.append(ch); string_buf.append(text[i + 1])
+                if text[i + 1] == "\n":
+                    line_no += 1
+                i += 2
+                continue
+            if ch == '"':
+                in_string = False
+                last_string = "".join(string_buf)
+                string_buf = []
+                last_string_was_key = False
+                # Look ahead for `:` after optional whitespace
+                j = i + 1
+                while j < n and text[j] in " \t\r\n":
+                    if text[j] == "\n":
+                        # don't consume linenos for the lookahead
+                        pass
+                    j += 1
+                if j < n and text[j] == ":":
+                    last_string_was_key = True
+                i += 1
+                continue
+            if ch == "\n":
+                line_no += 1
+            string_buf.append(ch)
+            i += 1
+            continue
+        if ch == '"':
+            in_string = True
+            string_buf = []
+            i += 1
+            continue
+        if ch == "\n":
+            line_no += 1
+            i += 1
+            continue
+        if ch in "{[":
+            kind = "object" if ch == "{" else "array"
+            label = last_string if last_string_was_key else kind
+            stack.append({
+                "open_line": line_no,
+                "kind": kind,
+                "label": label,
+            })
+            last_string = ""
+            last_string_was_key = False
+            i += 1
+            continue
+        if ch in "}]":
+            if stack:
+                top = stack.pop()
+                if line_no - top["open_line"] >= 2:
+                    ranges.append({
+                        "kind": top["kind"],
+                        "label": top["label"],
+                        "line_start": top["open_line"],
+                        "line_end": line_no,
+                    })
+            i += 1
+            continue
+        i += 1
+
+    ranges.sort(key=lambda r: (r["line_start"], -r["line_end"]))
+    return ranges
+
+
 def folds_for_path(path: str, text: str) -> List[Dict[str, Any]]:
     """Dispatch to the right extractor by file extension.
 
@@ -212,4 +312,6 @@ def folds_for_path(path: str, text: str) -> List[Dict[str, Any]]:
         return extract_verilog_folds(text)
     if p.endswith((".yaml", ".yml")):
         return extract_yaml_folds(text)
+    if p.endswith((".json", ".jsonc", ".jsonl")):
+        return extract_json_folds(text)
     return []
