@@ -6158,10 +6158,11 @@ const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = []
             background: 'var(--bg-1)',
             padding: '5px 8px',
             display: 'grid',
-            gridTemplateColumns: 'minmax(120px, 1fr) auto minmax(80px, auto)',
-            gap: '2px 10px',
+            gridTemplateColumns: 'auto auto auto',
+            gap: '2px 12px',
             fontSize: 10,
             alignItems: 'baseline',
+            whiteSpace: 'nowrap',
           }}>
             {visible.map((p, i) => (
               <React.Fragment key={p.name || i}>
@@ -6342,10 +6343,14 @@ const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = []
           mirroring the soc-architect block-card visual. Pin order:
           bus → data → irq grouped at top, clock → reset grouped at
           bottom (clock/reset are the conventional "ground reference"
-          on most block diagrams). */}
+          on most block diagrams).
+          Left column is `auto`-sized so an expanded port drawer can
+          push the column wider than the resting pin labels — without
+          this, long widths like `[APB_ADDR_WIDTH-1:0]` got clipped
+          inside the 220px cap. */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'minmax(120px, 220px) 1fr',
+        gridTemplateColumns: 'auto 1fr',
         gap: 0,
         alignItems: 'stretch',
       }}>
@@ -6549,21 +6554,49 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
   const fsmSection = sectionByKey(sections, 'fsm');
   const errorsSection = sectionByKey(sections, 'errors') || sectionByKey(sections, 'error_handling');
   const parametersSection = sectionByKey(sections, 'parameters')
-    || sectionByKey(sections, 'top_module_parameters');
-  // Extract `parameters` blocks → [{name, default, description}]. The
-  // SSOT schema lists parameters as a sub-list inside the `parameters`
-  // section; some IPs nest them under top_module instead, so we accept
-  // both shapes.
+    || sectionByKey(sections, 'top_module_parameters')
+    || sectionByKey(sections, 'module_parameters')
+    || sectionByKey(sections, 'parameter_list')
+    || sectionByKey(sections, 'default_parameters')
+    || (sections || []).find(s => /parameter/i.test(s.key || ''));
+  // Extract `parameters` blocks → [{name, default, description}]. SSOT
+  // shapes seen in the wild:
+  //   • parameters: ─ list of {name, default, description, …}
+  //   • top_module: ─ {parameters: [...]}
+  //   • parameters: as a flat key=value mapping at section root
+  //   • module_parameters / parameter_list / default_parameters
+  //   • freeform "NUM_PINS = 32" lines inside a parameters paragraph
+  // We try them in order and stop at the first hit so an IP that uses
+  // any of these shapes ends up with parameter chips on the diagram.
   const parameters = (() => {
     const collect = (blocks) => blocks.map(b => ({
-      name: blockField(b, 'name') || blockField(b, 'key') || '',
-      value: blockField(b, 'default') || blockField(b, 'value') || blockField(b, 'default_value') || '',
+      name: blockField(b, 'name') || blockField(b, 'key') || blockField(b, 'param') || '',
+      value: blockField(b, 'default') || blockField(b, 'value') || blockField(b, 'default_value') || blockField(b, 'val') || '',
       description: blockField(b, 'description', 200),
     })).filter(p => p.name);
+    // 1) blocks under the standalone `parameters` section
     let rows = collect(listBlocksFromSection(parametersSection));
-    if (!rows.length) {
-      // Fall back to top_module.parameters if the standalone section is absent.
-      rows = collect(listBlocksFromSection(top, 'parameters'));
+    // 2) blocks nested under top_module.parameters
+    if (!rows.length) rows = collect(listBlocksFromSection(top, 'parameters'));
+    // 3) blocks under `top_module.params` (alternative key)
+    if (!rows.length) rows = collect(listBlocksFromSection(top, 'params'));
+    // 4) flat KEY: VALUE pairs inside the parameters section text — last
+    //    ditch effort for IPs that flatten the parameter list instead of
+    //    wrapping each entry in its own `- name: …` block. Only catches
+    //    SystemVerilog-style identifiers (UPPER_SNAKE_CASE) so we don't
+    //    misread random doc paragraphs as parameters.
+    if (!rows.length && parametersSection && parametersSection.text) {
+      const seen = new Set();
+      const flat = [];
+      const re = /^[\s-]*([A-Z_][A-Z0-9_]{2,})\s*[:=]\s*([^\n#]+?)\s*$/gm;
+      let m;
+      while ((m = re.exec(parametersSection.text)) !== null) {
+        const name = m[1];
+        if (seen.has(name)) continue;
+        seen.add(name);
+        flat.push({ name, value: m[2].trim().replace(/^["']|["']$/g, ''), description: '' });
+      }
+      rows = flat;
     }
     return rows;
   })();
@@ -7463,7 +7496,17 @@ const ProgressPanel = () => {
 
   const data = window.ATLAS_PROGRESS || {};
   const modules = Array.isArray(data.modules) ? data.modules : [];
-  const selected = modules.find(m => m.id === moduleId)
+  // Active IP comes from the top-bar selector (single source of truth).
+  // We derive it from ACTIVE_SESSION and pivot the panel onto that
+  // module — no internal IP picker, since the user explicitly asked
+  // for "IP는 맨 위에서 선택, 다른 곳에선 표시만".
+  const _activeIp = (() => {
+    const ns = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+    if (ns.length >= 2) return ns[1];
+    return '';
+  })();
+  const selected = modules.find(m => (m.id || m.name) === _activeIp)
+    || modules.find(m => m.id === moduleId)
     || data.selected
     || modules[0]
     || null;
@@ -7573,17 +7616,26 @@ const ProgressPanel = () => {
     <div style={{ flex: 1, overflow: 'auto', fontSize: 11 }}>
       <div style={{ padding: '9px 12px', borderBottom: '1px solid var(--line)', background: 'var(--bg-2)' }}>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 8 }}>
-          <select
-            value={selected.id || ''}
-            onChange={(e) => setModuleId(e.target.value)}
+          {/* Display-only IP label — IP selection happens at the top-bar
+              dir-switcher (single source of truth). Showing a duplicate
+              picker here lets the panel drift out of sync from the
+              actual active IP. Click hint suggests where to switch. */}
+          <span
+            title={`Active IP — switch from the top-bar IP picker.\n${selected.ssot_path || ''}`}
             style={{
-              flex: 1, minWidth: 0, background: 'var(--bg-3)',
-              color: 'var(--fg)', border: '1px solid var(--line)',
-              borderRadius: 2, padding: '4px 6px', fontFamily: 'var(--mono)', fontSize: 11,
+              flex: 1, minWidth: 0,
+              padding: '4px 8px',
+              background: 'var(--bg-3)',
+              color: 'var(--fg)',
+              border: '1px solid var(--line)',
+              borderRadius: 2,
+              fontFamily: 'var(--mono)', fontSize: 11,
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              cursor: 'default', userSelect: 'none',
             }}
           >
-            {modules.map(m => <option key={m.id || m.name} value={m.id || m.name}>{m.label || m.name || m.id}</option>)}
-          </select>
+            {selected.label || selected.name || selected.id || '(no IP)'}
+          </span>
           <span className="mute" title={selected.ssot_path || ''}>{selected.kind || 'ip'}</span>
         </div>
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>

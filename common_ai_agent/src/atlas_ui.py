@@ -231,8 +231,27 @@ class _AtlasBridge:
 
     # Esc / abort handling
     def request_stop(self) -> None:
-        """Mark a stop request — react_loop will see it on its next poll."""
+        """Mark a stop request — react_loop will see it on its next poll.
+
+        Also drains any queued prompts in `_inbox` and `_interrupts` so
+        a stop genuinely halts the run instead of letting follow-up
+        `/wf <name>` / `/clear` / template prompts (queued via
+        `bridge.queue_prompt(...)`) auto-fire the agent again as soon as
+        the current iteration finishes. Without this, the user would see
+        "stop, then it kept running" because the inbox was full of
+        pending workflow prompts ready to drive the next turn.
+        """
         self._stop_flag = True
+        try:
+            while True:
+                self._inbox.get_nowait()
+        except queue.Empty:
+            pass
+        try:
+            while True:
+                self._interrupts.get_nowait()
+        except queue.Empty:
+            pass
 
     def check_stop(self) -> bool:
         """Read-and-clear the stop flag (drop-in for esc_check_fn)."""
@@ -3939,6 +3958,8 @@ def create_app():
 
     _WORKFLOW_SLASHES = {
         "/wf", "/workflow",
+        "/ip", "/use",
+        "/session",
         "/new-ip", "/ni",
         "/import", "/imp",
         "/grill-me", "/grill", "/g",
@@ -6257,6 +6278,74 @@ def create_app():
         _append_active_history("assistant", "```\n" + plan + "\n```")
         _emit_workflow_result(plan, "new-ip")
         _emit_ssot_approval_ready(ip, state)
+        return True
+
+    def _handle_ip_command(text: str) -> bool:
+        """`/ip <name>` — switch the active IP without spinning up a turn.
+
+        Halts any running agent first (drains the inbox so queued
+        workflow prompts don't auto-fire), repoints ATLAS_ACTIVE_IP
+        plus the canonical session string, and emits commands_changed
+        so the frontend refreshes /healthz and pivots the SSOT / QA /
+        preview panels onto the new IP. No LLM call.
+        """
+        cmd, args = _split_slash(text)
+        if cmd not in ("ip", "use"):  # `/use` retained as alias
+            return False
+        ip = (args or "").strip().split()[0] if args else ""
+        if not _valid_ip_name(ip):
+            _emit_workflow_result(
+                "[IP] missing or invalid IP name\n"
+                "usage: /ip <ip_name>\n"
+                "example: /ip gpio",
+                "ip",
+            )
+            return True
+        bridge.request_stop()
+        bridge.emit("agent_state", running=False)
+        _set_active_ssot_ip(ip)
+        try:
+            (PROJECT_ROOT / ip).mkdir(parents=True, exist_ok=True)
+        except OSError:
+            pass
+        msg = (
+            f"[IP] active IP -> {ip}\n"
+            f"session: {_canonical_session_string(ip)}"
+        )
+        _emit_workflow_result(msg, "ip")
+        bridge.emit("commands_changed")
+        return True
+
+    def _handle_session_command(text: str) -> bool:
+        """`/session <id>` — switch the active session_id (owner namespace).
+
+        Halts the agent, sets ATLAS_ACTIVE_SESSION to the canonical
+        triple `<id>/<active-ip>/<active-workflow>`, and emits a refresh
+        signal. The frontend's /healthz poll picks up the new owner and
+        re-pivots the workspace UI without a page reload.
+        """
+        cmd, args = _split_slash(text)
+        if cmd not in ("session",):
+            return False
+        sid = (args or "").strip().split()[0] if args else ""
+        if not sid or not _valid_ip_name(sid):
+            _emit_workflow_result(
+                "[SESSION] missing or invalid session id\n"
+                "usage: /session <session_id>\n"
+                "example: /session brian",
+                "session",
+            )
+            return True
+        bridge.request_stop()
+        bridge.emit("agent_state", running=False)
+        ip = _active_ssot_ip() or "default"
+        wf = os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
+        os.environ["ATLAS_ACTIVE_SESSION"] = f"{sid}/{ip}/{wf}"
+        _emit_workflow_result(
+            f"[SESSION] active session -> {sid}/{ip}/{wf}",
+            "session",
+        )
+        bridge.emit("commands_changed")
         return True
 
     def _handle_approval_command(text: str) -> bool:
@@ -9633,6 +9722,10 @@ def create_app():
                     _low = _txt.lower()
                     if _handle_new_ip_command(_txt):
                         continue
+                    if _handle_ip_command(_txt):
+                        continue
+                    if _handle_session_command(_txt):
+                        continue
                     if _handle_import_command(_txt):
                         continue
                     if _handle_grill_me_command(_txt):
@@ -9907,18 +10000,20 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     _main._textual_emit_tool_fn      = lambda text: bridge.emit("tool", text=_clean(text))
     # Browser-side tool_result cap. Display-only — LLM still gets the
     # full obs upstream; this just trims what we ship over the WS so a
-    # 200KB grep doesn't drown the chat. Configurable in .config via
-    # WS_TOOL_RESULT_MAX_CHARS (default 8000).
-    _ws_tool_max = 8000
+    # multi-MB grep / sim log doesn't drown the chat. Configurable via
+    # WS_TOOL_RESULT_MAX_CHARS. Default raised to 128 KB so a typical
+    # SSOT YAML (≈ 60-100 KB) renders end-to-end without the previous
+    # 8 KB ceiling chopping the file at the registers section.
+    _ws_tool_max = 128000
     try:
         try: import src.config as _cfg2  # type: ignore  # noqa: WPS433
         except Exception:
             try: import config as _cfg2  # type: ignore  # noqa: WPS433
             except Exception: _cfg2 = None
         if _cfg2 is not None:
-            _ws_tool_max = int(getattr(_cfg2, "WS_TOOL_RESULT_MAX_CHARS", 8000))
+            _ws_tool_max = int(getattr(_cfg2, "WS_TOOL_RESULT_MAX_CHARS", 128000))
     except Exception:
-        _ws_tool_max = 8000
+        _ws_tool_max = 128000
     def _emit_tool_result(obs, tool=""):
         cleaned = _clean(obs)
         bridge.emit(
