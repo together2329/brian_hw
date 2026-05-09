@@ -23,7 +23,7 @@ Lint command:
 cd <project-root> && python ../brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py <ip>   # Windows
 cd <project-root> && python3 ../brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py <ip>  # macOS/Linux
 # equivalent explicit forms:
-cd <ip> && iverilog -Wall -g2012 -Irtl -f list/<ip>.f -s <top> -o <temp>/<ip>_dut_lint.vvp  # Windows/Icarus
+cd <ip> && iverilog -Wall -g2012 -Irtl -f list/<ip>.f -s <top> -o lint/<ip>_dut_lint.vvp  # Windows/Icarus
 cd <ip> && verilator --lint-only -Wall -Irtl -f list/<ip>.f --top-module <top>
 ```
 
@@ -34,6 +34,7 @@ cd <ip> && verilator --lint-only -Wall -Irtl -f list/<ip>.f --top-module <top>
 
 ## CRITICAL RULES
 
+0. **Lint artifacts (`.vvp`, check logs, intermediate scratch files) MUST land under `<ip>/lint/`, NEVER inside `<ip>/rtl/`**. The `rtl/` directory is reserved for synthesizable source. Use explicit `-o lint/<file>.vvp` paths and direct check commands' stdout/err to `lint/*.log`. If you find stray `.vvp` files in `rtl/`, delete them as part of the cleanup pass.
 1. **NEVER suppress warnings** — always fix the root cause
 2. **ONE module per file** — if a file contains multiple modules, split them:
    - Extract each submodule into its own file (e.g., `dma_fifo.sv` for `module dma_fifo`)
@@ -82,7 +83,7 @@ Warning: DECLFILENAME — filename 'foo' does not match module 'bar'
   "scope": "dut",
   "dut_only": true,
   "tool": "iverilog",
-  "command": "iverilog -Wall -g2012 -Irtl -f list/<ip>.f -s <top> -o <temp>/<ip>_dut_lint.vvp",
+  "command": "iverilog -Wall -g2012 -Irtl -f list/<ip>.f -s <top> -o lint/<ip>_dut_lint.vvp",
   "rtl_files": ["rtl/..."],
   "errors": 0,
   "warnings": 0,

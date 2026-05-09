@@ -23,8 +23,15 @@
 # =============================================================================
 # SECTION 0: Top Module Identity
 # =============================================================================
+# `file` is REQUIRED — the synthesizable top-level Verilog file MUST
+# share the IP name (`rtl/<ip_name>.sv`). Wrapper-only patterns (top
+# named `<ip>_wrapper.sv` with no `<ip>.sv`) confuse downstream tooling
+# and humans expecting `<ip>.sv` as the entry point. If a wrapper layer
+# is genuinely needed, list it as a separate sub_module with
+# wiring_only: true and keep `<ip>.sv` as the top.
 top_module:
   name: "<ip_name>"
+  file: "rtl/<ip_name>.sv"
   version: "1.0"
   type: "dma"                              # dma | cpu | accelerator | bus | peripheral | memory
   description: "<one-sentence purpose>"

@@ -4626,11 +4626,19 @@ def create_app():
         path.write_text(_yaml.safe_dump(doc, sort_keys=False, allow_unicode=True, width=120), encoding="utf-8")
 
     def _ensure_ssot_draft(ip: str, kind: str = "simple APB peripheral") -> dict[str, Any]:
+        # Default top file path follows the canonical convention
+        # `rtl/<ip>.sv` so /new-ip scaffolds an SSOT that already has
+        # the synthesizable top wired to a name matching the IP. Without
+        # this, drafts shipped without a `file` field and downstream
+        # rtl-gen runs occasionally settled on `<ip>_wrapper.sv` as the
+        # de facto top, which surprised reviewers expecting `<ip>.sv`.
+        _default_top_file = f"rtl/{ip}.sv" if ip else "rtl/top.sv"
         doc = _load_ssot_draft(ip)
         if not doc:
             doc = {
                 "top_module": {
                     "name": ip,
+                    "file": _default_top_file,
                     "type": "draft",
                     "description": kind or "simple APB peripheral",
                     "version": "draft",
@@ -4640,6 +4648,7 @@ def create_app():
         top = doc.setdefault("top_module", {})
         if isinstance(top, dict):
             top.setdefault("name", ip)
+            top.setdefault("file", _default_top_file)
             top.setdefault("type", "draft")
             top.setdefault("description", kind or "simple APB peripheral")
             top.setdefault("version", "draft")

@@ -39,8 +39,15 @@ The canonical YAML SSOT template is `workflow/ssot-gen/rules/ssot-template.yaml`
 # =============================================================================
 
 # SECTION 0: Top Module Identity
+# `file` is REQUIRED and MUST be `rtl/<ip>.sv` — the synthesizable
+# top-level Verilog file MUST share the IP name. Wrapper-only
+# patterns (top file named `<ip>_wrapper.sv`) confuse downstream
+# tooling and humans expecting `<ip>.sv` as the entry point. If a
+# wrapper layer is genuinely needed, list it as a separate
+# sub_module (with wiring_only: true) — keep `<ip>.sv` as the top.
 top_module:
   name: "<ip_name>"
+  file: "rtl/<ip_name>.sv"
   version: "1.0"
   type: "dma"                              # dma | cpu | accelerator | bus | peripheral | memory
   description: "<one-sentence purpose>"
