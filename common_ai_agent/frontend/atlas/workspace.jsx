@@ -2264,7 +2264,15 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       }
       return;
     }
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitMsg(); }
+    // Plain Enter submits. Shift+Enter and Alt/Option+Enter both
+    // insert a literal newline so multi-line prompts (paste, code
+    // snippet, structured questions) compose naturally. Without the
+    // Alt branch, macOS users with Shift mapped elsewhere had no
+    // way to break a line.
+    if (e.key === 'Enter' && !e.shiftKey && !e.altKey) {
+      e.preventDefault();
+      submitMsg();
+    }
   };
 
   // ── question card handlers ─────────────────────────────────────
@@ -2653,16 +2661,23 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   const renderPromptRow = () => (
     <div className="prompt-row">
       <span className="ps" style={{ color: 'var(--fg-mute)' }}>❯</span>
-      <input ref={inputRef} value={input}
+      <textarea ref={inputRef} value={input}
+        rows={1}
         onChange={e => {
           inputHistoryIndexRef.current = null;
           inputHistoryDraftRef.current = '';
           setInput(e.target.value);
+          // Auto-grow up to 8 rows (~12em). Shrinks back when the user
+          // deletes content. min-height keeps the row aligned with the
+          // ❯ prompt sigil even when empty.
+          const el = e.target;
+          el.style.height = 'auto';
+          el.style.height = Math.min(el.scrollHeight, 192) + 'px';
         }}
         onKeyDown={onKey}
         placeholder={pendingQcard
           ? 'Answer pending Q&A here · "/" for commands'
-          : 'Type a message · "/" for commands · "@" for files'}
+          : 'Type a message · "/" for commands · "@" for files · ⌥↵ newline'}
         autoFocus
       />
       <span className="mute" style={{ fontSize: 11 }}>
@@ -2672,7 +2687,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
           </>
         ) : (
           <>
-            <Kbd>/</Kbd> cmd · <Kbd>@</Kbd> file · <Kbd>↑</Kbd><Kbd>↓</Kbd> history · <Kbd>↵</Kbd> send
+            <Kbd>/</Kbd> cmd · <Kbd>@</Kbd> file · <Kbd>↑</Kbd><Kbd>↓</Kbd> history · <Kbd>↵</Kbd> send · <Kbd>⌥↵</Kbd> newline
           </>
         )}
       </span>

@@ -687,7 +687,7 @@
 /* prompt input */
 .prompt-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   padding: 10px 14px;
   background: var(--field-bg);
@@ -695,8 +695,9 @@
   border-radius: 2px;
   font-family: var(--mono);
 }
-.prompt-row .ps { color: var(--accent); font-weight: 600; user-select: none; }
-.prompt-row input {
+.prompt-row .ps { color: var(--accent); font-weight: 600; user-select: none; line-height: 1.55; }
+.prompt-row input,
+.prompt-row textarea {
   flex: 1;
   background: transparent;
   border: none;
@@ -704,8 +705,16 @@
   color: var(--fg);
   font-family: var(--mono);
   font-size: var(--ui-font-size);
+  line-height: 1.55;
+  resize: none;
+  padding: 0;
+  margin: 0;
+  min-height: 1.55em;
+  max-height: 192px;
+  overflow-y: auto;
 }
-.prompt-row input::placeholder { color: var(--fg-mute); }
+.prompt-row input::placeholder,
+.prompt-row textarea::placeholder { color: var(--fg-mute); }
 
 /* slash menu */
 .slash-menu {
