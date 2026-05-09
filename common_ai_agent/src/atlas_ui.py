@@ -9997,7 +9997,12 @@ def create_app():
                     # frontend cancels its retry timer; we only call
                     # submit_prompt the first time.
                     _msg_id = str(msg.get("msg_id") or "").strip()
-                    bridge.emit("agent_received", msg_id=_msg_id)
+                    _txt_preview = str(msg.get("text") or "")[:80].replace("\n", " ")
+                    bridge.emit(
+                        "agent_received",
+                        msg_id=_msg_id,
+                        text_preview=_txt_preview,
+                    )
                     if _msg_id and bridge.msg_id_seen(_msg_id):
                         continue
                     _txt = msg["text"].strip()
@@ -10164,6 +10169,11 @@ def create_app():
                         )
                 elif t == "stop":
                     # Esc from the UI — abort the current iteration.
+                    # Surface the stop on the chat feed so the user sees
+                    # the backend acknowledged the ESC immediately,
+                    # before the agent thread gets to its next poll.
+                    bridge.emit("token", text="\n⏹  stop received\n")
+                    bridge.emit("flush")
                     bridge.request_stop()
                     bridge.emit("agent_state", running=False)
                 elif t == "shutdown":
@@ -10346,8 +10356,22 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
             _ws_tool_max = int(getattr(_cfg2, "WS_TOOL_RESULT_MAX_CHARS", 128000))
     except Exception:
         _ws_tool_max = 128000
+    # Strip the `[Step N/M: ...] ... → Interpret the result below in
+    # context of the current goal` block that react_loop prepends to
+    # observations for the LLM. That header is useful in the LLM
+    # message stream but pollutes the user-facing tool_result card —
+    # without this defensive strip a write/replace tool_result body
+    # opens with the entire todo header instead of the actual diff.
+    _STEP_HEADER_RE = re.compile(
+        r"^\[Step\s+\d+/\d+:[^\n]*\]\n"
+        r"(?:[^\n]*\n)*?"
+        r"→ Interpret the result below in context of the current goal\n+",
+        re.MULTILINE,
+    )
+
     def _emit_tool_result(obs, tool=""):
         cleaned = _clean(obs)
+        cleaned = _STEP_HEADER_RE.sub("", cleaned, count=1)
         bridge.emit(
             "tool_result",
             text=cleaned[:_ws_tool_max],
