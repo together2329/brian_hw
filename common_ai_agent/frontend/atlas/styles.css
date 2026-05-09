@@ -621,12 +621,13 @@
 [data-theme="dark"] .token.comment,
 [data-theme="dark"] .token.prolog,
 [data-theme="dark"] .token.doctype,
-[data-theme="dark"] .token.cdata { color: #6a737d !important; font-style: italic; }
+[data-theme="dark"] .token.cdata { color: #8a96a3 !important; font-style: italic; }
 [data-theme="light"] .token.comment,
 [data-theme="light"] .token.prolog,
 [data-theme="light"] .token.doctype,
-[data-theme="light"] .token.cdata { color: #6a737d !important; font-style: italic; }
-.token.punctuation       { color: var(--fg-dim) !important; }
+[data-theme="light"] .token.cdata { color: #4a5666 !important; font-style: italic; }
+[data-theme="dark"] .token.punctuation { color: var(--fg) !important; opacity: 0.78; }
+[data-theme="light"] .token.punctuation { color: #1f2630 !important; }
 .token.namespace         { opacity: 0.7; }
 .token.property,
 .token.tag,

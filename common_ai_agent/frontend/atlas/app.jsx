@@ -339,11 +339,31 @@ const App = () => {
   React.useEffect(() => {
     let timer = null;
     const syncCurrent = (ev) => {
-      const namespace = normalizeSession((ev && ev.detail && ev.detail.session) || window.ACTIVE_SESSION || activeNamespace);
+      // Prefer the canonical triple the server reports via /healthz
+      // (window.CONTEXT.active_session) over the cached
+      // window.ACTIVE_SESSION — on a fresh reload the URL params can
+      // still hold a stale triple from a previous tab while the server
+      // has long since pivoted, and we want the UI (dropdowns + URL)
+      // to reflect the *server* state, not the URL the user pasted.
+      const ctx = window.CONTEXT || {};
+      const ctxSession = normalizeSession(ctx.active_session || '');
+      const namespace = ctxSession
+        || normalizeSession((ev && ev.detail && ev.detail.session) || window.ACTIVE_SESSION || activeNamespace);
       const parsed = splitSessionNamespace(namespace);
       setActiveNamespace(namespace || namespaceFor(activeSessionId, activeIp, currentWorkflow()));
       setActiveSessionId(parsed.sessionId || activeSessionId);
       setActiveIp(parsed.ipId === 'soc' ? '' : (parsed.ipId || activeIp || ''));
+      // Push the canonical triple into the URL so the address bar
+      // never silently disagrees with what the server reports.
+      // Without this, reloading after a triple flip kept the OLD
+      // ?ip=…&workflow=… params visible even though dropdowns / file
+      // tree had pivoted to the new triple.
+      try {
+        const owner = parsed.sessionId || activeSessionId || 'default';
+        const ipSeg = parsed.ipId === 'soc' ? '' : (parsed.ipId || '');
+        const wfSeg = parsed.workflow || '';
+        if (namespace) syncNamespaceUrl(namespace, owner, ipSeg, wfSeg);
+      } catch (_) {}
       clearTimeout(timer);
       timer = setTimeout(refreshTopTargets, 150);
     };
