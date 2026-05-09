@@ -141,17 +141,18 @@ def extract_yaml_folds(text: str) -> List[Dict[str, Any]]:
 
 
 _VERILOG_KIND_LABEL = {
-    "SyntaxKind.ModuleDeclaration":   "module",
-    "SyntaxKind.AlwaysFFBlock":       "always_ff",
-    "SyntaxKind.AlwaysCombBlock":     "always_comb",
-    "SyntaxKind.AlwaysBlock":         "always",
-    "SyntaxKind.AlwaysLatchBlock":    "always_latch",
-    "SyntaxKind.InitialBlock":        "initial",
-    "SyntaxKind.FunctionDeclaration": "function",
-    "SyntaxKind.TaskDeclaration":     "task",
-    "SyntaxKind.LoopGenerate":        "generate-loop",
-    "SyntaxKind.IfGenerate":          "generate-if",
-    "SyntaxKind.CaseStatement":       "case",
+    "SyntaxKind.ModuleDeclaration":     "module",
+    "SyntaxKind.AlwaysFFBlock":         "always_ff",
+    "SyntaxKind.AlwaysCombBlock":       "always_comb",
+    "SyntaxKind.AlwaysBlock":           "always",
+    "SyntaxKind.AlwaysLatchBlock":      "always_latch",
+    "SyntaxKind.InitialBlock":          "initial",
+    "SyntaxKind.FunctionDeclaration":   "function",
+    "SyntaxKind.TaskDeclaration":       "task",
+    "SyntaxKind.LoopGenerate":          "generate-loop",
+    "SyntaxKind.IfGenerate":            "generate-if",
+    "SyntaxKind.CaseStatement":         "case",
+    "SyntaxKind.HierarchyInstantiation": "instance",
 }
 
 
@@ -215,6 +216,28 @@ def extract_verilog_folds(text: str) -> List[Dict[str, Any]]:
                 label = kind
         elif kind == "case":
             label = f"case (L{start})"
+        elif kind == "instance":
+            # `gpio_pad_core u_pad_core ( .pclk(pclk), ... );` →
+            # label = "gpio_pad_core u_pad_core"
+            try:
+                module_type = str(node.type.valueText)
+            except Exception:
+                module_type = ""
+            inst_names = []
+            try:
+                for inst in node.instances:
+                    try:
+                        inst_names.append(str(inst.decl.name.valueText))
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+            if module_type and inst_names:
+                label = f"{module_type} {', '.join(inst_names)}"
+            elif module_type:
+                label = f"instance {module_type}"
+            else:
+                label = "instance"
         ranges.append({
             "kind": kind,
             "label": label,

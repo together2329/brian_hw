@@ -9214,6 +9214,7 @@ const _FOLD_KIND_COLOR = {
   module: '#88c', always_ff: '#cc8', always_comb: '#8cc',
   function: '#c8c', task: '#fa8', case: '#aca',
   initial: '#888', 'generate-loop': '#cca', 'generate-if': '#cca',
+  instance: '#fa8',  // module instances stand out same as task — orange-pink
   section: '#88c', 'sub-section': '#cc8', item: '#8cc', scalar: '#a98',
   object: '#88c', array: '#8cc',
 };
