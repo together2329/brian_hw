@@ -3273,7 +3273,12 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                 # IP-rooted task declared a path the validator couldn't
                 # resolve, producing the "Cannot approve … fake-DONE"
                 # banner even when the file genuinely existed.
-                _active_ip = (_os_fs.environ.get("ATLAS_ACTIVE_IP") or "").strip()
+                # Prefer the per-thread contextvar (atlas_ui mode). Falls
+                # back to env when main.py hasn't been wired or in CLI mode.
+                _main_mod = sys.modules.get('main')
+                _ip_resolver = getattr(_main_mod, "_get_active_ip_str", None) if _main_mod else None
+                _active_ip = (_ip_resolver() if _ip_resolver
+                              else _os_fs.environ.get("ATLAS_ACTIVE_IP") or "").strip()
                 if _active_ip and _re.match(r"^[A-Za-z][A-Za-z0-9_-]*$", _active_ip):
                     _ip_base = _os_fs.path.join(_cwd, _active_ip)
                     if _ip_base not in _base_dirs and _os_fs.path.isdir(_ip_base):

@@ -141,6 +141,7 @@ _textual_set_agent_running_fn = None  # (bool) → None: set agent_running flag 
 _textual_emit_slash_output_fn = None  # (text: str) → None: atlas-only safety-net emit for slash command output, bypasses streamBuffer pipeline
 _textual_emit_mode_fn = None  # (mode: str) → None: notify frontend that agent_mode flipped (plan_q/plan/normal). Used to sync the UI mode pill when chat_loop's `y`/`yc` confirmation auto-promotes plan→normal — without this signal, the user typed "y", agent started executing, but the sidebar still showed PLAN.
 _textual_active_session_fn = None  # () → str: read the per-thread active session (atlas_ui sets this; falls through to ATLAS_ACTIVE_SESSION env when None). Lets atlas_ui retire the per-request os.environ write that races between concurrent users.
+_textual_active_ip_fn = None       # () → str: same idea for ATLAS_ACTIVE_IP — used by core/tools.py path validators.
 
 
 def _get_active_session_str() -> str:
@@ -158,6 +159,22 @@ def _get_active_session_str() -> str:
         if v:
             return str(v).strip().strip("/")
     return os.environ.get("ATLAS_ACTIVE_SESSION", "").strip().strip("/")
+
+
+def _get_active_ip_str() -> str:
+    """Per-thread ATLAS_ACTIVE_IP resolver. Mirrors _get_active_session_str
+    but for the IP-only field. core/tools.py uses this for IP-rooted path
+    validation, so a stale env mirror would let one user's IP claim
+    another user's path."""
+    fn = _textual_active_ip_fn
+    if fn is not None:
+        try:
+            v = fn()
+        except Exception:
+            v = ""
+        if v:
+            return str(v).strip()
+    return (os.environ.get("ATLAS_ACTIVE_IP") or "").strip()
 
 # ChatLoopDeps instance (set inside chat_loop(); exposed for textual_main.py)
 _loop_deps = None
