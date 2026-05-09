@@ -93,6 +93,9 @@ def _sync_env_to_context() -> None:
     """Copy contextvars back to os.environ for legacy main.py reads."""
     os.environ["ATLAS_ACTIVE_SESSION"] = _atlas_active_session_cv.get()
     os.environ["ATLAS_ACTIVE_IP"] = _atlas_active_ip_cv.get()
+    os.environ["ATLAS_UI_LANG"] = _atlas_ui_lang_cv.get()
+    os.environ["AGENT_MODE_OVERRIDE"] = _agent_mode_override_cv.get()
+    os.environ["PLAN_MODE"] = _plan_mode_cv.get()
 
 
 def _python_cmd() -> str:
@@ -360,7 +363,7 @@ def create_app():
         print("ERROR: fastapi not installed. Run: pip install fastapi uvicorn websockets")
         sys.exit(1)
     from core.atlas_db import AtlasDB
-    from core.atlas_multiuser import _MultiUserBridge
+    from core.atlas_multiuser import _MultiUserBridge, set_atlas_bridge_session_id
 
     if not FRONTEND.exists():
         print(f"ERROR: frontend bundle not found at {FRONTEND}")
@@ -371,6 +374,15 @@ def create_app():
     bridge = _MultiUserBridge(use_processes=_use_proc)
     clients: set[Any] = set()
     broadcaster_task: asyncio.Task | None = None
+
+    def _session_emit_target(client_session: Any | None) -> str | None:
+        return getattr(client_session, "session_id", None) if client_session is not None else None
+
+    def _queue_prompt_for_session(client_session: Any | None, text: str) -> None:
+        if client_session is not None:
+            client_session.queue_prompt(text)
+            return
+        bridge.queue_prompt(text)
 
     def _input_history_path() -> Path:
         try:
@@ -668,10 +680,10 @@ def create_app():
             # the preview / SSOT / QA panels in sync without a custom
             # WS event.
             info["active_session"] = (
-                os.environ.get("ATLAS_ACTIVE_SESSION")
+                _active_session_value()
                 or _canonical_session_string()
             )
-            info["active_ip"] = os.environ.get("ATLAS_ACTIVE_IP") or "default"
+            info["active_ip"] = _active_ip_value() or "default"
             info["active_workflow"] = (
                 os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
             )
@@ -1326,7 +1338,7 @@ def create_app():
                 candidates.append(cfg_todo if cfg_todo.is_absolute() else PROJECT_ROOT / cfg_todo)
             except Exception:
                 pass
-            active_session = normalize_session_name(os.environ.get("ATLAS_ACTIVE_SESSION", ""))
+            active_session = normalize_session_name(_active_session_value())
             if active_session:
                 candidates.append(PROJECT_ROOT / ".session" / active_session / "todo.json")
             candidates.extend([
@@ -1527,7 +1539,7 @@ def create_app():
         # POST /api/control/stop is fire-and-forget and races with the
         # /wf prompt sent on the same flip — anchoring the halt here
         # makes the transition deterministic regardless of order.
-        prev = os.environ.get("ATLAS_ACTIVE_SESSION") or ""
+        prev = _active_session_value() or ""
         triple_changed = prev != canonical
         if triple_changed:
             try:
@@ -1535,8 +1547,8 @@ def create_app():
                 bridge.emit("agent_state", running=False)
             except Exception:
                 pass
-        os.environ["ATLAS_ACTIVE_SESSION"] = canonical
-        os.environ["ATLAS_ACTIVE_IP"] = ip
+        _atlas_active_session_cv.set(canonical)
+        _atlas_active_ip_cv.set(ip)
         os.environ["ATLAS_DEFAULT_SESSION_ID"] = sid
         os.environ["ATLAS_DEFAULT_WORKFLOW"] = wf
         if triple_changed:
@@ -4289,7 +4301,7 @@ def create_app():
         clean = normalize_session_name(session or "")
         parts = [p for p in clean.split("/") if p]
         owner_default = os.environ.get("ATLAS_DEFAULT_SESSION_ID") or "default"
-        ip_default = os.environ.get("ATLAS_ACTIVE_IP") or "default"
+        ip_default = _active_ip_value() or "default"
         wf_default = os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
         owner = _resolve_session_owner() or owner_default
         if len(parts) >= 3:
@@ -4487,11 +4499,11 @@ def create_app():
         return pairs
 
     def _active_ssot_qa_context() -> tuple[str, str]:
-        session = normalize_session_name(str(os.environ.get("ATLAS_ACTIVE_SESSION") or ""))
+        session = normalize_session_name(str(_active_session_value() or ""))
         parts = [p for p in session.split("/") if p]
         if len(parts) >= 2 and parts[-1] == "ssot-gen" and _valid_ip_name(parts[-2]):
             return parts[-2], session
-        ip = str(os.environ.get("ATLAS_ACTIVE_IP") or "").strip()
+        ip = str(_active_ip_value() or "").strip()
         if _valid_ip_name(ip):
             return ip, _canonical_session_string(ip)
         return "", ""
@@ -4648,7 +4660,7 @@ def create_app():
         return {
             "ip": ip,
             "workflow": "ssot-gen",
-            "session": normalize_session_name(str(session or os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip))),
+            "session": normalize_session_name(str(session or _active_session_value() or _canonical_session_string(ip))),
             "approved": bool(state.get("approved")),
             "state_status": state.get("status") or "",
             "toc": toc,
@@ -4879,7 +4891,7 @@ def create_app():
           - 2 parts ending in 'default':    owner/default     -> owner = parts[0]
           - 1 part that is NOT an IP-like:  bare session_id   -> owner = parts[0]
         """
-        current = normalize_session_name(str(os.environ.get("ATLAS_ACTIVE_SESSION") or ""))
+        current = normalize_session_name(str(_active_session_value() or ""))
         parts = [p for p in current.split("/") if p]
         if len(parts) >= 3:
             return parts[0]
@@ -4900,7 +4912,7 @@ def create_app():
         ATLAS_ACTIVE_IP, ATLAS_DEFAULT_WORKFLOW).
         """
         owner = _resolve_session_owner() or os.environ.get("ATLAS_DEFAULT_SESSION_ID") or "default"
-        ip = ip or os.environ.get("ATLAS_ACTIVE_IP") or "default"
+        ip = ip or _active_ip_value() or "default"
         workflow = workflow or os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
         return f"{owner}/{ip}/{workflow}"
 
@@ -4944,14 +4956,14 @@ def create_app():
     def _set_active_ssot_ip(ip: str) -> None:
         if not _valid_ip_name(ip):
             return
-        os.environ["ATLAS_ACTIVE_IP"] = ip
-        os.environ["ATLAS_ACTIVE_SESSION"] = _canonical_session_string(ip, "ssot-gen")
+        _atlas_active_ip_cv.set(ip)
+        _atlas_active_session_cv.set(_canonical_session_string(ip, "ssot-gen"))
 
     def _active_ssot_ip() -> str:
-        env_ip = str(os.environ.get("ATLAS_ACTIVE_IP") or "").strip()
+        env_ip = str(_active_ip_value() or "").strip()
         if _valid_ip_name(env_ip):
             return env_ip
-        session = normalize_session_name(str(os.environ.get("ATLAS_ACTIVE_SESSION") or ""))
+        session = normalize_session_name(str(_active_session_value() or ""))
         parts = [p for p in session.split("/") if p]
         if len(parts) >= 2 and parts[-1] == "ssot-gen" and _valid_ip_name(parts[-2]):
             return parts[-2]
@@ -5019,7 +5031,7 @@ def create_app():
         return ip, kind, import_paths, ""
 
     def _render_ssot_llm_qna_prompt(ip: str, kind: str, state: dict[str, Any]) -> str:
-        session = normalize_session_name(str(os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip)))
+        session = normalize_session_name(str(_active_session_value() or _canonical_session_string(ip)))
         imported = state.get("imported_artifacts") if isinstance(state.get("imported_artifacts"), list) else []
         imported_paths = [
             str(item.get("path") or "").strip()
@@ -5120,7 +5132,7 @@ def create_app():
             "approved": False,
             "approved_at": 0,
             "status": "planned",
-            "active_session": os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip),
+            "active_session": _active_session_value() or _canonical_session_string(ip),
             "last_step": "new-ip",
             "created_at": time.time(),
         }
@@ -5750,7 +5762,7 @@ def create_app():
         filled, conflicts = _merge_import_candidates(ip, kind, state, artifacts, candidates, sources)
         state.setdefault("ip", ip)
         state.setdefault("kind", kind)
-        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip)
+        state["active_session"] = _active_session_value() or _canonical_session_string(ip)
         _save_ssot_state(ip, state)
         return filled, conflicts, artifacts, errors
 
@@ -5965,7 +5977,7 @@ def create_app():
             })
         return questions
 
-    def _run_rtl_blocker_resolution(ip: str, blocker: dict[str, Any], answer_entries: list[dict[str, Any]]) -> str:
+    def _run_rtl_blocker_resolution(ip: str, blocker: dict[str, Any], answer_entries: list[dict[str, Any]], client_session: Any | None = None) -> str:
         import subprocess
 
         state = _load_ssot_state(ip)
@@ -6043,7 +6055,7 @@ def create_app():
         if preflight_rc == 0:
             lines.append("")
             lines.append("next: queued /ssot-rtl to start RTL implementation from the repaired SSOT")
-            bridge.queue_prompt(f"/ssot-rtl {ip}")
+            _queue_prompt_for_session(client_session, f"/ssot-rtl {ip}")
         return "\n".join(lines)
 
     def _start_rtl_blocker_qna(
@@ -6051,6 +6063,7 @@ def create_app():
         *,
         reason: str = "rtl-gen preflight",
         interactive: bool = True,
+        client_session: Any | None = None,
     ) -> bool:
         blocker = _load_rtl_blocker(ip)
         cards = _rtl_blocker_cards(blocker)
@@ -6158,7 +6171,7 @@ def create_app():
                     session=ssot_session,
                 )
             try:
-                msg = _run_rtl_blocker_resolution(ip, blocker, answer_entries)
+                msg = _run_rtl_blocker_resolution(ip, blocker, answer_entries, client_session)
             except Exception as exc:
                 msg = f"[RTL BLOCKER Q&A] {ip}: failed to apply answers: {exc}"
             _append_session_message(_canonical_session_string(ip), "assistant", msg)
@@ -6166,7 +6179,8 @@ def create_app():
             _append_active_history("assistant", "```\n" + msg + "\n```")
             _emit_workflow_result(msg, "resolve-rtl-blockers")
 
-        threading.Thread(target=_worker, daemon=True).start()
+        ctx = contextvars.copy_context()
+        threading.Thread(target=ctx.run, args=(_worker,), daemon=True).start()
         return True
 
     def _sim_human_gate_cards(ip: str, classify_doc: dict[str, Any]) -> list[dict[str, Any]]:
@@ -6245,7 +6259,7 @@ def create_app():
 
         return out_path
 
-    def _start_sim_human_gate_qna(ip: str, classify_doc: dict[str, Any], *, reason: str = "sim-debug") -> bool:
+    def _start_sim_human_gate_qna(ip: str, classify_doc: dict[str, Any], *, reason: str = "sim-debug", client_session: Any | None = None) -> bool:
         cards = _sim_human_gate_cards(ip, classify_doc)
         if not cards:
             return False
@@ -6302,10 +6316,11 @@ def create_app():
             _append_active_history("assistant", "```\n" + msg + "\n```")
             _emit_workflow_result(msg, "sim-debug")
 
-        threading.Thread(target=_worker, daemon=True).start()
+        ctx = contextvars.copy_context()
+        threading.Thread(target=ctx.run, args=(_worker,), daemon=True).start()
         return True
 
-    def _handle_resolve_rtl_blockers_command(text: str) -> bool:
+    def _handle_resolve_rtl_blockers_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         if cmd not in ("resolve-rtl-blockers", "rrb"):
             return False
@@ -6317,7 +6332,7 @@ def create_app():
                 "resolve-rtl-blockers",
             )
             return True
-        return _start_rtl_blocker_qna(ip, reason="manual /resolve-rtl-blockers")
+        return _start_rtl_blocker_qna(ip, reason="manual /resolve-rtl-blockers", client_session=client_session)
 
     app.state.atlas_bridge = bridge
     app.state.start_rtl_blocker_qna = _start_rtl_blocker_qna
@@ -6337,7 +6352,7 @@ def create_app():
         bridge.emit("commands_changed")
         bridge.emit("agent_state", running=False)
 
-    def _handle_import_command(text: str) -> bool:
+    def _handle_import_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         if cmd not in ("import", "imp"):
             return False
@@ -6379,7 +6394,7 @@ def create_app():
         filled, conflicts = _merge_import_candidates(ip, kind, state, artifacts, candidates, sources)
         state.setdefault("ip", ip)
         state.setdefault("kind", kind)
-        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip)
+        state["active_session"] = _active_session_value() or _canonical_session_string(ip)
         _save_ssot_state(ip, state)
 
         missing = _missing_ssot_decisions(ip, state)
@@ -6430,7 +6445,7 @@ def create_app():
         _emit_ssot_approval_ready(ip, state, missing)
         return True
 
-    def _handle_grill_me_command(text: str) -> bool:
+    def _handle_grill_me_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         if cmd not in ("grill-me", "grill", "g"):
             return False
@@ -6457,7 +6472,7 @@ def create_app():
             return True
         state = _load_ssot_state(ip) or _new_ssot_state(ip)
         _ensure_ssot_draft(ip, str(state.get("kind") or "simple APB peripheral"))
-        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip)
+        state["active_session"] = _active_session_value() or _canonical_session_string(ip)
         state["last_step"] = "grill-me"
         _save_ssot_state(ip, state)
         missing = _missing_ssot_decisions(ip, state)
@@ -6473,13 +6488,13 @@ def create_app():
         _append_active_history("user", text)
         _append_active_history("assistant", "```\n" + msg + "\n```")
         _emit_workflow_result(msg, "grill-me")
-        bridge.queue_prompt("/mode normal")
-        bridge.queue_prompt("/wf ssot-gen")
-        bridge.queue_prompt(_render_ssot_llm_qna_prompt(ip, str(state.get("kind") or "simple APB peripheral"), state))
+        _queue_prompt_for_session(client_session, "/mode normal")
+        _queue_prompt_for_session(client_session, "/wf ssot-gen")
+        _queue_prompt_for_session(client_session, _render_ssot_llm_qna_prompt(ip, str(state.get("kind") or "simple APB peripheral"), state))
         bridge.emit("agent_state", running=True)
         return True
 
-    def _handle_new_ip_command(text: str) -> bool:
+    def _handle_new_ip_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         if cmd not in ("new-ip", "ni"):
             return False
@@ -6531,7 +6546,7 @@ def create_app():
         _emit_ssot_approval_ready(ip, state)
         return True
 
-    def _handle_ip_command(text: str) -> bool:
+    def _handle_ip_command(text: str, client_session: Any | None = None) -> bool:
         """`/ip <name>` — switch the active IP without spinning up a turn.
 
         Halts any running agent first (drains the inbox so queued
@@ -6567,7 +6582,7 @@ def create_app():
         bridge.emit("commands_changed")
         return True
 
-    def _handle_session_command(text: str) -> bool:
+    def _handle_session_command(text: str, client_session: Any | None = None) -> bool:
         """`/session <id>` — switch the active session_id (owner namespace).
 
         Halts the agent, sets ATLAS_ACTIVE_SESSION to the canonical
@@ -6591,7 +6606,7 @@ def create_app():
         bridge.emit("agent_state", running=False)
         ip = _active_ssot_ip() or "default"
         wf = os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
-        os.environ["ATLAS_ACTIVE_SESSION"] = f"{sid}/{ip}/{wf}"
+        _atlas_active_session_cv.set(f"{sid}/{ip}/{wf}")
         _emit_workflow_result(
             f"[SESSION] active session -> {sid}/{ip}/{wf}",
             "session",
@@ -6599,7 +6614,7 @@ def create_app():
         bridge.emit("commands_changed")
         return True
 
-    def _handle_approval_command(text: str) -> bool:
+    def _handle_approval_command(text: str, client_session: Any | None = None) -> bool:
         raw = (text or "").strip()
         low = raw.lower()
         if not (low.startswith("approve") or raw.startswith("승인")):
@@ -6637,7 +6652,7 @@ def create_app():
         state["approved"] = True
         state["approved_at"] = time.time()
         state["status"] = "approved"
-        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or _canonical_session_string(ip)
+        state["active_session"] = _active_session_value() or _canonical_session_string(ip)
         state["last_step"] = "approve"
         _save_ssot_state(ip, state)
         spec = _render_approved_ssot_spec(ip, state)
@@ -6659,7 +6674,7 @@ def create_app():
         _emit_ssot_approval_ready(ip, state, [])
         return True
 
-    def _handle_to_ssot_gate(text: str) -> bool:
+    def _handle_to_ssot_gate(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         if cmd not in ("to-ssot", "ssot", "ts"):
             return False
@@ -6768,10 +6783,10 @@ def create_app():
         if draft is not None and validate is not None and draft.returncode == 0 and validate.returncode == 0:
             return True
 
-        bridge.queue_prompt("/mode normal")
-        bridge.queue_prompt("/wf ssot-gen")
-        bridge.queue_prompt("/clear")
-        bridge.queue_prompt(
+        _queue_prompt_for_session(client_session, "/mode normal")
+        _queue_prompt_for_session(client_session, "/wf ssot-gen")
+        _queue_prompt_for_session(client_session, "/clear")
+        _queue_prompt_for_session(client_session,
             f"/to-ssot {ip}\n\n"
             f"Hard workspace boundary for this run:\n"
             f"- Project root / IP artifacts: `{PROJECT_ROOT}`\n"
@@ -6806,7 +6821,7 @@ def create_app():
         bridge.emit("agent_state", running=True)
         return True
 
-    def _handle_repair_ssot_command(text: str) -> bool:
+    def _handle_repair_ssot_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         if cmd not in ("repair-ssot", "rs"):
             return False
@@ -6884,7 +6899,7 @@ def create_app():
         _emit_workflow_result(msg, "repair-ssot")
         return True
 
-    def _handle_repair_rtl_command(text: str) -> bool:
+    def _handle_repair_rtl_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         if cmd not in ("repair-rtl", "rrtl"):
             return False
@@ -6918,11 +6933,11 @@ def create_app():
         _append_session_message(session, "assistant", "```\n" + queued + "\n```")
         _append_active_history("user", text)
         _append_active_history("assistant", "```\n" + queued + "\n```")
-        bridge.queue_prompt("/mode normal")
-        bridge.queue_prompt("/wf rtl-gen")
-        bridge.queue_prompt("/clear")
-        bridge.queue_prompt(f"/todo template ssot-rtl {ip}")
-        bridge.queue_prompt(
+        _queue_prompt_for_session(client_session, "/mode normal")
+        _queue_prompt_for_session(client_session, "/wf rtl-gen")
+        _queue_prompt_for_session(client_session, "/clear")
+        _queue_prompt_for_session(client_session, f"/todo template ssot-rtl {ip}")
+        _queue_prompt_for_session(client_session,
             f"Repair RTL for {ip} using only SSOT-driven rtl-gen ownership.\n\n"
             f"Read these evidence files first:\n"
             f"- SSOT: `{ssot_path}`\n"
@@ -6956,7 +6971,7 @@ def create_app():
         bridge.emit("agent_state", running=True)
         return True
 
-    def _handle_repair_equiv_command(text: str) -> bool:
+    def _handle_repair_equiv_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         if cmd not in ("repair-equiv", "repair-equivalence", "reqv"):
             return False
@@ -7048,12 +7063,12 @@ def create_app():
         ]
         for (workflow, template), items in grouped.items():
             queued_lines.append(f"- {workflow}: {len(items)} classification(s)")
-            bridge.queue_prompt("/mode normal")
-            bridge.queue_prompt(f"/wf {workflow}")
-            bridge.queue_prompt("/clear")
-            bridge.queue_prompt(f"/todo template {template} {ip}")
+            _queue_prompt_for_session(client_session, "/mode normal")
+            _queue_prompt_for_session(client_session, f"/wf {workflow}")
+            _queue_prompt_for_session(client_session, "/clear")
+            _queue_prompt_for_session(client_session, f"/todo template {template} {ip}")
             payload = json.dumps(items, indent=2, ensure_ascii=False)[:12000]
-            bridge.queue_prompt(
+            _queue_prompt_for_session(client_session,
                 f"Execute classified FL-vs-RTL repair for {ip}.\n\n"
                 "Hard rules:\n"
                 "- Use SSOT YAML, FunctionalModel, equivalence_goals.json, scoreboard_events.jsonl, "
@@ -7077,7 +7092,7 @@ def create_app():
         bridge.emit("agent_state", running=True)
         return True
 
-    def _run_stage_command(text: str) -> bool:
+    def _run_stage_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         alias = {
             "sr": "ssot-rtl",
@@ -7201,10 +7216,10 @@ def create_app():
             _emit_workflow_result(msg, engine_alias)
 
             if surface.rtl_blocked:
-                _start_rtl_blocker_qna(ip, reason="automatic /ssot-rtl preflight", interactive=False)
+                _start_rtl_blocker_qna(ip, reason="automatic /ssot-rtl preflight", interactive=False, client_session=client_session)
                 return True
             for prompt in surface.queue_prompts:
-                bridge.queue_prompt(prompt)
+                _queue_prompt_for_session(client_session, prompt)
             if surface.queue_prompts:
                 bridge.emit("agent_state", running=True)
                 return True
@@ -7213,6 +7228,7 @@ def create_app():
                     ip,
                     surface.sim_human_gate_doc,
                     reason="automatic /sim-debug",
+                    client_session=client_session,
                 )
                 if opened_human_gate:
                     note = f"[sim-debug] opened ATLAS human-gate question(s) from {ip}/sim/mismatch_classification.json"
@@ -7486,15 +7502,15 @@ def create_app():
             _append_active_history("assistant", "```\n" + msg + "\n```")
             _emit_workflow_result(msg, alias)
             if blocked_doc:
-                _start_rtl_blocker_qna(ip, reason="automatic /ssot-rtl preflight", interactive=False)
+                _start_rtl_blocker_qna(ip, reason="automatic /ssot-rtl preflight", interactive=False, client_session=client_session)
             elif gen_rc == 0 and (compile_rc != 0 or lint_rc != 0):
                 workflow = str(spec["workflow"])
                 template = str(spec.get("template") or alias)
-                bridge.queue_prompt("/mode normal")
-                bridge.queue_prompt(f"/wf {workflow}")
-                bridge.queue_prompt("/clear")
-                bridge.queue_prompt(f"/todo template {template} {ip}")
-                bridge.queue_prompt(
+                _queue_prompt_for_session(client_session, "/mode normal")
+                _queue_prompt_for_session(client_session, f"/wf {workflow}")
+                _queue_prompt_for_session(client_session, "/clear")
+                _queue_prompt_for_session(client_session, f"/todo template {template} {ip}")
+                _queue_prompt_for_session(client_session,
                     f"Execute {alias} for {ip} from {ip}/yaml/{ip}.ssot.yaml. "
                     "The SSOT-driven RTL generator produced artifacts but compile/lint did not approve them. "
                     "Repair only the generated RTL against function_model, cycle_model, interfaces, "
@@ -7729,11 +7745,11 @@ def create_app():
             if gen_rc == 0 and not (structure_rc == 0 and self_check_rc == 0):
                 workflow = str(spec["workflow"])
                 template = str(spec.get("template") or canonical_alias)
-                bridge.queue_prompt("/mode normal")
-                bridge.queue_prompt(f"/wf {workflow}")
-                bridge.queue_prompt("/clear")
-                bridge.queue_prompt(f"/todo template {template} {ip}")
-                bridge.queue_prompt(
+                _queue_prompt_for_session(client_session, "/mode normal")
+                _queue_prompt_for_session(client_session, f"/wf {workflow}")
+                _queue_prompt_for_session(client_session, "/clear")
+                _queue_prompt_for_session(client_session, f"/todo template {template} {ip}")
+                _queue_prompt_for_session(client_session,
                     f"Repair generated pyuvm/cocotb TB for {ip} using SSOT, FunctionalModel, "
                     "equivalence_goals.json, rtl_contract.json, and the validator output below. "
                     "Do not use fixed IP templates. Keep the TB goal-driven, instantiate "
@@ -7821,7 +7837,7 @@ def create_app():
                     classify_doc = loaded if isinstance(loaded, dict) else {}
                 except Exception:
                     classify_doc = {}
-                opened_human_gate = _start_sim_human_gate_qna(ip, classify_doc, reason="automatic /sim-debug")
+                opened_human_gate = _start_sim_human_gate_qna(ip, classify_doc, reason="automatic /sim-debug", client_session=client_session)
                 if opened_human_gate:
                     note = f"[sim-debug] opened ATLAS human-gate question(s) from {ip}/sim/mismatch_classification.json"
                     _append_session_message(session, "assistant", note)
@@ -7970,14 +7986,14 @@ def create_app():
         _append_session_message(session, "assistant", "```\n" + queued + "\n```")
         _append_active_history("user", text)
         _append_active_history("assistant", "```\n" + queued + "\n```")
-        bridge.queue_prompt("/mode normal")
-        bridge.queue_prompt(f"/wf {workflow}")
+        _queue_prompt_for_session(client_session, "/mode normal")
+        _queue_prompt_for_session(client_session, f"/wf {workflow}")
         # Per-IP stage runs must not inherit stale workflow-level chat/todo
         # context from a previous IP. The concrete SSOT path and rerun prompt
         # below re-establish the only context the worker should use.
-        bridge.queue_prompt("/clear")
-        bridge.queue_prompt(f"/todo template {template} {ip}")
-        bridge.queue_prompt(
+        _queue_prompt_for_session(client_session, "/clear")
+        _queue_prompt_for_session(client_session, f"/todo template {template} {ip}")
+        _queue_prompt_for_session(client_session,
             f"Execute {alias} for {ip} from {ip}/yaml/{ip}.ssot.yaml. "
             "Use the workflow todo detail/criteria. Do not use fixed IP templates; "
             "derive implementation from SSOT and verify with real commands. "
@@ -9820,7 +9836,7 @@ def create_app():
         # `ip` query param routes to the per-IP repo. When omitted the
         # endpoint behaves as before (outer project repo). Empty `ip`
         # AND empty active env var = outer repo; otherwise per-IP.
-        cwd = _git_cwd_for_ip(ip or os.environ.get("ATLAS_ACTIVE_IP", ""))
+        cwd = _git_cwd_for_ip(ip or _active_ip_value())
         # Branch
         rc, branch, _ = _git("rev-parse", "--abbrev-ref", "HEAD", cwd=cwd)
         branch = branch.strip() if rc == 0 else ""
@@ -9880,7 +9896,7 @@ def create_app():
         terminator + LF field separator, robust against subjects
         containing tabs/quotes which `--pretty=format:` would otherwise
         eat or escape oddly."""
-        cwd = _git_cwd_for_ip(ip or os.environ.get("ATLAS_ACTIVE_IP", ""))
+        cwd = _git_cwd_for_ip(ip or _active_ip_value())
         if not (Path(cwd) / ".git").is_dir():
             return JSONResponse({"commits": [], "branch": "", "ip": ip})
         rc, branch, _ = _git("rev-parse", "--abbrev-ref", "HEAD", cwd=cwd)
@@ -9972,7 +9988,7 @@ def create_app():
         or the short SHA. `ip` query param routes to the per-IP repo."""
         if not sha or not re.match(r"^[0-9a-f]{4,40}$", sha):
             return JSONResponse({"error": "invalid sha"}, status_code=400)
-        cwd = _git_cwd_for_ip(ip or os.environ.get("ATLAS_ACTIVE_IP", ""))
+        cwd = _git_cwd_for_ip(ip or _active_ip_value())
         rc, out, err = _git(
             "show", sha, "--no-color", "--unified=3",
             cwd=cwd,
@@ -10190,6 +10206,7 @@ def create_app():
                 session = bridge.get_client_session(websocket)
                 if session is None:
                     continue
+                set_atlas_bridge_session_id(session.session_id)
                 t = msg.get("type")
                 if t in ("prompt", "send") and msg.get("text"):
                     # Idempotent submit + ack:
@@ -10209,7 +10226,7 @@ def create_app():
                         continue
                     _txt = msg["text"].strip()
                     import os as _os
-                    _ui_lang_raw = str(msg.get("ui_lang") or _os.environ.get("ATLAS_UI_LANG") or "").strip().lower()
+                    _ui_lang_raw = str(msg.get("ui_lang") or _ui_lang_value() or "").strip().lower()
                     _ui_lang = {
                         "ko": "ko",
                         "kr": "ko",
@@ -10220,14 +10237,14 @@ def create_app():
                         "english": "en",
                     }.get(_ui_lang_raw, "")
                     if _ui_lang:
-                        _os.environ["ATLAS_UI_LANG"] = _ui_lang
+                        _atlas_ui_lang_cv.set(_ui_lang)
                     _session_raw = str(msg.get("session") or "").strip()
                     _session = normalize_session_name(_session_raw)
                     if _session_raw:
                         if not _session:
                             session.emit("error", message=f"invalid session: {_session_raw!r}")
                             continue
-                        _os.environ["ATLAS_ACTIVE_SESSION"] = _session
+                        _atlas_active_session_cv.set(_session)
                     # ── Mode-flip slashes need to apply mid-loop ──
                     # `/mode normal` and `/plan` typed while the agent is
                     # running normally land in the _interrupts queue,
@@ -10240,38 +10257,38 @@ def create_app():
                     # AGENT_MODE_OVERRIDE in the environment; react_loop
                     # reads it at the top of each iteration.
                     _low = _txt.lower()
-                    if _handle_new_ip_command(_txt):
+                    if _handle_new_ip_command(_txt, client_session=session):
                         continue
-                    if _handle_ip_command(_txt):
+                    if _handle_ip_command(_txt, client_session=session):
                         continue
-                    if _handle_session_command(_txt):
+                    if _handle_session_command(_txt, client_session=session):
                         continue
-                    if _handle_import_command(_txt):
+                    if _handle_import_command(_txt, client_session=session):
                         continue
-                    if _handle_grill_me_command(_txt):
+                    if _handle_grill_me_command(_txt, client_session=session):
                         continue
-                    if _handle_approval_command(_txt):
+                    if _handle_approval_command(_txt, client_session=session):
                         continue
-                    if _handle_resolve_rtl_blockers_command(_txt):
+                    if _handle_resolve_rtl_blockers_command(_txt, client_session=session):
                         continue
-                    if _handle_repair_ssot_command(_txt):
+                    if _handle_repair_ssot_command(_txt, client_session=session):
                         continue
-                    if _handle_repair_rtl_command(_txt):
+                    if _handle_repair_rtl_command(_txt, client_session=session):
                         continue
-                    if _handle_repair_equiv_command(_txt):
+                    if _handle_repair_equiv_command(_txt, client_session=session):
                         continue
-                    if _handle_to_ssot_gate(_txt):
+                    if _handle_to_ssot_gate(_txt, client_session=session):
                         continue
-                    if _run_stage_command(_txt):
+                    if _run_stage_command(_txt, client_session=session):
                         continue
                     if _low in ("/plan", "/mode plan", "/mode normal", "/normal"):
                         is_plan = _low in ("/plan", "/mode plan")
                         if is_plan:
-                            _os.environ["AGENT_MODE_OVERRIDE"] = "plan_q"
-                            _os.environ["PLAN_MODE"] = "true"
+                            _agent_mode_override_cv.set("plan_q")
+                            _plan_mode_cv.set("true")
                         else:
-                            _os.environ["AGENT_MODE_OVERRIDE"] = "normal"
-                            _os.environ["PLAN_MODE"] = "false"
+                            _agent_mode_override_cv.set("normal")
+                            _plan_mode_cv.set("false")
                             _os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
                         # Immediate UI feedback so the chat reflects the
                         # mode flip the moment the user clicks the
@@ -10319,12 +10336,12 @@ def create_app():
                     # against _inbox between turns. So `y` after the
                     # agent shows the [Plan Mode] Plan ready prompt does
                     # nothing if the agent is still mid-iteration.
-                    if (_os.environ.get("PLAN_MODE") == "true"
+                    if (_plan_mode_value() == "true"
                             and bridge.agent_running
                             and _low in ("y", "yes", "yc", "confirm", "ok",
                                          "proceed", "ㅇㅇ", "확인", "진행")):
-                        _os.environ["AGENT_MODE_OVERRIDE"] = "normal"
-                        _os.environ["PLAN_MODE"] = "false"
+                        _agent_mode_override_cv.set("normal")
+                        _plan_mode_cv.set("false")
                         _os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
                         session.emit("token", text="\n✅ Plan confirmed (mid-loop): tools enabled. Executing.\n")
                         session.emit("flush")
@@ -10876,6 +10893,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         _tools.set_record_ssot_qa_callback(_record_ssot_qa_cb)
 
     def _run_agent():
+        _sync_env_to_context()
         try:
             _main.chat_loop()
         except Exception as e:
@@ -10888,7 +10906,8 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
             bridge.emit("done")
 
     def _start_agent_thread():
-        threading.Thread(target=_run_agent, daemon=True).start()
+        ctx = contextvars.copy_context()
+        threading.Thread(target=ctx.run, args=(_run_agent,), daemon=True).start()
 
     bridge.set_agent_starter(_start_agent_thread)
     bridge.ensure_agent_alive()
