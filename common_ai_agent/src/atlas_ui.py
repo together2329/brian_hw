@@ -189,6 +189,14 @@ class _AtlasBridge:
             if self.agent_alive:
                 return
             self.agent_alive = True
+            # Clear any stale stop flag set BEFORE this thread existed.
+            # Mount-time stop / activate-on-triple-change can set the
+            # flag while no agent thread is running; the very next
+            # thread we spin up would otherwise see the flag on its
+            # first check_stop poll and exit immediately, swallowing
+            # the user's first prompt. Resetting here ensures stop
+            # semantics only ever apply to a CURRENTLY RUNNING agent.
+            self._stop_flag = False
         starter()
 
     def submit_prompt(self, text: str) -> None:

@@ -6990,7 +6990,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
                 <div key={port.name} style={{ display: 'grid', gridTemplateColumns: 'minmax(110px, 0.7fr) 56px minmax(70px, max-content) minmax(0, 1.4fr)', gap: 10, fontFamily: 'var(--mono)', fontSize: 11, alignItems: 'baseline' }}>
                   <span style={{ color: 'var(--fg)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{port.name}</span>
                   <span className="mute">{port.direction}</span>
-                  <span className="mute" style={{ whiteSpace: 'nowrap' }}>[{port.width || 1}]</span>
+                  <span className="mute" style={{ whiteSpace: 'nowrap' }}>{_formatWidth(port.width) || '[0]'}</span>
                   <span className="mute" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{port.description}</span>
                 </div>
               ))}
