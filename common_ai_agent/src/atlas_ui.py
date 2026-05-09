@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import collections
+import contextvars
 import hashlib
 import json
 import os
@@ -64,6 +65,34 @@ FRONTEND     = SOURCE_ROOT / "frontend" / "atlas"
 PROJECT_ROOT = Path(os.getcwd()).resolve()
 # Backwards compat alias — older code references ROOT.
 ROOT         = SOURCE_ROOT
+
+_atlas_active_session_cv = contextvars.ContextVar("atlas_active_session", default="")
+_atlas_active_ip_cv = contextvars.ContextVar("atlas_active_ip", default="")
+_atlas_ui_lang_cv = contextvars.ContextVar("atlas_ui_lang", default="")
+_agent_mode_override_cv = contextvars.ContextVar("agent_mode_override", default="")
+_plan_mode_cv = contextvars.ContextVar("plan_mode", default="false")
+
+
+def _active_session_value() -> str:
+    return _atlas_active_session_cv.get() or os.environ.get("ATLAS_ACTIVE_SESSION", "")
+
+
+def _active_ip_value() -> str:
+    return _atlas_active_ip_cv.get() or os.environ.get("ATLAS_ACTIVE_IP", "")
+
+
+def _ui_lang_value() -> str:
+    return _atlas_ui_lang_cv.get() or os.environ.get("ATLAS_UI_LANG", "")
+
+
+def _plan_mode_value() -> str:
+    return _plan_mode_cv.get() or os.environ.get("PLAN_MODE", "false")
+
+
+def _sync_env_to_context() -> None:
+    """Copy contextvars back to os.environ for legacy main.py reads."""
+    os.environ["ATLAS_ACTIVE_SESSION"] = _atlas_active_session_cv.get()
+    os.environ["ATLAS_ACTIVE_IP"] = _atlas_active_ip_cv.get()
 
 
 def _python_cmd() -> str:
@@ -143,10 +172,10 @@ class _AtlasBridge:
     def emit(self, msg_type: str, **payload: Any) -> None:
         msg = {"type": msg_type, **payload}
         if msg_type == "ask_user":
-            session = normalize_session_name(str(msg.get("session") or os.environ.get("ATLAS_ACTIVE_SESSION") or ""))
+            session = normalize_session_name(str(msg.get("session") or _active_session_value() or ""))
             if session:
                 msg.setdefault("session", session)
-            ip = str(msg.get("ip") or os.environ.get("ATLAS_ACTIVE_IP") or "").strip()
+            ip = str(msg.get("ip") or _active_ip_value() or "").strip()
             if ip:
                 msg.setdefault("ip", ip)
         flow_id = str(payload.get("flow_id") or "")
@@ -330,13 +359,16 @@ def create_app():
     except ImportError:
         print("ERROR: fastapi not installed. Run: pip install fastapi uvicorn websockets")
         sys.exit(1)
+    from core.atlas_db import AtlasDB
+    from core.atlas_multiuser import _MultiUserBridge
 
     if not FRONTEND.exists():
         print(f"ERROR: frontend bundle not found at {FRONTEND}")
         sys.exit(1)
 
     app = FastAPI(title="ATLAS · common_ai_agent")
-    bridge = _AtlasBridge()
+    _use_proc = os.environ.get("ATLAS_MULTI_USER_PROC", "").lower() in ("1", "true", "yes")
+    bridge = _MultiUserBridge(use_processes=_use_proc)
     clients: set[Any] = set()
     broadcaster_task: asyncio.Task | None = None
 
@@ -405,21 +437,45 @@ def create_app():
         a browser tab plus an automation client, events were load-balanced
         between clients instead of broadcast, so ask_user cards and slash
         output could disappear from one surface.
+
+        The whole loop body is wrapped in try/except so a transient lookup
+        miss (e.g. ``get_session`` raising KeyError for a session that was
+        deleted between event emit and broadcast) never kills the task —
+        a dead broadcaster silently strands every connected WS client and
+        looks to the frontend like "Backend disconnected" even though the
+        agent process is still alive.
         """
         while True:
-            msg = await bridge.next_event()
-            if msg is None:
+            try:
+                msg, session_id = await bridge.next_event()
+                if msg is None:
+                    continue
+                # _ensure_session is non-raising; get_session raises KeyError
+                # for unknown ids which would propagate up and kill the task.
+                try:
+                    session = bridge.get_session(session_id)
+                except Exception:
+                    session = bridge._ensure_session(session_id)
+                snapshot = list(session.clients)
+                if not snapshot:
+                    continue
+                results = await asyncio.gather(
+                    *(_send_one(c, msg) for c in snapshot),
+                    return_exceptions=True,
+                )
+                for stale_client in results:
+                    if stale_client is None or isinstance(stale_client, BaseException):
+                        continue
+                    session.clients.discard(stale_client)
+            except asyncio.CancelledError:
+                raise
+            except Exception as _bcast_err:
+                # Never let the broadcaster die. A killed broadcaster
+                # produces the exact "WS open but no events flowing" symptom
+                # users see as "Backend disconnected" with the chat empty.
+                import sys as _sys
+                print(f"[broadcaster] swallowed: {_bcast_err!r}", file=_sys.stderr)
                 continue
-            snapshot = list(clients)
-            if not snapshot:
-                continue
-            results = await asyncio.gather(
-                *(_send_one(c, msg) for c in snapshot),
-                return_exceptions=False,
-            )
-            for stale_client in results:
-                if stale_client is not None:
-                    clients.discard(stale_client)
 
     def _ensure_broadcaster() -> None:
         nonlocal broadcaster_task
@@ -436,6 +492,32 @@ def create_app():
         dev-time Babel path but removes the fragile second fetch.
         """
         html = (FRONTEND / "index.html").read_text(encoding="utf-8")
+
+        def _inline_script(match):
+            attrs = match.group("attrs")
+            src = match.group("src").split("?", 1)[0]
+            if not src.endswith((".jsx", ".js")):
+                return match.group(0)
+            path = (FRONTEND / src).resolve()
+            try:
+                path.relative_to(FRONTEND.resolve())
+            except Exception:
+                return match.group(0)
+            if not path.is_file():
+                return match.group(0)
+            code = path.read_text(encoding="utf-8")
+            return f'<script type="text/babel" {attrs}>{code}</script>'
+
+        html = re.sub(
+            r'<script\s+type="text/babel"\s+(?P<attrs>[^>]*?)src="(?P<src>[^"]+)"[^>]*>\s*</script>',
+            _inline_script,
+            html,
+        )
+        return HTMLResponse(html)
+
+    @app.get("/lobby")
+    async def lobby():
+        html = (FRONTEND / "lobby.html").read_text(encoding="utf-8")
 
         def _inline_script(match):
             attrs = match.group("attrs")
@@ -9949,6 +10031,116 @@ def create_app():
         return JSONResponse({"ok": rc == 0, "stdout": out, "stderr": err,
                               "branch": branch, "returncode": rc})
 
+    # ── Atlas SQLite session API ─────────────────────────────────
+    def _atlas_db() -> AtlasDB:
+        db = AtlasDB()
+        try:
+            Path(str(db.db_path)).expanduser().parent.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+        return db
+
+    def _public_session(session: dict, include_summary: bool = False) -> dict:
+        fields = ["id", "user_id", "title", "project_id", "status", "created_at", "updated_at"]
+        if include_summary:
+            fields.append("summary")
+        return {key: session.get(key) for key in fields}
+
+    @app.get("/api/sessions")
+    async def api_sessions(user_id: str = "default"):
+        user_id = str(user_id or "default").strip() or "default"
+        try:
+            with _atlas_db() as db:
+                listed = db.list_sessions(user_id)
+                sessions = []
+                for item in listed:
+                    session_id = item.get("id") if isinstance(item, dict) else None
+                    session = db.get_session(session_id) if session_id else None
+                    if session is not None:
+                        sessions.append(_public_session(session))
+                return JSONResponse({"sessions": sessions})
+        except Exception as e:
+            print(f"api_sessions error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.post("/api/sessions")
+    async def api_create_session(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            return JSONResponse({"error": "invalid json body"}, status_code=400)
+        if not isinstance(body, dict):
+            return JSONResponse({"error": "expected JSON object"}, status_code=400)
+        user_id = str(body.get("user_id") or "default").strip() or "default"
+        title = str(body.get("title") or "").strip()
+        project_id = str(body.get("project_id") or "").strip()
+        if not title:
+            return JSONResponse({"error": "title required"}, status_code=400)
+        try:
+            with _atlas_db() as db:
+                created = db.create_session(user_id, title, project_id)
+                session_id = created.get("id") if isinstance(created, dict) else created
+                return JSONResponse({"session_id": session_id, "status": "created"})
+        except Exception as e:
+            print(f"api_create_session error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.get("/api/sessions/{session_id}")
+    async def api_get_session(session_id: str):
+        try:
+            with _atlas_db() as db:
+                session = db.get_session(session_id)
+                if session is None:
+                    return JSONResponse({"error": "session not found"}, status_code=404)
+                return JSONResponse(_public_session(session, include_summary=True))
+        except Exception as e:
+            print(f"api_get_session error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.patch("/api/sessions/{session_id}")
+    async def api_update_session(session_id: str, request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            return JSONResponse({"error": "invalid json body"}, status_code=400)
+        if not isinstance(body, dict):
+            return JSONResponse({"error": "expected JSON object"}, status_code=400)
+        allowed = {"title", "project_id", "status", "summary"}
+        fields = {key: body[key] for key in allowed if key in body}
+        try:
+            with _atlas_db() as db:
+                if db.get_session(session_id) is None:
+                    return JSONResponse({"error": "session not found"}, status_code=404)
+                if fields:
+                    db.update_session(session_id, **fields)
+                updated = db.get_session(session_id)
+                if updated is None:
+                    return JSONResponse({"error": "session not found"}, status_code=404)
+                return JSONResponse(_public_session(updated, include_summary=True))
+        except Exception as e:
+            print(f"api_update_session error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.delete("/api/sessions/{session_id}")
+    async def api_delete_session(session_id: str):
+        try:
+            with _atlas_db() as db:
+                if db.get_session(session_id) is None:
+                    return JSONResponse({"error": "session not found"}, status_code=404)
+                db.delete_session(session_id)
+                return JSONResponse({"deleted": True})
+        except Exception as e:
+            print(f"api_delete_session error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.post("/api/sessions/{session_id}/activate")
+    async def api_activate_session(session_id: str):
+        try:
+            return JSONResponse({"activated": True, "session_id": session_id})
+        except Exception as e:
+            print(f"api_activate_session error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
     # NOTE: WebSocket endpoint is registered via Starlette's WebSocketRoute
     # (added to app.router.routes below) instead of the @app.websocket
     # decorator. The decorator routes through FastAPI's dependency-injection
@@ -9959,7 +10151,14 @@ def create_app():
     # parameter annotations entirely.
     async def ws_agent(websocket: WebSocket):
         await websocket.accept()
-        clients.add(websocket)
+        session_id = websocket.query_params.get("session_id", "default")
+        _multi_user = os.environ.get("ATLAS_MULTI_USER", "").lower() in ("1", "true", "yes")
+        if _multi_user:
+            # Derive session from client IP to prevent arbitrary session claims
+            _client_ip = websocket.client.host if websocket.client else "unknown"
+            _ip_session = hashlib.sha256(_client_ip.encode()).hexdigest()[:16]
+            session_id = _ip_session
+        bridge.bind_client(websocket, session_id)
         _ensure_broadcaster()
         # Greeting — surface user-tunable layout settings so the frontend
         # can pick its center-column shape (classic vs tabbed Chat/Preview/Q&A).
@@ -9979,7 +10178,7 @@ def create_app():
                                     "running": bridge.agent_running,
                                     "center_layout": _center_layout,
                                     "chat_feed_summary": _chat_feed_summary})
-        for pending_event in bridge.pending_ask_user_events():
+        for pending_event in bridge.session_pending_ask_user_events(session_id):
             await websocket.send_json(pending_event)
         try:
             while True:
@@ -9987,6 +10186,9 @@ def create_app():
                 try:
                     msg = json.loads(data)
                 except Exception:
+                    continue
+                session = bridge.get_client_session(websocket)
+                if session is None:
                     continue
                 t = msg.get("type")
                 if t in ("prompt", "send") and msg.get("text"):
@@ -9998,12 +10200,12 @@ def create_app():
                     # submit_prompt the first time.
                     _msg_id = str(msg.get("msg_id") or "").strip()
                     _txt_preview = str(msg.get("text") or "")[:80].replace("\n", " ")
-                    bridge.emit(
+                    session.emit(
                         "agent_received",
                         msg_id=_msg_id,
                         text_preview=_txt_preview,
                     )
-                    if _msg_id and bridge.msg_id_seen(_msg_id):
+                    if _msg_id and session.msg_id_seen(_msg_id):
                         continue
                     _txt = msg["text"].strip()
                     import os as _os
@@ -10023,7 +10225,7 @@ def create_app():
                     _session = normalize_session_name(_session_raw)
                     if _session_raw:
                         if not _session:
-                            bridge.emit("error", message=f"invalid session: {_session_raw!r}")
+                            session.emit("error", message=f"invalid session: {_session_raw!r}")
                             continue
                         _os.environ["ATLAS_ACTIVE_SESSION"] = _session
                     # ── Mode-flip slashes need to apply mid-loop ──
@@ -10081,16 +10283,16 @@ def create_app():
                         # until the user typed a message.
                         try:
                             if is_plan:
-                                bridge.emit("agent", text=(
+                                session.emit("agent", text=(
                                     "✅ Plan mode — read-only. "
                                     "The agent will analyze and propose without mutating tools. "
                                     "Type `apply` or click NORMAL to execute."
                                 ))
                             else:
-                                bridge.emit("agent", text=(
+                                session.emit("agent", text=(
                                     "✅ Normal mode — tools enabled."
                                 ))
-                            bridge.emit("flush")
+                            session.emit("flush")
                         except Exception:
                             pass
                         # Two-pronged dispatch:
@@ -10106,7 +10308,7 @@ def create_app():
                         #     across turns. Without this submit, the
                         #     UI's "● NORMAL" pill could click without
                         #     ever telling main.py to flip — desync.
-                        bridge.submit_prompt(_txt)
+                        session.submit_prompt(_txt)
                         continue
 
                     # `y` / `yc` / `yes` / `confirm` mid-loop while agent
@@ -10124,12 +10326,12 @@ def create_app():
                         _os.environ["AGENT_MODE_OVERRIDE"] = "normal"
                         _os.environ["PLAN_MODE"] = "false"
                         _os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
-                        bridge.emit("token", text="\n✅ Plan confirmed (mid-loop): tools enabled. Executing.\n")
-                        bridge.emit("flush")
+                        session.emit("token", text="\n✅ Plan confirmed (mid-loop): tools enabled. Executing.\n")
+                        session.emit("flush")
                         # Inject an instruction so the agent knows to start
                         # executing the agreed-upon plan. This goes to
                         # _interrupts (since agent is running), fed mid-loop.
-                        bridge.submit_prompt(
+                        session.submit_prompt(
                             "Confirmed. Execute all tasks in order. "
                             "For EACH task: todo_update(in_progress) → do work "
                             "→ todo_update(completed) → verify → todo_update(approved)."
@@ -10152,15 +10354,15 @@ def create_app():
                                 "Keep code, file paths, commands, signal names, protocol names, and exact identifiers unchanged.\n\n"
                                 + _txt
                             )
-                    bridge.submit_prompt(_txt)
+                    session.submit_prompt(_txt)
                 elif t == "interrupt":
-                    bridge.submit_prompt(msg.get("text", ""))
+                    session.submit_prompt(msg.get("text", ""))
                 elif t == "answer" and msg.get("flow_id"):
-                    accepted = bridge.submit_answer(msg["flow_id"], msg)
+                    accepted = session.submit_answer(msg["flow_id"], msg)
                     if accepted:
-                        bridge.emit("agent_state", running=True)
+                        session.emit("agent_state", running=True)
                     else:
-                        bridge.emit(
+                        session.emit(
                             "error",
                             message=(
                                 "answer rejected: no pending ask_user flow "
@@ -10172,22 +10374,28 @@ def create_app():
                     # Surface the stop on the chat feed so the user sees
                     # the backend acknowledged the ESC immediately,
                     # before the agent thread gets to its next poll.
-                    bridge.emit("token", text="\n⏹  stop received\n")
-                    bridge.emit("flush")
-                    bridge.request_stop()
-                    bridge.emit("agent_state", running=False)
+                    session.emit("token", text="\n⏹  stop received\n")
+                    session.emit("flush")
+                    session.request_stop()
+                    session.emit("agent_state", running=False)
                 elif t == "shutdown":
                     # Exit button — kill the whole Python process so the
                     # user's terminal returns to a normal prompt.
-                    bridge.emit("error", message="server is shutting down")
-                    bridge.emit("done")
+                    session.emit("error", message="server is shutting down")
+                    session.emit("done")
                     import os as _os, threading as _t
                     _t.Timer(0.4, lambda: _os._exit(0)).start()
                 # Other types (e.g. run_stage, tool_call) can be wired later
         except WebSocketDisconnect:
             pass
         finally:
-            clients.discard(websocket)
+            bridge.unbind_client(websocket)
+
+    from core.atlas_auth import GuestAuth, AuthMiddleware, create_auth_endpoints
+    auth = GuestAuth(AtlasDB())
+    app.state.auth = auth
+    app.add_middleware(AuthMiddleware, auth=auth)
+    create_auth_endpoints(app, auth)
 
     # Register the WebSocket endpoint via Starlette so we don't go through
     # FastAPI's DI layer (see the long comment above the ws_agent definition).

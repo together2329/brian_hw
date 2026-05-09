@@ -73,6 +73,17 @@ current_todos.json
 
 # Playwright MCP artifacts
 .playwright-mcp/
+lobby-screenshot.png
+
+# Node.js
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
 
 # ATLAS build artifacts
 ATLAS-*.zip

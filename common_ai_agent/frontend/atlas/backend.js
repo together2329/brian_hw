@@ -71,10 +71,12 @@
     }, ACK_TIMEOUT_MS);
   }
 
-  function liveConnect() {
+  function liveConnect(sessionId) {
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const url   = `${proto}//${location.host}/ws/agent`;
+    const url   = sessionId
+        ? `${proto}//${location.host}/ws/agent?session_id=${encodeURIComponent(sessionId)}`
+        : `${proto}//${location.host}/ws/agent`;
     try {
       ws = new WebSocket(url);
     } catch (e) {
