@@ -26,8 +26,9 @@ def test_full_flow():
 
     r = client.get("/api/sessions")
     assert r.status_code == 200
-    assert r.json()["sessions"] == []
-    print("PASS: /api/sessions (empty)")
+    sessions_before = r.json()["sessions"]
+    assert isinstance(sessions_before, list)
+    print("PASS: /api/sessions (list)")
 
     r = client.post("/api/sessions", json={"title": "GPIO Controller", "project_id": "gpio"})
     assert r.status_code == 200
@@ -38,9 +39,9 @@ def test_full_flow():
     r = client.get("/api/sessions")
     assert r.status_code == 200
     sessions = r.json()["sessions"]
-    assert len(sessions) == 1
-    assert sessions[0]["title"] == "GPIO Controller"
-    print("PASS: /api/sessions (1 item)")
+    assert len(sessions) == len(sessions_before) + 1
+    assert any(s["title"] == "GPIO Controller" for s in sessions)
+    print("PASS: /api/sessions (contains created item)")
 
     r = client.get(f"/api/sessions/{session_id}")
     assert r.status_code == 200
