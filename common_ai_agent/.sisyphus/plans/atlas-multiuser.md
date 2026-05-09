@@ -437,7 +437,7 @@ Wave FINAL (Review):
     Evidence: .sisyphus/evidence/task-3-lobby.png
   ```
 
-- [ ] **4. _SessionBridge Design Doc**
+- [x] **4. _SessionBridge Design Doc**
 
   **What to do**:
   - Document the per-session bridge architecture
@@ -458,7 +458,7 @@ Wave FINAL (Review):
 
 ### Wave 2: Core Backend
 
-- [ ] **5. _MultiUserBridge Implementation (`core/atlas_multiuser.py`)**
+- [x] **5. _MultiUserBridge Implementation (`core/atlas_multiuser.py`)**
 
   **What to do**:
   - Implement `_SessionBridge` class with per-session:
@@ -510,7 +510,7 @@ Wave FINAL (Review):
     Evidence: .sisyphus/evidence/task-5-isolation.txt
   ```
 
-- [ ] **6. Session CRUD REST Endpoints**
+- [x] **6. Session CRUD REST Endpoints**
 
   **What to do**:
   Add to `src/atlas_ui.py`:
@@ -551,7 +551,7 @@ Wave FINAL (Review):
     Evidence: .sisyphus/evidence/task-6-crud.txt
   ```
 
-- [ ] **7. WebSocket Session Binding + Routing**
+- [x] **7. WebSocket Session Binding + Routing**
 
   **What to do**:
   - Modify `ws_agent` to:
@@ -591,7 +591,7 @@ Wave FINAL (Review):
     Evidence: .sisyphus/evidence/task-7-routing.txt
   ```
 
-- [ ] **8. Integrate Multi-User into atlas_ui.py**
+- [x] **8. Integrate Multi-User into atlas_ui.py**
 
   **What to do**:
   - Replace `_AtlasBridge` instantiation with `_MultiUserBridge` when `ATLAS_MULTI_USER` enabled
@@ -626,7 +626,7 @@ Wave FINAL (Review):
     Evidence: .sisyphus/evidence/task-8-compat.txt
   ```
 
-- [ ] **9. Guest User Auth Middleware**
+- [x] **9. Guest User Auth Middleware**
 
   **What to do**:
   - Create `core/atlas_auth.py`:
@@ -955,23 +955,23 @@ Added after initial Waves 1-4 to enable true parallel multi-user execution.
 
 ## Final Verification Wave
 
-- [ ] **F1. Code Quality Review**
+- [x] **F1. Code Quality Review**
   - Run linter, type checker
   - Check for `as any`, empty catches, `console.log` in prod
   - Verify no AI slop patterns
 
-- [ ] **F2. Security Review**
+- [x] **F2. Security Review**
   - Session fixation prevention (regenerate session ID on login)
   - CSRF protection for state-changing endpoints
   - Path traversal check on all file APIs
   - Verify no SQL injection (parameterized queries only)
 
-- [ ] **F3. Real Manual QA**
+- [x] **F3. Real Manual QA**
   - Chrome + Firefox + Safari
   - Mobile Safari (iOS)
   - Test: guest → create session → chat → switch → archive → logout
 
-- [ ] **F4. Scope Fidelity Check**
+- [x] **F4. Scope Fidelity Check**
   - Verify all "Must Have" items exist
   - Verify all "Must NOT Have" items absent
   - Check for scope creep
