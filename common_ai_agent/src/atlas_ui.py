@@ -34,7 +34,7 @@ import sys
 import threading
 import time
 from pathlib import Path
-from typing import Any, Callable, TYPE_CHECKING
+from typing import Any, Callable, Optional, TYPE_CHECKING
 
 # `from __future__ import annotations` turns every type annotation into
 # a string. FastAPI's `get_type_hints()` then needs to resolve those
@@ -10156,6 +10156,80 @@ def create_app():
         except Exception as e:
             print(f"api_activate_session error: {e}")
             return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── Admin endpoints ──────────────────────────────────────────
+    def _admin_required(request: Request) -> Optional[dict]:
+        user = request.scope.get("user")
+        if not user or user.get("role") != "admin":
+            return None
+        return user
+
+    @app.get("/api/admin/users")
+    async def api_admin_users(request: Request):
+        if _admin_required(request) is None:
+            return JSONResponse({"error": "Forbidden"}, status_code=403)
+        try:
+            with _atlas_db() as db:
+                users = db.list_all_users()
+                counts = db.count_sessions_by_user()
+                for u in users:
+                    u["session_count"] = counts.get(u["id"], 0)
+                return JSONResponse({"users": users})
+        except Exception as e:
+            print(f"api_admin_users error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.get("/api/admin/sessions")
+    async def api_admin_sessions(request: Request):
+        if _admin_required(request) is None:
+            return JSONResponse({"error": "Forbidden"}, status_code=403)
+        try:
+            with _atlas_db() as db:
+                sessions = db.list_all_sessions()
+                return JSONResponse({"sessions": sessions})
+        except Exception as e:
+            print(f"api_admin_sessions error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.delete("/api/admin/sessions/{session_id}")
+    async def api_admin_delete_session(session_id: str, request: Request):
+        if _admin_required(request) is None:
+            return JSONResponse({"error": "Forbidden"}, status_code=403)
+        try:
+            with _atlas_db() as db:
+                if db.get_session(session_id) is None:
+                    return JSONResponse({"error": "session not found"}, status_code=404)
+                db.delete_session(session_id)
+                return JSONResponse({"deleted": True})
+        except Exception as e:
+            print(f"api_admin_delete_session error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.get("/admin")
+    async def admin_page():
+        html = (FRONTEND / "admin.html").read_text(encoding="utf-8")
+
+        def _inline_script(match):
+            attrs = match.group("attrs")
+            src = match.group("src").split("?", 1)[0]
+            if not src.endswith((".jsx", ".js")):
+                return match.group(0)
+            path = (FRONTEND / src).resolve()
+            try:
+                path.relative_to(FRONTEND.resolve())
+            except Exception:
+                return match.group(0)
+            if not path.is_file():
+                return match.group(0)
+            code = path.read_text(encoding="utf-8")
+            return f'<script type="text/babel" {attrs}>{code}</script>'
+
+        html = re.sub(
+            r'<script\s+type="text/babel"\s+(?P<attrs>[^>]*?)src="(?P<src>[^"]+)"[^>]*>\s*</script>',
+            _inline_script,
+            html,
+        )
+        return HTMLResponse(html)
 
     # NOTE: WebSocket endpoint is registered via Starlette's WebSocketRoute
     # (added to app.router.routes below) instead of the @app.websocket

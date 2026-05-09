@@ -904,3 +904,37 @@ class AtlasDB:
         if row is None:
             return None
         return self._row_to_dict(row, "session_queue")
+
+    # ---------- Admin ----------
+
+    def list_all_users(self) -> List[Dict[str, Any]]:
+        """List all users (excludes password_hash)."""
+        rows = self._fetchall(
+            """
+            SELECT id, username, display_name, role, created_at, last_login_at
+            FROM users ORDER BY created_at DESC
+            """
+        )
+        return [dict(row) for row in rows]
+
+    def list_all_sessions(self) -> List[Dict[str, Any]]:
+        """List all sessions with owner username."""
+        rows = self._fetchall(
+            """
+            SELECT
+                s.id, s.user_id, s.project_id, s.directory, s.title,
+                s.status, s.created_at, s.updated_at, s.archived_at, s.summary,
+                u.username as owner_username, u.display_name as owner_display_name
+            FROM sessions s
+            LEFT JOIN users u ON s.user_id = u.id
+            ORDER BY s.updated_at DESC
+            """
+        )
+        return [self._row_to_dict(row, "sessions") for row in rows]
+
+    def count_sessions_by_user(self) -> Dict[str, int]:
+        """Return {user_id: session_count} for all users."""
+        rows = self._fetchall(
+            "SELECT user_id, COUNT(*) as cnt FROM sessions GROUP BY user_id"
+        )
+        return {str(row["user_id"]): int(row["cnt"]) for row in rows}

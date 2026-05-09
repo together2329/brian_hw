@@ -289,13 +289,25 @@ class _MultiUserBridge:
             for existing in self._sessions.values():
                 existing.clients.discard(client)
             session.clients.add(client)
+            peers = len(session.clients)
         session.touch()
+        if peers > 1:
+            session.emit("peer_joined", peers=peers, session_id=session.session_id)
         return session.session_id
 
     def unbind_client(self, client: Any) -> None:
+        affected_session = None
+        remaining = 0
         with self._sessions_lock:
             for session in self._sessions.values():
-                session.clients.discard(client)
+                if client in session.clients:
+                    affected_session = session
+                    break
+            if affected_session is not None:
+                affected_session.clients.discard(client)
+                remaining = len(affected_session.clients)
+        if affected_session is not None and remaining > 0:
+            affected_session.emit("peer_left", peers=remaining, session_id=affected_session.session_id)
 
     def get_client_session(self, client: Any) -> _SessionBridge | None:
         with self._sessions_lock:
