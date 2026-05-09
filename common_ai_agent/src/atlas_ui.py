@@ -10602,6 +10602,11 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     # via esc_check_fn and aborts the current iteration cleanly.
     _main._textual_esc_check_fn = bridge.check_stop
     _main._textual_poll_human_input_fn = bridge.poll_interrupt
+    # Per-thread active-session reader. main.py used to read
+    # os.environ["ATLAS_ACTIVE_SESSION"] directly which races between
+    # concurrent users in multi-user mode. By exposing the contextvar
+    # via a callback, main.py can resolve the per-thread value first.
+    _main._textual_active_session_fn = _active_session_value
 
     # Strip ANSI escape sequences from ANY text destined for the browser.
     # The terminal-targeting Color class wraps lines in \x1b[2m … \x1b[0m;
