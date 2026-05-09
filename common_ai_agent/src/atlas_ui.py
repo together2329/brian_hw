@@ -662,6 +662,58 @@ def create_app():
             "truncated": truncated, "content": content,
         })
 
+    # ── Foldable structure for PreviewPane (sv / yaml) ────────────
+    # Returns line ranges the frontend wraps in <details>. Empty list
+    # for unknown extensions — caller falls back to plain Prism.
+    _FOLD_CACHE: "collections.OrderedDict[str, tuple[float, list]]" = collections.OrderedDict()
+    _FOLD_CACHE_CAP = 32
+    _FOLD_MAX_BYTES = 5 * 1024 * 1024   # 5 MB
+    _FOLD_MAX_LINES = 10_000
+
+    @app.get("/api/fold-symbols")
+    async def api_fold_symbols(path: str):
+        target = _safe(path)
+        if target is None or not target.is_file():
+            return JSONResponse({"error": "not found"}, status_code=404)
+        stat = target.stat()
+        # mtime-keyed LRU
+        cached = _FOLD_CACHE.get(path)
+        if cached and cached[0] == stat.st_mtime:
+            _FOLD_CACHE.move_to_end(path)
+            return JSONResponse({
+                "path": path, "ranges": cached[1], "cached": True,
+            })
+        if stat.st_size > _FOLD_MAX_BYTES:
+            return JSONResponse({
+                "path": path, "ranges": [], "skipped": True,
+                "reason": f"file > {_FOLD_MAX_BYTES // (1024*1024)} MB",
+            })
+        try:
+            text = await asyncio.to_thread(
+                lambda: target.read_text(encoding="utf-8", errors="replace")
+            )
+        except OSError as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+        if text.count("\n") > _FOLD_MAX_LINES:
+            return JSONResponse({
+                "path": path, "ranges": [], "skipped": True,
+                "reason": f"more than {_FOLD_MAX_LINES} lines",
+            })
+        try:
+            from core.fold_extractor import folds_for_path
+            ranges = await asyncio.to_thread(folds_for_path, path, text)
+        except Exception as e:
+            return JSONResponse({
+                "path": path, "ranges": [], "error": f"extractor failed: {e}",
+            }, status_code=422)
+        _FOLD_CACHE[path] = (stat.st_mtime, ranges)
+        _FOLD_CACHE.move_to_end(path)
+        while len(_FOLD_CACHE) > _FOLD_CACHE_CAP:
+            _FOLD_CACHE.popitem(last=False)
+        return JSONResponse({
+            "path": path, "ranges": ranges, "cached": False,
+        })
+
     # ── VCD (waveform) endpoints — sim_debug workspace ────────────
     # VCD files can be MB+ so we bypass MAX_READ_BYTES with a separate
     # ceiling. Path resolution still goes through _safe() so the user

@@ -1136,6 +1136,38 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     }
   };
   const [input, setInput] = React.useState('');
+
+  // Listen for fold/drag-select comment events from PreviewPane so a
+  // click on a fold's 💬 button (or "Comment selection" after a line
+  // drag) prefills the chat input with `@<path> L<lo>-L<hi> (label)`
+  // and focuses it. The dispatch site is the FoldablePane below; this
+  // is the central wire-up so any preview surface can broadcast.
+  React.useEffect(() => {
+    const handler = (ev) => {
+      try {
+        const d = ev.detail || {};
+        const path  = String(d.path || '');
+        const lo    = Number(d.lineStart || d.lo || 0);
+        const hi    = Number(d.lineEnd   || d.hi || 0);
+        const label = String(d.label || '').trim();
+        if (!path || !lo || !hi) return;
+        const labelStr = label ? ` (${label})` : '';
+        setInput(`@${path} L${lo}-${hi}${labelStr}\n\n`);
+        setTimeout(() => {
+          const el = inputRef.current;
+          if (el) {
+            el.focus();
+            try {
+              el.selectionStart = el.selectionEnd = el.value.length;
+            } catch (_) {}
+          }
+        }, 0);
+      } catch (_) {}
+    };
+    window.addEventListener('atlas-fold-comment', handler);
+    return () => window.removeEventListener('atlas-fold-comment', handler);
+  }, []);
+
   const [inputHistory, setInputHistory] = React.useState(() => {
     try {
       const raw = localStorage.getItem('atlasInputHistory');
@@ -9090,6 +9122,209 @@ const DeferredMarkdownPreview = ({ body }) => {
   );
 };
 
+// Fold-range tree builder. Server returns a flat list of
+// {kind, label, line_start, line_end}; nest them so an outer range
+// can wrap inner children when rendered as <details>.
+const _buildFoldTree = (ranges) => {
+  const sorted = (ranges || []).slice().sort((a, b) => {
+    if (a.line_start !== b.line_start) return a.line_start - b.line_start;
+    return b.line_end - a.line_end; // outer first
+  });
+  const root = { children: [], line_start: 0, line_end: 1e9 };
+  const stack = [root];
+  for (const r of sorted) {
+    const node = { ...r, children: [] };
+    while (stack.length &&
+           !(stack[stack.length - 1].line_start <= node.line_start &&
+             stack[stack.length - 1].line_end   >= node.line_end)) {
+      stack.pop();
+    }
+    if (!stack.length) stack.push(root);
+    stack[stack.length - 1].children.push(node);
+    stack.push(node);
+  }
+  return root;
+};
+
+const _FOLD_KIND_COLOR = {
+  module: 'var(--accent)', always_ff: 'var(--warn)', always_comb: 'var(--ok)',
+  function: 'var(--magenta)', task: 'var(--err)', case: 'var(--accent-2)',
+  initial: 'var(--fg-mute)', 'generate-loop': 'var(--warn)', 'generate-if': 'var(--warn)',
+  section: 'var(--accent)', 'sub-section': 'var(--warn)', item: 'var(--ok)', scalar: 'var(--fg-mute)',
+};
+
+// FoldablePane renders the file body as one <div class="line-row"> per
+// source line, wrapping ranges from /api/fold-symbols in <details>.
+// Supports:
+//   • click ▾/▸ on a fold summary → toggle
+//   • click 💬 button on a summary → dispatch atlas-fold-comment
+//   • drag-select on line-number gutter → floating "Comment selection"
+const FoldablePane = ({ path, body, lang, lineCount }) => {
+  const [ranges, setRanges] = React.useState([]);
+  const [skipped, setSkipped] = React.useState(null);
+  const [floating, setFloating] = React.useState(null);  // {x, y, lo, hi}
+  const [sel, setSel] = React.useState(null);            // {lo, hi}
+  const dragRef = React.useRef({ start: null, end: null, on: false });
+
+  // Fetch fold ranges per (path, body-length) — body-length acts as a
+  // cheap content-changed signal so reloaded files refetch.
+  React.useEffect(() => {
+    if (!path) { setRanges([]); setSkipped(null); return; }
+    let cancelled = false;
+    fetch(`/api/fold-symbols?path=${encodeURIComponent(path)}`)
+      .then(r => r.json())
+      .then(d => {
+        if (cancelled) return;
+        if (d && d.skipped) { setRanges([]); setSkipped(d.reason || 'skipped'); return; }
+        setRanges(Array.isArray(d?.ranges) ? d.ranges : []);
+        setSkipped(null);
+      })
+      .catch(() => { if (!cancelled) { setRanges([]); setSkipped(null); } });
+    return () => { cancelled = true; };
+  }, [path, body.length]);
+
+  // Drag-select handlers wired on the line-number gutter.
+  const onLineMouseDown = (ln, ev) => {
+    ev.preventDefault();
+    dragRef.current = { start: ln, end: ln, on: true };
+    setSel({ lo: ln, hi: ln });
+    setFloating(null);
+  };
+  const onLineMouseEnter = (ln) => {
+    if (!dragRef.current.on) return;
+    dragRef.current.end = ln;
+    const a = dragRef.current.start, b = ln;
+    setSel({ lo: Math.min(a, b), hi: Math.max(a, b) });
+  };
+  React.useEffect(() => {
+    const onUp = (ev) => {
+      if (!dragRef.current.on) return;
+      dragRef.current.on = false;
+      const { start, end } = dragRef.current;
+      if (start == null || end == null) return;
+      setFloating({ x: ev.clientX + 12, y: ev.clientY - 8,
+                    lo: Math.min(start, end), hi: Math.max(start, end) });
+    };
+    window.addEventListener('mouseup', onUp);
+    return () => window.removeEventListener('mouseup', onUp);
+  }, []);
+
+  const dispatchComment = (lo, hi, label) => {
+    window.dispatchEvent(new CustomEvent('atlas-fold-comment', {
+      detail: { path, lineStart: lo, lineEnd: hi, label: label || '' },
+    }));
+    setFloating(null);
+  };
+
+  // Highlight a single line of source via Prism (only when language is
+  // known and Prism has the grammar).
+  const highlightLine = React.useCallback((line) => {
+    if (!line || !line.trim()) return line || ' ';
+    const Prism = window.Prism;
+    if (!Prism || !lang || lang === 'none' ||
+        !Prism.languages || !Prism.languages[lang]) {
+      return line;
+    }
+    try { return Prism.highlight(line, Prism.languages[lang], lang); }
+    catch (_) { return line; }
+  }, [lang]);
+
+  const srcLines = React.useMemo(() => body.split('\n'), [body]);
+  const tree = React.useMemo(() => _buildFoldTree(ranges), [ranges]);
+
+  // Render the source as nested <details> + line-rows. The single
+  // recursive function walks the fold tree, emitting context lines
+  // before each child range and the wrapped range itself.
+  const renderLineRow = (ln) => {
+    const text = srcLines[ln - 1] != null ? srcLines[ln - 1] : '';
+    const html = highlightLine(text);
+    const inSel = sel && ln >= sel.lo && ln <= sel.hi;
+    return (
+      <div key={`L${ln}`} className={'line-row' + (inSel ? ' sel' : '')}>
+        <span className="lineno"
+              onMouseDown={(ev) => onLineMouseDown(ln, ev)}
+              onMouseEnter={() => onLineMouseEnter(ln)}>
+          {ln}
+        </span>
+        <span className="line"
+              dangerouslySetInnerHTML={{ __html: html === text ? _escHtml(text) || ' ' : html }} />
+      </div>
+    );
+  };
+
+  const renderTree = (node, cursor, depth) => {
+    const out = [];
+    const children = node.children.slice().sort((a, b) => a.line_start - b.line_start);
+    for (const c of children) {
+      while (cursor < c.line_start) { out.push(renderLineRow(cursor)); cursor += 1; }
+      const color = _FOLD_KIND_COLOR[c.kind] || 'var(--fg-mute)';
+      const opened = (depth === 0) || (c.kind === 'section' && depth <= 1);
+      const inner = [];
+      inner.push(renderLineRow(c.line_start));
+      cursor = c.line_start + 1;
+      const sub = renderTree(c, cursor, depth + 1);
+      inner.push(...sub.elements);
+      cursor = sub.cursor;
+      while (cursor <= c.line_end) { inner.push(renderLineRow(cursor)); cursor += 1; }
+      out.push(
+        <details key={`F${c.line_start}-${c.line_end}`} {...(opened ? { open: true } : {})}
+                 data-kind={c.kind}>
+          <summary
+            className="fold-summary"
+            style={{ borderLeftColor: color, color,
+                     paddingLeft: `calc(${depth * 1.5}ch + 8px)` }}
+          >
+            <span className="fold-label">{c.label}</span>
+            <span className="fold-range mute"> L{c.line_start}-L{c.line_end}</span>
+            <button className="fold-comment-btn"
+                    onClick={(ev) => { ev.preventDefault(); ev.stopPropagation();
+                                       dispatchComment(c.line_start, c.line_end, c.label); }}>
+              💬 comment
+            </button>
+          </summary>
+          {inner}
+        </details>
+      );
+    }
+    return { elements: out, cursor };
+  };
+
+  const renderedTree = renderTree(tree, 1, 0);
+  const trail = [];
+  let cur = renderedTree.cursor;
+  while (cur <= lineCount) { trail.push(renderLineRow(cur)); cur += 1; }
+
+  return (
+    <div className="foldable-pane">
+      {skipped && (
+        <div style={{ padding: '6px 14px', color: 'var(--warn)', fontSize: 11, fontFamily: 'var(--mono)' }}>
+          fold disabled — {skipped}
+        </div>
+      )}
+      {ranges.length > 1 && (
+        <div className="foldable-toolbar">
+          <button onClick={() => document.querySelectorAll('.foldable-pane details').forEach(d => d.open = true)}>▾ Expand all</button>
+          <button onClick={() => document.querySelectorAll('.foldable-pane details').forEach(d => d.open = false)}>▸ Collapse all</button>
+          <button onClick={() => {
+            document.querySelectorAll('.foldable-pane details').forEach(d => { d.open = (d.dataset.kind === 'section' || d.dataset.kind === 'module'); });
+          }}>▾ Top sections only</button>
+        </div>
+      )}
+      <div className="foldable-body">
+        {renderedTree.elements}
+        {trail}
+      </div>
+      {floating && (
+        <button className="fold-floating-comment"
+                style={{ left: floating.x, top: floating.y }}
+                onClick={() => dispatchComment(floating.lo, floating.hi, '')}>
+          💬 Comment selection
+        </button>
+      )}
+    </div>
+  );
+};
+
 const PreviewPane = ({ path, onClose }) => {
   const ext = (path ? (path.split('.').pop() || '') : '').toLowerCase();
   const lang = (window.PRISM_LANG_MAP && window.PRISM_LANG_MAP[ext]) || 'none';
@@ -9202,6 +9437,11 @@ const PreviewPane = ({ path, onClose }) => {
           </div>
         ) : isMarkdown ? (
           <DeferredMarkdownPreview body={body} />
+        ) : ['v', 'sv', 'vh', 'svh', 'yaml', 'yml'].includes(ext) && hasBody ? (
+          /* Foldable view: per-line gutter + nested <details> wraps
+             from /api/fold-symbols. Only Verilog/SV and YAML get the
+             AST fold; drag-select-comment works regardless. */
+          <FoldablePane path={path} body={body} lang={lang} lineCount={lineCount} />
         ) : (
           /* 2-column layout: line numbers (sticky left gutter) +
              code body. Both columns share the SAME font-size and
