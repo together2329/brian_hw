@@ -1388,16 +1388,38 @@ def create_app():
                     status_code=400,
                 )
         canonical = f"{sid}/{ip}/{wf}"
+        # Halt the running agent + drain queued prompts BEFORE flipping
+        # env vars whenever the active triple actually changes. Without
+        # this, an in-flight react_loop keeps reading from the OLD IP's
+        # paths even after env has pivoted, producing the "switched IP
+        # but tools still hit GPIO_NEW_2" surprise. The frontend's own
+        # POST /api/control/stop is fire-and-forget and races with the
+        # /wf prompt sent on the same flip — anchoring the halt here
+        # makes the transition deterministic regardless of order.
+        prev = os.environ.get("ATLAS_ACTIVE_SESSION") or ""
+        triple_changed = prev != canonical
+        if triple_changed:
+            try:
+                bridge.request_stop()
+                bridge.emit("agent_state", running=False)
+            except Exception:
+                pass
         os.environ["ATLAS_ACTIVE_SESSION"] = canonical
         os.environ["ATLAS_ACTIVE_IP"] = ip
         os.environ["ATLAS_DEFAULT_SESSION_ID"] = sid
         os.environ["ATLAS_DEFAULT_WORKFLOW"] = wf
+        if triple_changed:
+            try:
+                bridge.emit("commands_changed")
+            except Exception:
+                pass
         return JSONResponse({
             "ok": True,
             "active_session": canonical,
             "session_id": sid,
             "ip": ip,
             "workflow": wf,
+            "halted": triple_changed,
         })
 
     @app.post("/api/ssot/qa/answer")

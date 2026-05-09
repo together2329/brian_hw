@@ -231,22 +231,30 @@ const App = () => {
     // what the frontend is showing. Without this round-trip, a fresh
     // restart would inherit only the CLI defaults and the chat / QA /
     // preview panes would silently target the wrong IP.
-    try {
-      fetch('/api/session/activate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: owner || 'default',
-          ip: ip || 'default',
-          workflow: wf || 'default',
-        }),
-      }).catch(() => {});
-    } catch (_) {}
-    // No `&& wf` guard — picking 'default' from the workflow
-    // dropdown sends an empty wf string, but activateBackendWorkflow
-    // resolves it to /wf default so the agent's workspace actually
-    // flips. Skipping here would leave the backend pinned.
-    if (syncWorkflow) activateBackendWorkflow(wf, namespace);
+    // Awaiting the activate POST before firing /wf eliminates the race
+    // that previously let an in-flight react_loop keep reading the OLD
+    // IP's files (the activate handler halts the agent + drains the
+    // inbox on a triple change, so by the time /wf lands the bridge
+    // is quiescent and the env vars already point at the new IP).
+    const _activateAndDispatch = async () => {
+      try {
+        await fetch('/api/session/activate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: owner || 'default',
+            ip: ip || 'default',
+            workflow: wf || 'default',
+          }),
+        });
+      } catch (_) {}
+      // No `&& wf` guard — picking 'default' from the workflow
+      // dropdown sends an empty wf string, but activateBackendWorkflow
+      // resolves it to /wf default so the agent's workspace actually
+      // flips. Skipping here would leave the backend pinned.
+      if (syncWorkflow) activateBackendWorkflow(wf, namespace);
+    };
+    _activateAndDispatch();
     return namespace;
   }, [activateBackendWorkflow, namespaceFor, normalizeSession, syncNamespaceUrl]);
 
