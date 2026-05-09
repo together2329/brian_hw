@@ -9452,10 +9452,13 @@ const PreviewPane = ({ path, onClose }) => {
           </div>
         ) : isMarkdown ? (
           <DeferredMarkdownPreview body={body} />
-        ) : ['v', 'sv', 'vh', 'svh', 'yaml', 'yml'].includes(ext) && hasBody ? (
+        ) : hasBody ? (
           /* Foldable view: per-line gutter + nested <details> wraps
-             from /api/fold-symbols. Only Verilog/SV and YAML get the
-             AST fold; drag-select-comment works regardless. */
+             from /api/fold-symbols. Verilog/SV and YAML get an AST
+             fold; every other extension still gets the per-line
+             gutter so drag-select-comment works universally. The
+             server's fold extractor returns [] for unknown types,
+             so the fold UI stays out of the way. */
           <FoldablePane path={path} body={body} lang={lang} lineCount={lineCount} />
         ) : (
           /* 2-column layout: line numbers (sticky left gutter) +
