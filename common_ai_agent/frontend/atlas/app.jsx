@@ -304,7 +304,11 @@ const App = () => {
       if (b === 'default') return 1;
       return a.localeCompare(b);
     }));
-    setIpOptions(Array.from(nextIps).sort((a, b) => a.localeCompare(b)));
+    const sortedIps = Array.from(nextIps).sort((a, b) => a.localeCompare(b));
+    setIpOptions(sortedIps);
+    // Expose for inline-code-chip click validation in workspace.jsx so
+    // only IPs that actually exist on disk become clickable.
+    window.IP_OPTIONS = sortedIps;
     setActiveSessionId(parsedLive.sessionId || currentUserSession || 'default');
     setActiveNamespace(liveNamespace);
     setActiveIp(parsedLive.ipId === 'soc' ? '' : (parsedLive.ipId || ''));

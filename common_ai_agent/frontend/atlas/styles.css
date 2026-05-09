@@ -657,6 +657,27 @@
 .token.deleted           { color: var(--err) !important; }
 .token.inserted          { color: var(--ok) !important; }
 
+/* Toned-down YAML palette — used by Raw YAML cards (.tool-output-yaml).
+   Default Prism YAML highlighting fires 5+ distinct hues which gets
+   noisy for SSOT files with hundreds of lines. Restrict to 3 colors:
+     - keys           → cyan
+     - everything else → fg (white-ish)
+     - comments       → muted/dim
+   Tags and anchors keep the cyan accent so structure still reads.   */
+.tool-output-yaml .token,
+.tool-output-yaml code .token { color: var(--fg) !important; font-weight: normal !important; }
+.tool-output-yaml .token.key,
+.tool-output-yaml .token.atrule,
+.tool-output-yaml .token.tag,
+.tool-output-yaml .token.attr-name,
+.tool-output-yaml .token.property,
+.tool-output-yaml .token.keyword { color: var(--cyan) !important; font-weight: 600 !important; }
+.tool-output-yaml .token.comment,
+.tool-output-yaml .token.prolog,
+.tool-output-yaml .token.doctype,
+.tool-output-yaml .token.cdata    { color: var(--fg-mute) !important; font-style: italic; opacity: 0.85; }
+.tool-output-yaml .token.punctuation { color: var(--fg-dim) !important; }
+
 /* prompt input */
 .prompt-row {
   display: flex;
@@ -765,18 +786,83 @@
 }
 
 /* Strong / em */
-.md-agent strong { color: var(--fg); font-weight: 700; }
+.md-agent strong {
+  color: var(--fg);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
 .md-agent em     { color: var(--fg); font-style: italic; }
 
-/* Inline code */
+/* Inline code chip — base style. Token-type variants below override
+   color/border so the eye can scan path vs command vs identifier
+   without re-reading. _processInlineChips() sets data-chip="..." and
+   chip-<kind> class on each inline <code>. */
 .md-agent code {
-  background: var(--code-bg);
-  padding: 2px 6px;
+  background: color-mix(in oklch, var(--code-bg) 92%, transparent);
+  padding: 1px 6px;
   border-radius: 3px;
   font-family: var(--code-font);
   font-size: var(--ui-code-font-size);
-  color: var(--accent);
+  color: var(--fg);
   border: 1px solid var(--line);
+}
+.md-agent code.chip-path {
+  color: var(--accent);
+  border-color: color-mix(in oklch, var(--accent) 40%, var(--line));
+  cursor: pointer;
+}
+.md-agent code.chip-path:hover {
+  background: color-mix(in oklch, var(--accent) 14%, var(--code-bg));
+  border-color: var(--accent);
+}
+.md-agent code.chip-cmd {
+  color: var(--cyan);
+  border-color: color-mix(in oklch, var(--cyan) 40%, var(--line));
+}
+.md-agent code.chip-ident {
+  color: var(--magenta);
+  border-color: color-mix(in oklch, var(--magenta) 30%, var(--line));
+  cursor: pointer;
+}
+.md-agent code.chip-ident:hover {
+  background: color-mix(in oklch, var(--magenta) 12%, var(--code-bg));
+  border-color: var(--magenta);
+}
+.md-agent code.chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Ordered-list with colored marker disc — replaces the bare `1. 2. 3.`
+   with a small filled circle that picks up the accent color. Uses
+   counters so deep nesting still renders correctly. */
+.md-agent ol {
+  list-style: none;
+  counter-reset: md-li;
+  padding-left: 1.6em;
+}
+.md-agent ol > li {
+  counter-increment: md-li;
+  position: relative;
+}
+.md-agent ol > li::before {
+  content: counter(md-li);
+  position: absolute;
+  left: -1.6em;
+  top: 0.15em;
+  width: 1.25em;
+  height: 1.25em;
+  line-height: 1.25em;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 10px;
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--bg);
+  background: color-mix(in oklch, var(--accent) 90%, transparent);
+}
+.md-agent ol ol > li::before {
+  background: color-mix(in oklch, var(--cyan) 80%, transparent);
 }
 
 /* Code blocks — tightened for ASCII-art and box-drawing alignment.
@@ -841,7 +927,8 @@
 }
 .md-agent a:hover { border-bottom-color: var(--accent); }
 
-/* Blockquotes */
+/* Blockquotes — kind-tagged variants (rule / warn / hint / scope) come
+   from _processBlockquoteKinds() inspecting the lead `[tag]` marker.   */
 .md-agent blockquote {
   border-left: 3px solid var(--accent);
   margin: 10px 0;
@@ -851,6 +938,26 @@
   border-radius: 0 4px 4px 0;
 }
 .md-agent blockquote p { margin: 4px 0; }
+.md-agent blockquote.quote-rule {
+  border-left-color: var(--err);
+  background: color-mix(in oklch, var(--err) 6%, transparent);
+  color: color-mix(in oklch, var(--err) 35%, var(--fg));
+}
+.md-agent blockquote.quote-warn {
+  border-left-color: var(--warn);
+  background: color-mix(in oklch, var(--warn) 6%, transparent);
+  color: color-mix(in oklch, var(--warn) 35%, var(--fg));
+}
+.md-agent blockquote.quote-hint {
+  border-left-color: var(--cyan);
+  background: color-mix(in oklch, var(--cyan) 6%, transparent);
+  color: color-mix(in oklch, var(--cyan) 35%, var(--fg));
+}
+.md-agent blockquote.quote-scope {
+  border-left-color: var(--magenta);
+  background: color-mix(in oklch, var(--magenta) 6%, transparent);
+  color: color-mix(in oklch, var(--magenta) 25%, var(--fg));
+}
 
 /* Horizontal rules */
 .md-agent hr {

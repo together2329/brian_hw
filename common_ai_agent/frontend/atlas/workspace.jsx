@@ -249,6 +249,113 @@ const _markdownHtml = (text) => {
     : rawHtml;
 };
 
+// Inline-code chip classification + interactivity. Inline `<code>`
+// elements ( markdown backticks ) are classified into a few token types
+// so CSS can style them differently, and path-like / IP-like chips
+// become clickable so the user can pivot the preview pane or active IP
+// straight from the chat feed.
+const _CHIP_PATH_RE = /^[A-Za-z0-9_./-]+\.(?:sv|v|svh|vh|vlt|sdc|tcl|md|yaml|yml|json|jsonl|txt|log|py|sh|c|cc|cpp|h|hpp|f)$/i;
+const _CHIP_DIR_RE  = /^[A-Za-z0-9_-]+\/(?:[A-Za-z0-9_./-]*)$/;
+const _CHIP_CMD_RE  = /^\/[a-z][a-z0-9-]+(?:\s.*)?$/i;
+const _CHIP_IP_RE   = /^[a-z][a-z0-9_]{1,40}$/i;
+
+const _chipKindFor = (text) => {
+  const t = String(text || '').trim();
+  if (!t) return '';
+  if (_CHIP_CMD_RE.test(t)) return 'cmd';
+  if (_CHIP_PATH_RE.test(t)) return 'path';
+  if (_CHIP_DIR_RE.test(t) && t.includes('/')) return 'path';
+  if (_CHIP_IP_RE.test(t)) return 'ident';
+  return '';
+};
+
+const _activateChipPath = (path) => {
+  try {
+    window.dispatchEvent(new CustomEvent('atlas-chip-open', {
+      detail: { path: String(path || '') },
+    }));
+  } catch (_) {}
+};
+
+const _activateChipIp = (name) => {
+  try {
+    window.dispatchEvent(new CustomEvent('atlas-chip-ip', {
+      detail: { ip: String(name || '') },
+    }));
+  } catch (_) {}
+};
+
+const _processInlineChips = (node) => {
+  // Skip code chips inside <pre> blocks (those are full code blocks, not chips).
+  node.querySelectorAll('code').forEach(el => {
+    if (el.closest('pre')) return;
+    if (el.dataset && el.dataset.chip) return;     // already processed
+    const txt = el.textContent || '';
+    const kind = _chipKindFor(txt);
+    if (!kind) return;
+    el.dataset.chip = kind;
+    el.classList.add('chip', `chip-${kind}`);
+    if (kind === 'path') {
+      el.setAttribute('role', 'button');
+      el.setAttribute('tabindex', '0');
+      el.setAttribute('title', `open ${txt}`);
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        _activateChipPath(txt);
+      });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          _activateChipPath(txt);
+        }
+      });
+    } else if (kind === 'ident') {
+      // Heuristic IP chip — only activate if the token appears to be a
+      // real top-level workspace dir under PROJECT_ROOT. The dispatcher
+      // (atlas-chip-ip listener) does the existence check; we just emit.
+      el.setAttribute('role', 'button');
+      el.setAttribute('tabindex', '0');
+      el.setAttribute('title', `switch IP to ${txt}`);
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        _activateChipIp(txt);
+      });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          _activateChipIp(txt);
+        }
+      });
+    }
+  });
+};
+
+// Tag blockquotes by lead marker (e.g. [scope], [rule], [warn]) so CSS
+// can color the left border per kind.
+const _BLOCKQUOTE_KINDS = {
+  rule: 'rule', must: 'rule', critical: 'rule', '!': 'rule',
+  warn: 'warn', warning: 'warn', danger: 'warn', error: 'warn',
+  hint: 'hint', tip: 'hint', note: 'hint', info: 'hint',
+  scope: 'scope', context: 'scope',
+};
+
+const _processBlockquoteKinds = (node) => {
+  node.querySelectorAll('blockquote').forEach(bq => {
+    if (bq.dataset && bq.dataset.kind) return;
+    const text = (bq.textContent || '').trim();
+    const m = text.match(/^\[?\s*([A-Za-z!]+)\s*\]?/);
+    if (!m) return;
+    const tag = String(m[1] || '').trim().toLowerCase();
+    const kind = _BLOCKQUOTE_KINDS[tag] || '';
+    if (kind) {
+      bq.dataset.kind = kind;
+      bq.classList.add(`quote-${kind}`);
+    }
+  });
+};
+
 const _postProcessMarkdownNode = (node) => {
   if (!node) return;
   node.querySelectorAll('a[href]').forEach(a => {
@@ -262,6 +369,8 @@ const _postProcessMarkdownNode = (node) => {
     });
     try { window.Prism.highlightAllUnder(node); } catch (_) {}
   }
+  _processInlineChips(node);
+  _processBlockquoteKinds(node);
 };
 
 const _toolOutputLanguage = (tool, text) => {
@@ -946,6 +1055,38 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       setPreviewPath(canonical);
     }
   }, [activeSsotIp, previewPath]);
+
+  // Inline-code chip click handlers — wired up from
+  // _processInlineChips() in workspace.jsx-level. Path chips dispatch
+  // 'atlas-chip-open', IP-name chips dispatch 'atlas-chip-ip'. Both
+  // events bubble up to here so the user can pivot the preview / IP
+  // dropdown straight from any markdown chip in the chat feed.
+  React.useEffect(() => {
+    const onPath = (ev) => {
+      const path = String(ev?.detail?.path || '').trim();
+      if (!path) return;
+      setPreviewPath(path);
+      // Snap to split-or-full view so the file is actually visible.
+      setMainTab(t => (t === 'split' || t === 'preview') ? t : 'split');
+    };
+    const onIp = (ev) => {
+      const ip = String(ev?.detail?.ip || '').trim();
+      if (!ip) return;
+      // Only switch when the IP token actually maps to a workspace dir.
+      const known = (window.IP_OPTIONS || []).map(s => String(s).toLowerCase());
+      if (known.length && !known.includes(ip.toLowerCase())) return;
+      if (window.atlasData && typeof window.atlasData.setScopePath === 'function') {
+        window.atlasData.setScopePath(ip);
+      }
+      setPreviewPath(`${ip}/yaml/${ip}.ssot.yaml`);
+    };
+    window.addEventListener('atlas-chip-open', onPath);
+    window.addEventListener('atlas-chip-ip', onIp);
+    return () => {
+      window.removeEventListener('atlas-chip-open', onPath);
+      window.removeEventListener('atlas-chip-ip', onIp);
+    };
+  }, []);
 
   const refreshSsotQa = React.useCallback(async (sessionOverride) => {
     const session = normalizeUiSession(sessionOverride || currentSession || window.ACTIVE_SESSION || '');
@@ -3303,10 +3444,21 @@ const ToolCard = ({ action, obs, summaryMode = true }) => {
 
 const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir, summaryMode = true }) => {
   if (entry.kind === 'user') {
+    const userText = String(entry.text || '');
+    // Render through markdown so QA submission prompts (which are
+    // multi-line markdown with `#`/`##` headers, bullet lists, and code
+    // chips) keep their structure instead of collapsing onto one line.
+    // Plain single-line user inputs still render fine via marked.
+    const userHtml = _markdownHtml(userText);
     return (
       <div style={{ padding: '10px 14px', marginBottom: 12, borderLeft: '2px solid var(--accent)', background: 'var(--bg-2)', borderRadius: 2 }}>
         <span className="acc" style={{ fontWeight: 600, marginRight: 8, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>You</span>
-        <span style={{ fontFamily: 'var(--mono)', fontSize: 'var(--ui-font-size)' }}>{entry.text}</span>
+        <div
+          className="md-agent"
+          style={{ fontFamily: 'var(--mono)', fontSize: 'var(--ui-font-size)', display: 'inline-block', verticalAlign: 'top' }}
+          dangerouslySetInnerHTML={{ __html: userHtml }}
+          ref={_postProcessMarkdownNode}
+        />
       </div>
     );
   }
