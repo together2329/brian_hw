@@ -9195,11 +9195,17 @@ const _buildFoldTree = (ranges) => {
   return root;
 };
 
+// Pinned to the standalone /tmp/ssot_fold_engine.html demo palette so
+// the in-product FoldablePane summary colors don't drift between
+// theme dir/A/B + light/dark combinations. ATLAS variables map to
+// chat-panel contrast and produced visibly different fold kind
+// colors than the demo the user signed off on.
 const _FOLD_KIND_COLOR = {
-  module: 'var(--accent)', always_ff: 'var(--warn)', always_comb: 'var(--ok)',
-  function: 'var(--magenta)', task: 'var(--err)', case: 'var(--accent-2)',
-  initial: 'var(--fg-mute)', 'generate-loop': 'var(--warn)', 'generate-if': 'var(--warn)',
-  section: 'var(--accent)', 'sub-section': 'var(--warn)', item: 'var(--ok)', scalar: 'var(--fg-mute)',
+  module: '#88c', always_ff: '#cc8', always_comb: '#8cc',
+  function: '#c8c', task: '#fa8', case: '#aca',
+  initial: '#888', 'generate-loop': '#cca', 'generate-if': '#cca',
+  section: '#88c', 'sub-section': '#cc8', item: '#8cc', scalar: '#a98',
+  object: '#88c', array: '#8cc',
 };
 
 // FoldablePane renders the file body as one <div class="line-row"> per
