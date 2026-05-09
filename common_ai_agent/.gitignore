@@ -88,5 +88,11 @@ atlas_ssot_web_clean/
 */rtl/rtl_blocked.json
 */rtl/rtl_traceability.json
 
+# Per-IP scaffolds carry their own .git (auto-commit on write).
+# Do not nest them inside the parent common_ai_agent repo.
+/dma/
+/simple_gpio_lite/
+/gpio/simple_gpio_lite/
+
 # Required workflow validators whose names match parent repo sim-output globs.
 !workflow/tb-gen/scripts/check_tb_sim_evidence.sh
