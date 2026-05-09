@@ -69,6 +69,35 @@ def extract_yaml_folds(text: str) -> List[Dict[str, Any]]:
                 "line_end": end + 1,
             })
 
+    def tight_end(node) -> int:
+        """Return the inclusive end-line of *node* without trailing
+        blank lines or comments.
+
+        PyYAML's end_mark.line on a Mapping/Sequence often points one
+        line past the actual content because it walks up to the next
+        sibling's start. That made fold ranges over-shoot — a
+        ``top_module:`` block with content through L17 reported
+        end_mark = L19 (the section comment) so the fold and the chat
+        prefill both swallowed unrelated content. We instead compute
+        the end as the max end of the node's children (or its own
+        end_mark when there are no children to reduce).
+        """
+        try:
+            import yaml as _yaml  # type: ignore
+        except Exception:
+            return getattr(node, "end_mark", None) and node.end_mark.line or 0
+        if isinstance(node, (_yaml.MappingNode, _yaml.SequenceNode)) and node.value:
+            ends = []
+            if isinstance(node, _yaml.MappingNode):
+                for k, v in node.value:
+                    ends.append(tight_end(v))
+                    ends.append(k.end_mark.line)
+            else:
+                for item in node.value:
+                    ends.append(tight_end(item))
+            return max(ends) if ends else node.end_mark.line
+        return node.end_mark.line
+
     def walk(n, path: str = "") -> None:
         try:
             import yaml as _yaml  # type: ignore
@@ -79,7 +108,7 @@ def extract_yaml_folds(text: str) -> List[Dict[str, Any]]:
                 key_str = getattr(key_node, "value", str(key_node))
                 if isinstance(val_node, (_yaml.MappingNode, _yaml.SequenceNode)):
                     s = key_node.start_mark.line
-                    e = val_node.end_mark.line
+                    e = tight_end(val_node)
                     kind = "section" if not path else "sub-section"
                     label = f"{path}{key_str}" if path else key_str
                     add(kind, label, s, e)
@@ -95,13 +124,13 @@ def extract_yaml_folds(text: str) -> List[Dict[str, Any]]:
                 if isinstance(item, _yaml.MappingNode):
                     lbl = _yaml_label_for_seq_item(item) or f"[{i}]"
                     s = item.start_mark.line
-                    e = item.end_mark.line
+                    e = tight_end(item)
                     label = f"{path}{lbl}" if path else lbl
                     add("item", label, s, e)
                     walk(item, path=f"{path}{lbl}/" if path else f"{lbl}/")
                 elif isinstance(item, _yaml.SequenceNode):
                     s = item.start_mark.line
-                    e = item.end_mark.line
+                    e = tight_end(item)
                     label = f"{path}[{i}]"
                     add("item", label, s, e)
                     walk(item, path=f"{path}[{i}]/")

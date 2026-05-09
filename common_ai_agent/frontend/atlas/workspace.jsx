@@ -9285,14 +9285,14 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
                   || pane.querySelector(`[data-ln="${hi}"]`);
       if (!lineEl) return;
       // Anchor BELOW the last-selected line, pinned to the pane's
-      // RIGHT edge so the button never overlaps source code. We
-      // measure offsetTop relative to .foldable-body (the
-      // position-relative ancestor) by walking up the offsetParent
-      // chain until we hit it. Right edge is via inline `right: 8px`.
+      // RIGHT edge. Button is a child of .foldable-pane (NOT
+      // .foldable-body) so its `right: 16` lands on the visible
+      // right edge even when the body has horizontal-scroll wider
+      // than the pane. We accumulate offsetTop up the chain until
+      // we hit .foldable-pane itself.
       let top = lineEl.offsetTop + lineEl.offsetHeight;
       let p = lineEl.offsetParent;
-      const stop = pane.querySelector('.foldable-body');
-      while (p && p !== stop && p !== pane) {
+      while (p && p !== pane) {
         top += p.offsetTop;
         p = p.offsetParent;
       }
@@ -9427,14 +9427,14 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
       <div className="foldable-body">
         {renderedTree.elements}
         {trail}
-        {floating && (
-          <button className="fold-floating-comment"
-                  style={{ position: 'absolute', right: 12, top: floating.top }}
-                  onClick={() => dispatchComment(floating.lo, floating.hi, '')}>
-            💬 Comment selection
-          </button>
-        )}
       </div>
+      {floating && (
+        <button className="fold-floating-comment"
+                style={{ position: 'absolute', right: 16, top: floating.top + 4 }}
+                onClick={() => dispatchComment(floating.lo, floating.hi, '')}>
+          💬 Comment selection
+        </button>
+      )}
     </div>
   );
 };

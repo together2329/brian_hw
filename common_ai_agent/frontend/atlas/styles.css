@@ -1655,25 +1655,27 @@ body.atlas-sim-debug-fullscreen #scaler > #root > div > div {
   border-color: var(--ok);
 }
 .foldable-pane .fold-floating-comment {
-  /* position is set inline (absolute) via React so it anchors next
-     to the last selected line within the .foldable-body offset
-     parent. ATLAS wraps the whole UI in a transformed #scaler so
-     position: fixed + clientX/Y was off by hundreds of px. */
-  background: color-mix(in oklch, var(--ok) 22%, transparent);
-  color: var(--ok);
-  border: 1px solid var(--ok);
+  /* position is set inline (absolute) via React. Button is a child
+     of .foldable-pane (which is position: relative) so `right: N`
+     anchors to the visible pane edge regardless of the body's
+     horizontal scroll. Colors pinned to demo palette so the button
+     stands out on every theme combination. */
+  background: #2a4a2a;
+  color: #cfc;
+  border: 1px solid #5a7a5a;
   padding: 4px 12px;
   border-radius: 4px;
   cursor: pointer;
   font-family: inherit;
   font-size: 11px;
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   z-index: 100;
   user-select: none;
+  white-space: nowrap;
 }
 .foldable-pane .fold-floating-comment:hover {
-  background: color-mix(in oklch, var(--ok) 32%, transparent);
+  background: #3a6a3a;
 }
 
 /* ── replace_in_file / write_file diff palette ────────────────────
