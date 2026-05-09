@@ -9767,13 +9767,36 @@ def create_app():
                     if _run_stage_command(_txt):
                         continue
                     if _low in ("/plan", "/mode plan", "/mode normal", "/normal"):
-                        if _low in ("/plan", "/mode plan"):
+                        is_plan = _low in ("/plan", "/mode plan")
+                        if is_plan:
                             _os.environ["AGENT_MODE_OVERRIDE"] = "plan_q"
                             _os.environ["PLAN_MODE"] = "true"
                         else:
                             _os.environ["AGENT_MODE_OVERRIDE"] = "normal"
                             _os.environ["PLAN_MODE"] = "false"
                             _os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
+                        # Immediate UI feedback so the chat reflects the
+                        # mode flip the moment the user clicks the
+                        # NORMAL/PLAN pill (or types /plan), instead of
+                        # waiting for the next turn boundary. Previously
+                        # we deferred the banner to main.py's dispatcher
+                        # which only runs between turns — clicking PLAN
+                        # while the agent was idle left the chat silent
+                        # until the user typed a message.
+                        try:
+                            if is_plan:
+                                bridge.emit("agent", text=(
+                                    "✅ Plan mode — read-only. "
+                                    "The agent will analyze and propose without mutating tools. "
+                                    "Type `apply` or click NORMAL to execute."
+                                ))
+                            else:
+                                bridge.emit("agent", text=(
+                                    "✅ Normal mode — tools enabled."
+                                ))
+                            bridge.emit("flush")
+                        except Exception:
+                            pass
                         # Two-pronged dispatch:
                         # (1) AGENT_MODE_OVERRIDE handles the MID-LOOP case
                         #     (agent currently iterating; react_loop top
@@ -9787,10 +9810,6 @@ def create_app():
                         #     across turns. Without this submit, the
                         #     UI's "● NORMAL" pill could click without
                         #     ever telling main.py to flip — desync.
-                        # The slash dispatcher in main.py emits its own
-                        # "✅ <Mode> mode — tools enabled." banner, so we
-                        # don't need to emit one here too (was creating
-                        # duplicate confirmations on the idle path).
                         bridge.submit_prompt(_txt)
                         continue
 
