@@ -440,8 +440,17 @@ const _highlightInlineCode = (code, lang) => {
 
 const DiffOutputPre = ({ text, tool, truncated }) => {
   const body = String(text || '') + (truncated ? '\n…[truncated]' : '');
+  // Unified row format from format_diff_snippet:
+  //   context  : "{num}  {content}"        (num + 2 spaces + content)
+  //   removed  : "{num} -{content}"        (num + space + '-' + content)
+  //   added    : "{num} +{content}"        (num + space + '+' + content)
+  // We match all three with the same regex so context rows render
+  // through the same span structure (prefix + marker placeholder +
+  // code) — otherwise context rows render as raw text and the +/- rows
+  // shift left of them, making indentation look broken.
+  const ROW_RE = /^(\s*\d+)\s([ \-+])(.*)$/;
   const codeOnly = body.split('\n').map(line => {
-    const m = line.match(/^(\s*\d+\s+)?([+-])(.*)$/);
+    const m = line.match(ROW_RE);
     return m ? m[3] : line;
   }).join('\n');
   const lang = _toolOutputLanguage(tool, codeOnly);
@@ -460,14 +469,16 @@ const DiffOutputPre = ({ text, tool, truncated }) => {
   return (
     <pre className={`tool-output-pre tool-output-diff ${lang && lang !== 'none' ? `language-${lang}` : 'language-none'}`}>
       {body.split('\n').map((line, i) => {
-        const m = line.match(/^(\s*\d+\s+)?([+-])(.*)$/);
+        const m = line.match(ROW_RE);
         if (!m) return <div className="diff-line" key={i}>{line || ' '}</div>;
-        const [, prefix = '', marker, rest] = m;
-        const add = marker === '+';
+        const [, numStr, sep, rest] = m;
+        const add = sep === '+';
+        const del = sep === '-';
+        const cls = add ? 'add' : del ? 'del' : '';
         return (
-          <div className={`diff-line ${add ? 'add' : 'del'}`} key={i}>
-            <span className="diff-prefix">{prefix}</span>
-            <span className={`diff-marker ${add ? 'add' : 'del'}`}>{marker}</span>
+          <div className={`diff-line ${cls}`} key={i}>
+            <span className="diff-prefix">{numStr}</span>
+            <span className={`diff-marker ${cls}`}>{add || del ? sep : ' '}</span>
             <code
               className={lang && lang !== 'none' ? `language-${lang}` : 'language-none'}
               dangerouslySetInnerHTML={{ __html: _highlightInlineCode(rest, lang) }}
@@ -889,8 +900,13 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   const sendPrompt = React.useCallback((text, sessionOverride) => {
     if (window.backend) {
       const session = resolveSession(sessionOverride, activeSession, window.ACTIVE_SESSION);
+      // Per-message id so backend.js can retransmit on missing ack and
+      // the backend can dedupe the second copy. Atlas runs over a
+      // secure context (localhost or https), so crypto.randomUUID is
+      // always present.
       window.backend.send({
         type: 'prompt',
+        msg_id: window.crypto.randomUUID(),
         text,
         session,
         ui_lang: window.ATLAS_UI_LANG || uiLang,

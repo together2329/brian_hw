@@ -41,6 +41,35 @@
   let reconnectTimer = null;
   let liveQueue = [];
   let connectionState = 'connecting';
+  // Outbound prompts awaiting an `agent_received` ack from the backend.
+  // Map<msg_id, { msg, retries, timer }>. If the ack doesn't arrive
+  // within ACK_TIMEOUT_MS we re-send the same payload once. The backend
+  // dedupes by msg_id, so a duplicate that races the first delivery is
+  // safe — only the first copy actually runs.
+  const pendingAcks = new Map();
+  const ACK_TIMEOUT_MS = 3000;
+  const MAX_RETRIES = 1;
+
+  function _rawSend(msg) {
+    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
+    else liveQueue.push(msg);
+  }
+  function _scheduleAckTimer(msg_id) {
+    const entry = pendingAcks.get(msg_id);
+    if (!entry) return;
+    clearTimeout(entry.timer);
+    entry.timer = setTimeout(() => {
+      const cur = pendingAcks.get(msg_id);
+      if (!cur) return;
+      if (cur.retries >= MAX_RETRIES) {
+        pendingAcks.delete(msg_id);
+        return;
+      }
+      cur.retries += 1;
+      _rawSend(cur.msg);
+      _scheduleAckTimer(msg_id);
+    }, ACK_TIMEOUT_MS);
+  }
 
   function liveConnect() {
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
@@ -61,7 +90,14 @@
     ws.onmessage = (ev) => {
       let msg;
       try { msg = JSON.parse(ev.data); } catch (_) { return; }
-      if (msg && msg.type) emit(msg.type, msg);
+      if (!msg || !msg.type) return;
+      // Backend ack — clear the pending retransmit timer.
+      if (msg.type === 'agent_received' && msg.msg_id && pendingAcks.has(msg.msg_id)) {
+        const entry = pendingAcks.get(msg.msg_id);
+        clearTimeout(entry.timer);
+        pendingAcks.delete(msg.msg_id);
+      }
+      emit(msg.type, msg);
     };
     ws.onclose = () => {
       connectionState = 'closed';
@@ -78,8 +114,12 @@
     reconnectTimer = setTimeout(liveConnect, 1500);
   }
   function liveSend(msg) {
-    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
-    else liveQueue.push(msg);
+    // Track prompts (or any send carrying msg_id) for ack-based retry.
+    if (msg && msg.type === 'prompt' && msg.msg_id) {
+      pendingAcks.set(msg.msg_id, { msg, retries: 0, timer: null });
+      _scheduleAckTimer(msg.msg_id);
+    }
+    _rawSend(msg);
   }
   function liveDisconnect() {
     clearTimeout(reconnectTimer);

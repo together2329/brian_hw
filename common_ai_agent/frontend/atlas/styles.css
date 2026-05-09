@@ -1193,13 +1193,11 @@
 .tool-output-diff .diff-marker.del {
   color: var(--err);
 }
-/* Context lines (no marker) need a 1.5ch placeholder so they line up
-   with the +/- column, otherwise the unmarked code body shifts
-   leftward by one marker-width and looks misaligned. */
-.tool-output-diff .diff-line:not(.add):not(.del) > .diff-prefix + code,
-.tool-output-diff .diff-line:not(.add):not(.del) > code:first-of-type {
-  padding-left: calc(1.5ch + 4px);
-}
+/* Context lines now render through the same span structure as +/-
+   rows — prefix + marker placeholder + code. The marker placeholder
+   carries the same 1.5ch min-width and 4px margin-right that real
+   markers do, so context and diff rows align without extra padding
+   here. */
 
 [data-theme="light"] .titlebar,
 [data-theme="light"] .statusbar,

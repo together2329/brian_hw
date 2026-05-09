@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import collections
 import hashlib
 import json
 import os
@@ -122,6 +123,12 @@ class _AtlasBridge:
         # Esc-style abort flag — checked once per poll by react_loop.
         # Set when the UI sends {type:'stop'}; cleared by check_stop().
         self._stop_flag: bool = False
+        # Bounded LRU of WS message ids we've already submitted, used to
+        # dedupe retransmits when the frontend resends a prompt because
+        # it didn't receive an `agent_received` ack in time.
+        self._seen_msg_ids: collections.OrderedDict[str, float] = collections.OrderedDict()
+        self._seen_msg_ids_lock = threading.Lock()
+        self._SEEN_MSG_LIMIT = 256
 
     # — agent-side (sync) —
     def get_input(self, prompt: str = "") -> str:
@@ -200,6 +207,15 @@ class _AtlasBridge:
         starter()
 
     def submit_prompt(self, text: str) -> None:
+        # A fresh user message means any prior stop has been honored
+        # (or is being overridden by the user's intent to continue).
+        # Without this reset, an in-flight `_stop_flag` set by mount-
+        # time /api/control/stop or by triple-change halt could be
+        # consumed by the agent thread on its first poll, killing the
+        # turn before it processes the just-queued message — which is
+        # exactly the "first message after reload gets swallowed"
+        # symptom that required a second submission to recover.
+        self._stop_flag = False
         self.ensure_agent_alive()
         # Slash-prefixed input always lands in the _inbox so the slash
         # dispatcher can pick it up on the next turn boundary —
@@ -215,6 +231,28 @@ class _AtlasBridge:
             self._interrupts.put(text)
         else:
             self._inbox.put(text)
+
+    def msg_id_seen(self, msg_id: str) -> bool:
+        """Idempotency check for WS-delivered prompts.
+
+        The frontend re-sends a prompt if it doesn't receive an
+        `agent_received` ack within ~3s (catches WS-open race +
+        backpressure). Each send carries the same `msg_id`, so the
+        backend uses this LRU to detect duplicates and skip a second
+        submit. Returns True iff this id was already seen — caller
+        should still emit the ack but skip submit_prompt.
+        """
+        if not msg_id:
+            return False
+        with self._seen_msg_ids_lock:
+            if msg_id in self._seen_msg_ids:
+                # Refresh recency
+                self._seen_msg_ids.move_to_end(msg_id)
+                return True
+            self._seen_msg_ids[msg_id] = time.monotonic()
+            while len(self._seen_msg_ids) > self._SEEN_MSG_LIMIT:
+                self._seen_msg_ids.popitem(last=False)
+            return False
 
     def queue_prompt(self, text: str) -> None:
         """Queue a prompt for the next top-level turn.
@@ -9952,6 +9990,16 @@ def create_app():
                     continue
                 t = msg.get("type")
                 if t in ("prompt", "send") and msg.get("text"):
+                    # Idempotent submit + ack:
+                    # The frontend retransmits a prompt with the same
+                    # msg_id if it doesn't see an `agent_received`
+                    # ack within ~3s. We always emit the ack so the
+                    # frontend cancels its retry timer; we only call
+                    # submit_prompt the first time.
+                    _msg_id = str(msg.get("msg_id") or "").strip()
+                    bridge.emit("agent_received", msg_id=_msg_id)
+                    if _msg_id and bridge.msg_id_seen(_msg_id):
+                        continue
                     _txt = msg["text"].strip()
                     import os as _os
                     _ui_lang_raw = str(msg.get("ui_lang") or _os.environ.get("ATLAS_UI_LANG") or "").strip().lower()
