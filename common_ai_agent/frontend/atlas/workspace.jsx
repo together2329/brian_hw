@@ -1150,9 +1150,19 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
         const lo    = Number(d.lineStart || d.lo || 0);
         const hi    = Number(d.lineEnd   || d.hi || 0);
         const label = String(d.label || '').trim();
+        const text  = String(d.text || '');
+        const lang  = String(d.lang || '');
         if (!path || !lo || !hi) return;
         const labelStr = label ? ` (${label})` : '';
-        const next = `@${path} L${lo}-${hi}${labelStr}\n\n`;
+        // Embed the actual source slice as a fenced code block so the
+        // LLM doesn't need to read_file again. Lang fence (```sv,
+        // ```yaml, ```json) gives the model a syntax hint.
+        let block = '';
+        if (text) {
+          const fence = lang || '';
+          block = `\n\n\`\`\`${fence}\n${text}\n\`\`\`\n\n`;
+        }
+        const next = `@${path} L${lo}-${hi}${labelStr}${block || '\n\n'}`;
         setInput(next);
         // After React paints the new value into the textarea, trigger
         // the same auto-grow that onChange does so the multi-line
@@ -9293,8 +9303,20 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
   }, []);
 
   const dispatchComment = (lo, hi, label) => {
+    // Slice the source lines for the selection so the chat prefill
+    // carries the actual file content, not just a path/range header.
+    // The listener wraps it in a fenced code block so the agent sees
+    // it verbatim instead of having to re-read the file.
+    const sliceText = (srcLines || []).slice(lo - 1, hi).join('\n');
     window.dispatchEvent(new CustomEvent('atlas-fold-comment', {
-      detail: { path, lineStart: lo, lineEnd: hi, label: label || '' },
+      detail: {
+        path,
+        lineStart: lo,
+        lineEnd: hi,
+        label: label || '',
+        text: sliceText,
+        lang: lang || '',
+      },
     }));
     setFloating(null);
   };
