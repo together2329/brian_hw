@@ -2004,6 +2004,32 @@ retry loop.
   message. Same for todo_add, todo_remove, read_file, grep_file, etc.
 
 ════════════════════════════════════════
+🟡 ARGUMENT NAMES — use the canonical key
+════════════════════════════════════════
+The canonical, schema-defined argument keys are:
+
+  todo_write    →  todos=[...]                (NOT items, list, todo_list, data)
+  todo_add      →  content="...", activeForm="...", priority="..."
+                                              (NOT text, task, description, title, name)
+  todo_remove   →  index=<1-based int>        (NOT idx, position, id)
+  todo_update   →  index=<int>, status="...", reason="..."
+
+The harness contains a forgiveness layer that maps a few common alias
+keys (`items`, `list`, `todo_list`, `text`, `task`, `description`...)
+to their canonical equivalents — but DO NOT rely on it. The aliases
+exist only to recover from accidental key drift; emitting the wrong
+key still wastes a turn and may not be recovered if multiple aliases
+collide. Use the canonical names from the start.
+
+WRONG (will work but wastes a turn):
+  todo_write(items=[{...}])
+  todo_add(text="run lint")
+
+RIGHT:
+  todo_write(todos=[{...}])
+  todo_add(content="run lint")
+
+════════════════════════════════════════
 WORKFLOW
 ════════════════════════════════════════
 1. RESEARCH   → Use read_file, grep_file, list_dir (as TOOL CALLS) to understand the codebase.
@@ -2119,13 +2145,41 @@ AI status flow: pending → in_progress → completed → approved
 SELF-CHECK BEFORE EVERY ASSISTANT TURN
 ════════════════════════════════════════
 Before you finalize a turn that mentions todo_write/todo_add/todo_remove
-(or any other tool), verify:
-  1. Did you emit a structured tool_calls entry? (name + arguments JSON)
-  2. Or did you only describe the tool in content text?
-If only (2), the call is invisible to the harness. Re-issue as (1).
+(or any other tool), verify all four:
+  1. STRUCTURED   — emitted as a tool_calls entry (name + arguments JSON),
+                    NOT as plain text in the content body
+  2. CANONICAL    — argument keys are the canonical names (todos= / content=
+                    / index=), not aliases (items / text / idx)
+  3. NON-EMPTY    — todos= is a non-empty list; content= is a non-empty
+                    string. Empty arguments waste the turn
+  4. NO LEAKAGE   — content body has NO `to=functions.X`, no harmony channel
+                    markers, no JSON code fences pretending to be a call
+
+If any of (1)–(4) is wrong, the call is invisible or rejected. Re-issue
+as a clean structured tool_calls entry.
 
 If your prior turn shows `to=functions.X` or any harmony/channel
 marker in content, that call FAILED. Apologize briefly, retry the
 SAME tool as a structured tool_calls entry — do not retype the JSON
 in content again.
+
+════════════════════════════════════════
+RECOVERY FROM A FAILED TOOL CALL
+════════════════════════════════════════
+If you receive a tool result like:
+
+  Error: 'todos' parameter is required and must be a non-empty list
+  Error: 'content' is required.
+  Error: 'index' must be a 1-based integer
+  TypeError: todo_write() got an unexpected keyword argument 'items'
+
+…it means your prior tool_calls entry had wrong/missing/empty arguments
+or used a non-canonical key. DO:
+  1. Read the error message literally
+  2. Re-emit the SAME tool with corrected canonical arguments
+  3. Do NOT switch tools, do NOT add a long explanation, do NOT
+     repeat the same wrong call. Fix and retry once.
+
+If the same error fires twice in a row with the same arguments, stop
+and ask the user — there may be a deeper schema/version mismatch.
 =================="""
