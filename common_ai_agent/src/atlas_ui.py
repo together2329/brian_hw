@@ -1341,6 +1341,46 @@ def create_app():
     async def api_ssot_qa_sessions():
         return JSONResponse(_ssot_qa_sessions_view())
 
+    @app.post("/api/session/activate")
+    async def api_session_activate(req: Request):
+        """Frontend → backend handshake to keep the canonical
+        (session_id, ip, workflow) triple in sync.
+
+        Body: {"session_id": str, "ip": str, "workflow": str}
+        Each field is optional; missing/empty values default to "default".
+        Updates ATLAS_ACTIVE_SESSION and ATLAS_ACTIVE_IP env vars so all
+        path resolvers in this process pivot to the same triple.
+
+        The frontend calls this on page load (so URL params survive a
+        restart) and any time the user changes a top dropdown.
+        """
+        try:
+            body = await req.json()
+        except Exception:
+            body = {}
+        sid = str((body or {}).get("session_id") or "").strip() or "default"
+        ip = str((body or {}).get("ip") or "").strip() or "default"
+        wf = str((body or {}).get("workflow") or "").strip() or "default"
+        # Sanitize — refuse exotic path chars to avoid traversal.
+        for label, val in (("session_id", sid), ("ip", ip), ("workflow", wf)):
+            if not re.match(r"^[A-Za-z][A-Za-z0-9_-]*$", val):
+                return JSONResponse(
+                    {"error": f"invalid {label}: {val!r}"},
+                    status_code=400,
+                )
+        canonical = f"{sid}/{ip}/{wf}"
+        os.environ["ATLAS_ACTIVE_SESSION"] = canonical
+        os.environ["ATLAS_ACTIVE_IP"] = ip
+        os.environ["ATLAS_DEFAULT_SESSION_ID"] = sid
+        os.environ["ATLAS_DEFAULT_WORKFLOW"] = wf
+        return JSONResponse({
+            "ok": True,
+            "active_session": canonical,
+            "session_id": sid,
+            "ip": ip,
+            "workflow": wf,
+        })
+
     @app.post("/api/ssot/qa/answer")
     async def api_ssot_qa_answer(req: Request):
         """Persist user-supplied answers for pending QA items to qa.json.

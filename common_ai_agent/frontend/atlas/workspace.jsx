@@ -5391,6 +5391,122 @@ const ssotReviewMarkdown = (section, status) => {
   ].join('\n');
 };
 
+// Card-style fold for one Raw YAML section. Header shows the section
+// title, a one-line summary derived from the YAML body (item count or
+// key count), and a chevron. Body uses the existing tool-output-pre
+// Prism YAML highlighter so colors match the rest of the chat feed.
+const YamlSectionCard = ({ section, statusByKey }) => {
+  const text = String(section?.text || '');
+  const title = String(section?.title || section?.label || section?.key || section?.id || 'section');
+  const status = (statusByKey && (statusByKey[section?.key] || statusByKey[section?.id])) || '';
+  const lines = text.split('\n');
+  // Skip the leading section header (`# === SECTION N ===`) and find the
+  // actual top-level key (first non-comment, non-blank line) to compute
+  // the summary string.
+  let summary = '';
+  let topKey = '';
+  for (const ln of lines) {
+    const trimmed = ln.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const m = trimmed.match(/^([A-Za-z_][\w-]*):\s*(.*)$/);
+    if (m) {
+      topKey = m[1];
+      const rhs = m[2];
+      if (rhs && rhs !== '|' && rhs !== '>' && rhs !== 'null' && rhs !== '~') {
+        summary = rhs.length > 80 ? rhs.slice(0, 80) + '…' : rhs;
+      }
+    }
+    break;
+  }
+  // Item count: lines starting with '  -' under topKey, OR child key count.
+  let countSuffix = '';
+  if (!summary) {
+    let items = 0, keys = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const ln = lines[i];
+      if (/^\s*-\s/.test(ln) && /^\s{2,}-/.test(ln)) items += 1;
+      else if (/^\s{2,}[A-Za-z_][\w-]*:/.test(ln) && !/^\s{4,}/.test(ln)) keys += 1;
+    }
+    if (items) countSuffix = `${items} item${items === 1 ? '' : 's'}`;
+    else if (keys) countSuffix = `${keys} key${keys === 1 ? '' : 's'}`;
+    else countSuffix = `${lines.length} line${lines.length === 1 ? '' : 's'}`;
+  }
+  // Default open for short sections, closed for long ones (>40 lines).
+  const [open, setOpen] = React.useState(lines.length <= 40);
+  const codeRef = React.useRef(null);
+  React.useEffect(() => {
+    if (!open) return;
+    const code = codeRef.current;
+    const Prism = window.Prism;
+    if (!code || !Prism) return;
+    try { Prism.highlightElement(code); } catch (_) {}
+  }, [open, text]);
+  const statusColor = status === 'approved'
+    ? 'var(--ok)'
+    : (status === 'flag' || status === 'warn' ? 'var(--warn)' : 'var(--accent)');
+  return (
+    <div
+      style={{
+        border: '1px solid var(--line)',
+        borderLeft: `3px solid ${statusColor}`,
+        borderRadius: 4,
+        background: 'color-mix(in oklch, var(--bg-1) 86%, transparent)',
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setOpen(o => !o)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(o => !o); }
+        }}
+        title={open ? 'click to collapse' : 'click to expand'}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '7px 12px',
+          cursor: 'pointer', userSelect: 'none',
+          fontFamily: 'var(--mono)', fontSize: 12,
+          background: open ? 'color-mix(in oklch, var(--bg-3) 60%, transparent)' : 'transparent',
+        }}
+      >
+        <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>{title}</span>
+        {topKey && topKey !== title && (
+          <span className="mute" style={{ fontSize: 10 }}>{topKey}</span>
+        )}
+        <span style={{ flex: 1 }} />
+        {summary ? (
+          <span className="mute trunc" style={{
+            fontSize: 11, color: 'var(--fg)', opacity: 0.78, maxWidth: '50%',
+          }}>
+            {summary}
+          </span>
+        ) : (
+          <span className="mute" style={{ fontSize: 10 }}>{countSuffix}</span>
+        )}
+        <span style={{ color: 'var(--fg-mute)', fontSize: 11, fontFamily: 'var(--mono)' }}>
+          {open ? '▾' : '▸'}
+        </span>
+      </div>
+      {open ? (
+        <pre
+          className="tool-output-pre tool-output-yaml language-yaml"
+          style={{
+            margin: 0, border: 'none', borderTop: '1px solid var(--line)',
+            borderRadius: 0,
+            maxHeight: 480, overflow: 'auto',
+            background: 'var(--code-bg)',
+            padding: '10px 12px',
+            whiteSpace: 'pre',
+          }}
+        >
+          <code ref={codeRef} className="language-yaml">{text}</code>
+        </pre>
+      ) : null}
+    </div>
+  );
+};
+
 const DigestCard = ({ title, meta, children }) => (
   <div style={{
     border: '1px solid var(--line)', borderRadius: 4,
@@ -6022,16 +6138,25 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
     );
   };
 
-  const renderRawYaml = () => (
-    <>
-      {header}
-      <DigestCard title="Raw YAML" meta={`${sections.length} sections`}>
-        <pre className="tool-output-pre language-yaml" style={{
-          maxHeight: 'none', margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-        }}>{(sections || []).map(section => section.text).join('\n\n')}</pre>
-      </DigestCard>
-    </>
-  );
+  const renderRawYaml = () => {
+    const list = sections || [];
+    return (
+      <>
+        {header}
+        <DigestCard title="Raw YAML" meta={`${list.length} sections`}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {list.map(s => (
+              <YamlSectionCard
+                key={s.id || s.key || s.title || s.label}
+                section={s}
+                statusByKey={statusByKey}
+              />
+            ))}
+          </div>
+        </DigestCard>
+      </>
+    );
+  };
 
   const renderGeneric = (title, sourceSections) => (
     <>

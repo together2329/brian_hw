@@ -64,8 +64,10 @@ const App = () => {
   const [fontMode, setFontMode] = React.useState(() => {
     try {
       const saved = localStorage.getItem('atlasFontMode');
-      return ['mono', 'sans', 'system'].includes(saved) ? saved : 'mono';
-    } catch (_) { return 'mono'; }
+      const userSet = localStorage.getItem('atlasFontModeUserSet') === '1';
+      if (saved === 'mono' && !userSet) return 'sans';
+      return ['mono', 'sans', 'system'].includes(saved) ? saved : 'sans';
+    } catch (_) { return 'sans'; }
   });
   const [fontScale, setFontScale] = React.useState(() => {
     try {
@@ -210,6 +212,22 @@ const App = () => {
     if (window.atlasData && typeof window.atlasData.setActiveSession === 'function') {
       window.atlasData.setActiveSession(namespace);
     }
+    // Push the canonical triple to the backend so its env vars
+    // (ATLAS_ACTIVE_SESSION / ATLAS_ACTIVE_IP / ATLAS_DEFAULT_*) match
+    // what the frontend is showing. Without this round-trip, a fresh
+    // restart would inherit only the CLI defaults and the chat / QA /
+    // preview panes would silently target the wrong IP.
+    try {
+      fetch('/api/session/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: owner || 'default',
+          ip: ip || 'default',
+          workflow: wf || 'default',
+        }),
+      }).catch(() => {});
+    } catch (_) {}
     // No `&& wf` guard — picking 'default' from the workflow
     // dropdown sends an empty wf string, but activateBackendWorkflow
     // resolves it to /wf default so the agent's workspace actually
@@ -568,7 +586,10 @@ const App = () => {
           <select
             className="dir-select mini"
             value={fontMode}
-            onChange={e => setFontMode(e.currentTarget.value)}>
+            onChange={e => {
+              setFontMode(e.currentTarget.value);
+              try { localStorage.setItem('atlasFontModeUserSet', '1'); } catch (_) {}
+            }}>
             <option value="mono">Mono</option>
             <option value="sans">Sans</option>
             <option value="system">System</option>
