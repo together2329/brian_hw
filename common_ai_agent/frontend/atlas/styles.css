@@ -235,12 +235,10 @@
 }
 
 [data-dir="B"] .app {
-  background-image:
-    linear-gradient(var(--grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
-    linear-gradient(var(--grid-2) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-2) 1px, transparent 1px);
-  background-size: 16px 16px, 16px 16px, 128px 128px, 128px 128px;
+  /* Workbench grid pattern removed per user request — was a faint
+     dotted/lined backdrop that competed with the chat content. Solid
+     bg only. To restore: re-add the four linear-gradients + 16px /
+     128px background-size from prior versions. */
   background-color: var(--bg);
 }
 
