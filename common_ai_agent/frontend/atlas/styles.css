@@ -1460,8 +1460,17 @@ body.atlas-sim-debug-fullscreen #scaler > #root > div > div {
   line-height: 1.55;
   tab-size: 2;
   -moz-tab-size: 2;
-  background: transparent;
+  /* Pin the surface to the demo palette (#1d1f21 / #d8d8d8) so the
+     Material Theme token colors below land on the contrast they were
+     picked for. The wider ATLAS theme variables are tuned for chat
+     panels and don't map 1-to-1 onto code-pane contrast. */
+  background: #1d1f21;
+  color: #d8d8d8;
   position: relative;
+}
+[data-theme="light"] .foldable-pane {
+  background: #fbfbfd;
+  color: #101720;
 }
 .foldable-toolbar {
   display: flex;
@@ -1514,6 +1523,83 @@ body.atlas-sim-debug-fullscreen #scaler > #root > div > div {
 .foldable-pane .line {
   white-space: pre;
   color: var(--fg);
+}
+/* Syntax token palette — Material Theme inspired. Scoped to
+   .foldable-pane so the rest of ATLAS keeps the global Prism
+   Tomorrow defaults. Picks readable contrast on the dark surface
+   the pane uses (var(--bg-3) and friends). */
+.foldable-pane .line .token.keyword,
+.foldable-pane .line .token.boolean,
+.foldable-pane .line .token.constant,
+.foldable-pane .line .token.atrule {
+  color: #c792ea;
+}
+.foldable-pane .line .token.string,
+.foldable-pane .line .token.attr-value,
+.foldable-pane .line .token.char {
+  color: #c3e88d;
+}
+.foldable-pane .line .token.number,
+.foldable-pane .line .token.symbol {
+  color: #f78c6c;
+}
+.foldable-pane .line .token.operator,
+.foldable-pane .line .token.entity {
+  color: #89ddff;
+}
+.foldable-pane .line .token.punctuation {
+  color: #abb2bf;
+}
+.foldable-pane .line .token.comment,
+.foldable-pane .line .token.prolog,
+.foldable-pane .line .token.cdata {
+  color: #6a737d;
+  font-style: italic;
+}
+.foldable-pane .line .token.function,
+.foldable-pane .line .token.class-name,
+.foldable-pane .line .token.attr-name,
+.foldable-pane .line .token.key {
+  color: #82aaff;
+}
+.foldable-pane .line .token.tag,
+.foldable-pane .line .token.selector {
+  color: #f78c6c;
+}
+.foldable-pane .line .token.regex,
+.foldable-pane .line .token.important {
+  color: #ffcb6b;
+}
+.foldable-pane .line .token.builtin {
+  color: #ffcb6b;
+}
+.foldable-pane .line .token.variable,
+.foldable-pane .line .token.namespace {
+  color: #d6dde6;
+}
+[data-theme="light"] .foldable-pane .line .token.keyword,
+[data-theme="light"] .foldable-pane .line .token.boolean,
+[data-theme="light"] .foldable-pane .line .token.constant {
+  color: #7a3492;
+}
+[data-theme="light"] .foldable-pane .line .token.string,
+[data-theme="light"] .foldable-pane .line .token.attr-value {
+  color: #1f7042;
+}
+[data-theme="light"] .foldable-pane .line .token.number {
+  color: #9a5416;
+}
+[data-theme="light"] .foldable-pane .line .token.operator {
+  color: #126a75;
+}
+[data-theme="light"] .foldable-pane .line .token.comment {
+  color: #38445c;
+  font-style: italic;
+}
+[data-theme="light"] .foldable-pane .line .token.function,
+[data-theme="light"] .foldable-pane .line .token.attr-name,
+[data-theme="light"] .foldable-pane .line .token.key {
+  color: #1559c7;
 }
 .foldable-pane details { margin: 0; padding: 0; }
 .foldable-pane .fold-summary {
