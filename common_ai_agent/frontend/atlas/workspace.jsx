@@ -2581,24 +2581,30 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
           </div>
           <div style={{ flex: 1, overflow: 'auto', padding: '4px 0' }}>
             {/* Parent-dir shortcut: click → pop one segment off scope.
-                Only shown when scope is non-empty so users have a
-                one-click way out without retyping into the input. */}
-            {window.SCOPE_PATH ? (
-              <div
-                className="frow"
-                style={{ paddingLeft: 8, cursor: 'pointer' }}
-                title={'go up one level\nfrom: ' + window.SCOPE_PATH}
-                onClick={() => {
-                  const segs = (window.SCOPE_PATH || '').split('/').filter(Boolean);
-                  segs.pop();
-                  window.atlasData.setScopePath(segs.join('/'));
-                }}
-              >
-                <span className="fr-icon">▲</span>
-                <span className="trunc"><span className="dim">.. (up)</span></span>
-                <span className="mute" style={{ fontSize: 10 }} />
-              </div>
-            ) : null}
+                Capped at the IP root: once you're at scope == <ip>,
+                going up would escape the active IP workspace which
+                violates the "IP is the central concept" rule, so the
+                button is hidden. Only shown when scope has 2+ segments
+                (e.g. "<ip>/rtl" → up to "<ip>"). */}
+            {(() => {
+              const segs = String(window.SCOPE_PATH || '').split('/').filter(Boolean);
+              if (segs.length < 2) return null;
+              return (
+                <div
+                  className="frow"
+                  style={{ paddingLeft: 8, cursor: 'pointer' }}
+                  title={'go up one level\nfrom: ' + window.SCOPE_PATH}
+                  onClick={() => {
+                    const next = segs.slice(0, -1).join('/');
+                    window.atlasData.setScopePath(next);
+                  }}
+                >
+                  <span className="fr-icon">▲</span>
+                  <span className="trunc"><span className="dim">.. (up)</span></span>
+                  <span className="mute" style={{ fontSize: 10 }} />
+                </div>
+              );
+            })()}
             {window.FILE_TREE.length === 0 && (
               <div className="mute" style={{ padding: '8px 10px', fontSize: 11 }}>
                 (empty — try a different scope or refresh)
@@ -5727,6 +5733,135 @@ const ModuleTree = ({ topName, modules }) => (
   </div>
 );
 
+// Pure HTML/CSS block diagram for the Architecture section. The top
+// module is rendered as a wide chip on top; each submodule sits below
+// in a flex row, connected to the parent by a vertical line. Wiring-only
+// wrappers get a dashed border to visually separate them from
+// implementation submodules. No external graph library — keeps the
+// dependency footprint at zero and renders cleanly under both light and
+// dark themes via CSS variables.
+const BlockDiagram = ({ topName, modules, contractByModule = {} }) => {
+  const list = Array.isArray(modules) ? modules : [];
+  if (!list.length) return null;
+  const accent = 'var(--accent)';
+  return (
+    <div style={{
+      padding: '14px 12px 18px',
+      fontFamily: 'var(--mono)',
+      fontSize: 11,
+      position: 'relative',
+    }}>
+      {/* Top module — wide pill spanning the full width */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 18 }}>
+        <div style={{
+          minWidth: 200,
+          padding: '8px 18px',
+          textAlign: 'center',
+          border: `2px solid ${accent}`,
+          background: 'color-mix(in oklch, var(--accent) 10%, var(--bg-2))',
+          borderRadius: 6,
+          fontSize: 12, fontWeight: 700,
+          color: 'var(--fg)',
+          boxShadow: '0 1px 0 color-mix(in oklch, var(--accent) 30%, transparent)',
+        }}>
+          {topName || 'top'}
+        </div>
+      </div>
+
+      {/* Vertical bus line dropping from the top to the submodule row */}
+      <div style={{ position: 'relative', height: 18, marginBottom: 0 }}>
+        <div style={{
+          position: 'absolute', left: '50%', top: -18, bottom: 0,
+          width: 2, background: 'color-mix(in oklch, var(--accent) 50%, var(--line))',
+          transform: 'translateX(-50%)',
+        }} />
+      </div>
+
+      {/* Horizontal bus across all submodule columns */}
+      <div style={{ position: 'relative', height: 18 }}>
+        <div style={{
+          position: 'absolute',
+          left: `${100 / (2 * list.length)}%`,
+          right: `${100 / (2 * list.length)}%`,
+          top: 0,
+          height: 2,
+          background: 'color-mix(in oklch, var(--accent) 50%, var(--line))',
+        }} />
+      </div>
+
+      {/* Submodule cards row */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${list.length}, minmax(0, 1fr))`,
+        gap: 10,
+      }}>
+        {list.map(m => {
+          const owns = (contractByModule[m.name]?.owns) || m.implements || [];
+          const wiringOnly = !!m.wiring_only;
+          return (
+            <div key={m.name} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              {/* Drop line from horizontal bus to each card */}
+              <div style={{
+                width: 2, height: 14,
+                background: 'color-mix(in oklch, var(--accent) 50%, var(--line))',
+              }} />
+              <div style={{
+                width: '100%',
+                border: `${wiringOnly ? '1.5px dashed' : '1.5px solid'} ${accent}`,
+                background: 'var(--bg-2)',
+                borderRadius: 5,
+                padding: '7px 10px 8px',
+                boxShadow: '0 1px 0 color-mix(in oklch, var(--accent) 12%, transparent)',
+              }}>
+                <div style={{
+                  color: 'var(--cyan)', fontWeight: 700, fontSize: 12,
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                }} title={m.name}>
+                  {m.name}
+                </div>
+                {m.file ? (
+                  <div className="mute" style={{
+                    fontSize: 9, marginTop: 2,
+                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  }} title={m.file}>
+                    {m.file}
+                  </div>
+                ) : null}
+                {owns.length ? (
+                  <div style={{ marginTop: 5, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                    {owns.slice(0, 4).map(o => (
+                      <span key={o} style={{
+                        fontSize: 9,
+                        padding: '1px 5px',
+                        border: '1px solid color-mix(in oklch, var(--cyan) 40%, var(--line))',
+                        borderRadius: 2,
+                        color: 'var(--cyan)',
+                        background: 'color-mix(in oklch, var(--cyan) 6%, transparent)',
+                      }}>{o}</span>
+                    ))}
+                    {owns.length > 4 ? (
+                      <span className="mute" style={{ fontSize: 9 }}>+{owns.length - 4}</span>
+                    ) : null}
+                  </div>
+                ) : null}
+                {wiringOnly ? (
+                  <div style={{
+                    marginTop: 4,
+                    fontSize: 9, color: 'var(--fg-mute)',
+                    textTransform: 'uppercase', letterSpacing: '0.06em',
+                  }}>
+                    wiring only
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 const DigestSourceSections = ({ view, sections, statusByKey, t }) => {
   const source = sourceSectionsForDigestView(view, sections);
   if (!source.length) return null;
@@ -6027,6 +6162,15 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko' }) => {
     <>
       {header}
       <div style={{ display: 'grid', gap: 10 }}>
+        <DigestCard title="Block Diagram" meta={`${topName} → ${submods.length} submodules`}>
+          {submods.length ? (
+            <BlockDiagram
+              topName={topName}
+              modules={submods}
+              contractByModule={contractByModule}
+            />
+          ) : <DigestEmpty />}
+        </DigestCard>
         <DigestCard title="Module Tree" meta={`${topName} + ${submods.length} submodules`}>
           {submods.length ? (
             <ModuleTree topName={topName} modules={submods} />

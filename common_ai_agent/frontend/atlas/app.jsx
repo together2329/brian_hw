@@ -51,8 +51,8 @@ class ErrorBoundary extends React.Component {
 }
 
 const App = () => {
-  const [dir, setDir] = React.useState('A');     // 'A' = Console, 'B' = Workbench
-  const [theme, setTheme] = React.useState('dark');
+  const [dir, setDir] = React.useState('B');     // 'B' = Workbench (default)
+  const [theme, setTheme] = React.useState('light');
   const [uiLang, setUiLang] = React.useState(() => {
     try {
       const saved = localStorage.getItem('atlasUiLang');
