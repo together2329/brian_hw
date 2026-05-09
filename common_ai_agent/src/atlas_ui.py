@@ -491,6 +491,15 @@ def create_app():
             info["provider"] = getattr(_cfg, "LLM_PROVIDER", "")
             info["max_context"] = getattr(_cfg, "MAX_CONTEXT_TOKENS", 0)
             info["max_iterations"] = getattr(_cfg, "MAX_ITERATIONS", 0)
+            # Surface the active reasoning effort/mode so the ATLAS sidebar
+            # mirrors what textual_main.py shows in its model line.
+            info["reasoning_effort"] = (
+                getattr(_cfg, "REASONING_MODE", "")
+                or getattr(_cfg, "REASONING_EFFORT", "")
+                or os.environ.get("REASONING_EFFORT", "")
+                or os.environ.get("REASONING_MODE", "")
+                or ""
+            )
             info["chat_feed_summary"] = bool(getattr(_cfg, "ATLAS_CHAT_FEED_SUMMARY", True))
             # Resolve the "active session" the user is looking at. When
             # the agent boots WITHOUT -w, ACTIVE_WORKSPACE is unset but
@@ -1320,23 +1329,26 @@ def create_app():
 
     @app.post("/api/ssot/qa/answer")
     async def api_ssot_qa_answer(req: Request):
-        """Persist a user-supplied answer for a single QA item to qa.json.
+        """Persist user-supplied answers for pending QA items to qa.json.
 
-        Body shape:
+        Body shape (each item carries its OWN flow_id so this endpoint can
+        update the pre-existing pending entry in-place, not create a new one):
           {
             "ip": "<ip_name>",
-            "session": "<owner>/<ip>/<workflow>",   # optional, falls back to active
+            "session": "<owner>/<ip>/<workflow>",   # optional
             "items": [
               {
-                "decision_key": "<key>",
+                "flow_id": "<flow_id>",         # required — match existing entry
+                "decision_key": "<key>",         # required
                 "answer": "<text>",
-                "selected": ["opt1", "opt2"],         # optional
-                "section_id": "...", "section_title": "...",  # optional
-                "question": "...", "subtitle": "..."          # optional metadata
+                "selected": ["opt_label", ...],
+                "section_id": "...", "section_title": "...",
+                "decision_label": "...",
+                "question": "...", "subtitle": "..."
               },
               ...
             ],
-            "submitted_text": "<full prompt that was sent>"  # optional, mirrored to chat history
+            "submitted_text": "<full prompt that was sent>"
           }
         """
         try:
@@ -1353,15 +1365,17 @@ def create_app():
         if not isinstance(items_in, list) or not items_in:
             return JSONResponse({"error": "items[] required"}, status_code=400)
 
-        q_pairs: list[tuple[str, str, dict[str, Any]]] = []
-        answers: dict[str, dict[str, Any]] = {}
+        # Group by flow_id so existing pending entries get updated in-place.
+        grouped: dict[str, dict[str, Any]] = {}
+        fallback_flow_id = "atlas_qa_" + str(int(time.time() * 1000))
         for entry in items_in:
             if not isinstance(entry, dict):
                 continue
             key_src = entry.get("decision_key") or entry.get("id") or entry.get("question")
             if not key_src:
                 continue
-            key = _qa_slug(str(key_src), f"qa_{len(q_pairs) + 1}")
+            flow_id = str(entry.get("flow_id") or "").strip() or fallback_flow_id
+            key = _qa_slug(str(key_src), f"qa_{len(grouped.get(flow_id, {}).get('pairs', [])) + 1}")
             label = str(entry.get("decision_label") or entry.get("question") or key)[:240]
             qmeta = {
                 "decision_key": key,
@@ -1371,32 +1385,33 @@ def create_app():
                 "question": entry.get("question") or label,
                 "subtitle": entry.get("subtitle") or "",
             }
-            q_pairs.append((key, label or key, qmeta))
             answer_text = str(entry.get("answer") or "").strip()
             selected = entry.get("selected") if isinstance(entry.get("selected"), list) else []
             if not answer_text and selected:
                 answer_text = "; ".join(str(s) for s in selected if s)
-            answers[key] = {
+            bucket = grouped.setdefault(flow_id, {"pairs": [], "answers": {}})
+            bucket["pairs"].append((key, label or key, qmeta))
+            bucket["answers"][key] = {
                 "answer": answer_text,
                 "selected": [str(s) for s in selected if s],
                 "submitted_at": time.time(),
                 "source": "atlas-ui",
             }
 
-        if not q_pairs:
+        if not grouped:
             return JSONResponse({"error": "no valid items to record"}, status_code=400)
 
-        flow_id = "atlas_qa_" + str(int(time.time() * 1000))
-        _upsert_ssot_qa_items(
-            ip,
-            flow_id=flow_id,
-            kind=str((_load_ssot_state(ip) or {}).get("kind") or "general IP"),
-            q_pairs=q_pairs,
-            status="approved",   # user explicitly answered
-            answers=answers,
-            session=session_name,
-            source="atlas-ui-pending",
-        )
+        for flow_id, bucket in grouped.items():
+            _upsert_ssot_qa_items(
+                ip,
+                flow_id=flow_id,
+                kind=str((_load_ssot_state(ip) or {}).get("kind") or "general IP"),
+                q_pairs=bucket["pairs"],
+                status="approved",   # user explicitly answered → flip pending → approved
+                answers=bucket["answers"],
+                session=session_name,
+                source="atlas-ui-pending",
+            )
 
         # Mirror the submitted prompt into the conversation log for traceability.
         submitted_text = str((body or {}).get("submitted_text") or "").strip()
@@ -1407,8 +1422,8 @@ def create_app():
             "ok": True,
             "ip": ip,
             "session": session_name,
-            "flow_id": flow_id,
-            "count": len(q_pairs),
+            "flow_ids": list(grouped.keys()),
+            "count": sum(len(b["pairs"]) for b in grouped.values()),
             "qa_path": str(_ssot_qa_path(ip, session_name).relative_to(PROJECT_ROOT)),
         })
 

@@ -2805,6 +2805,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                           const selected = (draft?.opts || []).filter(o => o.selected).map(o => o.label);
                           const customNote = String(draft?.custom || '').trim();
                           return {
+                            // flow_id is required for the backend to UPDATE the
+                            // existing pending entry in qa.json instead of
+                            // creating a new approved entry that leaves the
+                            // pending one stranded.
+                            flow_id: item?.flow_id || '',
                             decision_key: item?.decision_key || item?.source || item?.id || '',
                             decision_label: item?.decision_label || '',
                             section_id: item?.section_id || item?.section || '',
@@ -3199,24 +3204,62 @@ const ToolCard = ({ action, obs, summaryMode = true }) => {
   const theme = _toolTheme(tool);
   // If the obs indicates an error, override the border to red so the
   // eye finds it. Otherwise use the tool theme color.
-  const obsText = obs ? (summaryMode ? _cleanTodoToolText(obs.text || '', obs.tool) : (obs.text || '')) : '';
+  const obsTextRaw = obs ? (summaryMode ? _cleanTodoToolText(obs.text || '', obs.tool) : (obs.text || '')) : '';
+  const obsText = obsTextRaw.replace(/\x1b\[[\d;]*m/g, '');
   const status = obs ? _obsStatus(obsText) : 'neutral';
   const borderColor = status === 'err' ? '#f85149' : theme.color;
   const argsText = action && action.text ? action.text.replace(/^▶\s*/, '').replace(new RegExp('^' + tool + '\\s*'), '') : '';
   const ts = (action && action.createdAt) || (obs && obs.createdAt) || 0;
+  // Replace/edit tools default to OPEN so the diff is visible without an
+  // extra click. Other tools default to closed in summary mode.
+  const isReplaceTool = tool && /^(replace_in_file|replace_lines|write_file|edit|patch|update_file)/i.test(tool);
+  const obsLines = obs ? obsText.split('\n') : [];
+  const obsIsMulti = obsLines.length > 1;
+  const [obsOpen, setObsOpen] = React.useState(!summaryMode || isReplaceTool);
+  React.useEffect(() => {
+    setObsOpen(!summaryMode || isReplaceTool);
+  }, [summaryMode, isReplaceTool]);
+  const headClickable = !!obs && obsIsMulti;
+  const toggleObs = () => { if (headClickable) setObsOpen(v => !v); };
   return (
     <div className="tool-card has-hover-affordance"
          style={{ borderLeftColor: borderColor }}>
       <span className="tool-card-ts">{_relTime(ts)}</span>
-      <div className="tool-card-head">
-        <span className="tool-card-glyph" style={{ color: borderColor }}>{theme.glyph}</span>
-        <span className="tool-card-tool" style={{ color: borderColor }}>{tool || '?'}</span>
-        {argsText && <span className="tool-card-args trunc">{argsText}</span>}
+      <div
+        className="tool-card-head"
+        role={headClickable ? 'button' : undefined}
+        tabIndex={headClickable ? 0 : undefined}
+        onClick={headClickable ? toggleObs : undefined}
+        onKeyDown={headClickable ? (e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleObs(); }
+        } : undefined}
+        style={headClickable ? { cursor: 'pointer', userSelect: 'none' } : undefined}
+        title={headClickable ? (obsOpen ? 'click to collapse' : 'click to expand') : undefined}
+      >
+        <span className="tool-card-glyph" style={{ color: 'var(--fg)' }}>{theme.glyph}</span>
+        <span className="tool-card-tool" style={{ color: 'var(--fg)', fontWeight: 700 }}>{tool || '?'}</span>
+        {argsText && <span className="tool-card-args trunc" style={{ color: 'var(--fg)' }}>{argsText}</span>}
         {status === 'err' && <span className="tool-card-status" style={{ color: '#f85149' }}>✗</span>}
         {status === 'ok'  && <span className="tool-card-status" style={{ color: '#3fb950' }}>✓</span>}
+        {obsIsMulti ? (
+          <>
+            <span className="mute" style={{ fontSize: 'var(--ui-small-font-size)', color: 'var(--fg)' }}>
+              {obsLines.length} lines{obs?.truncated ? ' · truncated' : ''}
+            </span>
+            <span className="mute" style={{ color: 'var(--fg)' }}>{obsOpen ? '▾' : '▸'}</span>
+          </>
+        ) : null}
       </div>
-      {obs && <div className="tool-card-sep" />}
-      {obs && <ObsCard entry={obs} embedded={true} summaryMode={summaryMode} />}
+      {obs && obsOpen && <div className="tool-card-sep" />}
+      {obs && obsOpen && (
+        <ObsCard
+          entry={{ ...obs, text: obsText }}
+          embedded={true}
+          summaryMode={summaryMode}
+          forceOpen
+          hideHeader
+        />
+      )}
     </div>
   );
 };
@@ -3795,6 +3838,8 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
   const [answerDrafts, setAnswerDrafts] = React.useState({});
   // Active section tab — null means "first section with pending items, else first section".
   const [activeSectionId, setActiveSectionId] = React.useState(null);
+  // Per-status group collapse: by default PENDING is open, APPROVED is closed.
+  const [closedStatusGroups, setClosedStatusGroups] = React.useState(() => new Set(['approved']));
   const [lastInputKey, setLastInputKey] = React.useState('');
   const pendingItemKey = (item) => [
     item?.flow_id || '',
@@ -4006,7 +4051,6 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
         }}
       >
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
-          <AtlasStatusBadge status={status} compact />
           <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
             {item.decision_key || item.source || 'qa'}
           </span>
@@ -4255,22 +4299,53 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
                       {(active.approved || []).length} {t.approved} / {(active.pending || []).length} {t.pending}
                     </span>
                   </div>
-                  {(active.pending || []).length ? (
-                    <div style={{ marginBottom: 10 }}>
-                      <div style={{ marginBottom: 6 }}>
-                        <AtlasStatusBadge status="pending" label={t.pending} count={(active.pending || []).length} compact soft />
+                  {['pending', 'approved'].map(grp => {
+                    const list = (grp === 'pending' ? active.pending : active.approved) || [];
+                    if (!list.length) return null;
+                    const collapsed = closedStatusGroups.has(grp);
+                    const toggle = () => setClosedStatusGroups(prev => {
+                      const next = new Set(prev);
+                      if (next.has(grp)) next.delete(grp);
+                      else next.add(grp);
+                      return next;
+                    });
+                    return (
+                      <div key={grp} style={{ marginBottom: grp === 'pending' ? 10 : 0 }}>
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={toggle}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              toggle();
+                            }
+                          }}
+                          style={{
+                            marginBottom: 6,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                          }}
+                          title={collapsed ? 'click to expand' : 'click to collapse'}
+                        >
+                          <span style={{ color: 'var(--fg-mute)', fontSize: 11 }}>
+                            {collapsed ? '▶' : '▼'}
+                          </span>
+                          <AtlasStatusBadge
+                            status={grp}
+                            label={grp === 'pending' ? t.pending : t.approved}
+                            count={list.length}
+                            compact
+                            soft
+                          />
+                        </div>
+                        {!collapsed && list.map(item => renderQa(item, grp))}
                       </div>
-                      {(active.pending || []).map(item => renderQa(item, 'pending'))}
-                    </div>
-                  ) : null}
-                  {(active.approved || []).length ? (
-                    <div>
-                      <div style={{ marginBottom: 6 }}>
-                        <AtlasStatusBadge status="approved" label={t.approved} count={(active.approved || []).length} compact soft />
-                      </div>
-                      {(active.approved || []).map(item => renderQa(item, 'approved'))}
-                    </div>
-                  ) : null}
+                    );
+                  })}
                 </>
               ) : null}
             </div>
@@ -7870,6 +7945,15 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
           <span className="mute">Model</span>
           <span style={{ color: 'var(--fg)' }} title={_ctx.baseUrl}>
             {_ctx.model || '—'}
+            {_ctx.reasoningEffort ? (
+              <span
+                className="mute"
+                style={{ marginLeft: 6, fontSize: 10 }}
+                title={`reasoning_effort = ${_ctx.reasoningEffort}`}
+              >
+                · {_ctx.reasoningEffort}
+              </span>
+            ) : null}
           </span>
         </div>
         {(_ctx.provider || _ctx.baseUrl) && (

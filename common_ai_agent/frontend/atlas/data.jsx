@@ -73,6 +73,22 @@
   // Scope path: agent is asked (via prompt prefix) to keep all reads,
   // writes, and tool calls confined to this directory. Empty string =
   // whole project root. Persists across reloads via localStorage.
+  function normalizeScopePath(raw) {
+    const src = String(raw ?? '').trim().replace(/\\/g, '/');
+    if (!src || src === '/') return '';
+    const out = [];
+    src.split('/').forEach((part) => {
+      const seg = String(part || '').trim();
+      if (!seg || seg === '.') return;
+      if (seg === '..') {
+        out.pop();
+        return;
+      }
+      out.push(seg);
+    });
+    return out.join('/');
+  }
+
   function createUserSessionId() {
     const stamp = Date.now().toString(36);
     const rand = Math.random().toString(36).slice(2, 8);
@@ -80,7 +96,7 @@
   }
 
   try {
-    window.SCOPE_PATH = localStorage.getItem('atlasScopePath') || '';
+    window.SCOPE_PATH = normalizeScopePath(localStorage.getItem('atlasScopePath') || '');
   } catch (_) {
     window.SCOPE_PATH = '';
   }
@@ -120,17 +136,31 @@
     return bytes + ' B';
   }
 
+  function normalizeTodoListField(value) {
+    if (Array.isArray(value)) {
+      return value.map(v => String(v ?? '').trim()).filter(Boolean);
+    }
+    const s = String(value ?? '').trim();
+    if (!s) return [];
+    return s.split(/\r?\n+/).map(line => line.trim()).filter(Boolean);
+  }
+
   function normalizeTodos(rawTodos) {
     return (Array.isArray(rawTodos) ? rawTodos : []).map((t, i) => ({
-      id:      `t${i + 1}`,
+      id:      t.id ? String(t.id) : `t${i + 1}`,
       state:   t.status || 'pending',
       section: t.priority ? String(t.priority).toUpperCase() : '',
       title:   t.content || '',
       detail:  t.detail || '',
+      criteria: normalizeTodoListField(t.criteria || t.acceptance_criteria),
+      sourceRefs: normalizeTodoListField(t.source_refs || t.sourceRefs || t.references),
+      ownerModule: String(t.owner_module || t.ownerModule || '').trim(),
+      ownerFile: String(t.owner_file || t.ownerFile || '').trim(),
+      required: t.required,
       approvedReason: t.approved_reason || '',
       rejectionReason: t.rejection_reason || '',
       notes:   Array.isArray(t.notes) ? t.notes : [],
-      deps:    [],
+      deps:    Array.isArray(t.deps) ? t.deps : [],
     }));
   }
 
@@ -384,16 +414,26 @@
   }
 
   async function refreshFileTree(path) {
+    const reqPath = normalizeScopePath(path || '');
     // When the user has narrowed to a sub-scope we go recursive so the
     // panel shows every file inside, not just the top level. At the
     // project root we keep it shallow (94 top-level entries already
     // crowd the panel — sub-dirs are reachable by clicking in).
-    const recursive = (path && path.length > 0) ? '&recursive=1' : '';
+    const recursive = (reqPath && reqPath.length > 0) ? '&recursive=1' : '';
     try {
-      const r = await fetch('/api/files?path=' + encodeURIComponent(path || '') + recursive);
+      const r = await fetch('/api/files?path=' + encodeURIComponent(reqPath) + recursive);
       if (!r.ok) return;
       const d = await r.json();
       if (Array.isArray(d.entries)) {
+        // Trust backend canonical path (resolved + project-relative) so
+        // UI scope cannot drift as "spi/spi/spi/..." from alias/symlink
+        // clicks that still resolve to the same real directory.
+        const canonicalScope = normalizeScopePath(d.path || reqPath);
+        if (canonicalScope !== window.SCOPE_PATH) {
+          window.SCOPE_PATH = canonicalScope;
+          try { localStorage.setItem('atlasScopePath', window.SCOPE_PATH); } catch (_) {}
+          window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' }));
+        }
         window.FILE_TREE = d.entries.map(e => asTreeNode(e, e.depth || 0));
         window.FILE_TREE_LAST_REFRESH = Date.now();
         window.FILE_TREE_TRUNCATED = !!d.truncated;
@@ -538,6 +578,7 @@
         baseModel:   d.base_model || '',
         baseUrl:     d.base_url   || '',
         provider:    d.provider   || '',
+        reasoningEffort: d.reasoning_effort || '',
         maxTokens:   d.max_context    || _prev.maxTokens || 0,
         iterMax:     d.max_iterations || _prev.iterMax    || 0,
         workspace:   (backendWorkspace && backendWorkspace !== 'default') ? backendWorkspace : (activeWorkflow || backendWorkspace || ''),
@@ -604,7 +645,9 @@
     fetchSsot: (path) =>
       fetch('/api/ssot?file=' + encodeURIComponent(path)).then(r => r.json()),
     setScopePath: (p) => {
-      window.SCOPE_PATH = p || '';
+      const next = normalizeScopePath(p || '');
+      if (next === window.SCOPE_PATH) return;
+      window.SCOPE_PATH = next;
       try { localStorage.setItem('atlasScopePath', window.SCOPE_PATH); } catch (_) {}
       // Re-fetch the tree at the new scope so the panel updates.
       refreshFileTree(window.SCOPE_PATH);
