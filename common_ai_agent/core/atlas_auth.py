@@ -1,0 +1,289 @@
+"""
+Atlas Authentication Layer
+
+Zero-config guest authentication with optional password login for Atlas UI.
+Uses HMAC-signed cookies (no JWT) so the local tool stays dependency-light.
+"""
+
+from __future__ import annotations
+
+import hmac
+import hashlib
+import os
+import secrets
+import time
+from typing import Any, Dict, Optional, TYPE_CHECKING
+
+from core.atlas_db import AtlasDB
+
+try:
+    import bcrypt
+    _HAS_BCRYPT = True
+except Exception:  # pragma: no cover
+    _HAS_BCRYPT = False
+
+if TYPE_CHECKING:
+    from fastapi import FastAPI, Request, Response, HTTPException
+    from starlette.requests import Request as StarletteRequest
+else:
+    try:
+        from fastapi import FastAPI, Request, Response, HTTPException
+        from starlette.requests import Request as StarletteRequest
+    except Exception:  # pragma: no cover
+        FastAPI = None  # type: ignore
+        Request = None  # type: ignore
+        Response = None  # type: ignore
+        HTTPException = None  # type: ignore
+        StarletteRequest = None  # type: ignore
+
+_COOKIE_NAME = "atlas_session"
+_MAX_AGE = 90 * 24 * 60 * 60
+_GUEST_PREFIX = "guest_"
+
+
+def _now() -> float:
+    return time.time()
+
+
+def _random_guest_id() -> str:
+    return secrets.token_hex(4)
+
+
+def hash_password(password: str) -> str:
+    """Hash password with bcrypt (if available) or PBKDF2 fallback."""
+    pw_bytes = password.encode("utf-8")
+    if _HAS_BCRYPT:
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(pw_bytes, salt)
+        return hashed.decode("utf-8")
+    salt = os.urandom(16)
+    hashed = hashlib.pbkdf2_hmac("sha256", pw_bytes, salt, 100_000)
+    return f"pbkdf2_sha256${salt.hex()}${hashed.hex()}"
+
+
+def _verify_pbkdf2(password: str, password_hash: str) -> bool:
+    try:
+        _, salt_hex, hash_hex = password_hash.split("$")
+        salt = bytes.fromhex(salt_hex)
+        expected = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 100_000)
+        return hmac.compare_digest(expected.hex(), hash_hex)
+    except Exception:
+        return False
+
+
+def verify_password(password: str, password_hash: str) -> bool:
+    """Verify password against hash (bcrypt or PBKDF2)."""
+    if _HAS_BCRYPT:
+        if not password_hash.startswith("$2"):
+            return _verify_pbkdf2(password, password_hash)
+        return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
+    return _verify_pbkdf2(password, password_hash)
+
+
+class GuestAuth:
+    """HMAC-signed cookie authentication with automatic guest users."""
+
+    def __init__(self, db: AtlasDB, cookie_secret: Optional[str] = None):
+        self.db = db
+        self.cookie_secret = cookie_secret or os.urandom(32).hex()
+
+    def _sign(self, user_id: str) -> str:
+        sig = hmac.new(self.cookie_secret.encode(), user_id.encode(), hashlib.sha256).hexdigest()[:16]
+        return f"{user_id}:{sig}"
+
+    def _verify(self, cookie_value: str) -> Optional[str]:
+        try:
+            user_id, _sig = cookie_value.split(":", 1)
+            expected = self._sign(user_id)
+            if hmac.compare_digest(expected, cookie_value):
+                return user_id
+        except Exception:
+            pass
+        return None
+
+    def _set_cookie(self, response, user_id: str) -> None:
+        if response is None:
+            return
+        response.set_cookie(
+            key=_COOKIE_NAME,
+            value=self._sign(user_id),
+            httponly=True,
+            secure=False,
+            samesite="lax",
+            max_age=_MAX_AGE,
+        )
+
+    def _clear_cookie(self, response) -> None:
+        if response is None:
+            return
+        response.delete_cookie(key=_COOKIE_NAME)
+
+    def get_user_from_cookie(self, request) -> Optional[Dict[str, Any]]:
+        """Extract and verify user from request cookies."""
+        if request is None:
+            return None
+        cookie_value = request.cookies.get(_COOKIE_NAME)
+        if not cookie_value:
+            return None
+        user_id = self._verify(cookie_value)
+        if not user_id:
+            return None
+        return self.db.get_user(user_id)
+
+    def create_guest_user(self) -> Dict[str, Any]:
+        """Create a new guest user in the database."""
+        username = f"{_GUEST_PREFIX}{_random_guest_id()}"
+        user_id = self.db._new_id()
+        now = _now()
+        self.db._execute(
+            """
+            INSERT INTO users (id, username, display_name, password_hash, role, created_at, last_login_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (user_id, username, "Guest", None, "guest", now, now),
+        )
+        return {
+            "id": user_id,
+            "username": username,
+            "display_name": "Guest",
+            "password_hash": None,
+            "role": "guest",
+            "created_at": now,
+            "last_login_at": now,
+        }
+
+    def get_or_create_guest(self, request, response) -> Dict[str, Any]:
+        """Get existing user from cookie or create a new guest."""
+        user = self.get_user_from_cookie(request)
+        if user is not None:
+            return user
+        user = self.create_guest_user()
+        self._set_cookie(response, user["id"])
+        return user
+
+
+async def get_current_user(request: Request) -> dict:
+    """FastAPI dependency that extracts user from cookie."""
+    auth: Optional[GuestAuth] = getattr(request.app.state, "auth", None)
+    if auth is None:
+        raise HTTPException(status_code=401, detail="Authentication not configured")
+    user = auth.get_user_from_cookie(request)
+    if user is None:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return user
+
+
+class AuthMiddleware:
+    """Starlette middleware that ensures every HTTP request has a user in scope."""
+
+    def __init__(self, app, auth: GuestAuth):
+        self.app = app
+        self.auth = auth
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        path = scope.get("path", "")
+
+        if path == "/healthz" or path.startswith(("/static/", "/assets/")):
+            await self.app(scope, receive, send)
+            return
+        if "." in path and path.rsplit(".", 1)[-1].lower() in {"js", "css", "png", "jpg", "jpeg", "svg", "ico", "woff", "woff2", "ttf", "map"}:
+            await self.app(scope, receive, send)
+            return
+
+        request = StarletteRequest(scope, receive)
+        user = self.auth.get_user_from_cookie(request)
+
+        if user is None:
+            user = self.auth.create_guest_user()
+            cookie_value = self.auth._sign(user["id"])
+
+            async def wrapped_send(message):
+                if message["type"] == "http.response.start":
+                    headers = list(message.get("headers") or [])
+                    cookie_line = (
+                        f"{_COOKIE_NAME}={cookie_value}; HttpOnly; Max-Age={_MAX_AGE}; "
+                        f"SameSite=Lax; Path=/"
+                    ).encode("latin-1")
+                    headers.append((b"set-cookie", cookie_line))
+                    message["headers"] = headers
+                await send(message)
+
+            scope["user"] = user
+            await self.app(scope, receive, wrapped_send)
+            return
+
+        scope["user"] = user
+        await self.app(scope, receive, send)
+
+
+def _sanitize_user(user: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        "id": user.get("id"),
+        "username": user.get("username"),
+        "display_name": user.get("display_name"),
+        "role": user.get("role"),
+        "created_at": user.get("created_at"),
+        "last_login_at": user.get("last_login_at"),
+    }
+
+
+def create_auth_endpoints(app: FastAPI, auth: GuestAuth) -> None:
+    """Register auth endpoints on the FastAPI app."""
+
+    @app.post("/api/auth/guest")
+    async def auth_guest(request: Request, response: Response):
+        user = request.scope.get("user") or auth.get_or_create_guest(request, response)
+        return {"user": _sanitize_user(user)}
+
+    @app.post("/api/auth/register")
+    async def auth_register(request: Request, response: Response):
+        body = await request.json()
+        username = str(body.get("username", "")).strip()
+        password = str(body.get("password", ""))
+        display_name = str(body.get("display_name", "")).strip() or username
+
+        if not username or not password:
+            raise HTTPException(status_code=400, detail="username and password required")
+
+        if auth.db.get_user_by_username(username) is not None:
+            raise HTTPException(status_code=409, detail="username already exists")
+
+        user = auth.db.create_user(username, display_name, hash_password(password))
+        auth._set_cookie(response, user["id"])
+        return {"user": _sanitize_user(user)}
+
+    @app.post("/api/auth/login")
+    async def auth_login(request: Request, response: Response):
+        body = await request.json()
+        username = str(body.get("username", "")).strip()
+        password = str(body.get("password", ""))
+
+        if not username or not password:
+            raise HTTPException(status_code=400, detail="username and password required")
+
+        user = auth.db.get_user_by_username(username)
+        if user is None or not verify_password(password, user.get("password_hash") or ""):
+            raise HTTPException(status_code=401, detail="invalid credentials")
+
+        auth.db._execute(
+            "UPDATE users SET last_login_at = ? WHERE id = ?",
+            (_now(), user["id"]),
+        )
+        auth._set_cookie(response, user["id"])
+        return {"user": _sanitize_user(user)}
+
+    @app.post("/api/auth/logout")
+    async def auth_logout(request: Request, response: Response):
+        auth._clear_cookie(response)
+        return {"ok": True}
+
+    @app.get("/api/users/me")
+    async def users_me(request: Request):
+        user = request.scope.get("user") or auth.get_user_from_cookie(request)
+        if user is None:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        return {"user": _sanitize_user(user)}
