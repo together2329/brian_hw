@@ -1675,3 +1675,44 @@ body.atlas-sim-debug-fullscreen #scaler > #root > div > div {
 .foldable-pane .fold-floating-comment:hover {
   background: color-mix(in oklch, var(--ok) 32%, transparent);
 }
+
+/* ── replace_in_file / write_file diff palette ────────────────────
+   Match the FoldablePane / demo palette so a replace_in_file diff
+   (red/green tinted rows) reads with the same token colors as the
+   foldable preview. Background of the row stays the red/green
+   color-mix tint already set above; we only override the syntax
+   token colors so identifiers/strings/keywords stay legible on the
+   tinted surface. */
+.tool-output-diff code .token.keyword,
+.tool-output-diff code .token.boolean,
+.tool-output-diff code .token.constant,
+.tool-output-diff code .token.atrule          { color: #c792ea; }
+.tool-output-diff code .token.string,
+.tool-output-diff code .token.attr-value,
+.tool-output-diff code .token.char            { color: #c3e88d; }
+.tool-output-diff code .token.number,
+.tool-output-diff code .token.symbol          { color: #f78c6c; }
+.tool-output-diff code .token.operator,
+.tool-output-diff code .token.entity          { color: #89ddff; }
+.tool-output-diff code .token.punctuation     { color: #abb2bf; }
+.tool-output-diff code .token.comment,
+.tool-output-diff code .token.prolog,
+.tool-output-diff code .token.cdata           { color: #6a737d; font-style: italic; }
+.tool-output-diff code .token.function,
+.tool-output-diff code .token.class-name,
+.tool-output-diff code .token.attr-name,
+.tool-output-diff code .token.key             { color: #82aaff; }
+.tool-output-diff code .token.regex,
+.tool-output-diff code .token.important,
+.tool-output-diff code .token.builtin         { color: #ffcb6b; }
+.tool-output-diff code .token.variable,
+.tool-output-diff code .token.namespace       { color: #d6dde6; }
+[data-theme="light"] .tool-output-diff code .token.keyword,
+[data-theme="light"] .tool-output-diff code .token.boolean { color: #7a3492; }
+[data-theme="light"] .tool-output-diff code .token.string  { color: #1f7042; }
+[data-theme="light"] .tool-output-diff code .token.number  { color: #9a5416; }
+[data-theme="light"] .tool-output-diff code .token.operator { color: #126a75; }
+[data-theme="light"] .tool-output-diff code .token.comment  { color: #38445c; font-style: italic; }
+[data-theme="light"] .tool-output-diff code .token.function,
+[data-theme="light"] .tool-output-diff code .token.attr-name,
+[data-theme="light"] .tool-output-diff code .token.key      { color: #1559c7; }
