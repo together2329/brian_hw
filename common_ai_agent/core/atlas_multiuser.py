@@ -140,13 +140,18 @@ class _SessionBridge:
         self._stop_flag = False
         self.ensure_agent_alive()
         self.touch()
-        if (text or "").lstrip().startswith("/"):
-            self._inbox.put(text)
-            return
-        if self.agent_running:
-            self._interrupts.put(text)
-        else:
-            self._inbox.put(text)
+        # Route every prompt — slash or not — into _inbox. The previous
+        # branch shoved non-slash text into _interrupts whenever
+        # agent_running was True, on the theory that react_loop polls
+        # interrupts mid-iteration. But mid-iteration polling only
+        # happens between LLM turns; if an LLM HTTP call blocks
+        # (OAuth expired, network stall, provider timeout) the
+        # interrupt queue accumulates and never drains, and the user
+        # sees their submissions go to the void. _inbox is the queue
+        # the agent input loop always consumes between turns, so
+        # routing here guarantees forward progress whenever the LLM
+        # call eventually returns or is reset by the watchdog.
+        self._inbox.put(text)
 
     def submit_answer(self, flow_id: str, payload: dict[str, Any]) -> bool:
         with self._answer_lock:
@@ -393,13 +398,11 @@ class _MultiUserBridge:
         session._stop_flag = False
         self.ensure_agent_alive()
         session.touch()
-        if (text or "").lstrip().startswith("/"):
-            session._inbox.put(text)
-            return
-        if session.agent_running:
-            session._interrupts.put(text)
-        else:
-            session._inbox.put(text)
+        # Always route to _inbox (see SessionBridge.submit_prompt for
+        # rationale): the _interrupts queue only drains mid-iteration,
+        # so a stuck LLM HTTP call would otherwise strand user input
+        # forever. _inbox is consumed between turns, guaranteed.
+        session._inbox.put(text)
 
     def submit_answer(self, flow_id: str, payload: dict[str, Any]) -> bool:
         return self._active_session().submit_answer(flow_id, payload)
