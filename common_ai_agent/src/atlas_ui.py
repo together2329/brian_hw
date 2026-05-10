@@ -740,74 +740,7 @@ def create_app():
     # ceiling. Path resolution still goes through _safe() so the user
     # can't escape PROJECT_ROOT.
     MAX_VCD_BYTES = 32 * 1024 * 1024  # 32 MB
-
-    @app.get("/api/vcd/list")
-    async def api_vcd_list(ip: str = "", scope: str = ""):
-        """Discover VCD files under PROJECT_ROOT.
-
-        - `ip`    — restrict to `<ip>/sim/*.vcd` (matches the IP-tree convention).
-        - `scope` — arbitrary sub-directory under PROJECT_ROOT to search.
-        - neither — recursive scan up to depth 4 (cheap on typical projects).
-        Returns: `{files: [{path, size, mtime}]}` sorted by mtime desc.
-        """
-        if ip:
-            base = _safe(ip + "/sim")
-        elif scope:
-            base = _safe(scope)
-        else:
-            base = PROJECT_ROOT
-        if base is None or not base.is_dir():
-            return JSONResponse({"files": [], "error": "scope not found"}, status_code=404)
-
-        results = []
-        try:
-            if ip or scope:
-                # Direct *.vcd in chosen dir.
-                for f in base.glob("*.vcd"):
-                    if f.is_file():
-                        st = f.stat()
-                        rel = f.relative_to(PROJECT_ROOT).as_posix()
-                        results.append({"path": rel, "size": st.st_size, "mtime": st.st_mtime})
-            else:
-                # Recursive scan (capped depth).
-                for f in base.rglob("*.vcd"):
-                    try:
-                        rel = f.relative_to(PROJECT_ROOT)
-                    except ValueError:
-                        continue
-                    if any(p in SKIP_DIRS for p in rel.parts):
-                        continue
-                    if len(rel.parts) > 5:
-                        continue
-                    st = f.stat()
-                    results.append({"path": str(rel), "size": st.st_size, "mtime": st.st_mtime})
-        except OSError as e:
-            return JSONResponse({"error": str(e), "files": []}, status_code=500)
-        results.sort(key=lambda x: x["mtime"], reverse=True)
-        return JSONResponse({"files": results, "project_root": str(PROJECT_ROOT)})
-
-    @app.get("/api/vcd/raw")
-    async def api_vcd_raw(path: str):
-        """Return raw VCD content (UTF-8, replace errors). Capped at 32 MB."""
-        target = _safe(path)
-        if target is None or not target.is_file():
-            return JSONResponse({"error": "not found"}, status_code=404)
-        if target.suffix.lower() != ".vcd":
-            return JSONResponse({"error": "not a .vcd file"}, status_code=400)
-        st = target.stat()
-        truncated = st.st_size > MAX_VCD_BYTES
-        try:
-            data = target.read_bytes()[:MAX_VCD_BYTES]
-            content = data.decode("utf-8", errors="replace")
-        except OSError as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
-        return JSONResponse({
-            "path": path,
-            "size": st.st_size,
-            "mtime": st.st_mtime,
-            "truncated": truncated,
-            "content": content,
-        })
+    # Routes registered via register_vcd_routes() below (see atlas_api_vcd.py).
 
     @app.post("/api/ip/create")
     async def api_ip_create(request: Request):
@@ -9838,6 +9771,14 @@ def create_app():
         project_root=lambda: PROJECT_ROOT,
         active_ip_value=_active_ip_value,
         valid_ip_name=_valid_ip_name,
+    )
+    from atlas_api_vcd import register_vcd_routes  # noqa: WPS433
+    register_vcd_routes(
+        app,
+        project_root=lambda: PROJECT_ROOT,
+        safe_path=_safe,
+        skip_dirs=SKIP_DIRS,
+        max_vcd_bytes=MAX_VCD_BYTES,
     )
 
     # ── Atlas SQLite session API ─────────────────────────────────
