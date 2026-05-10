@@ -481,11 +481,40 @@ const App = () => {
         }
       }
     } catch (_) {}
+    // Actually create <PROJECT_ROOT>/<ip>/ on disk so the scope panel
+    // shows an empty folder for the new IP instead of stale tree
+    // contents from the previously-active IP. The endpoint refuses to
+    // clobber an existing directory.
+    try {
+      const r = await fetch('/api/ip/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: ip }),
+      });
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}));
+        if (r.status === 409) {
+          window.alert(`IP folder "${ip}/" already exists on disk.`);
+          return;
+        }
+        window.alert(`Failed to create IP folder: ${d.error || r.status}`);
+        return;
+      }
+    } catch (e) {
+      window.alert(`Failed to create IP folder: ${e}`);
+      return;
+    }
     setIpOptions(prev => Array.from(new Set([ip].concat(prev || []))));
     const me = activeSessionId
       || normalizeSession(window.ATLAS_USER_SESSION_ID || '')
       || 'default';
     activateNamespace(me, ip, 'ssot-gen', true);
+    // After the namespace flip, force the file tree to refetch at the
+    // new IP root so the scope panel renders the freshly created
+    // (empty) folder rather than the previous IP's contents.
+    if (window.atlasData && typeof window.atlasData.setScopePath === 'function') {
+      window.atlasData.setScopePath(ip);
+    }
   };
 
   // Top-level screen — 'workspace' (live agent + chat + sidebar) or

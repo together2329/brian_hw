@@ -788,6 +788,129 @@ def create_app():
             "content": content,
         })
 
+    @app.post("/api/ip/create")
+    async def api_ip_create(request: Request):
+        """Create an empty `<PROJECT_ROOT>/<ip>/` folder on disk so the
+        scope panel has something concrete to render after `+ IP`. The
+        folder name equals the IP name; nothing else is scaffolded here
+        — workflow setup will populate yaml/, rtl/, etc. on the first
+        agent run.
+
+        Validates the name (no slashes, no traversal) and refuses to
+        clobber an existing directory so two sessions can't accidentally
+        share the same on-disk folder.
+        """
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        name = str((body or {}).get("name") or "").strip()
+        if not name:
+            return JSONResponse({"error": "name required"}, status_code=400)
+        if "/" in name or "\\" in name or ".." in name:
+            return JSONResponse({"error": "invalid name"}, status_code=400)
+        target = (PROJECT_ROOT / name).resolve()
+        try:
+            target.relative_to(PROJECT_ROOT.resolve())
+        except ValueError:
+            return JSONResponse({"error": "outside project root"}, status_code=400)
+        if target.exists():
+            return JSONResponse({"error": "already exists",
+                                 "path": str(target.relative_to(PROJECT_ROOT))},
+                                status_code=409)
+        try:
+            target.mkdir(parents=False, exist_ok=False)
+        except OSError as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
+        return JSONResponse({"ok": True,
+                             "ip": name,
+                             "path": str(target.relative_to(PROJECT_ROOT))})
+
+    @app.get("/api/debug/scenarios")
+    async def api_debug_scenarios(ip: str):
+        """Resolve `<ip>/yaml/<ip>.ssot.yaml` test_requirements.scenarios
+        and roll up pass/fail per scenario from
+        `<ip>/sim/scoreboard_events.jsonl`.
+
+        Drives the Debug tab's Tests panel: scenarios are the source of
+        truth (SSOT), status comes from the latest sim run. No cross-IP
+        leakage — only the requested IP's directory is read.
+        """
+        ip_dir = _safe(ip)
+        if ip_dir is None or not ip_dir.is_dir():
+            return JSONResponse({"error": "ip not found", "tests": []}, status_code=404)
+        ssot_path = ip_dir / "yaml" / f"{ip_dir.name}.ssot.yaml"
+        sb_path   = ip_dir / "sim"  / "scoreboard_events.jsonl"
+
+        scenarios: list[dict] = []
+        if ssot_path.is_file():
+            try:
+                import yaml as _yaml  # type: ignore
+                doc = _yaml.safe_load(ssot_path.read_text(errors="replace"))
+                tr = (doc or {}).get("test_requirements") or {}
+                scenarios = list(tr.get("scenarios") or [])
+            except Exception as exc:
+                return JSONResponse({"error": f"yaml: {exc}", "tests": []}, status_code=500)
+
+        rows: list[dict] = []
+        if sb_path.is_file():
+            for line in sb_path.read_text(errors="replace").splitlines():
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    import json as _json
+                    rows.append(_json.loads(line))
+                except Exception:
+                    continue
+
+        by_sid: dict[str, dict] = {}
+        for r in rows:
+            sid = r.get("scenario_id")
+            if not sid:
+                continue
+            bucket = by_sid.setdefault(sid, {"pass": 0, "fail": 0, "rows": []})
+            bucket["rows"].append(r)
+            if r.get("passed"):
+                bucket["pass"] += 1
+            else:
+                bucket["fail"] += 1
+
+        tests = []
+        for sc in scenarios:
+            sid = sc.get("id")
+            b = by_sid.get(sid, {"pass": 0, "fail": 0, "rows": []})
+            if b["fail"] > 0:
+                status = "fail"
+            elif b["pass"] > 0:
+                status = "pass"
+            else:
+                status = "pending"
+            tests.append({
+                "scenario_id": sid,
+                "name": sc.get("name", sid or ""),
+                "status": status,
+                "stimulus": sc.get("stimulus", ""),
+                "expected": sc.get("expected", ""),
+                "checker":  sc.get("checker", ""),
+                "coverage": sc.get("coverage", []),
+                "pass_rows": b["pass"],
+                "fail_rows": b["fail"],
+            })
+        summary = {
+            "pass":    sum(1 for t in tests if t["status"] == "pass"),
+            "fail":    sum(1 for t in tests if t["status"] == "fail"),
+            "pending": sum(1 for t in tests if t["status"] == "pending"),
+            "total":   len(tests),
+        }
+        return JSONResponse({
+            "ip": ip,
+            "ssot_path": str(ssot_path.relative_to(PROJECT_ROOT)) if ssot_path.is_file() else "",
+            "sb_path":   str(sb_path.relative_to(PROJECT_ROOT))   if sb_path.is_file()   else "",
+            "tests":   tests,
+            "summary": summary,
+        })
+
     # ── Source endpoint — sim_debug signal→driver + cocotb test view ─
     # Accepts SV/V plus the text extensions that show up in the
     # cocotb tab (Python tests, sequences, agents, env, Makefile,
