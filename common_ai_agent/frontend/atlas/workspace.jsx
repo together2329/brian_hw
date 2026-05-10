@@ -1217,7 +1217,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // 'qa' is only available when centerLayout === 'tabbed' — it surfaces
   // the dedicated ask_user pane with breadcrumb-tabbed batched questions.
   // Double-clicking a file in the left tree sets previewPath + flips tab.
-  const [mainTab, setMainTab] = React.useState('split');    // chat | ssot | qa | split | preview (full view)
+  const [mainTab, setMainTab] = React.useState('split');    // chat | ssot | qa | split | preview | debug
   const [previewPath, setPreviewPath] = React.useState(null);
   // Git diff display: when the GitPanel emits atlas-git-show with a
   // commit sha, the center pane swaps in GitDiffPane to render the
@@ -2638,9 +2638,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // ATLAS + SSOT/Todo/Diff on the right) so the inner 3-zone
   // debug surface gets the full viewport. Width state is preserved so
   // switching back to another workflow restores the original layout.
-  const isSimDebug = workflow === 'sim_debug';
-  const effLeftW  = isSimDebug ? 0 : leftW;
-  const effRightW = isSimDebug ? 0 : rightW;
+  const effLeftW  = leftW;
+  const effRightW = rightW;
   const renderFeedEntries = () => {
     // Pairing pre-pass: when an action entry is immediately followed by
     // an obs entry, fuse them into one ToolCard. Adjacency is enough —
@@ -2728,25 +2727,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     </div>
   );
 
-  // Toggle a body-level class so the App-level TitleBar / StatusBar
-  // can self-collapse when sim_debug owns the screen — gives the
-  // waveform / hierarchy / chat panels true full-viewport real estate.
-  React.useEffect(() => {
-    if (isSimDebug) document.body.classList.add('atlas-sim-debug-fullscreen');
-    else            document.body.classList.remove('atlas-sim-debug-fullscreen');
-    return () => document.body.classList.remove('atlas-sim-debug-fullscreen');
-  }, [isSimDebug]);
   return (
     <div style={{
       display: 'grid',
-      // When sim_debug owns the surface there's exactly one child
-      // (the SimDebug wrapper); collapsing the grid to a single 1fr
-      // column keeps that child from auto-placing into a 0px slot.
-      gridTemplateColumns: isSimDebug
-        ? '1fr'
-        : `${leftW}px 4px 1fr 4px ${rightW}px`,
-      gap: isSimDebug ? 0 : 12,
-      padding: isSimDebug ? 0 : 16,
+      gridTemplateColumns: `${leftW}px 4px 1fr 4px ${rightW}px`,
+      gap: 12,
+      padding: 16,
       height: '100%', overflow: 'hidden',
     }}>
       {/* LEFT — Mode/Workflow + Files (collapsed when leftW===0 OR sim_debug) */}
@@ -3026,34 +3012,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       )}
 
       {/* LEFT ↔ CENTER splitter — keep visible at 0px so collapsed panels can reopen. */}
-      {!isSimDebug && (
-        <Splitter width={leftW} side="left" onResize={setLeftW} onToggle={toggleLeft} />
-      )}
+      <Splitter width={leftW} side="left" onResize={setLeftW} onToggle={toggleLeft} />
 
       {/* CENTER — sim_debug / coverage workflows swap the chat panel for
           their domain-specific UI (waveform debug center / coverage stats
           + annotated source viewer); every other workflow keeps the chat. */}
-      {workflow === 'sim_debug' && window.SimDebug ? (
-        <div style={{
-          width: '100%', height: '100%',
-          minWidth: 0, overflow: 'hidden', position: 'relative',
-          display: 'flex', flexDirection: 'column',
-        }}>
-          <window.SimDebug />
-          <button
-            onClick={() => switchWorkflow('sim_debug')}
-            title="Exit sim_debug → restore default ATLAS layout"
-            style={{
-              position: 'absolute', top: 8, right: 8, zIndex: 100,
-              background: 'rgba(20,24,30,0.85)', color: 'var(--fg)',
-              border: '1px solid var(--line)', borderRadius: 4,
-              padding: '4px 10px', fontSize: 11,
-              fontFamily: 'var(--mono)', cursor: 'pointer',
-              backdropFilter: 'blur(2px)',
-            }}
-          >← exit sim_debug</button>
-        </div>
-      ) : workflow === 'coverage' && window.Coverage ? (
+      {workflow === 'coverage' && window.Coverage ? (
         <div style={{
           width: '100%', height: '100%',
           minWidth: 0, overflow: 'hidden', position: 'relative',
@@ -3173,6 +3137,19 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
               }}
             >full view</span>
+            <span
+              className="tab-chip"
+              onClick={() => setMainTab('debug')}
+              title="Debug view: hierarchy, source, waveform"
+              style={{
+                cursor: 'pointer',
+                padding: '2px 8px', borderRadius: 2, marginLeft: 4,
+                color: mainTab === 'debug' ? 'var(--accent)' : 'var(--fg-mute)',
+                background: mainTab === 'debug' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                border: '1px solid ' + (mainTab === 'debug' ? 'var(--accent)' : 'transparent'),
+                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+              }}
+            >debug</span>
             <span className="mute" style={{ margin: '0 6px' }}>·</span>
             {mainTab === 'chat' ? (
               <>
@@ -3292,6 +3269,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               initialPath={isSsotYamlPath(previewPath) ? previewPath : ''}
               onBack={() => setMainTab('chat')}
             />
+          ) : mainTab === 'debug' ? (
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-mute)' }}>
+              Debug Tab
+            </div>
           ) : (
             /* mainTab === 'qa' — SSOT-GEN QA board or active ask_user */
             <div style={{ flex: 1, overflow: 'auto', padding: '14px 18px' }}>
@@ -3551,9 +3532,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       )}
 
       {/* CENTER ↔ RIGHT splitter — keep visible at 0px so collapsed panels can reopen. */}
-      {!isSimDebug && (
-        <Splitter width={rightW} side="right" onResize={setRightW} onToggle={toggleRight} />
-      )}
+      <Splitter width={rightW} side="right" onResize={setRightW} onToggle={toggleRight} />
 
       {/* RIGHT — ATLAS status + SSOT/Todo/Diff (hidden when sim_debug or collapsed) */}
       {effRightW > 0 ? (
