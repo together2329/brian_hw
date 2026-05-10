@@ -163,6 +163,52 @@ const App = () => {
     return () => { subs.forEach(u => { try { u && u(); } catch (_) {} }); };
   }, []);
 
+  // First-connect handshake indicator. Runs a small protocol on mount:
+  //   1) WS connects               → 'ws'
+  //   2) Backend hello received    → 'hello'
+  //   3) /healthz responds 200     → 'health'
+  //   4) /api/session/list resolves → 'sessions'
+  //   5) all of the above complete → 'ready' → banner fades after 1.2 s
+  // While any step is outstanding the banner shows a spinner with the
+  // current step label. Lets the user see the boot is actually doing
+  // something instead of staring at a blank chrome.
+  const [bootSteps, setBootSteps] = React.useState({
+    ws: 'pending', hello: 'pending', health: 'pending', sessions: 'pending',
+  });
+  const [bootHidden, setBootHidden] = React.useState(false);
+  React.useEffect(() => {
+    const mark = (k, v) => setBootSteps(s => (s[k] === v ? s : { ...s, [k]: v }));
+    // Initial WS state — backend.js may have already connected by the
+    // time this effect runs.
+    if (window.backend?.getConnectionState) {
+      const s = window.backend.getConnectionState();
+      mark('ws', s === 'open' ? 'done' : (s === 'closed' || s === 'error' ? 'fail' : 'pending'));
+    }
+    const subs = [];
+    try {
+      subs.push(window.backend.subscribe('connection', (m) => {
+        mark('ws', m?.state === 'open' ? 'done' : 'fail');
+      }));
+      subs.push(window.backend.subscribe('hello', () => mark('hello', 'done')));
+    } catch (_) {}
+    // Independent HTTP probes
+    fetch('/healthz', { cache: 'no-store' })
+      .then(r => mark('health', r.ok ? 'done' : 'fail'))
+      .catch(() => mark('health', 'fail'));
+    fetch('/api/session/list', { cache: 'no-store' })
+      .then(r => mark('sessions', r.ok ? 'done' : 'fail'))
+      .catch(() => mark('sessions', 'fail'));
+    return () => { subs.forEach(u => { try { u && u(); } catch (_) {} }); };
+  }, []);
+  const bootDone = Object.values(bootSteps).every(v => v === 'done');
+  const bootFailed = Object.values(bootSteps).some(v => v === 'fail');
+  React.useEffect(() => {
+    if (bootDone) {
+      const t = setTimeout(() => setBootHidden(true), 1200);
+      return () => clearTimeout(t);
+    }
+  }, [bootDone]);
+
   const currentWorkflow = React.useCallback(() => {
     return splitSessionNamespace(window.ACTIVE_SESSION || activeNamespace).workflow
       || normalizeSession(window.CONTEXT && window.CONTEXT.workspace)
@@ -769,6 +815,49 @@ const App = () => {
             {wfSwitching.ip ? <> · ip=<code>{wfSwitching.ip}</code></> : null}
             <span style={{ marginLeft: 8, opacity: 0.7 }}>(reloading prompts / skills / hooks…)</span>
           </span>
+          <style>{`@keyframes atlas-spin{to{transform:rotate(360deg)}}`}</style>
+        </div>
+      )}
+      {!bootHidden && (
+        <div role="status" aria-live="polite" style={{
+          padding: '6px 12px', fontSize: 12, fontFamily: 'var(--mono)',
+          background: bootFailed
+            ? 'color-mix(in oklch, var(--red, #ef4444) 12%, transparent)'
+            : (bootDone
+                ? 'color-mix(in oklch, var(--green, #22c55e) 12%, transparent)'
+                : 'color-mix(in oklch, var(--accent) 12%, transparent)'),
+          color: bootFailed ? 'var(--red, #ef4444)' : (bootDone ? 'var(--green, #22c55e)' : 'var(--accent)'),
+          borderBottom: '1px solid currentColor',
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          {!bootDone && !bootFailed && (
+            <span style={{
+              display: 'inline-block',
+              width: 12, height: 12,
+              border: '2px solid currentColor',
+              borderRightColor: 'transparent',
+              borderRadius: '50%',
+              animation: 'atlas-spin 0.9s linear infinite',
+            }} />
+          )}
+          {bootDone && <span style={{ fontWeight: 600 }}>✓</span>}
+          {bootFailed && <span style={{ fontWeight: 600 }}>⚠</span>}
+          <span style={{ flex: 1 }}>
+            {bootDone ? 'Connected · backend handshake complete' :
+             bootFailed ? 'Connection problem — see steps below' :
+             'Connecting to backend…'}
+            {' '}
+            {Object.entries(bootSteps).map(([k, v]) => (
+              <span key={k} style={{ marginLeft: 10, opacity: v === 'done' ? 1 : 0.6 }}>
+                {v === 'done' ? '✓' : v === 'fail' ? '✗' : '○'} {k}
+              </span>
+            ))}
+          </span>
+          {bootDone && (
+            <button onClick={() => setBootHidden(true)}
+                    style={{ background: 'transparent', border: 'none',
+                             color: 'currentColor', cursor: 'pointer', fontSize: 14 }}>×</button>
+          )}
           <style>{`@keyframes atlas-spin{to{transform:rotate(360deg)}}`}</style>
         </div>
       )}
