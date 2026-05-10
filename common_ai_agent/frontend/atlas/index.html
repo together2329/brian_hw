@@ -8,7 +8,12 @@
 <style>
   html, body {
     margin: 0; padding: 0;
-    background: #000; color: #e6edf3;
+    /* Use theme tokens so light/dark themes both apply. The hardcoded
+       #000/#e6edf3 used to override styles.css per-theme rules, which
+       left the body black under data-theme="light". The literals are
+       still the first-paint fallback (before styles.css loads). */
+    background: var(--bg, #000);
+    color: var(--fg, #e6edf3);
     width: 100vw; height: 100vh;
     overflow: hidden;
   }
