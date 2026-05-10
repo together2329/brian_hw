@@ -99,6 +99,15 @@ def register_sessions_routes(
                 pass
         atlas_active_session_cv.set(canonical)
         atlas_active_ip_cv.set(ip)
+        # Mirror to os.environ — main.py's chat_loop runs in its own
+        # thread and can't see contextvars set inside the FastAPI
+        # request task. Without this mirror the /wf prompt that fires
+        # right after this handler reads a stale ATLAS_ACTIVE_SESSION
+        # and pads the missing IP slot to "default", landing the
+        # workspace in .session/default/default/<wf>/ instead of the
+        # IP the user just picked.
+        os.environ["ATLAS_ACTIVE_SESSION"] = canonical
+        os.environ["ATLAS_ACTIVE_IP"] = ip
         os.environ["ATLAS_DEFAULT_SESSION_ID"] = sid
         os.environ["ATLAS_DEFAULT_WORKFLOW"] = wf
         if triple_changed:
