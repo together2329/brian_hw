@@ -9663,6 +9663,82 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         pass
 
     print(f"\n  ATLAS UI → http://{host}:{port}\n")
+    print(
+        "  [stdin] commands: 'status' (snapshot), 'heal' "
+        "(force agent_running=False + drain inbox), 'sessions' "
+        "(list .session/), 'help', 'quit'"
+    )
+
+    # ── Operator stdin command lane ───────────────────────────────────
+    # Lets the user inspect / unstuck the running backend without
+    # restarting. Reads one line at a time off stdin in a daemon
+    # thread; each command prints its result to stdout. Designed for
+    # the common case where a stuck chat_loop / hung WS leaves the
+    # browser blank — operator types `heal`, gets the agent unstuck,
+    # carries on. The xterm focus-event noise (`^[[O^[[I`) the user
+    # was seeing in the terminal is also suppressed here because the
+    # readline loop consumes those bytes silently.
+    def _stdin_command_loop() -> None:
+        import threading as _t
+        while True:
+            try:
+                raw = sys.stdin.readline()
+            except Exception:
+                return
+            if raw == "":
+                return  # EOF — terminal closed
+            cmd = raw.strip()
+            # Suppress xterm focus / mouse escape sequences silently —
+            # they show up as the literal text "[O" / "[I" / "[?1004h"
+            # when the terminal sends ESC-prefixed bytes that python's
+            # readline echoes through. Anything entirely non-alphanumeric
+            # at the head is treated as terminal control noise.
+            if not cmd or not cmd[0].isalnum():
+                continue
+            head = cmd.split(None, 1)[0].lower()
+            if head in ("status", "stat"):
+                try:
+                    print(f"  [status] active_session={_active_session_value()!r} "
+                          f"active_ip={_active_ip_value()!r} "
+                          f"agent_running={bridge.agent_running} "
+                          f"agent_alive={bridge.agent_alive} "
+                          f"threads={len(_t.enumerate())}")
+                except Exception as e:
+                    print(f"  [status] error: {e}")
+            elif head in ("heal", "unstuck"):
+                try:
+                    bridge.agent_running = False
+                    bridge.request_stop()
+                    print("  [heal] agent_running=False, _inbox preserved (slash items dropped, user prompts kept)")
+                except Exception as e:
+                    print(f"  [heal] error: {e}")
+            elif head == "sessions":
+                try:
+                    sroot = PROJECT_ROOT / ".session"
+                    if not sroot.is_dir():
+                        print("  [sessions] no .session/ tree")
+                        continue
+                    print(f"  [sessions] root={sroot}")
+                    for entry in sorted(sroot.rglob("conversation.json")):
+                        rel = entry.parent.relative_to(sroot).as_posix()
+                        size = entry.stat().st_size
+                        print(f"    - {rel:60s} {size//1024}KB")
+                except Exception as e:
+                    print(f"  [sessions] error: {e}")
+            elif head in ("help", "?"):
+                print("  [help] status | heal | sessions | help | quit")
+            elif head in ("quit", "exit"):
+                print("  [quit] shutting down…")
+                os._exit(0)
+            else:
+                print(f"  [?] unknown: {cmd!r} — try 'help'")
+
+    try:
+        threading.Thread(target=_stdin_command_loop, name="atlas-stdin",
+                         daemon=True).start()
+    except Exception:
+        pass
+
     uvicorn.run(app, host=host, port=port, log_level="warning")
 
 
