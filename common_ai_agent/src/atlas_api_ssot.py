@@ -36,6 +36,7 @@ def register_ssot_routes(
     canonical_session_string: Callable[..., str],
     normalize_session_name: Callable[[str], str],
     append_session_message: Callable[[str, str, str], None],
+    bridge: Any,
 ) -> None:
     """Mount the SSOT API onto *app*.
 
@@ -192,6 +193,19 @@ def register_ssot_routes(
                 session=session_name,
                 source="atlas-ui-pending",
             )
+            # Notify all WS clients so the QA Preview live-flips pending→approved
+            # without requiring a manual "refresh" click. Mirrors the emit calls
+            # that _ask_user_cb / _record_ssot_qa_cb make for their own upserts.
+            try:
+                bridge.emit(
+                    "ssot_qa_updated",
+                    ip=ip,
+                    workflow="ssot-gen",
+                    flow_id=flow_id,
+                    session=session_name,
+                )
+            except Exception:
+                pass
 
         # Mirror the submitted prompt into the conversation log for traceability.
         submitted_text = str((body or {}).get("submitted_text") or "").strip()

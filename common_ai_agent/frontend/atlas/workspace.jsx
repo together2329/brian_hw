@@ -1373,7 +1373,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     try {
       const qs = new URLSearchParams({ ip });
       if (session) qs.set('session', session);
-      const r = await fetch('/api/ssot/qa?' + qs.toString());
+      // cache: 'no-store' is required — without it the browser will
+      // serve a stale qa.json view after /api/ssot/qa/answer flips an
+      // entry pending→approved, so the user clicks "refresh" and sees
+      // no change. Mirrors refreshSsotQaSessions which already opts
+      // out of HTTP cache for the same reason.
+      const r = await fetch('/api/ssot/qa?' + qs.toString(), { cache: 'no-store' });
       if (!r.ok) return null;
       const d = await r.json();
       setSsotQa(d);

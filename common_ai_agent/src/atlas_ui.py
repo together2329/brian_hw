@@ -8767,6 +8767,7 @@ def create_app():
         canonical_session_string=_canonical_session_string,
         normalize_session_name=normalize_session_name,
         append_session_message=_append_session_message,
+        bridge=bridge,
     )
 
     # ── Sessions API (/api/session*, /api/sessions*) ────────────────
