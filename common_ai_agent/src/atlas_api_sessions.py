@@ -124,6 +124,19 @@ def register_sessions_routes(
         # availability so the user sees the new workspace immediately.
         prev_wf = os.environ.get("ACTIVE_WORKSPACE", "")
         if setup_workspace is not None and wf and wf != prev_wf:
+            # In-progress banner — chat feed shows the transition is
+            # in flight so the user doesn't think the dropdown click
+            # got swallowed. The success emit at the bottom overwrites
+            # the perception once setup_workspace finishes.
+            try:
+                bridge.emit(
+                    "agent",
+                    text=f"🔄 Switching workspace '{prev_wf}' → '{wf}' (ip={ip})…",
+                )
+                bridge.emit("flush")
+                bridge.emit("workspace_changing", workspace=wf, prev=prev_wf, ip=ip)
+            except Exception:
+                pass
             try:
                 setup_workspace(wf)
                 os.environ["ACTIVE_WORKSPACE"] = wf
@@ -207,7 +220,14 @@ def register_sessions_routes(
                                  "path": hpath.relative_to(PROJECT_ROOT).as_posix(),
                                  "error": f"parse: {e}"}, status_code=500)
         msgs = [m for m in msgs if isinstance(m, dict) and m.get("role") != "system"]
-        if len(msgs) > limit:
+        # `limit == 0` must return an empty list. The previous form
+        # `msgs[-limit:]` becomes `msgs[-0:]` == `msgs[0:]` == full list
+        # because Python collapses -0 to 0, so limit=0 paradoxically
+        # returned everything. Guard explicitly. limit < 0 is also
+        # treated as "no clamp" so callers can opt out with -1.
+        if limit == 0:
+            msgs = []
+        elif limit > 0 and len(msgs) > limit:
             msgs = msgs[-limit:]
         return JSONResponse({"messages": msgs, "session": session,
                              "path": hpath.relative_to(PROJECT_ROOT).as_posix(),
@@ -271,8 +291,12 @@ def register_sessions_routes(
             messages = []
         messages = [m for m in messages if isinstance(m, dict) and m.get("role") != "system"]
         # `full` returns everything; `conversation` and `recent` cap at limit.
-        if mode_norm != "full" and len(messages) > limit:
-            messages = messages[-limit:]
+        # Same `-0 == 0` guard as /api/session/history above.
+        if mode_norm != "full":
+            if limit == 0:
+                messages = []
+            elif limit > 0 and len(messages) > limit:
+                messages = messages[-limit:]
 
         todo_state = _read_json(sdir / "todo.json", {"todos": []})
         if isinstance(todo_state, list):

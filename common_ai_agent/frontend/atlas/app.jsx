@@ -143,6 +143,26 @@ const App = () => {
     setTimeout(() => setTopNotice(''), 5000);
   }, []);
 
+  // Workspace switch in-flight indicator. Backend emits
+  // `workspace_changing` right before _setup_workspace runs and
+  // `workspace_changed` after success. The banner shows a spinner so
+  // the user can see the dropdown click hit something, even though
+  // setup_workspace usually finishes in < 100 ms.
+  const [wfSwitching, setWfSwitching] = React.useState(null);
+  React.useEffect(() => {
+    if (!window.backend?.subscribe) return undefined;
+    const subs = [];
+    try {
+      subs.push(window.backend.subscribe('workspace_changing', (m) => {
+        setWfSwitching({ from: m?.prev || '', to: m?.workspace || '', ip: m?.ip || '' });
+      }));
+      subs.push(window.backend.subscribe('workspace_changed', (m) => {
+        setWfSwitching(null);
+      }));
+    } catch (_) {}
+    return () => { subs.forEach(u => { try { u && u(); } catch (_) {} }); };
+  }, []);
+
   const currentWorkflow = React.useCallback(() => {
     return splitSessionNamespace(window.ACTIVE_SESSION || activeNamespace).workflow
       || normalizeSession(window.CONTEXT && window.CONTEXT.workspace)
@@ -727,6 +747,29 @@ const App = () => {
           <button onClick={() => setTopNotice('')}
                   style={{ background: 'transparent', border: 'none', color: 'var(--warn)',
                            cursor: 'pointer', fontSize: 14, lineHeight: 1 }}>×</button>
+        </div>
+      )}
+      {wfSwitching && (
+        <div role="status" aria-live="polite" style={{
+          padding: '6px 12px', fontSize: 12, fontFamily: 'var(--mono)',
+          background: 'color-mix(in oklch, var(--accent) 12%, transparent)',
+          color: 'var(--accent)', borderBottom: '1px solid var(--accent)',
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <span style={{
+            display: 'inline-block',
+            width: 12, height: 12,
+            border: '2px solid currentColor',
+            borderRightColor: 'transparent',
+            borderRadius: '50%',
+            animation: 'atlas-spin 0.9s linear infinite',
+          }} />
+          <span style={{ flex: 1 }}>
+            Switching workspace <code>{wfSwitching.from || '∅'}</code> → <code>{wfSwitching.to}</code>
+            {wfSwitching.ip ? <> · ip=<code>{wfSwitching.ip}</code></> : null}
+            <span style={{ marginLeft: 8, opacity: 0.7 }}>(reloading prompts / skills / hooks…)</span>
+          </span>
+          <style>{`@keyframes atlas-spin{to{transform:rotate(360deg)}}`}</style>
         </div>
       )}
       <div className="dir-switcher">
