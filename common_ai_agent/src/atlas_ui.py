@@ -399,6 +399,19 @@ def create_app():
             _user_safe = client_host.replace(":", "-").replace(".", "-")
             info["client_ip"] = client_host
             info["user_session"] = f"u-{_user_safe}"
+        else:
+            # Single-user: anchor session_id to the directory the user
+            # actually launched the backend in. The previous frontend
+            # auto-generated `u-<base36-stamp>-<rand>` IDs that had no
+            # relationship to the working directory, so `.session/`
+            # accumulated unrelated owner buckets and users couldn't
+            # tell which session went with which project. Use the
+            # PROJECT_ROOT folder name (e.g. "NEW_SESSION") as the
+            # default session_id — frontend honors this on first visit.
+            try:
+                info["user_session"] = PROJECT_ROOT.name or "default"
+            except Exception:
+                info["user_session"] = "default"
         # Expose the real model + context window so the sidebar doesn't
         # have to invent values. Pull from src.config (the per-process
         # frozen settings); if config isn't importable yet, fall through
@@ -11064,6 +11077,10 @@ def main() -> None:
                                   description="Atlas frontend for common_ai_agent")
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--host", default="127.0.0.1")
+    ap.add_argument("--root", default=None,
+                    help="Project root directory the backend serves "
+                         "(.session/, IPs, file tree, …). Defaults to the "
+                         "current working directory.")
     # Canonical 3-part session path: <session_id>/<ip>/<workflow>
     # All three default to "default" so the directory layout is uniform.
     ap.add_argument("-s", "--session", dest="session_id", default="default",
@@ -11073,6 +11090,16 @@ def main() -> None:
     ap.add_argument("-w", "--workflow", dest="workflow", default="default",
                     help="workflow segment (default: 'default')")
     args = ap.parse_args()
+    # Re-anchor PROJECT_ROOT before any request handler runs. Module-level
+    # PROJECT_ROOT was computed from the import-time cwd; chdir + rebind
+    # so /api/files, .session/, and friends all serve from --root.
+    if args.root:
+        target = Path(args.root).expanduser().resolve()
+        if not target.is_dir():
+            sys.exit(f"--root not found: {target}")
+        os.chdir(str(target))
+        global PROJECT_ROOT
+        PROJECT_ROOT = target
     # Seed environment so all path resolvers see the canonical 3-part string.
     new_session = f"{args.session_id}/{args.ip}/{args.workflow}"
     _atlas_active_session_cv.set(new_session)

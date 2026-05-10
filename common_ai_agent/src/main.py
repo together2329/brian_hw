@@ -2234,18 +2234,26 @@ def chat_loop():
                             # that namespace instead of collapsing every IP
                             # into the flat workflow name.
                             _active_session = _get_active_session_str()
-                            # Guard against single-segment session targets
-                            # (e.g. /wf ssot-gen with no ATLAS_ACTIVE_SESSION
-                            # set). Without this, the agent created
-                            # `.session/ssot-gen/` at the .session root —
-                            # not under any owner/IP — and the tree filled
-                            # up with bare workflow dirs the user couldn't
-                            # rationally navigate. Anchor under the
-                            # 'default' owner so every session-on-disk has
-                            # at least owner/<X>.
-                            _target_session = _active_session or f"default/{ws_name}"
-                            if "/" not in _target_session:
-                                _target_session = f"default/{_target_session}"
+                            # Session paths must always carry three
+                            # segments — <owner>/<ip>/<workflow>. The
+                            # earlier code padded the missing segments
+                            # with "default" so a workflow switch with
+                            # no IP selected created `.session/default/
+                            # ssot-gen/` (2 real segments, no IP), which
+                            # the user called nonsensical because the
+                            # IP slot is the central concept of every
+                            # workflow's outputs. Refuse the switch when
+                            # owner or IP is missing and tell the user
+                            # to pick them in the dropdown first.
+                            _parts = [p for p in (_active_session or "").split("/") if p]
+                            if len(_parts) < 2 or not _parts[1]:
+                                _ws_emit(Color.error(
+                                    f"❌ Cannot switch to workflow '{ws_name}': IP not selected.\n"
+                                    f"   Pick an IP in IP_ID (or click + IP) first; "
+                                    f"sessions require <owner>/<ip>/<workflow>."
+                                ))
+                                continue
+                            _target_session = f"{_parts[0]}/{_parts[1]}/{ws_name}"
                             _setup_session(_target_session)
                             if _active_session:
                                 os.environ["ATLAS_SESSION_APPLIED"] = _active_session
