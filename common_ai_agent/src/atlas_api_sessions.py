@@ -127,8 +127,37 @@ def register_sessions_routes(
             try:
                 setup_workspace(wf)
                 os.environ["ACTIVE_WORKSPACE"] = wf
-            except Exception:
-                pass
+                # Surface the flip on backend stdout so the operator
+                # tailing the terminal sees the workspace change in
+                # real time, mirroring the legacy `[Workspace] '<name>'
+                # loaded` line that main.py prints from /wf.
+                print(
+                    f"[Workspace] {wf!r} loaded via /api/session/activate "
+                    f"(prev={prev_wf!r}, ip={ip!r}, owner={sid!r})",
+                    flush=True,
+                )
+                # And emit on the WS bus so the frontend chat feed
+                # gets a visible "workspace flipped" line too — same
+                # channel `ssot_qa_updated` rides on.
+                try:
+                    bridge.emit(
+                        "workspace_changed",
+                        workspace=wf,
+                        prev=prev_wf,
+                        ip=ip,
+                        session=canonical,
+                        source="api/session/activate",
+                    )
+                    bridge.emit(
+                        "agent",
+                        text=f"✅ Workspace switched to '{wf}' (was '{prev_wf}') · ip={ip}",
+                    )
+                    bridge.emit("flush")
+                except Exception:
+                    pass
+            except Exception as exc:
+                print(f"[Workspace] activate→setup_workspace({wf!r}) failed: {exc}",
+                      flush=True)
         if triple_changed:
             try:
                 bridge.emit("commands_changed")
