@@ -139,8 +139,14 @@ async def get_current_user(request: Request) -> dict:
     return user
 
 
+_PUBLIC_PATHS = {"/", "/index.html", "/healthz", "/favicon.ico"}
+_PUBLIC_PREFIXES = ("/static/", "/assets/", "/api/auth/")
+_PUBLIC_EXT = {"js", "jsx", "css", "html", "png", "jpg", "jpeg", "svg", "ico", "woff", "woff2", "ttf", "map"}
+
+
 class AuthMiddleware:
-    """Starlette middleware that ensures every HTTP request has a user in scope."""
+    """Starlette middleware: attach scope['user'] from cookie, 401 anything
+    non-public when unauthenticated."""
 
     def __init__(self, app, auth: GuestAuth):
         self.app = app
@@ -152,17 +158,35 @@ class AuthMiddleware:
             return
 
         path = scope.get("path", "")
-
-        if path == "/healthz" or path.startswith(("/static/", "/assets/")):
-            await self.app(scope, receive, send)
-            return
-        if "." in path and path.rsplit(".", 1)[-1].lower() in {"js", "css", "png", "jpg", "jpeg", "svg", "ico", "woff", "woff2", "ttf", "map"}:
-            await self.app(scope, receive, send)
-            return
-
         request = StarletteRequest(scope, receive)
         scope["user"] = self.auth.get_user_from_cookie(request)
-        await self.app(scope, receive, send)
+
+        if self._is_public(path) or scope["user"] is not None:
+            await self.app(scope, receive, send)
+            return
+
+        await self._send_401(send)
+
+    @staticmethod
+    def _is_public(path: str) -> bool:
+        if path in _PUBLIC_PATHS or path.startswith(_PUBLIC_PREFIXES):
+            return True
+        if "." in path and path.rsplit(".", 1)[-1].lower() in _PUBLIC_EXT:
+            return True
+        return False
+
+    @staticmethod
+    async def _send_401(send) -> None:
+        body = b'{"detail":"login required"}'
+        await send({
+            "type": "http.response.start",
+            "status": 401,
+            "headers": [
+                (b"content-type", b"application/json"),
+                (b"content-length", str(len(body)).encode()),
+            ],
+        })
+        await send({"type": "http.response.body", "body": body})
 
 
 def _sanitize_user(user: Dict[str, Any]) -> Dict[str, Any]:

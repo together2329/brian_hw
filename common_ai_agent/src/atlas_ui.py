@@ -499,27 +499,17 @@ def create_app():
             "project_root": str(PROJECT_ROOT),    # = user's cwd at launch
             "cwd": os.getcwd(),
         }
-        # Multi-user IPv4-seeded session — opt-in via ATLAS_MULTI_USER.
-        # Off by default so single-user installs keep the existing
-        # 'default' namespace. When enabled, /healthz exposes the
-        # requesting client's IPv4 + a derived `u-<ipv4-dashed>`
-        # session id; the frontend's first-visit seed in data.jsx
-        # only fires when these fields are present.
+        # Identity is now derived from the authenticated user (cookie).
+        # Single-user vs multi-user only affects whether multiple distinct
+        # users can run concurrently — login is required either way.
         _multi_user_on = os.environ.get("ATLAS_MULTI_USER", "").strip().lower() in ("1", "true", "yes", "on")
         info["multi_user"] = _multi_user_on
-        if _multi_user_on:
-            client_host = (request.client.host if request.client else "") or "127.0.0.1"
-            if client_host.startswith("::ffff:"):  # IPv4-mapped IPv6
-                client_host = client_host[7:]
-            _user_safe = client_host.replace(":", "-").replace(".", "-")
-            info["client_ip"] = client_host
-            info["user_session"] = f"u-{_user_safe}"
-        else:
-            # Single-user: session_id defaults to "default". The project
-            # root (where .session/ lives) is anchored separately via
-            # --root/cwd; session_id is a sub-namespace under that root,
-            # not the root's own name.
-            info["user_session"] = "default"
+        user = request.scope.get("user")
+        info["user_session"] = (user.get("username") if user else None)
+        client_host = (request.client.host if request.client else "") or "127.0.0.1"
+        if client_host.startswith("::ffff:"):
+            client_host = client_host[7:]
+        info["client_ip"] = client_host
         info["project_root_name"] = PROJECT_ROOT.name or ""
         # Expose the real model + context window so the sidebar doesn't
         # have to invent values. Pull from src.config (the per-process
@@ -8992,7 +8982,7 @@ def create_app():
     # parameter annotations entirely.
     async def ws_agent(websocket: WebSocket):
         await websocket.accept()
-        session_id = websocket.query_params.get("session_id", "default")
+        session_id = websocket.query_params.get("session_id", "")
         _multi_user = os.environ.get("ATLAS_MULTI_USER", "").lower() in ("1", "true", "yes")
 
         class _WebSocketCookieRequest:
@@ -9007,7 +8997,12 @@ def create_app():
             await websocket.close(code=1008, reason="unauthenticated")
             return
 
-        if _multi_user and session_id != "default":
+        # Identity-driven default: empty / legacy "default" session_id
+        # collapses to the user's own namespace (= username).
+        if not session_id or session_id == "default":
+            session_id = user["username"]
+
+        if _multi_user and session_id != user["username"]:
             with _atlas_db() as db:
                 session = db.get_session(session_id)
             if not _owns_session(session, user["id"]):
