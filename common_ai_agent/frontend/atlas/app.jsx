@@ -846,8 +846,11 @@ const App = () => {
       {!bootHidden && (
         <div role="status" aria-live="polite" style={{
           // Centered overlay so the user notices the handshake the
-          // moment the page paints, instead of having to look at a
-          // top-strip the chrome may have scrolled past.
+          // moment the page paints. Theme tokens drive bg/fg so dark
+          // mode shows dark-on-dark and light mode shows light-on-
+          // light; previous hardcoded `var(--bg-1, #14171c)` had a
+          // baked-in dark fallback that clashed in light mode because
+          // --bg-1 wasn't defined in styles.css.
           position: 'fixed',
           top: '50%', left: '50%',
           transform: 'translate(-50%, -50%)',
@@ -856,14 +859,14 @@ const App = () => {
           maxWidth: 480,
           padding: '18px 22px',
           fontSize: 13, fontFamily: 'var(--mono)',
-          background: 'var(--bg-1, #14171c)',
+          background: 'var(--bg-2)',
           border: '1px solid ' + (bootFailed ? 'var(--red, #ef4444)' : (bootDone ? 'var(--green, #22c55e)' : 'var(--accent)')),
           borderRadius: 8,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-          color: bootFailed ? 'var(--red, #ef4444)' : (bootDone ? 'var(--green, #22c55e)' : 'var(--accent)'),
+          boxShadow: '0 8px 32px color-mix(in oklch, var(--fg) 25%, transparent)',
+          color: 'var(--fg)',
           display: 'flex', flexDirection: 'column', gap: 12,
           transition: 'opacity 250ms ease',
-          opacity: bootDone ? 0.92 : 1,
+          opacity: bootDone ? 0.94 : 1,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {!bootDone && !bootFailed && (
