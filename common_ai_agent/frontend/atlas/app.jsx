@@ -740,7 +740,7 @@ const App = () => {
             className="dir-select ip"
             value={activeIp || ''}
             onChange={e => selectIp(e.currentTarget.value)}>
-            <option value="">default</option>
+            <option value="">None</option>
             {/* `value=` of the <select> must exist as an <option>; otherwise
                 React renders the first option (label "default") even though
                 state holds a real IP like "PL330", which makes the dropdown
