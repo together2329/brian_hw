@@ -1402,51 +1402,6 @@
 .wave-panel .wave-cursor.a { stroke: #ffb84d; }
 .wave-panel .wave-cursor.b { stroke: #4dd0e1; }
 
-/* ===== sim_debug full-screen mode =====================
-   When the user activates the sim_debug workflow we hide the
-   App-level TitleBar (workspace/cwd row) and StatusBar (token
-   counter row) so the waveform debug panels get the entire
-   viewport. The "← exit sim_debug" floating button restores
-   the normal layout. */
-body.atlas-sim-debug-fullscreen .titlebar,
-body.atlas-sim-debug-fullscreen .dir-switcher,
-body.atlas-sim-debug-fullscreen .statusbar {
-  display: none !important;
-}
-body.atlas-sim-debug-fullscreen {
-  background: var(--bg) !important;
-}
-body.atlas-sim-debug-fullscreen #scaler {
-  width: 100vw !important;
-  height: 100vh !important;
-  transform: none !important;
-}
-body.atlas-sim-debug-fullscreen #root,
-body.atlas-sim-debug-fullscreen .app,
-body.atlas-sim-debug-fullscreen .app-main {
-  width: 100vw !important;
-  height: 100vh !important;
-  min-width: 100vw !important;
-  min-height: 100vh !important;
-}
-body.atlas-sim-debug-fullscreen .app > div,
-body.atlas-sim-debug-fullscreen .app > div > div {
-  width: 100% !important;
-  height: 100% !important;
-  min-height: 0 !important;
-}
-body.atlas-sim-debug-fullscreen .atlas-frame {
-  width: 100vw !important;
-  height: 100vh !important;
-  min-width: 100vw !important;
-  min-height: 100vh !important;
-}
-body.atlas-sim-debug-fullscreen #scaler > #root > div > div {
-  /* The App's column wrapper: collapse padding/gap on the surrounding
-     containers so atlas-frame stretches edge-to-edge. */
-  height: 100% !important;
-}
-
 /* ── FoldablePane (Verilog/YAML preview) ──────────────────────────
    Per-line gutter + nested <details> wrappers from /api/fold-symbols.
    Drag-select on the line-number column emits a floating "Comment
