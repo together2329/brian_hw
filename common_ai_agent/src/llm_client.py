@@ -1804,7 +1804,7 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
 
 
 def _make_stream_watchdog(response, inactivity_s: int, last_data_ref: list,
-                          last_progress_ref: list | None = None):
+                          last_progress_ref=None):
     """
     Daemon thread that watches the stream for inactivity.
 
