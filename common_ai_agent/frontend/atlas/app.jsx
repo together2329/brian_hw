@@ -174,6 +174,7 @@ const App = () => {
   // something instead of staring at a blank chrome.
   const [bootSteps, setBootSteps] = React.useState({
     ws: 'pending', hello: 'pending', health: 'pending', sessions: 'pending',
+    llm: 'pending',
   });
   const [bootHidden, setBootHidden] = React.useState(false);
   React.useEffect(() => {
@@ -198,6 +199,13 @@ const App = () => {
     fetch('/api/session/list', { cache: 'no-store' })
       .then(r => mark('sessions', r.ok ? 'done' : 'fail'))
       .catch(() => mark('sessions', 'fail'));
+    // LLM provider probe — cheap GET /v1/models on the configured
+    // base_url with the configured bearer key. Catches expired API
+    // keys / wrong base_url / network firewall before the user types.
+    fetch('/api/llm/ping', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(j => mark('llm', j && j.ok ? 'done' : 'fail'))
+      .catch(() => mark('llm', 'fail'));
     return () => { subs.forEach(u => { try { u && u(); } catch (_) {} }); };
   }, []);
   const bootDone = Object.values(bootSteps).every(v => v === 'done');
@@ -875,6 +883,7 @@ const App = () => {
                 hello: 'Backend handshake (hello)',
                 health: '/healthz endpoint',
                 sessions: 'Session list hydrated',
+                llm: 'LLM provider reachable (/models probe)',
               };
               return (
                 <div key={k} style={{

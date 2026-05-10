@@ -370,6 +370,69 @@ def create_app():
             pass
         return JSONResponse({"mtime": latest})
 
+    @app.get("/api/llm/ping")
+    async def api_llm_ping():
+        """Cheap provider reachability probe (no token spend).
+
+        Hits `${BASE_URL}/models` with the configured bearer key.
+        200 → provider URL + auth + network all OK.
+        4xx → auth or path issue (key expired, wrong base_url).
+        5xx → provider outage.
+        timeout → network / DNS / firewall.
+
+        Used by the frontend boot handshake to surface LLM-side problems
+        before the user types their first prompt. Does NOT validate the
+        model can actually generate — that needs a real completion call,
+        which costs tokens. /models is a list endpoint, 0 tokens.
+        """
+        try:
+            import src.config as _cfg
+        except Exception:
+            try:
+                import config as _cfg  # type: ignore
+            except Exception:
+                return JSONResponse({"ok": False, "error": "config not loadable"},
+                                    status_code=500)
+        base = (getattr(_cfg, "BASE_URL", "") or "").rstrip("/")
+        api_key = getattr(_cfg, "API_KEY", "") or ""
+        if not base:
+            return JSONResponse({"ok": False, "error": "BASE_URL not configured"},
+                                status_code=500)
+        url = base + "/models"
+
+        def _probe():
+            import http.client as _hc
+            from urllib.parse import urlparse
+            u = urlparse(url)
+            host, port = u.hostname, (u.port or (443 if u.scheme == "https" else 80))
+            conn_cls = _hc.HTTPSConnection if u.scheme == "https" else _hc.HTTPConnection
+            conn = conn_cls(host, port, timeout=4)
+            try:
+                headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+                conn.request("GET", u.path + (("?" + u.query) if u.query else ""),
+                             headers=headers)
+                resp = conn.getresponse()
+                body = resp.read(2048).decode("utf-8", errors="replace")
+                return resp.status, body
+            finally:
+                try: conn.close()
+                except Exception: pass
+
+        try:
+            status, body = await asyncio.to_thread(_probe)
+            ok = 200 <= status < 300
+            return JSONResponse({
+                "ok": ok,
+                "status": status,
+                "base_url": base,
+                "provider": getattr(_cfg, "LLM_PROVIDER", ""),
+                "model": getattr(_cfg, "MODEL", ""),
+                "preview": body[:240],
+            }, status_code=200 if ok else 502)
+        except Exception as e:
+            return JSONResponse({"ok": False, "error": str(e), "base_url": base},
+                                status_code=502)
+
     @app.post("/api/control/stop")
     async def api_control_stop():
         """HTTP fallback for the UI Stop button and Escape key.
