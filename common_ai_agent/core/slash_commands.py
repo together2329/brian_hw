@@ -1358,10 +1358,25 @@ class SlashCommandRegistry:
         """Switch workspace/workflow. /workspace <name> or /workspace to show current."""
         import sys, os
         name = args.strip()
+
+        def _current_workflow() -> str:
+            """Resolve the active workflow.
+
+            Prefer the trailing segment of ATLAS_ACTIVE_SESSION (which
+            atlas_ui sets per-request to `<owner>/<ip>/<workflow>`),
+            because ACTIVE_WORKSPACE only refreshes when /wf <name>
+            actually swaps and goes stale otherwise.
+            """
+            sess = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/").split("/")
+            sess = [s for s in sess if s]
+            if len(sess) >= 3:
+                return sess[-1]
+            return os.environ.get("ACTIVE_WORKSPACE") or "default"
+
+        current = _current_workflow()
+
         if not name:
             # Show current workspace and available ones
-            current = os.environ.get("ACTIVE_WORKSPACE", "default")
-            # Discover available workspaces
             _script_dir = os.path.dirname(os.path.abspath(__file__))
             _project_root = os.path.dirname(_script_dir)
             workflow_root = os.path.join(_project_root, "workflow")
@@ -1378,6 +1393,11 @@ class SlashCommandRegistry:
                 lines.extend(available)
             lines.append("Usage: /workflow <name>")
             return "\n".join(lines)
+        # When SWITCHING, surface what we are leaving + entering through
+        # an env so the WORKSPACE_SWITCH consumer in main.py can include
+        # it in its post-switch banner. Sentinel format itself stays
+        # `WORKSPACE_SWITCH:<name>` because main.py parses it strictly.
+        os.environ["ATLAS_WORKFLOW_PREV"] = current
         return f"WORKSPACE_SWITCH:{name}"
 
     def _cmd_plan(self, args: str) -> str:
