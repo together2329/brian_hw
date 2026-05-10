@@ -302,27 +302,27 @@ const App = () => {
           // current user_session — backend is per-user (operator runs
           // one process per user), so cross-owner pollution is noise.
           if (segments.length < 3) continue;
-          // Strict session scope: only IPs owned by the active session
-          // surface in the dropdown. Previous behavior also accepted
-          // any 'default' session IP as a global pool, so a user on
-          // session "u-mozcu00f" still saw every legacy IP that ever
-          // ran under "default" — exactly the cross-session leak the
-          // user reported (gpio_pad/PL330 showing up under unrelated
-          // sessions).
-          if (parsed.sessionId !== currentUserSession) continue;
-          if (acceptIp(parsed.ipId)) nextIps.add(parsed.ipId);
+          // /api/session/list still feeds SESSION_ID. We deliberately
+          // stopped collecting IPs from it because the dropdown should
+          // reflect what's literally on disk under PROJECT_ROOT, not
+          // every IP that ever showed up in a session namespace.
         }
       }
     } catch (_) {}
-    // Don't seed ipOptions from /api/soc anymore. /api/soc rglobs the
-    // whole project root for `*.ssot.yaml` (Tier 2 fallback) and walks
-    // `.session/**/ssot-gen/state.json`, so leftover scaffold dirs like
-    // `i2c/yaml/i2c.ssot.yaml` or legacy bare `.session/i2c/` show up
-    // forever — even after the user "starts from scratch". The
-    // dropdown is for "IPs the current backend's session tree knows
-    // about" — let /api/session/list (per-owner namespace walk) be the
-    // single source of truth, and let createIp() seed locally for
-    // brand-new IPs that don't have a .session/<owner>/<ip>/ tree yet.
+    // PROJECT_ROOT scan — the new authoritative source for IP_ID. The
+    // backend just enumerates first-level dirs that look like IPs
+    // (have yaml/, rtl/, tb/, or sim/) and skips framework dirs. That
+    // matches the user's mental model: "IP_ID lists IPs the backend
+    // is running over, nothing more."
+    try {
+      const r2 = await fetch('/api/ip/list', { cache: 'no-store' });
+      if (r2.ok) {
+        const d2 = await r2.json();
+        for (const it of (Array.isArray(d2.items) ? d2.items : [])) {
+          if (acceptIp(it.name)) nextIps.add(it.name);
+        }
+      }
+    } catch (_) {}
 
     const liveNamespace = normalizeSession(window.ACTIVE_SESSION || activeNamespace) || namespaceFor(currentUserSession, activeIp, currentWorkflow());
     const parsedLive = splitSessionNamespace(liveNamespace);

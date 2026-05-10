@@ -757,6 +757,51 @@ def create_app():
                              "ip": name,
                              "path": str(target.relative_to(PROJECT_ROOT))})
 
+    @app.get("/api/ip/list")
+    async def api_ip_list():
+        """List IP directories sitting directly under PROJECT_ROOT.
+
+        The IP_ID dropdown is supposed to enumerate IPs the user can
+        actually work on right now, which is whatever IP-shaped folders
+        live under the directory the backend was started in (--root or
+        cwd). Walking .session/ history brought in cross-session
+        leftovers; this endpoint is the simple "what's on disk".
+
+        An IP folder qualifies when it has at least one of: yaml/,
+        rtl/, tb/, sim/ (the canonical SSOT/RTL/TB tree). Hidden dirs,
+        framework dirs (.session, .git, .venv), and workflow stage
+        names are skipped.
+        """
+        skip = set(SKIP_DIRS) | {
+            ".session", ".git", ".venv", ".sisyphus", ".omc", "logs",
+            "node_modules", "workflow", "src", "core", "lib", "tests",
+            "frontend", "docs", "scripts",
+        }
+        items = []
+        try:
+            for entry in PROJECT_ROOT.iterdir():
+                if not entry.is_dir():
+                    continue
+                name = entry.name
+                if name.startswith(".") or name in skip:
+                    continue
+                # Quick "looks like an IP" check.
+                has_subtree = any(
+                    (entry / sub).is_dir() for sub in ("yaml", "rtl", "tb", "sim")
+                )
+                if not has_subtree:
+                    continue
+                ssot = entry / "yaml" / f"{name}.ssot.yaml"
+                items.append({
+                    "name": name,
+                    "has_ssot": ssot.is_file(),
+                    "mtime": entry.stat().st_mtime,
+                })
+        except OSError as exc:
+            return JSONResponse({"error": str(exc), "items": []}, status_code=500)
+        items.sort(key=lambda x: (-x["mtime"], x["name"]))
+        return JSONResponse({"project_root": str(PROJECT_ROOT), "items": items})
+
     @app.get("/api/debug/scenarios")
     async def api_debug_scenarios(ip: str):
         """Resolve `<ip>/yaml/<ip>.ssot.yaml` test_requirements.scenarios
