@@ -851,27 +851,38 @@ def create_app():
         ssot_path = ip_dir / "yaml" / f"{ip_dir.name}.ssot.yaml"
         sb_path   = ip_dir / "sim"  / "scoreboard_events.jsonl"
 
-        scenarios: list[dict] = []
-        if ssot_path.is_file():
+        # Disk reads moved off the event loop. Reading SSOT YAML +
+        # scoreboard JSONL synchronously inside the coroutine pinned
+        # every other request behind it for hundreds of milliseconds
+        # whenever the user opened the Debug tab.
+        def _read_ssot_scenarios() -> list:
+            if not ssot_path.is_file():
+                return []
             try:
                 import yaml as _yaml  # type: ignore
                 doc = _yaml.safe_load(ssot_path.read_text(errors="replace"))
                 tr = (doc or {}).get("test_requirements") or {}
-                scenarios = list(tr.get("scenarios") or [])
-            except Exception as exc:
-                return JSONResponse({"error": f"yaml: {exc}", "tests": []}, status_code=500)
+                return list(tr.get("scenarios") or [])
+            except Exception:
+                return []
 
-        rows: list[dict] = []
-        if sb_path.is_file():
+        def _read_scoreboard_rows() -> list:
+            if not sb_path.is_file():
+                return []
+            import json as _json
+            out = []
             for line in sb_path.read_text(errors="replace").splitlines():
                 line = line.strip()
                 if not line:
                     continue
                 try:
-                    import json as _json
-                    rows.append(_json.loads(line))
+                    out.append(_json.loads(line))
                 except Exception:
                     continue
+            return out
+
+        scenarios = await asyncio.to_thread(_read_ssot_scenarios)
+        rows = await asyncio.to_thread(_read_scoreboard_rows)
 
         by_sid: dict[str, dict] = {}
         for r in rows:
