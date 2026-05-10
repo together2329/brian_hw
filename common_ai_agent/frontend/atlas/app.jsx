@@ -504,28 +504,46 @@ const App = () => {
       window.alert(`Failed to create IP folder: ${e}`);
       return;
     }
-    setIpOptions(prev => Array.from(new Set([ip].concat(prev || []))));
     const me = activeSessionId
       || normalizeSession(window.ATLAS_USER_SESSION_ID || '')
       || 'default';
-    activateNamespace(me, ip, 'ssot-gen', true);
-    // After the namespace flip, force the file tree to refetch at the
-    // new IP root so the scope panel renders the freshly created
-    // (empty) folder rather than the previous IP's contents.
+    const namespace = `${me}/${ip}/ssot-gen`;
+    // Local state first so the dropdown and scope reflect the new IP
+    // immediately while the WS round-trips run.
+    setIpOptions(prev => Array.from(new Set([ip].concat(prev || []))));
+    setActiveIp(ip);
+    setActiveSessionId(me);
+    setActiveNamespace(namespace);
+    window.ACTIVE_SESSION = namespace;
+    try { localStorage.setItem('atlasActiveSession', namespace); } catch (_) {}
+    syncNamespaceUrl(namespace, me, ip, 'ssot-gen');
+    if (window.atlasData && typeof window.atlasData.setUserSessionId === 'function') {
+      window.atlasData.setUserSessionId(me);
+    }
     if (window.atlasData && typeof window.atlasData.setScopePath === 'function') {
       window.atlasData.setScopePath(ip);
     }
-    // Auto-bootstrap: queue `/new-ip <name>` after the workflow flip so
-    // a fresh IP folder lands ready for ssot-gen instead of asking the
-    // user to type the command themselves. activateNamespace already
-    // sent /wf ssot-gen on the same WS; backend processes prompts in
-    // order so the new-ip command runs in the right workflow context.
+    // Explicit await chain so /wf lands before /new-ip on the backend.
+    // The previous code relied on activateNamespace which fires /wf
+    // AFTER an awaited /api/session/activate POST, but /new-ip ran
+    // immediately after that call returned and so reached the WS
+    // ~700 ms before /wf — backend processed /new-ip in the wrong
+    // workflow.
+    try {
+      await fetch('/api/session/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: me, ip, workflow: 'ssot-gen' }),
+      });
+    } catch (_) {}
     if (window.backend && typeof window.backend.send === 'function') {
       try {
         window.backend.send({
-          type: 'prompt',
-          text: `/new-ip ${ip}`,
-          session: `${me}/${ip}/ssot-gen`,
+          type: 'prompt', text: '/wf ssot-gen', session: namespace,
+          ui_lang: window.ATLAS_UI_LANG || uiLang,
+        });
+        window.backend.send({
+          type: 'prompt', text: `/new-ip ${ip}`, session: namespace,
           ui_lang: window.ATLAS_UI_LANG || uiLang,
         });
       } catch (_) {}
