@@ -167,6 +167,15 @@ def register_sessions_routes(
                 bridge.emit("commands_changed")
             except Exception:
                 pass
+        _root = project_root()
+        _session_dir = _root / ".session" / sid / ip / wf
+        try:
+            _session_dir.mkdir(parents=True, exist_ok=True)
+            _conv = _session_dir / "conversation.json"
+            if not _conv.exists():
+                _conv.write_text("[]", encoding="utf-8")
+        except Exception:
+            pass
         return JSONResponse({
             "ok": True,
             "active_session": canonical,
