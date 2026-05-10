@@ -177,6 +177,25 @@ const App = () => {
     llm: 'pending',
   });
   const [bootHidden, setBootHidden] = React.useState(false);
+
+  // Auth gate — mounts LoginScreen until /api/users/me returns 200.
+  const [authState, setAuthState] = React.useState('checking');
+  React.useEffect(() => {
+    let cancelled = false;
+    fetch('/api/users/me', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(j => {
+        if (cancelled) return;
+        const user = j && j.user;
+        if (!user || !user.username) { setAuthState('unauth'); return; }
+        window.ATLAS_USER = user;
+        window.ATLAS_USER_SESSION_ID = user.username;
+        try { localStorage.setItem('atlasUserSessionId', user.username); } catch (_) {}
+        setAuthState('authed');
+      })
+      .catch(() => { if (!cancelled) setAuthState('unauth'); });
+    return () => { cancelled = true; };
+  }, []);
   React.useEffect(() => {
     const mark = (k, v) => setBootSteps(s => (s[k] === v ? s : { ...s, [k]: v }));
     const runProbes = () => {
@@ -446,16 +465,12 @@ const App = () => {
   React.useEffect(() => {
     let timer = null;
     const syncCurrent = (ev) => {
-      // Prefer the canonical triple the server reports via /healthz
-      // (window.CONTEXT.active_session) over the cached
-      // window.ACTIVE_SESSION — on a fresh reload the URL params can
-      // still hold a stale triple from a previous tab while the server
-      // has long since pivoted, and we want the UI (dropdowns + URL)
-      // to reflect the *server* state, not the URL the user pasted.
       const ctx = window.CONTEXT || {};
       const ctxSession = normalizeSession(ctx.active_session || '');
-      const namespace = ctxSession
-        || normalizeSession((ev && ev.detail && ev.detail.session) || window.ACTIVE_SESSION || activeNamespace);
+      const requestedSession = normalizeSession(
+        (ev && ev.detail && ev.detail.session) || window.ACTIVE_SESSION || activeNamespace
+      );
+      const namespace = requestedSession || ctxSession;
       const parsed = splitSessionNamespace(namespace);
       setActiveNamespace(namespace || namespaceFor(activeSessionId, activeIp, currentWorkflow()));
       setActiveSessionId(parsed.sessionId || activeSessionId);
@@ -485,6 +500,14 @@ const App = () => {
       window.removeEventListener('atlas-data-changed', syncCurrent);
     };
   }, [activeIp, activeNamespace, activeSessionId, currentWorkflow, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace]);
+
+  React.useEffect(() => {
+    const parsed = splitSessionNamespace(window.ACTIVE_SESSION || activeNamespace || '');
+    if (!parsed.ipId && !parsed.workflow) return;
+    activateNamespace(parsed.sessionId || activeSessionId || 'default', parsed.ipId || '', parsed.workflow || '', !!parsed.workflow);
+    // Run once on mount: this is the URL/localStorage → backend handshake.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   React.useEffect(() => {
     const onSwitch = (ev) => {
@@ -803,6 +826,21 @@ const App = () => {
     { k: 'shift+tab', l: 'normal/plan' },
     { k: '⌘ \\', l: 'sidebar' },
   ];
+
+  // Auth gate must short-circuit before any workspace state touches
+  // window.ATLAS_USER / .session/<owner>/. A page reload after login
+  // keeps the boot sequence deterministic.
+  if (authState === 'checking') {
+    return <div className="app" data-dir={dir} data-theme={theme} />;
+  }
+  if (authState === 'unauth') {
+    const Lg = window.LoginScreen;
+    return Lg
+      ? <div className="app" data-dir={dir} data-theme={theme}>
+          <Lg onAuth={() => window.location.reload()} />
+        </div>
+      : <div className="app" data-dir={dir} data-theme={theme} />;
+  }
 
   return (
     <div className="app" data-dir={dir} data-theme={theme}>
