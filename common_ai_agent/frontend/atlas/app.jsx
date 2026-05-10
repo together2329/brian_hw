@@ -515,6 +515,21 @@ const App = () => {
     if (window.atlasData && typeof window.atlasData.setScopePath === 'function') {
       window.atlasData.setScopePath(ip);
     }
+    // Auto-bootstrap: queue `/new-ip <name>` after the workflow flip so
+    // a fresh IP folder lands ready for ssot-gen instead of asking the
+    // user to type the command themselves. activateNamespace already
+    // sent /wf ssot-gen on the same WS; backend processes prompts in
+    // order so the new-ip command runs in the right workflow context.
+    if (window.backend && typeof window.backend.send === 'function') {
+      try {
+        window.backend.send({
+          type: 'prompt',
+          text: `/new-ip ${ip}`,
+          session: `${me}/${ip}/ssot-gen`,
+          ui_lang: window.ATLAS_UI_LANG || uiLang,
+        });
+      } catch (_) {}
+    }
   };
 
   // Top-level screen — 'workspace' (live agent + chat + sidebar) or
