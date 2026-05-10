@@ -134,6 +134,14 @@ const App = () => {
   const [activeIp, setActiveIp] = React.useState(initialSplit.ipId || '');
   const [sessionIdOptions, setSessionIdOptions] = React.useState([]);
   const [ipOptions, setIpOptions] = React.useState([]);
+  // Inline notice for + IP / + SESSION errors. window.alert/prompt
+  // wedges the cmux WKWebView (native dialogs hang every browser RPC),
+  // so route validation feedback through a transient banner instead.
+  const [topNotice, setTopNotice] = React.useState('');
+  const showNotice = React.useCallback((msg) => {
+    setTopNotice(String(msg || ''));
+    setTimeout(() => setTopNotice(''), 5000);
+  }, []);
 
   const currentWorkflow = React.useCallback(() => {
     return splitSessionNamespace(window.ACTIVE_SESSION || activeNamespace).workflow
@@ -438,7 +446,7 @@ const App = () => {
     if (!raw) return;
     const owner = normalizeSession(raw);
     if (!owner) {
-      window.alert('Invalid session_id. Use only [A-Za-z0-9_.-].');
+      showNotice('Invalid session_id. Use only [A-Za-z0-9_.-].');
       return;
     }
     setSessionIdOptions(prev => Array.from(new Set([owner].concat(prev || []))));
@@ -459,7 +467,7 @@ const App = () => {
     if (!raw) return;
     const ip = normalizeSession(raw);
     if (!ip) {
-      window.alert('Invalid IP name. Use only [A-Za-z0-9_.-].');
+      showNotice('Invalid IP name. Use only [A-Za-z0-9_.-].');
       return;
     }
     // IP names are globally unique across all sessions — two different
@@ -477,7 +485,7 @@ const App = () => {
           if (segs.length >= 3) taken.add(segs[1]);
         }
         if (taken.has(ip)) {
-          window.alert(`IP "${ip}" already exists in another session.\nIP names must be globally unique.`);
+          showNotice(`IP "${ip}" already exists in another session — IP names must be globally unique.`);
           return;
         }
       }
@@ -495,14 +503,14 @@ const App = () => {
       if (!r.ok) {
         const d = await r.json().catch(() => ({}));
         if (r.status === 409) {
-          window.alert(`IP folder "${ip}/" already exists on disk.`);
+          showNotice(`IP folder "${ip}/" already exists on disk.`);
           return;
         }
-        window.alert(`Failed to create IP folder: ${d.error || r.status}`);
+        showNotice(`Failed to create IP folder: ${d.error || r.status}`);
         return;
       }
     } catch (e) {
-      window.alert(`Failed to create IP folder: ${e}`);
+      showNotice(`Failed to create IP folder: ${e}`);
       return;
     }
     const me = activeSessionId
@@ -699,6 +707,20 @@ const App = () => {
 
   return (
     <div className="app" data-dir={dir} data-theme={theme}>
+      {topNotice && (
+        <div role="alert" style={{
+          padding: '6px 12px', fontSize: 12, fontFamily: 'var(--mono)',
+          background: 'color-mix(in oklch, var(--warn) 14%, transparent)',
+          color: 'var(--warn)', borderBottom: '1px solid var(--warn)',
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          <span>⚠</span>
+          <span style={{ flex: 1 }}>{topNotice}</span>
+          <button onClick={() => setTopNotice('')}
+                  style={{ background: 'transparent', border: 'none', color: 'var(--warn)',
+                           cursor: 'pointer', fontSize: 14, lineHeight: 1 }}>×</button>
+        </div>
+      )}
       <div className="dir-switcher">
         <label className="dir-select-wrap" title={`Select user/browser session_id. Active namespace: .session/${normalizeSession(activeNamespace) || 'default'}`}>
           <span>session_id</span>
