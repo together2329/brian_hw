@@ -3162,16 +3162,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             >debug</span>
             <span className="mute" style={{ margin: '0 6px' }}>·</span>
             {mainTab === 'chat' ? (
-              // The intent badge (NORMAL/PLAN), the workflow chip, and the
-              // peer count duplicated UI already shown in the left rail and
-              // the top dir-select bar (mode toggle, WORKFLOW dropdown).
-              // Keep just the SessionSwitcher here, which is the only piece
-              // not already exposed elsewhere.
-              <SessionSwitcher
-                currentSession={activeSession || window.ACTIVE_SESSION || 'default'}
-                streaming={streaming}
-                onSwitch={handleSwitchSession}
-              />
+              // Everything in the previous chain (intent badge, workflow
+              // chip, SessionSwitcher, peer count) duplicated UI already
+              // present in the top dir-select bar (SESSION_ID, IP_ID,
+              // WORKFLOW dropdowns) and the left-rail mode toggle.
+              null
             ) : mainTab === 'split' ? (
               <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}
                     title={previewPath || ''}>
