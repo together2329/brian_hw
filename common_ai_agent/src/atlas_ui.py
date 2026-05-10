@@ -420,10 +420,25 @@ def create_app():
 
         try:
             status, body = await asyncio.to_thread(_probe)
-            ok = 200 <= status < 300
+            # 2xx → fully OK.
+            # 401/403 → real auth failure (key bad / expired).
+            # 404 → endpoint /models not supported, but the server
+            #       responded → network + DNS OK. Several providers
+            #       (codex OAuth backend, some Azure deployments) don't
+            #       expose /models; treat as "reachable" so the boot
+            #       handshake doesn't false-alarm on a working setup.
+            # 5xx / other → upstream problem.
+            ok = (200 <= status < 300) or status == 404
+            reason = (
+                "ok" if 200 <= status < 300
+                else "auth failed" if status in (401, 403)
+                else "endpoint not exposed but server reachable" if status == 404
+                else f"http {status}"
+            )
             return JSONResponse({
                 "ok": ok,
                 "status": status,
+                "reason": reason,
                 "base_url": base,
                 "provider": getattr(_cfg, "LLM_PROVIDER", ""),
                 "model": getattr(_cfg, "MODEL", ""),
