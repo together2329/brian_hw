@@ -8,10 +8,7 @@
 <style>
   html, body {
     margin: 0; padding: 0;
-    /* Use theme tokens so light/dark themes both apply. The hardcoded
-       #000/#e6edf3 used to override styles.css per-theme rules, which
-       left the body black under data-theme="light". The literals are
-       still the first-paint fallback (before styles.css loads). */
+    /* Theme tokens — literal is first-paint fallback before styles.css loads. */
     background: var(--bg, #000);
     color: var(--fg, #e6edf3);
     width: 100vw; height: 100vh;
@@ -110,16 +107,8 @@
     setTimeout(scale, 30);
     setTimeout(scale, 200);
 
-    // ── Auto-reload on frontend file change OR backend restart ───
-    // Polls /api/version every 3 s. Reloads whenever EITHER signal
-    // bumps:
-    //   • `mtime`   → latest mtime across the frontend bundle
-    //     (catches data.jsx / workspace.jsx / styles.css edits)
-    //   • `started` → backend process start epoch
-    //     (catches a pure backend reboot when only .py changed)
-    // Without the `started` track, restarting the backend with new
-    // Python code left old JS in the browser even though the .jsx
-    // file mtime hadn't moved.
+    // Auto-reload on frontend file change OR backend restart.
+    // Polls /api/version every 3s; reloads when mtime or `started` bumps.
     (function () {
       let baseline = null;
       let baselineStarted = null;
@@ -138,17 +127,12 @@
             location.reload();
             return;
           }
-          // Don't gate the started-drift check on baselineStarted being
-          // truthy — baselineStarted=0 is a legitimate value (older
-          // backend that didn't expose `started`), and `0 && expr` was
-          // false even when the new `started` was orders of magnitude
-          // bigger, so the restart-detection path silently never fired.
           const newStarted = Number(started) || 0;
           if (newStarted > 0 && newStarted > baselineStarted + 0.5) {
             console.info('[atlas] backend restarted → reloading');
             location.reload();
           }
-        } catch (_) { /* offline; try again */ }
+        } catch (_) { /* offline; retry */ }
       }
       setInterval(tick, 3000);
       tick();

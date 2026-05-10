@@ -124,17 +124,9 @@ def register_sessions_routes(
         # availability so the user sees the new workspace immediately.
         prev_wf = os.environ.get("ACTIVE_WORKSPACE", "")
         if setup_workspace is not None and wf and wf != prev_wf:
-            # In-progress banner — chat feed shows the transition is
-            # in flight so the user doesn't think the dropdown click
-            # got swallowed. The success emit at the bottom overwrites
-            # the perception once setup_workspace finishes.
+            # Emit via 'token'+'flush' — workspace.jsx subscribes to that
+            # streaming channel, not to a bare 'agent' type.
             try:
-                # Use 'token' (the streaming-pipeline channel that
-                # workspace.jsx subscribes to) rather than 'agent'
-                # (which has no listener and was silently dropped).
-                # The follow-up 'flush' parks the buffered text into a
-                # feed entry, identical to how chat_loop's slash
-                # responses land.
                 bridge.emit(
                     "token",
                     text=f"🔄 Switching workspace '{prev_wf}' → '{wf}' (ip={ip})…\n",
@@ -146,18 +138,11 @@ def register_sessions_routes(
             try:
                 setup_workspace(wf)
                 os.environ["ACTIVE_WORKSPACE"] = wf
-                # Surface the flip on backend stdout so the operator
-                # tailing the terminal sees the workspace change in
-                # real time, mirroring the legacy `[Workspace] '<name>'
-                # loaded` line that main.py prints from /wf.
                 print(
                     f"[Workspace] {wf!r} loaded via /api/session/activate "
                     f"(prev={prev_wf!r}, ip={ip!r}, owner={sid!r})",
                     flush=True,
                 )
-                # And emit on the WS bus so the frontend chat feed
-                # gets a visible "workspace flipped" line too — same
-                # channel `ssot_qa_updated` rides on.
                 try:
                     bridge.emit(
                         "workspace_changed",
@@ -167,9 +152,6 @@ def register_sessions_routes(
                         session=canonical,
                         source="api/session/activate",
                     )
-                    # Same channel as the in-progress banner above — emit
-                    # via 'token' so workspace.jsx's streaming subscriber
-                    # picks it up; flush parks the buffer.
                     bridge.emit(
                         "token",
                         text=f"✅ Workspace switched to '{wf}' (was '{prev_wf}') · ip={ip}\n",
