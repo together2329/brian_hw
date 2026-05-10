@@ -105,21 +105,36 @@
     setTimeout(scale, 30);
     setTimeout(scale, 200);
 
-    // ── Auto-reload on frontend file change ──────────────────────
-    // Polls /api/version every 3 s. If the latest mtime across the
-    // frontend bundle bumps, reload the page. So whenever the source
-    // gets edited (data.jsx, workspace.jsx, styles.css, …) you see
-    // the change without a manual refresh.
+    // ── Auto-reload on frontend file change OR backend restart ───
+    // Polls /api/version every 3 s. Reloads whenever EITHER signal
+    // bumps:
+    //   • `mtime`   → latest mtime across the frontend bundle
+    //     (catches data.jsx / workspace.jsx / styles.css edits)
+    //   • `started` → backend process start epoch
+    //     (catches a pure backend reboot when only .py changed)
+    // Without the `started` track, restarting the backend with new
+    // Python code left old JS in the browser even though the .jsx
+    // file mtime hadn't moved.
     (function () {
       let baseline = null;
+      let baselineStarted = null;
       async function tick() {
         try {
           const r = await fetch('/api/version', { cache: 'no-store' });
           if (!r.ok) return;
-          const { mtime } = await r.json();
-          if (baseline === null) { baseline = mtime; return; }
+          const { mtime, started } = await r.json();
+          if (baseline === null) {
+            baseline = mtime;
+            baselineStarted = started || 0;
+            return;
+          }
           if (mtime && mtime > baseline + 0.5) {
             console.info('[atlas] frontend changed → reloading');
+            location.reload();
+            return;
+          }
+          if (started && baselineStarted && started > baselineStarted + 0.5) {
+            console.info('[atlas] backend restarted → reloading');
             location.reload();
           }
         } catch (_) { /* offline; try again */ }

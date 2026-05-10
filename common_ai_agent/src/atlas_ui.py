@@ -354,12 +354,24 @@ def create_app():
         )
         return HTMLResponse(html)
 
+    # Per-process startup epoch — bumps every time the backend
+    # restarts. Surfaced in /api/version so the frontend polling loop
+    # triggers a reload not only on frontend file edits (mtime track)
+    # but also on a pure backend restart, even when no .jsx changed.
+    _BACKEND_STARTED_AT = time.time()
+
     @app.get("/api/version")
     async def api_version():
-        """Returns the latest mtime across the frontend bundle. The
-        browser polls this every few seconds — if it bumps, the page
-        reloads. Cheap server-side hot-reload without watchdog or
-        websocket file-watcher complexity.
+        """Returns two pieces of "should the browser reload?" data:
+
+        - `mtime`   — latest mtime across the frontend bundle (catches
+                      .jsx / .js / .html edits)
+        - `started` — backend process start epoch (catches a pure
+                      backend reboot when only .py changed)
+
+        The browser polls every few seconds and reloads when EITHER
+        value bumps, so backend-reboot and frontend-reload paths both
+        propagate without manual cache clears.
         """
         latest = 0.0
         try:
@@ -368,7 +380,7 @@ def create_app():
                     latest = max(latest, f.stat().st_mtime)
         except OSError:
             pass
-        return JSONResponse({"mtime": latest})
+        return JSONResponse({"mtime": latest, "started": _BACKEND_STARTED_AT})
 
     @app.get("/api/llm/ping")
     async def api_llm_ping():
@@ -422,16 +434,22 @@ def create_app():
             status, body = await asyncio.to_thread(_probe)
             # 2xx → fully OK.
             # 401/403 → real auth failure (key bad / expired).
+            # 400 → server reachable but rejects the bare /models GET.
+            #       Codex OAuth backend (chatgpt.com/backend-api/codex)
+            #       demands a `client_version` query param and replies
+            #       400 without it; the chat completions path still
+            #       works fine. TCP + DNS + TLS all proved alive, so
+            #       count as reachable.
             # 404 → endpoint /models not supported, but the server
             #       responded → network + DNS OK. Several providers
-            #       (codex OAuth backend, some Azure deployments) don't
-            #       expose /models; treat as "reachable" so the boot
-            #       handshake doesn't false-alarm on a working setup.
+            #       (some Azure deployments) don't expose /models;
+            #       treat as "reachable" too.
             # 5xx / other → upstream problem.
-            ok = (200 <= status < 300) or status == 404
+            ok = (200 <= status < 300) or status in (400, 404)
             reason = (
                 "ok" if 200 <= status < 300
                 else "auth failed" if status in (401, 403)
+                else "server reachable, /models rejected the bare GET" if status == 400
                 else "endpoint not exposed but server reachable" if status == 404
                 else f"http {status}"
             )
