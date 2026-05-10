@@ -1,7 +1,7 @@
 {
   "name": "coverage-report",
   "description": "Generate annotated source + .info report (+ optional html via genhtml)",
-  "aliases": ["cov-report"],
+  "aliases": ["cov-report", "coverage", "cov"],
   "handler": "bash:coverage_report.sh",
   "usage": "/coverage-report [<dut_name>] [--html]"
 }
