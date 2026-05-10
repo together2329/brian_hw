@@ -1373,68 +1373,7 @@ def create_app():
         except Exception as e:
             return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
 
-    @app.get("/api/ssot")
-    async def api_ssot(file: str = ""):
-        if file:
-            target = _safe(file)
-            if target is None or not target.is_file():
-                return JSONResponse({"error": "not found"}, status_code=404)
-            try:
-                def _read_ssot_preview():
-                    stat = target.stat()
-                    data = target.read_bytes()[:MAX_READ_BYTES]
-                    return stat, data.decode("utf-8", errors="replace")
-                stat, content = await asyncio.to_thread(_read_ssot_preview)
-            except OSError as e:
-                return JSONResponse({"error": str(e)}, status_code=500)
-            return JSONResponse({
-                "path": file,
-                "size": stat.st_size,
-                "mtime": stat.st_mtime,
-                "truncated": stat.st_size > MAX_READ_BYTES,
-                "content": content,
-            })
-        # No specific file → list every *.ssot.yaml in the project
-        results = []
-        for p in PROJECT_ROOT.rglob("*.ssot.yaml"):
-            if any(part in SKIP_DIRS or part.startswith(".")
-                   for part in p.parts):
-                continue
-            try:
-                rel = p.relative_to(PROJECT_ROOT).as_posix()
-                stat = p.stat()
-                results.append({"path": rel, "size": stat.st_size,
-                                 "mtime": stat.st_mtime})
-            except OSError:
-                continue
-        return JSONResponse({"files": results})
-
-    @app.get("/api/ssot/qa")
-    async def api_ssot_qa(ip: str = "", session: str = ""):
-        session_name = normalize_session_name(session or "")
-        target = str(ip or "").strip()
-        if not target and session_name:
-            parts = [p for p in session_name.split("/") if p]
-            if len(parts) >= 2 and parts[-1] == "ssot-gen":
-                target = parts[-2]
-        if target and not _valid_ip_name(target):
-            return JSONResponse({"error": f"invalid ip {target!r}"}, status_code=400)
-        if not target:
-            target = _active_ssot_ip()
-        if not target or not _valid_ip_name(target):
-            return JSONResponse({
-                "ip": "",
-                "workflow": "ssot-gen",
-                "toc": [],
-                "sections": [],
-                "summary": {"total": 0, "approved": 0, "pending": 0},
-                "items": [],
-            })
-        return JSONResponse(_ssot_qa_view(target, session=session_name))
-
-    @app.get("/api/ssot/qa/sessions")
-    async def api_ssot_qa_sessions():
-        return JSONResponse(_ssot_qa_sessions_view())
+    # SSOT routes registered via register_ssot_routes() below (see atlas_api_ssot.py).
 
     @app.post("/api/session/activate")
     async def api_session_activate(req: Request):
@@ -1498,105 +1437,7 @@ def create_app():
             "halted": triple_changed,
         })
 
-    @app.post("/api/ssot/qa/answer")
-    async def api_ssot_qa_answer(req: Request):
-        """Persist user-supplied answers for pending QA items to qa.json.
-
-        Body shape (each item carries its OWN flow_id so this endpoint can
-        update the pre-existing pending entry in-place, not create a new one):
-          {
-            "ip": "<ip_name>",
-            "session": "<owner>/<ip>/<workflow>",   # optional
-            "items": [
-              {
-                "flow_id": "<flow_id>",         # required — match existing entry
-                "decision_key": "<key>",         # required
-                "answer": "<text>",
-                "selected": ["opt_label", ...],
-                "section_id": "...", "section_title": "...",
-                "decision_label": "...",
-                "question": "...", "subtitle": "..."
-              },
-              ...
-            ],
-            "submitted_text": "<full prompt that was sent>"
-          }
-        """
-        try:
-            body = await req.json()
-        except Exception:
-            return JSONResponse({"error": "invalid json body"}, status_code=400)
-        ip = str((body or {}).get("ip") or "").strip()
-        if not ip or not _valid_ip_name(ip):
-            return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
-        session_name = normalize_session_name(str((body or {}).get("session") or ""))
-        if not session_name:
-            session_name = _canonical_session_string(ip)
-        items_in = (body or {}).get("items") or []
-        if not isinstance(items_in, list) or not items_in:
-            return JSONResponse({"error": "items[] required"}, status_code=400)
-
-        # Group by flow_id so existing pending entries get updated in-place.
-        grouped: dict[str, dict[str, Any]] = {}
-        fallback_flow_id = "atlas_qa_" + str(int(time.time() * 1000))
-        for entry in items_in:
-            if not isinstance(entry, dict):
-                continue
-            key_src = entry.get("decision_key") or entry.get("id") or entry.get("question")
-            if not key_src:
-                continue
-            flow_id = str(entry.get("flow_id") or "").strip() or fallback_flow_id
-            key = _qa_slug(str(key_src), f"qa_{len(grouped.get(flow_id, {}).get('pairs', [])) + 1}")
-            label = str(entry.get("decision_label") or entry.get("question") or key)[:240]
-            qmeta = {
-                "decision_key": key,
-                "decision_label": label,
-                "section_id": entry.get("section_id") or "",
-                "section_title": entry.get("section_title") or entry.get("section") or "",
-                "question": entry.get("question") or label,
-                "subtitle": entry.get("subtitle") or "",
-            }
-            answer_text = str(entry.get("answer") or "").strip()
-            selected = entry.get("selected") if isinstance(entry.get("selected"), list) else []
-            if not answer_text and selected:
-                answer_text = "; ".join(str(s) for s in selected if s)
-            bucket = grouped.setdefault(flow_id, {"pairs": [], "answers": {}})
-            bucket["pairs"].append((key, label or key, qmeta))
-            bucket["answers"][key] = {
-                "answer": answer_text,
-                "selected": [str(s) for s in selected if s],
-                "submitted_at": time.time(),
-                "source": "atlas-ui",
-            }
-
-        if not grouped:
-            return JSONResponse({"error": "no valid items to record"}, status_code=400)
-
-        for flow_id, bucket in grouped.items():
-            _upsert_ssot_qa_items(
-                ip,
-                flow_id=flow_id,
-                kind=str((_load_ssot_state(ip) or {}).get("kind") or "general IP"),
-                q_pairs=bucket["pairs"],
-                status="approved",   # user explicitly answered → flip pending → approved
-                answers=bucket["answers"],
-                session=session_name,
-                source="atlas-ui-pending",
-            )
-
-        # Mirror the submitted prompt into the conversation log for traceability.
-        submitted_text = str((body or {}).get("submitted_text") or "").strip()
-        if submitted_text:
-            _append_session_message(session_name, "user", submitted_text)
-
-        return JSONResponse({
-            "ok": True,
-            "ip": ip,
-            "session": session_name,
-            "flow_ids": list(grouped.keys()),
-            "count": sum(len(b["pairs"]) for b in grouped.values()),
-            "qa_path": str(_ssot_qa_path(ip, session_name).relative_to(PROJECT_ROOT)),
-        })
+    # POST /api/ssot/qa/answer registered via register_ssot_routes() (see atlas_api_ssot.py).
 
     @app.get("/api/soc")
     async def api_soc():
@@ -9688,6 +9529,27 @@ def create_app():
         project_root=lambda: PROJECT_ROOT,
         source_root=SOURCE_ROOT,
         safe_path=_safe,
+    )
+    # SSOT API (/api/ssot, /api/ssot/qa, /api/ssot/qa/sessions,
+    # /api/ssot/qa/answer) lives in src/atlas_api_ssot.py.
+    from atlas_api_ssot import register_ssot_routes  # noqa: WPS433
+    register_ssot_routes(
+        app,
+        project_root=lambda: PROJECT_ROOT,
+        safe_path=_safe,
+        skip_dirs=SKIP_DIRS,
+        max_read_bytes=MAX_READ_BYTES,
+        valid_ip_name=_valid_ip_name,
+        active_ssot_ip=_active_ssot_ip,
+        ssot_qa_view=_ssot_qa_view,
+        ssot_qa_sessions_view=_ssot_qa_sessions_view,
+        ssot_qa_path=_ssot_qa_path,
+        qa_slug=_qa_slug,
+        upsert_ssot_qa_items=_upsert_ssot_qa_items,
+        load_ssot_state=_load_ssot_state,
+        canonical_session_string=_canonical_session_string,
+        normalize_session_name=normalize_session_name,
+        append_session_message=_append_session_message,
     )
 
     # ── Atlas SQLite session API ─────────────────────────────────
