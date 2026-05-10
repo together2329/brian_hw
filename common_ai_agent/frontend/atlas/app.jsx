@@ -179,6 +179,29 @@ const App = () => {
   const [bootHidden, setBootHidden] = React.useState(false);
   React.useEffect(() => {
     const mark = (k, v) => setBootSteps(s => (s[k] === v ? s : { ...s, [k]: v }));
+    const runProbes = () => {
+      // Reset HTTP-side legs to pending so the user sees the rerun.
+      setBootSteps(s => ({
+        ...s,
+        health: 'pending', sessions: 'pending', llm: 'pending',
+      }));
+      setBootHidden(false);
+      fetch('/healthz', { cache: 'no-store' })
+        .then(r => mark('health', r.ok ? 'done' : 'fail'))
+        .catch(() => mark('health', 'fail'));
+      fetch('/api/session/list', { cache: 'no-store' })
+        .then(r => mark('sessions', r.ok ? 'done' : 'fail'))
+        .catch(() => mark('sessions', 'fail'));
+      // LLM provider probe — cheap GET /v1/models. Backend now treats
+      // 200/400/404 as "reachable" so this lights ✓ on every common
+      // provider (deepseek, openai, codex OAuth, azure deployment
+      // without /models exposed).
+      fetch('/api/llm/ping', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .then(j => mark('llm', j && j.ok ? 'done' : 'fail'))
+        .catch(() => mark('llm', 'fail'));
+    };
+
     // Initial WS state — backend.js may have already connected by the
     // time this effect runs.
     if (window.backend?.getConnectionState) {
@@ -188,24 +211,18 @@ const App = () => {
     const subs = [];
     try {
       subs.push(window.backend.subscribe('connection', (m) => {
-        mark('ws', m?.state === 'open' ? 'done' : 'fail');
+        const next = m?.state === 'open' ? 'done' : 'fail';
+        mark('ws', next);
+        // On a reconnect (e.g. after backend restart), re-fire the
+        // HTTP probes — otherwise the panel stays pinned at whatever
+        // it captured the first time the page mounted. The boot card
+        // is what the user looks at to confirm "yes the new backend
+        // is up", so it MUST refresh after a WS reopen.
+        if (next === 'done') runProbes();
       }));
       subs.push(window.backend.subscribe('hello', () => mark('hello', 'done')));
     } catch (_) {}
-    // Independent HTTP probes
-    fetch('/healthz', { cache: 'no-store' })
-      .then(r => mark('health', r.ok ? 'done' : 'fail'))
-      .catch(() => mark('health', 'fail'));
-    fetch('/api/session/list', { cache: 'no-store' })
-      .then(r => mark('sessions', r.ok ? 'done' : 'fail'))
-      .catch(() => mark('sessions', 'fail'));
-    // LLM provider probe — cheap GET /v1/models on the configured
-    // base_url with the configured bearer key. Catches expired API
-    // keys / wrong base_url / network firewall before the user types.
-    fetch('/api/llm/ping', { cache: 'no-store' })
-      .then(r => r.ok ? r.json() : Promise.reject(r.status))
-      .then(j => mark('llm', j && j.ok ? 'done' : 'fail'))
-      .catch(() => mark('llm', 'fail'));
+    runProbes();
     return () => { subs.forEach(u => { try { u && u(); } catch (_) {} }); };
   }, []);
   const bootDone = Object.values(bootSteps).every(v => v === 'done');
