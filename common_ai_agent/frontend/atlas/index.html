@@ -130,7 +130,7 @@
           const { mtime, started } = await r.json();
           if (baseline === null) {
             baseline = mtime;
-            baselineStarted = started || 0;
+            baselineStarted = Number(started) || 0;
             return;
           }
           if (mtime && mtime > baseline + 0.5) {
@@ -138,7 +138,13 @@
             location.reload();
             return;
           }
-          if (started && baselineStarted && started > baselineStarted + 0.5) {
+          // Don't gate the started-drift check on baselineStarted being
+          // truthy — baselineStarted=0 is a legitimate value (older
+          // backend that didn't expose `started`), and `0 && expr` was
+          // false even when the new `started` was orders of magnitude
+          // bigger, so the restart-detection path silently never fired.
+          const newStarted = Number(started) || 0;
+          if (newStarted > 0 && newStarted > baselineStarted + 0.5) {
             console.info('[atlas] backend restarted → reloading');
             location.reload();
           }
