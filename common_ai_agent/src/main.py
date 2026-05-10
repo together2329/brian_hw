@@ -2465,7 +2465,7 @@ def chat_loop():
                                     # embedded ``` doesn't terminate our wrap
                                     # early (which previously caused marked.js
                                     # to split the block into ~10 fragments).
-                                    _longest = max((len(m.group(0)) for m in re.finditer(r"`+", _clean)), default=0)
+                                    _longest = max((len(m.group(0)) for m in _re.finditer(r"`+", _clean)), default=0)
                                     _fence = "`" * max(3, _longest + 1)
                                     _payload = f"{_fence}\n" + "\n".join(_clean.splitlines() or [""]) + f"\n{_fence}\n"
                                     # Emit through the streaming pipeline
