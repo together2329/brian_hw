@@ -18,34 +18,6 @@
 (function () {
   'use strict';
 
-  // ── localStorage gate (per user request) ─────────────────────────
-  // Session/IP/scope state must NOT survive a page reload — every
-  // boot is anchored to the backend's PROJECT_ROOT scan instead. This
-  // monkey-patch on Storage.prototype intercepts every call site
-  // (workspace.jsx, app.jsx, data.jsx) at once so we don't have to
-  // chase down every getItem/setItem individually. UI prefs (font,
-  // language, theme) still persist normally.
-  try {
-    const _BLOCKED_LS_KEYS = new Set([
-      'atlasActiveSession', 'atlasUserSessionId', 'atlasScopePath',
-    ]);
-    const _origGet = Storage.prototype.getItem;
-    const _origSet = Storage.prototype.setItem;
-    Storage.prototype.getItem = function (k) {
-      if (_BLOCKED_LS_KEYS.has(k)) return null;
-      return _origGet.call(this, k);
-    };
-    Storage.prototype.setItem = function (k, v) {
-      if (_BLOCKED_LS_KEYS.has(k)) return;
-      _origSet.call(this, k, v);
-    };
-    // Clear any pre-existing stale entries so a one-time migration
-    // happens on the very first reload after this lands.
-    for (const k of _BLOCKED_LS_KEYS) {
-      try { _origSet.call(localStorage, k, null); localStorage.removeItem(k); } catch (_) {}
-    }
-  } catch (_) {}
-
   // ── Static defaults ─────────────────────────────────────────────
   // All of these are deliberately small/empty. workspace.jsx panels
   // that used to render mock content now render whatever the live
