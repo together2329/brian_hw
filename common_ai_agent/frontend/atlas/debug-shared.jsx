@@ -351,23 +351,28 @@ window.ScopeTree = ({ selected, onSelect }) => {
   );
 };
 
-// Title bar reused across variants
-window.AtlasTitle = ({ subtitle, right }) => (
-  <div className="vt-title">
-    <span className="dot" />
-    <span><b>ATLAS</b> · common_ai_agent</span>
-    <span className="pipe">│</span>
-    <span><b>workspace</b> · spi_master/</span>
-    {subtitle && (
-      <>
-        <span className="pipe">│</span>
-        <span style={{ color: 'var(--accent)' }}>{subtitle}</span>
-      </>
-    )}
-    <span className="spacer" />
-    {right}
-  </div>
-);
+// Title bar reused across variants. `workspace` prop overrides the
+// fallback "spi_master/" placeholder so the live IP shows up here
+// when the panel is mounted against a real workspace (e.g. gpio).
+window.AtlasTitle = ({ subtitle, right, workspace }) => {
+  const ws = (workspace && String(workspace).trim()) || 'spi_master';
+  return (
+    <div className="vt-title">
+      <span className="dot" />
+      <span><b>ATLAS</b> · common_ai_agent</span>
+      <span className="pipe">│</span>
+      <span><b>workspace</b> · {ws}/</span>
+      {subtitle && (
+        <>
+          <span className="pipe">│</span>
+          <span style={{ color: 'var(--accent)' }}>{subtitle}</span>
+        </>
+      )}
+      <span className="spacer" />
+      {right}
+    </div>
+  );
+};
 
 // Status bar
 window.AtlasStatus = ({ items, right }) => (

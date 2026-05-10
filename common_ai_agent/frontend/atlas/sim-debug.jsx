@@ -449,8 +449,31 @@ window.SimDebug = () => {
   React.useEffect(() => { setRightTab(topTab); }, [topTab]);
   const [ipName, setIpName] = React.useState('');
 
-  // Auto-detect IP from cwd (best-effort: first dir under PROJECT_ROOT
-  // that has a /sim subfolder). Fetches the VCD list on mount.
+  // Auto-detect IP. Two parallel signals are checked:
+  //   1) window.ACTIVE_SESSION's middle segment — fires immediately on
+  //      mount and keeps the panel correctly scoped even when no VCD
+  //      has been generated yet (e.g. before /sim runs). Subscribes to
+  //      backend session_state events so a workspace switch live-flips
+  //      the IP without a manual reload.
+  //   2) /api/vcd/list — same as before, but ONLY overrides the IP
+  //      when (1) hasn't already supplied one. Without this guard the
+  //      VCD list could pin sim_debug to whichever IP last produced a
+  //      VCD even after the user has moved to a different IP.
+  React.useEffect(() => {
+    const seedFromActiveSession = () => {
+      const segs = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+      const ipSeg = segs.length >= 2 ? segs[1] : '';
+      if (ipSeg && ipSeg !== 'default') setIpName(ipSeg);
+    };
+    seedFromActiveSession();
+    if (!window.backend?.subscribe) return undefined;
+    const subs = [];
+    try {
+      subs.push(window.backend.subscribe('session_state', seedFromActiveSession));
+    } catch (_) {}
+    return () => { subs.forEach(u => { try { u && u(); } catch (_) {} }); };
+  }, []);
+
   React.useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -463,9 +486,12 @@ window.SimDebug = () => {
         if (files.length && !vcdActive) {
           // Pick the most recent (list is mtime-sorted desc).
           setVcdActive(files[0].path);
-          // Infer IP name from path: <ip>/sim/foo.vcd
           const parts = files[0].path.split('/');
-          if (parts.length >= 2 && parts[1] === 'sim') setIpName(parts[0]);
+          // Only seed ipName from the VCD path when the session-derived
+          // ipName is still empty — see effect above.
+          if (parts.length >= 2 && parts[1] === 'sim' && !ipName) {
+            setIpName(parts[0]);
+          }
         }
       } catch (e) { /* ignore */ }
     })();
@@ -1105,6 +1131,17 @@ window.SimDebug = () => {
       minWidth: 0, minHeight: 0,
     }}>
       <window.AtlasTitle
+        // Resolve the active workspace IP — prefer the SimDebug-local
+        // ipName (set when a VCD is found), otherwise the live
+        // window.ACTIVE_SESSION's middle segment (default/<ip>/<wf>).
+        // The hardcoded "spi_master/" fallback inside AtlasTitle is
+        // gone now; passing an empty string still falls back to that
+        // legacy default for first-paint.
+        workspace={
+          ipName ||
+          (String(window.ACTIVE_SESSION || '').split('/').filter(Boolean)[1]) ||
+          ''
+        }
         subtitle={'sim_debug · ' + (vcdActive ? vcdActive.split('/').pop() : 'no VCD')}
         right={
           <span className="agent-chip">

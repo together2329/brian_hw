@@ -86,6 +86,7 @@
     }
     ws.onopen = () => {
       connectionState = 'open';
+      _reconnectAttempts = 0;  // reset backoff on a successful open
       emit('connection', { state: 'open' });
       while (liveQueue.length) ws.send(JSON.stringify(liveQueue.shift()));
     };
@@ -111,9 +112,21 @@
       emit('connection', { state: 'error', error: String(e) });
     };
   }
+  // Exponential backoff for reconnect — fast first retry so a backend
+  // restart picks up immediately, capped at 5 s so a truly down server
+  // doesn't burn CPU on tight retries. Resets to the floor whenever the
+  // socket reaches `open`.
+  let _reconnectAttempts = 0;
+  const _RECONNECT_MIN_MS = 250;
+  const _RECONNECT_MAX_MS = 5000;
   function scheduleReconnect() {
     clearTimeout(reconnectTimer);
-    reconnectTimer = setTimeout(liveConnect, 1500);
+    const delay = Math.min(
+      _RECONNECT_MAX_MS,
+      _RECONNECT_MIN_MS * Math.pow(2, _reconnectAttempts),
+    );
+    _reconnectAttempts += 1;
+    reconnectTimer = setTimeout(liveConnect, delay);
   }
   function liveSend(msg) {
     // Track prompts (or any send carrying msg_id) for ack-based retry.
