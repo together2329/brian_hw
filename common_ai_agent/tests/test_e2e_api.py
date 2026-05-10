@@ -13,11 +13,12 @@ def test_full_flow():
     assert r.status_code == 200
     print("PASS: /healthz")
 
-    r = client.post("/api/auth/guest")
-    assert r.status_code == 200
+    r = client.post("/api/auth/register",
+                    json={"username": "e2e_user", "password": "pw"})
+    assert r.status_code == 200, f"register: {r.status_code} {r.text}"
     user = r.json()["user"]
-    assert user["username"].startswith("guest_")
-    print("PASS: /api/auth/guest")
+    assert user["username"] == "e2e_user"
+    print("PASS: /api/auth/register")
 
     r = client.get("/api/users/me")
     assert r.status_code == 200

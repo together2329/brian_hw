@@ -1,17 +1,19 @@
 """
-Minimal single-user backward-compatibility verification.
+Single-user-mode auth + identity verification.
 
-Tests that ATLAS_MULTI_USER=0 (or unset) behaves like the legacy
-single-user mode:
-  - /healthz does NOT expose client_ip / user_session
-  - /ws/agent without ?session_id= binds to the default session
-  - prompt submission flows through the default session
+ATLAS_MULTI_USER=0 still requires login (guest auto-creation removed).
+Tests confirm:
+  - /healthz is public and reports user_session=null when unauthenticated,
+    username when authenticated
+  - Protected endpoints return 401 without a cookie
+  - /ws/agent rejects unauthenticated connections (1008)
+  - /ws/agent without a session_id defaults to the authenticated user's
+    own namespace (= username)
+  - The bridge is still _MultiUserBridge (architectural invariant)
 """
 import os
 import sys
-import json
 
-# Ensure single-user mode
 os.environ["ATLAS_MULTI_USER"] = "0"
 os.environ["ATLAS_MULTI_USER_PROC"] = "0"
 
@@ -21,70 +23,101 @@ from fastapi.testclient import TestClient
 from src.atlas_ui import create_app
 
 
-def test_healthz_no_multiuser_fields():
+def _register(client: TestClient, username: str, password: str = "pw"):
+    r = client.post("/api/auth/register",
+                    json={"username": username, "password": password})
+    assert r.status_code == 200, f"register failed: {r.status_code} {r.text}"
+    return r.json()["user"]
+
+
+def test_healthz_anonymous():
     app = create_app()
     client = TestClient(app)
     r = client.get("/healthz")
-    assert r.status_code == 200, f"Expected 200, got {r.status_code}"
+    assert r.status_code == 200, f"/healthz should be public, got {r.status_code}"
     data = r.json()
-    assert "client_ip" not in data, f"client_ip should NOT be present in single-user mode: {data}"
-    assert "user_session" not in data, f"user_session should NOT be present in single-user mode: {data}"
-    print("PASS: /healthz without multi-user fields")
+    assert data["multi_user"] is False
+    assert data["user_session"] is None, f"unauth user_session should be null: {data['user_session']}"
+    print("PASS: /healthz anonymous → user_session=null")
 
 
-def test_ws_agent_without_session_id():
+def test_healthz_authenticated():
     app = create_app()
     client = TestClient(app)
-    with client.websocket_connect("/ws/agent") as ws:
-        data = ws.receive_json()
-        assert data["type"] == "hello", f"Expected hello, got {data}"
-        # In single-user mode, no session_id should appear in the hello
-        assert data.get("session_id") is None, f"Unexpected session_id in single-user hello: {data}"
-        print("PASS: WS /ws/agent without session_id")
+    _register(client, "compat_a")
+    r = client.get("/healthz")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["user_session"] == "compat_a", f"expected username, got {data['user_session']}"
+    print("PASS: /healthz authenticated → user_session=<username>")
 
 
-def test_ws_agent_prompt_to_default_session():
-    """Submit a prompt and verify it lands in the default session's inbox."""
+def test_protected_endpoint_requires_auth():
     app = create_app()
     client = TestClient(app)
-    bridge = app.state.bridge
+    r = client.get("/api/users/me")
+    assert r.status_code == 401, f"protected endpoint should 401, got {r.status_code}"
+    print("PASS: /api/users/me unauth → 401")
 
+
+def test_protected_endpoint_with_auth():
+    app = create_app()
+    client = TestClient(app)
+    _register(client, "compat_b")
+    r = client.get("/api/users/me")
+    assert r.status_code == 200
+    assert r.json()["user"]["username"] == "compat_b"
+    print("PASS: /api/users/me with cookie → 200")
+
+
+def test_ws_requires_auth():
+    from starlette.websockets import WebSocketDisconnect
+    app = create_app()
+    client = TestClient(app)
+    try:
+        with client.websocket_connect("/ws/agent") as ws:
+            ws.receive_json()
+        raise AssertionError("WS without cookie should be rejected")
+    except WebSocketDisconnect as e:
+        assert e.code == 1008, f"expected 1008, got {e.code}"
+        print("PASS: /ws/agent unauth → 1008")
+
+
+def test_ws_with_auth_binds_to_user_namespace():
+    app = create_app()
+    client = TestClient(app)
+    user = _register(client, "compat_c")
     with client.websocket_connect("/ws/agent") as ws:
         hello = ws.receive_json()
         assert hello["type"] == "hello"
-
-        # Send a prompt
-        ws.send_json({"type": "prompt", "text": "hello world", "msg_id": "test-1"})
-
-        # Wait for agent_received ack
-        ack = ws.receive_json()
-        assert ack["type"] == "agent_received"
-
-        session = bridge.get_session("default")
-        try:
-            msg = session._inbox.get(timeout=1)
-            assert msg == "hello world"
-            print("PASS: prompt lands in default session inbox")
-        except Exception:
-            print("PASS: default session exists and prompt was accepted")
+        bridge = app.state.bridge
+        assert bridge.get_session(user["username"]) is not None, \
+            f"expected a session bound to '{user['username']}'"
+        print(f"PASS: /ws/agent authenticated → session_id=user.username ({user['username']})")
 
 
-def test_bridge_is_multiuser_with_single_user_flag():
-    """
-    Verify that create_app() uses _MultiUserBridge even in single-user mode.
-    This documents the current architecture — the bridge always wraps
-    _SessionBridge('default') and delegates everything to it.
-    """
+def test_bridge_is_multiuser():
     app = create_app()
     bridge = app.state.bridge
     from core.atlas_multiuser import _MultiUserBridge
-    assert isinstance(bridge, _MultiUserBridge), f"Expected _MultiUserBridge, got {type(bridge)}"
-    print("PASS: bridge is _MultiUserBridge (default session delegation)")
+    assert isinstance(bridge, _MultiUserBridge)
+    print("PASS: bridge is _MultiUserBridge")
 
 
 if __name__ == "__main__":
-    test_healthz_no_multiuser_fields()
-    test_ws_agent_without_session_id()
-    test_ws_agent_prompt_to_default_session()
-    test_bridge_is_multiuser_with_single_user_flag()
+    # Each test gets a fresh DB file so registrations don't collide.
+    import pathlib, tempfile
+    for fn in [
+        test_healthz_anonymous,
+        test_healthz_authenticated,
+        test_protected_endpoint_requires_auth,
+        test_protected_endpoint_with_auth,
+        test_ws_requires_auth,
+        test_ws_with_auth_binds_to_user_namespace,
+        test_bridge_is_multiuser,
+    ]:
+        db = pathlib.Path.home() / ".common_ai_agent" / "atlas.db"
+        if db.exists():
+            db.unlink()
+        fn()
     print("\nALL SINGLE-USER VERIFICATION TESTS PASSED")
