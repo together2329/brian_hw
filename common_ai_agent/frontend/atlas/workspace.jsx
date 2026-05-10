@@ -9355,7 +9355,11 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
       const color = _FOLD_KIND_COLOR[c.kind] || 'var(--fg-mute)';
       const opened = (depth === 0) || (c.kind === 'section' && depth <= 1);
       const inner = [];
-      inner.push(renderLineRow(c.line_start));
+      // The fold summary already labels c.line_start (with the parsed
+      // key + line range), so rendering that same line again as a
+      // line-row produced visible duplicates — see the SSOT YAML
+      // screenshot where `io_list:` showed both as a fold header and
+      // as line 264. Skip line_start in the body and start from +1.
       cursor = c.line_start + 1;
       const sub = renderTree(c, cursor, depth + 1);
       inner.push(...sub.elements);
