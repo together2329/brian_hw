@@ -9829,20 +9829,24 @@ def create_app():
     # and return their stdout/stderr. Push includes an explicit
     # confirm flag because it's destructive (remote-visible).
     import subprocess as _sp_git
-    def _git(*args, check_root: bool = True, cwd: str | None = None):
+    async def _git(*args, check_root: bool = True, cwd: str | None = None):
         # `cwd` lets callers target the per-IP repo (PROJECT_ROOT/<ip>)
         # instead of the outer project repo. Defaults to PROJECT_ROOT
         # for backwards compatibility with existing /api/git/* paths.
-        try:
-            r = _sp_git.run(
-                ["git", *args], cwd=cwd or str(PROJECT_ROOT),
-                capture_output=True, text=True, timeout=30,
-            )
-            return r.returncode, r.stdout, r.stderr
-        except _sp_git.TimeoutExpired:
-            return 124, "", "git command timed out"
-        except FileNotFoundError:
-            return 127, "", "git executable not found"
+        # Now async so /api/git/status / /api/git/log polling never
+        # blocks the asyncio loop while git runs (10-100 ms).
+        def _run_git():
+            try:
+                r = _sp_git.run(
+                    ["git", *args], cwd=cwd or str(PROJECT_ROOT),
+                    capture_output=True, text=True, timeout=30,
+                )
+                return r.returncode, r.stdout, r.stderr
+            except _sp_git.TimeoutExpired:
+                return 124, "", "git command timed out"
+            except FileNotFoundError:
+                return 127, "", "git executable not found"
+        return await asyncio.to_thread(_run_git)
 
     def _git_cwd_for_ip(ip: str) -> str:
         """Resolve the cwd for a per-IP git repo. Falls back to
@@ -9861,10 +9865,10 @@ def create_app():
         # AND empty active env var = outer repo; otherwise per-IP.
         cwd = _git_cwd_for_ip(ip or _active_ip_value())
         # Branch
-        rc, branch, _ = _git("rev-parse", "--abbrev-ref", "HEAD", cwd=cwd)
+        rc, branch, _ = await _git("rev-parse", "--abbrev-ref", "HEAD", cwd=cwd)
         branch = branch.strip() if rc == 0 else ""
         # Porcelain status with numstat-ish summary
-        rc, out, err = _git("status", "--porcelain=v1", "--branch", cwd=cwd)
+        rc, out, err = await _git("status", "--porcelain=v1", "--branch", cwd=cwd)
         if rc != 0:
             return JSONResponse({"error": err.strip() or "git status failed",
                                  "branch": branch, "files": []}, status_code=200)
@@ -9891,7 +9895,7 @@ def create_app():
                 "unstaged": xy[1] != " ",
             })
         # Per-file numstat (added/removed lines) — best-effort
-        rc, ns_out, _ = _git("diff", "--numstat", "HEAD", cwd=cwd)
+        rc, ns_out, _ = await _git("diff", "--numstat", "HEAD", cwd=cwd)
         numstat = {}
         if rc == 0:
             for line in ns_out.splitlines():
@@ -9922,11 +9926,11 @@ def create_app():
         cwd = _git_cwd_for_ip(ip or _active_ip_value())
         if not (Path(cwd) / ".git").is_dir():
             return JSONResponse({"commits": [], "branch": "", "ip": ip})
-        rc, branch, _ = _git("rev-parse", "--abbrev-ref", "HEAD", cwd=cwd)
+        rc, branch, _ = await _git("rev-parse", "--abbrev-ref", "HEAD", cwd=cwd)
         branch = branch.strip() if rc == 0 else ""
         # %x1e = record separator, %x1f = field separator
         fmt = "%H%x1f%h%x1f%an%x1f%ae%x1f%aI%x1f%s%x1e"
-        rc, out, err = _git(
+        rc, out, err = await _git(
             "log",
             f"-n{max(1, min(limit, 500))}",
             f"--pretty=format:{fmt}",
@@ -9957,7 +9961,7 @@ def create_app():
         # Per-commit numstat — single shotstat call across all commits
         # (much cheaper than N separate `git show` calls).
         if commits:
-            rc, ns, _ = _git(
+            rc, ns, _ = await _git(
                 "log",
                 f"-n{len(commits)}",
                 "--no-renames", "--numstat", "--format=__SHA__%H__",
@@ -10012,7 +10016,7 @@ def create_app():
         if not sha or not re.match(r"^[0-9a-f]{4,40}$", sha):
             return JSONResponse({"error": "invalid sha"}, status_code=400)
         cwd = _git_cwd_for_ip(ip or _active_ip_value())
-        rc, out, err = _git(
+        rc, out, err = await _git(
             "show", sha, "--no-color", "--unified=3",
             cwd=cwd,
         )
@@ -10029,13 +10033,13 @@ def create_app():
     @app.get("/api/git/diff")
     async def api_git_diff(path: str = "", staged: int = 0):
         if not path:
-            rc, out, err = _git("diff" if not staged else "diff", "--cached" if staged else "HEAD")
+            rc, out, err = await _git("diff" if not staged else "diff", "--cached" if staged else "HEAD")
         else:
             args = ["diff"]
             if staged: args.append("--cached")
             args.append("--")
             args.append(path)
-            rc, out, err = _git(*args)
+            rc, out, err = await _git(*args)
         if rc != 0 and not out:
             return JSONResponse({"error": err.strip() or "diff failed",
                                   "diff": ""}, status_code=200)
@@ -10049,11 +10053,11 @@ def create_app():
             return JSONResponse({"error": "commit message required"},
                                  status_code=400)
         if add_all:
-            rc, _, err = _git("add", "-A")
+            rc, _, err = await _git("add", "-A")
             if rc != 0:
                 return JSONResponse({"error": "git add -A failed: " + err.strip()},
                                      status_code=200)
-        rc, out, err = _git("commit", "-m", message)
+        rc, out, err = await _git("commit", "-m", message)
         return JSONResponse({"ok": rc == 0, "stdout": out, "stderr": err,
                               "returncode": rc})
 
@@ -10061,12 +10065,12 @@ def create_app():
     async def api_git_push(payload: dict = None):
         # Push current branch to origin. User must explicitly confirm
         # in the UI before this fires.
-        rc, branch, _ = _git("rev-parse", "--abbrev-ref", "HEAD")
+        rc, branch, _ = await _git("rev-parse", "--abbrev-ref", "HEAD")
         branch = branch.strip()
         if not branch or branch == "HEAD":
             return JSONResponse({"error": "no current branch (detached HEAD?)"},
                                  status_code=400)
-        rc, out, err = _git("push", "origin", branch)
+        rc, out, err = await _git("push", "origin", branch)
         return JSONResponse({"ok": rc == 0, "stdout": out, "stderr": err,
                               "branch": branch, "returncode": rc})
 
