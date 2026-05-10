@@ -1,0 +1,448 @@
+"""ATLAS sessions API — extracted from atlas_ui.py (phase 4 of split).
+
+Holds all /api/session* and /api/sessions* routes. The host
+(atlas_ui.py) wires routes via ``register_sessions_routes`` and injects
+callables for runtime values so this module never reaches into the
+host's mutable globals.
+"""
+from __future__ import annotations
+
+import json
+import os
+import re
+from pathlib import Path
+from typing import Any, Callable, Optional
+
+from fastapi import FastAPI
+from fastapi.requests import Request
+from fastapi.responses import JSONResponse
+
+
+def register_sessions_routes(
+    app: FastAPI,
+    *,
+    project_root: Callable[[], Path],
+    normalize_session_name: Callable[[str], str],
+    active_session_value: Callable[[], str],
+    atlas_active_session_cv: Any,
+    atlas_active_ip_cv: Any,
+    bridge: Any,
+    get_jobs_state: Callable[[], tuple[dict, Any]],
+    atlas_db_factory: Callable[[], Any],
+) -> None:
+    """Register all /api/session* and /api/sessions* routes onto *app*.
+
+    Parameters
+    ----------
+    project_root:
+        Callable returning the current PROJECT_ROOT Path (changes with --root).
+    normalize_session_name:
+        Callable that sanitises a raw session string.
+    active_session_value:
+        Callable returning the current active session canonical string.
+    atlas_active_session_cv:
+        The ``contextvars.ContextVar`` for the active session triple.
+    atlas_active_ip_cv:
+        The ``contextvars.ContextVar`` for the active IP.
+    bridge:
+        The live AtlasBridge instance.
+    get_jobs_state:
+        Callable returning (_jobs, _jobs_lock) from atlas_api_jobs.
+    atlas_db_factory:
+        Callable that creates and returns an AtlasDB context-manager instance.
+    """
+
+    # ── /api/session/activate ──────────────────────────────────────
+    @app.post("/api/session/activate")
+    async def api_session_activate(req: Request):
+        """Frontend → backend handshake to keep the canonical
+        (session_id, ip, workflow) triple in sync.
+
+        Body: {"session_id": str, "ip": str, "workflow": str}
+        Each field is optional; missing/empty values default to "default".
+        Updates ATLAS_ACTIVE_SESSION and ATLAS_ACTIVE_IP env vars so all
+        path resolvers in this process pivot to the same triple.
+
+        The frontend calls this on page load (so URL params survive a
+        restart) and any time the user changes a top dropdown.
+        """
+        try:
+            body = await req.json()
+        except Exception:
+            body = {}
+        sid = str((body or {}).get("session_id") or "").strip() or "default"
+        ip = str((body or {}).get("ip") or "").strip() or "default"
+        wf = str((body or {}).get("workflow") or "").strip() or "default"
+        # Sanitize — refuse exotic path chars to avoid traversal.
+        for label, val in (("session_id", sid), ("ip", ip), ("workflow", wf)):
+            if not re.match(r"^[A-Za-z][A-Za-z0-9_-]*$", val):
+                return JSONResponse(
+                    {"error": f"invalid {label}: {val!r}"},
+                    status_code=400,
+                )
+        canonical = f"{sid}/{ip}/{wf}"
+        # Halt the running agent + drain queued prompts BEFORE flipping
+        # env vars whenever the active triple actually changes. Without
+        # this, an in-flight react_loop keeps reading from the OLD IP's
+        # paths even after env has pivoted, producing the "switched IP
+        # but tools still hit GPIO_NEW_2" surprise. The frontend's own
+        # POST /api/control/stop is fire-and-forget and races with the
+        # /wf prompt sent on the same flip — anchoring the halt here
+        # makes the transition deterministic regardless of order.
+        prev = active_session_value() or ""
+        triple_changed = prev != canonical
+        if triple_changed:
+            try:
+                bridge.request_stop()
+                bridge.emit("agent_state", running=False)
+            except Exception:
+                pass
+        atlas_active_session_cv.set(canonical)
+        atlas_active_ip_cv.set(ip)
+        os.environ["ATLAS_DEFAULT_SESSION_ID"] = sid
+        os.environ["ATLAS_DEFAULT_WORKFLOW"] = wf
+        if triple_changed:
+            try:
+                bridge.emit("commands_changed")
+            except Exception:
+                pass
+        return JSONResponse({
+            "ok": True,
+            "active_session": canonical,
+            "session_id": sid,
+            "ip": ip,
+            "workflow": wf,
+            "halted": triple_changed,
+        })
+
+    # ── /api/session/history ───────────────────────────────────────
+    @app.get("/api/session/history")
+    async def api_session_history(session: str, limit: int = 200):
+        """Read a specific .session/<session>/conversation.json.
+
+        Architect uses this to reload per-IP/per-workflow agent history,
+        e.g. `.session/spi_master/rtl-gen/conversation.json`.
+        """
+        PROJECT_ROOT = project_root()
+        session_raw = session or ""
+        session = normalize_session_name(session_raw)
+        if not session:
+            status = 400
+            error = "missing session" if not str(session_raw).strip() else f"invalid session {session_raw!r}"
+            return JSONResponse({"error": error}, status_code=status)
+        root = (PROJECT_ROOT / ".session").resolve()
+        sdir = (root / session).resolve()
+        try:
+            sdir.relative_to(root)
+        except Exception:
+            return JSONResponse({"error": "session path escapes .session"}, status_code=400)
+        hpath = sdir / "conversation.json"
+        if not hpath.is_file():
+            return JSONResponse({"messages": [], "session": session,
+                                 "path": hpath.relative_to(PROJECT_ROOT).as_posix(),
+                                 "exists": False})
+        try:
+            msgs = json.loads(hpath.read_text(encoding="utf-8"))
+            if not isinstance(msgs, list):
+                msgs = []
+        except Exception as e:
+            return JSONResponse({"messages": [], "session": session,
+                                 "path": hpath.relative_to(PROJECT_ROOT).as_posix(),
+                                 "error": f"parse: {e}"}, status_code=500)
+        msgs = [m for m in msgs if isinstance(m, dict) and m.get("role") != "system"]
+        if len(msgs) > limit:
+            msgs = msgs[-limit:]
+        return JSONResponse({"messages": msgs, "session": session,
+                             "path": hpath.relative_to(PROJECT_ROOT).as_posix(),
+                             "exists": True, "truncated_to": limit})
+
+    # ── /api/session/state ─────────────────────────────────────────
+    @app.get("/api/session/state")
+    async def api_session_state(session: str, limit: int = 200, mode: str = "conversation"):
+        """Return all UI state owned by a specific session namespace.
+
+        This is the session-scoped hydrate endpoint for IP/sub-top/SoC
+        workflow panes.  The frontend can switch screens or selected
+        modules without losing chat/todo state because the authoritative
+        data lives under `.session/<session>/`.
+
+        `mode` controls which file the conversation messages come from:
+          • conversation (default) — recent rolling window from
+            conversation.json (already capped server-side at `limit`).
+          • full        — every message ever written to
+            full_conversation.json (no limit cap).
+          • recent      — last `limit` messages from
+            full_conversation.json (deeper history than conversation.json
+            but trimmed to a manageable size).
+        """
+        PROJECT_ROOT = project_root()
+        session_raw = session or ""
+        session = normalize_session_name(session_raw)
+        if not session:
+            status = 400
+            error = "missing session" if not str(session_raw).strip() else f"invalid session {session_raw!r}"
+            return JSONResponse({"error": error}, status_code=status)
+        root = (PROJECT_ROOT / ".session").resolve()
+        sdir = (root / session).resolve()
+        try:
+            sdir.relative_to(root)
+        except Exception:
+            return JSONResponse({"error": "session path escapes .session"}, status_code=400)
+
+        def _read_json(path: Path, fallback: Any) -> Any:
+            if not path.is_file():
+                return fallback
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+                return data
+            except Exception:
+                return fallback
+
+        mode_norm = (mode or "conversation").strip().lower()
+        if mode_norm not in ("conversation", "full", "recent"):
+            mode_norm = "conversation"
+        if mode_norm == "conversation":
+            conv_path = sdir / "conversation.json"
+        else:
+            conv_path = sdir / "full_conversation.json"
+            # Fall back to conversation.json when full_conversation.json is missing
+            if not conv_path.is_file():
+                conv_path = sdir / "conversation.json"
+
+        messages = _read_json(conv_path, [])
+        if not isinstance(messages, list):
+            messages = []
+        messages = [m for m in messages if isinstance(m, dict) and m.get("role") != "system"]
+        # `full` returns everything; `conversation` and `recent` cap at limit.
+        if mode_norm != "full" and len(messages) > limit:
+            messages = messages[-limit:]
+
+        todo_state = _read_json(sdir / "todo.json", {"todos": []})
+        if isinstance(todo_state, list):
+            todo_state = {"todos": todo_state}
+        if not isinstance(todo_state, dict):
+            todo_state = {"todos": []}
+        todos = todo_state.get("todos")
+        if not isinstance(todos, list):
+            todo_state["todos"] = []
+        # Session-scoped <session>/todo.json doesn't always get written —
+        # session_setup re-pinning of config.TODO_FILE only happens for
+        # workspaces that go through that path; runs that started under
+        # the global default keep persisting to PROJECT_ROOT/current_todos.json.
+        # When the session file is missing or empty, fall back to the
+        # live main.todo_tracker (in-memory, freshest) and then the
+        # global file. Without this the panel would render empty even
+        # though the agent has 3+ active tasks on disk.
+        if not todo_state["todos"]:
+            try:
+                import main as _live_main  # noqa: WPS433
+                _live = getattr(_live_main, "todo_tracker", None)
+                if _live is not None and getattr(_live, "todos", None):
+                    todo_state = _live.to_dict()
+            except Exception:
+                pass
+        if not todo_state.get("todos"):
+            global_todo = PROJECT_ROOT / "current_todos.json"
+            if global_todo.is_file():
+                try:
+                    g = json.loads(global_todo.read_text(encoding="utf-8"))
+                    if isinstance(g, dict) and isinstance(g.get("todos"), list):
+                        todo_state = g
+                    elif isinstance(g, list):
+                        todo_state = {"todos": g}
+                except Exception:
+                    pass
+
+        cost_state = _read_json(sdir / "cost.json", {})
+        if not isinstance(cost_state, dict):
+            cost_state = {}
+
+        _jobs_state, _jobs_state_lock = get_jobs_state()
+        with _jobs_state_lock:
+            jobs = [
+                {k: v for k, v in j.items() if not k.startswith("_")}
+                for j in _jobs_state.values()
+                if str(j.get("session") or "").strip("/") == session
+            ]
+        jobs.sort(key=lambda j: j.get("started_at") or 0, reverse=True)
+
+        return JSONResponse({
+            "session": session,
+            "session_dir": sdir.relative_to(PROJECT_ROOT).as_posix(),
+            "exists": sdir.is_dir(),
+            "conversation": {
+                "messages": messages,
+                "path": conv_path.relative_to(PROJECT_ROOT).as_posix(),
+                "exists": conv_path.is_file(),
+                "mode": mode_norm,
+                "truncated_to": (None if mode_norm == "full" else limit),
+            },
+            "todos": todo_state,
+            "cost": cost_state,
+            "jobs": jobs,
+        })
+
+    # ── /api/session/list ──────────────────────────────────────────
+    @app.get("/api/session/list")
+    async def api_session_list():
+        """List reloadable session namespaces under .session/."""
+        PROJECT_ROOT = project_root()
+        root = PROJECT_ROOT / ".session"
+        out = []
+        if root.is_dir():
+            for p in sorted(root.rglob("conversation.json")):
+                try:
+                    rel = p.parent.relative_to(root)
+                except Exception:
+                    continue
+                session = str(rel)
+                if session == ".":
+                    continue
+                out.append({
+                    "session": session,
+                    "path": p.relative_to(PROJECT_ROOT).as_posix(),
+                    "mtime": p.stat().st_mtime,
+                    "size": p.stat().st_size,
+                })
+        return JSONResponse({"sessions": out, "count": len(out)})
+
+    # ── Atlas SQLite session CRUD (/api/sessions*) ─────────────────
+
+    def _atlas_db():
+        db = atlas_db_factory()
+        try:
+            Path(str(db.db_path)).expanduser().parent.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+        return db
+
+    def _public_session(session: dict, include_summary: bool = False) -> dict:
+        fields = ["id", "user_id", "title", "project_id", "status", "created_at", "updated_at"]
+        if include_summary:
+            fields.append("summary")
+        return {key: session.get(key) for key in fields}
+
+    def _request_user_id(request: Request) -> str:
+        user = request.scope.get("user") or {}
+        return str(user.get("id") or "default").strip() or "default"
+
+    def _session_not_found() -> JSONResponse:
+        return JSONResponse({"error": "session not found"}, status_code=404)
+
+    def _owns_session(session: Optional[dict], user_id: str) -> bool:
+        return session is not None and session.get("user_id") == user_id
+
+    @app.get("/api/sessions")
+    async def api_sessions(request: Request):
+        user_id = _request_user_id(request)
+        try:
+            with _atlas_db() as db:
+                listed = db.list_sessions(user_id)
+                sessions = []
+                for item in listed:
+                    session_id = item.get("id") if isinstance(item, dict) else None
+                    session = db.get_session(session_id) if session_id else None
+                    if session is not None:
+                        sessions.append(_public_session(session))
+                return JSONResponse({"sessions": sessions})
+        except Exception as e:
+            print(f"api_sessions error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.post("/api/sessions")
+    async def api_create_session(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            return JSONResponse({"error": "invalid json body"}, status_code=400)
+        if not isinstance(body, dict):
+            return JSONResponse({"error": "expected JSON object"}, status_code=400)
+        user_id = _request_user_id(request)
+        title = str(body.get("title") or "").strip()
+        project_id = str(body.get("project_id") or "").strip()
+        if not title:
+            return JSONResponse({"error": "title required"}, status_code=400)
+        try:
+            with _atlas_db() as db:
+                created = db.create_session(user_id, title, project_id)
+                session_id = created.get("id") if isinstance(created, dict) else created
+                return JSONResponse({"session_id": session_id, "status": "created"})
+        except Exception as e:
+            print(f"api_create_session error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.get("/api/sessions/{session_id}")
+    async def api_get_session(session_id: str, request: Request):
+        user_id = _request_user_id(request)
+        try:
+            with _atlas_db() as db:
+                session = db.get_session(session_id)
+                if not _owns_session(session, user_id):
+                    return _session_not_found()
+                return JSONResponse(_public_session(session, include_summary=True))
+        except Exception as e:
+            print(f"api_get_session error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.patch("/api/sessions/{session_id}")
+    async def api_update_session(session_id: str, request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            return JSONResponse({"error": "invalid json body"}, status_code=400)
+        if not isinstance(body, dict):
+            return JSONResponse({"error": "expected JSON object"}, status_code=400)
+        allowed = {"title", "project_id", "status", "summary"}
+        fields = {key: body[key] for key in allowed if key in body}
+        user_id = _request_user_id(request)
+        try:
+            with _atlas_db() as db:
+                session = db.get_session(session_id)
+                if not _owns_session(session, user_id):
+                    return _session_not_found()
+                if fields:
+                    db.update_session(session_id, **fields)
+                updated = db.get_session(session_id)
+                if not _owns_session(updated, user_id):
+                    return _session_not_found()
+                return JSONResponse(_public_session(updated, include_summary=True))
+        except Exception as e:
+            print(f"api_update_session error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.delete("/api/sessions/{session_id}")
+    async def api_delete_session(session_id: str, request: Request):
+        user_id = _request_user_id(request)
+        try:
+            with _atlas_db() as db:
+                session = db.get_session(session_id)
+                if not _owns_session(session, user_id):
+                    return _session_not_found()
+                db.delete_session(session_id)
+                return JSONResponse({"deleted": True})
+        except Exception as e:
+            print(f"api_delete_session error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.post("/api/sessions/{session_id}/activate")
+    async def api_activate_session(session_id: str, request: Request):
+        # Activate the session: verify the caller owns it, then make the
+        # backend bridge actually point at it. The previous version was a
+        # no-op stub that returned {"activated": True} without binding
+        # anything — UI session-switcher believed the swap took effect
+        # while subsequent prompts still routed to the stale session.
+        try:
+            user_id = _request_user_id(request)
+            with _atlas_db() as db:
+                session = db.get_session(session_id)
+                if not _owns_session(session, user_id):
+                    return JSONResponse(
+                        {"error": "session not found or not owned by user"},
+                        status_code=404,
+                    )
+            # Bind on the bridge so emit/inbox/outbox routing follows.
+            bridge.activate_session(session_id)
+            return JSONResponse({"activated": True, "session_id": session_id})
+        except Exception as e:
+            print(f"api_activate_session error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
