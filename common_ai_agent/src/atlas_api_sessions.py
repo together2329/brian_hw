@@ -129,9 +129,15 @@ def register_sessions_routes(
             # got swallowed. The success emit at the bottom overwrites
             # the perception once setup_workspace finishes.
             try:
+                # Use 'token' (the streaming-pipeline channel that
+                # workspace.jsx subscribes to) rather than 'agent'
+                # (which has no listener and was silently dropped).
+                # The follow-up 'flush' parks the buffered text into a
+                # feed entry, identical to how chat_loop's slash
+                # responses land.
                 bridge.emit(
-                    "agent",
-                    text=f"🔄 Switching workspace '{prev_wf}' → '{wf}' (ip={ip})…",
+                    "token",
+                    text=f"🔄 Switching workspace '{prev_wf}' → '{wf}' (ip={ip})…\n",
                 )
                 bridge.emit("flush")
                 bridge.emit("workspace_changing", workspace=wf, prev=prev_wf, ip=ip)
@@ -161,9 +167,12 @@ def register_sessions_routes(
                         session=canonical,
                         source="api/session/activate",
                     )
+                    # Same channel as the in-progress banner above — emit
+                    # via 'token' so workspace.jsx's streaming subscriber
+                    # picks it up; flush parks the buffer.
                     bridge.emit(
-                        "agent",
-                        text=f"✅ Workspace switched to '{wf}' (was '{prev_wf}') · ip={ip}",
+                        "token",
+                        text=f"✅ Workspace switched to '{wf}' (was '{prev_wf}') · ip={ip}\n",
                     )
                     bridge.emit("flush")
                 except Exception:
