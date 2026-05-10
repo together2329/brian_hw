@@ -293,7 +293,14 @@ const App = () => {
           // current user_session — backend is per-user (operator runs
           // one process per user), so cross-owner pollution is noise.
           if (segments.length < 3) continue;
-          if (parsed.sessionId !== currentUserSession && parsed.sessionId !== 'default') continue;
+          // Strict session scope: only IPs owned by the active session
+          // surface in the dropdown. Previous behavior also accepted
+          // any 'default' session IP as a global pool, so a user on
+          // session "u-mozcu00f" still saw every legacy IP that ever
+          // ran under "default" — exactly the cross-session leak the
+          // user reported (gpio_pad/PL330 showing up under unrelated
+          // sessions).
+          if (parsed.sessionId !== currentUserSession) continue;
           if (acceptIp(parsed.ipId)) nextIps.add(parsed.ipId);
         }
       }
