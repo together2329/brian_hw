@@ -3162,30 +3162,16 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             >debug</span>
             <span className="mute" style={{ margin: '0 6px' }}>·</span>
             {mainTab === 'chat' ? (
-              <>
-                <span style={{ color: intent === 'plan' ? 'var(--warn)' : 'var(--cyan)', fontWeight: 600, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                  {intent === 'plan' ? '◐ plan' : '● normal'}
-                </span>
-                {workflow && (
-                  <>
-                    <span className="mute" style={{ margin: '0 6px' }}>›</span>
-                    <span style={{ color: window.FLOW_STAGES.find(s => s.id === workflow)?.color, fontSize: 11, fontWeight: 600 }}>
-                      {window.FLOW_STAGES.find(s => s.id === workflow)?.label}
-                    </span>
-                  </>
-                )}
-                <span className="mute" style={{ margin: '0 6px' }}>›</span>
-                <SessionSwitcher
-                  currentSession={activeSession || window.ACTIVE_SESSION || 'default'}
-                  streaming={streaming}
-                  onSwitch={handleSwitchSession}
-                />
-                {peerCount > 1 && (
-                  <span style={{ fontSize: 10, color: 'var(--fg-mute)', marginLeft: 6, fontFamily: 'var(--mono)' }}>
-                    {peerCount} peers
-                  </span>
-                )}
-              </>
+              // The intent badge (NORMAL/PLAN), the workflow chip, and the
+              // peer count duplicated UI already shown in the left rail and
+              // the top dir-select bar (mode toggle, WORKFLOW dropdown).
+              // Keep just the SessionSwitcher here, which is the only piece
+              // not already exposed elsewhere.
+              <SessionSwitcher
+                currentSession={activeSession || window.ACTIVE_SESSION || 'default'}
+                streaming={streaming}
+                onSwitch={handleSwitchSession}
+              />
             ) : mainTab === 'split' ? (
               <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}
                     title={previewPath || ''}>
