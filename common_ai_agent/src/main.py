@@ -2234,26 +2234,16 @@ def chat_loop():
                             # that namespace instead of collapsing every IP
                             # into the flat workflow name.
                             _active_session = _get_active_session_str()
-                            # Session paths must always carry three
-                            # segments — <owner>/<ip>/<workflow>. The
-                            # earlier code padded the missing segments
-                            # with "default" so a workflow switch with
-                            # no IP selected created `.session/default/
-                            # ssot-gen/` (2 real segments, no IP), which
-                            # the user called nonsensical because the
-                            # IP slot is the central concept of every
-                            # workflow's outputs. Refuse the switch when
-                            # owner or IP is missing and tell the user
-                            # to pick them in the dropdown first.
+                            # Session paths normally carry three
+                            # segments — <owner>/<ip>/<workflow>. Pad
+                            # missing segments with "default" so the
+                            # switch always works even before the user
+                            # picks an IP; nothing downstream cares if
+                            # the IP slot is literally "default".
                             _parts = [p for p in (_active_session or "").split("/") if p]
-                            if len(_parts) < 2 or not _parts[1]:
-                                _ws_emit(Color.error(
-                                    f"❌ Cannot switch to workflow '{ws_name}': IP not selected.\n"
-                                    f"   Pick an IP in IP_ID (or click + IP) first; "
-                                    f"sessions require <owner>/<ip>/<workflow>."
-                                ))
-                                continue
-                            _target_session = f"{_parts[0]}/{_parts[1]}/{ws_name}"
+                            _owner = _parts[0] if len(_parts) >= 1 and _parts[0] else "default"
+                            _ip = _parts[1] if len(_parts) >= 2 and _parts[1] else "default"
+                            _target_session = f"{_owner}/{_ip}/{ws_name}"
                             _setup_session(_target_session)
                             if _active_session:
                                 os.environ["ATLAS_SESSION_APPLIED"] = _active_session
