@@ -1744,6 +1744,16 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     return () => window.removeEventListener('keydown', onKey);
   }, [intent, workflow]);
 
+  // The textarea auto-grows in onChange while the user types but stays
+  // tall after submitMsg/setInput('') because that path is state-only
+  // and doesn't fire onChange. Watch the value directly and snap the
+  // inline height back to the CSS min when it becomes empty.
+  React.useEffect(() => {
+    if (input === '' && inputRef.current) {
+      inputRef.current.style.height = 'auto';
+    }
+  }, [input]);
+
   // ── chat actions ───────────────────────────────────────────────
   const submitMsg = (cmd) => {
     const raw = (cmd ?? input).trim();
