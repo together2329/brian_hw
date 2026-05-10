@@ -653,7 +653,21 @@
     fetchSsot: (path) =>
       fetch('/api/ssot?file=' + encodeURIComponent(path)).then(r => r.json()),
     setScopePath: (p) => {
-      const next = normalizeScopePath(p || '');
+      let next = normalizeScopePath(p || '');
+      // Scope is bound to the active IP. The IP_ID dropdown is the only
+      // control that should change which IP is active; anything that
+      // tries to set scope to a path outside the active IP gets clamped
+      // back to the IP root so the file tree never leaks cross-IP
+      // siblings (the bug where scope = "gpio" still showed
+      // simple_gpio_lite/ entries).
+      const sess = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+      const activeIp = sess.length >= 2 ? sess[1] : '';
+      if (activeIp) {
+        const segs = next.split('/').filter(Boolean);
+        if (segs.length === 0 || segs[0] !== activeIp) {
+          next = activeIp;
+        }
+      }
       if (next === window.SCOPE_PATH) return;
       window.SCOPE_PATH = next;
       try { localStorage.setItem('atlasScopePath', window.SCOPE_PATH); } catch (_) {}
