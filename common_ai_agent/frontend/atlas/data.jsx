@@ -181,7 +181,10 @@
     'sim',
     'sim_debug',
     'ssot-gen',
+    'sta',
+    'syn',
     'tb-gen',
+    'pnr',
   ]);
 
   const KNOWN_SESSION_FILES = new Set([
@@ -570,14 +573,20 @@
         if (shouldSeed) {
           localStorage.setItem('atlasUserSessionId', d.user_session);
           window.ATLAS_USER_SESSION_ID = d.user_session;
-          const storedNs = (localStorage.getItem('atlasActiveSession') || '').trim();
-          if (!storedNs || /^u-[a-z0-9]{6,12}-[a-z0-9]{4,8}\//i.test(storedNs)) {
-            const seedNs = `${d.user_session}/default`;
+          const storedNs = normalizeSessionName(localStorage.getItem('atlasActiveSession') || '');
+          const liveNs = normalizeSessionName(window.ACTIVE_SESSION || '');
+          const activeNs = normalizeSessionName(URL_ACTIVE_SESSION || liveNs || storedNs);
+          const legacyNs = /^u-[a-z0-9]{6,12}-[a-z0-9]{4,8}(?:\/|$)/i.test(activeNs);
+          if (!activeNs || activeNs === 'default' || legacyNs) {
+            const tail = legacyNs ? activeNs.split('/').filter(Boolean).slice(1) : [];
+            const seedNs = [d.user_session, ...(tail.length ? tail : ['default'])].join('/');
             localStorage.setItem('atlasActiveSession', seedNs);
             window.ACTIVE_SESSION = seedNs;
             window.dispatchEvent(new CustomEvent('atlas-session-loaded', {
               detail: { session: seedNs },
             }));
+          } else if (storedNs !== activeNs) {
+            localStorage.setItem('atlasActiveSession', activeNs);
           }
           window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'USER_SESSION_ID' }));
         }

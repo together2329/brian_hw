@@ -14,6 +14,7 @@ import hmac
 import hashlib
 import os
 import time
+from pathlib import Path
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
 from core.atlas_db import AtlasDB
@@ -40,6 +41,29 @@ else:
 
 _COOKIE_NAME = "atlas_session"
 _MAX_AGE = 90 * 24 * 60 * 60
+
+
+def _default_cookie_secret() -> str:
+    """Return a stable per-user cookie secret for backend restarts."""
+    env_secret = os.environ.get("ATLAS_COOKIE_SECRET") or os.environ.get("ATLAS_AUTH_SECRET")
+    if env_secret:
+        return env_secret
+    try:
+        secret_path = Path(os.environ.get("ATLAS_COOKIE_SECRET_FILE") or Path.home() / ".common_ai_agent" / "atlas_cookie_secret")
+        secret_path.parent.mkdir(parents=True, exist_ok=True)
+        if secret_path.is_file():
+            secret = secret_path.read_text(encoding="utf-8").strip()
+            if secret:
+                return secret
+        secret = os.urandom(32).hex()
+        secret_path.write_text(secret, encoding="utf-8")
+        try:
+            secret_path.chmod(0o600)
+        except Exception:
+            pass
+        return secret
+    except Exception:
+        return os.urandom(32).hex()
 
 
 def _now() -> float:
@@ -83,7 +107,7 @@ class GuestAuth:
 
     def __init__(self, db: AtlasDB, cookie_secret: Optional[str] = None):
         self.db = db
-        self.cookie_secret = cookie_secret or os.urandom(32).hex()
+        self.cookie_secret = cookie_secret or _default_cookie_secret()
 
     def _sign(self, user_id: str) -> str:
         sig = hmac.new(self.cookie_secret.encode(), user_id.encode(), hashlib.sha256).hexdigest()[:16]

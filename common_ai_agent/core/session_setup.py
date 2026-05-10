@@ -9,6 +9,7 @@ Public API:
 from __future__ import annotations
 
 import shutil
+import os
 from pathlib import Path
 
 
@@ -89,17 +90,17 @@ def _migrate_old_session(session_dir: Path) -> None:
 
 
 def setup_session(project: str = 'default', workflow: str = '') -> Path:
-    """Create .session/<project>/ layout and redirect config paths.
+    """Create .session/<session>/ layout and redirect config paths.
 
-    Layout (v2 — flat project):
-      .session/<project>/conversation.json       ← HISTORY_FILE
-      .session/<project>/full_conversation.json  ← append-only history
-      .session/<project>/todo.json               ← TODO_FILE
-      .session/<project>/todo_error.json         ← TODO_ERROR_FILE
-      .session/<project>/jobs/job<N>/            ← sub-agent persistence
+    Layout (v2 — flat session namespace):
+      .session/<session>/conversation.json       ← HISTORY_FILE
+      .session/<session>/full_conversation.json  ← append-only history
+      .session/<session>/todo.json               ← TODO_FILE
+      .session/<session>/todo_error.json         ← TODO_ERROR_FILE
+      .session/<session>/jobs/job<N>/            ← sub-agent persistence
 
     Args:
-        project:  Project name (maps to .session/<project>/).
+        project:  Session namespace (maps to .session/<session>/).
         workflow: Ignored (kept for backward compat with v1 callers).
 
     Returns:
@@ -107,7 +108,8 @@ def setup_session(project: str = 'default', workflow: str = '') -> Path:
     """
     import config
 
-    session_dir = Path.cwd() / '.session' / project
+    project_root = Path(os.environ.get('ATLAS_PROJECT_ROOT') or Path.cwd()).resolve()
+    session_dir = project_root / '.session' / project.strip('/')
     session_dir.mkdir(parents=True, exist_ok=True)
 
     _migrate_old_session(session_dir)
