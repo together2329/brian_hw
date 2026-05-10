@@ -450,7 +450,7 @@ const App = () => {
   // because IPs are named identifiers rather than disposable scratch
   // owners. The actual on-disk .session/<sid>/<ip>/<wf>/ tree gets
   // created by _setup_session on the next /wf or agent run.
-  const createIp = () => {
+  const createIp = async () => {
     const raw = window.prompt(
       'New IP name (letters/digits/_-, e.g. axi_dma):',
       ''
@@ -461,6 +461,26 @@ const App = () => {
       window.alert('Invalid IP name. Use only [A-Za-z0-9_.-].');
       return;
     }
+    // IP names are globally unique across all sessions — two different
+    // sessions cannot both own an IP called "gpio_pad". /api/session/list
+    // is the per-owner namespace walk; aggregate across every row to
+    // catch collisions in OTHER sessions even though those won't show
+    // up in the current dropdown.
+    try {
+      const r = await fetch('/api/session/list', { cache: 'no-store' });
+      if (r.ok) {
+        const d = await r.json();
+        const taken = new Set();
+        for (const row of (Array.isArray(d.sessions) ? d.sessions : [])) {
+          const segs = String((row && row.session) || '').split('/').filter(Boolean);
+          if (segs.length >= 3) taken.add(segs[1]);
+        }
+        if (taken.has(ip)) {
+          window.alert(`IP "${ip}" already exists in another session.\nIP names must be globally unique.`);
+          return;
+        }
+      }
+    } catch (_) {}
     setIpOptions(prev => Array.from(new Set([ip].concat(prev || []))));
     const me = activeSessionId
       || normalizeSession(window.ATLAS_USER_SESSION_ID || '')
