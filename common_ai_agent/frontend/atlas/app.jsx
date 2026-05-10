@@ -1075,6 +1075,21 @@ const App = () => {
         <button className="dir-btn"
                 title="Shut down the Python server and close this tab  (Ctrl/⌘+Q)"
                 onClick={exitAll}>✕ Exit</button>
+        <span style={{ width: 12 }} />
+        {window.ATLAS_USER && (
+          <button className="dir-btn"
+                  title={`Logged in as ${window.ATLAS_USER.username}. Click to log out.`}
+                  onClick={async () => {
+                    try {
+                      await fetch('/api/auth/logout', { method: 'POST' });
+                    } catch (_) {}
+                    try {
+                      localStorage.removeItem('atlasUserSessionId');
+                      localStorage.removeItem('atlasActiveSession');
+                    } catch (_) {}
+                    window.location.reload();
+                  }}>↩ {window.ATLAS_USER.username}</button>
+        )}
       </div>
       <div className="app-main">
         <TitleBar ip="" screen={screen} onScreen={setScreen} />
