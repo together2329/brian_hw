@@ -163,11 +163,23 @@ def create_app():
         sys.exit(1)
 
     app = FastAPI(title="ATLAS · common_ai_agent")
-    if os.environ.get("ATLAS_MULTI_USER", "").lower() in ("1", "true", "yes"):
+    _multi_user_env = os.environ.get("ATLAS_MULTI_USER", "").lower() in ("1", "true", "yes")
+    if _multi_user_env:
         os.environ["ATLAS_MULTI_USER_PROC"] = "1"
         print("[atlas] Multi-user enabled: forcing process isolation (ATLAS_MULTI_USER_PROC=1)")
     _use_proc = os.environ.get("ATLAS_MULTI_USER_PROC", "").lower() in ("1", "true", "yes")
-    bridge = _MultiUserBridge(use_processes=_use_proc)
+    # Single-user mode collapses every WS query-param session_id onto
+    # "default", so the inbox the WS handler writes to is the same inbox
+    # the agent thread reads from. Without this, the browser's session
+    # query param "default/default/tb-gen" (or any owner/ip/workflow
+    # triple) becomes a distinct bridge session, the agent thread —
+    # started at boot in the "default" session — never sees those
+    # inboxes, and slash commands like /help /context /status /skills
+    # /wf land in an inbox nobody reads. /ip survived because it
+    # short-circuits in the WS recv handler before reaching
+    # submit_prompt and emits its reply inline via the contextvar-routed
+    # bridge.emit().
+    bridge = _MultiUserBridge(single_user=not _multi_user_env, use_processes=_use_proc)
     clients: set[Any] = set()
     broadcaster_task: asyncio.Task | None = None
 
