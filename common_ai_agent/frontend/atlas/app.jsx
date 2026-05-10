@@ -629,6 +629,13 @@ const App = () => {
             value={activeIp || ''}
             onChange={e => selectIp(e.currentTarget.value)}>
             <option value="">default</option>
+            {/* `value=` of the <select> must exist as an <option>; otherwise
+                React renders the first option (label "default") even though
+                state holds a real IP like "PL330", which makes the dropdown
+                disagree with the URL/session it is supposed to mirror. */}
+            {activeIp && !ipOptions.includes(activeIp) && (
+              <option key={activeIp} value={activeIp}>{activeIp}</option>
+            )}
             {ipOptions.map(ip => <option key={ip} value={ip}>{ip}</option>)}
           </select>
         </label>
