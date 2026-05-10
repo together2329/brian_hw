@@ -149,6 +149,10 @@ class AtlasDB:
         self.db_path = db_path
         self._lock = threading.RLock()
         self._conn: Optional[sqlite3.Connection] = None
+        # Ensure parent dir + schema exist on first instantiation.
+        # SCHEMA_SQL is idempotent (CREATE TABLE IF NOT EXISTS).
+        Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
+        self.init_db()
 
     def _connect(self) -> sqlite3.Connection:
         """Open (or re-open) the SQLite connection."""
