@@ -1952,13 +1952,11 @@ PLAN_MODE_BLOCKED_TOOLS = frozenset({
     'todo_update',
 }))
 
-# Tools only available in Plan Mode (blocked in Normal/Execution mode).
-# `todo_write` ALWAYS stays here — it's destructive (replaces entire list).
-# UNLOCK_NORMAL_MODE_TOOLS=true unlocks `todo_remove` only, since deletion of
-# a single task is benign during execution; the catastrophic "wipe-and-replace"
-# behaviour comes from `todo_write` and is the bug that triggered this guard.
-NORMAL_MODE_BLOCKED_TOOLS = frozenset({'todo_write'}) if UNLOCK_NORMAL_MODE_TOOLS else frozenset({
-    'todo_write',   # destructive — Plan-mode only, regardless of unlock flag
+# Tools blocked in Normal/Execution mode. Per user request, todo_write is now
+# permitted in normal mode too — the agent occasionally needs to (re)build
+# the task list mid-execution (e.g. after an unexpected branch in a workflow).
+# UNLOCK_NORMAL_MODE_TOOLS=true continues to unlock todo_remove.
+NORMAL_MODE_BLOCKED_TOOLS = frozenset() if UNLOCK_NORMAL_MODE_TOOLS else frozenset({
     'todo_remove',  # Task removal only during planning when unlock is off
 })
 
