@@ -1080,8 +1080,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
 
     window.history.replaceState(null, '', '/?session_id=' + encodeURIComponent(sessionId));
 
-    if (window.backend && window.backend.connect) {
-      window.backend.connect(sessionId);
+    if (window.backend) {
+      if (window.backend.disconnect) window.backend.disconnect();
+      if (window.backend.connect) window.backend.connect(sessionId);
     }
 
     window.ACTIVE_SESSION = newNamespace;
@@ -1146,6 +1147,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       });
     } catch (_) {}
     if (window.backend) {
+      if (window.backend.disconnect) window.backend.disconnect();
+      if (window.backend.connect) window.backend.connect(sid.split('/')[0]);
       sendPrompt(next ? `/wf ${next}` : '/workflow default', sid);
     }
   };
@@ -1881,6 +1884,24 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       // state inherited from a prior turn that didn't close out cleanly
       // (agent crash, dropped WS, etc.). Without this, the banner
       // leaves the running status stuck after the user types /plan.
+      setStreaming(false);
+      streamBufferRef.current = '';
+      setStreamText('');
+      return;
+    }
+
+    const wfMatch = raw.match(/^\/(wf|workflow)(\s+(\S+))?$/i);
+    if (wfMatch) {
+      const targetWf = (wfMatch[3] || '').trim();
+      setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      if (targetWf) {
+        switchWorkflow(targetWf);
+      } else {
+        setFeed(f => [...f, {
+          kind: 'agent',
+          text: `Current workflow: \`${workflow || 'default'}\``,
+        }]);
+      }
       setStreaming(false);
       streamBufferRef.current = '';
       setStreamText('');
