@@ -834,12 +834,21 @@
     // todo state, and SSOT list at the current scope. Catches any case where a
     // tool_result event was missed (UI was loading, WS dropped, etc.)
     // and keeps the timestamp footer ticking.
+    // Belt-and-suspenders polling. WS events drive the panels in
+    // realtime, so this loop only catches the rare missed event. The
+    // old 5-second tick fired four fetches per cycle on every tab,
+    // contributing meaningfully to the "frontend feels slow" symptom
+    // because each fetch races against the WS-driven refresh and
+    // re-runs the same React render cycle. Pull it out to 30 s and
+    // skip when the tab is hidden — there's nothing to update on a
+    // backgrounded tab anyway.
     setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       refreshFileTree(window.SCOPE_PATH || '');
       refreshTodos();
       refreshSsotList();
       refreshProgress();
-    }, 5000);
+    }, 30000);
   }
 
   if (document.readyState === 'loading') {

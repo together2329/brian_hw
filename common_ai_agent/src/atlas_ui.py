@@ -211,18 +211,14 @@ def create_app():
             for line in body.split("\n"):
                 fh.write("+" + line + "\n")
 
-    async def _send_one(client, msg):
-        # Scale the per-client send timeout with the message size so
-        # large payloads (e.g. /context with a 50 kB full system prompt
-        # + conversation dump) don't get killed mid-flight and strand
-        # subsequent events (flush, slash_output, agent_state). Floor
-        # at 4 s so tiny control frames still get a reasonable window.
+    async def _send_one(client, raw: str, timeout: float):
+        # raw is the already-serialized JSON text — broadcasters
+        # serialize ONCE up front and pass the same string to every
+        # client instead of re-serializing per WS. send_text avoids
+        # FastAPI re-encoding the message a second time too. Scale
+        # timeout with message size; tiny frames floor at 4 s.
         try:
-            import json
-            raw = json.dumps(msg, ensure_ascii=False)
-            size_kb = max(len(raw.encode("utf-8", errors="replace")) / 1024, 1)
-            timeout = max(4.0, size_kb * 0.25)  # 0.25 s per kB -> 50 kB ~= 12.5 s
-            await asyncio.wait_for(client.send_json(msg), timeout=timeout)
+            await asyncio.wait_for(client.send_text(raw), timeout=timeout)
             return None
         except Exception:
             return client
@@ -256,8 +252,14 @@ def create_app():
                 snapshot = list(session.clients)
                 if not snapshot:
                     continue
+                # Serialize once for the whole fan-out. Computing the
+                # size here picks the right timeout for every client.
+                import json as _json
+                raw = _json.dumps(msg, ensure_ascii=False)
+                size_kb = max(len(raw.encode("utf-8", errors="replace")) / 1024, 1)
+                timeout = max(4.0, size_kb * 0.25)
                 results = await asyncio.gather(
-                    *(_send_one(c, msg) for c in snapshot),
+                    *(_send_one(c, raw, timeout) for c in snapshot),
                     return_exceptions=True,
                 )
                 for stale_client in results:
