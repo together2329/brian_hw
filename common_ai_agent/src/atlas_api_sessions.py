@@ -29,6 +29,7 @@ def register_sessions_routes(
     bridge: Any,
     get_jobs_state: Callable[[], tuple[dict, Any]],
     atlas_db_factory: Callable[[], Any],
+    setup_workspace: Optional[Callable[[str], None]] = None,
 ) -> None:
     """Register all /api/session* and /api/sessions* routes onto *app*.
 
@@ -110,6 +111,24 @@ def register_sessions_routes(
         os.environ["ATLAS_ACTIVE_IP"] = ip
         os.environ["ATLAS_DEFAULT_SESSION_ID"] = sid
         os.environ["ATLAS_DEFAULT_WORKFLOW"] = wf
+        # Synchronously update the workspace too. /api/session/activate was
+        # only mirroring path-resolution env vars; the actual workflow
+        # config (system prompt, skills, hooks, todo template) is loaded
+        # by main.py's `_setup_workspace`, which previously only ran when
+        # the WS-bound `/wf <name>` slash command was processed by the
+        # chat_loop. That introduced a race where the dropdown flip
+        # activated env but workspace stayed pinned to the previous
+        # workflow until the chat_loop got around to it — and if the
+        # loop was busy on an LLM call, it never did. Calling
+        # _setup_workspace from here decouples the FE flip from chat_loop
+        # availability so the user sees the new workspace immediately.
+        prev_wf = os.environ.get("ACTIVE_WORKSPACE", "")
+        if setup_workspace is not None and wf and wf != prev_wf:
+            try:
+                setup_workspace(wf)
+                os.environ["ACTIVE_WORKSPACE"] = wf
+            except Exception:
+                pass
         if triple_changed:
             try:
                 bridge.emit("commands_changed")

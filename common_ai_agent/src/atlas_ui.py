@@ -8774,6 +8774,25 @@ def create_app():
     # Routes live in src/atlas_api_sessions.py. Inject runtime callables
     # so routes see PROJECT_ROOT changes from --root and the live bridge.
     from atlas_api_sessions import register_sessions_routes  # noqa: WPS433
+
+    # Lazy proxy for main._setup_workspace — main is imported later by
+    # run_atlas_ui, so this wrapper does the import on first call.
+    # Without it, /api/session/activate could only mirror env vars and
+    # the live workspace stayed pinned to whatever was last loaded by
+    # main.py's chat_loop /wf handler, producing the UI(tb-gen)/backend
+    # (fl-model-gen) desync the user reported.
+    def _setup_workspace_proxy(name: str) -> None:
+        try:
+            import main as _main_mod  # type: ignore
+        except ImportError:
+            try:
+                from src import main as _main_mod  # type: ignore
+            except ImportError:
+                return
+        fn = getattr(_main_mod, "_setup_workspace", None)
+        if callable(fn):
+            fn(name)
+
     register_sessions_routes(
         app,
         project_root=lambda: PROJECT_ROOT,
@@ -8784,6 +8803,7 @@ def create_app():
         bridge=bridge,
         get_jobs_state=_get_jobs_state,
         atlas_db_factory=AtlasDB,
+        setup_workspace=_setup_workspace_proxy,
     )
 
     # ── Admin endpoints ──────────────────────────────────────────
