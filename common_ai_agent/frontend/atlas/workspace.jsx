@@ -1950,21 +1950,32 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       streamBufferRef.current += t;
       if (!_streamRaf) _streamRaf = requestAnimationFrame(_flushStream);
     }));
-    subs.push(window.backend.subscribe('reasoning', (m) => {
-      const t = (m.text || '').trim();
-      if (!t) return;
-      // Coalesce consecutive reasoning lines into ONE thought block —
-      // the agent emits one chunk per sentence, which floods the chat
-      // with 10+ THOUGHT entries per turn. We append to the last
-      // entry if it's still a thought, otherwise create a new one.
+    // Reasoning chunks come one-per-sentence; the previous handler
+    // setFeed'd on every chunk, so 10 sentences = 10 React re-renders
+    // of the entire feed. Stage chunks in a ref and flush at most
+    // once per animation frame, mirroring the token stream batcher.
+    const _reasonBuf = { lines: [] };
+    let _reasonRaf = 0;
+    const _flushReason = () => {
+      _reasonRaf = 0;
+      const newLines = _reasonBuf.lines;
+      _reasonBuf.lines = [];
+      if (!newLines.length) return;
+      const chunk = newLines.join('\n');
       setFeed(l => {
         const last = l[l.length - 1];
         if (last && last.kind === 'thought') {
           return [...l.slice(0, -1),
-                  { kind: 'thought', text: last.text + '\n' + t, createdAt: last.createdAt || Date.now() }];
+                  { kind: 'thought', text: last.text + '\n' + chunk, createdAt: last.createdAt || Date.now() }];
         }
-        return [...l, { kind: 'thought', text: t, createdAt: Date.now() }];
+        return [...l, { kind: 'thought', text: chunk, createdAt: Date.now() }];
       });
+    };
+    subs.push(window.backend.subscribe('reasoning', (m) => {
+      const t = (m.text || '').trim();
+      if (!t) return;
+      _reasonBuf.lines.push(t);
+      if (!_reasonRaf) _reasonRaf = requestAnimationFrame(_flushReason);
     }));
     // todo_line: react_loop emits a full TodoTracker.format_simple() dump
     // on every iteration and after every tool call (see react_loop.py),
@@ -3736,7 +3747,7 @@ const ObsCard = ({ entry, embedded, summaryMode = true }) => {
 // connected card with tool-themed left border + glyph + status badge.
 // Either half can be missing (action-only when blocked, obs-only is
 // uncommon but handled).
-const ToolCard = ({ action, obs, summaryMode = true }) => {
+const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
   const tool = (action && action.tool) || (obs && obs.tool) || '';
   const theme = _toolTheme(tool);
   // If the obs indicates an error, override the border to red so the
@@ -3813,8 +3824,12 @@ const ToolCard = ({ action, obs, summaryMode = true }) => {
     </div>
   );
 };
+// Memoized so a single new feed entry doesn't re-render every prior
+// ToolCard. action/obs are immutable per turn so reference equality is
+// the right comparator.
+const ToolCard = React.memo(_ToolCardRaw);
 
-const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir, summaryMode = true }) => {
+const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, dir, summaryMode = true }) => {
   if (entry.kind === 'user') {
     const userText = String(entry.text || '');
     // Render through markdown so QA submission prompts (which are
@@ -3996,6 +4011,22 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir, summaryM
   }
   return null;
 };
+// Memoize FeedEntry so adding one new entry doesn't re-render every
+// existing one. Custom comparator keeps re-render only on entry data
+// change or qaState slice change for the entry's flow id.
+const FeedEntry = React.memo(_FeedEntryRaw, (prev, next) => {
+  if (prev.entry !== next.entry) return false;
+  if (prev.summaryMode !== next.summaryMode) return false;
+  if (prev.dir !== next.dir) return false;
+  // qaState only matters for ask_user entries
+  const flowId = (prev.entry && (prev.entry.flowId || (prev.entry.kind === 'ask_user' && prev.entry.flow_id))) || null;
+  if (flowId) {
+    const a = (prev.qaState || {})[flowId];
+    const b = (next.qaState || {})[flowId];
+    if (a !== b) return false;
+  }
+  return true;
+});
 
 // HTML-escape before any interpolation. Without this, the fallback
 // renderer was happy to drop user-controlled text (e.g. file contents

@@ -252,11 +252,14 @@ def create_app():
                 snapshot = list(session.clients)
                 if not snapshot:
                     continue
-                # Serialize once for the whole fan-out. Computing the
-                # size here picks the right timeout for every client.
-                import json as _json
-                raw = _json.dumps(msg, ensure_ascii=False)
-                size_kb = max(len(raw.encode("utf-8", errors="replace")) / 1024, 1)
+                # Serialize once for the whole fan-out and skip the
+                # second encode-to-bytes the timeout sizing used to do
+                # for every frame — len(raw) is the same order of
+                # magnitude as the UTF-8 byte length for ASCII-heavy
+                # JSON, and the 4-second floor swallows the rounding
+                # error.
+                raw = json.dumps(msg, ensure_ascii=False)
+                size_kb = max(len(raw) / 1024, 1)
                 timeout = max(4.0, size_kb * 0.25)
                 results = await asyncio.gather(
                     *(_send_one(c, raw, timeout) for c in snapshot),
@@ -497,7 +500,10 @@ def create_app():
                     }
             except Exception:
                 pass
-            # Live cumulative token + cost totals (from session cost.json)
+            # Live cumulative token + cost totals (from session cost.json).
+            # Hot path: /healthz polls every few seconds and the disk
+            # read used to block the asyncio loop. Push the read into
+            # a thread; the surrounding logic stays cheap.
             try:
                 import json as _json
                 from pathlib import Path as _P
@@ -506,34 +512,40 @@ def create_app():
                     _P(_sess) / ".session" / (info["workspace"] or "default") / "cost.json",
                     _P(_sess) / ".session" / "default" / "cost.json",
                 ]
-                for c in _candidates:
-                    if c.exists():
-                        d = _json.loads(c.read_text())
-                        # cost.json schema (written by lib/textual_ui.py):
-                        # {in_tok, cache_tok, out_tok, sum_tok}. The
-                        # previous code read input/cached/output, which
-                        # always missed and reported 0 — that wiped the
-                        # live-accumulated tokens on every flush via the
-                        # /healthz refresh path.
-                        info["tokens_in"]    = d.get("in_tok",    d.get("input",  0))
-                        info["tokens_cache"] = d.get("cache_tok", d.get("cached", 0))
-                        info["tokens_out"]   = d.get("out_tok",   d.get("output", 0))
-                        # Cost in USD. tokens_in is total prompt_tokens
-                        # (includes cached subset); tokens_cache is that
-                        # cached subset, NOT additive. Subtract cached
-                        # before applying p.input or we'd bill the cache
-                        # twice (once at input, once at cache rate).
-                        if info["pricing"]:
-                            ti = info["tokens_in"]    or 0
-                            tc = info["tokens_cache"] or 0
-                            to = info["tokens_out"]   or 0
-                            ti_billable = max(0, ti - tc)
-                            info["cost_usd"] = (
-                                ti_billable * info["pricing"]["input"]  / 1_000_000
-                                + tc        * info["pricing"]["cache"]  / 1_000_000
-                                + to        * info["pricing"]["output"] / 1_000_000
-                            )
-                        break
+                def _pick_cost():
+                    for c in _candidates:
+                        if c.exists():
+                            try:
+                                return _json.loads(c.read_text())
+                            except Exception:
+                                return None
+                    return None
+                d = await asyncio.to_thread(_pick_cost)
+                if d is not None:
+                    # cost.json schema (written by lib/textual_ui.py):
+                    # {in_tok, cache_tok, out_tok, sum_tok}. The
+                    # previous code read input/cached/output, which
+                    # always missed and reported 0 — that wiped the
+                    # live-accumulated tokens on every flush via the
+                    # /healthz refresh path.
+                    info["tokens_in"]    = d.get("in_tok",    d.get("input",  0))
+                    info["tokens_cache"] = d.get("cache_tok", d.get("cached", 0))
+                    info["tokens_out"]   = d.get("out_tok",   d.get("output", 0))
+                    # Cost in USD. tokens_in is total prompt_tokens
+                    # (includes cached subset); tokens_cache is that
+                    # cached subset, NOT additive. Subtract cached
+                    # before applying p.input or we'd bill the cache
+                    # twice (once at input, once at cache rate).
+                    if info["pricing"]:
+                        ti = info["tokens_in"]    or 0
+                        tc = info["tokens_cache"] or 0
+                        to = info["tokens_out"]   or 0
+                        ti_billable = max(0, ti - tc)
+                        info["cost_usd"] = (
+                            ti_billable * info["pricing"]["input"]  / 1_000_000
+                            + tc        * info["pricing"]["cache"]  / 1_000_000
+                            + to        * info["pricing"]["output"] / 1_000_000
+                        )
             except Exception:
                 pass
         else:
