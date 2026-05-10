@@ -1476,7 +1476,10 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
             _active_stream_response = response
             _inactivity_s = getattr(config, 'STREAM_INACTIVITY_TIMEOUT', 120)
             _last_data = [time.time()]
-            _wd_stop, _wd_triggered = _make_stream_watchdog(response, _inactivity_s, _last_data)
+            _last_progress = [time.time()]
+            _wd_stop, _wd_triggered = _make_stream_watchdog(
+                response, _inactivity_s, _last_data, _last_progress
+            )
             try:
                 usage_info = None
                 _yielded_something = False
@@ -1488,6 +1491,13 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                     line = line.decode('utf-8').strip()
                     if not line.startswith("data: "):
                         continue
+                    # Separate progress checkpoint: only real SSE data lines
+                    # count as "progress" for the new watchdog. Keep-alives
+                    # (':keep-alive', empty lines) reset _last_data[0] above
+                    # for the spinner UX, but the second watchdog (fed by
+                    # _last_progress) ignores those so a stalled provider
+                    # actually triggers the timeout.
+                    _last_progress[0] = time.time()
                     data_str = line[6:]
                     if data_str == "[DONE]":
                         break
@@ -1793,7 +1803,8 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
     return  # all retries exhausted
 
 
-def _make_stream_watchdog(response, inactivity_s: int, last_data_ref: list):
+def _make_stream_watchdog(response, inactivity_s: int, last_data_ref: list,
+                          last_progress_ref: list | None = None):
     """
     Daemon thread that watches the stream for inactivity.
 
@@ -1825,7 +1836,19 @@ def _make_stream_watchdog(response, inactivity_s: int, last_data_ref: list):
         while not _stop.is_set():
             now = time.time()
             elapsed = now - last_data_ref[0]
-            if elapsed >= inactivity_s:
+            # Independent "real progress" track: if a progress_ref is
+            # supplied, the timeout fires on whichever timer (bytes OR
+            # real SSE events) idle longer than inactivity_s. SSE
+            # keep-alive bytes can hide a stalled provider behind a
+            # healthy TCP connection — progress_ref is only bumped on
+            # data:-prefixed lines so this lane catches that case.
+            progress_elapsed = (
+                now - last_progress_ref[0]
+                if last_progress_ref is not None
+                else 0
+            )
+            stall = max(elapsed, progress_elapsed)
+            if stall >= inactivity_s:
                 _triggered[0] = True
                 try:
                     response.close()
@@ -2335,7 +2358,10 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
             _active_stream_response = response
             _inactivity_s = getattr(config, 'STREAM_INACTIVITY_TIMEOUT', 120)
             _last_data = [time.time()]
-            _wd_stop, _wd_triggered = _make_stream_watchdog(response, _inactivity_s, _last_data)
+            _last_progress = [time.time()]
+            _wd_stop, _wd_triggered = _make_stream_watchdog(
+                response, _inactivity_s, _last_data, _last_progress
+            )
             try:
                 usage_info = None
                 _yielded_something = False
@@ -2347,6 +2373,12 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                     _last_data[0] = time.time()
                     line = line.decode('utf-8').strip()
                     if line.startswith("data: "):
+                        # Real SSE event: bump the secondary "progress"
+                        # timer. _last_data[0] above tracks raw bytes for
+                        # spinner UX; _last_progress[0] only moves on
+                        # actual data:-prefixed lines so the watchdog can
+                        # detect provider stalls hidden behind keep-alives.
+                        _last_progress[0] = time.time()
                         data_str = line[6:]
                         if data_str == "[DONE]":
                             break
@@ -3725,7 +3757,10 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             _active_stream_response = response
             _inactivity_s = getattr(config, 'STREAM_INACTIVITY_TIMEOUT', 120)
             _last_data = [time.time()]
-            _wd_stop, _wd_triggered = _make_stream_watchdog(response, _inactivity_s, _last_data)
+            _last_progress = [time.time()]
+            _wd_stop, _wd_triggered = _make_stream_watchdog(
+                response, _inactivity_s, _last_data, _last_progress
+            )
             try:
                 _perf_connect = time.time() - _t_connect
                 # Parse Server-Sent Events (SSE)
@@ -3740,6 +3775,10 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     _last_data[0] = time.time()
                     line = line.decode('utf-8').strip()
                     if line.startswith("data: "):
+                        # Secondary progress checkpoint — see Responses API
+                        # streamer for rationale (don't let SSE keep-alives
+                        # mask a stalled provider).
+                        _last_progress[0] = time.time()
                         data_str = line[6:] # Remove "data: " prefix
                         if data_str == "[DONE]":
                             if _t_first_token:
