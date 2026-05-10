@@ -1141,6 +1141,35 @@ def create_app():
             pass
         return JSONResponse({"ok": True})
 
+    def _tracker_stage(name: str) -> str:
+        # `derive_rtl_todos.py` writes tracker name as "<ip>-rtl"; other
+        # generators follow the same `<ip>-<stage>` convention so we can
+        # cheaply read the trailing stage off the name.
+        s = (name or "").rsplit("-", 1)
+        return s[-1] if len(s) == 2 else ""
+
+    def _active_workflow_stage() -> str:
+        sess = _active_session_value() or ""
+        parts = [p for p in sess.split("/") if p]
+        if len(parts) < 3:
+            return ""
+        wf = parts[-1]
+        return wf.split("-")[0] if "-" in wf else wf
+
+    def _gate_for_workflow(d: dict | None) -> dict | None:
+        # Tracker carries an SSOT-derived workflow stage in its name.
+        # When the user is viewing a different workflow we hide the
+        # tracker so a previous /gen-rtl run doesn't keep showing 20
+        # auto-generated rtl-gen TODOs in sim_debug or other workflows.
+        if not isinstance(d, dict):
+            return d
+        ts = _tracker_stage(d.get("name", ""))
+        ws = _active_workflow_stage()
+        if ts and ws and ts != ws:
+            return {"todos": [], "auto_hidden": True,
+                    "reason": f"tracker '{d.get('name')}' is for {ts}, active workflow is {ws}"}
+        return d
+
     @app.get("/api/todos")
     async def api_todos():
         # Prefer the live tracker the agent is mutating in main.py — that's
@@ -1151,7 +1180,7 @@ def create_app():
             import main as _main  # noqa: WPS433
             live = getattr(_main, "todo_tracker", None)
             if live is not None and getattr(live, "todos", None):
-                return JSONResponse(live.to_dict())
+                return JSONResponse(_gate_for_workflow(live.to_dict()))
             live_path = getattr(live, "_persist_path", None) if live is not None else None
             if live_path:
                 candidates.append(Path(live_path))
@@ -1201,7 +1230,7 @@ def create_app():
             tt = TodoTracker.load(picked)
             d = tt.to_dict()
             if d.get("todos"):
-                return JSONResponse(d)
+                return JSONResponse(_gate_for_workflow(d))
             # Legacy array shape: `[{...}]` instead of `{"todos": [...]}`.
             try:
                 raw = _json.loads(picked.read_text())
@@ -1215,7 +1244,7 @@ def create_app():
                     ]}
             except Exception:
                 pass
-            return JSONResponse(d)
+            return JSONResponse(_gate_for_workflow(d))
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
 
