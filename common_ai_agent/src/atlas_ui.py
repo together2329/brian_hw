@@ -785,12 +785,11 @@ def create_app():
                 name = entry.name
                 if name.startswith(".") or name in skip:
                     continue
-                # Quick "looks like an IP" check.
-                has_subtree = any(
-                    (entry / sub).is_dir() for sub in ("yaml", "rtl", "tb", "sim")
-                )
-                if not has_subtree:
-                    continue
+                # Accept any non-framework dir as an IP candidate. A
+                # freshly created IP (via + IP / /api/ip/create) starts
+                # empty before the agent populates yaml/rtl/tb/sim, and
+                # rejecting empty dirs caused the IP_ID dropdown to
+                # silently roll back to None right after creation.
                 ssot = entry / "yaml" / f"{name}.ssot.yaml"
                 items.append({
                     "name": name,
