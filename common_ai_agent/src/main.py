@@ -2250,7 +2250,7 @@ def chat_loop():
                                 _ws_emit(Color.error(
                                     f"❌ Cannot switch to workflow '{ws_name}': IP not selected.\n"
                                     f"   Pick an IP in IP_ID (or click + IP) first; "
-                                    f"sessions require <owner>/<ip>/<workflow>."
+                                    f"sessions require `owner/ip/workflow` (3 segments)."
                                 ))
                                 continue
                             _target_session = f"{_parts[0]}/{_parts[1]}/{ws_name}"

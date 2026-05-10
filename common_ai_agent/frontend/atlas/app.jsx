@@ -177,8 +177,15 @@ const App = () => {
     // workflow was active before — config.TODO_FILE / system prompt /
     // todo template all kept the old workspace's wiring.
     const wf = normalizeSession(workflow) || 'default';
+    // Backend refuses /wf when no IP is selected (3-depth contract).
+    // Don't dispatch in that case — the user just sees an error in
+    // chat for a state change they didn't actually request.
+    const ns = session || window.ACTIVE_SESSION || '';
+    const segs = ns.split('/').filter(Boolean);
+    const hasIp = segs.length >= 2 && segs[1] && segs[1] !== 'default';
+    if (!hasIp) return;
     if (window.backend && typeof window.backend.send === 'function') {
-      window.backend.send({ type: 'prompt', text: `/wf ${wf}`, session: session || window.ACTIVE_SESSION || 'default', ui_lang: window.ATLAS_UI_LANG || uiLang });
+      window.backend.send({ type: 'prompt', text: `/wf ${wf}`, session: ns || 'default', ui_lang: window.ATLAS_UI_LANG || uiLang });
     }
   }, [normalizeSession, uiLang]);
 
@@ -311,18 +318,27 @@ const App = () => {
     } catch (_) {}
     // PROJECT_ROOT scan — the new authoritative source for IP_ID. The
     // backend just enumerates first-level dirs that look like IPs
-    // (have yaml/, rtl/, tb/, or sim/) and skips framework dirs. That
-    // matches the user's mental model: "IP_ID lists IPs the backend
-    // is running over, nothing more."
+    // (have yaml/, rtl/, tb/, or sim/) and skips framework dirs.
+    let ipListResolved = false;
     try {
       const r2 = await fetch('/api/ip/list', { cache: 'no-store' });
       if (r2.ok) {
         const d2 = await r2.json();
+        ipListResolved = true;
         for (const it of (Array.isArray(d2.items) ? d2.items : [])) {
           if (acceptIp(it.name)) nextIps.add(it.name);
         }
       }
     } catch (_) {}
+    // If /api/ip/list resolved cleanly and the localStorage-cached
+    // activeIp doesn't exist on disk, drop it so the dropdown stops
+    // pretending an IP is selected. Without this guard a stale
+    // "atlasActiveSession=default/gpio/..." entry from a previous run
+    // kept "gpio" visible even after `rm -rf gpio`.
+    if (ipListResolved && activeIp && !nextIps.has(activeIp)) {
+      setActiveIp('');
+      try { localStorage.removeItem('atlasActiveSession'); } catch (_) {}
+    }
 
     const liveNamespace = normalizeSession(window.ACTIVE_SESSION || activeNamespace) || namespaceFor(currentUserSession, activeIp, currentWorkflow());
     const parsedLive = splitSessionNamespace(liveNamespace);
@@ -760,7 +776,7 @@ const App = () => {
             className="dir-select"
             value={currentWorkflow() || ''}
             onChange={e => selectWorkflow(e.currentTarget.value)}>
-            <option value="">default</option>
+            <option value="">None</option>
             {Array.from(TOP_WORKFLOWS).sort().map(wf => (
               <option key={wf} value={wf}>{wf}</option>
             ))}
