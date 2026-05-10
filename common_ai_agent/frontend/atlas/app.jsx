@@ -820,44 +820,77 @@ const App = () => {
       )}
       {!bootHidden && (
         <div role="status" aria-live="polite" style={{
-          padding: '6px 12px', fontSize: 12, fontFamily: 'var(--mono)',
-          background: bootFailed
-            ? 'color-mix(in oklch, var(--red, #ef4444) 12%, transparent)'
-            : (bootDone
-                ? 'color-mix(in oklch, var(--green, #22c55e) 12%, transparent)'
-                : 'color-mix(in oklch, var(--accent) 12%, transparent)'),
+          // Centered overlay so the user notices the handshake the
+          // moment the page paints, instead of having to look at a
+          // top-strip the chrome may have scrolled past.
+          position: 'fixed',
+          top: '50%', left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 9999,
+          minWidth: 360,
+          maxWidth: 480,
+          padding: '18px 22px',
+          fontSize: 13, fontFamily: 'var(--mono)',
+          background: 'var(--bg-1, #14171c)',
+          border: '1px solid ' + (bootFailed ? 'var(--red, #ef4444)' : (bootDone ? 'var(--green, #22c55e)' : 'var(--accent)')),
+          borderRadius: 8,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
           color: bootFailed ? 'var(--red, #ef4444)' : (bootDone ? 'var(--green, #22c55e)' : 'var(--accent)'),
-          borderBottom: '1px solid currentColor',
-          display: 'flex', alignItems: 'center', gap: 10,
+          display: 'flex', flexDirection: 'column', gap: 12,
+          transition: 'opacity 250ms ease',
+          opacity: bootDone ? 0.92 : 1,
         }}>
-          {!bootDone && !bootFailed && (
-            <span style={{
-              display: 'inline-block',
-              width: 12, height: 12,
-              border: '2px solid currentColor',
-              borderRightColor: 'transparent',
-              borderRadius: '50%',
-              animation: 'atlas-spin 0.9s linear infinite',
-            }} />
-          )}
-          {bootDone && <span style={{ fontWeight: 600 }}>✓</span>}
-          {bootFailed && <span style={{ fontWeight: 600 }}>⚠</span>}
-          <span style={{ flex: 1 }}>
-            {bootDone ? 'Connected · backend handshake complete' :
-             bootFailed ? 'Connection problem — see steps below' :
-             'Connecting to backend…'}
-            {' '}
-            {Object.entries(bootSteps).map(([k, v]) => (
-              <span key={k} style={{ marginLeft: 10, opacity: v === 'done' ? 1 : 0.6 }}>
-                {v === 'done' ? '✓' : v === 'fail' ? '✗' : '○'} {k}
-              </span>
-            ))}
-          </span>
-          {bootDone && (
-            <button onClick={() => setBootHidden(true)}
-                    style={{ background: 'transparent', border: 'none',
-                             color: 'currentColor', cursor: 'pointer', fontSize: 14 }}>×</button>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {!bootDone && !bootFailed && (
+              <span style={{
+                display: 'inline-block',
+                width: 18, height: 18,
+                border: '2px solid currentColor',
+                borderRightColor: 'transparent',
+                borderRadius: '50%',
+                animation: 'atlas-spin 0.9s linear infinite',
+                flexShrink: 0,
+              }} />
+            )}
+            {bootDone && <span style={{ fontSize: 20, fontWeight: 700 }}>✓</span>}
+            {bootFailed && <span style={{ fontSize: 20, fontWeight: 700 }}>⚠</span>}
+            <span style={{ fontWeight: 600 }}>
+              {bootDone ? 'Backend connected'
+                : bootFailed ? 'Connection problem'
+                : 'Connecting to backend…'}
+            </span>
+            <span style={{ flex: 1 }} />
+            {bootDone && (
+              <button onClick={() => setBootHidden(true)}
+                      style={{ background: 'transparent', border: 'none',
+                               color: 'currentColor', cursor: 'pointer',
+                               fontSize: 18, lineHeight: 1, padding: 0 }}
+                      title="dismiss">×</button>
+            )}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {Object.entries(bootSteps).map(([k, v]) => {
+              const labels = {
+                ws: 'WebSocket connection',
+                hello: 'Backend handshake (hello)',
+                health: '/healthz endpoint',
+                sessions: 'Session list hydrated',
+              };
+              return (
+                <div key={k} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  fontSize: 12,
+                  opacity: v === 'done' ? 1 : v === 'fail' ? 1 : 0.7,
+                  color: v === 'done' ? 'var(--green, #22c55e)' : v === 'fail' ? 'var(--red, #ef4444)' : 'currentColor',
+                }}>
+                  <span style={{ width: 14, textAlign: 'center', fontWeight: 700 }}>
+                    {v === 'done' ? '✓' : v === 'fail' ? '✗' : '○'}
+                  </span>
+                  <span>{labels[k] || k}</span>
+                </div>
+              );
+            })}
+          </div>
           <style>{`@keyframes atlas-spin{to{transform:rotate(360deg)}}`}</style>
         </div>
       )}
