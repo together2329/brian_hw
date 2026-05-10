@@ -3287,7 +3287,17 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               onBack={() => setMainTab('chat')}
             />
           ) : mainTab === 'debug' ? (
-            window.DebugTab ? (
+            // Prefer the full SimDebug pane (wave viewer + RTL hierarchy
+            // + source folds + cocotb tree, all wired to /api/vcd/list +
+            // /api/vcd/raw + window.parseVCD) when it's loaded. Fall back
+            // to the slim scenario+artifact DebugTab when SimDebug isn't
+            // available (e.g. dev build without sim-debug.jsx). Last
+            // resort: a "loading…" placeholder.
+            window.SimDebug ? (
+              <ErrorBoundary label="SimDebug">
+                <window.SimDebug />
+              </ErrorBoundary>
+            ) : window.DebugTab ? (
               <ErrorBoundary label="Debug">
                 <window.DebugTab
                   ip={(() => {
