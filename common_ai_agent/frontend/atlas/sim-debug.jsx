@@ -557,29 +557,24 @@ window.SimDebug = () => {
     return () => { cancelled = true; };
   }, [ipName]);
 
-  // Build the traceList — real VCD signals if loaded, else mock data.
+  // Build the traceList — real VCD signals only. Mock SPI traces
+  // were dropped here per user request: the wave pane should never
+  // show fake data. When no VCD has been parsed yet, return [] and
+  // let the empty-state hint below ("no VCD found / run /sim") tell
+  // the user how to get real signals on screen.
   const traceList = React.useMemo(() => {
     if (vcdData && vcdData.signals && vcdData.signals.length) {
-      // Sort top-of-tree first, hide constants/very long.
       return vcdData.signals.slice(0, 24).map(s => ({
         name: s.name + (s.range || ''),
         scope: s.scope,
-        // VCD samples come keyed by ID — re-key by display name for the
-        // existing WaveRow component which expects [time, value] arrays.
+        // VCD samples come keyed by ID — re-key by display name for
+        // WaveRow which expects [time, value] arrays.
         trace: vcdData.samples[s.id] || [],
         isBus: s.isBus,
         radix: s.isBus ? 'HEX' : undefined,
       }));
     }
-    return [
-      { name: 'clk',            trace: window.MOCK_TRACES.clk,       isBus: false },
-      { name: 'rst_n',          trace: window.MOCK_TRACES.rst_n,     isBus: false },
-      { name: 'state',          trace: window.MOCK_TRACES.state,     isBus: true,  radix: 'ENUM' },
-      { name: 'bit_cnt[3:0]',   trace: window.MOCK_TRACES.bit_cnt,   isBus: true,  radix: 'HEX' },
-      { name: 'shift_reg[7:0]', trace: window.MOCK_TRACES.shift_reg, isBus: true,  radix: 'HEX' },
-      { name: 'mosi',           trace: window.MOCK_TRACES.mosi,      isBus: false },
-      { name: 'miso',           trace: window.MOCK_TRACES.miso,      isBus: false },
-    ];
+    return [];
   }, [vcdData]);
 
   // Tool-call activations: clicking one in chat re-focuses the side panels.
@@ -1495,6 +1490,26 @@ window.SimDebug = () => {
                   </div>
                 </div>
                 <div style={{ position: 'relative' }}>
+                  {traceList.length === 0 && (
+                    <div style={{
+                      padding: '20px 16px',
+                      color: 'var(--fg-mute)',
+                      fontStyle: 'italic',
+                      fontSize: 12,
+                      lineHeight: 1.6,
+                    }}>
+                      {ipName ? (
+                        <>
+                          no VCD found for <code>{ipName}</code>.<br />
+                          run <code>/sim</code> in chat to generate{' '}
+                          <code>{ipName}/sim/{ipName}.vcd</code>, then this
+                          panel will populate with real signals.
+                        </>
+                      ) : (
+                        <>pick an IP from <code>IP_ID</code> to scope sim_debug.</>
+                      )}
+                    </div>
+                  )}
                   {traceList.map((t, ti) => {
                     // Verdi-style color hint by name role.
                     const lname = (t.name || '').toLowerCase();
