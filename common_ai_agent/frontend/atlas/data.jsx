@@ -556,19 +556,17 @@
       // re-derives activeSessionId from the namespace).
       try {
         const stored = (localStorage.getItem('atlasUserSessionId') || '').trim();
-        // Backend now anchors single-user session_id to the launch
-        // directory name (e.g. "NEW_SESSION"). Trust that over any
-        // previously cached `u-<stamp>-<rand>` value so the on-disk
-        // .session/ tree stays grouped by project folder, not by
-        // throwaway browser ids.
-        if (d.user_session && d.user_session !== stored) {
+        // Migrate stale auto-generated `u-<base36>-<rand>` ids to the
+        // server-supplied default ("default" in single-user mode).
+        // Don't override deliberate user-named sessions (anything that
+        // doesn't match the random stamp pattern).
+        const isLegacyRandom = /^u-[a-z0-9]{6,12}-[a-z0-9]{4,8}$/i.test(stored);
+        const shouldSeed = (!stored || isLegacyRandom) && d.user_session;
+        if (shouldSeed) {
           localStorage.setItem('atlasUserSessionId', d.user_session);
           window.ATLAS_USER_SESSION_ID = d.user_session;
           const storedNs = (localStorage.getItem('atlasActiveSession') || '').trim();
-          // Re-anchor the namespace too unless the user is mid-flight in
-          // a session that already starts with this id.
-          const namespaceMatches = storedNs && storedNs.split('/')[0] === d.user_session;
-          if (!storedNs || !namespaceMatches) {
+          if (!storedNs || /^u-[a-z0-9]{6,12}-[a-z0-9]{4,8}\//i.test(storedNs)) {
             const seedNs = `${d.user_session}/default`;
             localStorage.setItem('atlasActiveSession', seedNs);
             window.ACTIVE_SESSION = seedNs;

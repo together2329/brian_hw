@@ -400,18 +400,12 @@ def create_app():
             info["client_ip"] = client_host
             info["user_session"] = f"u-{_user_safe}"
         else:
-            # Single-user: anchor session_id to the directory the user
-            # actually launched the backend in. The previous frontend
-            # auto-generated `u-<base36-stamp>-<rand>` IDs that had no
-            # relationship to the working directory, so `.session/`
-            # accumulated unrelated owner buckets and users couldn't
-            # tell which session went with which project. Use the
-            # PROJECT_ROOT folder name (e.g. "NEW_SESSION") as the
-            # default session_id — frontend honors this on first visit.
-            try:
-                info["user_session"] = PROJECT_ROOT.name or "default"
-            except Exception:
-                info["user_session"] = "default"
+            # Single-user: session_id defaults to "default". The project
+            # root (where .session/ lives) is anchored separately via
+            # --root/cwd; session_id is a sub-namespace under that root,
+            # not the root's own name.
+            info["user_session"] = "default"
+        info["project_root_name"] = PROJECT_ROOT.name or ""
         # Expose the real model + context window so the sidebar doesn't
         # have to invent values. Pull from src.config (the per-process
         # frozen settings); if config isn't importable yet, fall through
