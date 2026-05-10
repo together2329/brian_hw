@@ -36,6 +36,17 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Optional, TYPE_CHECKING
 
+# Self-bootstrap PYTHONPATH so `python3 src/atlas_ui.py` works without
+# the caller exporting PYTHONPATH=.:src first. atlas_ui imports modules
+# from BOTH this directory (other src/*.py siblings) AND the repo root
+# (core/, lib/, workflow/loader). Adding both up front lets the binary
+# be launched from any cwd.
+_THIS_DIR = Path(__file__).resolve().parent
+_REPO_ROOT = _THIS_DIR.parent
+for _p in (str(_THIS_DIR), str(_REPO_ROOT)):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 # `from __future__ import annotations` turns every type annotation into
 # a string. FastAPI's `get_type_hints()` then needs to resolve those
 # strings in the *module globals*. The inner endpoint functions live
@@ -555,40 +566,6 @@ def create_app():
             info["max_iterations"] = int(_os.environ.get("MAX_ITERATIONS", "0") or "0")
             info["workspace"] = _os.environ.get("ACTIVE_WORKSPACE", "") or _os.environ.get("WORKSPACE", "")
         return JSONResponse(info)
-
-    @app.get("/api/workspaces")
-    async def api_workspaces():
-        """List every workspace under workflow/ with a workspace.json.
-
-        Reads from the SOURCE repo (not the user's cwd) since workspace
-        definitions ship with common_ai_agent itself.
-        """
-        workflow_dir = SOURCE_ROOT / "workflow"
-        items = []
-        if workflow_dir.is_dir():
-            for d in sorted(workflow_dir.iterdir()):
-                if not d.is_dir():
-                    continue
-                ws_json = d / "workspace.json"
-                if not ws_json.exists():
-                    continue
-                try:
-                    spec = json.loads(ws_json.read_text())
-                except Exception:
-                    spec = {}
-                items.append({
-                    "id": d.name,
-                    "name": d.name,
-                    "label": spec.get("name", d.name),
-                    "description": spec.get("description", ""),
-                })
-        # Same fallback as /healthz — show the actual session name even
-        # when ACTIVE_WORKSPACE is unset (boot without -w). Frontend
-        # uses this to render the workflow strip's active highlight.
-        active = (os.environ.get("ACTIVE_WORKSPACE")
-                  or os.environ.get("ACTIVE_PROJECT")
-                  or "default")
-        return JSONResponse({"active": active, "items": items})
 
     # ── REAL project data API ────────────────────────────────────
     # File-system backed endpoints. All paths are confined to the user's
@@ -8673,84 +8650,6 @@ def create_app():
         return JSONResponse({"root": root, "count": len(root["children"]),
                              "project_root": str(PROJECT_ROOT)})
 
-    @app.get("/api/workspace/download.zip")
-    async def api_workspace_download(subpath: str = ""):
-        """Stream a zip of the workspace (or an optional sub-directory).
-
-        subpath: optional path relative to PROJECT_ROOT. Defaults to the
-        whole workspace. Refuses anything that escapes PROJECT_ROOT.
-        Skips heavy/cache/secret folders (same skip-set as /tree, plus .env).
-        """
-        import io
-        import zipfile
-        from fastapi.responses import StreamingResponse
-
-        skip_dirs = {
-            ".git", "__pycache__", ".pytest_cache", ".mypy_cache",
-            ".ruff_cache", "node_modules", ".venv", "venv", "vendor",
-            ".session", ".rag", ".claude", ".omc", ".benchmark",
-            ".benchmarks", ".common_ai_agent", ".session_debug", "logs",
-        }
-        skip_files = {".env", ".env.local", ".env.production",
-                      ".env.example", ".DS_Store"}
-
-        try:
-            base = PROJECT_ROOT
-            if subpath:
-                target = (PROJECT_ROOT / subpath).resolve()
-                try:
-                    target.relative_to(PROJECT_ROOT)
-                except ValueError:
-                    return JSONResponse(
-                        {"error": "subpath outside project root"},
-                        status_code=400,
-                    )
-                if target.is_dir():
-                    base = target
-
-            buf = io.BytesIO()
-            file_count = 0
-            with zipfile.ZipFile(buf, mode="w",
-                                 compression=zipfile.ZIP_DEFLATED) as z:
-                for root_dir, dirs, files in os.walk(base):
-                    dirs[:] = [
-                        d for d in dirs
-                        if d not in skip_dirs and not d.startswith(".")
-                    ]
-                    for f in files:
-                        if f in skip_files or f.startswith("."):
-                            continue
-                        full = Path(root_dir) / f
-                        try:
-                            rel = full.relative_to(base)
-                            z.write(full, arcname=str(rel))
-                            file_count += 1
-                        except (OSError, ValueError):
-                            continue
-            buf.seek(0)
-            name = f"{base.name or 'workspace'}.zip"
-
-            def _iter():
-                while True:
-                    chunk = buf.read(64 * 1024)
-                    if not chunk:
-                        break
-                    yield chunk
-
-            return StreamingResponse(
-                _iter(),
-                media_type="application/zip",
-                headers={
-                    "Content-Disposition": f'attachment; filename="{name}"',
-                    "X-Workspace-File-Count": str(file_count),
-                },
-            )
-        except Exception as exc:
-            return JSONResponse(
-                {"error": f"zip failed: {exc}"},
-                status_code=500,
-            )
-
     @app.post("/api/soc/layout")
     async def api_soc_layout(request: Request):
         """Persist user-dragged block positions back into soc.ssot.yaml.
@@ -9779,6 +9678,16 @@ def create_app():
         safe_path=_safe,
         skip_dirs=SKIP_DIRS,
         max_vcd_bytes=MAX_VCD_BYTES,
+    )
+    # Workspaces API (list workflow definitions + download.zip) lives in
+    # src/atlas_api_workspaces.py. Inject runtime callables so routes see
+    # PROJECT_ROOT changes from --root.
+    from atlas_api_workspaces import register_workspaces_routes  # noqa: WPS433
+    register_workspaces_routes(
+        app,
+        project_root=lambda: PROJECT_ROOT,
+        source_root=SOURCE_ROOT,
+        safe_path=_safe,
     )
 
     # ── Atlas SQLite session API ─────────────────────────────────
