@@ -1769,6 +1769,34 @@ def chat_loop():
                             _textual_emit_context_fn(0, 0)
                         except Exception:
                             pass
+                    # Emit the skills list text to the chat feed so the
+                    # browser shows the updated list (atlas WS path).
+                    # Without this the slash handler only refreshes the
+                    # sidebar and the chat feed stays blank for /skills.
+                    _skills_result = slash_registry.execute(user_input)
+                    if _skills_result and _textual_emit_content_fn is not None:
+                        try:
+                            import re as _re_sk
+                            _ansi_sk = _re_sk.compile(r"\x1b\[[0-9;?]*[a-zA-Z]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)")
+                            _clean_sk = _ansi_sk.sub("", _skills_result).rstrip("\n")
+                            _longest_sk = max((len(m.group(0)) for m in re.finditer(r"`+", _clean_sk)), default=0)
+                            _fence_sk = "`" * max(3, _longest_sk + 1)
+                            _payload_sk = f"{_fence_sk}\n" + "\n".join(_clean_sk.splitlines() or [""]) + f"\n{_fence_sk}\n"
+                            _textual_emit_content_fn(_payload_sk)
+                            if _textual_emit_slash_output_fn is not None:
+                                try:
+                                    _textual_emit_slash_output_fn(_payload_sk)
+                                except Exception:
+                                    pass
+                            if _textual_emit_flush_fn is not None:
+                                _textual_emit_flush_fn()
+                        except Exception:
+                            pass
+                    if _textual_set_agent_running_fn is not None:
+                        try:
+                            _textual_set_agent_running_fn(False)
+                        except Exception:
+                            pass
                     continue
 
                 result = slash_registry.execute(user_input)
