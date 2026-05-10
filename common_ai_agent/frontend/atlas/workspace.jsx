@@ -1934,11 +1934,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     subs.push(window.backend.subscribe('peer_left', (m) => {
       setPeerCount(m.peers || 1);
     }));
+    // Coalesce token chunks into one React update per animation frame.
+    // Backends emit dozens of small frames per turn; calling
+    // setStreamText on every frame triggered a re-render per chunk and
+    // the chat UI fell several seconds behind the actual stream. Batch
+    // through a single rAF flush.
+    let _streamRaf = 0;
+    const _flushStream = () => {
+      _streamRaf = 0;
+      setStreamText(streamBufferRef.current);
+    };
     subs.push(window.backend.subscribe('token', (m) => {
       const t = m.text || '';
-      if (!t || t === '\x00') return;  // skip sentinel
+      if (!t || t === '\x00') return;
       streamBufferRef.current += t;
-      setStreamText(streamBufferRef.current);
+      if (!_streamRaf) _streamRaf = requestAnimationFrame(_flushStream);
     }));
     subs.push(window.backend.subscribe('reasoning', (m) => {
       const t = (m.text || '').trim();
@@ -3261,9 +3271,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               onBack={() => setMainTab('chat')}
             />
           ) : mainTab === 'debug' ? (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-mute)' }}>
-              Debug Tab
-            </div>
+            window.DebugTab ? (
+              <ErrorBoundary label="Debug">
+                <window.DebugTab
+                  ip={(() => {
+                    const segs = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+                    return segs.length >= 2 ? segs[1] : '';
+                  })()}
+                  onOpenSource={(p) => { setPreviewPath(p); }}
+                />
+              </ErrorBoundary>
+            ) : (
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-mute)' }}>
+                Debug · loading…
+              </div>
+            )
           ) : (
             /* mainTab === 'qa' — SSOT-GEN QA board or active ask_user */
             <div style={{ flex: 1, overflow: 'auto', padding: '14px 18px' }}>
