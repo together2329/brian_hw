@@ -75,11 +75,22 @@
 
       if (t === '$var') {
         // $var wire 4 ! bit_cnt [3:0] $end
+        // VCD allows the bus range either as a separate token
+        // ("cnt [3:0]") or appended to the name ("cnt[3:0]" — no
+        // space). Split on the first '[' so the range is normalized
+        // either way.
         const stype = tokens[i + 1] || 'wire';
         const width = parseInt(tokens[i + 2] || '1', 10) || 1;
         const id = tokens[i + 3];
-        const name = tokens[i + 4] || '';
-        let suffix = '';
+        const rawName = tokens[i + 4] || '';
+        let baseName = rawName;
+        let inlineRange = '';
+        const lb = rawName.indexOf('[');
+        if (lb > 0 && rawName.endsWith(']')) {
+          baseName = rawName.slice(0, lb);
+          inlineRange = rawName.slice(lb);
+        }
+        let suffix = inlineRange;
         let j = i + 5;
         while (j < tokens.length && tokens[j] !== '$end') {
           suffix += (suffix ? ' ' : '') + tokens[j];
@@ -88,12 +99,12 @@
         const scope = scopeStack[scopeStack.length - 1];
         const sig = {
           id,
-          ref: name + (suffix ? (' ' + suffix) : ''),
+          ref: baseName + (suffix ? (' ' + suffix) : ''),
           scope: scopeStack
             .slice(1)            // skip $root
             .map(s => s.name)
             .join('.'),
-          name,
+          name: baseName,
           type: stype,
           width,
           isBus: width > 1,
