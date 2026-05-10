@@ -436,7 +436,15 @@ const App = () => {
 
   const selectIp = (rawIp) => {
     const ip = normalizeSession(rawIp);
-    const wf = ip ? currentWorkflow() : '';
+    // Picking an IP also re-anchors the workflow: ssot-gen by default
+    // (the natural starting workflow for any IP), or whatever the user
+    // already had if it's a valid workflow. Clearing the IP also
+    // clears the workflow.
+    let wf = '';
+    if (ip) {
+      const cur = currentWorkflow();
+      wf = cur && TOP_WORKFLOWS.has(cur) ? cur : 'ssot-gen';
+    }
     activateNamespace(activeSessionId, ip, wf, !!wf);
   };
 
