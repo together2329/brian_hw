@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from fastapi import FastAPI
+from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
 
@@ -109,7 +110,7 @@ def register_ssot_routes(
         return JSONResponse(ssot_qa_sessions_view())
 
     @app.post("/api/ssot/qa/answer")
-    async def api_ssot_qa_answer(req: Any):
+    async def api_ssot_qa_answer(req: Request):
         """Persist user-supplied answers for pending QA items to qa.json.
 
         Body shape (each item carries its OWN flow_id so this endpoint can
