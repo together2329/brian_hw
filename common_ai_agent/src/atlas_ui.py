@@ -10326,10 +10326,9 @@ def create_app():
         _chat_feed_summary = True
         try:
             import src.config as _cfg_hello
-            try:
-                _cfg_hello.reload_env()
-            except Exception:
-                pass
+            # /healthz already calls reload_env on every poll, so the
+            # WS-connect handshake doesn't need to repeat the sync .env
+            # read. Reading the cached attribute values is plenty.
             _center_layout = getattr(_cfg_hello, "ATLAS_CENTER_LAYOUT", "classic")
             _chat_feed_summary = bool(getattr(_cfg_hello, "ATLAS_CHAT_FEED_SUMMARY", True))
         except Exception:
