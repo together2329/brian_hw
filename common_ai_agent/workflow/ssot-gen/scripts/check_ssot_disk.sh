@@ -36,7 +36,7 @@ SZ=$(wc -c < "$YAML" | tr -d ' ')
 [ "$SZ" -lt "$MIN_YAML" ] && { echo "[check_ssot_disk] FAIL: $YAML = ${SZ}B (need ≥${MIN_YAML})"; exit 1; }
 
 # Required canonical keys (spelling matches ssot-template.yaml).
-REQUIRED='top_module|sub_modules|decomposition|parameters|io_list|features|dataflow|function_model|cycle_model|clock_reset_domains|cdc_requirements|rdc_requirements|registers|memory|interrupts|fsm|timing|power|security|error_handling|debug_observability|integration|dft|synthesis|coding_rules|reuse_modules|custom|dir_structure|filelist|test_requirements|quality_gates|traceability|workflow_todos|generation_flow'
+REQUIRED='top_module|sub_modules|decomposition|rtl_contract|parameters|io_list|features|dataflow|function_model|cycle_model|clock_reset_domains|cdc_requirements|rdc_requirements|registers|memory|interrupts|fsm|timing|power|security|error_handling|debug_observability|integration|dft|synthesis|coding_rules|reuse_modules|custom|dir_structure|filelist|test_requirements|quality_gates|traceability|workflow_todos|generation_flow'
 HITS=$(grep -cE "^($REQUIRED):" "$YAML" || echo 0)
 if [ "$HITS" -lt "$MIN_SECTIONS" ]; then
     echo "[check_ssot_disk] FAIL: $YAML only has $HITS top-level section keys (need ≥$MIN_SECTIONS)"
@@ -147,6 +147,8 @@ def explicit_connection_contract_todo(items):
 
 required = "top_module sub_modules decomposition parameters io_list features dataflow function_model cycle_model clock_reset_domains cdc_requirements rdc_requirements registers memory interrupts fsm timing power security error_handling debug_observability integration dft synthesis coding_rules reuse_modules custom dir_structure filelist test_requirements quality_gates traceability workflow_todos generation_flow".split()
 missing = [key for key in required if key not in doc]
+if "decomposition" in missing and "rtl_contract" in doc:
+    missing.remove("decomposition")
 if missing:
     raise SystemExit("missing required sections: " + ", ".join(missing))
 

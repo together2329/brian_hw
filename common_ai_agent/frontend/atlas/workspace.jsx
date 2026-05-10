@@ -1110,7 +1110,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       sendPrompt(cmd);
     }
   };
-  const switchWorkflow = (w) => {
+  const switchWorkflow = async (w) => {
     // Click a workflow chip → fire `/wf <name>` to actually swap the
     // agent's workspace on the server. The slash command is processed
     // locally by the dispatcher (no LLM call) and re-registers the
@@ -1131,6 +1131,20 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     window.CONTEXT = Object.assign({}, window.CONTEXT || {}, { workspace: next || '' });
     refreshFeed(intent, next);
     const sid = activateSession(window.SCOPE_PATH || '', next || '');
+    const parts = (activeSession || window.ACTIVE_SESSION || '').split('/');
+    const owner = parts[0] || 'default';
+    const ip = window.SCOPE_PATH || parts[1] || 'default';
+    try {
+      await fetch('/api/session/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: owner,
+          ip: ip,
+          workflow: next || 'default',
+        }),
+      });
+    } catch (_) {}
     if (window.backend) {
       sendPrompt(next ? `/wf ${next}` : '/workflow default', sid);
     }

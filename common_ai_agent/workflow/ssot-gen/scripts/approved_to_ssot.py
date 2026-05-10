@@ -64,7 +64,16 @@ REQUIRED_ORDER = [
 def _load_state(root: Path, ip: str) -> dict[str, Any]:
     path = root / ".session" / ip / "ssot-gen" / "state.json"
     if not path.is_file():
-        raise SystemExit(f"[approved_to_ssot] missing approved state: {path}")
+        session_root = root / ".session"
+        if session_root.is_dir():
+            for owner_dir in session_root.iterdir():
+                if owner_dir.is_dir():
+                    candidate = owner_dir / ip / "ssot-gen" / "state.json"
+                    if candidate.is_file():
+                        path = candidate
+                        break
+        if not path.is_file():
+            raise SystemExit(f"[approved_to_ssot] missing approved state: {path}")
     doc = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(doc, dict) or not doc.get("approved"):
         raise SystemExit(f"[approved_to_ssot] {ip} is not approved")

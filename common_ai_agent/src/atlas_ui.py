@@ -172,11 +172,11 @@ def create_app():
     # "default", so the inbox the WS handler writes to is the same inbox
     # the agent thread reads from. Without this, the browser's session
     # query param "default/default/tb-gen" (or any owner/ip/workflow
-    # triple) becomes a distinct bridge session, the agent thread —
-    # started at boot in the "default" session — never sees those
-    # inboxes, and slash commands like /help /context /status /skills
-    # /wf land in an inbox nobody reads. /ip survived because it
-    # short-circuits in the WS recv handler before reaching
+    # triple from the frontend URL) becomes a distinct bridge session,
+    # the agent thread — started at boot in the "default" session —
+    # never sees those inboxes, and slash commands like /help /context
+    # /status /skills /wf land in an inbox nobody reads. /ip survived
+    # because it short-circuits in the WS recv handler before reaching
     # submit_prompt and emits its reply inline via the contextvar-routed
     # bridge.emit().
     bridge = _MultiUserBridge(single_user=not _multi_user_env, use_processes=_use_proc)
@@ -5593,7 +5593,7 @@ def create_app():
         state["last_step"] = "import"
         if conflicts:
             state["last_issue"] = "import_conflicts"
-        if filled or conflicts:
+        if conflicts:
             state["approved"] = False
             state["approved_at"] = 0
         state["status"] = "answered" if not _missing_ssot_decisions(ip, state) else "planned"
@@ -6534,7 +6534,7 @@ def create_app():
             return True
         _set_active_ssot_ip(ip)
         state = _load_ssot_state(ip)
-        if state:
+        if state and not state.get("approved"):
             kind = str(state.get("kind") or "imported IP evidence")
             filled, conflicts, artifacts, errors = _import_defaults_if_available(ip, kind, state)
             state = _load_ssot_state(ip)
