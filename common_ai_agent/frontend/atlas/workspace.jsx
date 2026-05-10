@@ -1209,7 +1209,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   const [peerCount, setPeerCount] = React.useState(1);
   const [streamText, setStreamText] = React.useState('');
   const [openFile, setOpenFile] = React.useState(null);
-  const [rightTab, setRightTab] = React.useState('progress'); // progress | todo | git
+  const [rightTab, setRightTab] = React.useState('todo'); // todo | progress | git
   // Main column tab: 'chat' shows the conversation feed; 'preview' shows
   // the contents of the file at previewPath with syntax highlighting;
   // 'split' keeps chat and preview visible side-by-side.
@@ -3532,8 +3532,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                           onCollapse={toggleRight} />
         <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div className="box-h" style={{ padding: 0 }}>
-            <RightTab id="progress" cur={rightTab} onTab={setRightTab}>Progress</RightTab>
             <RightTab id="todo" cur={rightTab} onTab={setRightTab}>Todo</RightTab>
+            <RightTab id="progress" cur={rightTab} onTab={setRightTab}>Progress</RightTab>
             <RightTab id="git"  cur={rightTab} onTab={setRightTab}>Git</RightTab>
           </div>
           {rightTab === 'progress' && <ProgressPanel />}
