@@ -44,6 +44,11 @@
     { id: 'rtl-gen',      label: 'rtl-gen',      cmd: '/wf rtl-gen',      color: 'var(--accent)', glyph: 'RT' },
     { id: 'tb-gen',       label: 'tb-gen',       cmd: '/wf tb-gen',       color: 'var(--ok)',     glyph: 'TB' },
     { id: 'sim_debug',    label: 'sim_debug',    cmd: '/wf sim_debug',    color: 'var(--warn)',   glyph: 'DB' },
+    { id: 'lint',         label: 'lint',         cmd: '/wf lint',         color: 'var(--err)',    glyph: 'LT' },
+    { id: 'coverage',     label: 'coverage',     cmd: '/wf coverage',     color: 'var(--cyan)',   glyph: 'CV' },
+    { id: 'syn',          label: 'syn',          cmd: '/wf syn',          color: 'var(--accent)', glyph: 'SY' },
+    { id: 'sta',          label: 'sta',          cmd: '/wf sta',          color: 'var(--mag)',    glyph: 'ST' },
+    { id: 'pnr',          label: 'pnr',          cmd: '/wf pnr',          color: 'var(--ok)',     glyph: 'PR' },
   ];
 
   // Workflow stage badges. Seed the canonical IP flow immediately so the

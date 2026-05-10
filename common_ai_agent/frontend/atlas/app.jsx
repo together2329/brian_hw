@@ -92,7 +92,8 @@ const App = () => {
   }, []);
   const TOP_WORKFLOWS = React.useMemo(() => new Set([
     'architect', 'coverage', 'fl-model-gen', 'goal-audit', 'lint',
-    'mas-gen', 'rtl-gen', 'signoff', 'sim', 'sim_debug', 'ssot-gen', 'tb-gen',
+    'mas-gen', 'pnr', 'rtl-gen', 'signoff', 'sim', 'sim_debug',
+    'ssot-gen', 'sta', 'syn', 'tb-gen',
   ]), []);
 
   const normalizeSession = React.useCallback((value) => {
