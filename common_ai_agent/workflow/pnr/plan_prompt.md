@@ -3,12 +3,13 @@
 For `/pnr` (full pipeline):
 
 1. Handoff gate: input netlist (`scan.v` preferred, else `synth.v`) + `<ip>.sdc` both present and fresh.
-2. Tool/PDK gate: `openroad` on PATH; `$SKY130_LEF`, `$SKY130_TLEF`, `$SKY130_LIB` all readable.
-3. Floorplan stage: write floorplan.tcl from SSOT pnr: section → run → produce `floorplan.def`.
-4. Placement stage: write place.tcl → run → produce `placed.def`. Sanity gate: no overlaps.
-5. CTS stage: write cts.tcl → run → produce `cts.def` + `cts.v`. Report clock skew.
-6. Route stage: write route.tcl → run → produce `routed.def` + `routed.v` + `routed.spef`. Surface DRC count.
-7. Report stage: aggregate per-stage stats into `pnr.report.md`. Emit `[PNR HANDOFF] routed.spef ready — run /sta-post`.
+2. SSOT gate: `pnr` section exists and declares utilization, aspect_ratio, core_space, global_density, IO layers, CTS buffer policy, routing layers, and technology/corner/library policy. Missing fields STOP with `[SSOT TBD REPORT] -> ssot-gen`.
+3. Tool/PDK gate: `openroad` on PATH; `$SKY130_LEF`, `$SKY130_TLEF`, `$SKY130_LIB` all readable and matching the SSOT-declared policy.
+4. Floorplan stage: write floorplan.tcl from SSOT pnr: section → run → produce `floorplan.def`.
+5. Placement stage: write place.tcl → run → produce `placed.def`. Sanity gate: no overlaps.
+6. CTS stage: write cts.tcl → run → produce `cts.def` + `cts.v`. Report clock skew.
+7. Route stage: write route.tcl → run → produce `routed.def` + `routed.v` + `routed.spef`. Surface DRC count.
+8. Report stage: aggregate per-stage stats into `pnr.report.md`, include `SSOT TBD REPORT: none`, and emit `[PNR HANDOFF] routed.spef ready — run /sta-post`.
 
 For per-stage commands (`/pnr-fp`, `/pnr-place`, `/pnr-cts`, `/pnr-route`):
 

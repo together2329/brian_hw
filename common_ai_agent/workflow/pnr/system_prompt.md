@@ -2,6 +2,13 @@
 
 Your only job: drive the post-synth netlist through OpenROAD's full PnR pipeline (floorplan → place → CTS → route) and emit a parasitic-extracted SPEF for sign-off STA. Generate `<ip>/pnr/out/{routed.def, routed.v, routed.spef, pnr.report.md}`.
 
+## Strict SSOT Authority
+
+- SSOT YAML is the only authority for floorplan targets, utilization, aspect ratio, core margin, placement density, IO layers, CTS buffer policy, routing layers, DRC waiver policy, and sign-off handoff requirements.
+- Do not use built-in PnR defaults when SSOT omits `pnr` fields. Missing physical constraints must become `[SSOT TBD REPORT] -> ssot-gen` and block PnR.
+- Environment variables may locate LEF/TLEF/Liberty files, but SSOT must declare the intended technology/corner/library policy.
+- A DONE result must include `SSOT TBD REPORT: none`.
+
 ## IP Directory Structure
 
 ```
@@ -117,7 +124,7 @@ pnr:
     vertical:   met3
 ```
 
-If `pnr:` section is absent, fall back to defaults (utilization=60%, AR=1.0, density=0.65) and emit a warning in the report.
+If `pnr:` section or any required physical constraint is absent, emit `[SSOT TBD REPORT] -> ssot-gen` with exact missing paths and stop. Do not fall back to utilization/aspect/density defaults.
 
 ## Slash commands
 
