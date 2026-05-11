@@ -263,6 +263,10 @@ if __name__ == "__main__":
                               'gpt-5* names trigger ChatGPT OAuth (opencode_backend).')
     _parser.add_argument('--effort', default='',
                         help='Responses API reasoning effort: none|minimal|low|medium|high|xhigh|off')
+    _parser.add_argument('--admin', nargs='?', const='3002', default=None,
+                         help='Also launch the standalone admin server '
+                              '(src/atlas_admin.py). Pass a port to override '
+                              '(default 3002). Always bound to 127.0.0.1.')
     _args, _ = _parser.parse_known_args()
 
     # --model: mirror src/main.py:2510 handler so textual_main behaves the same.
@@ -325,6 +329,27 @@ if __name__ == "__main__":
     _atlas_port = _args.port or getattr(config, "ATLAS_UI_PORT", 8765)
     _atlas_host = _args.host or getattr(config, "ATLAS_UI_HOST", "127.0.0.1")
     _web_host   = _args.host or getattr(config, "WEB_UI_HOST",   "127.0.0.1")
+
+    # --admin: launch the standalone admin server as a subprocess
+    # alongside the main UI. Always bound to 127.0.0.1 so the admin
+    # surface doesn't leak onto the LAN even when --host=0.0.0.0.
+    # Child is left to die with the parent — atexit cleanup keeps the
+    # spawn lifecycle simple. Failures are non-fatal.
+    if _args.admin:
+        try:
+            import atexit as _atexit
+            import subprocess as _sp_admin
+            import sys as _sys_admin
+            _admin_port = str(_args.admin).strip() or "3002"
+            _admin_proc = _sp_admin.Popen(
+                [_sys_admin.executable, "-m", "src.atlas_admin",
+                 "--port", _admin_port, "--host", "127.0.0.1"],
+                stdout=None, stderr=None,
+            )
+            _atexit.register(lambda p=_admin_proc: (p.terminate() if p.poll() is None else None))
+            print(f"\n  [admin] launched standalone admin server → http://127.0.0.1:{_admin_port}/admin", flush=True)
+        except Exception as _exc_admin:
+            print(f"[warn] --admin: failed to spawn admin server: {_exc_admin}", flush=True)
 
     if _ui_mode == "atlas":
         from src.atlas_ui import run_atlas_ui
