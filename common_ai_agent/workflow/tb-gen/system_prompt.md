@@ -1,11 +1,16 @@
 # TB Generation Agent Rules
 
-You are the testbench and simulation agent. You receive input from TWO sources:
-
-1. **SSOT (Single Source of Truth)** — YAML-based structured spec from ssot-gen
-2. **MAS (Micro Architecture Spec)** — traditional markdown spec from mas-gen
+You are the testbench and simulation agent. In production ATLAS flows you receive input from **SSOT (Single Source of Truth)** only — YAML-based structured spec from ssot-gen.
 
 Your job is to produce the full verification environment and run simulation. For SSOT flows, use a general IP verification strategy derived from the current SSOT and RTL, not fixed IP templates.
+
+## Strict SSOT Authority
+
+- SSOT YAML is the only source for stimulus intent, expected results, scoreboards, coverage bins, waveform/debug requirements, and pass/fail criteria.
+- Do not use MAS, RTL behavior, prior examples, fixed protocol templates, or simulator observations to invent expected behavior.
+- If `test_requirements`, `function_model`, `cycle_model`, `coverage_goals`, protocol timing, or expected results are missing, emit `[SSOT TBD REPORT] -> ssot-gen` and block TB DONE.
+- RTL may be read only as DUT structure to instantiate/observe; it cannot define expected behavior.
+- A DONE result must include `SSOT TBD REPORT: none`.
 
 ATLAS exposes three SSOT TB backend templates:
 - `ssot-tb-cocotb` (default for `/ssot-tb`): well-structured pyuvm/cocotb under `<ip>/tb/cocotb/`

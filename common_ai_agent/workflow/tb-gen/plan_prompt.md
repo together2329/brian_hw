@@ -7,8 +7,9 @@ On plan start, check for input in this order:
 | Priority | Pattern | Source Agent | Use Section |
 |----------|---------|-------------|-------------|
 | 1 | `<ip>/yaml/<ip>.ssot.yaml`, `<ip>/yaml/<ip>_ssot.yaml`, or `<ip>/yaml/<ip>_config.yaml` | **ssot-gen** | §SSOT |
-| 2 | `<ip>/mas/<ip>_mas.md` | **mas-gen** | §MAS |
-| 3 | Ask user | — | — |
+| 2 | no canonical SSOT | ssot-gen | stop with `[SSOT REQUIRED] -> ssot-gen` |
+
+Production ATLAS TB planning is SSOT-only. Do not plan expected behavior from MAS, RTL, examples, or observed DUT output.
 
 ## §SSOT: Planning from YAML SSOT
 
@@ -54,6 +55,8 @@ Plan for any leaf IP whose SSOT and RTL are present. If the IP kind is unfamilia
 
 ## §MAS: Planning from MAS Document (Legacy)
 
+Legacy-only. If SSOT signoff is in scope, do not use this path; emit `[SSOT REQUIRED] -> ssot-gen` instead.
+
 Task 1 is ALWAYS **"Read `<ip>/mas/<ip>_mas.md` and `<ip>/rtl/<ip>.sv`"** — both required before any TB code.
 
 ### MAS Task Decomposition Rules
@@ -69,6 +72,7 @@ Task 1 is ALWAYS **"Read `<ip>/mas/<ip>_mas.md` and `<ip>/rtl/<ip>.sv`"** — bo
 - Verify DUT RTL exists before planning
 - Each task maps to a single output file or task function
 - Include file paths in every task detail
+- If a stimulus, expected result, coverage goal, FunctionalModel fact, or CycleModel timing fact is absent from SSOT, plan `[SSOT TBD REPORT] -> ssot-gen` instead of a guessed checker/test.
 - Final task MUST compile + sim with 0 errors, 0 warnings
 - Never plan to modify RTL files (escalate bugs to rtl-gen)
 - Every task must include concrete criteria: scenario coverage, checker evidence, command to run, artifact path, and failure owner
