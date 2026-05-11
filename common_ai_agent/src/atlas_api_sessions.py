@@ -172,6 +172,22 @@ def register_sessions_routes(
             except Exception:
                 pass
         _root = project_root()
+        # Workflow transition marker commit on the per-IP repo. Closes
+        # out the previous stage's work as a single labeled checkpoint
+        # so the IP history reads like a workflow timeline. Skipped when
+        # prev_wf is empty / default (no real work to seal).
+        if wf and prev_wf and wf != prev_wf and prev_wf != "default":
+            _ip_dir = _root / ip
+            if (_ip_dir / ".git").is_dir():
+                try:
+                    import subprocess as _sp_wf
+                    _sp_wf.run(["git", "add", "--", "."],
+                               cwd=str(_ip_dir), capture_output=True, timeout=10)
+                    _sp_wf.run(["git", "commit", "--allow-empty",
+                                "-m", f"workflow: {prev_wf} → {wf}"],
+                               cwd=str(_ip_dir), capture_output=True, timeout=10)
+                except Exception:
+                    pass
         _session_dir = _root / ".session" / sid / ip / wf
         try:
             _session_dir.mkdir(parents=True, exist_ok=True)

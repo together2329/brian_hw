@@ -5008,6 +5008,25 @@ def create_app():
         # repo. Idempotent — `git init` on an existing repo is a no-op.
         _ip_root = PROJECT_ROOT / ip
         _git_dir = _ip_root / ".git"
+        _gitignore = _ip_root / ".gitignore"
+        # Ignore the heavy/derived artifacts so per-IP git history stays
+        # small and reviewable. write it before `git init` so the first
+        # `git add .` doesn't sweep up sim/*.vcd etc.
+        if not _gitignore.exists():
+            try:
+                _gitignore.write_text(
+                    "# Atlas-managed — generated/binary artifacts excluded\n"
+                    "__pycache__/\n*.pyc\n.DS_Store\n*.log\n"
+                    "sim/build/\nsim/results/\nsim/work/\n"
+                    "sim/*.vcd\nsim/*.fst\nsim/*.shm/\nsim/*.vpd\nsim/*.wlf\n"
+                    "tb/cocotb/__pycache__/\ntb/cocotb/results.xml\n"
+                    "cov/build/\ncov/*.dat\ncov/*.ucdb\n"
+                    "lint/build/\nlint/*.rpt\nlint/*.tmp\n"
+                    ".vscode/\n.idea/\n",
+                    encoding="utf-8",
+                )
+            except Exception:
+                pass
         try:
             import subprocess as _sp_init
             if not _git_dir.is_dir():
@@ -5031,6 +5050,12 @@ def create_app():
                 # Initial commit so subsequent auto-commits have a
                 # parent — `git commit --allow-empty` keeps it clean
                 # even when the dirs are empty at scaffold time.
+                _sp_init.run(
+                    ["git", "add", "--", ".gitignore"],
+                    cwd=str(_ip_root),
+                    capture_output=True,
+                    timeout=5,
+                )
                 _sp_init.run(
                     ["git", "commit", "--allow-empty",
                      "-m", f"atlas: scaffold {ip}"],
