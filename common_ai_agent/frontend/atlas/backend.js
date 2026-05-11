@@ -146,17 +146,18 @@
     mode,
     subscribe,
     send: liveSend,
-    connect: (sessionId) => liveConnect(sessionId || wsSessionId),
+    connect: (sessionId) => liveConnect(sessionId || ''),
     disconnect: liveDisconnect,
     getConnectionState: () => connectionState,
     // Test/debug hook — lets UI code synthesize events in tests.
     _emit: emit,
   };
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const wsSessionId = urlParams.get('session_id') || urlParams.get('session') || '';
-
-  liveConnect(wsSessionId);
+  // Do not bind the initial browser socket to URL/localStorage session
+  // hints. In multi-user mode those hints can belong to a previous login;
+  // the backend should default the socket to the authenticated cookie user
+  // instead. App.jsx may explicitly reconnect after /api/users/me resolves.
+  liveConnect();
 
   window.backend = api;
   console.info('[atlas] backend ready · mode=live');

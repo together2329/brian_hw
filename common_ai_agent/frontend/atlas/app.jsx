@@ -156,7 +156,7 @@ const App = () => {
       subs.push(window.backend.subscribe('workspace_changing', (m) => {
         setWfSwitching({ from: m?.prev || '', to: m?.workspace || '', ip: m?.ip || '' });
       }));
-      subs.push(window.backend.subscribe('workspace_changed', (m) => {
+      subs.push(window.backend.subscribe('workspace_changed', () => {
         setWfSwitching(null);
       }));
     } catch (_) {}
@@ -190,7 +190,48 @@ const App = () => {
         if (!user || !user.username) { setAuthState('unauth'); return; }
         window.ATLAS_USER = user;
         window.ATLAS_USER_SESSION_ID = user.username;
-        try { localStorage.setItem('atlasUserSessionId', user.username); } catch (_) {}
+        try {
+          const username = normalizeSession(user.username) || user.username;
+          const currentNs = normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || '');
+          const currentOwner = (currentNs.split('/').filter(Boolean)[0] || '');
+          localStorage.setItem('atlasUserSessionId', username);
+          if (!currentNs || currentNs === 'default' || (currentOwner && currentOwner !== username)) {
+            const nextNs = `${username}/default`;
+            window.ACTIVE_SESSION = nextNs;
+            localStorage.setItem('atlasActiveSession', nextNs);
+            setActiveSessionId(username);
+            setActiveNamespace(nextNs);
+            setActiveIp('');
+            const url = new URL(window.location.href);
+            url.searchParams.set('session', nextNs);
+            url.searchParams.set('session_id', username);
+            url.searchParams.delete('ip');
+            url.searchParams.delete('ip_id');
+            url.searchParams.delete('workflow');
+            url.searchParams.delete('wf');
+            window.history.replaceState(null, '', url);
+            if (window.backend && typeof window.backend.disconnect === 'function' && typeof window.backend.connect === 'function') {
+              window.backend.disconnect();
+              setTimeout(() => window.backend.connect(username), 0);
+            }
+          }
+          const activeForBackend = normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || `${username}/default`) || `${username}/default`;
+          const parsed = splitSessionNamespace(activeForBackend);
+          fetch('/api/session/activate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              session_id: parsed.sessionId || username,
+              ip: parsed.ipId || 'default',
+              workflow: parsed.workflow || 'default',
+            }),
+          }).then(() => {
+            try { return window.atlasData && window.atlasData.refreshHealth && window.atlasData.refreshHealth(); }
+            catch (_) { return null; }
+          }).catch(() => {});
+        } catch (_) {
+          try { localStorage.setItem('atlasUserSessionId', user.username); } catch (_) {}
+        }
         setAuthState('authed');
       })
       .catch(() => { if (!cancelled) setAuthState('unauth'); });
@@ -819,13 +860,6 @@ const App = () => {
     sendControl('shutdown');
     setTimeout(() => { try { window.close(); } catch (_) {} }, 600);
   };
-
-  const hints = [
-    { k: '⌘ K', l: 'cmd' },
-    { k: '⌘ /', l: 'help' },
-    { k: 'shift+tab', l: 'normal/plan' },
-    { k: '⌘ \\', l: 'sidebar' },
-  ];
 
   // Auth gate must short-circuit before any workspace state touches
   // window.ATLAS_USER / .session/<owner>/. A page reload after login
