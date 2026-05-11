@@ -296,6 +296,11 @@ class _MultiUserBridge:
             session.clients.add(client)
             peers = len(session.clients)
         session.touch()
+        # Latest bound client wins the active session — without this the
+        # main-process chat_loop keeps polling the 'default' inbox and
+        # a logged-in user's prompts queue up unread.
+        with self._active_lock:
+            self._active_session_id = session.session_id
         if peers > 1:
             session.emit("peer_joined", peers=peers, session_id=session.session_id)
         return session.session_id
