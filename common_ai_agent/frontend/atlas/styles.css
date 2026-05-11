@@ -349,7 +349,14 @@
   background: transparent;
   color: var(--fg-dim);
   border: 1px solid var(--line);
-  padding: 3px 7px;
+  /* Match .dir-select height so buttons and dropdowns line up
+     vertically on Windows (where native button + select default to
+     different heights and made the topbar look ragged). */
+  height: 22px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
   cursor: pointer;
   border-radius: 2px;
   font-family: var(--mono);
@@ -368,7 +375,9 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 5px;
+  height: 22px;
+  padding: 0 5px;
+  box-sizing: border-box;
   background: transparent;
   border: 1px solid var(--line);
   border-radius: 2px;
@@ -382,16 +391,32 @@
 .dir-select {
   max-width: 160px;
   min-width: 96px;
-  background: var(--field-bg);
+  /* Lock height + strip OS chrome so the native Windows <select>
+     doesn't render taller than the topbar. Without `appearance:none`
+     Edge/Chromium-on-Windows reserves ~26px for the dropdown arrow
+     and ~6-8px of internal padding, which pushed the select past
+     `--atlas-topbar-h` and made the row look bloated. We provide
+     a small inline-SVG arrow on the right margin so the chevron
+     still hints at "this is a select". */
+  height: 22px;
+  line-height: 1;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: var(--field-bg)
+              url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'><path fill='gray' d='M1 3 L5 7 L9 3 Z'/></svg>")
+              no-repeat right 6px center;
   color: var(--fg);
   border: 1px solid var(--line);
   border-radius: 2px;
   outline: none;
-  padding: 2px 18px 2px 6px;
+  padding: 0 18px 0 6px;
   font-family: var(--mono);
   font-size: var(--ui-control-font-size);
   text-transform: none;
 }
+.dir-select::-ms-expand { display: none; }  /* hide legacy IE/Edge arrow */
 .dir-select.ip {
   min-width: 78px;
   max-width: 120px;

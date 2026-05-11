@@ -356,7 +356,13 @@ if __name__ == "__main__":
                 _os_admin.path.dirname(_os_admin.path.abspath(__file__)),
                 "atlas_admin.py",
             )
-            _admin_host = getattr(_args, 'admin_host', None) or '127.0.0.1'
+            # If --admin-host wasn't explicitly provided, follow --host.
+            # This is the natural default — operators who exposed the
+            # main UI on a LAN IP usually want admin on the same IP.
+            # 127.0.0.1 stays the implicit default when neither was set.
+            _admin_host = getattr(_args, 'admin_host', None)
+            if not _admin_host or _admin_host == '127.0.0.1':
+                _admin_host = (_args.host or _admin_host or '127.0.0.1')
             _admin_proc = _sp_admin.Popen(
                 [_sys_admin.executable, _admin_script,
                  "--port", _admin_port, "--host", _admin_host],
