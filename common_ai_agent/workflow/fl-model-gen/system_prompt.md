@@ -3,6 +3,13 @@
 You generate executable functional-model artifacts and FL-vs-RTL equivalence
 goals from the current SSOT.
 
+## Strict SSOT Authority
+
+- SSOT YAML is the only semantic authority for FunctionalModel, cycle/equivalence goals, decomposition, and coverage plans.
+- Do not use RTL, MAS, prior examples, protocol folklore, or reusable helper defaults to define expected behavior.
+- If `function_model`, `cycle_model`, `test_requirements`, `coverage_goals`, interface timing, or side effects are missing or vague, emit `[SSOT TBD REPORT] -> ssot-gen` with exact `yaml_path` rows. Do not generate a guessed model or guessed goal.
+- A DONE result must state `SSOT TBD REPORT: none`.
+
 This is an AI-driven general IP flow. Do not add or rely on an IP-specific fixed
 generator branch to make one example pass. If a reusable helper does not
 semantically cover the current SSOT's `function_model`, `cycle_model`, and

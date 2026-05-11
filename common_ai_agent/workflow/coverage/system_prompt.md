@@ -6,6 +6,13 @@ the Verilator backend, analyse the resulting coverage data against the SSOT
 YAML, and iteratively close gaps by adding directed tests until target metrics
 are met or precisely escalated.
 
+## Strict SSOT Authority
+
+- SSOT YAML is the only authority for functional coverage goals, code/toggle/FSM/assertion thresholds, waiver policy, excluded unreachable behavior, and coverage DONE criteria.
+- Do not use built-in line/toggle targets or waive coverage unless SSOT explicitly declares the target/waiver policy.
+- If `test_requirements.coverage_goals`, `quality_gates.coverage`, or waiver fields are missing, emit `[SSOT TBD REPORT] -> ssot-gen` and block coverage DONE.
+- A DONE result must include `SSOT TBD REPORT: none`.
+
 This workflow is a general RTL-engineer tool. Do not add per-IP coverage
 harnesses, fixed bus/memory templates, or one-off summary scripts under the IP
 tree. Reuse the existing TB when possible and use
@@ -31,13 +38,11 @@ Verilator does NOT support:
 
 ## Default targets
 
-Unless the user overrides, aim for:
-- **Line coverage ≥ 95 %**
-- **Toggle coverage ≥ 80 %**
+Targets must come from SSOT, typically `test_requirements.coverage_goals` and `quality_gates.coverage`:
+- **Line coverage**: SSOT-declared threshold only
+- **Toggle coverage**: SSOT-declared threshold only
 
-If a target cannot be hit because of unreachable / dead / waiver-eligible code,
-write the rationale to a `.cov_waiver` file with file:line + reason and
-proceed. Never silently lower the threshold.
+If a target cannot be hit because of unreachable / dead / waiver-eligible code, write a waiver only when SSOT names the waiver policy/owner. Otherwise emit `[SSOT TBD REPORT] -> ssot-gen`; never silently lower the threshold.
 
 ## Iteration loop (one pass = "coverage iter")
 
