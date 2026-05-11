@@ -6,6 +6,7 @@ import asyncio
 import collections
 import contextvars
 import queue
+import re
 import threading
 import time
 import weakref
@@ -16,6 +17,66 @@ from core.session_names import normalize_session_name
 
 
 _atlas_bridge_session_id_cv = contextvars.ContextVar("atlas_bridge_session_id", default="")
+_WRITE_TOOL_RE = re.compile(
+    r"^(?:write_file|replace_in_file|replace_lines|edit_file|apply_patch|patch|update_file)\b",
+    re.IGNORECASE,
+)
+
+
+def changed_paths_from_tool_result(tool: str, text: str) -> list[str]:
+    """Best-effort extraction of files changed by write/replace/patch tools."""
+    tool_s = str(tool or "")
+    text_s = str(text or "")
+    if not tool_s or not _WRITE_TOOL_RE.match(tool_s):
+        return []
+
+    candidates: list[str] = []
+
+    def add(value: Any) -> None:
+        path = str(value or "").strip().strip("'\"`")
+        path = re.sub(r"[\s,;:]+$", "", path)
+        if not path or "\n" in path or path in {".", ".."}:
+            return
+        if path not in candidates:
+            candidates.append(path)
+
+    for m in re.finditer(
+        r"(?:wrote to|wrote|updated|created|deleted)\s+['\"`]([^'\"`]+)['\"`]",
+        text_s,
+        re.IGNORECASE,
+    ):
+        add(m.group(1))
+    for m in re.finditer(
+        r"(?:wrote file|updated file|created file|deleted file|target_file|file_path|path)\s*[:=]\s*['\"`]?([^\s,'\"`)]+)",
+        tool_s + "\n" + text_s,
+        re.IGNORECASE,
+    ):
+        add(m.group(1))
+    for m in re.finditer(
+        r"^\*\*\*\s+(?:Update|Add|Delete)\s+File:\s+(.+?)\s*$",
+        text_s,
+        re.MULTILINE,
+    ):
+        add(m.group(1))
+    for m in re.finditer(
+        r"^(?:[MADRCU]|\?\?)\s+(.+?)\s*$",
+        text_s,
+        re.MULTILINE,
+    ):
+        add(m.group(1))
+    for m in re.finditer(
+        r"^Update\(([^)]+)\)",
+        text_s,
+        re.MULTILINE,
+    ):
+        add(m.group(1))
+    for m in re.finditer(
+        r"(?:in|to)\s+([\w./_-]+\.(?:sv|v|vh|svh|yaml|yml|md|f|txt|log|json|py|sdc|upf|tcl|css|js|jsx|ts|tsx|html))",
+        text_s,
+        re.IGNORECASE | re.MULTILINE,
+    ):
+        add(m.group(1))
+    return candidates
 
 
 def set_atlas_bridge_session_id(session_id: str | None):
@@ -251,25 +312,10 @@ class _MultiUserBridge:
                 self._process_output_cursors[msg_session_id] = msg.get("id")
 
     def _maybe_emit_file_changed(self, session: "_SessionBridge", event: dict) -> None:
-        import re as _re
         tool = str(event.get("tool") or "")
         text = str(event.get("text") or event.get("content") or "")
-        if not tool or not _re.match(
-            r"^(write_file|replace_in_file|replace_lines|edit_file|patch|update_file)\b",
-            tool, _re.IGNORECASE,
-        ):
-            return
-        m = _re.search(
-            r"(?:wrote to|wrote)\s+['\"`]([^'\"`]+)['\"`]"
-            r"|(?:in|to)\s+([\w./_-]+\.(?:sv|v|vh|svh|yaml|yml|md|f|txt|log|json|py|sdc|upf|tcl))"
-            r"|^Update\(([^)]+)\)",
-            text, _re.MULTILINE,
-        )
-        if not m:
-            return
-        path = m.group(1) or m.group(2) or m.group(3)
-        if path:
-            session.emit("file_changed", path=str(path), tool=tool)
+        for path in changed_paths_from_tool_result(tool, text):
+            session.emit("file_changed", path=path, tool=tool)
 
     def _normalize_session_id(self, session_id: str | None) -> str:
         if self._single_user:

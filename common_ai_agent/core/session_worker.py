@@ -284,6 +284,15 @@ def _install_signal_handlers() -> None:
 
 
 def run_worker(session_id: str, db_path: str) -> int:
+    parts = [p for p in str(session_id or "").split("/") if p]
+    owner = parts[0] if parts else "default"
+    ip = parts[1] if len(parts) >= 2 else "default"
+    workflow = parts[2] if len(parts) >= 3 else "default"
+    os.environ["ATLAS_ACTIVE_SESSION"] = session_id
+    os.environ["ATLAS_DEFAULT_SESSION_ID"] = owner
+    os.environ["ATLAS_ACTIVE_IP"] = ip
+    os.environ["ATLAS_DEFAULT_WORKFLOW"] = workflow
+    os.environ["ACTIVE_WORKSPACE"] = workflow
     worker = SessionWorker(session_id=session_id, db_path=db_path)
     _install_signal_handlers()
 

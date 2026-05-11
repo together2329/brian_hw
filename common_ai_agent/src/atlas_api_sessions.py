@@ -86,6 +86,9 @@ def register_sessions_routes(
         if multi_user_on and owner and sid != owner:
             return JSONResponse({"error": "session owner mismatch"}, status_code=403)
         canonical = f"{sid}/{ip}/{wf}"
+        def _emit_to_canonical(msg_type: str, **payload: Any) -> None:
+            bridge.emit(msg_type, session_id=canonical, **payload)
+
         # Halt the running agent + drain queued prompts BEFORE flipping
         # env vars whenever the active triple actually changes. Without
         # this, an in-flight react_loop keeps reading from the OLD IP's
@@ -98,8 +101,8 @@ def register_sessions_routes(
         triple_changed = prev != canonical
         if triple_changed:
             try:
-                bridge.request_stop()
-                bridge.emit("agent_state", running=False)
+                bridge.request_stop_for_session(prev or canonical)
+                bridge.emit("agent_state", running=False, session_id=prev or canonical)
             except Exception:
                 pass
         atlas_active_session_cv.set(canonical)
@@ -131,12 +134,12 @@ def register_sessions_routes(
             # Emit via 'token'+'flush' — workspace.jsx subscribes to that
             # streaming channel, not to a bare 'agent' type.
             try:
-                bridge.emit(
+                _emit_to_canonical(
                     "token",
                     text=f"🔄 Switching workspace '{prev_wf}' → '{wf}' (ip={ip})…\n",
                 )
-                bridge.emit("flush")
-                bridge.emit("workspace_changing", workspace=wf, prev=prev_wf, ip=ip)
+                _emit_to_canonical("flush")
+                _emit_to_canonical("workspace_changing", workspace=wf, prev=prev_wf, ip=ip)
             except Exception:
                 pass
             try:
@@ -148,7 +151,7 @@ def register_sessions_routes(
                     flush=True,
                 )
                 try:
-                    bridge.emit(
+                    _emit_to_canonical(
                         "workspace_changed",
                         workspace=wf,
                         prev=prev_wf,
@@ -156,11 +159,11 @@ def register_sessions_routes(
                         session=canonical,
                         source="api/session/activate",
                     )
-                    bridge.emit(
+                    _emit_to_canonical(
                         "token",
                         text=f"✅ Workspace switched to '{wf}' (was '{prev_wf}') · ip={ip}\n",
                     )
-                    bridge.emit("flush")
+                    _emit_to_canonical("flush")
                 except Exception:
                     pass
             except Exception as exc:
@@ -168,7 +171,7 @@ def register_sessions_routes(
                       flush=True)
         if triple_changed:
             try:
-                bridge.emit("commands_changed")
+                _emit_to_canonical("commands_changed")
             except Exception:
                 pass
         _root = project_root()

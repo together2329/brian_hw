@@ -1093,7 +1093,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
 
     if (window.backend) {
       if (window.backend.disconnect) window.backend.disconnect();
-      if (window.backend.connect) window.backend.connect(sessionId);
+      if (window.backend.connect) window.backend.connect(newNamespace);
     }
 
     window.ACTIVE_SESSION = newNamespace;
@@ -1159,7 +1159,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     } catch (_) {}
     if (window.backend) {
       if (window.backend.disconnect) window.backend.disconnect();
-      if (window.backend.connect) window.backend.connect(sid.split('/')[0]);
+      if (window.backend.connect) window.backend.connect(sid);
       sendPrompt(next ? `/wf ${next}` : '/workflow default', sid);
     }
   };
@@ -2986,12 +2986,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
           </div>
           <div style={{
             padding: '6px 10px', borderBottom: '1px solid var(--line)',
-            display: 'flex', alignItems: 'center', gap: 6, fontSize: 11,
+            display: 'flex', alignItems: 'center', gap: 6, fontSize: 12,
             background: 'var(--bg-2)',
           }}>
-            <span className="mute" style={{ fontSize: 10 }}>dir</span>
+            <span className="mute" style={{ fontSize: 12 }}>dir</span>
             <span className="mute">›</span>
-            <span className="acc" style={{ flex: 1, fontFamily: 'var(--mono)', fontSize: 11 }}>
+            <span className="acc" style={{ flex: 1, fontFamily: 'var(--mono)', fontSize: 12, fontWeight: 500 }}>
               {(window.SCOPE_PATH || '').split('/')[0] || 'select IP'}
             </span>
             {/* Sort toggle: name (A-Z, dirs first) ↔ recent (mtime DESC).
@@ -3006,7 +3006,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               }}
               style={{
                 cursor: 'pointer',
-                fontSize: 10,
+                fontSize: 11,
                 padding: '1px 6px',
                 borderRadius: 2,
                 userSelect: 'none',

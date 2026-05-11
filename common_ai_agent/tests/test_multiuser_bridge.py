@@ -2,7 +2,7 @@ import asyncio
 import threading
 import time
 
-from core.atlas_multiuser import _MultiUserBridge
+from core.atlas_multiuser import _MultiUserBridge, changed_paths_from_tool_result
 
 
 def test_session_isolation():
@@ -83,6 +83,39 @@ def test_next_event_wakes_for_late_non_default_event():
     print("PASS: next_event late non-default event")
 
 
+def test_changed_paths_from_patch_summary():
+    text = (
+        "Success. Updated the following files:\n"
+        "M common_ai_agent/frontend/atlas/workspace.jsx\n"
+        "M /tmp/demo/rtl/top.sv\n"
+    )
+    paths = changed_paths_from_tool_result("apply_patch", text)
+    assert "common_ai_agent/frontend/atlas/workspace.jsx" in paths
+    assert "/tmp/demo/rtl/top.sv" in paths
+    print("PASS: changed path extraction from patch summary")
+
+
+def test_patch_summary_emits_file_changed():
+    bridge = _MultiUserBridge()
+    session = bridge._ensure_session("user-a")
+    bridge._maybe_emit_file_changed(
+        session,
+        {
+            "type": "tool_result",
+            "tool": "apply_patch",
+            "text": (
+                "Success. Updated the following files:\n"
+                "M gpio/yaml/gpio.ssot.yaml\n"
+            ),
+        },
+    )
+    msg, sid = asyncio.get_event_loop().run_until_complete(bridge.next_event(timeout=0.5))
+    assert sid == "user-a"
+    assert msg and msg.get("type") == "file_changed"
+    assert msg.get("path") == "gpio/yaml/gpio.ssot.yaml"
+    print("PASS: patch summary emits file_changed")
+
+
 if __name__ == "__main__":
     test_session_isolation()
     test_client_binding()
@@ -90,4 +123,6 @@ if __name__ == "__main__":
     test_msg_id_dedup()
     test_queue_prompt()
     test_next_event_wakes_for_late_non_default_event()
+    test_changed_paths_from_patch_summary()
+    test_patch_summary_emits_file_changed()
     print("ALL INTEGRATION TESTS PASSED")

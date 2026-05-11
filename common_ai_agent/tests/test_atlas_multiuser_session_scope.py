@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+from starlette.websockets import WebSocketDisconnect
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -105,6 +106,32 @@ def test_multiuser_and_process_isolation_default_on(tmp_path, monkeypatch):
 
     assert app.state.bridge._single_user is False
     assert app.state.bridge._process_manager is not None
+
+
+def test_websocket_binds_full_session_namespace(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    with client.websocket_connect("/ws/agent?session_id=alice/ip_alpha/ssot-gen") as ws:
+        hello = ws.receive_json()
+        assert hello["type"] == "hello"
+        session = app.state.bridge.get_session("alice/ip_alpha/ssot-gen")
+        assert len(session.clients) == 1
+
+    try:
+        with client.websocket_connect("/ws/agent?session_id=bob/ip_beta/ssot-gen") as ws:
+            ws.receive_json()
+            raise AssertionError("cross-user websocket should be rejected")
+    except WebSocketDisconnect as exc:
+        assert exc.code == 1008
 
 
 def test_multiuser_can_be_disabled(tmp_path, monkeypatch):

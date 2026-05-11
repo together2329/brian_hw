@@ -210,12 +210,12 @@ const App = () => {
             url.searchParams.delete('workflow');
             url.searchParams.delete('wf');
             window.history.replaceState(null, '', url);
-            if (window.backend && typeof window.backend.disconnect === 'function' && typeof window.backend.connect === 'function') {
-              window.backend.disconnect();
-              setTimeout(() => window.backend.connect(username), 0);
-            }
           }
           const activeForBackend = normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || `${username}/default`) || `${username}/default`;
+          if (window.backend && typeof window.backend.disconnect === 'function' && typeof window.backend.connect === 'function') {
+            window.backend.disconnect();
+            setTimeout(() => window.backend.connect(activeForBackend), 0);
+          }
           const parsed = splitSessionNamespace(activeForBackend);
           fetch('/api/session/activate', {
             method: 'POST',
@@ -374,6 +374,10 @@ const App = () => {
     setActiveNamespace(namespace);
     window.ACTIVE_SESSION = namespace;
     try { localStorage.setItem('atlasActiveSession', namespace); } catch (_) {}
+    if (prev !== namespace && window.backend && typeof window.backend.disconnect === 'function' && typeof window.backend.connect === 'function') {
+      window.backend.disconnect();
+      setTimeout(() => window.backend.connect(namespace), 0);
+    }
     if (window.atlasData && typeof window.atlasData.setUserSessionId === 'function') {
       window.atlasData.setUserSessionId(owner);
     } else {

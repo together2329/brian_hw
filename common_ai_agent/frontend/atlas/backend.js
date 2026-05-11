@@ -41,6 +41,7 @@
   let reconnectTimer = null;
   let liveQueue = [];
   let connectionState = 'connecting';
+  let currentSessionId = '';
   // Outbound prompts awaiting an `agent_received` ack from the backend.
   // Map<msg_id, { msg, retries, timer }>. If the ack doesn't arrive
   // within ACK_TIMEOUT_MS we re-send the same payload once. The backend
@@ -72,10 +73,12 @@
   }
 
   function liveConnect(sessionId) {
+    const targetSessionId = String(sessionId || currentSessionId || '');
+    currentSessionId = targetSessionId;
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const url   = sessionId
-        ? `${proto}//${location.host}/ws/agent?session_id=${encodeURIComponent(sessionId)}`
+    const url   = targetSessionId
+        ? `${proto}//${location.host}/ws/agent?session_id=${encodeURIComponent(targetSessionId)}`
         : `${proto}//${location.host}/ws/agent`;
     try {
       ws = new WebSocket(url);
@@ -126,7 +129,7 @@
       _RECONNECT_MIN_MS * Math.pow(2, _reconnectAttempts),
     );
     _reconnectAttempts += 1;
-    reconnectTimer = setTimeout(liveConnect, delay);
+    reconnectTimer = setTimeout(() => liveConnect(currentSessionId), delay);
   }
   function liveSend(msg) {
     // Track prompts (or any send carrying msg_id) for ack-based retry.

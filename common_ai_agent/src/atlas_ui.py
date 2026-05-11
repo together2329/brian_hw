@@ -9470,7 +9470,8 @@ def create_app():
     async def ws_agent(websocket: WebSocket):
         await websocket.accept()
         session_id = websocket.query_params.get("session_id", "")
-        _multi_user = os.environ.get("ATLAS_MULTI_USER", "").lower() in ("1", "true", "yes")
+        _multi_raw = os.environ.get("ATLAS_MULTI_USER", "1").strip().lower()
+        _multi_user = _multi_raw not in ("0", "false", "no", "off")
 
         class _WebSocketCookieRequest:
             def __init__(self, cookies: dict):
@@ -9484,18 +9485,31 @@ def create_app():
             await websocket.close(code=1008, reason="unauthenticated")
             return
 
-        # Identity-driven default: empty / legacy "default" session_id
-        # collapses to the user's own namespace (= username).
-        if not session_id or session_id == "default":
-            session_id = user["username"]
+        username = normalize_session_name(str(user.get("username") or ""))
 
-        if _multi_user and session_id != user["username"]:
-            with AtlasDB() as db:
-                session = db.get_session(session_id)
-            owns = bool(session and session.get("user_id") == user["id"])
-            if not owns:
-                await websocket.close(code=1008, reason="forbidden")
-                return
+        def _authorize_ws_session(raw_session: str) -> str | None:
+            normalized = normalize_session_name(str(raw_session or ""))
+            if not normalized or normalized == "default":
+                normalized = f"{username}/default" if username else "default"
+            elif username and normalized == username:
+                normalized = f"{username}/default"
+            owner = normalized.split("/", 1)[0]
+            if _multi_user and username and owner != username:
+                with AtlasDB() as db:
+                    owned = db.get_session(normalized)
+                if not (owned and owned.get("user_id") == user["id"]):
+                    return None
+            return normalized
+
+        # Identity-driven default: empty / legacy "default" session_id
+        # collapses to the user's default namespace. Full
+        # <user>/<ip>/<workflow> namespaces are allowed for that user, so
+        # two browser tabs on different IP/workflow views do not receive
+        # each other's backend stream.
+        session_id = _authorize_ws_session(session_id)
+        if session_id is None:
+            await websocket.close(code=1008, reason="forbidden")
+            return
         bridge.bind_client(websocket, session_id)
         _ensure_broadcaster()
         # Greeting — surface user-tunable layout settings so the frontend
@@ -9530,6 +9544,20 @@ def create_app():
                 set_atlas_bridge_session_id(session.session_id)
                 t = msg.get("type")
                 if t in ("prompt", "send") and msg.get("text"):
+                    _txt = msg["text"].strip()
+                    _session_raw = str(msg.get("session") or "").strip()
+                    if _session_raw:
+                        _session = _authorize_ws_session(_session_raw)
+                        if not _session:
+                            session.emit("error", message=f"invalid or forbidden session: {_session_raw!r}")
+                            continue
+                        if _session != session.session_id:
+                            bridge.bind_client(websocket, _session)
+                            session = bridge.get_client_session(websocket)
+                            if session is None:
+                                continue
+                            set_atlas_bridge_session_id(session.session_id)
+                        _atlas_active_session_cv.set(_session)
                     # Idempotent submit + ack:
                     # The frontend retransmits a prompt with the same
                     # msg_id if it doesn't see an `agent_received`
@@ -9545,7 +9573,6 @@ def create_app():
                     )
                     if _msg_id and session.msg_id_seen(_msg_id):
                         continue
-                    _txt = msg["text"].strip()
                     import os as _os
                     _ui_lang_raw = str(msg.get("ui_lang") or _ui_lang_value() or "").strip().lower()
                     _ui_lang = {
@@ -9559,13 +9586,6 @@ def create_app():
                     }.get(_ui_lang_raw, "")
                     if _ui_lang:
                         _atlas_ui_lang_cv.set(_ui_lang)
-                    _session_raw = str(msg.get("session") or "").strip()
-                    _session = normalize_session_name(_session_raw)
-                    if _session_raw:
-                        if not _session:
-                            session.emit("error", message=f"invalid session: {_session_raw!r}")
-                            continue
-                        _atlas_active_session_cv.set(_session)
                     # ── Mode-flip slashes need to apply mid-loop ──
                     # `/mode normal` and `/plan` typed while the agent is
                     # running normally land in the _interrupts queue,
@@ -9777,6 +9797,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     """
     import uvicorn
     import main as _main  # noqa: WPS433  (intentional runtime import)
+    from core.atlas_multiuser import changed_paths_from_tool_result
 
     app = create_app()
     bridge = app.state.bridge
@@ -9937,26 +9958,15 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         # is silent (Atlas should never refuse to display a result
         # because the optional commit failed).
         try:
-            if tool and re.match(
-                r"^(write_file|replace_in_file|replace_lines|edit_file|patch|update_file)\b",
-                tool, re.IGNORECASE
-            ):
-                m = re.search(
-                    r"(?:wrote to|wrote)\s+['\"`]([^'\"`]+)['\"`]"
-                    r"|(?:in|to)\s+([\w./_-]+\.(?:sv|v|vh|svh|yaml|yml|md|f|txt|log|json|py|sdc|upf|tcl))"
-                    r"|^Update\(([^)]+)\)",
-                    cleaned, re.MULTILINE,
-                )
-                _path_hit = m and (m.group(1) or m.group(2) or m.group(3))
-                if _path_hit:
-                    _auto_commit_for_path(_path_hit, tool=tool)
-                    # Push a file_changed event so the frontend can
-                    # auto-reload preview / SSOT / file-tree without
-                    # waiting for the next tool_result coalesce window.
-                    try:
-                        bridge.emit("file_changed", path=str(_path_hit), tool=tool)
-                    except Exception:
-                        pass
+            for _path_hit in changed_paths_from_tool_result(tool, cleaned):
+                _auto_commit_for_path(_path_hit, tool=tool)
+                # Push a file_changed event so the frontend can
+                # auto-reload preview / SSOT / file-tree without
+                # waiting for the next tool_result coalesce window.
+                try:
+                    bridge.emit("file_changed", path=str(_path_hit), tool=tool)
+                except Exception:
+                    pass
         except Exception:
             pass
     _main._textual_emit_tool_result_fn = _emit_tool_result

@@ -192,11 +192,11 @@
   --bg-2:      #edf2f7;
   --bg-3:      #e4ebf3;
   --panel:     #ffffff;
-  --line:      #cbd4df;
-  --line-2:    #a9b6c5;
-  --fg:        #101720;
-  --fg-dim:    #303b4b;
-  --fg-mute:   #38445c;
+  --line:      #b9c4d3;
+  --line-2:    #8594a8;
+  --fg:        #0f1720;
+  --fg-dim:    #1e2937;
+  --fg-mute:   #2f3a4a;
   --accent:    #9a5416;       /* sienna ink */
   --accent-2:  #76400f;
   --accent-fg: #ffffff;
@@ -211,9 +211,10 @@
   --grid:      rgba(60, 80, 100, 0.045);
   --grid-2:    rgba(60, 80, 100, 0.09);
   --field-bg:  #ffffff;
-  --code-bg:   #f8fafc;
+  --code-bg:   #ffffff;
   --hover-bg:  #e8eef6;
   --shadow-pop: 0 14px 34px rgba(15, 23, 42, 0.16);
+  --ui-text-weight: 500;
   --ui-control-weight: 600;
 }
 
@@ -251,6 +252,11 @@
      bg only. To restore: re-add the four linear-gradients + 16px /
      128px background-size from prior versions. */
   background-color: var(--bg);
+}
+[data-dir="B"][data-theme="light"] .app,
+.app[data-dir="B"][data-theme="light"] {
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
 }
 
 .mono { font-family: var(--code-font); }
@@ -719,6 +725,37 @@
 .tool-output-yaml .token.doctype,
 .tool-output-yaml .token.cdata    { color: var(--fg-mute) !important; font-style: italic; opacity: 0.85; }
 .tool-output-yaml .token.punctuation { color: var(--fg-dim) !important; }
+[data-theme="light"] .tool-output-yaml,
+[data-theme="light"] .tool-output-yaml code {
+  color: #0f1720;
+  font-weight: 500;
+}
+[data-theme="light"] .tool-output-yaml .token,
+[data-theme="light"] .tool-output-yaml code .token {
+  color: #0f1720 !important;
+  font-weight: 500 !important;
+}
+[data-theme="light"] .tool-output-yaml .token.key,
+[data-theme="light"] .tool-output-yaml .token.atrule,
+[data-theme="light"] .tool-output-yaml .token.tag,
+[data-theme="light"] .tool-output-yaml .token.attr-name,
+[data-theme="light"] .tool-output-yaml .token.property,
+[data-theme="light"] .tool-output-yaml .token.keyword {
+  color: #075f69 !important;
+  font-weight: 700 !important;
+}
+[data-theme="light"] .tool-output-yaml .token.comment,
+[data-theme="light"] .tool-output-yaml .token.prolog,
+[data-theme="light"] .tool-output-yaml .token.doctype,
+[data-theme="light"] .tool-output-yaml .token.cdata {
+  color: #2f3a4a !important;
+  font-style: normal;
+  opacity: 1;
+}
+[data-theme="light"] .tool-output-yaml .token.punctuation {
+  color: #111827 !important;
+  opacity: 1;
+}
 
 /* prompt input */
 .prompt-row {
@@ -1460,8 +1497,8 @@
   position: relative;
 }
 [data-theme="light"] .foldable-pane {
-  background: #fbfbfd;
-  color: #101720;
+  background: #ffffff;
+  color: #0f1720;
 }
 .foldable-toolbar {
   display: flex;
@@ -1571,26 +1608,48 @@
 [data-theme="light"] .foldable-pane .line .token.keyword,
 [data-theme="light"] .foldable-pane .line .token.boolean,
 [data-theme="light"] .foldable-pane .line .token.constant {
-  color: #7a3492;
+  color: #7a3492 !important;
 }
 [data-theme="light"] .foldable-pane .line .token.string,
 [data-theme="light"] .foldable-pane .line .token.attr-value {
-  color: #1f7042;
+  color: #1f7042 !important;
 }
 [data-theme="light"] .foldable-pane .line .token.number {
-  color: #9a5416;
+  color: #9a5416 !important;
 }
 [data-theme="light"] .foldable-pane .line .token.operator {
-  color: #126a75;
+  color: #126a75 !important;
 }
 [data-theme="light"] .foldable-pane .line .token.comment {
-  color: #38445c;
-  font-style: italic;
+  color: #2f3a4a !important;
+  font-style: normal;
 }
 [data-theme="light"] .foldable-pane .line .token.function,
 [data-theme="light"] .foldable-pane .line .token.attr-name,
 [data-theme="light"] .foldable-pane .line .token.key {
-  color: #1559c7;
+  color: #1559c7 !important;
+}
+[data-theme="light"] .foldable-pane .line .token.punctuation {
+  color: #111827 !important;
+}
+[data-theme="light"] .foldable-pane .line .token.variable,
+[data-theme="light"] .foldable-pane .line .token.namespace,
+[data-theme="light"] .foldable-pane .line .token.symbol {
+  color: #0f1720 !important;
+}
+[data-theme="light"] .foldable-pane .line .token.tag,
+[data-theme="light"] .foldable-pane .line .token.selector {
+  color: #8a3f0f !important;
+}
+[data-theme="light"] .foldable-pane .line .token.regex,
+[data-theme="light"] .foldable-pane .line .token.important,
+[data-theme="light"] .foldable-pane .line .token.builtin {
+  color: #76400f !important;
+}
+[data-theme="light"] .foldable-pane .lineno,
+[data-theme="light"] .foldable-pane .fold-range {
+  color: #465568;
+  opacity: 1;
 }
 .foldable-pane details { margin: 0; padding: 0; }
 .foldable-pane .fold-summary {
