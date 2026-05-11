@@ -4529,9 +4529,8 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
         typedAnswer: 'typed answer',
         customNote: 'custom note',
         noOptions: 'No options provided. Type an answer below.',
-        autoInputHint: 'select or type here; the chat input updates automatically',
-        questionLoaded: 'question loaded into chat input',
-        inputUpdated: 'chat input updated',
+        autoInputHint: 'select or type here; chat input stays unchanged until send',
+        inputUpdated: 'draft ready',
         send: 'send',
         sendNeedAnswer: 'select an option or type an answer first',
       }
@@ -4562,9 +4561,8 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
         typedAnswer: '직접 입력',
         customNote: '추가 설명',
         noOptions: '옵션이 없습니다. 아래에 답변을 입력하세요.',
-        autoInputHint: '여기서 선택/입력하면 채팅 입력창에 자동 반영됩니다',
-        questionLoaded: '질문이 채팅 입력창에 들어갔습니다',
-        inputUpdated: '채팅 입력창이 업데이트되었습니다',
+        autoInputHint: '여기서 선택/입력해도 전송 전까지 채팅 입력창은 바뀌지 않습니다',
+        inputUpdated: '답변 초안 준비됨',
         send: '전송',
         sendNeedAnswer: '옵션을 선택하거나 답변을 입력한 후 전송하세요',
       };
@@ -4577,7 +4575,6 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
   // Per-status group collapse: both groups default open. Tracking the
   // closed set keeps the default-open rule stable across re-renders.
   const [closedStatusGroups, setClosedStatusGroups] = React.useState(() => new Set());
-  const [lastInputKey, setLastInputKey] = React.useState('');
   const pendingItemKey = (item) => [
     item?.flow_id || '',
     item?.section || item?.section_id || '',
@@ -4666,15 +4663,9 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
     lines.push('Apply this answer to SSOT-GEN QA and continue the current workflow.');
     return lines.join('\n');
   };
-  const pushPendingInput = (item, draft, focusChat = false) => {
-    if (!onUsePending) return;
-    onUsePending(item, buildPendingInputText(item, draft), { focusChat });
-    setLastInputKey(pendingItemKey(item));
-  };
-  const updatePendingDraft = (item, draft, focusChat = false) => {
+  const updatePendingDraft = (item, draft) => {
     const key = pendingItemKey(item);
     setAnswerDrafts(prev => ({ ...prev, [key]: draft }));
-    pushPendingInput(item, draft, focusChat);
   };
   const togglePendingOption = (item, optionId) => {
     const draft = pendingDraft(item);
@@ -4733,8 +4724,8 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
           })}
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-          <span style={{ color: lastInputKey === key ? 'var(--cyan)' : 'var(--fg-mute)', fontSize: 10 }}>
-            {lastInputKey === key ? (hasAnswer ? t.inputUpdated : t.questionLoaded) : t.autoInputHint}
+          <span style={{ color: hasAnswer ? 'var(--cyan)' : 'var(--fg-mute)', fontSize: 10 }}>
+            {hasAnswer ? t.inputUpdated : t.autoInputHint}
           </span>
           <span style={{ flex: 1 }} />
           {onSubmitPending ? (
@@ -4774,21 +4765,15 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
     // can be re-opened to amend the saved answer (re-select / re-submit).
     const isOpen = (isPending || isApproved) && !closedCardKeys.has(key);
     const statusColor = atlasStatusMeta(status).color;
-    const cardToggleable = (isPending || isApproved) && onUsePending;
+    const cardToggleable = isPending || isApproved;
     const togglePendingCard = () => {
       if (!cardToggleable) return;
-      const wasOpen = isOpen;
       setClosedCardKeys(prev => {
         const next = new Set(prev);
         if (next.has(key)) next.delete(key);
         else next.add(key);
         return next;
       });
-      // When opening, seed chat input with current draft so the user sees
-      // what will be sent if they hit "send".
-      if (!wasOpen) {
-        pushPendingInput(item, pendingDraft(item), false);
-      }
     };
     const handleCardKey = (ev) => {
       if (!cardToggleable) return;
@@ -4804,7 +4789,7 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
         tabIndex={cardToggleable ? 0 : undefined}
         onClick={cardToggleable ? togglePendingCard : undefined}
         onKeyDown={cardToggleable ? handleCardKey : undefined}
-        title={cardToggleable ? (isOpen ? 'Click to collapse' : 'Click to expand — chat input auto-fills') : undefined}
+        title={cardToggleable ? (isOpen ? 'Click to collapse' : 'Click to expand') : undefined}
         style={{
           padding: '8px 10px',
           border: '1px solid var(--line)',
