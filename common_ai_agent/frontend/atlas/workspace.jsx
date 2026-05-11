@@ -1043,13 +1043,23 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   const sendPrompt = React.useCallback((text, sessionOverride) => {
     if (window.backend) {
       const session = resolveSession(sessionOverride, activeSession, window.ACTIVE_SESSION);
-      // Per-message id so backend.js can retransmit on missing ack and
-      // the backend can dedupe the second copy. Atlas runs over a
-      // secure context (localhost or https), so crypto.randomUUID is
-      // always present.
+      // crypto.randomUUID is secure-context only (localhost / https).
+      // Accessing it from http://<lan-ip>/ throws — fall back to
+      // getRandomValues, which IS available in non-secure contexts.
+      let msg_id;
+      try {
+        msg_id = window.crypto.randomUUID();
+      } catch (_) {
+        const b = new Uint8Array(16);
+        window.crypto.getRandomValues(b);
+        b[6] = (b[6] & 0x0f) | 0x40;
+        b[8] = (b[8] & 0x3f) | 0x80;
+        const h = Array.from(b, x => x.toString(16).padStart(2, '0'));
+        msg_id = `${h.slice(0,4).join('')}-${h.slice(4,6).join('')}-${h.slice(6,8).join('')}-${h.slice(8,10).join('')}-${h.slice(10,16).join('')}`;
+      }
       window.backend.send({
         type: 'prompt',
-        msg_id: window.crypto.randomUUID(),
+        msg_id,
         text,
         session,
         ui_lang: window.ATLAS_UI_LANG || uiLang,
