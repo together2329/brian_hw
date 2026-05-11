@@ -1919,6 +1919,44 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       return;
     }
 
+    // /commit <msg> — labeled checkpoint in the active IP's per-IP git.
+    const commitMatch = raw.match(/^\/commit(\s+([\s\S]+))?$/i);
+    if (commitMatch) {
+      const msg = (commitMatch[2] || '').trim() || 'manual checkpoint';
+      const ipName = (window.ACTIVE_IP || activeIp || '').trim();
+      setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      if (!ipName || ipName === 'default') {
+        setFeed(f => [...f, {
+          kind: 'agent',
+          text: '⚠ no active IP — pick one from the IP_ID dropdown first.',
+        }]);
+      } else {
+        fetch(`/api/ip/${encodeURIComponent(ipName)}/git/commit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: msg }),
+        })
+          .then(r => r.json())
+          .then(j => {
+            const ok = j && j.ok;
+            const hash = (j && j.hash) || '?';
+            const detail = (j && (j.stderr || j.error || '')).slice(0, 200);
+            setFeed(f => [...f, {
+              kind: 'agent',
+              text: ok ? `✅ committed \`${hash}\` — ${msg}` : `⚠ commit failed: ${detail || 'unknown error'}`,
+            }]);
+          })
+          .catch(err => setFeed(f => [...f, {
+            kind: 'agent',
+            text: '⚠ commit request failed: ' + (err && err.message || err),
+          }]));
+      }
+      setStreaming(false);
+      streamBufferRef.current = '';
+      setStreamText('');
+      return;
+    }
+
     setFeed(f => [...f, { kind: 'user', text: raw }]);
     setStreaming(true);
     setStreamText('');

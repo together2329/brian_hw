@@ -852,6 +852,125 @@ def create_app():
                              "ip": name,
                              "path": str(target.relative_to(PROJECT_ROOT))})
 
+    def _resolve_ip_path(name: str) -> Path | tuple[None, JSONResponse]:
+        """Validate a path-segment-style IP name and return its on-disk dir.
+
+        Returns a Path on success, or a (None, JSONResponse) tuple on
+        failure for the caller to forward."""
+        clean = str(name or "").strip()
+        if not clean or "/" in clean or "\\" in clean or ".." in clean:
+            return None, JSONResponse({"error": "invalid ip name"}, status_code=400)
+        target = (PROJECT_ROOT / clean).resolve()
+        try:
+            target.relative_to(PROJECT_ROOT.resolve())
+        except ValueError:
+            return None, JSONResponse({"error": "outside project root"}, status_code=400)
+        if not target.is_dir():
+            return None, JSONResponse({"error": "ip not found"}, status_code=404)
+        if not (target / ".git").is_dir():
+            return None, JSONResponse({"error": "ip has no .git — create via /api/ip/create first"}, status_code=409)
+        return target
+
+    @app.post("/api/ip/{name}/git/commit")
+    async def api_ip_git_commit(name: str, request: Request):
+        """Stage and commit the IP's working tree with a user/agent message."""
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        message = str((body or {}).get("message") or "").strip() or "commit"
+        resolved = _resolve_ip_path(name)
+        if isinstance(resolved, tuple):
+            _, err = resolved
+            return err
+        target = resolved
+        try:
+            import subprocess as _sp
+            _sp.run(["git", "add", "--", "."], cwd=str(target),
+                    capture_output=True, timeout=15, check=False)
+            out = _sp.run(["git", "commit", "--allow-empty", "-m", message],
+                          cwd=str(target), capture_output=True,
+                          timeout=15, check=False)
+            head = _sp.run(["git", "rev-parse", "HEAD"], cwd=str(target),
+                           capture_output=True, timeout=5, check=False)
+            return JSONResponse({
+                "ok": out.returncode == 0,
+                "ip": name,
+                "hash": head.stdout.decode("utf-8", "replace").strip()[:12],
+                "stdout": out.stdout.decode("utf-8", "replace"),
+                "stderr": out.stderr.decode("utf-8", "replace"),
+            })
+        except Exception as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
+
+    @app.get("/api/ip/{name}/git/log")
+    async def api_ip_git_log(name: str, limit: int = 50):
+        """Return the last N commits of the per-IP repo as JSON."""
+        resolved = _resolve_ip_path(name)
+        if isinstance(resolved, tuple):
+            _, err = resolved
+            return err
+        target = resolved
+        try:
+            import subprocess as _sp
+            limit = max(1, min(int(limit or 50), 500))
+            sep = "\x1f"
+            fmt = sep.join(["%H", "%h", "%an", "%at", "%s"])
+            out = _sp.run(
+                ["git", "log", f"--pretty=format:{fmt}", f"-n{limit}"],
+                cwd=str(target), capture_output=True, timeout=10, check=False,
+            )
+            commits = []
+            for line in out.stdout.decode("utf-8", "replace").splitlines():
+                parts = line.split(sep)
+                if len(parts) >= 5:
+                    commits.append({
+                        "hash":   parts[0],
+                        "short":  parts[1],
+                        "author": parts[2],
+                        "time":   float(parts[3]) if parts[3].isdigit() else 0,
+                        "subject": parts[4],
+                    })
+            return JSONResponse({"ip": name, "commits": commits})
+        except Exception as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
+
+    @app.post("/api/ip/{name}/git/revert")
+    async def api_ip_git_revert(name: str, request: Request):
+        """Restore the working tree to a previous commit (hard reset)."""
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        target_hash = str((body or {}).get("hash") or "").strip()
+        if not re.match(r"^[0-9a-f]{7,40}$", target_hash, re.I):
+            return JSONResponse({"error": "invalid hash"}, status_code=400)
+        resolved = _resolve_ip_path(name)
+        if isinstance(resolved, tuple):
+            _, err = resolved
+            return err
+        target = resolved
+        try:
+            import subprocess as _sp
+            verify = _sp.run(["git", "cat-file", "-e", target_hash],
+                             cwd=str(target), capture_output=True, timeout=5, check=False)
+            if verify.returncode != 0:
+                return JSONResponse({"error": "hash not in this ip's history"}, status_code=404)
+            # Use `git reset --hard` so the working tree and HEAD both
+            # snap to the requested commit. Caller has been warned via
+            # UI confirmation; auto-commits will resume from this point.
+            out = _sp.run(["git", "reset", "--hard", target_hash],
+                          cwd=str(target), capture_output=True, timeout=15, check=False)
+            return JSONResponse({
+                "ok": out.returncode == 0,
+                "ip": name,
+                "hash": target_hash,
+                "stdout": out.stdout.decode("utf-8", "replace"),
+                "stderr": out.stderr.decode("utf-8", "replace"),
+            })
+        except Exception as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
+
     @app.get("/api/ip/list")
     async def api_ip_list(request: Request, session_id: str = ""):
         """List IPs that belong to a session namespace.

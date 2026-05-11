@@ -489,6 +489,59 @@ def _git_tag_todo(index, status, content=""):
         pass
 
 
+def commit_ip(message: str = None, path: str = None) -> str:
+    """
+    Manually commit the working tree of an IP's per-IP git repo with a
+    labeled checkpoint. Use this when:
+      - You finished a meaningful unit of work (e.g. completed a sub-task,
+        passed a lint stage, drafted a new RTL module) and want to seal it
+        as a revertable checkpoint *before* moving on.
+      - The auto-commit-per-file granularity is too noisy and you want a
+        single labeled commit covering several recent edits.
+      - The user asks "commit this", "snapshot it", "checkpoint", etc.
+
+    The function walks up from `path` (or the current working dir) to find
+    the nearest per-IP `.git`, stages everything tracked + untracked, and
+    commits with the supplied `message`. Never escapes outside the
+    project. Safe to call when there are no changes — produces an empty
+    commit so the timeline still has a marker.
+
+    Args:
+        message: Short summary of what was done (1 line, <= 80 chars).
+                 If empty, defaults to "atlas: manual checkpoint".
+        path:    Any path inside the IP (defaults to cwd). The .git search
+                 starts here and walks up.
+
+    Returns:
+        "✅ committed <short-hash>: <message>" on success, error string otherwise.
+    """
+    try:
+        msg = (str(message) if message is not None else "").strip()
+        if not msg:
+            msg = "atlas: manual checkpoint"
+        msg = msg.splitlines()[0][:120]
+        start = os.path.abspath(path) if path else os.getcwd()
+        git_root = _find_git_root(start)
+        if git_root is None:
+            return "⚠ commit_ip: no per-IP git repo found from " + start
+        subprocess.run(["git", "add", "--", "."],
+                       cwd=git_root, capture_output=True, timeout=15)
+        out = subprocess.run(
+            ["git", "commit", "--allow-empty", "-m", msg],
+            cwd=git_root, capture_output=True, timeout=15,
+        )
+        if out.returncode != 0:
+            return "⚠ commit_ip failed: " + out.stderr.decode("utf-8", "replace")[:200]
+        head = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=git_root, capture_output=True, timeout=5,
+        )
+        short = head.stdout.decode("utf-8", "replace").strip() or "?"
+        return f"✅ committed {short}: {msg}"
+    except Exception as exc:
+        return "⚠ commit_ip error: " + str(exc)
+
+
 def write_file(path: str = None, content: str = None, append: bool = False) -> str:
     """
     Writes content to a file. Overwrites by default; set append=True to add to end.
@@ -5770,6 +5823,7 @@ AVAILABLE_TOOLS = {
     "git_diff": git_diff,
     "git_status": git_status,
     "git_revert": git_revert,
+    "commit_ip": commit_ip,
     "replace_in_file": replace_in_file,
     "replace_lines": replace_lines,
     # Image Analysis (conditional — requires ENABLE_IMAGE_READ=true)
