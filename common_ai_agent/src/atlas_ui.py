@@ -163,10 +163,12 @@ def create_app():
         sys.exit(1)
 
     app = FastAPI(title="ATLAS · common_ai_agent")
-    _multi_user_env = os.environ.get("ATLAS_MULTI_USER", "").lower() in ("1", "true", "yes")
-    # Multi-user defaults to process-per-session isolation so agent output,
+    _multi_raw = os.environ.get("ATLAS_MULTI_USER", "1").strip().lower()
+    _multi_user_env = _multi_raw not in ("0", "false", "no", "off")
+    # Multi-user and process-per-session isolation default on so agent output,
     # command results, and main.py global state do not bleed across users.
-    # Operators can still opt out explicitly with ATLAS_MULTI_USER_PROC=0.
+    # Operators can still opt out explicitly with ATLAS_MULTI_USER=0 or
+    # ATLAS_MULTI_USER_PROC=0.
     _proc_raw = os.environ.get("ATLAS_MULTI_USER_PROC", "1").strip().lower()
     _use_proc = _multi_user_env and _proc_raw not in ("0", "false", "no", "off")
     if _multi_user_env:

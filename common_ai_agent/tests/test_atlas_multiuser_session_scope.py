@@ -73,18 +73,34 @@ def test_multiuser_session_ip_workflow_dirs_and_ip_visibility(tmp_path, monkeypa
     assert not (tmp_path / ".session" / "bob" / "ip_stolen").exists()
 
 
-def test_multiuser_defaults_to_process_isolation(tmp_path, monkeypatch):
+def test_multiuser_and_process_isolation_default_on(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.delenv("ATLAS_MULTI_USER", raising=False)
     monkeypatch.delenv("ATLAS_MULTI_USER_PROC", raising=False)
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
 
     app = atlas_ui.create_app()
 
+    assert app.state.bridge._single_user is False
     assert app.state.bridge._process_manager is not None
+
+
+def test_multiuser_can_be_disabled(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.delenv("ATLAS_MULTI_USER_PROC", raising=False)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+
+    assert app.state.bridge._single_user is True
+    assert app.state.bridge._process_manager is None
 
 
 def test_multiuser_process_isolation_can_be_disabled(tmp_path, monkeypatch):
