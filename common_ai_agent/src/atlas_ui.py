@@ -4654,7 +4654,7 @@ def create_app():
                 **prior,
                 "ip": ip,
                 "workflow": "ssot-gen",
-                "kind": kind or "simple APB peripheral",
+                "kind": kind or "TBD",
                 "flow_id": flow_id,
                 "source": source or "ssot-qna",
                 "section_id": section_id,
@@ -4702,7 +4702,7 @@ def create_app():
             items.append({
                 "ip": ip,
                 "workflow": "ssot-gen",
-                "kind": state.get("kind") or "simple APB peripheral",
+                "kind": state.get("kind") or "TBD",
                 "flow_id": f"decision:{key}",
                 "source": "ssot-decision",
                 "section_id": section_id,
@@ -4862,7 +4862,7 @@ def create_app():
             raise RuntimeError(f"PyYAML is required to update SSOT draft: {exc}") from exc
         path.write_text(_yaml.safe_dump(doc, sort_keys=False, allow_unicode=True, width=120), encoding="utf-8")
 
-    def _ensure_ssot_draft(ip: str, kind: str = "simple APB peripheral") -> dict[str, Any]:
+    def _ensure_ssot_draft(ip: str, kind: str = "TBD") -> dict[str, Any]:
         # Default top file path follows the canonical convention
         # `rtl/<ip>.sv` so /new-ip scaffolds an SSOT that already has
         # the synthesizable top wired to a name matching the IP. Without
@@ -4877,7 +4877,7 @@ def create_app():
                     "name": ip,
                     "file": _default_top_file,
                     "type": "draft",
-                    "description": kind or "simple APB peripheral",
+                    "description": kind or "TBD",
                     "version": "draft",
                 },
                 "custom": {},
@@ -4887,7 +4887,7 @@ def create_app():
             top.setdefault("name", ip)
             top.setdefault("file", _default_top_file)
             top.setdefault("type", "draft")
-            top.setdefault("description", kind or "simple APB peripheral")
+            top.setdefault("description", kind or "TBD")
             top.setdefault("version", "draft")
         custom = doc.setdefault("custom", {})
         if not isinstance(custom, dict):
@@ -4905,7 +4905,7 @@ def create_app():
         _save_ssot_draft(ip, doc)
         return doc
 
-    def _ssot_custom(ip: str, kind: str = "simple APB peripheral") -> tuple[dict[str, Any], dict[str, Any]]:
+    def _ssot_custom(ip: str, kind: str = "TBD") -> tuple[dict[str, Any], dict[str, Any]]:
         doc = _ensure_ssot_draft(ip, kind)
         custom = doc.setdefault("custom", {})
         if not isinstance(custom, dict):
@@ -5132,7 +5132,7 @@ def create_app():
                 continue
             kind_tokens.append(tok)
             idx += 1
-        kind = " ".join(kind_tokens).strip() or "simple APB peripheral"
+        kind = " ".join(kind_tokens).strip() or "TBD"
         return ip, kind, import_paths, ""
 
     def _render_ssot_llm_qna_prompt(ip: str, kind: str, state: dict[str, Any]) -> str:
@@ -5211,7 +5211,7 @@ def create_app():
         bridge.emit(
             "ssot_approval_ready",
             ip=ip,
-            kind=state.get("kind") or "simple APB peripheral",
+            kind=state.get("kind") or "TBD",
             status=state.get("status") or ("approved" if state.get("approved") else "answered"),
             approved=bool(state.get("approved")),
             missing=miss,
@@ -5230,7 +5230,7 @@ def create_app():
         labels = [by_id.get(str(s), str(s)) for s in selected]
         return ", ".join([x for x in labels if x]).strip()
 
-    def _new_ssot_state(ip: str, kind: str = "simple APB peripheral") -> dict[str, Any]:
+    def _new_ssot_state(ip: str, kind: str = "TBD") -> dict[str, Any]:
         return {
             "ip": ip,
             "kind": kind,
@@ -6675,7 +6675,7 @@ def create_app():
             _emit_workflow_result(f"[SSOT GRILL] failed to scaffold {ip}: {exc}", "grill-me")
             return True
         state = _load_ssot_state(ip) or _new_ssot_state(ip)
-        _ensure_ssot_draft(ip, str(state.get("kind") or "simple APB peripheral"))
+        _ensure_ssot_draft(ip, str(state.get("kind") or "TBD"))
         state["active_session"] = _active_session_value() or _canonical_session_string(ip)
         state["last_step"] = "grill-me"
         _save_ssot_state(ip, state)
@@ -6694,7 +6694,7 @@ def create_app():
         _emit_workflow_result(msg, "grill-me")
         _queue_prompt_for_session(client_session, "/mode normal")
         _queue_prompt_for_session(client_session, "/wf ssot-gen")
-        _queue_prompt_for_session(client_session, _render_ssot_llm_qna_prompt(ip, str(state.get("kind") or "simple APB peripheral"), state))
+        _queue_prompt_for_session(client_session, _render_ssot_llm_qna_prompt(ip, str(state.get("kind") or "TBD"), state))
         bridge.emit("agent_state", running=True)
         return True
 
@@ -6836,7 +6836,7 @@ def create_app():
         state = _load_ssot_state(ip)
         if not state:
             state = _new_ssot_state(ip)
-        _ensure_ssot_draft(ip, str(state.get("kind") or "simple APB peripheral"))
+        _ensure_ssot_draft(ip, str(state.get("kind") or "TBD"))
         missing = _missing_ssot_decisions(ip, state)
         if missing:
             msg = (
