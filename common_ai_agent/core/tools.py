@@ -3358,6 +3358,33 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                     for _full in _tries:
                         if _os_fs.path.isfile(_full):
                             return _full
+                    # Final fallback when active-IP/contextvar resolution
+                    # didn't kick in (e.g. process-per-session worker that
+                    # never received ATLAS_ACTIVE_IP in its spawn env): scan
+                    # immediate cwd subdirs for `<sub>/<_p>`. Accept iff
+                    # exactly one subdir contains the file. The original
+                    # bug: gpio task declared `rtl/gpio_param.vh`, actual
+                    # file lived at `gpio/rtl/gpio_param.vh`, validator
+                    # rejected with "fake-DONE" because no _base_dir had
+                    # been seeded for the gpio IP.
+                    if not _os_fs.path.isabs(_p):
+                        _skip = {".git", ".session", ".rag", ".venv", "__pycache__",
+                                 ".sisyphus", ".omc", "node_modules", "build"}
+                        _hits = []
+                        try:
+                            for _name in _os_fs.listdir(_cwd):
+                                if _name.startswith(".") or _name in _skip:
+                                    continue
+                                _sub = _os_fs.path.join(_cwd, _name)
+                                if not _os_fs.path.isdir(_sub):
+                                    continue
+                                _candidate = _os_fs.path.join(_sub, _p)
+                                if _os_fs.path.isfile(_candidate):
+                                    _hits.append(_candidate)
+                        except OSError:
+                            return None
+                        if len(_hits) == 1:
+                            return _hits[0]
                     return None
 
                 def _filelist_entries_exist(_full):
