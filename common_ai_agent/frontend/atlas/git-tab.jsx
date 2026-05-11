@@ -45,15 +45,19 @@
           if (!mountedRef.current) return;
           const items = Array.isArray(d.items) ? d.items : [];
           const names = items.map(it => it.ip || it.name || '').filter(Boolean);
-          setIpList(names);
-          if (!ip && names.length) {
-            const fallback = (window.ACTIVE_IP && names.includes(window.ACTIVE_IP))
-              ? window.ACTIVE_IP : names[0];
-            setIp(fallback);
-          }
+          const nextNames = initialIp && !names.includes(initialIp)
+            ? [initialIp, ...names]
+            : names;
+          setIpList(nextNames);
+          setIp(prev => {
+            if (prev) return prev;
+            const fallback = (window.ACTIVE_IP && nextNames.includes(window.ACTIVE_IP))
+              ? window.ACTIVE_IP : nextNames[0];
+            return initialIp || fallback || '';
+          });
         })
         .catch(() => setErr('cannot list IPs'));
-    }, []);  // run once
+    }, [initialIp]);
 
     const refresh = useCallback(() => {
       if (!ip) return;
