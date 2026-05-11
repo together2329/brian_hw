@@ -52,6 +52,24 @@ To avoid this, ALWAYS split large RTL writes into multiple tool calls:
 
 5. **Filelist + top port mapping in their own pass.** After all submodules are written, do the top (`<ip>.sv`, or `<ip>_wrapper.sv` only if the SSOT explicitly lists one) and `<ip>/list/<ip>.f` as separate small write_file calls — these reference content that already exists, no need to inline it.
 
+## ABSOLUTE RULES — SSOT-only semantics and TBD gaps
+
+1. **No SSOT, no RTL behavior.** The SSOT is the exclusive semantic authority. Do not invent registers, fields, reset values, timing, FSM states, handshakes, error codes, interrupts, security behavior, debug/status outputs, integration wiring, or protocol side effects that are not explicitly present in the current SSOT.
+2. **TBD means blocked, not implemented.** If a required behavior is absent, vague, contradictory, or only placeholder text in SSOT, mark that item `TBD (missing in SSOT)` and do not fill it with a plausible implementation. A `TBD` item keeps RTL DONE/PASS blocked until ssot-gen updates the SSOT.
+3. **Draft skeleton exception only.** In incremental draft mode, a region may remain as `// TBD: SSOT missing <yaml.path> — <exact question>` so the preview shows the gap. Do not replace that marker with tie-off, heartbeat, dummy, fixed template, or assumed protocol logic. Such a file is draft-only evidence and cannot satisfy placeholder-free or DONE gates.
+4. **Common knowledge is not a contract.** Protocol conventions, common IP patterns, and previous projects may guide syntax and decomposition only; they cannot add behavior unless the SSOT names the rule, signal, register, timing, or exception.
+5. **Every blocked output must include an SSOT gap report.** When any TBD remains, the response MUST include:
+   ```
+   [SSOT TBD REPORT] -> ssot-gen
+   Module  : <ip_name>
+   Missing :
+   - yaml_path: <exact SSOT field path>
+     needed_for: <rtl file/module/signal/task>
+     question: <specific fact ssot-gen must add>
+     current_rtl_action: TBD — not implemented
+   ```
+   If no TBD remains, state `SSOT TBD REPORT: none`.
+
 ## IP Directory Structure
 
 ```
@@ -234,6 +252,7 @@ The deterministic scripts in this workflow are gatekeepers, not production RTL a
 For every SSOT-driven IP:
 - Treat `top_module`, `io_list`, `parameters`, `features`, `dataflow`, `function_model`, `cycle_model`, `fsm`, `registers`, `memory`, `interrupts`, `timing`, `power`, `security`, `error_handling`, `debug_observability`, `integration`, `dft`, `synthesis`, `coding_rules`, `test_requirements`, `workflow_todos`, and `quality_gates` as the implementation contract.
 - `function_model` and `cycle_model` are mandatory production inputs. If either is missing, placeholder-only, or too vague to determine state updates, side effects, handshake timing, latency, ordering, or backpressure, stop and emit `[SSOT QUESTION] → ssot-gen` with the exact missing field. Do not infer cycle behavior from vibes or patch in a fixed template.
+- Before writing each RTL region, classify every needed behavior as `SSOT-backed`, `TBD (missing in SSOT)`, or `not applicable by SSOT`. Implement only `SSOT-backed` behavior. `TBD` rows must be reported through `[SSOT TBD REPORT] -> ssot-gen` and must keep DONE/PASS blocked.
 - `workflow_todos.rtl-gen[]` is authored by ssot-gen LLM and is first-class RTL work. Every item must provide `content`, `detail`, and `criteria`. Import these items into the active TODO ledger exactly; do not summarize them away or replace them with a fixed template.
 - `rtl_gate.rtl_gen` entries in `<ip>/rtl/rtl_todo_plan.json` are also first-class TODOs. They represent the RTL-gen quality gates: SSOT authority, workflow TODO format, owner traceability, static RTL evidence, owner logic structure evidence, placeholder-free RTL evidence, top IO contract evidence, top output drive evidence, top input consumption evidence, manifest hierarchy integration, manifest port-connection evidence, manifest signal-flow evidence, SSOT connection-contract evidence, DUT compile, DUT-only lint, dynamic TODO closure, and any production-profile gates requested by SSOT. Production-profile gates include locked authority manifest/signature approval, SSOT-scaled RTL implementation depth, protocol assertion generation and clean assertion-failure simulation evidence. Treat these gates exactly like required implementation TODOs; DONE is forbidden while any required gate TODO is open.
 - Build an implementation ledger before writing RTL:
@@ -253,6 +272,7 @@ For every SSOT-driven IP:
   - compile/lint checks to run
 - Do not route new IP support through helper fallback scripts or by editing generators into fixed templates. Write the RTL directly from the SSOT using normal file tools in the current IP directory.
 - If the SSOT lacks information needed for correct RTL, emit `[SSOT QUESTION] → ssot-gen` with the exact missing field. If the SSOT is clear but implementation fails, repair RTL and rerun compile.
+- If the SSOT lacks information but a draft file/skeleton is still useful, leave the affected region as `TBD (missing in SSOT)` and emit `[SSOT TBD REPORT] -> ssot-gen`; do not create guessed logic just to satisfy compile/lint or static evidence.
 - RTL repair is loopable because the workflow has objective criteria: SSOT traceability, FunctionalModel/equivalence goals, coverage goals, interface/protocol rules, compile/lint diagnostics, simulation evidence, and performance/cycle measurements. Do not edit SSOT, FunctionalModel, coverage goals, interface rules, or performance targets to make RTL pass; open a human gate when the authority artifact itself appears wrong or incomplete.
 - Continue RTL generation/repair until every required task in `<ip>/rtl/rtl_todo_plan.json` has `todo_completion.status=pass` after `derive_rtl_todos.py --audit-rtl`, including every `rtl_gate.rtl_gen` gate TODO. DUT compile, DUT-only lint, protocol assertion simulation, FL-vs-RTL audit, and coverage closure are not side claims; they must close their gate TODOs with artifacts generated after the final RTL source edit. DONE is forbidden while `gate.open_required_todos > 0`, `gate.static_missing > 0`, blockers exist, or orphans exist.
 - Module-level failures must be repaired at the owning module boundary first. Use `scope.level=module` goals and scoreboard rows to keep the fix local before top-level integration.
@@ -312,6 +332,7 @@ For manifest modules, derive behavior from the sections that mention the block. 
 - Simple structural or repetitive blocks may be written by the LLM from SSOT fields, but not by adding global fixed-template generator paths.
 - Complex blocks must be written directly from SSOT behavior and then compiled.
 - Placeholder heartbeat/alive/tie-off code is not acceptable unless the SSOT explicitly describes a passive tie-off block.
+- Missing SSOT behavior is not acceptable as an inferred tie-off. Leave it `TBD`, report the exact SSOT field to add, and block PASS.
 - Do not change global generator scripts just to support a new IP kind. Prefer direct workflow-authored RTL inside `<ip>/rtl/`.
 
 ### Handoff Output
@@ -321,6 +342,7 @@ Module  : <ip_name>
 Output  : <ip>/rtl/*.sv
 Filelist: <ip>/list/<ip>.f
 Lint    : 0 errors, 0 warnings
+SSOT TBD REPORT: none
 ```
 
 ---
