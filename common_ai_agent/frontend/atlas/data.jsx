@@ -769,6 +769,21 @@
         _refFiles(); _refSsot(); _refTodos();
         refreshProgress();
       });
+      // file_changed — backend fires this immediately after a
+      // write/replace/edit tool call. Refresh file-tree + ssot list
+      // and broadcast a window event so the open preview pane /
+      // full SSOT view can self-reload if they were viewing this path.
+      window.backend.subscribe('file_changed', (m) => {
+        _refFiles(); _refSsot();
+        const path = (m && m.path) ? String(m.path) : '';
+        if (path) {
+          try {
+            window.dispatchEvent(new CustomEvent('atlas-file-changed', {
+              detail: { path, tool: (m && m.tool) || '' },
+            }));
+          } catch (_) {}
+        }
+      });
       window.backend.subscribe('context', (m) => {
         if (typeof m.used === 'number') {
           window.CONTEXT.tokens = m.used;

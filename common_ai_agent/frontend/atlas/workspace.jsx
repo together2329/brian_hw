@@ -7734,6 +7734,25 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
   const ssotHasContent = !!content.trim();
   const showLoading = loading && !content.trim();
 
+  // Auto-reload the SSOT view when the backend writes to the
+  // currently-selected yaml. Matches by path suffix so both relative
+  // (selected = "spi/yaml/spi.ssot.yaml") and absolute (event path =
+  // /full/path/.../spi.ssot.yaml) hits resolve.
+  React.useEffect(() => {
+    if (!selected) return undefined;
+    const handler = (ev) => {
+      const changed = (ev && ev.detail && ev.detail.path) || '';
+      if (!changed) return;
+      if (changed === selected
+          || changed.endsWith('/' + selected)
+          || selected.endsWith('/' + changed)) {
+        reloadSsot(true);
+      }
+    };
+    window.addEventListener('atlas-file-changed', handler);
+    return () => window.removeEventListener('atlas-file-changed', handler);
+  }, [selected, reloadSsot]);
+
   React.useEffect(() => {
     if (initialPath && initialPath !== lastInitialPath.current && filePaths.includes(initialPath)) {
       lastInitialPath.current = initialPath;
@@ -9635,6 +9654,23 @@ const PreviewPane = ({ path, onClose }) => {
   const isMarkdown = ['md', 'markdown', 'mdown', 'mkdn'].includes(ext);
   const hasGlobPath = !!path && /[*?[\]{}]/.test(path);
   const [resource, reloadPreview] = useAtlasAsyncResource('file', hasGlobPath ? '' : path);
+
+  // Auto-reload when the backend emits file_changed for THIS path.
+  React.useEffect(() => {
+    if (!path || hasGlobPath) return undefined;
+    const handler = (ev) => {
+      const changed = (ev && ev.detail && ev.detail.path) || '';
+      if (!changed) return;
+      // Match by suffix so both relative ("rtl/foo.sv") and absolute
+      // ("/full/path/to/rtl/foo.sv") emissions hit when the open
+      // preview's path is one or the other.
+      if (changed === path || changed.endsWith('/' + path) || path.endsWith('/' + changed)) {
+        reloadPreview(true);
+      }
+    };
+    window.addEventListener('atlas-file-changed', handler);
+    return () => window.removeEventListener('atlas-file-changed', handler);
+  }, [path, hasGlobPath, reloadPreview]);
   const body = hasGlobPath
     ? `// ${path}\n// Preview needs one concrete file path, not a glob pattern.\n// Select an exact file from the tree, for example rtl/<module>.sv.`
     : (resource.body || '');

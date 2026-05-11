@@ -6485,13 +6485,15 @@ def create_app():
         cmd, args = _split_slash(text)
         if cmd not in ("grill-me", "grill", "g"):
             return False
+        # First arg, if it parses as a valid IP name, is the explicit
+        # IP target. Anything else (e.g. "Q&A", "memory_map") is treated
+        # as a topic hint and the active IP is used instead. Previously
+        # we hard-rejected with "invalid IP name" any time the first
+        # token failed _valid_ip_name, which made `/grill-me Q&A` blow
+        # up even though the user clearly meant the active IP.
         ip_arg = args.split(None, 1)[0] if args else ""
         if ip_arg and not _valid_ip_name(ip_arg):
-            _emit_workflow_result(
-                "[SSOT GRILL] invalid IP name\nusage: /grill-me [<ip_name>]",
-                "grill-me",
-            )
-            return True
+            ip_arg = ""  # fall through to _active_ssot_ip()
         ip = ip_arg or _active_ssot_ip()
         if not _valid_ip_name(ip):
             _emit_workflow_result(
@@ -9673,6 +9675,13 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                 _path_hit = m and (m.group(1) or m.group(2) or m.group(3))
                 if _path_hit:
                     _auto_commit_for_path(_path_hit, tool=tool)
+                    # Push a file_changed event so the frontend can
+                    # auto-reload preview / SSOT / file-tree without
+                    # waiting for the next tool_result coalesce window.
+                    try:
+                        bridge.emit("file_changed", path=str(_path_hit), tool=tool)
+                    except Exception:
+                        pass
         except Exception:
             pass
     _main._textual_emit_tool_result_fn = _emit_tool_result
