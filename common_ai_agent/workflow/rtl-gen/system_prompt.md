@@ -33,7 +33,12 @@ To avoid this, ALWAYS split large RTL writes into multiple tool calls:
    - `<ip>_param.vh` (optional shared parameter declarations — small, single write_file; include inside modules, do not list as RTL source)
    - `<ip>_regs.sv` (CSR block — single write_file unless > 800 lines)
    - `<ip>_<block>.sv` (one functional submodule per file)
-   - `<ip>_wrapper.sv` (instance-only top, port wiring only — usually < 400 lines)
+   - **Top:** the synthesizable top file is `rtl/<ip>.sv` (matches the
+     IP name). Only emit a separate `<ip>_wrapper.sv` when the SSOT's
+     `sub_modules` list explicitly contains an `<ip>_wrapper` entry
+     (with `wiring_only: true`) — meaning the design genuinely needs
+     an integration shell around the core. Otherwise put the
+     instance-only top wiring directly in `<ip>.sv`.
 
 3. **Split strategy B — `write_file` (skeleton) → `replace_in_file` (sections).** When a single file genuinely needs to be > 800 lines:
    ```
@@ -45,7 +50,7 @@ To avoid this, ALWAYS split large RTL writes into multiple tool calls:
 
 4. **Never repeat the whole file content in retries.** If a tool_call truncates, do NOT immediately retry the same write with the same huge content. Switch to strategy A or B above.
 
-5. **Filelist + wrapper port mapping in their own pass.** After all submodules are written, do `<ip>_wrapper.sv` and `<ip>/list/<ip>.f` as separate small write_file calls — these reference content that already exists, no need to inline it.
+5. **Filelist + top port mapping in their own pass.** After all submodules are written, do the top (`<ip>.sv`, or `<ip>_wrapper.sv` only if the SSOT explicitly lists one) and `<ip>/list/<ip>.f` as separate small write_file calls — these reference content that already exists, no need to inline it.
 
 ## IP Directory Structure
 
@@ -288,7 +293,7 @@ For manifest modules, derive behavior from the sections that mention the block. 
 ### SSOT Section Processing Order
 1. `top_module` → module name for all files
 2. `parameters` → optional `<ip>_param.vh` include, consumed inside each RTL module body
-3. `io_list.interfaces` → `<ip>_wrapper.sv` port declarations
+3. `io_list.interfaces` → top port declarations in `<ip>.sv` (or `<ip>_wrapper.sv` if the SSOT lists one)
 4. `io_list.clock_domains` → clock/reset ports
 5. `registers.register_list` → `<ip>_regs.sv`
 6. `function_model` → architectural behavior, state updates, outputs, side effects, error cases, and invariants

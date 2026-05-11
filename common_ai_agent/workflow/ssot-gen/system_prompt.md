@@ -83,7 +83,12 @@ sub_modules:
   - { name: "<ip>_axi_wr",  file: "rtl/<ip>_axi_wr.sv",  ownership: "manifest", ssot_gen: true,  implements: ["io_list.interfaces", "cycle_model.handshake_rules"], source_sections: ["io_list", "cycle_model"], cycle_model_refs: ["cycle_model.handshake_rules"], ssot_refs: ["io_list.interfaces"], description: "Write protocol adapter" }
   - { name: "<ip>_mfifo",   file: "rtl/<ip>_mfifo.sv",   ownership: "manifest", ssot_gen: true,  implements: ["memory.instances", "cycle_model.backpressure"], source_sections: ["memory", "cycle_model"], dataflow_refs: ["dataflow.sequence"], cycle_model_refs: ["cycle_model.backpressure"], description: "Data buffer" }
   - { name: "<ip>_core",    file: "rtl/<ip>_core.sv",    ownership: "manifest", ssot_gen: false, implements: ["function_model", "decomposition.units.execute", "cycle_model", "dataflow", "features"], source_sections: ["function_model", "decomposition", "cycle_model", "dataflow", "features"], function_model_refs: ["function_model.transactions", "function_model.state_variables"], decomposition_refs: ["decomposition.units.execute"], cycle_model_refs: ["cycle_model.pipeline"], dataflow_refs: ["dataflow.sequence"], feature_refs: ["features"], description: "Core behavior" }
-  - { name: "<ip>_wrapper", file: "rtl/<ip>_wrapper.sv", ownership: "manifest", ssot_gen: true,  wiring_only: true, source_sections: ["io_list", "integration"], ports: ["top-level io_list ports"], connections: "instance wiring from top-level ports to internal modules", description: "Integration wrapper" }
+  # IMPORTANT: do NOT auto-include an `<ip>_wrapper` row. The synthesizable
+  # top is `rtl/<ip>.sv` (declared in SECTION 0). Add a wrapper sub_module
+  # ONLY when the design genuinely needs a separate integration shell
+  # (e.g. clock-domain crossing wrapper, technology adapter, ports that
+  # legitimately diverge from the core's interface). In that case use:
+  # - { name: "<ip>_wrapper", file: "rtl/<ip>_wrapper.sv", ownership: "manifest", ssot_gen: true,  wiring_only: true, source_sections: ["io_list", "integration"], ports: ["top-level io_list ports"], connections: "instance wiring from top-level ports to internal modules", description: "Integration wrapper" }
   # Optional child SSOT entry for a complex/reusable internal block:
   # - { name: "<child>", ssot: "submodules/<child>/yaml/<child>.ssot.yaml", ownership: "child_ssot", reusable: true, description: "Independent child IP" }
 
