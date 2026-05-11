@@ -3667,13 +3667,23 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
     Add a single task to the existing todo list.
     More efficient than todo_write for adding tasks mid-execution.
 
+    Default insert position: **end of the list (append)**. Do NOT pass
+    `index=1` (or any small N) just to "add another todo" — that
+    prepends in front of work the user is already running, which
+    reorders the execution flow and is almost always wrong. Pass
+    `index` only when you deliberately want the new task to jump
+    ahead of pending items (e.g. an urgent dependency).
+
     Args:
         content (str): Task description (required).
         activeForm (str): Display text while in progress (auto-generated if omitted).
         priority (str): "high", "medium", or "low" (default: "medium").
         detail (str): Implementation details (optional).
         criteria (str): Completion criteria, newline-separated (optional).
-        index (int): 1-based position to insert at. If omitted, appends to end.
+        index (int, OPTIONAL): 1-based position to insert at. **Leave
+            unset to append at the end** (correct 99% of the time).
+            Only specify when the new task must run before existing
+            pending items.
         command (str|dict): Shell command or tool call to auto-execute (no LLM needed).
         on_reject (int): 1-based task index to jump to on command failure (0=disabled).
         on_success (int): 1-based task index to jump to on command success (0=next sequential).
@@ -3682,10 +3692,11 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
                              Overrides on_success/on_reject when matched.
 
     Example:
+        # ✅ Correct — appends after every existing task:
         todo_add(content="Fix lint errors", priority="low")
         todo_add(content="Run lint", command="make lint", on_reject=2)
-        todo_add(content="Quick check", command="make quick-lint", on_success=4)
-        todo_add(content="Run sim", command="make sim", on_condition=[{"if": "TIMEOUT", "goto": 3}])
+        # ❌ Wrong — prepends to the top, reorders execution:
+        todo_add(content="Run sim", index=1)
     """
     _locked = _todo_template_lock_error("todo_add")
     if _locked:
