@@ -683,29 +683,9 @@ const App = () => {
         }
       }
     } catch (_) {}
-    // Actually create <PROJECT_ROOT>/<ip>/ on disk so the scope panel
-    // shows an empty folder for the new IP instead of stale tree
-    // contents from the previously-active IP. The endpoint refuses to
-    // clobber an existing directory.
-    try {
-      const r = await fetch('/api/ip/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: ip }),
-      });
-      if (!r.ok) {
-        const d = await r.json().catch(() => ({}));
-        if (r.status === 409) {
-          showNotice(`IP folder "${ip}/" already exists on disk.`);
-          return;
-        }
-        showNotice(`Failed to create IP folder: ${d.error || r.status}`);
-        return;
-      }
-    } catch (e) {
-      showNotice(`Failed to create IP folder: ${e}`);
-      return;
-    }
+    // `/new-ip` is the single source of truth for IP scaffolding. Do not
+    // pre-create <PROJECT_ROOT>/<ip>/ here; doing both paths can produce
+    // duplicated scope prefixes such as gpio/gpio/...
     const me = activeSessionId
       || normalizeSession(window.ATLAS_USER_SESSION_ID || '')
       || 'default';

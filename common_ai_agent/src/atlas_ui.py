@@ -816,15 +816,12 @@ def create_app():
 
     @app.post("/api/ip/create")
     async def api_ip_create(request: Request):
-        """Create an empty `<PROJECT_ROOT>/<ip>/` folder on disk so the
-        scope panel has something concrete to render after `+ IP`. The
-        folder name equals the IP name; nothing else is scaffolded here
-        — workflow setup will populate yaml/, rtl/, etc. on the first
-        agent run.
+        """Legacy no-op for older Atlas frontends.
 
-        Validates the name (no slashes, no traversal) and refuses to
-        clobber an existing directory so two sessions can't accidentally
-        share the same on-disk folder.
+        IP creation/scaffolding is handled by `/new-ip <name>` so there is
+        exactly one path that creates `<PROJECT_ROOT>/<ip>/...`. Keeping
+        this endpoint as validation-only lets stale browser bundles proceed
+        to `/new-ip` without creating an extra empty IP root first.
         """
         try:
             body = await request.json()
@@ -840,17 +837,11 @@ def create_app():
             target.relative_to(PROJECT_ROOT.resolve())
         except ValueError:
             return JSONResponse({"error": "outside project root"}, status_code=400)
-        if target.exists():
-            return JSONResponse({"error": "already exists",
-                                 "path": str(target.relative_to(PROJECT_ROOT))},
-                                status_code=409)
-        try:
-            target.mkdir(parents=False, exist_ok=False)
-        except OSError as exc:
-            return JSONResponse({"error": str(exc)}, status_code=500)
         return JSONResponse({"ok": True,
                              "ip": name,
-                             "path": str(target.relative_to(PROJECT_ROOT))})
+                             "created": False,
+                             "path": str(target.relative_to(PROJECT_ROOT.resolve())),
+                             "message": "IP scaffolding is handled by /new-ip"})
 
     def _resolve_ip_path(name: str) -> Path | tuple[None, JSONResponse]:
         """Validate a path-segment-style IP name and return its on-disk dir.
@@ -868,7 +859,7 @@ def create_app():
         if not target.is_dir():
             return None, JSONResponse({"error": "ip not found"}, status_code=404)
         if not (target / ".git").is_dir():
-            return None, JSONResponse({"error": "ip has no .git — create via /api/ip/create first"}, status_code=409)
+            return None, JSONResponse({"error": "ip has no .git — create via /new-ip first"}, status_code=409)
         return target
 
     @app.post("/api/ip/{name}/git/commit")
@@ -6785,10 +6776,6 @@ def create_app():
         bridge.request_stop()
         bridge.emit("agent_state", running=False)
         _set_active_ssot_ip(ip)
-        try:
-            (PROJECT_ROOT / ip).mkdir(parents=True, exist_ok=True)
-        except OSError:
-            pass
         msg = (
             f"[IP] active IP -> {ip}\n"
             f"session: {_canonical_session_string(ip)}"

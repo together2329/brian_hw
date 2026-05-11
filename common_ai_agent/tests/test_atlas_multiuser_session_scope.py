@@ -73,6 +73,25 @@ def test_multiuser_session_ip_workflow_dirs_and_ip_visibility(tmp_path, monkeypa
     assert not (tmp_path / ".session" / "bob" / "ip_stolen").exists()
 
 
+def test_ip_create_endpoint_does_not_pre_scaffold_ip_root(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    response = client.post("/api/ip/create", json={"name": "gpio"})
+
+    assert response.status_code == 200
+    assert response.json()["created"] is False
+    assert not (tmp_path / "gpio").exists()
+
+
 def test_multiuser_and_process_isolation_default_on(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 
