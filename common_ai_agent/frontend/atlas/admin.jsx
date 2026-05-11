@@ -1,28 +1,33 @@
 function AdminPage() {
   const [users, setUsers] = React.useState([]);
   const [sessions, setSessions] = React.useState([]);
+  const [usage, setUsage] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
   const [activeTab, setActiveTab] = React.useState('users');
   const [deleting, setDeleting] = React.useState(null);
+  const [expandedUsage, setExpandedUsage] = React.useState(null);
 
   React.useEffect(() => {
     async function init() {
       try {
         setLoading(true);
-        const [usersResp, sessionsResp] = await Promise.all([
+        const [usersResp, sessionsResp, usageResp] = await Promise.all([
           fetch('/api/admin/users'),
           fetch('/api/admin/sessions'),
+          fetch('/api/admin/usage'),
         ]);
-        if (usersResp.status === 403 || sessionsResp.status === 403) {
+        if (usersResp.status === 403 || sessionsResp.status === 403 || usageResp.status === 403) {
           setError('Admin access required');
           setLoading(false);
           return;
         }
         const usersData = await usersResp.json();
         const sessionsData = await sessionsResp.json();
+        const usageData = usageResp.ok ? await usageResp.json() : { users: [] };
         setUsers(usersData.users || []);
         setSessions(sessionsData.sessions || []);
+        setUsage(usageData.users || []);
         setError(null);
       } catch (e) {
         setError(String(e));
@@ -237,6 +242,9 @@ function AdminPage() {
               <button style={tabStyle(activeTab === 'sessions')} onClick={() => setActiveTab('sessions')}>
                 Sessions ({sessions.length})
               </button>
+              <button style={tabStyle(activeTab === 'usage')} onClick={() => setActiveTab('usage')}>
+                Usage ({usage.length})
+              </button>
             </div>
 
             {activeTab === 'users' && (
@@ -337,6 +345,111 @@ function AdminPage() {
                           </td>
                         </tr>
                       ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {activeTab === 'usage' && (
+              <div style={tableWrapStyle}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr>
+                      <th style={thStyle}>Username</th>
+                      <th style={thStyle}>Role</th>
+                      <th style={thStyle}>Sessions</th>
+                      <th style={thStyle}>Messages</th>
+                      <th style={thStyle}>Tokens In</th>
+                      <th style={thStyle}>Tokens Out</th>
+                      <th style={thStyle}>Reasoning</th>
+                      <th style={thStyle}>Cost (USD)</th>
+                      <th style={thStyle}>Last Activity</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {usage.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} style={{ ...tdStyle, ...emptyStateStyle }}>No usage data yet.</td>
+                      </tr>
+                    ) : (
+                      usage.flatMap((u) => {
+                        const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString());
+                        const usd = (n) => (n == null ? '—' : `$${Number(n).toFixed(4)}`);
+                        const expanded = expandedUsage === u.user_id;
+                        const rows = [
+                          <tr key={u.user_id}
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => setExpandedUsage(expanded ? null : u.user_id)}
+                              title={expanded ? 'click to collapse' : 'click to see model + tool breakdown'}>
+                            <td style={tdStyle}>
+                              <span style={{ marginRight: 6, opacity: 0.6 }}>{expanded ? '▾' : '▸'}</span>
+                              {u.username}
+                            </td>
+                            <td style={tdStyle}>{u.role}</td>
+                            <td style={tdStyle}>{fmt(u.session_count)}</td>
+                            <td style={tdStyle}>{fmt(u.message_count)}</td>
+                            <td style={tdStyle}>{fmt(u.tokens_in)}</td>
+                            <td style={tdStyle}>{fmt(u.tokens_out)}</td>
+                            <td style={tdStyle}>{fmt(u.tokens_reasoning)}</td>
+                            <td style={tdStyle}>{usd(u.total_cost_usd)}</td>
+                            <td style={tdStyle}>{formatDate(u.last_message_at)}</td>
+                          </tr>,
+                        ];
+                        if (expanded) {
+                          rows.push(
+                            <tr key={u.user_id + '-detail'}>
+                              <td colSpan={9} style={{ ...tdStyle, background: '#10141a', padding: '12px 16px' }}>
+                                <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap' }}>
+                                  <div style={{ minWidth: 260 }}>
+                                    <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 6,
+                                                  textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                                      Models
+                                    </div>
+                                    {(u.models || []).length === 0 ? (
+                                      <div style={{ opacity: 0.5, fontSize: 12 }}>no model usage</div>
+                                    ) : (
+                                      <table style={{ fontSize: 12, borderCollapse: 'collapse' }}>
+                                        <tbody>
+                                          {u.models.slice(0, 8).map(m => (
+                                            <tr key={m.model_id}>
+                                              <td style={{ padding: '2px 10px 2px 0' }}>{m.model_id}</td>
+                                              <td style={{ padding: '2px 10px', textAlign: 'right', opacity: 0.7 }}>{fmt(m.calls)} calls</td>
+                                              <td style={{ padding: '2px 10px', textAlign: 'right', opacity: 0.7 }}>{fmt(m.tokens)} tok</td>
+                                              <td style={{ padding: '2px 0',    textAlign: 'right', opacity: 0.7 }}>{usd(m.cost)}</td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    )}
+                                  </div>
+                                  <div style={{ minWidth: 220 }}>
+                                    <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 6,
+                                                  textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                                      Top Tools
+                                    </div>
+                                    {(u.tools || []).length === 0 ? (
+                                      <div style={{ opacity: 0.5, fontSize: 12 }}>no tool calls</div>
+                                    ) : (
+                                      <table style={{ fontSize: 12, borderCollapse: 'collapse' }}>
+                                        <tbody>
+                                          {u.tools.slice(0, 10).map(t => (
+                                            <tr key={t.tool_name}>
+                                              <td style={{ padding: '2px 12px 2px 0' }}>{t.tool_name}</td>
+                                              <td style={{ padding: '2px 0', textAlign: 'right', opacity: 0.7 }}>{fmt(t.calls)}</td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        }
+                        return rows;
+                      })
                     )}
                   </tbody>
                 </table>
