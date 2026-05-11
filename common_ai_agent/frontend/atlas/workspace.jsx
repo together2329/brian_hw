@@ -6197,6 +6197,86 @@ const DigestEmpty = ({ text = 'No structured data in this section yet.' }) => (
   <div className="mute" style={{ fontSize: 12, fontFamily: 'var(--mono)' }}>{text}</div>
 );
 
+// Feature-specific card with a stronger visual hierarchy than the
+// generic DigestCard/DigestKV combo. Each row (datapath / control /
+// output) gets its own glyph + accent color so a reviewer can scan a
+// long feature list quickly. The trigger condition becomes a tinted
+// chip under the name rather than a small gray meta.
+const _FeatureRow = ({ glyph, label, value, color }) => {
+  if (value === '' || value == null) return null;
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: '18px 78px minmax(0, 1fr)',
+      gap: '4px 10px', alignItems: 'baseline',
+      fontSize: 12, lineHeight: 1.45,
+    }}>
+      <span aria-hidden="true" style={{
+        color, fontFamily: 'var(--mono)', fontWeight: 700, textAlign: 'center',
+      }}>{glyph}</span>
+      <span style={{
+        color, fontFamily: 'var(--mono)', fontSize: 10,
+        textTransform: 'uppercase', letterSpacing: '0.08em',
+      }}>{label}</span>
+      <span style={{ minWidth: 0, wordBreak: 'break-word' }}>{String(value)}</span>
+    </div>
+  );
+};
+
+const FeatureCard = ({ index, feature }) => {
+  const [hover, setHover] = React.useState(false);
+  const hasAny = feature && (feature.datapath || feature.control || feature.output);
+  return (
+    <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        border: '1px solid ' + (hover ? 'var(--accent)' : 'var(--line)'),
+        borderRadius: 6,
+        background: 'var(--bg-2)',
+        padding: '12px 14px',
+        minWidth: 0,
+        display: 'flex', flexDirection: 'column', gap: 8,
+        transition: 'border-color 120ms ease, transform 120ms ease',
+        transform: hover ? 'translateY(-1px)' : 'translateY(0)',
+      }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+        <span style={{
+          fontFamily: 'var(--mono)', fontSize: 11,
+          color: 'var(--fg-mute)', minWidth: 28,
+        }}>F{index}.</span>
+        <span style={{
+          color: 'var(--accent)', fontWeight: 800, fontSize: 14,
+          letterSpacing: '0.01em',
+        }}>{feature.name || '(unnamed feature)'}</span>
+        {feature.trigger ? (
+          <span style={{
+            fontSize: 10, fontFamily: 'var(--mono)',
+            padding: '2px 8px', borderRadius: 999,
+            background: 'color-mix(in oklch, var(--magenta) 14%, transparent)',
+            color: 'var(--magenta)',
+            border: '1px solid color-mix(in oklch, var(--magenta) 35%, transparent)',
+          }}>trigger · {feature.trigger}</span>
+        ) : null}
+      </div>
+      {hasAny ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingTop: 2 }}>
+          <_FeatureRow glyph="➜" label="datapath" value={feature.datapath}
+                       color="var(--accent)" />
+          <_FeatureRow glyph="⊳" label="control"  value={feature.control}
+                       color="var(--magenta)" />
+          <_FeatureRow glyph="⊙" label="output"   value={feature.output}
+                       color="var(--green, #22c55e)" />
+        </div>
+      ) : (
+        <div className="mute" style={{ fontSize: 11, fontFamily: 'var(--mono)' }}>
+          — no datapath / control / output captured yet —
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ModuleTree = ({ topName, modules }) => (
   <div className="code" style={{
     margin: 0, padding: '10px 12px', fontSize: 12, lineHeight: 1.55,
@@ -7183,15 +7263,9 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
   const renderFeatures = () => (
     <>
       {header}
-      <div style={{ display: 'grid', gap: 10 }}>
-        {features.length ? features.map(f => (
-          <DigestCard key={f.name} title={f.name} meta={f.trigger}>
-            <DigestKV rows={[
-              ['datapath', f.datapath],
-              ['control', f.control],
-              ['output', f.output],
-            ]} />
-          </DigestCard>
+      <div style={{ display: 'grid', gap: 14 }}>
+        {features.length ? features.map((f, i) => (
+          <FeatureCard key={`${f.name}-${i}`} index={i + 1} feature={f} />
         )) : <DigestEmpty />}
       </div>
     </>
