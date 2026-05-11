@@ -22,10 +22,14 @@ conversation_history.json
 *.vcd
 *.vvp
 *_sim*
+simv
+**/simv
 *.out
 sim/
+**/sim_build/
 sim.log
 simulation_report.txt
+sim_output*.txt
 *.log
 pcie_sim*
 *_layer_sim
@@ -60,6 +64,7 @@ strix/
 benchmark/
 test_benchmark/
 verilog/
+leaked-claude-code/
 
 # Misc
 2025-12-*-*.txt
@@ -126,6 +131,13 @@ TIMER/fix_tb*.py
 TIMER/.ai_engine_makefile_verified
 TIMER/.task6_verify
 TIMER/tb_ai_engine.v.broken
+
+# Generated verification artifacts
+**/*_work/
+**/results.xml
+**/cov/coverage.json
+**/cov/history.jsonl
+**/cov/toggle.json
 
 # WOW directory (empty/placeholder)
 WOW/
