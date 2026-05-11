@@ -966,6 +966,7 @@ def create_app():
         """Smart-HTTP gateway over git-http-backend so the per-IP bare
         repos under PROJECT_ROOT are clone+push targets on the LAN.
         Honors BARE_GIT_OPTION — returns 404 when disabled."""
+        from starlette.responses import Response as _StarResponse
         try:
             import config as _cfg_git
             if not getattr(_cfg_git, "BARE_GIT_OPTION", True):
@@ -1015,7 +1016,7 @@ def create_app():
                                 status_code=504)
         sep = stdout.find(b"\r\n\r\n")
         if sep == -1:
-            return Response(content=stdout, status_code=200)
+            return _StarResponse(content=stdout, status_code=200)
         header_text = stdout[:sep].decode("latin-1", "replace")
         resp_body = stdout[sep + 4:]
         status = 200
@@ -1027,7 +1028,7 @@ def create_app():
             elif ":" in line:
                 k, v = line.split(":", 1)
                 headers[k.strip()] = v.strip()
-        return Response(content=resp_body, status_code=status, headers=headers)
+        return _StarResponse(content=resp_body, status_code=status, headers=headers)
 
     @app.get("/api/ip/{name}/git/graph")
     async def api_ip_git_graph(name: str, limit: int = 80):
@@ -5346,6 +5347,13 @@ def create_app():
                              str(_bare_dir)],
                             capture_output=True, timeout=10,
                         )
+                    # git-http-backend refuses receive-pack by default;
+                    # enable it so /git/<ip>.git accepts `git push` over
+                    # smart HTTP. Idempotent.
+                    _sp_init.run(
+                        ["git", "config", "http.receivepack", "true"],
+                        cwd=str(_bare_dir), capture_output=True, timeout=5,
+                    )
                     # Wire / re-wire working repo's origin to the bare.
                     _sp_init.run(
                         ["git", "remote", "remove", "origin"],

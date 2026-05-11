@@ -1333,12 +1333,22 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     [activeSession, resolveSession],
   );
 
+  const activeIp = React.useMemo(() => {
+    const parts = normalizeUiSession(currentSession || window.ACTIVE_SESSION).split('/').filter(Boolean);
+    if (parts.length >= 3 && parts[1] && parts[1] !== 'default') return parts[1];
+    const explicit = String(window.ACTIVE_IP || '').trim();
+    if (explicit && explicit !== 'default') return explicit;
+    const scoped = String(window.SCOPE_PATH || '').split('/').filter(Boolean).pop() || '';
+    return /^[A-Za-z][A-Za-z0-9_]*$/.test(scoped) && scoped !== 'default' ? scoped : '';
+  }, [currentSession]);
+
   const activeSsotIp = React.useCallback(() => {
+    if (activeIp) return activeIp;
     const fromSession = ssotIpFromSession(currentSession || window.ACTIVE_SESSION);
     if (fromSession) return fromSession;
     const scoped = String(window.SCOPE_PATH || '').split('/').filter(Boolean).pop() || '';
     return /^[A-Za-z][A-Za-z0-9_]*$/.test(scoped) ? scoped : '';
-  }, [currentSession]);
+  }, [activeIp, currentSession]);
 
   // Single-source-of-truth pivot: whenever the canonical (session_id, ip,
   // workflow) triple resolves to a real IP, point the preview pane at
@@ -3372,12 +3382,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
           ) : mainTab === 'git' ? (
             window.GitTab ? (
               <ErrorBoundary label="Git">
-                <window.GitTab
-                  initialIp={(() => {
-                    const segs = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
-                    return segs.length >= 2 ? segs[1] : (window.ACTIVE_IP || '');
-                  })()}
-                />
+                <window.GitTab initialIp={activeIp} />
               </ErrorBoundary>
             ) : (
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-mute)' }}>
@@ -3658,7 +3663,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
           </div>
           {rightTab === 'progress' && <ProgressPanel />}
           {rightTab === 'todo' && <TodoPanel />}
-          {rightTab === 'git'  && <GitPanel />}
+          {rightTab === 'git'  && <GitPanel activeIp={activeIp} />}
         </div>
       </div>
       ) : (
@@ -3863,11 +3868,15 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
   const isReplaceTool = tool && /^(replace_in_file|replace_lines|write_file|edit|patch|update_file)/i.test(tool);
   const obsLines = obs ? obsText.split('\n') : [];
   const obsIsMulti = obsLines.length > 1;
+  // run_command / long-argument tools: the command itself is what the
+  // user wants to read, so make a long args string expandable too.
+  // Threshold: > 100 chars or contains a newline.
+  const argsIsLong = !!argsText && (argsText.length > 100 || /\n/.test(argsText));
   const [obsOpen, setObsOpen] = React.useState(!summaryMode || isReplaceTool);
   React.useEffect(() => {
     setObsOpen(!summaryMode || isReplaceTool);
   }, [summaryMode, isReplaceTool]);
-  const headClickable = !!obs && obsIsMulti;
+  const headClickable = (!!obs && obsIsMulti) || argsIsLong;
   const toggleObs = () => { if (headClickable) setObsOpen(v => !v); };
   return (
     <div className="tool-card has-hover-affordance"
@@ -3886,14 +3895,29 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
       >
         <span className="tool-card-glyph" style={{ color: 'var(--fg)' }}>{theme.glyph}</span>
         <span className="tool-card-tool" style={{ color: 'var(--fg)', fontWeight: 700 }}>{tool || '?'}</span>
-        {argsText && <span className="tool-card-args trunc" style={{ color: 'var(--fg)' }}>{argsText}</span>}
+        {argsText && (
+          <span
+            className={`tool-card-args${obsOpen ? '' : ' trunc'}`}
+            style={{
+              color: 'var(--fg)',
+              ...(obsOpen ? {
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                overflow: 'visible',
+                textOverflow: 'clip',
+              } : {}),
+            }}
+          >{argsText}</span>
+        )}
         {status === 'err' && <span className="tool-card-status" style={{ color: '#f85149' }}>✗</span>}
         {status === 'ok'  && <span className="tool-card-status" style={{ color: '#3fb950' }}>✓</span>}
-        {obsIsMulti ? (
+        {(obsIsMulti || argsIsLong) ? (
           <>
-            <span className="mute" style={{ fontSize: 'var(--ui-small-font-size)', color: 'var(--fg)' }}>
-              {obsLines.length} lines{obs?.truncated ? ' · truncated' : ''}
-            </span>
+            {obsIsMulti && (
+              <span className="mute" style={{ fontSize: 'var(--ui-small-font-size)', color: 'var(--fg)' }}>
+                {obsLines.length} lines{obs?.truncated ? ' · truncated' : ''}
+              </span>
+            )}
             <span className="mute" style={{ color: 'var(--fg)' }}>{obsOpen ? '▾' : '▸'}</span>
           </>
         ) : null}
@@ -9046,7 +9070,7 @@ const _statusGlyph = (xy) => {
   return { staged: a, work: b };
 };
 
-const GitPanel = () => {
+const GitPanel = ({ activeIp: activeIpProp = '' } = {}) => {
   const [branch, setBranch] = React.useState('');
   const [ahead, setAhead]   = React.useState(0);
   const [behind, setBehind] = React.useState(0);
@@ -9060,24 +9084,28 @@ const GitPanel = () => {
   const [busy, setBusy]     = React.useState('');   // '' | 'commit' | 'push'
   const [lastResult, setLastResult] = React.useState(null);
 
-  // Active IP drives which per-IP repo we hit. window.ACTIVE_SESSION
-  // parses to <owner>/<ip>/<wf>; we only need the ip segment.
-  const activeIp = React.useMemo(() => {
-    const segs = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
-    return segs.length >= 2 ? segs[1] : '';
-  }, []);
+  const [activeIp, setActiveIp] = React.useState(activeIpProp || '');
+
+  React.useEffect(() => {
+    setActiveIp(activeIpProp || '');
+    setSelected(null);
+    setDiff('');
+  }, [activeIpProp]);
 
   const refresh = React.useCallback(async () => {
     try {
-      const ipQ = activeIp ? `?ip=${encodeURIComponent(activeIp)}` : '';
-      const r = await fetch('/api/git/status' + ipQ);
+      const params = new URLSearchParams();
+      if (activeIp) params.set('ip', activeIp);
+      const qs = params.toString();
+      const r = await fetch('/api/git/status' + (qs ? `?${qs}` : ''));
       const d = await r.json();
       setBranch(d.branch || ''); setAhead(d.ahead || 0); setBehind(d.behind || 0);
       setFiles(d.files || []); setError(d.error || '');
     } catch (e) { setError(String(e)); }
     try {
-      const ipQ = activeIp ? `?ip=${encodeURIComponent(activeIp)}&limit=80` : '?limit=80';
-      const r = await fetch('/api/git/log' + ipQ);
+      const params = new URLSearchParams({ limit: '80' });
+      if (activeIp) params.set('ip', activeIp);
+      const r = await fetch('/api/git/log?' + params.toString());
       const d = await r.json();
       setCommits(Array.isArray(d.commits) ? d.commits : []);
     } catch (_) {}
@@ -9090,12 +9118,14 @@ const GitPanel = () => {
     if (!selected) { setDiff(''); return; }
     let cancelled = false;
     setDiffLoading(true);
-    fetch('/api/git/diff?path=' + encodeURIComponent(selected))
+    const params = new URLSearchParams({ path: selected });
+    if (activeIp) params.set('ip', activeIp);
+    fetch('/api/git/diff?' + params.toString())
       .then(r => r.json())
       .then(d => { if (!cancelled) { setDiff(d.diff || d.error || ''); setDiffLoading(false); } })
       .catch(e => { if (!cancelled) { setDiff(String(e)); setDiffLoading(false); } });
     return () => { cancelled = true; };
-  }, [selected, files.length]);
+  }, [selected, files.length, activeIp]);
 
   const doCommit = async () => {
     if (!message.trim()) { alert('Commit message required.'); return; }
@@ -9103,7 +9133,7 @@ const GitPanel = () => {
     try {
       const r = await fetch('/api/git/commit', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, add_all: true }),
+        body: JSON.stringify({ message, add_all: true, ip: activeIp }),
       });
       const d = await r.json();
       setLastResult({ kind: 'commit', ...d });
@@ -9117,7 +9147,8 @@ const GitPanel = () => {
     setBusy('push');
     try {
       const r = await fetch('/api/git/push', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip: activeIp }),
       });
       const d = await r.json();
       setLastResult({ kind: 'push', ...d });
