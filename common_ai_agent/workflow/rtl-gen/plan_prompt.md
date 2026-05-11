@@ -7,8 +7,9 @@ On plan start, check for input in this order:
 | Priority | Pattern | Source | Use Section |
 |----------|---------|--------|-------------|
 | 1 | `<ip>/yaml/<ip>.ssot.yaml` or legacy `<ip>/yaml/<ip>_ssot.yaml` / `<ip>/yaml/<ip>_config.yaml` | ssot-gen | §SSOT |
-| 2 | `<ip>/mas/<ip>_mas.md` | mas-gen | §MAS |
-| 3 | Ask user | — | — |
+| 2 | no canonical SSOT | ssot-gen | stop with `[SSOT REQUIRED] -> ssot-gen` |
+
+Production ATLAS planning is SSOT-only. Do not plan from MAS unless the user explicitly requests a legacy MAS-only flow outside SSOT signoff.
 
 ## §SSOT: Planning from YAML SSOT
 
@@ -59,6 +60,8 @@ Plan for any leaf IP whose SSOT is complete. If the IP kind is unfamiliar, do no
 ```
 
 ## §MAS: Planning from MAS Document (Legacy)
+
+Legacy-only. If the user asked for SSOT-driven generation or a canonical SSOT should exist, do not use this path; emit `[SSOT REQUIRED] -> ssot-gen` instead.
 
 Task 1 is ALWAYS **"Read `<ip>/mas/<ip>_mas.md`"** — the Micro Architecture Specification from mas-gen.
 
