@@ -265,17 +265,21 @@ def _setup_workspace(name: str) -> None:
                 if isinstance(base, dict):
                     base = (base.get("static", "") + "\n\n" + base.get("dynamic", "")).strip()
                 merged = merge_prompt(base, _ws_text, _ws_mode)
-                # SSOT incremental-write POC: surface a single-line
-                # directive in the system prompt so the to-ssot skill
-                # can branch on the active mode without each tool call
-                # re-checking env. The skill itself documents both
-                # processes; this header just tells it which one to run.
+                # Surface incremental-write directives at the top of
+                # the system prompt so the active workspace prompt can
+                # branch on mode without each tool call re-checking
+                # env. SSOT and RTL each have their own toggle; ssot-
+                # gen / rtl-gen system_prompt.md documents both
+                # processes and just reads which one to run.
                 try:
                     import config as _cfg
-                    if getattr(_cfg, "SSOT_INCREMENTAL_WRITE", False):
-                        merged = "[SSOT_WRITE_MODE: incremental]\n\n" + merged
-                    else:
-                        merged = "[SSOT_WRITE_MODE: one-shot]\n\n" + merged
+                    ssot_mode = "incremental" if getattr(_cfg, "SSOT_INCREMENTAL_WRITE", True) else "one-shot"
+                    rtl_mode  = "incremental" if getattr(_cfg, "RTL_INCREMENTAL_WRITE",  True) else "one-shot"
+                    merged = (
+                        f"[SSOT_WRITE_MODE: {ssot_mode}]\n"
+                        f"[RTL_WRITE_MODE: {rtl_mode}]\n\n"
+                        + merged
+                    )
                 except Exception:
                     pass
                 return merged

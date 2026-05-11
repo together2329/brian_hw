@@ -28,6 +28,12 @@
     const mountedRef = useRef(true);
     useEffect(() => () => { mountedRef.current = false; }, []);
 
+    useEffect(() => {
+      const next = initialIp || '';
+      setIp(prev => prev === next ? prev : next);
+      setRevertTarget(null);
+    }, [initialIp]);
+
     // Pull the IP roster from /api/ip/list (session-scoped in multi-user mode).
     useEffect(() => {
       const sid = (window.ATLAS_USER && window.ATLAS_USER.username)

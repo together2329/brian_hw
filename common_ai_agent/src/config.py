@@ -392,13 +392,15 @@ if CURSOR_AGENT_ENABLE:
 USE_OPENCODE_OAUTH = os.getenv("USE_OPENCODE_OAUTH", "true").lower() == "true"
 OPENCODE_ACCOUNT_ID = ""
 
-# Incremental SSOT write toggle (POC). When true, the ssot-gen
-# `to-ssot` skill is told to build the YAML section-by-section via
-# replace_in_file (skeleton first, then replace each TBD slot) instead
-# of one big write_file call. Pairs with the file_changed bridge event
-# so the preview / SSOT view / file tree auto-refresh as each section
-# lands. Default off — preserves current one-shot behaviour.
-SSOT_INCREMENTAL_WRITE = os.getenv("SSOT_INCREMENTAL_WRITE", "false").lower() in ("true", "1", "yes", "on")
+# Incremental write toggles. When true, the workspace system prompt is
+# rewritten to instruct the LLM to build large generated artifacts
+# section-by-section via replace_in_file (skeleton first, then replace
+# each TBD slot) instead of one huge write_file. Pairs with the
+# file_changed bridge event so the preview / SSOT view / file tree
+# auto-refresh as each section lands. Defaults on — disable by setting
+# the env var to 0/false.
+SSOT_INCREMENTAL_WRITE = os.getenv("SSOT_INCREMENTAL_WRITE", "true").lower() in ("true", "1", "yes", "on")
+RTL_INCREMENTAL_WRITE  = os.getenv("RTL_INCREMENTAL_WRITE",  "true").lower() in ("true", "1", "yes", "on")
 
 # Snapshot the pre-OAuth provider trio so deactivate_opencode_oauth() can
 # restore it when the user `--model`-switches back to a non-OpenAI profile.
