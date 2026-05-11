@@ -978,17 +978,42 @@ def create_app():
         if not backend:
             return JSONResponse({"error": "git-http-backend not found on host"},
                                 status_code=501)
+        auth_header = request.headers.get("authorization", "")
+        query_string = request.url.query or ""
+        if "service=git-receive-pack" in query_string and not auth_header.lower().startswith("basic "):
+            return _StarResponse(
+                content=b"Authentication required for git push\n",
+                status_code=401,
+                headers={"WWW-Authenticate": 'Basic realm="Atlas Git"'},
+            )
         env = dict(os.environ)
         env.update({
             "GIT_PROJECT_ROOT": str(PROJECT_ROOT.resolve()),
             "GIT_HTTP_EXPORT_ALL": "1",
             "PATH_INFO": "/" + path,
             "REQUEST_METHOD": request.method,
-            "QUERY_STRING": (request.url.query or ""),
+            "QUERY_STRING": query_string,
             "CONTENT_TYPE": request.headers.get("content-type", ""),
             "CONTENT_LENGTH": request.headers.get("content-length", "0"),
             "REMOTE_ADDR": (request.client.host if request.client else "127.0.0.1"),
         })
+        if auth_header.lower().startswith("basic "):
+            try:
+                import base64 as _base64_git_auth
+                raw = _base64_git_auth.b64decode(
+                    auth_header.split(None, 1)[1],
+                    validate=True,
+                ).decode("utf-8", "replace")
+                username = raw.split(":", 1)[0].strip()
+                if username:
+                    # git-http-backend treats REMOTE_USER as the signal
+                    # that HTTP auth succeeded. Without this, clients that
+                    # retry with http://user:pass@host/... still look
+                    # anonymous to receive-pack and can get Unauthorized.
+                    env["REMOTE_USER"] = username
+                    env["AUTH_TYPE"] = "Basic"
+            except Exception:
+                pass
         body = await request.body()
         proc = await asyncio.create_subprocess_exec(
             backend,
