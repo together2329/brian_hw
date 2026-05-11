@@ -87,6 +87,8 @@ Thumbs.db
 
 # RAG data
 .brian_rag/
+common_ai_agent/.rag/
+**/.rag/
 rag_index.json
 **/.brian_rag/rag_index.json
 
