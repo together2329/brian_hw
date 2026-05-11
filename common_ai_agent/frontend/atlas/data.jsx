@@ -422,7 +422,8 @@
   }
 
   async function refreshFileTree(path, opts) {
-    const reqPath = normalizeScopePath(path || '');
+    const activeIp = activeIpFromSession();
+    const reqPath = activeIp || normalizeScopePath(path || '');
     // When the user has narrowed to a sub-scope we go recursive so the
     // panel shows every file inside, not just the top level. At the
     // project root we keep it shallow (94 top-level entries already
@@ -441,7 +442,7 @@
         // Trust backend canonical path (resolved + project-relative) so
         // UI scope cannot drift as "spi/spi/spi/..." from alias/symlink
         // clicks that still resolve to the same real directory.
-        const canonicalScope = normalizeScopePath(d.path || reqPath);
+        const canonicalScope = activeIp || normalizeScopePath(d.path || reqPath);
         if (canonicalScope !== window.SCOPE_PATH) {
           window.SCOPE_PATH = canonicalScope;
           try { localStorage.setItem('atlasScopePath', window.SCOPE_PATH); } catch (_) {}
@@ -548,6 +549,12 @@
     const parts = normalizeSessionName(session || window.ACTIVE_SESSION || '').split('/').filter(Boolean);
     const last = parts[parts.length - 1] || '';
     return KNOWN_WORKFLOWS.has(last) ? last : '';
+  }
+
+  function activeIpFromSession(session) {
+    const parts = normalizeSessionName(session || window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+    if (parts.length >= 3) return parts[parts.length - 2] || '';
+    return '';
   }
 
   async function refreshHealth() {
@@ -674,25 +681,19 @@
       fetch('/api/ssot?file=' + encodeURIComponent(path)).then(r => r.json()),
     setScopePath: (p) => {
       let next = normalizeScopePath(p || '');
-      // Scope is bound to the active IP. The IP_ID dropdown is the only
-      // control that should change which IP is active; anything that
-      // tries to set scope to a path outside the active IP gets clamped
-      // back to the IP root so the file tree never leaks cross-IP
-      // siblings (the bug where scope = "gpio" still showed
-      // simple_gpio_lite/ entries).
+      // Scope is no longer user-browsable: the left file tree is always
+      // rooted at the active IP. The IP_ID dropdown is the only control
+      // that changes this root; folder clicks only fold/unfold locally.
       const sess = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
       const activeIp = sess.length >= 2 ? sess[1] : '';
       if (activeIp) {
-        const segs = next.split('/').filter(Boolean);
-        if (segs.length === 0 || segs[0] !== activeIp) {
-          next = activeIp;
-        }
+        next = activeIp;
       }
       if (next === window.SCOPE_PATH) return;
       window.SCOPE_PATH = next;
       try { localStorage.setItem('atlasScopePath', window.SCOPE_PATH); } catch (_) {}
-      // Re-fetch the tree at the new scope so the panel updates.
-      refreshFileTree(window.SCOPE_PATH);
+      // Re-fetch the IP-rooted tree so folder clicks can fold/unfold locally.
+      refreshFileTree(window.SCOPE_PATH, { recursive: true });
       window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' }));
     },
     setActiveSession: (session) => {

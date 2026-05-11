@@ -983,9 +983,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   React.useEffect(() => {
     try { localStorage.setItem('atlasFileExpand', fileExpand); } catch (_) {}
     if (window.atlasData && window.atlasData.refreshFileTree) {
-      window.atlasData.refreshFileTree(window.SCOPE_PATH || '', { recursive: fileExpand === 'deep' });
+      window.atlasData.refreshFileTree(window.SCOPE_PATH || '', { recursive: true });
     }
   }, [fileExpand]);
+  const [collapsedFileDirs, setCollapsedFileDirs] = React.useState(() => new Set());
 
   const NORMAL_FEED = [
     { kind: 'agent', text: 'Connected. Type a message and press Enter to talk to the agent.' },
@@ -2884,54 +2885,16 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               {(window.SCOPE_PATH || '').split('/').pop() || 'project root'}
             </span>
           </div>
-          {/* scope path bar — editable; constrains the agent to this dir.
-              When empty, the input shows the project's root dir as a
-              placeholder so the user knows what "no scope" means. */}
           <div style={{
             padding: '6px 10px', borderBottom: '1px solid var(--line)',
             display: 'flex', alignItems: 'center', gap: 6, fontSize: 11,
             background: 'var(--bg-2)',
           }}>
-            <span className="mute" style={{ fontSize: 10 }}>scope</span>
+            <span className="mute" style={{ fontSize: 10 }}>dir</span>
             <span className="mute">›</span>
-            <input
-              type="text"
-              // key forces a remount whenever SCOPE_PATH changes
-              // externally (e.g. selecting a different ip_id from the
-              // top dir-switcher), so the uncontrolled input picks up
-              // the new defaultValue. Without this, picking IP=spi
-              // would leave the input still showing the previous IP's
-              // dir, even though window.SCOPE_PATH already updated.
-              key={window.SCOPE_PATH || '__root__'}
-              defaultValue={window.SCOPE_PATH || ''}
-              placeholder={
-                window.CONTEXT && window.CONTEXT.projectRoot
-                  ? '(root: ' + window.CONTEXT.projectRoot.split('/').slice(-2).join('/') + ') — type sub-dir, ↵ to set'
-                  : '(project root) — type a sub-dir, ↵ to set'
-              }
-              title={'Agent will be asked to confine all reads/writes to this path. Empty = whole project root ('
-                     + (window.CONTEXT?.projectRoot || '?') + ')'}
-              style={{
-                flex: 1, fontFamily: 'var(--mono)', fontSize: 11,
-                background: 'transparent', border: 'none', outline: 'none',
-                color: 'var(--fg)',
-              }}
-              onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  window.atlasData.setScopePath(e.currentTarget.value.trim());
-                }
-              }}
-              onBlur={e => window.atlasData.setScopePath(e.currentTarget.value.trim())}
-            />
-            {window.SCOPE_PATH ? (
-              <span
-                title={'clear scope (back to project root)\nWas: ' + window.SCOPE_PATH}
-                style={{ cursor: 'pointer', color: 'var(--warn)', fontSize: 12,
-                         padding: '0 4px', userSelect: 'none' }}
-                onClick={() => window.atlasData.setScopePath('')}
-              >✕</span>
-            ) : null}
+            <span className="acc" style={{ flex: 1, fontFamily: 'var(--mono)', fontSize: 11 }}>
+              {(window.SCOPE_PATH || '').split('/')[0] || 'select IP'}
+            </span>
             {/* Sort toggle: name (A-Z, dirs first) ↔ recent (mtime DESC).
                 Click cycles between the two; the active one is accent-color. */}
             <span
@@ -2940,7 +2903,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 : 'A→Z (dirs first) — click for recent')}
               onClick={() => {
                 setFileSort(s => s === 'recent' ? 'name' : 'recent');
-                window.atlasData.refreshFileTree(window.SCOPE_PATH || '');
+                window.atlasData.refreshFileTree(window.SCOPE_PATH || '', { recursive: true });
               }}
               style={{
                 cursor: 'pointer',
@@ -2959,9 +2922,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 across reloads via localStorage. */}
             <span
               title={fileExpand === 'deep'
-                ? 'expanded — click to collapse to top level'
-                : 'top level only — click to expand all'}
-              onClick={() => setFileExpand(v => v === 'deep' ? 'shallow' : 'deep')}
+                ? 'expanded — click to collapse all folders'
+                : 'top level only — click to expand all folders'}
+              onClick={() => {
+                setFileExpand(v => v === 'deep' ? 'shallow' : 'deep');
+                setCollapsedFileDirs(new Set());
+              }}
               style={{
                 cursor: 'pointer',
                 fontSize: 10,
@@ -2977,38 +2943,13 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               title="refresh — pull the latest file list now"
               style={{ cursor: 'pointer', color: 'var(--accent)', fontSize: 13,
                        padding: '0 6px', fontWeight: 600, userSelect: 'none' }}
-              onClick={() => window.atlasData.refreshFileTree(window.SCOPE_PATH || '', { recursive: fileExpand === 'deep' })}
+              onClick={() => window.atlasData.refreshFileTree(window.SCOPE_PATH || '', { recursive: true })}
             >↻</span>
           </div>
           <div style={{ flex: 1, overflow: 'auto', padding: '4px 0' }}>
-            {/* Parent-dir shortcut: click → pop one segment off scope.
-                Capped at the IP root: once you're at scope == <ip>,
-                going up would escape the active IP workspace which
-                violates the "IP is the central concept" rule, so the
-                button is hidden. Only shown when scope has 2+ segments
-                (e.g. "<ip>/rtl" → up to "<ip>"). */}
-            {(() => {
-              const segs = String(window.SCOPE_PATH || '').split('/').filter(Boolean);
-              if (segs.length < 2) return null;
-              return (
-                <div
-                  className="frow"
-                  style={{ paddingLeft: 8, cursor: 'pointer' }}
-                  title={'go up one level\nfrom: ' + window.SCOPE_PATH}
-                  onClick={() => {
-                    const next = segs.slice(0, -1).join('/');
-                    window.atlasData.setScopePath(next);
-                  }}
-                >
-                  <span className="fr-icon">▲</span>
-                  <span className="trunc"><span className="dim">.. (up)</span></span>
-                  <span className="mute" style={{ fontSize: 10 }} />
-                </div>
-              );
-            })()}
             {window.FILE_TREE.length === 0 && (
               <div className="mute" style={{ padding: '8px 10px', fontSize: 11 }}>
-                (empty — try a different scope or refresh)
+                (empty — select an IP or refresh)
               </div>
             )}
             {/* Sort: 'recent' = mtime DESC (most recent first, ignoring
@@ -3019,10 +2960,23 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             {(fileSort === 'recent'
               ? [...window.FILE_TREE].sort((a, b) => (b.mtime || 0) - (a.mtime || 0))
               : window.FILE_TREE
-            ).map((n, i) => {
+            ).filter(n => {
+              const relName = String(n.name || '').replace(/^\/+|\/+$/g, '');
+              if (!relName) return false;
+              if (fileExpand !== 'deep' && (n.depth || 0) > 0) return false;
+              const root = String(window.SCOPE_PATH || '').split('/').filter(Boolean)[0] || '';
+              const parts = relName.split('/').filter(Boolean);
+              for (let idx = 1; idx < parts.length; idx += 1) {
+                const ancestor = [root, ...parts.slice(0, idx)].filter(Boolean).join('/');
+                if (collapsedFileDirs.has(ancestor)) return false;
+              }
+              return true;
+            }).map((n, i) => {
               const baseScope = String(window.SCOPE_PATH || '').replace(/^\/+|\/+$/g, '');
-              const relName = String(n.name || '').replace(/^\/+/g, '');
+              const relName = String(n.name || '').replace(/^\/+|\/+$/g, '');
               const fullPath = (baseScope ? `${baseScope}/` : '') + relName;
+              const displayName = relName.split('/').filter(Boolean).pop() || relName;
+              const dirCollapsed = n.type === 'dir' && (fileExpand !== 'deep' || collapsedFileDirs.has(fullPath));
               const isSelected = n.type === 'file' && previewPath === fullPath;
               return (
                 <div key={i}
@@ -3034,16 +2988,23 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                       setPreviewPath(fullPath);
                       setMainTab('split');
                     } else {
-                      window.atlasData.setScopePath(fullPath);
+                      const wasDeep = fileExpand === 'deep';
+                      if (!wasDeep) setFileExpand('deep');
+                      setCollapsedFileDirs(prev => {
+                        const next = new Set(prev);
+                        if (!wasDeep || next.has(fullPath)) next.delete(fullPath);
+                        else next.add(fullPath);
+                        return next;
+                      });
                     }
                   }}
                   onMouseEnter={() => {
                     if (n.type === 'file') readAtlasAsyncResource('file', fullPath).catch(() => {});
                   }}
-                  title={fullPath + (n.type === 'file' ? ' (click to preview)' : '')}
+                  title={fullPath + (n.type === 'file' ? ' (click to preview)' : ' (click to fold/unfold)')}
                 >
-                  <span className="fr-icon">{n.type === 'dir' ? '▸' : '◆'}</span>
-                  <span className="trunc">{n.type === 'dir' ? <span className="dim">{n.name}/</span> : n.name}</span>
+                  <span className="fr-icon">{n.type === 'dir' ? (dirCollapsed ? '▸' : '▾') : '◆'}</span>
+                  <span className="trunc">{n.type === 'dir' ? <span className="dim">{displayName}/</span> : displayName}</span>
                   <span className="mute" style={{ fontSize: 10 }}>{n.size}</span>
                 </div>
               );

@@ -24,6 +24,17 @@
 
 const _COV_DEFAULT_DUT = 'gpio_pad';
 
+const _covRuntimeDut = () => {
+  try {
+    const norm = window.normalizeAtlasSessionName || ((v) => String(v || '').trim());
+    const parts = norm(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+    if (parts.length >= 3) return parts[parts.length - 2];
+    const scope = norm(window.SCOPE_PATH || '');
+    if (scope && !scope.includes('/')) return scope;
+  } catch (_) {}
+  return _COV_DEFAULT_DUT;
+};
+
 // ── coverage.info parser ──────────────────────────────────────
 // Verilator --write-info emits LCOV-style records:
 //   TN:<test_name>
@@ -527,7 +538,7 @@ const CovCollapsedStrip = ({ side, label, onExpand }) => (
 
 // ── Top-level Coverage panel ──────────────────────────────────
 window.Coverage = () => {
-  const [dut, setDut] = React.useState(_COV_DEFAULT_DUT);
+  const [dut, setDut] = React.useState(_covRuntimeDut);
   const [summary, setSummary] = React.useState(null);
   const [toggle, setToggle] = React.useState(null);
   const [history, setHistory] = React.useState([]);
@@ -564,6 +575,13 @@ window.Coverage = () => {
   // scripts and live under <DUT>/cov/).
   const loadInfo = React.useCallback(async () => {
     setError('');
+    const listDir = async (path) => {
+      try {
+        const r = await fetch('/api/files?path=' + encodeURIComponent(path));
+        if (!r.ok) return null;
+        return await r.json();
+      } catch (_) { return null; }
+    };
     // ── Fire all three fetches in parallel ──
     const tryFetch = async (path) => {
       try {
@@ -572,11 +590,29 @@ window.Coverage = () => {
         return await r.json();
       } catch (_) { return null; }
     };
+    const dutDir = await listDir(dut);
+    const hasCovDir = dutDir && Array.isArray(dutDir.entries)
+      && dutDir.entries.some(e => e && e.type === 'dir' && e.name === 'cov');
+    if (!hasCovDir) {
+      setSummary(null);
+      setToggle(null);
+      setHistory([]);
+      setHtmlAvailable(false);
+      setError(`coverage directory not found — run /coverage-report ${dut} first`);
+      return;
+    }
+    const covDir = await listDir(`${dut}/cov`);
+    const covFiles = new Set(
+      covDir && Array.isArray(covDir.entries)
+        ? covDir.entries.filter(e => e && e.type === 'file').map(e => e.name)
+        : []
+    );
+    const tryFetchCov = async (name) => covFiles.has(name) ? tryFetch(`${dut}/cov/${name}`) : null;
     const [infoResp, toggleResp, histResp, snapshotResp] = await Promise.all([
-      tryFetch(`${dut}/cov/coverage.info`),
-      tryFetch(`${dut}/cov/toggle.json`),
-      tryFetch(`${dut}/cov/history.jsonl`),
-      tryFetch(`${dut}/cov/coverage.json`),
+      tryFetchCov('coverage.info'),
+      tryFetchCov('toggle.json'),
+      tryFetchCov('history.jsonl'),
+      tryFetchCov('coverage.json'),
     ]);
 
     // Coverage.info → parsed summary (or null if missing)
@@ -626,6 +662,20 @@ window.Coverage = () => {
       } catch (_) { setHtmlAvailable(false); }
     }
   }, [dut, activeFile]);
+
+  React.useEffect(() => {
+    const refreshDut = () => {
+      const next = _covRuntimeDut();
+      setDut(prev => prev === next ? prev : next);
+    };
+    refreshDut();
+    window.addEventListener('atlas-data-changed', refreshDut);
+    window.addEventListener('atlas-session-loaded', refreshDut);
+    return () => {
+      window.removeEventListener('atlas-data-changed', refreshDut);
+      window.removeEventListener('atlas-session-loaded', refreshDut);
+    };
+  }, []);
 
   // Fetch annotated <file>.cov when activeFile changes
   React.useEffect(() => {
