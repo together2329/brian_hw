@@ -5282,6 +5282,13 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
       e.preventDefault(); onSel(Math.max(sel - 1, 0)); return;
     }
     if (e.key === ' ' && sel < opts.length) {
+      // When focus is in the custom-answer input/textarea, space must
+      // pass through to the field. Without this guard the parent
+      // div's keydown intercepts and toggles the selected option
+      // instead, swallowing every space the user types.
+      const ae = document.activeElement;
+      const aeTag = ae && ae.tagName;
+      if (aeTag === 'INPUT' || aeTag === 'TEXTAREA' || (ae && ae.isContentEditable)) return;
       e.preventDefault(); onToggle(flowId, opts[sel].id); return;
     }
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
