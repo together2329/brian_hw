@@ -240,7 +240,36 @@ class _MultiUserBridge:
                             session._pending_ask_user.pop(flow_id, None)
                 session.touch()
                 session._outbox.put_nowait(event)
+                # Mirror atlas_ui._emit_tool_result's file_changed emit
+                # for process-mode worker writes. The main process's
+                # _textual_emit_tool_result_fn never fires here (workers
+                # generate tool_result rows themselves), so without this
+                # the open SSOT preview / file tree wouldn't auto-reload
+                # when an agent in a subprocess wrote a yaml/rtl file.
+                if event["type"] == "tool_result":
+                    self._maybe_emit_file_changed(session, event)
                 self._process_output_cursors[msg_session_id] = msg.get("id")
+
+    def _maybe_emit_file_changed(self, session: "_SessionBridge", event: dict) -> None:
+        import re as _re
+        tool = str(event.get("tool") or "")
+        text = str(event.get("text") or event.get("content") or "")
+        if not tool or not _re.match(
+            r"^(write_file|replace_in_file|replace_lines|edit_file|patch|update_file)\b",
+            tool, _re.IGNORECASE,
+        ):
+            return
+        m = _re.search(
+            r"(?:wrote to|wrote)\s+['\"`]([^'\"`]+)['\"`]"
+            r"|(?:in|to)\s+([\w./_-]+\.(?:sv|v|vh|svh|yaml|yml|md|f|txt|log|json|py|sdc|upf|tcl))"
+            r"|^Update\(([^)]+)\)",
+            text, _re.MULTILINE,
+        )
+        if not m:
+            return
+        path = m.group(1) or m.group(2) or m.group(3)
+        if path:
+            session.emit("file_changed", path=str(path), tool=tool)
 
     def _normalize_session_id(self, session_id: str | None) -> str:
         if self._single_user:

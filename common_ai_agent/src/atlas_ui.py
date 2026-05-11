@@ -4862,6 +4862,16 @@ def create_app():
         except Exception as exc:
             raise RuntimeError(f"PyYAML is required to update SSOT draft: {exc}") from exc
         path.write_text(_yaml.safe_dump(doc, sort_keys=False, allow_unicode=True, width=120), encoding="utf-8")
+        # Fire file_changed so the open SSOT preview / full view / file
+        # tree auto-reload. _emit_tool_result only catches tool-driven
+        # writes (write_file / replace_in_file / …); _save_ssot_draft
+        # is a direct Python disk write (called by /api/ssot/qa/answer
+        # and the ssot scaffold helpers), so it would otherwise look
+        # like a silent update from the frontend's perspective.
+        try:
+            bridge.emit("file_changed", path=str(path), tool="ssot_save")
+        except Exception:
+            pass
 
     def _ensure_ssot_draft(ip: str, kind: str = "TBD") -> dict[str, Any]:
         # Default top file path follows the canonical convention
