@@ -164,14 +164,11 @@ def create_app():
 
     app = FastAPI(title="ATLAS · common_ai_agent")
     _multi_user_env = os.environ.get("ATLAS_MULTI_USER", "").lower() in ("1", "true", "yes")
-    # Process-per-session is opt-in only. The previous code auto-forced
-    # ATLAS_MULTI_USER_PROC=1 whenever multi-user was on, but the bridge's
-    # WS path never actually fires SessionProcessManager.spawn for logged-in
-    # users — chat_loop runs in the main process either way. The auto-force
-    # was visible in logs ("forcing process isolation") but did nothing
-    # useful and risked breaking Windows where subprocess spawn has more
-    # failure modes. Keep it strictly opt-in.
-    _use_proc = os.environ.get("ATLAS_MULTI_USER_PROC", "").lower() in ("1", "true", "yes")
+    # Multi-user defaults to process-per-session isolation so agent output,
+    # command results, and main.py global state do not bleed across users.
+    # Operators can still opt out explicitly with ATLAS_MULTI_USER_PROC=0.
+    _proc_raw = os.environ.get("ATLAS_MULTI_USER_PROC", "1").strip().lower()
+    _use_proc = _multi_user_env and _proc_raw not in ("0", "false", "no", "off")
     if _multi_user_env:
         print(f"[atlas] Multi-user enabled (process_per_session={'on' if _use_proc else 'off'})")
     # single_user collapses every WS-bound session_id onto "default" so
