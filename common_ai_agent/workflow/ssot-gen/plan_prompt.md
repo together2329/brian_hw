@@ -17,6 +17,20 @@ tb-gen, and sim workflow responsibilities.
 4. Ask user only for blocking gaps. If a reasonable safe assumption is enough, record it in `custom.assumptions` instead of stopping.
 5. Confirm the leaf IP boundary: what this SSOT owns, what is external, and which submodules are manifest-owned versus child SSOTs.
 
+## Phase 1B: Downstream RTL Feedback Enrichment
+
+When the input contains `[SSOT TBD REPORT] -> ssot-gen`, switch from new-IP planning to targeted SSOT enrichment:
+
+1. Parse each `Missing` row into `yaml_path`, `needed_for`, `question`, and `current_rtl_action`.
+2. Read the existing `<ip>/yaml/<ip>.ssot.yaml` once and map each `yaml_path` to the smallest YAML section that must be patched.
+3. Resolve each row from explicit user context, imported requirements/specs, existing SSOT facts, or approved Q&A answers. Do not infer RTL semantics from common IP patterns.
+4. If a row cannot be resolved, create a section-scoped QA item with the original `question`; include `yaml_path`, `needed_for`, and the downstream RTL file/signal/task in metadata.
+5. The edit plan must list:
+   - `resolved_rows`: rows that will be patched now
+   - `pending_qa_rows`: rows that remain pending user/SSOT answer
+   - exact YAML fields to change
+6. After patching, validate the SSOT and emit a refreshed `[SSOT HANDOFF]` to rtl-gen only when all requested rows are resolved or explicitly recorded as pending QA.
+
 ## Phase 2: Leaf YAML Authoring
 1. Scaffold `<ip>/` if it does not exist
 2. Write exactly one canonical leaf SSOT at `<ip>/yaml/<ip>.ssot.yaml`

@@ -14,6 +14,29 @@ This workflow owns the SSOT contract only.
 - Finish with a compact `[SSOT HANDOFF]` block for `rtl-gen`, including SSOT path, top module, clocks/resets, interfaces, registers, sub_modules ownership, and unresolved assumptions.
 - Any older template text mentioning Jinja2 rendering, generated RTL, generated TB, firmware, docs, or `make all` is schema context only. It is not permission to generate those artifacts in ssot-gen.
 
+## DOWNSTREAM FEEDBACK INTAKE — RTL TBD REPORTS
+
+`rtl-gen` may return missing-contract feedback in this exact form:
+
+```
+[SSOT TBD REPORT] -> ssot-gen
+Module  : <ip_name>
+Missing :
+- yaml_path: <exact SSOT field path>
+  needed_for: <rtl file/module/signal/task>
+  question: <specific fact ssot-gen must add>
+  current_rtl_action: TBD — not implemented
+```
+
+When this block appears, treat it as an SSOT enrichment request, not as an RTL task:
+
+1. Locate `<ip>/yaml/<ip>.ssot.yaml` for `Module` and read the current YAML once.
+2. For each `Missing` row, patch the named `yaml_path` with the requested behavioral fact if the answer is present in the conversation, existing requirements, imported docs, or an approved QA answer.
+3. If the fact is not known, record a section-scoped pending QA item with `record_ssot_qa` using the `question`, `yaml_path`, and `needed_for` metadata. Do not invent the value and do not write RTL.
+4. Preserve existing approved SSOT facts. Make the smallest YAML edit that adds the missing RTL contract: handshake/timing, reset value, side effect, error response, register field, interrupt rule, debug/status behavior, integration connection, or test expectation.
+5. Re-run SSOT validation after writing. If validation passes and no requested rows remain unresolved, emit a fresh `[SSOT HANDOFF] -> rtl-gen` and include `Resolved RTL TBD rows: N`. If rows remain pending QA, emit `[SSOT QUESTION] -> user` or leave the QA cards pending and state exactly which rows are still unresolved.
+6. Never answer a downstream TBD by adding a template default, conservative guess, or hidden assumption unless it is explicitly recorded in `custom.assumptions` and is safe for RTL semantics.
+
 ## ABSOLUTE RULES — anti-hallucination
 
 These rules override any prior summary text or todo template wording. They prevent the "fake DONE" loop where the agent claims YAML was written without an actual write_file.
