@@ -3424,6 +3424,17 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             item.rejection_reason = ""
             todo_tracker.mark_approved(idx, _reason_stripped)  # internally calls save() + persists approved_reason
             _git_tag_todo(index, "approved", item.content)
+            # Per-IP commit checkpoint when a todo gets approved. The
+            # auto-commit hook in atlas_ui only fires on file writes;
+            # without this an "approve" decision (which itself doesn't
+            # touch any tracked file) wouldn't leave a marker in the
+            # IP's git timeline. commit_ip walks up to the nearest
+            # per-IP .git and is silent if no IP repo is found.
+            try:
+                _slug = (item.content or "")[:60].replace("\n", " ")
+                commit_ip(f"todo[{index}] approved: {_slug}")
+            except Exception:
+                pass
             _notes_section = ""
             try:
                 import config as _cfg
@@ -3456,6 +3467,11 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             item.tools_since_in_progress = 0  # reset for potential re-work
             item.tools_since_completed = 0    # reset review-gate counter
             todo_tracker.mark_completed(idx)  # internally calls save()
+            try:
+                _slug = (item.content or "")[:60].replace("\n", " ")
+                commit_ip(f"todo[{index}] completed: {_slug}")
+            except Exception:
+                pass
             review_steps = (
                 f"Task {index} marked completed. Now perform a CRITICAL, ADVERSARIAL review.\n"
                 f"You are a skeptical reviewer — your job is to find problems, not to approve.\n\n"
