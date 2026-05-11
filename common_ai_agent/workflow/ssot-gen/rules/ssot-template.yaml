@@ -488,6 +488,15 @@ timing:
     sustained_beats_per_cycle: 1
     conditions: "No downstream backpressure, aligned addresses, non-error responses"
   timing_exceptions: []
+  io_delays:
+    # STA must not invent IO delay defaults. Use explicit values or record a QA gap.
+    inputs:
+      - { ports: "all_inputs_except_clocks_resets", clock: "dmaclk", delay_ns: 0.2, source: "system-level timing budget" }
+    outputs:
+      - { ports: "all_outputs", clock: "dmaclk", delay_ns: 0.2, source: "system-level timing budget" }
+  false_paths:
+    - { from: "dmacresetn", to: "all_registers", reason: "async reset assertion" }
+  multicycle_paths: []
   sta_expectations:
     setup_wns_ns_min: 0.0
     hold_wns_ns_min: 0.0
@@ -606,6 +615,14 @@ dft:
 synthesis:
   dialect: "verilog_2001"
   top_module: "<ip_name>"
+  technology:
+    pdk: "sky130"
+    standard_cell_library: "sky130_fd_sc_hd"
+    liberty_corner: "ss_n40C_1v40"
+    liberty_env: "SKY130_LIB"
+    lef_env: "SKY130_LEF"
+    tech_lef_env: "SKY130_TLEF"
+    rcx_rules_env: "SKY130_RCX_RULES"
   constraints:
     - "No inferred latches"
     - "All flops reset according to clock_reset_domains.reset_scheme"
@@ -620,7 +637,38 @@ synthesis:
     - "syn/out/timing_summary.rpt"
 
 # =============================================================================
-# SECTION 23: Coding Rules
+# SECTION 23: Physical Implementation / PnR
+# =============================================================================
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: "met2"
+    vertical: "met3"
+  placement:
+    density_target: 0.65
+    max_displacement_um: null
+  cts:
+    buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"]
+    functional_mode_case_analysis:
+      - { port: "scan_en", value: 0, when_present: true }
+  routing:
+    signal_layers: { min: "met1", max: "met5" }
+    clock_layers: { min: "met3", max: "met5" }
+    drc_waivers: []
+  required_outputs:
+    - "pnr/out/floorplan.def"
+    - "pnr/out/placed.def"
+    - "pnr/out/cts.def"
+    - "pnr/out/routed.def"
+    - "pnr/out/routed.v"
+    - "pnr/out/routed.spef"
+    - "pnr/out/pnr.report.md"
+
+# =============================================================================
+# SECTION 24: Coding Rules
 # =============================================================================
 coding_rules:
   # Project policy: .sv filenames with Verilog-2001 syntax.
@@ -642,18 +690,18 @@ coding_rules:
     - "UNUSEDPARAM: CHANNEL_ID only when justified by SSOT configurability"
 
 # =============================================================================
-# SECTION 24: Reuse Modules
+# SECTION 25: Reuse Modules
 # =============================================================================
 reuse_modules: []
 
 # =============================================================================
-# SECTION 25: Custom Extensions
+# SECTION 26: Custom Extensions
 # =============================================================================
 custom:
   note: "No custom extensions"
 
 # =============================================================================
-# SECTION 26: Dir Structure
+# SECTION 27: Dir Structure
 # =============================================================================
 dir_structure:
   # Legacy directory keys are retained for compatibility; they are not fixed IP implementation templates.
@@ -669,7 +717,7 @@ dir_structure:
   generators_dir: "generators/"
 
 # =============================================================================
-# SECTION 27: Filelist
+# SECTION 28: Filelist
 # =============================================================================
 filelist:
   headers:
@@ -698,7 +746,7 @@ filelist:
     - "docs/README.md"
 
 # =============================================================================
-# SECTION 28: Test Requirements / DV Plan
+# SECTION 29: Test Requirements / DV Plan
 # =============================================================================
 test_requirements:
   scenarios:
@@ -735,7 +783,7 @@ test_requirements:
     assertions: "All protocol/order/error assertions pass"
 
 # =============================================================================
-# SECTION 29: Quality Gates / Pass Criteria
+# SECTION 30: Quality Gates / Pass Criteria
 # =============================================================================
 quality_gates:
   ssot:
@@ -768,14 +816,14 @@ quality_gates:
     pass: "Functional coverage goals pass and code/FSM/assertion coverage meets thresholds or has approved waiver."
     evidence: ["instrumented coverage report", "coverage_report.md"]
   eda:
-    pass: "Synthesis and STA meet timing/area/power targets or have explicit signed-off waivers."
-    evidence: ["syn report", "sta setup/hold report", "wns.json"]
+    pass: "Synthesis, pre-route STA, PnR, and post-route STA meet SSOT timing/area/power/physical targets or have explicit signed-off waivers."
+    evidence: ["syn report", "sta setup/hold report", "wns.json", "pnr report", "routed.def", "routed.spef", "sta-post setup/hold report"]
   signoff:
     pass: "SSOT, RTL, lint, DV, simulation, coverage, and required EDA gates pass with fresh evidence."
     evidence: ["ATLAS progress signoff pass", "artifact timestamps newer than final source edits"]
 
 # =============================================================================
-# SECTION 30: Traceability
+# SECTION 31: Traceability
 # =============================================================================
 traceability:
   yaml_to_output:
@@ -786,6 +834,7 @@ traceability:
     - { yaml: "function_model", output: "<ip>_core.sv + tb/cocotb scoreboard/reference model" }
     - { yaml: "cycle_model", output: "<ip>_core.sv pipeline/handshake logic + waveform checks" }
     - { yaml: "timing", output: "STA constraints and timing pass/fail criteria" }
+    - { yaml: "pnr", output: "floorplan/place/CTS/route TCL, routed DEF/Verilog/SPEF, PnR pass/fail criteria" }
     - { yaml: "power", output: "UPF/power-state assumptions or explicit no-UPF rationale" }
     - { yaml: "security", output: "security/safety checks and threat mitigations" }
     - { yaml: "error_handling", output: "RTL error paths + DV fault scenarios" }
@@ -803,12 +852,13 @@ traceability:
       - "tb_top.sv (signal widths)"
 
 # =============================================================================
-# SECTION 31: Workflow TODOs / Downstream Task Contract
+# SECTION 32: Workflow TODOs / Downstream Task Contract
 # =============================================================================
 # Optional but authoritative downstream work items. Use this when the SSOT owner
 # knows a specific next-step task that generic section expansion may not express
 # precisely enough. Each item must preserve content/detail/criteria.
 workflow_todos:
+  fl-model-gen: []
   rtl-gen:
     - id: "RTL_TODO_EXAMPLE"
       content: "Implement the SSOT-declared transaction pipeline"
@@ -824,9 +874,14 @@ workflow_todos:
       required: true
   tb-gen: []
   sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
 
 # =============================================================================
-# SECTION 32: Generation Flow
+# SECTION 33: Generation Flow
 # =============================================================================
 generation_flow:
   steps:
@@ -836,7 +891,8 @@ generation_flow:
     - { name: "handoff_rtl", command: "/ssot-rtl <ip>", description: "rtl-gen writes RTL directly from the SSOT and proves compile/lint gates" }
     - { name: "handoff_tb", command: "/ssot-tb <ip>", description: "tb-gen writes pyuvm/cocotb tests, runs simulation, emits results XML, VCD, and functional coverage" }
     - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "sim_debug inspects waveform, failures, coverage evidence, and escalation ownership" }
-    - { name: "handoff_eda", command: "/syn <ip> && /sta <ip>", description: "EDA workflows produce synthesis and STA evidence when quality_gates require it" }
+    - { name: "handoff_coverage", command: "/coverage <ip>", description: "coverage workflow measures SSOT-declared functional/code/toggle/FSM/assertion goals" }
+    - { name: "handoff_eda", command: "/syn <ip> && /sta <ip> && /pnr <ip> && /sta-post <ip>", description: "EDA workflows produce SSOT-declared synthesis, STA, PnR, and post-route STA evidence when quality_gates require it" }
   atlas_workflows:
     - "ssot-gen"
     - "rtl-gen"
@@ -844,4 +900,6 @@ generation_flow:
     - "sim_debug"
     - "coverage"
     - "syn"
+    - "pnr"
     - "sta"
+    - "sta-post"

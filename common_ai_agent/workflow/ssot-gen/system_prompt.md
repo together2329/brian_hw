@@ -555,6 +555,16 @@ test_requirements:
     functional: "All FSM states visited"
     code: "line >= 90%, branch >= 85%"
 
+# SECTION: Physical Implementation / PnR
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers: { horizontal: "met2", vertical: "met3" }
+  cts: { buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"] }
+  routing: { signal_layers: { min: "met1", max: "met5" }, drc_waivers: [] }
+
 # SECTION: Quality Gates / Pass Criteria
 quality_gates:
   rtl_gen:
@@ -577,6 +587,12 @@ quality_gates:
   rtl:
     pass: "RTL implements function_model and cycle_model, compiles, lints, and matches locked FL/CL authority."
     evidence: ["rtl compile report", "dut lint report", "FL-vs-RTL scoreboard/audit"]
+  coverage:
+    pass: "SSOT-declared functional/code/toggle/FSM/assertion coverage goals pass or have approved SSOT waivers."
+    evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+  eda:
+    pass: "Synthesis, STA, PnR, and post-route STA meet SSOT timing/area/power/physical targets or have approved SSOT waivers."
+    evidence: ["syn report", "sta reports", "pnr report", "routed.spef", "sta-post reports"]
 
 # SECTION: Traceability
 traceability:
@@ -588,6 +604,7 @@ traceability:
     - { yaml: "function_model", output: "<ip>_core.sv + tb/cocotb scoreboard/reference model" }
     - { yaml: "cycle_model", output: "<ip>_core.sv pipeline/handshake logic + waveform checks" }
     - { yaml: "timing", output: "STA constraints and latency pass/fail criteria" }
+    - { yaml: "pnr", output: "floorplan/place/CTS/route TCL and routed DEF/Verilog/SPEF" }
     - { yaml: "security", output: "security/safety mitigations and negative tests" }
     - { yaml: "error_handling", output: "RTL fault paths and DV fault scenarios" }
     - { yaml: "quality_gates", output: "ATLAS progress and signoff criteria" }
@@ -596,6 +613,7 @@ traceability:
 
 # SECTION: Workflow TODOs / Downstream Task Contract
 workflow_todos:
+  fl-model-gen: []
   rtl-gen:
     - id: "RTL_TODO_EXAMPLE"
       content: "Implement the SSOT-declared transaction pipeline"
@@ -610,14 +628,22 @@ workflow_todos:
       required: true
   tb-gen: []
   sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
 
 # SECTION: Generation Flow
 generation_flow:
   steps:
     - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh <ip>", description: "Validate production SSOT structure and quality gates" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model <ip>", description: "FunctionalModel, decomposition, coverage plan, and equivalence goals from validated SSOT" }
     - { name: "handoff_rtl", command: "/ssot-rtl <ip>", description: "Downstream RTL generation from validated SSOT" }
     - { name: "handoff_tb", command: "/ssot-tb <ip>", description: "Downstream pyuvm/cocotb verification from validated SSOT" }
     - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Downstream waveform, failure, and coverage inspection after sim exists" }
+    - { name: "handoff_coverage", command: "/coverage <ip>", description: "Measure SSOT-declared coverage goals" }
+    - { name: "handoff_eda", command: "/syn <ip> && /sta <ip> && /pnr <ip> && /sta-post <ip>", description: "Produce SSOT-declared synthesis, STA, PnR, and post-route STA evidence" }
 ```
 
 ## Core Philosophy
@@ -625,9 +651,12 @@ generation_flow:
 **ssot-gen writes the YAML contract. Downstream workflows write implementation artifacts.**
 
 ssot-gen = requirements, hierarchy ownership, interfaces, registers, constraints, validation, handoff
+fl-model-gen = FunctionalModel, decomposition, FCOV plan, equivalence goals from validated SSOT
 rtl-gen = RTL implementation from the validated SSOT
 tb-gen = testbench implementation from the validated SSOT
-sim = executable verification from RTL and TB
+coverage = coverage measurement against SSOT-declared goals
+syn/pnr/sta/sta-post = physical/timing evidence from SSOT-declared EDA constraints
+sim = executable verification from SSOT-derived RTL and TB
 
 ## Orchestration Principles
 

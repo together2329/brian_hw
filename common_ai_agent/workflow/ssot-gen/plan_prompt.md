@@ -38,7 +38,7 @@ When the input contains `[SSOT TBD REPORT] -> ssot-gen`, switch from new-IP plan
 4. Express internal implementation hierarchy in `sub_modules`, but do not prescribe implementation code
 5. Use `ownership: manifest` for internal blocks described by this YAML
 6. Use `ownership: child_ssot` only for reusable or independently verified child IPs
-7. Put enough detail in `features`, `dataflow`, `function_model`, `cycle_model`, `fsm`, `memory`, `registers`, `timing`, `power`, `security`, `error_handling`, `debug_observability`, `integration`, `dft`, `synthesis`, `test_requirements`, and `quality_gates` for downstream workflows to implement and verify without hidden tribal knowledge.
+7. Put enough detail in `features`, `dataflow`, `function_model`, `cycle_model`, `fsm`, `memory`, `registers`, `timing`, `power`, `security`, `error_handling`, `debug_observability`, `integration`, `dft`, `synthesis`, `pnr`, `test_requirements`, and `quality_gates` for downstream workflows to implement and verify without hidden tribal knowledge.
 8. Avoid IP-specific fixed templates. The SSOT must describe behavior, interfaces, constraints, and acceptance criteria; downstream workflows generate implementation from those facts.
 
 ## Phase 3: Validation Gate
@@ -49,6 +49,7 @@ When the input contains `[SSOT TBD REPORT] -> ssot-gen`, switch from new-IP plan
 - Check `function_model` defines cycle-independent state variables, transactions, preconditions, outputs, side effects, error cases, invariants, and scoreboard/reference-model guidance
 - Check `cycle_model` defines clock/reset timing, latency bounds, handshake rules, pipeline stages, ordering/backpressure, and observability
 - Check timing, power, security, error_handling, debug_observability, integration, dft, and synthesis sections are explicit even when the answer is "not required" or "external owner"
+- Check PnR/floorplan/route constraints and STA IO delay/exception/corner policies are explicit; downstream EDA workflows must not invent defaults
 - Check every `test_requirements.scenarios[]` item has stimulus, expected result, and coverage/scoreboard intent
 - Check `quality_gates` gives concrete pass criteria and evidence for SSOT, RTL, DV, coverage, EDA, and signoff
 - Check every assumption that affects RTL behavior is recorded under `custom.assumptions`
@@ -59,8 +60,11 @@ When the input contains `[SSOT TBD REPORT] -> ssot-gen`, switch from new-IP plan
 - Output a compact `[SSOT HANDOFF]` block for rtl-gen
 - Include IP name, SSOT path, top module, interfaces, parameters, memories, registers, sub_modules, function_model, cycle_model, timing/power/security/error/integration/DFT/synthesis assumptions, reset/clock, verification scenarios, quality gates, and known constraints
 - Include a downstream definition of done:
+  - fl-model-gen must write FunctionalModel, decomposition, coverage plan, and equivalence goals from SSOT only
   - rtl-gen must write RTL + filelist and compile with zero errors
   - tb-gen must write cocotb or SV TB, run simulation, emit coverage artifacts, and pass all SSOT scenarios
+  - coverage must measure SSOT-declared coverage targets or emit precise gaps
+  - syn/pnr/sta/sta-post must use only SSOT-declared EDA constraints and emit timing/physical evidence
   - sim_debug must inspect VCD/coverage and report waveform evidence or a precise handoff
   - EDA workflows must provide synthesis/STA/DFT evidence when quality_gates require it
 - Do not claim RTL, lint, or sim passed unless a downstream workflow actually ran
