@@ -402,6 +402,18 @@ OPENCODE_ACCOUNT_ID = ""
 SSOT_INCREMENTAL_WRITE = os.getenv("SSOT_INCREMENTAL_WRITE", "true").lower() in ("true", "1", "yes", "on")
 RTL_INCREMENTAL_WRITE  = os.getenv("RTL_INCREMENTAL_WRITE",  "true").lower() in ("true", "1", "yes", "on")
 
+# Expose every per-IP .git as a clone+push target over the same FastAPI
+# host:port the backend is already serving. When true:
+#   • IP scaffolding sets `receive.denyCurrentBranch = updateInstead` so
+#     a regular `git push` to the working repo updates HEAD + working
+#     tree if clean, and is refused (without corrupting state) otherwise.
+#   • The /git/<ip>.git/* routes proxy through git-http-backend so
+#     anyone on the LAN can `git clone http://<host>:<port>/git/<ip>.git`
+#     and `git push` back. AuthMiddleware whitelists /git/.
+# Default on. Disable with BARE_GIT_OPTION=0 if you want IPs to stay
+# strictly local-only.
+BARE_GIT_OPTION = os.getenv("BARE_GIT_OPTION", "true").lower() in ("true", "1", "yes", "on")
+
 # Snapshot the pre-OAuth provider trio so deactivate_opencode_oauth() can
 # restore it when the user `--model`-switches back to a non-OpenAI profile.
 _PRE_OAUTH_BASE_URL = BASE_URL

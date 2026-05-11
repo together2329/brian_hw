@@ -935,6 +935,100 @@ def create_app():
         except Exception as exc:
             return JSONResponse({"error": str(exc)}, status_code=500)
 
+    @app.get("/api/ip/{name}/git/url")
+    async def api_ip_git_url(name: str, request: Request):
+        """Return clone URLs for the per-IP bare repo at <root>/<name>.git.
+        Honors BARE_GIT_OPTION — returns 404 when the bare wasn't built."""
+        clean = str(name or "").strip()
+        if not clean or "/" in clean or "\\" in clean or ".." in clean:
+            return JSONResponse({"error": "invalid ip name"}, status_code=400)
+        bare = (PROJECT_ROOT / f"{clean}.git").resolve()
+        try:
+            bare.relative_to(PROJECT_ROOT.resolve())
+        except ValueError:
+            return JSONResponse({"error": "outside project root"}, status_code=400)
+        if not (bare / "HEAD").is_file():
+            return JSONResponse({"error": "no bare repo — BARE_GIT_OPTION may be off, or scaffold hasn't run"},
+                                status_code=404)
+        host = request.headers.get("host") or "127.0.0.1:8765"
+        scheme = "https" if request.url.scheme == "https" else "http"
+        return JSONResponse({
+            "ip": clean,
+            "bare_path": str(bare),
+            "clone": {
+                "http": f"{scheme}://{host}/git/{clean}.git",
+                "file": f"file://{bare}",
+            },
+        })
+
+    @app.api_route("/git/{path:path}", methods=["GET", "POST"])
+    async def git_http_backend_proxy(path: str, request: Request):
+        """Smart-HTTP gateway over git-http-backend so the per-IP bare
+        repos under PROJECT_ROOT are clone+push targets on the LAN.
+        Honors BARE_GIT_OPTION — returns 404 when disabled."""
+        try:
+            import config as _cfg_git
+            if not getattr(_cfg_git, "BARE_GIT_OPTION", True):
+                return JSONResponse({"error": "BARE_GIT_OPTION disabled"}, status_code=404)
+        except Exception:
+            pass
+        # Find git-http-backend. Brew puts it under libexec/git-core.
+        import subprocess as _sp_git
+        backend = ""
+        try:
+            ep = _sp_git.run(["git", "--exec-path"], capture_output=True,
+                             timeout=3, check=False)
+            cand = (ep.stdout.decode("utf-8", "replace").strip() + "/git-http-backend")
+            if Path(cand).is_file():
+                backend = cand
+        except Exception:
+            pass
+        if not backend:
+            return JSONResponse({"error": "git-http-backend not found on host"},
+                                status_code=501)
+        env = dict(os.environ)
+        env.update({
+            "GIT_PROJECT_ROOT": str(PROJECT_ROOT.resolve()),
+            "GIT_HTTP_EXPORT_ALL": "1",
+            "PATH_INFO": "/" + path,
+            "REQUEST_METHOD": request.method,
+            "QUERY_STRING": (request.url.query or ""),
+            "CONTENT_TYPE": request.headers.get("content-type", ""),
+            "CONTENT_LENGTH": request.headers.get("content-length", "0"),
+            "REMOTE_ADDR": (request.client.host if request.client else "127.0.0.1"),
+        })
+        body = await request.body()
+        proc = await asyncio.create_subprocess_exec(
+            backend,
+            env=env,
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        try:
+            stdout, _stderr = await asyncio.wait_for(
+                proc.communicate(body), timeout=120,
+            )
+        except asyncio.TimeoutError:
+            proc.kill()
+            return JSONResponse({"error": "git-http-backend timed out"},
+                                status_code=504)
+        sep = stdout.find(b"\r\n\r\n")
+        if sep == -1:
+            return Response(content=stdout, status_code=200)
+        header_text = stdout[:sep].decode("latin-1", "replace")
+        resp_body = stdout[sep + 4:]
+        status = 200
+        headers: dict[str, str] = {}
+        for line in header_text.split("\r\n"):
+            if line.lower().startswith("status:"):
+                try: status = int(line.split(":", 1)[1].strip().split()[0])
+                except Exception: status = 200
+            elif ":" in line:
+                k, v = line.split(":", 1)
+                headers[k.strip()] = v.strip()
+        return Response(content=resp_body, status_code=status, headers=headers)
+
     @app.get("/api/ip/{name}/git/graph")
     async def api_ip_git_graph(name: str, limit: int = 80):
         """ASCII graph of the per-IP commit history. Returns the raw
@@ -5227,6 +5321,71 @@ def create_app():
                     capture_output=True,
                     timeout=10,
                 )
+            # BARE_GIT_OPTION: also stand up a central bare repo as a
+            # sibling of the IP (<root>/<ip>.git). Wire the working
+            # repo's origin to it + install hooks so that:
+            #   • atlas's per-edit auto-commits propagate to the bare
+            #     via post-commit `git push origin main`
+            #   • external pushes (`git push http://host:port/git/<ip>.git`)
+            #     land in the bare, and a post-receive hook fast-forwards
+            #     the atlas working tree so the agent sees the change
+            try:
+                import config as _cfg_bare
+                _bare_on = getattr(_cfg_bare, "BARE_GIT_OPTION", True)
+            except Exception:
+                _bare_on = True
+            if _bare_on:
+                import shlex as _shlex_bare
+                _bare_dir = PROJECT_ROOT / f"{ip}.git"
+                _post_commit  = _ip_root / ".git" / "hooks" / "post-commit"
+                _post_receive = _bare_dir / "hooks" / "post-receive"
+                try:
+                    if not (_bare_dir / "HEAD").is_file():
+                        _sp_init.run(
+                            ["git", "init", "--bare", "-q", "-b", "main",
+                             str(_bare_dir)],
+                            capture_output=True, timeout=10,
+                        )
+                    # Wire / re-wire working repo's origin to the bare.
+                    _sp_init.run(
+                        ["git", "remote", "remove", "origin"],
+                        cwd=str(_ip_root), capture_output=True, timeout=5,
+                    )
+                    _sp_init.run(
+                        ["git", "remote", "add", "origin",
+                         str(_bare_dir.resolve())],
+                        cwd=str(_ip_root), capture_output=True, timeout=5,
+                    )
+                    # Initial push so the bare has the scaffold commit.
+                    _sp_init.run(
+                        ["git", "push", "-u", "-q", "origin", "main"],
+                        cwd=str(_ip_root), capture_output=True, timeout=15,
+                    )
+                    # post-commit hook in working repo → push to bare.
+                    _post_commit.parent.mkdir(parents=True, exist_ok=True)
+                    _post_commit.write_text(
+                        "#!/bin/sh\n"
+                        "# Atlas — mirror each working-tree commit to the central bare.\n"
+                        "git push -q origin HEAD >/dev/null 2>&1 || true\n",
+                        encoding="utf-8",
+                    )
+                    _post_commit.chmod(0o755)
+                    # post-receive hook in bare → fast-forward the
+                    # working tree so external pushes land in the live
+                    # IP dir the agent reads from.
+                    _post_receive.parent.mkdir(parents=True, exist_ok=True)
+                    _post_receive.write_text(
+                        "#!/bin/sh\n"
+                        "# Atlas — fast-forward the working tree when an external push arrives.\n"
+                        f"WORK={_shlex_bare.quote(str(_ip_root.resolve()))}\n"
+                        "( cd \"$WORK\" && unset GIT_DIR && "
+                        "  git fetch -q origin && "
+                        "  git reset -q --hard origin/main ) >/dev/null 2>&1 || true\n",
+                        encoding="utf-8",
+                    )
+                    _post_receive.chmod(0o755)
+                except Exception:
+                    pass
         except Exception:
             # Best-effort — never block /new-ip on a git failure.
             pass
