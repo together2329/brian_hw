@@ -10258,9 +10258,13 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
           const pi = _ctx.pricing ? _ctx.pricing.input  : 0;
           const pc = _ctx.pricing ? _ctx.pricing.cache  : 0;
           const po = _ctx.pricing ? _ctx.pricing.output : 0;
-          const ti = _ctx.tokensIn    || 0;
+          const tiRaw = _ctx.tokensIn || 0;
           const tc = _ctx.tokensCache || 0;
           const to = _ctx.tokensOut   || 0;
+          // tokensIn is raw prompt tokens from provider usage and includes
+          // the cached subset. The ledger's Input row should show/bill only
+          // uncached input; Cached is displayed and charged separately.
+          const ti = Math.max(0, tiRaw - tc);
           const cIn   = ti * pi / 1e6;
           const cCach = tc * pc / 1e6;
           const cOut  = to * po / 1e6;

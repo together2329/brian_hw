@@ -808,9 +808,12 @@
           ctx.costUsd = (ctx.costUsd || 0) + m.cost_usd_delta;
         } else if (ctx.pricing) {
           // Fallback for older backends that don't ship cost_usd_delta:
-          // recompute from cumulative tokens.
+          // recompute from cumulative tokens. m.input is total prompt
+          // tokens and includes the cached subset, so charge only the
+          // uncached slice at the input rate.
+          const billableInput = Math.max(0, (ctx.tokensIn || 0) - (ctx.tokensCache || 0));
           ctx.costUsd =
-            (ctx.tokensIn    * ctx.pricing.input  +
+            (billableInput   * ctx.pricing.input  +
              ctx.tokensCache * ctx.pricing.cache  +
              ctx.tokensOut   * ctx.pricing.output) / 1_000_000;
         }
