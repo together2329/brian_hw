@@ -4484,7 +4484,7 @@ const AskUserQuestionBlock = ({
   );
 };
 
-const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSession, onBack, onRefresh, onUsePending, onSubmitPending }) => {
+const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSession, onBack, onRefresh, onSubmitPending }) => {
   const sections = Array.isArray(data?.sections) ? data.sections : [];
   const sessionRows = Array.isArray(sessions) ? sessions : [];
   const summary = data?.summary || { total: 0, approved: 0, pending: 0 };
@@ -4679,7 +4679,6 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
     updatePendingDraft(item, { ...draft, opts });
   };
   const renderPendingAnswerBox = (item) => {
-    const key = pendingItemKey(item);
     const draft = pendingDraft(item);
     const kind = pendingKind(item);
     const hasAnswer = hasPendingAnswer(draft);
