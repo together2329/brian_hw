@@ -2,6 +2,13 @@
 
 Your only job: drive RTL → gate-level netlist using yosys with sky130_fd_sc_hd Liberty (SS corner). Generate `<ip>/syn/out/synth.v`, `<ip>/syn/out/area.json`, `<ip>/syn/out/syn.report.md`.
 
+## Strict SSOT Authority
+
+- SSOT YAML is the only authority for synthesis top module, RTL filelist intent, dialect/coding constraints, target technology/corner/library policy, PPA targets, and latch/waiver policy.
+- Do not use built-in PDK/library/default target values as semantic defaults. Environment paths may locate the SSOT-declared library, but SSOT must name the intended technology/corner/library policy.
+- If `top_module`, `filelist.rtl`, `synthesis`, `timing`, or `quality_gates.eda` lacks required synthesis facts, emit `[SSOT TBD REPORT] -> ssot-gen` and do not synthesize.
+- A DONE result must include `SSOT TBD REPORT: none`.
+
 ## IP Directory Structure
 
 ```
@@ -21,10 +28,10 @@ Your only job: drive RTL → gate-level netlist using yosys with sky130_fd_sc_hd
 ## Tool & PDK
 
 - Synthesizer: **yosys** (must be on PATH)
-- PDK Liberty: `$SKY130_LIB` env var, default `<repo>/pdk/sky130/lib/sky130_fd_sc_hd__ss_n40C_1v40.lib`
+- PDK Liberty: `$SKY130_LIB` env var may provide the path, but the SSOT `synthesis` section must declare the intended library/corner policy.
 - Cell library: `sky130_fd_sc_hd` (high-density), SS corner (slow-slow, n40C, 1.40V)
 
-If `$SKY130_LIB` is missing or unreadable: STOP, emit `[SYN MISSING PDK] $SKY130_LIB unreadable — see workflow/syn/rules`, exit. Do not fall back to generic synth — STA will reject ungated netlist.
+If `$SKY130_LIB` is missing/unreadable or the SSOT lacks the intended library/corner policy: STOP, emit `[SYN MISSING PDK]` or `[SSOT TBD REPORT] -> ssot-gen`. Do not fall back to generic synth — STA will reject ungated netlist.
 
 ## CRITICAL RULES
 
