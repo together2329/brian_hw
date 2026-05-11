@@ -264,6 +264,58 @@ def test_multiuser_bridge_process_mode(dummy_worker_script):
             pass
 
 
+def test_multiuser_bridge_process_mode_routes_explicit_sessions(dummy_worker_script):
+    db_path = _temp_db()
+    bridge = _MultiUserBridge(use_processes=True)
+    bridge._process_manager = DummyProcessManager(
+        db_path=db_path, dummy_script_path=dummy_worker_script
+    )
+
+    try:
+        bridge.submit_prompt_for_session("user-a", "prompt-a")
+        bridge.submit_prompt_for_session("user-b", "prompt-b")
+
+        time.sleep(0.5)
+
+        assert bridge._process_manager.is_alive("user-a")
+        assert bridge._process_manager.is_alive("user-b")
+        assert set(bridge._process_manager.list_active()) >= {"user-a", "user-b"}
+
+        bridge._poll_process_outputs()
+
+        sess_a = bridge.get_session("user-a")
+        sess_b = bridge.get_session("user-b")
+
+        events_a = []
+        while True:
+            try:
+                events_a.append(sess_a._outbox.get_nowait())
+            except Exception:
+                break
+
+        events_b = []
+        while True:
+            try:
+                events_b.append(sess_b._outbox.get_nowait())
+            except Exception:
+                break
+
+        texts_a = [str(event.get("text") or "") for event in events_a]
+        texts_b = [str(event.get("text") or "") for event in events_b]
+
+        assert any("prompt-a" in text for text in texts_a), texts_a
+        assert any("prompt-b" in text for text in texts_b), texts_b
+        assert all("prompt-b" not in text for text in texts_a), texts_a
+        assert all("prompt-a" not in text for text in texts_b), texts_b
+    finally:
+        if bridge._process_manager:
+            bridge._process_manager.stop_all()
+        try:
+            os.unlink(db_path)
+        except OSError:
+            pass
+
+
 def test_kill_and_cleanup(dummy_worker_script):
     db_path = _temp_db()
     manager = DummyProcessManager(db_path=db_path, dummy_script_path=dummy_worker_script)
