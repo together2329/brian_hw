@@ -67,6 +67,7 @@ verilog/
 leaked-claude-code/
 
 # Top-level generated/sample workspaces
+untracked_backup/
 CPU/
 DMA/
 GOOD/
