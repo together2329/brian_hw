@@ -9,7 +9,7 @@
     },
     {
       "content": "Write module header: parameters and port declarations",
-      "detail": "module <name> #(params) (ports); Match §2 exactly. All ports with explicit direction+type+width. Add `default_nettype none at top.",
+      "detail": "module <name> #(params) (ports); Match §2 exactly. All ports with explicit direction+type+width. Parameterize user-tunable input/output shape from MAS/SSOT, such as data width, address width, input/output channel count, lane count, and depth. Use clear parameter names and derive port/internal widths from them instead of scattering numeric literals. Add `default_nettype none at top.",
       "priority": "high"
     },
     {
@@ -24,7 +24,7 @@
     },
     {
       "content": "Implement datapath (from MAS §3 Feature Operation)",
-      "detail": "Implement each feature's datapath as described in MAS §3. Blocking (=) in always @(*). Default assignment at top of each block to prevent latches. Case statements with default.",
+      "detail": "Implement each feature's datapath as described in MAS §3. Blocking (=) in always @(*). Default assignment at top of each block to prevent latches. Case statements with default. Derive datapath widths, masks, counters, and slices from named parameters/localparams tied to the in/out interface. Prefer exact shift-based arithmetic for multiply/divide: powers of two use << / >>, exact constant scaling may use shift-add/subtract, and general * or / requires explicit MAS/SSOT justification. Add concise comments for non-obvious datapath, parameter, and arithmetic choices so reviewers can understand the hardware intent.",
       "priority": "high"
     },
     {

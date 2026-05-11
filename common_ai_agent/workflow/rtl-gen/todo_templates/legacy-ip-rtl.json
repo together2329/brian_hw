@@ -19,7 +19,7 @@
     },
     {
       "content": "Apply datapath changes: add new sequential/combinational blocks",
-      "detail": "For new features: add new always @(posedge clk ...) or always @(*) blocks as appropriate (do not modify existing ones). For modified features: make surgical edits inside the relevant always block only. Add // CHANGED: vX.Y comment next to each modified line. Run lint after each block change.",
+      "detail": "For new features: add new always @(posedge clk ...) or always @(*) blocks as appropriate (do not modify existing ones). For modified features: make surgical edits inside the relevant always block only. Prefer exact shift-based arithmetic for multiply/divide: powers of two use << / >>, exact constant scaling may use shift-add/subtract, and general * or / requires explicit MAS/SSOT justification. Add // CHANGED: vX.Y comment next to each modified line and add concise intent comments for non-obvious datapath/arithmetic choices. Run lint after each block change.",
       "priority": "high"
     },
     {

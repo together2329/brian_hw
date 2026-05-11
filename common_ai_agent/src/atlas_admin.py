@@ -25,6 +25,7 @@ import sys
 import time
 import uuid
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 
 # Self-bootstrap PYTHONPATH so `python src/atlas_admin.py` works without
@@ -34,6 +35,19 @@ _ROOT = _SRC.parent
 for _p in (str(_ROOT), str(_SRC)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
+
+# `from __future__ import annotations` stores `request: Request` as a
+# string. FastAPI resolves that string against module globals, not the
+# local imports inside create_admin_app(), so expose Request here or
+# pydantic treats `request` as a required query parameter and returns 422.
+if TYPE_CHECKING:
+    from fastapi import Request
+else:
+    try:
+        from fastapi import Request  # noqa: F401  (runtime forward-ref target)
+    except ImportError:
+        class Request:  # fallback name for annotations when FastAPI is absent
+            pass
 
 
 def create_admin_app(project_root: Path):

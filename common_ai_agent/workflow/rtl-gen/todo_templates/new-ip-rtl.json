@@ -9,7 +9,7 @@
     },
     {
       "content": "Write module header: `default_nettype none, parameters, port declarations",
-      "detail": "First lines: `default_nettype none. module <name> #(parameters) (ports); Match §2 port table exactly — every port with explicit direction+type+width. Use Verilog-2001 port types: input wire, output wire, or output reg when driven by an always block. Add inline comments for clock domains on each port.",
+      "detail": "First lines: `default_nettype none. module <name> #(parameters) (ports); Match §2 port table exactly — every port with explicit direction+type+width. Parameterize user-tunable input/output shape from MAS/SSOT, such as data width, address width, input/output channel count, lane count, and depth. Use Verilog-2001 port types: input wire, output wire, or output reg when driven by an always block. Add inline comments for clock domains on each port and short comments for user-facing parameters.",
       "priority": "high"
     },
     {
@@ -19,7 +19,7 @@
     },
     {
       "content": "Implement datapath sequential blocks (MAS §3 Feature Operation)",
-      "detail": "For each feature in MAS §3: implement the data registers with always @(posedge clk ...) blocks. Nonblocking (<=). Active reset (rst_n or rst — per §8). Group by pipeline stage if §7 specifies pipeline depth.",
+      "detail": "For each feature in MAS §3: implement the data registers with always @(posedge clk ...) blocks. Nonblocking (<=). Active reset (rst_n or rst — per §8). Group by pipeline stage if §7 specifies pipeline depth. Derive datapath widths, masks, counters, and slices from named parameters/localparams tied to the in/out interface. Prefer exact shift-based arithmetic for multiply/divide: powers of two use << / >>, exact constant scaling may use shift-add/subtract, and general * or / requires explicit MAS/SSOT justification. Add concise comments for non-obvious datapath, parameter, and arithmetic choices so reviewers can understand the hardware intent.",
       "priority": "high"
     },
     {

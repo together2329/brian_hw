@@ -103,6 +103,32 @@ initial begin reg_val = 0; end   // not synthesizable
 - Check width match in assignments — no implicit truncation.
 - Use `$clog2(N)` for address-width calculation.
 
+## Parameterization Rules
+
+- Expose user-tunable input/output shape as `parameter integer` values when the SSOT permits configurability: data width, address width, input/output channel count, lane count, FIFO depth, burst length, and similar interface dimensions.
+- Use clear parameter names such as `DATA_W`, `ADDR_W`, `IN_CH`, `OUT_CH`, `LANES`, and `DEPTH`; derive internal helper widths with named `localparam` values.
+- Do not scatter magic numeric widths through port declarations, regs/wires, masks, counters, or slices. Reference the parameter/localparam instead.
+- If the SSOT fixes an external interface width, keep that public contract exact but centralize the literal in one named parameter/localparam so a future SSOT-approved change is easy.
+- Add a short comment beside each user-facing parameter explaining what changes when the user overrides it.
+
+## Arithmetic Rules
+
+- Prefer exact shift-based arithmetic over inferred multiplier/divider hardware.
+- Multiplication or division by powers of two must use `<<` / `>>` with explicit width handling.
+- Constant scale factors may use shift-add or shift-subtract forms when the transform is mathematically exact and preserves SSOT behavior. Example: `x * 10` may become `(x << 3) + (x << 1)`.
+- Use `*` or `/` only when the SSOT explicitly requires a general multiplier/divider, or when no exact shift-based implementation preserves timing, overflow, rounding, signedness, and saturation semantics.
+- Never replace non-power-of-two division with a shift approximation unless the SSOT explicitly names that approximation.
+- For every optimized arithmetic expression, add a short comment explaining the equivalence and any width, rounding, truncation, signedness, or saturation decision.
+
+## Commenting Rules
+
+- Comment the meaning and intent of non-obvious hardware, not the Verilog syntax.
+- Add clean, concise comments for FSM transition groups, CSR side effects, error/security handling, clock/reset assumptions, user-facing parameters, and datapath arithmetic.
+- When a block maps directly to an SSOT feature, name that feature or behavior in the comment so reviewers can trace the RTL back to the spec.
+- For shift-add arithmetic, explain the exact equivalence in one short comment, including any rounding, truncation, signedness, or saturation choice that matters.
+- Avoid noisy comments that only say what the next token already says, such as "assign output", "reset register", or "case statement".
+- Keep comments accurate and local; update or remove stale comments during repair.
+
 ## Reset Convention
 
 - Active-low async reset (default): `always @(posedge clk or negedge rst_n)`

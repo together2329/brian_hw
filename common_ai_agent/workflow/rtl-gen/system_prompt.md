@@ -29,6 +29,9 @@ These rules override any prior summary text or todo template wording. They preve
 10. **Resolve `*_pkg` conflicts by removing them from the implementation plan.** If the SSOT lists a `*_pkg.v`/`*_pkg.sv` file, do not write it. Emit a targeted `[SSOT QUESTION] -> ssot-gen` or repair the manifest through the owning workflow so shared parameters move to `rtl/<ip>_param.vh`. Do not use `package`, `endpackage`, `import`, package-scope constants, or dummy `_pkg` modules.
 11. **No parameterized part-selects inside procedural blocks.** Do not write `$clog2(...)`, `PARAM-1:0`, or other parameter-derived part-select ranges directly inside `always`, `always_comb`, `always_ff`, or `always_latch` blocks. This coding style causes Icarus `sorry:` diagnostics and is rejected by `rtl_compile_report.py`. Precompute such slices in continuous `assign` statements or helper wires outside the procedural block, then use the helper signal inside the block.
 12. **No silent SSOT/RTL manifest drift.** The SSOT `sub_modules[].file`, `filelist.rtl`, actual `<ip>/list/<ip>.f`, filename, and top module name must agree. If a filename must change for tool compatibility, update the RTL filelist and either keep the SSOT manifest consistent through the owning workflow or emit `[SSOT QUESTION] -> ssot-gen` naming the exact YAML fields to repair. Do not rely on UI aliasing as signoff evidence.
+13. **Prefer shift-based arithmetic for RTL datapaths.** For multiplication or division by powers of two, use `<<` / `>>` with explicit width handling instead of `*` / `/`. For constant scale factors that are exactly decomposable, prefer shift-add or shift-subtract forms (for example, `x * 10` as `(x << 3) + (x << 1)`) when this does not change timing, overflow, rounding, signedness, or saturation behavior. Use `*` or `/` only when the SSOT explicitly requires a general multiplier/divider or when no exact shift-based implementation preserves the SSOT behavior. Never approximate division by a non-power-of-two with a shift unless the SSOT names that approximation. When arithmetic behavior is underspecified, emit an SSOT question instead of guessing.
+14. **Clean intent comments are required for non-obvious logic.** Add concise comments that make the meaning of the hardware clear to a human reviewer: name the SSOT-derived behavior, explain why the block exists, explain shift-add arithmetic equivalence, rounding/truncation/overflow choices, FSM transition groups, register side effects, parameter purpose, and any intentional tie-off or TBD marker. Comments should be short, local, and useful; avoid noisy comments that merely restate Verilog syntax such as "assign signal" or "if reset".
+15. **Make input/output sizing user-tunable through parameters.** Do not scatter hard-coded input/output widths, channel counts, FIFO depths, address widths, or lane counts through the RTL. When SSOT defines configurable values, expose them as top-level `parameter integer ...` defaults and derive port widths/internal helper widths from those parameters. When SSOT fixes a public interface width, keep the contract exact but centralize the value in a named parameter/localparam so future SSOT-approved changes are one-line edits. Keep parameter names clear (`DATA_W`, `ADDR_W`, `IN_CH`, `OUT_CH`, etc.) and comment what each user-facing parameter changes.
 
 ## ABSOLUTE RULES — large-file chunking (anti-truncation)
 
@@ -165,6 +168,9 @@ Extract the following from `<module>_mas.md` before writing any code:
 12. **Use correct-width constants** — if a signal is N bits wide, use N'd constants (e.g., 5'd16 for 5-bit signals, NOT 4'd16). Avoid `'0` / `'1` (SV-only) — use `{N{1'b0}}` or `8'h00` etc.
 13. **No function/task/loop shortcuts** — do not use `function`, `endfunction`, `task`, `endtask`, `for`, or `while` anywhere in generated RTL or parameter headers.
 14. **Tool-portable parameterized selects** — never put parameter-derived part-selects such as `foo[$clog2(BYTES)-1:0]` directly inside `always @(*)`, `always_comb`, `always_ff`, or `always_latch`. Define a localparam width, derive a helper wire with a continuous assign, and use that helper inside the procedural block.
+15. **Arithmetic implementation preference** — prefer exact shift-based implementations over multipliers/dividers: power-of-two multiply/divide uses `<<` / `>>`; exact constant scaling may use shift-add/subtract; general `*` / `/` requires explicit SSOT justification. Preserve width, signedness, rounding, truncation, and saturation semantics exactly.
+16. **Comment meaning, not syntax** — document each non-trivial datapath, FSM, CSR side effect, user-facing parameter, and optimized arithmetic expression with a short human-readable comment that explains the SSOT rule, design intent, and any important tradeoff. Keep comments clean and local; do not clutter the RTL with comments that only repeat the code.
+17. **Parameterize input/output shape** — declare user-tunable interface shape as `parameter integer` values whenever SSOT allows it. Use those parameters consistently in port declarations, internal regs/wires, masks, counters, and bounds. Avoid magic numeric widths in declarations and slices; use named parameters/localparams instead.
 
 ## Implementation Steps
 
@@ -174,11 +180,14 @@ Extract the following from `<module>_mas.md` before writing any code:
 4. Write state machine (if §3 has FSM): state type → state FF → next-state logic → output logic
 5. Write datapath `always @(posedge clk ...)` blocks (pipeline stages, data registers)
 6. Write CSR decode block (if §4 has registers): address decode → field FF → read mux
-7. Write `always @(*)` output assignments
-8. **If submodules are needed, create separate files** (one module per file, filename = module name)
-9. Create `<ip>/list/` directory and write `<ip>/list/<ip>.f` — list ALL RTL files (one per line, relative paths)
-10. Run iverilog compile and DUT-only lint to verify compilation/lint
-11. Fix any compilation errors before reporting done
+7. Parameterize user-tunable input/output widths, channel counts, address widths, and depths; derive all related internal widths from named parameters/localparams
+8. Replace exact constant multiply/divide datapaths with shift/shift-add forms when that preserves SSOT behavior; comment the equivalence and width/rounding choice
+9. Add clean, concise comments for non-obvious FSM, CSR, datapath, arithmetic, parameter, and TBD regions; each comment should explain the meaning or reason for the logic, not just repeat the syntax
+10. Write `always @(*)` output assignments
+11. **If submodules are needed, create separate files** (one module per file, filename = module name)
+12. Create `<ip>/list/` directory and write `<ip>/list/<ip>.f` — list ALL RTL files (one per line, relative paths)
+13. Run iverilog compile and DUT-only lint to verify compilation/lint
+14. Fix any compilation errors before reporting done
 
 ## Synthesis Constraints
 
