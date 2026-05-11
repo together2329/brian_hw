@@ -266,7 +266,12 @@ if __name__ == "__main__":
     _parser.add_argument('--admin', nargs='?', const='3002', default=None,
                          help='Also launch the standalone admin server '
                               '(src/atlas_admin.py). Pass a port to override '
-                              '(default 3002). Always bound to 127.0.0.1.')
+                              '(default 3002). Bind host comes from --admin-host '
+                              '(default 127.0.0.1, keep admin off the LAN).')
+    _parser.add_argument('--admin-host', default='127.0.0.1',
+                         help='Bind host for the --admin server (default '
+                              '127.0.0.1). Set to 0.0.0.0 only when you '
+                              'understand the admin surface is now LAN-reachable.')
     _args, _ = _parser.parse_known_args()
 
     # --model: mirror src/main.py:2510 handler so textual_main behaves the same.
@@ -351,14 +356,15 @@ if __name__ == "__main__":
                 _os_admin.path.dirname(_os_admin.path.abspath(__file__)),
                 "atlas_admin.py",
             )
+            _admin_host = getattr(_args, 'admin_host', None) or '127.0.0.1'
             _admin_proc = _sp_admin.Popen(
                 [_sys_admin.executable, _admin_script,
-                 "--port", _admin_port, "--host", "127.0.0.1"],
+                 "--port", _admin_port, "--host", _admin_host],
                 stdout=None, stderr=None,
                 cwd=_os_admin.path.dirname(_os_admin.path.dirname(_admin_script)),
             )
             _atexit.register(lambda p=_admin_proc: (p.terminate() if p.poll() is None else None))
-            print(f"\n  [admin] launched standalone admin server → http://127.0.0.1:{_admin_port}/admin", flush=True)
+            print(f"\n  [admin] launched standalone admin server → http://{_admin_host}:{_admin_port}/admin", flush=True)
         except Exception as _exc_admin:
             print(f"[warn] --admin: failed to spawn admin server: {_exc_admin}", flush=True)
 

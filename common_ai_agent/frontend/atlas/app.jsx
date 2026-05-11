@@ -561,12 +561,24 @@ const App = () => {
   }, [activeIp, activeNamespace, activeSessionId, currentWorkflow, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace]);
 
   React.useEffect(() => {
+    // Don't fire the URL/localStorage → backend handshake before we
+    // know who the logged-in user is. Without this guard a stale
+    // localStorage entry like "default/sqa/default" left over from a
+    // previous run would post /api/session/activate with owner='default'
+    // before the auth gate had a chance to rewrite to <user>/default,
+    // producing the surprising "prev='', ip='sqa', owner='default'"
+    // backend log on first connection.
+    if (!window.ATLAS_USER) return;
     const parsed = splitSessionNamespace(window.ACTIVE_SESSION || activeNamespace || '');
     if (!parsed.ipId && !parsed.workflow) return;
+    // Also bail if the parsed owner is not this user — the auth
+    // gate will rewrite localStorage and we'll re-fire then.
+    const owner = parsed.sessionId || '';
+    if (owner && owner !== (window.ATLAS_USER.username || '')) return;
     activateNamespace(parsed.sessionId || activeSessionId || 'default', parsed.ipId || '', parsed.workflow || '', !!parsed.workflow);
-    // Run once on mount: this is the URL/localStorage → backend handshake.
+    // Run once on mount AFTER auth: this is the URL/localStorage → backend handshake.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [authState]);
 
   React.useEffect(() => {
     const onSwitch = (ev) => {

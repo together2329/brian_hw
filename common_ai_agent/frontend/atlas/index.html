@@ -30,6 +30,79 @@
 <body>
   <div id="scaler"><div id="root"></div></div>
 
+  <!-- Global error banner. Without this, a Babel-transpile failure /
+       broken CDN / 404 on a .jsx asset leaves the user looking at a
+       black screen with errors only visible inside browser devtools.
+       Captures uncaught errors, unhandled promise rejections, and
+       script-element load failures and renders them on a fixed banner
+       at the top so the operator can act on Windows / locked-down
+       environments where the devtools console isn't immediately open. -->
+  <script>
+    (function () {
+      var lines = [];
+      var box = null;
+      function ensureBox() {
+        if (box) return box;
+        box = document.createElement('div');
+        box.id = 'atlas-error-banner';
+        box.setAttribute('role', 'alert');
+        box.style.cssText = [
+          'position:fixed','top:0','left:0','right:0','z-index:99999',
+          'max-height:35vh','overflow:auto',
+          'background:#3a1414','color:#fde7e7',
+          'border-bottom:1px solid #f87171',
+          'font:12px/1.45 ui-monospace,Consolas,Menlo,monospace',
+          'padding:8px 14px 32px','white-space:pre-wrap','word-break:break-word',
+          'box-shadow:0 6px 18px rgba(0,0,0,0.6)'
+        ].join(';');
+        var close = document.createElement('button');
+        close.textContent = '× dismiss';
+        close.style.cssText = 'position:absolute;right:10px;top:6px;background:transparent;color:#fde7e7;border:1px solid #f87171;border-radius:3px;padding:2px 8px;cursor:pointer;font:inherit';
+        close.onclick = function () { box.remove(); box = null; lines.length = 0; };
+        box.appendChild(close);
+        document.body.appendChild(box);
+        return box;
+      }
+      function append(label, detail) {
+        var b = ensureBox();
+        var line = document.createElement('div');
+        line.style.marginRight = '120px';
+        var ts = new Date().toLocaleTimeString();
+        line.textContent = '[' + ts + '] ' + label + ': ' + detail;
+        b.appendChild(line);
+        lines.push(label + ': ' + detail);
+      }
+      window.addEventListener('error', function (ev) {
+        // Script-tag load failure: ev.target is the failing element.
+        if (ev.target && (ev.target.src || ev.target.href) && ev.target !== window) {
+          append('script load failed', (ev.target.src || ev.target.href));
+          return;
+        }
+        var msg = (ev.error && (ev.error.stack || ev.error.message)) || ev.message || 'unknown';
+        append('uncaught', msg);
+      }, true);
+      window.addEventListener('unhandledrejection', function (ev) {
+        var r = ev.reason;
+        append('unhandled promise', (r && (r.stack || r.message)) || String(r));
+      });
+      // Mirror console.error so non-throwing failures still surface.
+      var origErr = console.error.bind(console);
+      console.error = function () {
+        try {
+          var parts = Array.prototype.map.call(arguments, function (a) {
+            if (a instanceof Error) return a.stack || a.message;
+            if (typeof a === 'object') return JSON.stringify(a);
+            return String(a);
+          });
+          append('console.error', parts.join(' '));
+        } catch (_) {}
+        origErr.apply(null, arguments);
+      };
+      // Expose so future scripts can call from anywhere.
+      window.__atlasReportError = append;
+    })();
+  </script>
+
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
