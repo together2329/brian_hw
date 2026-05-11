@@ -1,5 +1,0 @@
-# spi.ssot.yaml — Single Source of Truth
-top_module:
-  name: spi
-  type: "<TBD>"  # TBD
-  description: "<TBD>"  # TBD

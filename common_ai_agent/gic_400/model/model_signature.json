@@ -1,9 +1,0 @@
-{
-  "expressions_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "invariants_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "ip": "gic_400",
-  "schema_version": 1,
-  "ssot_hash": "f0bdd4eb0790c7ee501c36e4d39a333e44c5a598f3c8b951e31ee1a0d4089ac6",
-  "transactions_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "type": "model_signature"
-}

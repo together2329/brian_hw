@@ -1,8 +1,0 @@
-{
-  "schema_version": 1,
-  "type": "protocol_assertions_summary",
-  "ip": "smbus",
-  "source": "smbus/yaml/smbus.ssot.yaml",
-  "assertions_total": 5,
-  "output": "verify/protocol_assertions.sva"
-}

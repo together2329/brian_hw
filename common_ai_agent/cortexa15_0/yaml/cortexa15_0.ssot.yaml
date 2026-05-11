@@ -1,7 +1,0 @@
-top_module: cortexa15_0
-parameters: [{name: ARCH, value: ARMv8.2}]
-clocks: [{name: clk, period_ns: 0.5, source_port: clk}]
-resets: [{name: rst_n, polarity: active_low, source_port: rst_n}]
-busInterfaces:
-  - {name: M_ACE, proto: ACE, role: master, side: right, width: 128}
-  - {name: IRQ,   proto: IRQ, role: slave,  side: top,   width: 32}

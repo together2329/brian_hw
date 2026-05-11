@@ -1,3 +1,0 @@
-# module__pl330_target_mfifo__function_model_01 notes
-
-Authored only RTL-owned draft artifacts for pl330_target_mfifo. The MFIFO owner keeps architectural state variables, reset behavior, DMAGO state and PC update, DMALD and DMALDP load request output pulses, explicit outstanding_reads side-effect wires, channel_pc load side-effect updates, store-side MFIFO pop and outstanding_writes updates, event IRQ status behavior, DMAEND completion, and fault capture. This packet remains draft-only because the authoring plan says pass_allowed is false and top-level locked-truth gates remain outside this packet.

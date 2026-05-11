@@ -1,8 +1,0 @@
-{
-  "schema_version": 1,
-  "type": "protocol_assertions_summary",
-  "ip": "counter",
-  "source": "counter/yaml/counter.ssot.yaml",
-  "assertions_total": 0,
-  "output": "verify/protocol_assertions.sva"
-}

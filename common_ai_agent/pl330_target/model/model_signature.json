@@ -1,9 +1,0 @@
-{
-  "expressions_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "invariants_hash": "e53f101a7e7f29b4865049537e5a2fdffcf192bf9e103a68001e857612277676",
-  "ip": "pl330_target",
-  "schema_version": 1,
-  "ssot_hash": "a7a070f0a720fe99513fc56d701ed837f6c4a1518176e2925f2948611b9b99f1",
-  "transactions_hash": "f7bb255cc53e7dd9f3d76e33b4e17c32deea73dbc47f7ed497961f69235b5a1c",
-  "type": "model_signature"
-}
