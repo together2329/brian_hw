@@ -2676,6 +2676,8 @@ if __name__ == "__main__":
                          help='Responses API reasoning effort: none|minimal|low|medium|high|xhigh|off')
     _parser.add_argument('--serve', action='store_true',
                          help='Start as HTTP server (agent-to-agent mode)')
+    _parser.add_argument('--host', default='0.0.0.0',
+                         help='HTTP server bind host (default: 0.0.0.0, requires --serve)')
     _parser.add_argument('--port', type=int, default=8000,
                          help='HTTP server port (default: 8000, requires --serve)')
     _parser.add_argument('--verbose', action='store_true',
@@ -2763,6 +2765,7 @@ if __name__ == "__main__":
         if coordinator:
             _set_coordinator(coordinator)
         _agent_serve(
+            host=_args.host,
             port=_args.port,
             verbose=getattr(_args, 'verbose', False),
             coordinator=coordinator,

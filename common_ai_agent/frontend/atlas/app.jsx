@@ -466,7 +466,9 @@ const App = () => {
     // matches the user's mental model: "IP_ID lists IPs the backend
     // is running over, nothing more."
     try {
-      const r2 = await fetch('/api/ip/list', { cache: 'no-store' });
+      const ipOwner = normalizeSession(activeSessionId || currentUserSession || '');
+      const ipUrl = '/api/ip/list' + (ipOwner ? `?session_id=${encodeURIComponent(ipOwner)}` : '');
+      const r2 = await fetch(ipUrl, { cache: 'no-store' });
       if (r2.ok) {
         const d2 = await r2.json();
         for (const it of (Array.isArray(d2.items) ? d2.items : [])) {

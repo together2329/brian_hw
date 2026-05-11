@@ -81,6 +81,10 @@ def register_sessions_routes(
                     {"error": f"invalid {label}: {val!r}"},
                     status_code=400,
                 )
+        owner = _request_username(req)
+        multi_user_on = os.environ.get("ATLAS_MULTI_USER", "").strip().lower() in ("1", "true", "yes", "on")
+        if multi_user_on and owner and sid != owner:
+            return JSONResponse({"error": "session owner mismatch"}, status_code=403)
         canonical = f"{sid}/{ip}/{wf}"
         # Halt the running agent + drain queued prompts BEFORE flipping
         # env vars whenever the active triple actually changes. Without
@@ -365,16 +369,21 @@ def register_sessions_routes(
 
     # ── /api/session/list ──────────────────────────────────────────
     @app.get("/api/session/list")
-    async def api_session_list():
+    async def api_session_list(request: Request):
         """List reloadable session namespaces under .session/."""
         PROJECT_ROOT = project_root()
         root = PROJECT_ROOT / ".session"
         out = []
+        owner = _request_username(request)
+        multi_user_on = os.environ.get("ATLAS_MULTI_USER", "").strip().lower() in ("1", "true", "yes", "on")
         if root.is_dir():
             for p in sorted(root.rglob("conversation.json")):
                 try:
                     rel = p.parent.relative_to(root)
                 except Exception:
+                    continue
+                parts = rel.parts
+                if multi_user_on and owner and (not parts or parts[0] != owner):
                     continue
                 session = str(rel)
                 if session == ".":
@@ -406,6 +415,10 @@ def register_sessions_routes(
     def _request_user_id(request: Request) -> str:
         user = request.scope.get("user") or {}
         return str(user.get("id") or "default").strip() or "default"
+
+    def _request_username(request: Request) -> str:
+        user = request.scope.get("user") or {}
+        return normalize_session_name(str(user.get("username") or ""))
 
     def _session_not_found() -> JSONResponse:
         return JSONResponse({"error": "session not found"}, status_code=404)

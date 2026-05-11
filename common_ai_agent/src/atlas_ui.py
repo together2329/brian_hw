@@ -847,19 +847,14 @@ def create_app():
                              "path": str(target.relative_to(PROJECT_ROOT))})
 
     @app.get("/api/ip/list")
-    async def api_ip_list():
-        """List IP directories sitting directly under PROJECT_ROOT.
+    async def api_ip_list(request: Request, session_id: str = ""):
+        """List IPs that belong to a session namespace.
 
-        The IP_ID dropdown is supposed to enumerate IPs the user can
-        actually work on right now, which is whatever IP-shaped folders
-        live under the directory the backend was started in (--root or
-        cwd). Walking .session/ history brought in cross-session
-        leftovers; this endpoint is the simple "what's on disk".
-
-        An IP folder qualifies when it has at least one of: yaml/,
-        rtl/, tb/, sim/ (the canonical SSOT/RTL/TB tree). Hidden dirs,
-        framework dirs (.session, .git, .venv), and workflow stage
-        names are skipped.
+        The IP_ID dropdown must not show project-global directories or
+        another user's IP history. In multi-user mode the authoritative
+        source is `.session/<session_id>/<ip>/<workflow>/`, so this route
+        enumerates the selected session owner only. A missing session root
+        returns an empty list instead of falling back to PROJECT_ROOT.
         """
         skip = set(SKIP_DIRS) | {
             ".session", ".git", ".venv", ".sisyphus", ".omc", "logs",
@@ -867,28 +862,47 @@ def create_app():
             "frontend", "docs", "scripts",
         }
         items = []
+        user = request.scope.get("user") or {}
+        username = normalize_session_name(str(user.get("username") or ""))
+        requested = normalize_session_name(str(session_id or ""))
+        owner = (requested.split("/", 1)[0] if requested else "") or username
+        multi_user_on = os.environ.get("ATLAS_MULTI_USER", "").strip().lower() in ("1", "true", "yes", "on")
+        if multi_user_on and username and owner and owner != username:
+            return JSONResponse({"error": "session owner mismatch", "items": []}, status_code=403)
+        session_root = (PROJECT_ROOT / ".session" / owner).resolve() if owner else None
         try:
-            for entry in PROJECT_ROOT.iterdir():
+            if session_root is None or not session_root.is_dir():
+                return JSONResponse({"items": [], "count": 0, "session_id": owner or ""})
+            try:
+                session_root.relative_to((PROJECT_ROOT / ".session").resolve())
+            except ValueError:
+                return JSONResponse({"error": "session path escapes .session", "items": []}, status_code=400)
+            for entry in session_root.iterdir():
                 if not entry.is_dir():
                     continue
                 name = entry.name
                 if name.startswith(".") or name in skip:
                     continue
-                # Accept any non-framework dir as an IP candidate. A
-                # freshly created IP (via + IP / /api/ip/create) starts
-                # empty before the agent populates yaml/rtl/tb/sim, and
-                # rejecting empty dirs caused the IP_ID dropdown to
-                # silently roll back to None right after creation.
-                ssot = entry / "yaml" / f"{name}.ssot.yaml"
+                workflows = sorted(
+                    child.name for child in entry.iterdir()
+                    if child.is_dir() and not child.name.startswith(".")
+                )
+                ssot = PROJECT_ROOT / name / "yaml" / f"{name}.ssot.yaml"
                 items.append({
                     "name": name,
                     "has_ssot": ssot.is_file(),
+                    "workflows": workflows,
                     "mtime": entry.stat().st_mtime,
                 })
         except OSError as exc:
             return JSONResponse({"error": str(exc), "items": []}, status_code=500)
         items.sort(key=lambda x: (-x["mtime"], x["name"]))
-        return JSONResponse({"project_root": str(PROJECT_ROOT), "items": items})
+        return JSONResponse({
+            "project_root": str(PROJECT_ROOT),
+            "session_id": owner or "",
+            "items": items,
+            "count": len(items),
+        })
 
     @app.get("/api/debug/scenarios")
     async def api_debug_scenarios(ip: str):
