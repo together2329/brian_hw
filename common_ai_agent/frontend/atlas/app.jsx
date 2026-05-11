@@ -510,10 +510,26 @@ const App = () => {
     const syncCurrent = (ev) => {
       const ctx = window.CONTEXT || {};
       const ctxSession = normalizeSession(ctx.active_session || '');
-      const requestedSession = normalizeSession(
-        (ev && ev.detail && ev.detail.session) || window.ACTIVE_SESSION || activeNamespace
-      );
-      const namespace = requestedSession || ctxSession;
+      // refreshHealth periodic poll → backend is the ground truth.
+      // Snap UI dropdowns to whatever the backend reports as the active
+      // (sid, ip, wf), except when backend is still at the boot
+      // "default/default/default" placeholder — let the user's
+      // localStorage / URL hint own that brief window.
+      const isHealthTick = ev && ev.type === 'atlas-data-changed' && ev.detail === 'CONTEXT';
+      let namespace;
+      if (isHealthTick && ctxSession && ctxSession !== 'default/default/default') {
+        namespace = ctxSession;
+        if (namespace !== window.ACTIVE_SESSION) {
+          window.ACTIVE_SESSION = namespace;
+          try { localStorage.setItem('atlasActiveSession', namespace); } catch (_) {}
+        }
+      } else {
+        const requestedSession = normalizeSession(
+          (ev && ev.detail && typeof ev.detail === 'object' && ev.detail.session) ||
+          window.ACTIVE_SESSION || activeNamespace
+        );
+        namespace = requestedSession || ctxSession;
+      }
       const parsed = splitSessionNamespace(namespace);
       setActiveNamespace(namespace || namespaceFor(activeSessionId, activeIp, currentWorkflow()));
       setActiveSessionId(parsed.sessionId || activeSessionId);
