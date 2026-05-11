@@ -523,3 +523,20 @@ system prompt. Honor it whenever you produce or update RTL files in
     open question via `ask_user` or note it in `workflow_todos`.
   - Modules under ~40 lines may be written one-shot regardless of mode.
     Use judgment; the marker controls default behaviour, not a hard rule.
+
+---
+
+## Style rules
+
+- **Do NOT emit `` `default_nettype none ``** at the top of generated SV
+  files unless the SSOT (or the user) explicitly asks for it. Older
+  synthesis flows, legacy IP libraries, and several lint configs
+  bundled with downstream tools assume `wire` defaults — turning off
+  the implicit net rule causes spurious "undeclared identifier"
+  errors on perfectly fine RTL and forces the agent into
+  re-declaration loops. Default to letting `` `default_nettype wire ``
+  stand (the language default), and just write all signals
+  explicitly as `wire` / `logic` / `reg` like the rest of the file.
+  If the user wants strict mode, they can paste
+  `` `default_nettype none `` in themselves or add it to the SSOT
+  style preferences.

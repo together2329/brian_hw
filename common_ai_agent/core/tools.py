@@ -3426,26 +3426,35 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                         return _size > 0
                     return _size >= _MIN_BYTES
 
-                _missing = []
-                for _p in _candidates:
-                    _resolved = _resolve_existing(_p)
-                    if _resolved is None or not _artifact_is_real(_resolved):
-                        _missing.append(_p)
-                if _missing:
-                    return (
-                        f"❌ Cannot approve Task {index} — declared deliverable(s) missing or too small on disk:\n"
-                        + "\n".join(f"  • {p}" for p in _missing[:8])
-                        + (f"\n  • … (+{len(_missing) - 8} more)" if len(_missing) > 8 else "")
-                        + f"\nThe task content references these files but no `write_file` or `run_command` "
-                        f"actually produced them (or they are < {_MIN_BYTES} bytes — likely stubs).\n"
-                        f"This blocks fake-DONE loops where the agent claims completion without real artifacts.\n"
-                        f"→ Action: write_file(path=\"<one of the above>\", content=\"...\")  ← actually create the file\n"
-                        f"→ OR Action: run_command(\"...\")  ← if the file is produced by a build/sim tool\n"
-                        f"→ Then call todo_update(index={index}, status='approved') again."
-                    )
+                # The strict path-existence block used to refuse approval
+                # whenever a task description mentioned `rtl/<ip>.sv` but
+                # the validator couldn't resolve the path (e.g. worker
+                # subprocess didn't get ATLAS_ACTIVE_IP, so `gpio/rtl/
+                # gpio_reg.sv` looked like just `rtl/gpio_reg.sv` and got
+                # rejected as "fake-DONE"). Per user direction we trust
+                # the LLM's own verification (grep / run_command / read_file)
+                # plus the existing evidence-tool-count gate above — opt
+                # into the strict block only via env STRICT_DELIVERABLE_CHECK=1.
+                if _os_fs.environ.get("STRICT_DELIVERABLE_CHECK", "").lower() in ("1", "true", "yes", "on"):
+                    _missing = []
+                    for _p in _candidates:
+                        _resolved = _resolve_existing(_p)
+                        if _resolved is None or not _artifact_is_real(_resolved):
+                            _missing.append(_p)
+                    if _missing:
+                        return (
+                            f"❌ Cannot approve Task {index} — declared deliverable(s) missing or too small on disk:\n"
+                            + "\n".join(f"  • {p}" for p in _missing[:8])
+                            + (f"\n  • … (+{len(_missing) - 8} more)" if len(_missing) > 8 else "")
+                            + f"\nThe task content references these files but no `write_file` or `run_command` "
+                            f"actually produced them (or they are < {_MIN_BYTES} bytes — likely stubs).\n"
+                            f"This blocks fake-DONE loops where the agent claims completion without real artifacts.\n"
+                            f"→ Action: write_file(path=\"<one of the above>\", content=\"...\")  ← actually create the file\n"
+                            f"→ OR Action: run_command(\"...\")  ← if the file is produced by a build/sim tool\n"
+                            f"→ Then call todo_update(index={index}, status='approved') again."
+                        )
             except Exception:
-                # File-existence check is advisory — never block approval on
-                # an exception in the validator itself.
+                # Validator never blocks approval on its own exceptions.
                 pass
 
             item.rejection_reason = ""
