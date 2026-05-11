@@ -66,6 +66,17 @@ test_benchmark/
 verilog/
 leaked-claude-code/
 
+# Top-level generated/sample workspaces
+CPU/
+DMA/
+GOOD/
+TIMER/
+atlas_i2c_clean/
+atlas_ssot_parser2_clean/
+atlas_ssot_web_clean/
+glm_test/
+gpt_test/
+
 # Misc
 2025-12-*-*.txt
 run_sim.sh
