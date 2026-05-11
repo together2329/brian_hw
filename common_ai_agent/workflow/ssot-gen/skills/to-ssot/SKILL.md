@@ -23,6 +23,21 @@ Plan Mode only and will be rejected in Normal mode. If progress tracking is
 useful, use a short prose ledger or `todo_add`, then immediately read/write
 the SSOT and run validation.
 
+## RTL TBD Feedback Mode
+
+If the current context contains `[SSOT TBD REPORT] -> ssot-gen`, run targeted
+enrichment instead of rewriting the whole SSOT:
+
+1. Parse each `Missing` row: `yaml_path`, `needed_for`, `question`, and
+   `current_rtl_action`.
+2. Read the existing `<ip>/yaml/<ip>.ssot.yaml` once.
+3. Patch only the named YAML fields when the missing fact is available from
+   the conversation, requirements, imported documents, or approved QA.
+4. If the fact is still unknown, record a pending QA item for that exact
+   `yaml_path` and `needed_for` instead of inventing a value.
+5. Validate the patched SSOT and emit a refreshed `[SSOT HANDOFF] -> rtl-gen`
+   with `Resolved RTL TBD rows: N` and any `Pending QA rows: ...`.
+
 ## Process
 
 1. **Locate the canonical template.** Read

@@ -86,7 +86,19 @@ non-blocking answer to happen immediately.
   recording it through `record_ssot_qa` or resolving it through
   `ask_user`. That defeats the rule.
 - Skipping the initial draft. The TBD list IS the ask_user agenda;
-  without the draft you can't know what's missing.
+     without the draft you can't know what's missing.
+
+## Downstream TBD feedback
+
+When a downstream workflow pastes `[SSOT TBD REPORT] -> ssot-gen`, treat each
+`Missing` row as a discovered TBD with stronger provenance:
+
+- `yaml_path` is the exact SSOT field to patch or ask about.
+- `needed_for` is the downstream RTL file/module/signal/task that cannot proceed.
+- `question` becomes the `record_ssot_qa.questions[].question` text if the fact is not already known.
+- `current_rtl_action: TBD — not implemented` means ssot-gen must enrich YAML or capture QA; it must not tell rtl-gen to guess.
+
+If the answer is available, patch the SSOT and validate. If not, record a QA card with `source_refs` including the `yaml_path` and `needed_for` values, then report the pending QA row back to the user.
 - Asking about fields the prompt already pinned (e.g. user said
   "sm IP for SPI" → top_module.type is concretely "peripheral";
   don't ask).

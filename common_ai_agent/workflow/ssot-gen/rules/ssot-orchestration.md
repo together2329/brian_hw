@@ -20,6 +20,27 @@ When SSOT is complete and validated:
 [CODE_FENCE(23 chars)]
 ```
 
+## Downstream Feedback Protocol
+
+When `rtl-gen` cannot implement a behavior because SSOT lacks a fact, it feeds back:
+
+```
+[SSOT TBD REPORT] -> ssot-gen
+Module  : <ip_name>
+Missing :
+- yaml_path: <exact SSOT field path>
+  needed_for: <rtl file/module/signal/task>
+  question: <specific fact ssot-gen must add>
+  current_rtl_action: TBD — not implemented
+```
+
+ssot-gen owns this feedback loop:
+
+1. Patch only `<ip>/yaml/<ip>.ssot.yaml`; do not edit RTL/TB/sim outputs.
+2. Resolve each `yaml_path` from known requirements or approved QA; otherwise record a pending QA card for that exact field.
+3. Re-run SSOT validation after the patch.
+4. Emit a refreshed `[SSOT HANDOFF] -> rtl-gen` summarizing resolved rows and unresolved QA rows.
+
 ## Quality Gates
 
 | Gate | Condition | Next Agent |
@@ -28,6 +49,7 @@ When SSOT is complete and validated:
 | SSOT -> VALIDATE | `<ip>/yaml/<ip>.ssot.yaml` written | YAML parse + production SSOT disk checks |
 | VALIDATE -> HANDOFF | Leaf SSOT passes checks | rtl-gen or tb-gen agent |
 | HANDOFF -> RTL | `[SSOT HANDOFF]` names path and constraints | rtl-gen |
+| RTL TBD -> SSOT | `[SSOT TBD REPORT]` names missing YAML paths | ssot-gen patches SSOT or records QA |
 
 ## File Ownership
 
@@ -51,4 +73,5 @@ When SSOT is complete and validated:
 
 - YAML validation fail -> edit `<ip>/yaml/<ip>.ssot.yaml`, rerun validation
 - Missing or weak `sub_modules` -> update manifest vs child_ssot ownership before handoff
-- RTL/lint/sim issues -> hand off to rtl-gen/tb-gen/sim; do not fix them inside ssot-gen unless the YAML contract is wrong
+- RTL/lint/sim implementation issues -> hand off to rtl-gen/tb-gen/sim; do not fix them inside ssot-gen unless the YAML contract is wrong
+- RTL missing-contract feedback (`[SSOT TBD REPORT]`) -> patch the named SSOT fields or record QA; do not invent defaults or edit RTL
