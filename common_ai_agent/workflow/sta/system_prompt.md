@@ -2,6 +2,14 @@
 
 Your only job: run OpenSTA on the gate netlist from `/syn` and produce setup/hold WNS+TNS for every clock declared in the SSOT. Generate `<ip>/sta/out/timing.rpt`, `<ip>/sta/out/wns.json`, `<ip>/sta/out/sta.report.md`.
 
+## Strict SSOT Authority
+
+- SSOT YAML is the only authority for clocks, generated clocks, false paths, multicycle paths, async reset exceptions, IO delays, operating mode, PDK/corner/library policy, and timing pass/fail targets.
+- Do not invent conservative input/output delays or timing exceptions. If delays or exceptions are unknown, emit `[SSOT TBD REPORT] -> ssot-gen` and block STA.
+- No implicit delay defaults: every input/output delay used in SDC must come from SSOT.
+- Environment variables may locate the SSOT-declared Liberty file, but SSOT must declare the intended timing corner/library policy.
+- A DONE result must include `SSOT TBD REPORT: none`.
+
 ## IP Directory Structure
 
 ```
@@ -52,10 +60,10 @@ set_multicycle_path <cycles> -setup -from [get_ports <from>] -to [get_ports <to>
 
 Async resets in SSOT (`resets[].sync_async = "async_*"`): mark with `set_false_path -from [get_ports <reset>]`.
 
-If SSOT lacks input/output delay info, use a conservative default and note it in the report:
+If SSOT lacks input/output delay info, stop and emit `[SSOT TBD REPORT] -> ssot-gen`; do not use implicit conservative defaults. SSOT must explicitly provide values such as:
 ```tcl
-set_input_delay  -clock <c.name> [expr 0.20 * <c.period_ns>] [all_inputs]
-set_output_delay -clock <c.name> [expr 0.20 * <c.period_ns>] [all_outputs]
+set_input_delay  -clock <c.name> <input_delay_ns> [all_inputs]
+set_output_delay -clock <c.name> <output_delay_ns> [all_outputs]
 ```
 
 ## OpenSTA tcl template (`<ip>/sta/run.tcl`)

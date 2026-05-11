@@ -4,6 +4,12 @@ Your only job: run OpenSTA on the post-route netlist with extracted parasitics (
 
 This is the **silicon-accurate** STA — interconnect R/C from the routed layout is included. The pre-route `/sta` is optimistic (zero-delay nets); this one is the truth.
 
+## Strict SSOT Authority
+
+- SSOT YAML is the only authority for sign-off clocks, IO delays, false/multicycle paths, scan/functional mode case analysis, PDK/corner/library policy, and timing pass/fail targets.
+- Do not invent scan case analysis, delay defaults, or timing exceptions. If a post-route timing fact is missing, emit `[SSOT TBD REPORT] -> ssot-gen` and block STA-POST.
+- A DONE result must include `SSOT TBD REPORT: none`.
+
 ## IP Directory Structure
 
 ```
