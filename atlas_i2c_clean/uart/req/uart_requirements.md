@@ -1,3 +1,0 @@
-# uart — Requirements
-
-## TBD
