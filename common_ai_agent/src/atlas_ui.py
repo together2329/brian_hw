@@ -8907,7 +8907,7 @@ def create_app():
         if _admin_required(request) is None:
             return JSONResponse({"error": "Forbidden"}, status_code=403)
         try:
-            with _atlas_db() as db:
+            with AtlasDB() as db:
                 users = db.list_all_users()
                 counts = db.count_sessions_by_user()
                 for u in users:
@@ -8922,7 +8922,7 @@ def create_app():
         if _admin_required(request) is None:
             return JSONResponse({"error": "Forbidden"}, status_code=403)
         try:
-            with _atlas_db() as db:
+            with AtlasDB() as db:
                 sessions = db.list_all_sessions()
                 return JSONResponse({"sessions": sessions})
         except Exception as e:
@@ -8934,7 +8934,7 @@ def create_app():
         if _admin_required(request) is None:
             return JSONResponse({"error": "Forbidden"}, status_code=403)
         try:
-            with _atlas_db() as db:
+            with AtlasDB() as db:
                 if db.get_session(session_id) is None:
                     return JSONResponse({"error": "session not found"}, status_code=404)
                 db.delete_session(session_id)
@@ -9003,9 +9003,10 @@ def create_app():
             session_id = user["username"]
 
         if _multi_user and session_id != user["username"]:
-            with _atlas_db() as db:
+            with AtlasDB() as db:
                 session = db.get_session(session_id)
-            if not _owns_session(session, user["id"]):
+            owns = bool(session and session.get("user_id") == user["id"])
+            if not owns:
                 await websocket.close(code=1008, reason="forbidden")
                 return
         bridge.bind_client(websocket, session_id)
