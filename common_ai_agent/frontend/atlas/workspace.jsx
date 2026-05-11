@@ -1967,6 +1967,42 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       return;
     }
 
+    // /feedback <text> — drop a message into the feedback table so an
+    // admin can review it in the admin dashboard. Anyone logged in can
+    // submit; the backend tags the row with their user_id.
+    const feedbackMatch = raw.match(/^\/feedback(\s+([\s\S]+))?$/i);
+    if (feedbackMatch) {
+      const text = (feedbackMatch[2] || '').trim();
+      setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      if (!text) {
+        setFeed(f => [...f, {
+          kind: 'agent',
+          text: 'Usage: `/feedback <your message>` — sends a message to the admin team.',
+        }]);
+      } else {
+        fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: text }),
+        })
+          .then(r => r.json())
+          .then(j => setFeed(f => [...f, {
+            kind: 'agent',
+            text: j && j.ok
+              ? `✅ feedback received (id: \`${(j.id || '').slice(0, 8)}\`). Thanks!`
+              : `⚠ feedback failed: ${(j && (j.error || j.detail)) || 'unknown error'}`,
+          }]))
+          .catch(err => setFeed(f => [...f, {
+            kind: 'agent',
+            text: '⚠ feedback request failed: ' + (err && err.message || err),
+          }]));
+      }
+      setStreaming(false);
+      streamBufferRef.current = '';
+      setStreamText('');
+      return;
+    }
+
     setFeed(f => [...f, { kind: 'user', text: raw }]);
     setStreaming(true);
     setStreamText('');

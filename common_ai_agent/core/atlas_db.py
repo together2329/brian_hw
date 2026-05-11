@@ -104,6 +104,21 @@ CREATE TABLE IF NOT EXISTS ws_connections (
     last_ping_at REAL
 );
 
+-- feedback (user-submitted via /feedback slash command,
+-- visible to admins in the admin dashboard)
+CREATE TABLE IF NOT EXISTS feedback (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    content TEXT NOT NULL,
+    status TEXT DEFAULT 'open',
+    created_at REAL,
+    resolved_at REAL,
+    resolved_by TEXT,
+    notes TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_feedback_user ON feedback(user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_feedback_status ON feedback(status, created_at);
+
 -- session_queue (IPC between Atlas UI and agent workers)
 CREATE TABLE IF NOT EXISTS session_queue (
     id TEXT PRIMARY KEY,

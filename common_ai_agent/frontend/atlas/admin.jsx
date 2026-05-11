@@ -2,20 +2,32 @@ function AdminPage() {
   const [users, setUsers] = React.useState([]);
   const [sessions, setSessions] = React.useState([]);
   const [usage, setUsage] = React.useState([]);
+  const [feedback, setFeedback] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
   const [activeTab, setActiveTab] = React.useState('users');
   const [deleting, setDeleting] = React.useState(null);
   const [expandedUsage, setExpandedUsage] = React.useState(null);
+  const [resolving, setResolving] = React.useState(null);
+
+  async function reloadFeedback() {
+    try {
+      const r = await fetch('/api/admin/feedback');
+      if (!r.ok) return;
+      const d = await r.json();
+      setFeedback(d.feedback || []);
+    } catch (_) {}
+  }
 
   React.useEffect(() => {
     async function init() {
       try {
         setLoading(true);
-        const [usersResp, sessionsResp, usageResp] = await Promise.all([
+        const [usersResp, sessionsResp, usageResp, fbResp] = await Promise.all([
           fetch('/api/admin/users'),
           fetch('/api/admin/sessions'),
           fetch('/api/admin/usage'),
+          fetch('/api/admin/feedback'),
         ]);
         if (usersResp.status === 403 || sessionsResp.status === 403 || usageResp.status === 403) {
           setError('Admin access required');
@@ -25,9 +37,11 @@ function AdminPage() {
         const usersData = await usersResp.json();
         const sessionsData = await sessionsResp.json();
         const usageData = usageResp.ok ? await usageResp.json() : { users: [] };
+        const fbData = fbResp.ok ? await fbResp.json() : { feedback: [] };
         setUsers(usersData.users || []);
         setSessions(sessionsData.sessions || []);
         setUsage(usageData.users || []);
+        setFeedback(fbData.feedback || []);
         setError(null);
       } catch (e) {
         setError(String(e));
@@ -37,6 +51,20 @@ function AdminPage() {
     }
     init();
   }, []);
+
+  const handleResolveFeedback = async (fid) => {
+    setResolving(fid);
+    try {
+      const r = await fetch(`/api/admin/feedback/${encodeURIComponent(fid)}/resolve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: '' }),
+      });
+      if (r.ok) await reloadFeedback();
+    } catch (_) {} finally {
+      setResolving(null);
+    }
+  };
 
   const handleDeleteSession = async (sessionId) => {
     if (!window.confirm('Force-delete this session?')) return;
@@ -245,6 +273,9 @@ function AdminPage() {
               <button style={tabStyle(activeTab === 'usage')} onClick={() => setActiveTab('usage')}>
                 Usage ({usage.length})
               </button>
+              <button style={tabStyle(activeTab === 'feedback')} onClick={() => setActiveTab('feedback')}>
+                Feedback ({feedback.filter(f => f.status !== 'resolved').length}/{feedback.length})
+              </button>
             </div>
 
             {activeTab === 'users' && (
@@ -449,6 +480,78 @@ function AdminPage() {
                           );
                         }
                         return rows;
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {activeTab === 'feedback' && (
+              <div style={tableWrapStyle}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr>
+                      <th style={thStyle}>When</th>
+                      <th style={thStyle}>User</th>
+                      <th style={thStyle}>Status</th>
+                      <th style={{ ...thStyle, width: '50%' }}>Message</th>
+                      <th style={thStyle}>Resolved By</th>
+                      <th style={thStyle}>Resolved At</th>
+                      <th style={thStyle}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {feedback.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} style={{ ...tdStyle, ...emptyStateStyle }}>
+                          No feedback yet. Users can submit with <code>/feedback &lt;message&gt;</code> in the chat.
+                        </td>
+                      </tr>
+                    ) : (
+                      feedback.map((f) => {
+                        const open = f.status !== 'resolved';
+                        return (
+                          <tr key={f.id} style={open ? { background: '#191c22' } : { opacity: 0.65 }}>
+                            <td style={tdStyle}>{formatDate(f.created_at)}</td>
+                            <td style={tdStyle}>{f.username || f.user_id.slice(0, 8)}</td>
+                            <td style={tdStyle}>
+                              <span style={{
+                                fontSize: 10,
+                                fontWeight: 600,
+                                textTransform: 'uppercase',
+                                padding: '2px 6px',
+                                borderRadius: 3,
+                                background: open ? '#2a3a4a' : '#1c252f',
+                                color: open ? '#f0c674' : '#7d8590',
+                                border: '1px solid #2a3540',
+                              }}>{f.status}</span>
+                            </td>
+                            <td style={{ ...tdStyle, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                              {f.content}
+                            </td>
+                            <td style={tdStyle}>{f.resolved_by || '—'}</td>
+                            <td style={tdStyle}>{f.resolved_at ? formatDate(f.resolved_at) : '—'}</td>
+                            <td style={tdStyle}>
+                              {open && (
+                                <button
+                                  onClick={() => handleResolveFeedback(f.id)}
+                                  disabled={resolving === f.id}
+                                  style={{
+                                    padding: '4px 10px',
+                                    background: '#2a3540',
+                                    color: '#e6edf3',
+                                    border: '1px solid #3a4550',
+                                    borderRadius: 3,
+                                    cursor: resolving === f.id ? 'wait' : 'pointer',
+                                    fontSize: 11,
+                                  }}>
+                                  {resolving === f.id ? '…' : '✓ Resolve'}
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
                       })
                     )}
                   </tbody>

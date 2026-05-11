@@ -488,12 +488,13 @@ def create_app():
 
     @app.post("/api/control/shutdown")
     async def api_control_shutdown():
-        """HTTP fallback for the UI Exit button."""
-        bridge.emit("error", message="server is shutting down")
-        bridge.emit("done")
-        import os as _os, threading as _t
-        _t.Timer(0.4, lambda: _os._exit(0)).start()
-        return JSONResponse({"ok": True, "action": "shutdown"})
+        """HTTP fallback for the UI Exit button.
+
+        Exit terminates the active session worker only. Atlas UI is the
+        backend server for every browser/user, so it must stay alive.
+        """
+        bridge.exit_active_session()
+        return JSONResponse({"ok": True, "action": "exit_session"})
 
     @app.get("/healthz")
     async def healthz(request: Request):
@@ -9376,6 +9377,79 @@ def create_app():
             print(f"api_admin_usage error: {e}")
             return JSONResponse({"error": str(e)}, status_code=500)
 
+    @app.post("/api/feedback")
+    async def api_feedback_submit(request: Request):
+        """Any logged-in user can drop a feedback message via /feedback
+        slash. Stored in the `feedback` table and surfaced in the admin
+        dashboard's Feedback tab."""
+        user = request.scope.get("user")
+        if not user:
+            return JSONResponse({"error": "login required"}, status_code=401)
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        content = str((body or {}).get("content") or "").strip()
+        if not content:
+            return JSONResponse({"error": "content required"}, status_code=400)
+        if len(content) > 4000:
+            return JSONResponse({"error": "content too long (max 4000 chars)"},
+                                status_code=413)
+        try:
+            import uuid as _uuid
+            with AtlasDB() as db:
+                fid = _uuid.uuid4().hex
+                db._execute(
+                    "INSERT INTO feedback (id, user_id, content, status, created_at) "
+                    "VALUES (?, ?, ?, 'open', ?)",
+                    (fid, user["id"], content, time.time()),
+                )
+            return JSONResponse({"ok": True, "id": fid})
+        except Exception as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
+
+    @app.get("/api/admin/feedback")
+    async def api_admin_feedback(request: Request):
+        """Admin view of every feedback row, joined to the submitter's
+        username for readability."""
+        if _admin_required(request) is None:
+            return JSONResponse({"error": "Forbidden"}, status_code=403)
+        try:
+            with AtlasDB() as db:
+                rows = db._fetchall(
+                    "SELECT f.id, f.user_id, u.username, f.content, f.status, "
+                    "       f.created_at, f.resolved_at, f.resolved_by, f.notes "
+                    "  FROM feedback f "
+                    "  LEFT JOIN users u ON u.id = f.user_id "
+                    " ORDER BY f.created_at DESC"
+                )
+                items = [dict(r) for r in rows]
+            return JSONResponse({"feedback": items})
+        except Exception as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
+
+    @app.post("/api/admin/feedback/{fid}/resolve")
+    async def api_admin_feedback_resolve(fid: str, request: Request):
+        """Mark a feedback item resolved. Body: {notes: str (optional)}."""
+        admin = _admin_required(request)
+        if admin is None:
+            return JSONResponse({"error": "Forbidden"}, status_code=403)
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        notes = str((body or {}).get("notes") or "").strip()
+        try:
+            with AtlasDB() as db:
+                db._execute(
+                    "UPDATE feedback SET status = 'resolved', resolved_at = ?, "
+                    "       resolved_by = ?, notes = ? WHERE id = ?",
+                    (time.time(), admin.get("username", ""), notes, fid),
+                )
+            return JSONResponse({"ok": True})
+        except Exception as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
+
     @app.delete("/api/admin/sessions/{session_id}")
     async def api_admin_delete_session(session_id: str, request: Request):
         if _admin_required(request) is None:
@@ -9678,12 +9752,11 @@ def create_app():
                     bridge.request_stop_for_session(session.session_id)
                     session.emit("agent_state", running=False)
                 elif t == "shutdown":
-                    # Exit button — kill the whole Python process so the
-                    # user's terminal returns to a normal prompt.
-                    session.emit("error", message="server is shutting down")
-                    session.emit("done")
-                    import os as _os, threading as _t
-                    _t.Timer(0.4, lambda: _os._exit(0)).start()
+                    # Exit button — terminate only this session's worker.
+                    # Atlas UI is the shared backend server, so keep it alive.
+                    session.emit("token", text="\n⏹  worker exit requested\n")
+                    session.emit("flush")
+                    bridge.exit_session(session.session_id)
                 # Other types (e.g. run_stage, tool_call) can be wired later
         except WebSocketDisconnect:
             pass
