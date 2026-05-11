@@ -1709,3 +1709,64 @@
 [data-theme="light"] .tool-output-diff code .token.function,
 [data-theme="light"] .tool-output-diff code .token.attr-name,
 [data-theme="light"] .tool-output-diff code .token.key      { color: #1559c7; }
+
+/* ───────── Windows / cross-platform polish ───────── */
+
+/* Slim scrollbars. Windows' native scrollbar is ~16-17 px wide and
+   visually dominates panels that fit in 1920×1080. Both Chromium
+   (WebKit pseudo-elements) and Firefox (`scrollbar-width: thin`) get
+   a narrower, color-themed bar. macOS already overlays the scrollbar
+   so the rules don't affect it visibly. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-2, #2a3540) transparent;
+}
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--line-2, #2a3540);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--fg-mute, #4a5560);
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-corner { background: transparent; }
+
+/* Tabular numerals — give every digit the same advance width so
+   counters / token / cost / time columns don't jitter as values
+   change. Opt-in via the `.tab-nums` utility class. */
+.tab-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "calt" 0;
+}
+
+/* Common targets where digit alignment matters — apply automatically
+   without sprinkling .tab-nums everywhere. */
+.tool-card-ts,
+.dir-select.mini,
+[data-role="cost"],
+[data-role="token-count"],
+[data-role="duration"] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Crisper monospace on Windows. Chromium-on-Windows uses sub-pixel
+   positioning by default which makes Cascadia / Consolas appear
+   slightly fuzzy at small sizes. Forcing `text-rendering: geometricPrecision`
+   on code blocks aligns each glyph to integer pixels — small win,
+   especially in the file preview pane. */
+.code,
+pre,
+code,
+.md-code,
+.tool-card-args {
+  text-rendering: geometricPrecision;
+}

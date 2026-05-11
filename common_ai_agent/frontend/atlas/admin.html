@@ -24,9 +24,72 @@
 <body>
   <div id="scaler"><div id="root"></div></div>
 
-  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <!-- Global error banner — mirrors index.html so admin failures
+       surface visibly instead of leaving a black screen. -->
+  <script>
+    (function () {
+      var box = null;
+      function ensureBox() {
+        if (box) return box;
+        box = document.createElement('div');
+        box.id = 'atlas-error-banner';
+        box.setAttribute('role', 'alert');
+        box.style.cssText = [
+          'position:fixed','top:0','left:0','right:0','z-index:99999',
+          'max-height:35vh','overflow:auto',
+          'background:#3a1414','color:#fde7e7',
+          'border-bottom:1px solid #f87171',
+          'font:12px/1.45 ui-monospace,Consolas,Menlo,monospace',
+          'padding:8px 14px 32px','white-space:pre-wrap','word-break:break-word',
+          'box-shadow:0 6px 18px rgba(0,0,0,0.6)'
+        ].join(';');
+        var close = document.createElement('button');
+        close.textContent = '× dismiss';
+        close.style.cssText = 'position:absolute;right:10px;top:6px;background:transparent;color:#fde7e7;border:1px solid #f87171;border-radius:3px;padding:2px 8px;cursor:pointer;font:inherit';
+        close.onclick = function () { box.remove(); box = null; };
+        box.appendChild(close);
+        document.body.appendChild(box);
+        return box;
+      }
+      function append(label, detail) {
+        var b = ensureBox();
+        var line = document.createElement('div');
+        line.style.marginRight = '120px';
+        line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + label + ': ' + detail;
+        b.appendChild(line);
+      }
+      window.addEventListener('error', function (ev) {
+        if (ev.target && (ev.target.src || ev.target.href) && ev.target !== window) {
+          append('script load failed', (ev.target.src || ev.target.href));
+          return;
+        }
+        append('uncaught', (ev.error && (ev.error.stack || ev.error.message)) || ev.message || 'unknown');
+      }, true);
+      window.addEventListener('unhandledrejection', function (ev) {
+        var r = ev.reason;
+        append('unhandled promise', (r && (r.stack || r.message)) || String(r));
+      });
+      var origErr = console.error.bind(console);
+      console.error = function () {
+        try {
+          var parts = Array.prototype.map.call(arguments, function (a) {
+            if (a instanceof Error) return a.stack || a.message;
+            if (typeof a === 'object') return JSON.stringify(a);
+            return String(a);
+          });
+          append('console.error', parts.join(' '));
+        } catch (_) {}
+        origErr.apply(null, arguments);
+      };
+      window.__atlasReportError = append;
+    })();
+  </script>
+
+  <!-- SRI integrity= removed for Windows MITM proxy compatibility
+       (see index.html for full context). -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
 
   <script type="text/babel" data-presets="react" src="admin.jsx?v=atlas-multiuser"></script>
 
