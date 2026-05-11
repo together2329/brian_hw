@@ -3230,6 +3230,19 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
               }}
             >debug</span>
+            <span
+              className="tab-chip"
+              onClick={() => setMainTab('git')}
+              title="Git: per-IP commit history graph + revert"
+              style={{
+                cursor: 'pointer',
+                padding: '2px 8px', borderRadius: 2, marginLeft: 4,
+                color: mainTab === 'git' ? 'var(--accent)' : 'var(--fg-mute)',
+                background: mainTab === 'git' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                border: '1px solid ' + (mainTab === 'git' ? 'var(--accent)' : 'transparent'),
+                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+              }}
+            >git</span>
             <span className="mute" style={{ margin: '0 6px' }}>·</span>
             {mainTab === 'chat' ? (
               // Everything in the previous chain (intent badge, workflow
@@ -3354,6 +3367,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             ) : (
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-mute)' }}>
                 Debug · loading…
+              </div>
+            )
+          ) : mainTab === 'git' ? (
+            window.GitTab ? (
+              <ErrorBoundary label="Git">
+                <window.GitTab
+                  initialIp={(() => {
+                    const segs = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+                    return segs.length >= 2 ? segs[1] : (window.ACTIVE_IP || '');
+                  })()}
+                />
+              </ErrorBoundary>
+            ) : (
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-mute)' }}>
+                Git · loading…
               </div>
             )
           ) : (

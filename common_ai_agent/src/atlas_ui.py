@@ -935,6 +935,51 @@ def create_app():
         except Exception as exc:
             return JSONResponse({"error": str(exc)}, status_code=500)
 
+    @app.get("/api/ip/{name}/git/graph")
+    async def api_ip_git_graph(name: str, limit: int = 80):
+        """ASCII graph of the per-IP commit history. Returns the raw
+        `git log --graph --oneline --decorate --all` text plus a parsed
+        commit list so the frontend can render either a monospaced graph
+        or a structured list."""
+        resolved = _resolve_ip_path(name)
+        if isinstance(resolved, tuple):
+            _, err = resolved
+            return err
+        target = resolved
+        try:
+            import subprocess as _sp
+            limit = max(1, min(int(limit or 80), 1000))
+            graph = _sp.run(
+                ["git", "log", "--graph", "--oneline", "--decorate", "--all",
+                 "--date=relative", f"-n{limit}",
+                 "--pretty=format:%h %s%d (%cr)"],
+                cwd=str(target), capture_output=True, timeout=10, check=False,
+            )
+            structured = _sp.run(
+                ["git", "log", f"-n{limit}",
+                 "--pretty=format:%H\x1f%h\x1f%an\x1f%at\x1f%s\x1f%P"],
+                cwd=str(target), capture_output=True, timeout=10, check=False,
+            )
+            commits = []
+            for line in structured.stdout.decode("utf-8", "replace").splitlines():
+                parts = line.split("\x1f")
+                if len(parts) >= 5:
+                    commits.append({
+                        "hash":    parts[0],
+                        "short":   parts[1],
+                        "author":  parts[2],
+                        "time":    float(parts[3]) if parts[3].isdigit() else 0,
+                        "subject": parts[4],
+                        "parents": (parts[5].split() if len(parts) >= 6 else []),
+                    })
+            return JSONResponse({
+                "ip": name,
+                "graph": graph.stdout.decode("utf-8", "replace"),
+                "commits": commits,
+            })
+        except Exception as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
+
     @app.post("/api/ip/{name}/git/revert")
     async def api_ip_git_revert(name: str, request: Request):
         """Restore the working tree to a previous commit (hard reset)."""
