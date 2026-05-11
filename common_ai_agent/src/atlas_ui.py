@@ -164,10 +164,16 @@ def create_app():
 
     app = FastAPI(title="ATLAS · common_ai_agent")
     _multi_user_env = os.environ.get("ATLAS_MULTI_USER", "").lower() in ("1", "true", "yes")
-    if _multi_user_env:
-        os.environ["ATLAS_MULTI_USER_PROC"] = "1"
-        print("[atlas] Multi-user enabled: forcing process isolation (ATLAS_MULTI_USER_PROC=1)")
+    # Process-per-session is opt-in only. The previous code auto-forced
+    # ATLAS_MULTI_USER_PROC=1 whenever multi-user was on, but the bridge's
+    # WS path never actually fires SessionProcessManager.spawn for logged-in
+    # users — chat_loop runs in the main process either way. The auto-force
+    # was visible in logs ("forcing process isolation") but did nothing
+    # useful and risked breaking Windows where subprocess spawn has more
+    # failure modes. Keep it strictly opt-in.
     _use_proc = os.environ.get("ATLAS_MULTI_USER_PROC", "").lower() in ("1", "true", "yes")
+    if _multi_user_env:
+        print(f"[atlas] Multi-user enabled (process_per_session={'on' if _use_proc else 'off'})")
     # single_user collapses every WS-bound session_id onto "default" so
     # the agent thread's inbox and the WS handler's inbox are the same.
     bridge = _MultiUserBridge(single_user=not _multi_user_env, use_processes=_use_proc)
@@ -179,7 +185,7 @@ def create_app():
 
     def _queue_prompt_for_session(client_session: Any | None, text: str) -> None:
         if client_session is not None:
-            client_session.queue_prompt(text)
+            bridge.queue_prompt_for_session(client_session.session_id, text)
             return
         bridge.queue_prompt(text)
 
@@ -9173,7 +9179,7 @@ def create_app():
                         #     across turns. Without this submit, the
                         #     UI's "● NORMAL" pill could click without
                         #     ever telling main.py to flip — desync.
-                        session.submit_prompt(_txt)
+                        bridge.submit_prompt_for_session(session.session_id, _txt)
                         continue
 
                     # `y` / `yc` / `yes` / `confirm` mid-loop while agent
@@ -9196,7 +9202,8 @@ def create_app():
                         # Inject an instruction so the agent knows to start
                         # executing the agreed-upon plan. This goes to
                         # _interrupts (since agent is running), fed mid-loop.
-                        session.submit_prompt(
+                        bridge.submit_prompt_for_session(
+                            session.session_id,
                             "Confirmed. Execute all tasks in order. "
                             "For EACH task: todo_update(in_progress) → do work "
                             "→ todo_update(completed) → verify → todo_update(approved)."
@@ -9219,11 +9226,11 @@ def create_app():
                                 "Keep code, file paths, commands, signal names, protocol names, and exact identifiers unchanged.\n\n"
                                 + _txt
                             )
-                    session.submit_prompt(_txt)
+                    bridge.submit_prompt_for_session(session.session_id, _txt)
                 elif t == "interrupt":
-                    session.submit_prompt(msg.get("text", ""))
+                    bridge.submit_interrupt_for_session(session.session_id, msg.get("text", ""))
                 elif t == "answer" and msg.get("flow_id"):
-                    accepted = session.submit_answer(msg["flow_id"], msg)
+                    accepted = bridge.submit_answer_for_session(session.session_id, msg["flow_id"], msg)
                     if accepted:
                         session.emit("agent_state", running=True)
                     else:
@@ -9241,7 +9248,7 @@ def create_app():
                     # before the agent thread gets to its next poll.
                     session.emit("token", text="\n⏹  stop received\n")
                     session.emit("flush")
-                    session.request_stop()
+                    bridge.request_stop_for_session(session.session_id)
                     session.emit("agent_state", running=False)
                 elif t == "shutdown":
                     # Exit button — kill the whole Python process so the

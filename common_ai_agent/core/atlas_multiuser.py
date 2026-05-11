@@ -384,20 +384,14 @@ class _MultiUserBridge:
     def queue_prompt(self, text: str) -> None:
         if self._process_manager is not None:
             session = self._active_session()
-            self._process_manager.spawn(session.session_id)
-            session.agent_running = True
-            session.agent_alive = True
-            self._process_manager.send_input(session.session_id, "prompt", {"text": text})
+            self.queue_prompt_for_session(session.session_id, text)
             return
         self._active_session().queue_prompt(text)
 
     def submit_prompt(self, text: str) -> None:
         if self._process_manager is not None:
             session = self._active_session()
-            self._process_manager.spawn(session.session_id)
-            session.agent_running = True
-            session.agent_alive = True
-            self._process_manager.send_input(session.session_id, "prompt", {"text": text})
+            self.submit_prompt_for_session(session.session_id, text)
             return
         session = self._active_session()
         session._stop_flag = False
@@ -408,6 +402,71 @@ class _MultiUserBridge:
         # so a stuck LLM HTTP call would otherwise strand user input
         # forever. _inbox is consumed between turns, guaranteed.
         session._inbox.put(text)
+
+    def _send_process_input_for_session(
+        self,
+        session_id: str | None,
+        msg_type: str,
+        payload: dict[str, Any] | None = None,
+        *,
+        spawn: bool = False,
+    ) -> bool:
+        manager = self._process_manager
+        if manager is None:
+            return False
+        session = self._ensure_session(session_id)
+        if spawn:
+            manager.spawn(session.session_id)
+            session.agent_alive = True
+            session.agent_running = True
+        msg_id = manager.send_input(session.session_id, msg_type, payload or {})
+        session.touch()
+        return msg_id is not None
+
+    def queue_prompt_for_session(self, session_id: str | None, text: str) -> None:
+        if self._process_manager is not None:
+            self._send_process_input_for_session(
+                session_id, "prompt", {"text": text}, spawn=True
+            )
+            return
+        self._ensure_session(session_id).queue_prompt(text)
+
+    def submit_prompt_for_session(self, session_id: str | None, text: str) -> None:
+        if self._process_manager is not None:
+            self._send_process_input_for_session(
+                session_id, "prompt", {"text": text}, spawn=True
+            )
+            return
+        session = self._ensure_session(session_id)
+        session._stop_flag = False
+        if self._agent_starter is not None:
+            session.set_agent_starter(self._agent_starter)
+        session.ensure_agent_alive()
+        session.touch()
+        session._inbox.put(text)
+
+    def submit_interrupt_for_session(self, session_id: str | None, text: str) -> None:
+        if self._process_manager is not None:
+            self._send_process_input_for_session(
+                session_id, "interrupt", {"text": text}, spawn=True
+            )
+            return
+        self._ensure_session(session_id)._interrupts.put(text)
+
+    def submit_answer_for_session(self, session_id: str | None, flow_id: str, payload: dict[str, Any]) -> bool:
+        if self._process_manager is not None:
+            body = dict(payload or {})
+            body.setdefault("flow_id", flow_id)
+            return self._send_process_input_for_session(
+                session_id, "answer", body, spawn=False
+            )
+        return self._ensure_session(session_id).submit_answer(flow_id, payload)
+
+    def request_stop_for_session(self, session_id: str | None) -> None:
+        if self._process_manager is not None:
+            self._send_process_input_for_session(session_id, "stop", {}, spawn=False)
+            return
+        self._ensure_session(session_id).request_stop()
 
     def submit_answer(self, flow_id: str, payload: dict[str, Any]) -> bool:
         return self._active_session().submit_answer(flow_id, payload)

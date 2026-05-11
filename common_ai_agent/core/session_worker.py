@@ -166,7 +166,7 @@ class SessionWorker:
         payload: dict[str, Any] = {"text": text}
         if cls:
             payload["cls"] = cls
-        self.emit("content", payload)
+        self.emit("token", payload)
 
     def emit_reasoning(self, text: str, blank: bool = False) -> None:
         self.emit("reasoning", {"text": text, "blank": bool(blank)})
