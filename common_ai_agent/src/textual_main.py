@@ -338,13 +338,24 @@ if __name__ == "__main__":
     if _args.admin:
         try:
             import atexit as _atexit
+            import os as _os_admin
             import subprocess as _sp_admin
             import sys as _sys_admin
             _admin_port = str(_args.admin).strip() or "3002"
+            # Invoke atlas_admin.py by absolute path — it self-bootstraps
+            # its PYTHONPATH from __file__, so `python <path>/atlas_admin.py`
+            # works regardless of caller cwd. `python -m src.atlas_admin`
+            # broke whenever the spawning shell's cwd didn't expose a
+            # `src/` package on sys.path.
+            _admin_script = _os_admin.path.join(
+                _os_admin.path.dirname(_os_admin.path.abspath(__file__)),
+                "atlas_admin.py",
+            )
             _admin_proc = _sp_admin.Popen(
-                [_sys_admin.executable, "-m", "src.atlas_admin",
+                [_sys_admin.executable, _admin_script,
                  "--port", _admin_port, "--host", "127.0.0.1"],
                 stdout=None, stderr=None,
+                cwd=_os_admin.path.dirname(_os_admin.path.dirname(_admin_script)),
             )
             _atexit.register(lambda p=_admin_proc: (p.terminate() if p.poll() is None else None))
             print(f"\n  [admin] launched standalone admin server → http://127.0.0.1:{_admin_port}/admin", flush=True)
