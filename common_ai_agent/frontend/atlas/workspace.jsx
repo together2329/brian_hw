@@ -2074,21 +2074,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     subs.push(window.backend.subscribe('peer_left', (m) => {
       setPeerCount(m.peers || 1);
     }));
-    // Coalesce token chunks into one React update per animation frame.
-    // Backends emit dozens of small frames per turn; calling
-    // setStreamText on every frame triggered a re-render per chunk and
-    // the chat UI fell several seconds behind the actual stream. Batch
-    // through a single rAF flush.
-    let _streamRaf = 0;
+    // Coalesce token chunks into a small fixed cadence. The live preview
+    // renders this state, so requestAnimationFrame can become too chatty
+    // during dense token bursts; 50 ms stays visibly live without forcing
+    // a React commit for every WebSocket frame.
+    let _streamTimer = 0;
+    const STREAM_FLUSH_MS = 50;
     const _flushStream = () => {
-      _streamRaf = 0;
+      _streamTimer = 0;
       setStreamText(streamBufferRef.current);
     };
     subs.push(window.backend.subscribe('token', (m) => {
       const t = m.text || '';
       if (!t || t === '\x00') return;
       streamBufferRef.current += t;
-      if (!_streamRaf) _streamRaf = requestAnimationFrame(_flushStream);
+      if (!_streamTimer) _streamTimer = setTimeout(_flushStream, STREAM_FLUSH_MS);
     }));
     // Reasoning chunks come one-per-sentence; the previous handler
     // setFeed'd on every chunk, so 10 sentences = 10 React re-renders
@@ -2378,7 +2378,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     subs.push(window.backend.subscribe('ask_user_answered', closeAskUser));
     subs.push(window.backend.subscribe('ask_user_closed', closeAskUser));
     subs.push(window.backend.subscribe('ssot_qa_updated', (m) => refreshSsotQa(m && m.session)));
-    return () => subs.forEach(u => u && u());
+    return () => {
+      if (_streamTimer) clearTimeout(_streamTimer);
+      if (_reasonRaf) cancelAnimationFrame(_reasonRaf);
+      subs.forEach(u => u && u());
+    };
   }, [activateAskUserSession, refreshSsotQa]);
 
   const navigateInputHistory = (delta) => {
@@ -2855,11 +2859,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   const renderChatPane = (style = {}) => (
     <div ref={feedRef} style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '14px 18px', ...style }}>
       {renderFeedEntries()}
-      {/* Streaming preview removed — used to render the in-progress
-          buffer as plain text, then the same text reappeared as a
-          markdown-rendered 'agent' entry on flush, with very different
-          line spacing. The status strip already signals work-in-progress;
-      the final clean markdown lands once when the buffer parks. */}
+      <LiveAgentPreview text={streamText} />
     </div>
   );
   const renderPromptRow = () => (
@@ -3980,6 +3980,28 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
 // ToolCard. action/obs are immutable per turn so reference equality is
 // the right comparator.
 const ToolCard = React.memo(_ToolCardRaw);
+
+const LiveAgentPreview = React.memo(({ text }) => {
+  const body = String(text || '');
+  if (!body.trim()) return null;
+  return (
+    <div className="has-hover-affordance" style={{ padding: '8px 0 12px', marginBottom: 4, position: 'relative' }}>
+      <span className="ok" style={{ fontWeight: 600, marginRight: 8,
+        fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Agent</span>
+      <span className="ts-pill">streaming</span>
+      <div
+        className="md-agent"
+        style={{
+          marginTop: 4,
+          whiteSpace: 'pre-wrap',
+          overflowWrap: 'anywhere',
+        }}
+      >
+        {body}
+      </div>
+    </div>
+  );
+});
 
 const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, dir, summaryMode = true }) => {
   if (entry.kind === 'user') {

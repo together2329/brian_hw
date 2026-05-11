@@ -1,4 +1,6 @@
 import asyncio
+import threading
+import time
 
 from core.atlas_multiuser import _MultiUserBridge
 
@@ -61,10 +63,31 @@ def test_queue_prompt():
     print("PASS: queue_prompt")
 
 
+def test_next_event_wakes_for_late_non_default_event():
+    bridge = _MultiUserBridge()
+    session = bridge._ensure_session("user-a")
+
+    def emit_later():
+        time.sleep(0.05)
+        session.emit("token", text="late")
+
+    thread = threading.Thread(target=emit_later)
+    thread.start()
+    started = time.monotonic()
+    msg, sid = asyncio.get_event_loop().run_until_complete(bridge.next_event(timeout=0.5))
+    elapsed = time.monotonic() - started
+    thread.join(timeout=1)
+    assert sid == "user-a"
+    assert msg and msg.get("text") == "late"
+    assert elapsed < 0.2, f"next_event took too long: {elapsed:.3f}s"
+    print("PASS: next_event late non-default event")
+
+
 if __name__ == "__main__":
     test_session_isolation()
     test_client_binding()
     test_active_session_delegation()
     test_msg_id_dedup()
     test_queue_prompt()
+    test_next_event_wakes_for_late_non_default_event()
     print("ALL INTEGRATION TESTS PASSED")

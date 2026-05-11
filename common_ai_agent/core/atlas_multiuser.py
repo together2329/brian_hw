@@ -529,24 +529,26 @@ class _MultiUserBridge:
     def msg_id_seen(self, msg_id: str) -> bool:
         return self._active_session().msg_id_seen(msg_id)
 
-    async def next_event(self, timeout: float = 0.25) -> tuple[dict[str, Any] | None, str | None]:
+    async def next_event(self, timeout: float = 0.05) -> tuple[dict[str, Any] | None, str | None]:
         loop = asyncio.get_event_loop()
 
         def _poll():
-            if self._process_manager is not None:
-                self._poll_process_outputs()
-            with self._sessions_lock:
-                sessions = list(self._sessions.values())
-            for sess in sessions:
-                try:
-                    evt = sess._outbox.get_nowait()
-                    return evt, sess.session_id
-                except queue.Empty:
-                    continue
-            try:
-                return self._default_session._outbox.get(timeout=timeout), "default"
-            except queue.Empty:
-                return None, None
+            deadline = time.monotonic() + max(float(timeout or 0), 0.0)
+            while True:
+                if self._process_manager is not None:
+                    self._poll_process_outputs()
+                with self._sessions_lock:
+                    sessions = list(self._sessions.values())
+                for sess in sessions:
+                    try:
+                        evt = sess._outbox.get_nowait()
+                        return evt, sess.session_id
+                    except queue.Empty:
+                        continue
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    return None, None
+                time.sleep(min(0.01, remaining))
 
         return await loop.run_in_executor(None, _poll)
 
