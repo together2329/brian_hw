@@ -14,7 +14,7 @@ import asyncio
 import re
 import subprocess as _sp_git
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable, Optional
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -35,7 +35,7 @@ def register_git_routes(
     module is imported.
     """
 
-    async def _git(*args, check_root: bool = True, cwd: str | None = None):
+    async def _git(*args: str, cwd: str | None = None):
         # `cwd` lets callers target the per-IP repo (PROJECT_ROOT/<ip>)
         # instead of the outer project repo. Defaults to PROJECT_ROOT
         # for backwards compatibility with existing /api/git/* paths.
@@ -54,19 +54,38 @@ def register_git_routes(
                 return 127, "", "git executable not found"
         return await asyncio.to_thread(_run_git)
 
-    def _git_cwd_for_ip(ip: str) -> str:
-        """Resolve the cwd for a per-IP git repo. Falls back to
-        PROJECT_ROOT when `ip` is empty or its dir has no `.git`."""
-        if not ip or not valid_ip_name(ip):
-            return str(project_root())
-        candidate = project_root() / ip
-        if (candidate / ".git").is_dir():
-            return str(candidate)
-        return str(project_root())
+    def _git_cwd_for_ip(ip: str) -> tuple[str | None, JSONResponse | None, str]:
+        """Resolve the cwd for a per-IP git repo.
+
+        Empty IP keeps the legacy project-root git view. A non-empty IP is
+        explicit user intent, so never fall back to PROJECT_ROOT: returning the
+        outer repo for a missing per-IP repo makes commit/push hit the wrong
+        repository.
+        """
+        clean = str(ip or "").strip()
+        if not clean:
+            return str(project_root()), None, ""
+        if not valid_ip_name(clean):
+            return None, JSONResponse({"error": "invalid ip", "ip": clean}, status_code=400), clean
+        candidate = (project_root() / clean).resolve()
+        try:
+            candidate.relative_to(project_root().resolve())
+        except ValueError:
+            return None, JSONResponse({"error": "ip path escapes project root", "ip": clean}, status_code=400), clean
+        if not candidate.is_dir():
+            return None, JSONResponse({"error": "ip not found", "ip": clean}, status_code=404), clean
+        if not (candidate / ".git").is_dir():
+            return None, JSONResponse({"error": "ip has no .git", "ip": clean}, status_code=409), clean
+        return str(candidate), None, clean
+
+    def _route_cwd(ip: str) -> tuple[str | None, JSONResponse | None, str]:
+        return _git_cwd_for_ip(ip or active_ip_value())
 
     @app.get("/api/git/status")
     async def api_git_status(ip: str = ""):
-        cwd = _git_cwd_for_ip(ip or active_ip_value())
+        cwd, error, resolved_ip = _route_cwd(ip)
+        if error is not None:
+            return error
         rc, branch, _ = await _git("rev-parse", "--abbrev-ref", "HEAD", cwd=cwd)
         branch = branch.strip() if rc == 0 else ""
         rc, out, err = await _git("status", "--porcelain=v1", "--branch", cwd=cwd)
@@ -108,13 +127,14 @@ def register_git_routes(
             ns = numstat.get(f["path"])
             if ns: f.update(ns)
         return JSONResponse({"branch": branch, "ahead": ahead,
-                              "behind": behind, "files": files})
+                              "behind": behind, "files": files,
+                              "ip": resolved_ip, "cwd": cwd})
 
     @app.get("/api/git/log")
     async def api_git_log(ip: str = "", limit: int = 60):
-        cwd = _git_cwd_for_ip(ip or active_ip_value())
-        if not (Path(cwd) / ".git").is_dir():
-            return JSONResponse({"commits": [], "branch": "", "ip": ip})
+        cwd, error, resolved_ip = _route_cwd(ip)
+        if error is not None:
+            return error
         rc, branch, _ = await _git("rev-parse", "--abbrev-ref", "HEAD", cwd=cwd)
         branch = branch.strip() if rc == 0 else ""
         fmt = "%H%x1f%h%x1f%an%x1f%ae%x1f%aI%x1f%s%x1e"
@@ -127,7 +147,7 @@ def register_git_routes(
         if rc != 0:
             return JSONResponse({
                 "error": err.strip() or "git log failed",
-                "commits": [], "branch": branch, "ip": ip,
+                "commits": [], "branch": branch, "ip": resolved_ip,
             }, status_code=200)
         commits = []
         for record in out.split("\x1e"):
@@ -186,63 +206,78 @@ def register_git_routes(
                     c["files"] = s.get("files", 0)
         return JSONResponse({
             "commits": commits, "branch": branch,
-            "ip": ip, "cwd": cwd,
+            "ip": resolved_ip, "cwd": cwd,
         })
 
     @app.get("/api/git/show")
     async def api_git_show(sha: str, ip: str = ""):
         if not sha or not re.match(r"^[0-9a-f]{4,40}$", sha):
             return JSONResponse({"error": "invalid sha"}, status_code=400)
-        cwd = _git_cwd_for_ip(ip or active_ip_value())
+        cwd, error, resolved_ip = _route_cwd(ip)
+        if error is not None:
+            return error
         rc, out, err = await _git("show", sha, "--no-color", "--unified=3", cwd=cwd)
         if rc != 0:
             return JSONResponse({
                 "error": err.strip() or f"git show {sha} failed",
                 "diff": "",
             }, status_code=200)
-        return JSONResponse({"sha": sha, "diff": out})
+        return JSONResponse({"sha": sha, "diff": out, "ip": resolved_ip})
 
     @app.get("/api/git/diff")
-    async def api_git_diff(path: str = "", staged: int = 0):
+    async def api_git_diff(path: str = "", staged: int = 0, ip: str = ""):
+        cwd, error, resolved_ip = _route_cwd(ip)
+        if error is not None:
+            return error
         if not path:
             rc, out, err = await _git(
                 "diff" if not staged else "diff",
                 "--cached" if staged else "HEAD",
+                cwd=cwd,
             )
         else:
             args = ["diff"]
             if staged: args.append("--cached")
             args.append("--")
             args.append(path)
-            rc, out, err = await _git(*args)
+            rc, out, err = await _git(*args, cwd=cwd)
         if rc != 0 and not out:
             return JSONResponse({"error": err.strip() or "diff failed",
                                   "diff": ""}, status_code=200)
-        return JSONResponse({"diff": out, "path": path})
+        return JSONResponse({"diff": out, "path": path, "ip": resolved_ip})
 
     @app.post("/api/git/commit")
-    async def api_git_commit(payload: dict):
-        message = (payload or {}).get("message", "").strip()
+    async def api_git_commit(payload: dict[str, Any]):
+        body = payload or {}
+        message = str(body.get("message", "")).strip()
         add_all = bool((payload or {}).get("add_all", True))
         if not message:
             return JSONResponse({"error": "commit message required"},
                                  status_code=400)
+        cwd, error, resolved_ip = _route_cwd(str(body.get("ip") or ""))
+        if error is not None:
+            return error
         if add_all:
-            rc, _, err = await _git("add", "-A")
+            rc, _, err = await _git("add", "-A", cwd=cwd)
             if rc != 0:
                 return JSONResponse({"error": "git add -A failed: " + err.strip()},
                                      status_code=200)
-        rc, out, err = await _git("commit", "-m", message)
+        rc, out, err = await _git("commit", "-m", message, cwd=cwd)
         return JSONResponse({"ok": rc == 0, "stdout": out, "stderr": err,
-                              "returncode": rc})
+                              "returncode": rc, "ip": resolved_ip})
 
     @app.post("/api/git/push")
-    async def api_git_push(payload: dict = None):
-        rc, branch, _ = await _git("rev-parse", "--abbrev-ref", "HEAD")
+    async def api_git_push(payload: Optional[dict[str, Any]] = None):
+        body = payload or {}
+        cwd, error, resolved_ip = _route_cwd(str(body.get("ip") or ""))
+        if error is not None:
+            return error
+        rc, branch, _ = await _git("rev-parse", "--abbrev-ref", "HEAD", cwd=cwd)
         branch = branch.strip()
         if not branch or branch == "HEAD":
             return JSONResponse({"error": "no current branch (detached HEAD?)"},
                                  status_code=400)
-        rc, out, err = await _git("push", "origin", branch)
+        rc, out, err = await _git("push", "origin", branch, cwd=cwd)
         return JSONResponse({"ok": rc == 0, "stdout": out, "stderr": err,
-                              "branch": branch, "returncode": rc})
+                              "branch": branch, "returncode": rc,
+                              "ip": resolved_ip})
