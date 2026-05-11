@@ -2,6 +2,8 @@ function AdminPage() {
   const [users, setUsers] = React.useState([]);
   const [sessions, setSessions] = React.useState([]);
   const [usage, setUsage] = React.useState([]);
+  const [costContexts, setCostContexts] = React.useState([]);
+  const [dateCosts, setDateCosts] = React.useState([]);
   const [feedback, setFeedback] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
@@ -41,6 +43,8 @@ function AdminPage() {
         setUsers(usersData.users || []);
         setSessions(sessionsData.sessions || []);
         setUsage(usageData.users || []);
+        setCostContexts(usageData.cost_by_context || []);
+        setDateCosts(usageData.cost_by_date || []);
         setFeedback(fbData.feedback || []);
         setError(null);
       } catch (e) {
@@ -172,6 +176,7 @@ function AdminPage() {
     border: '1px solid #2a3540',
     borderRadius: 10,
     overflow: 'hidden',
+    overflowX: 'auto',
   };
 
   const tableStyle = {
@@ -238,6 +243,10 @@ function AdminPage() {
     }
   };
 
+  const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString());
+  const usd = (n) => (n == null ? '—' : `$${Number(n).toFixed(4)}`);
+  const shortId = (value) => String(value || '').slice(0, 8) || '—';
+
   return (
     <div style={pageStyle}>
       <header style={headerStyle}>
@@ -272,6 +281,9 @@ function AdminPage() {
               </button>
               <button style={tabStyle(activeTab === 'usage')} onClick={() => setActiveTab('usage')}>
                 Usage ({usage.length})
+              </button>
+              <button style={tabStyle(activeTab === 'costs')} onClick={() => setActiveTab('costs')}>
+                Costs ({costContexts.length})
               </button>
               <button style={tabStyle(activeTab === 'feedback')} onClick={() => setActiveTab('feedback')}>
                 Feedback ({feedback.filter(f => f.status !== 'resolved').length}/{feedback.length})
@@ -405,8 +417,6 @@ function AdminPage() {
                       </tr>
                     ) : (
                       usage.flatMap((u) => {
-                        const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString());
-                        const usd = (n) => (n == null ? '—' : `$${Number(n).toFixed(4)}`);
                         const expanded = expandedUsage === u.user_id;
                         const rows = [
                           <tr key={u.user_id}
@@ -484,6 +494,99 @@ function AdminPage() {
                     )}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {activeTab === 'costs' && (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))',
+                gap: 18,
+                alignItems: 'start',
+              }}>
+                <div style={tableWrapStyle}>
+                  <div style={{ padding: '12px 14px', borderBottom: '1px solid #2a3540',
+                                background: '#1c252f', color: '#f0c674',
+                                fontSize: 12, fontWeight: 700, textTransform: 'uppercase',
+                                letterSpacing: '0.06em' }}>
+                    Cost by IP / Workspace
+                  </div>
+                  <table style={tableStyle}>
+                    <thead>
+                      <tr>
+                        <th style={thStyle}>IP / Project</th>
+                        <th style={thStyle}>Workspace</th>
+                        <th style={thStyle}>Session</th>
+                        <th style={thStyle}>User</th>
+                        <th style={thStyle}>Calls</th>
+                        <th style={thStyle}>Tokens</th>
+                        <th style={thStyle}>Cost</th>
+                        <th style={thStyle}>Last</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {costContexts.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} style={{ ...tdStyle, ...emptyStateStyle }}>No cost data yet.</td>
+                        </tr>
+                      ) : (
+                        costContexts.map((row) => (
+                          <tr key={`${row.session_id || ''}-${row.ip}-${row.workspace}`}>
+                            <td style={tdStyle}>{row.ip || 'unknown'}</td>
+                            <td style={tdStyle}>{row.workspace || 'default'}</td>
+                            <td style={tdStyle} title={row.session_id || ''}>
+                              {row.session || shortId(row.session_id)}
+                            </td>
+                            <td style={tdStyle}>{row.username || 'unknown'}</td>
+                            <td style={tdStyle}>{fmt(row.calls)}</td>
+                            <td style={tdStyle}>{fmt(row.tokens)}</td>
+                            <td style={tdStyle}>{usd(row.cost)}</td>
+                            <td style={tdStyle}>{formatDate(row.last_message_at)}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div style={tableWrapStyle}>
+                  <div style={{ padding: '12px 14px', borderBottom: '1px solid #2a3540',
+                                background: '#1c252f', color: '#f0c674',
+                                fontSize: 12, fontWeight: 700, textTransform: 'uppercase',
+                                letterSpacing: '0.06em' }}>
+                    Cost by Date
+                  </div>
+                  <table style={tableStyle}>
+                    <thead>
+                      <tr>
+                        <th style={thStyle}>Date</th>
+                        <th style={thStyle}>IP / Project</th>
+                        <th style={thStyle}>Workspace</th>
+                        <th style={thStyle}>Calls</th>
+                        <th style={thStyle}>Tokens</th>
+                        <th style={thStyle}>Cost</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dateCosts.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} style={{ ...tdStyle, ...emptyStateStyle }}>No daily cost data yet.</td>
+                        </tr>
+                      ) : (
+                        dateCosts.map((row) => (
+                          <tr key={`${row.day}-${row.session_id || ''}-${row.ip}-${row.workspace}`}>
+                            <td style={tdStyle}>{row.day || 'unknown'}</td>
+                            <td style={tdStyle}>{row.ip || 'unknown'}</td>
+                            <td style={tdStyle}>{row.workspace || 'default'}</td>
+                            <td style={tdStyle}>{fmt(row.calls)}</td>
+                            <td style={tdStyle}>{fmt(row.tokens)}</td>
+                            <td style={tdStyle}>{usd(row.cost)}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 

@@ -9337,64 +9337,8 @@ def create_app():
             return JSONResponse({"error": "Forbidden"}, status_code=403)
         try:
             with AtlasDB() as db:
-                totals_sql = (
-                    "SELECT u.id AS user_id, u.username, u.role, "
-                    "       u.created_at, u.last_login_at, "
-                    "       COUNT(DISTINCT s.id) AS session_count, "
-                    "       COUNT(m.id) AS message_count, "
-                    "       COALESCE(SUM(m.cost), 0) AS total_cost_usd, "
-                    "       COALESCE(SUM(m.tokens_input), 0) AS tokens_in, "
-                    "       COALESCE(SUM(m.tokens_output), 0) AS tokens_out, "
-                    "       COALESCE(SUM(m.tokens_reasoning), 0) AS tokens_reasoning, "
-                    "       MAX(m.created_at) AS last_message_at "
-                    "  FROM users u "
-                    "  LEFT JOIN sessions s ON s.user_id = u.id "
-                    "  LEFT JOIN messages m ON m.session_id = s.id "
-                    " GROUP BY u.id, u.username, u.role, u.created_at, u.last_login_at "
-                    " ORDER BY total_cost_usd DESC, message_count DESC"
-                )
-                models_sql = (
-                    "SELECT s.user_id, m.model_id, "
-                    "       COUNT(*) AS calls, "
-                    "       COALESCE(SUM(m.cost), 0) AS cost, "
-                    "       COALESCE(SUM(m.tokens_input + m.tokens_output), 0) AS tokens "
-                    "  FROM messages m "
-                    "  JOIN sessions s ON s.id = m.session_id "
-                    " WHERE m.model_id IS NOT NULL AND m.model_id != '' "
-                    " GROUP BY s.user_id, m.model_id "
-                    " ORDER BY s.user_id, calls DESC"
-                )
-                tools_sql = (
-                    "SELECT s.user_id, p.tool_name, COUNT(*) AS calls "
-                    "  FROM parts p "
-                    "  JOIN sessions s ON s.id = p.session_id "
-                    " WHERE p.tool_name IS NOT NULL AND p.tool_name != '' "
-                    " GROUP BY s.user_id, p.tool_name "
-                    " ORDER BY s.user_id, calls DESC"
-                )
-                totals = [dict(r) for r in db._fetchall(totals_sql)]
-                models_rows = [dict(r) for r in db._fetchall(models_sql)]
-                tools_rows = [dict(r) for r in db._fetchall(tools_sql)]
-            # Pivot models/tools into per-user lists for easier UI consumption.
-            models_by_user: dict[str, list] = {}
-            for r in models_rows:
-                models_by_user.setdefault(r["user_id"], []).append({
-                    "model_id": r["model_id"],
-                    "calls":  r["calls"],
-                    "cost":   r["cost"],
-                    "tokens": r["tokens"],
-                })
-            tools_by_user: dict[str, list] = {}
-            for r in tools_rows:
-                tools_by_user.setdefault(r["user_id"], []).append({
-                    "tool_name": r["tool_name"],
-                    "calls": r["calls"],
-                })
-            for u in totals:
-                u["models"] = models_by_user.get(u["user_id"], [])
-                u["tools"]  = tools_by_user.get(u["user_id"], [])[:10]
-            return JSONResponse({"users": totals,
-                                 "generated_at": time.time()})
+                from core.atlas_admin_usage import build_admin_usage_payload
+                return JSONResponse(build_admin_usage_payload(db))
         except Exception as e:
             print(f"api_admin_usage error: {e}")
             return JSONResponse({"error": str(e)}, status_code=500)
