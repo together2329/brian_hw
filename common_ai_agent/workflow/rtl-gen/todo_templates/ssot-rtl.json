@@ -11,8 +11,8 @@
     },
     {
       "content": "[SSOT->RTL] Execute every required dynamic implementation task",
-      "detail": "For each required task in rtl_todo_plan.json, implement or repair the owning RTL behavior until the task's content/detail/criteria are satisfied. Cover function_model transactions, state variables, outputs, side effects, invariants, cycle_model latency/handshake/pipeline/ordering/backpressure, registers and fields, memory, interrupts, FSM, features, dataflow, error/security/debug/integration behavior, and every SSOT-authored workflow_todos.rtl-gen item. There must be no orphan function-level or cycle-level behavior.",
-      "criteria": "Every required dynamic task has todo_completion.status=pass after audit\nEvery required rtl_gate.rtl_gen task has todo_completion.status=pass after audit\nEvery workflow_todos.rtl-gen content/detail/criteria item is represented in rtl_todo_plan.json and implemented\nEvery task owner_file/owner_module is respected\nNo function_model, cycle_model, register, dataflow, or FSM task is left orphaned\nNo LLM-authored RTL relies on placeholder tie-offs, comments, heartbeat/alive-only logic, or model-only behavior",
+      "detail": "For each required task in rtl_todo_plan.json, implement or repair the owning RTL behavior until the task's content/detail/criteria are satisfied. Cover function_model transactions, state variables, outputs, side effects, invariants, cycle_model latency/handshake/pipeline/ordering/backpressure, registers and fields, memory, interrupts, FSM, features, dataflow, error/security/debug/integration behavior, and every SSOT-authored workflow_todos.rtl-gen item. Implement only behavior explicitly present in SSOT. If a required fact is absent or vague, mark that item TBD (missing in SSOT), do not infer RTL behavior, and report the exact SSOT field to ssot-gen.",
+      "criteria": "Every required dynamic task has todo_completion.status=pass after audit\nEvery required rtl_gate.rtl_gen task has todo_completion.status=pass after audit\nEvery workflow_todos.rtl-gen content/detail/criteria item is represented in rtl_todo_plan.json and implemented\nEvery task owner_file/owner_module is respected\nNo function_model, cycle_model, register, dataflow, or FSM task is left orphaned\nNo LLM-authored RTL relies on placeholder tie-offs, comments, heartbeat/alive-only logic, model-only behavior, or inferred behavior absent from SSOT\nAny TBD item is reported via [SSOT TBD REPORT] -> ssot-gen and blocks PASS until SSOT is enriched",
       "priority": "high"
     },
     {
@@ -29,8 +29,8 @@
     },
     {
       "content": "[SSOT->RTL] Report pass, repair, or SSOT question with evidence",
-      "detail": "Report exact artifacts and gate state. PASS requires dynamic TODO gate pass, manifest approval, compile pass, and lint pass. If the gate fails, repair RTL or send a precise [SSOT QUESTION] to ssot-gen. Do not claim sim, coverage, or signoff success from rtl-gen.",
-      "criteria": "Report includes rtl_todo_plan.json, rtl_traceability.json, rtl_compile.json, dut_lint.json, and filelist paths\nPASS is claimed only when every gate is green\nRepair path names failed dynamic task IDs/source_refs\nBlocked path names missing SSOT fields and owner workflow\nNext workflow is tb-gen after RTL gate pass",
+      "detail": "Report exact artifacts and gate state. PASS requires dynamic TODO gate pass, manifest approval, compile pass, lint pass, and SSOT TBD REPORT: none. If the gate fails, repair RTL or send a precise [SSOT QUESTION] / [SSOT TBD REPORT] to ssot-gen. Do not claim sim, coverage, or signoff success from rtl-gen.",
+      "criteria": "Report includes rtl_todo_plan.json, rtl_traceability.json, rtl_compile.json, dut_lint.json, and filelist paths\nPASS is claimed only when every gate is green and SSOT TBD REPORT is none\nRepair path names failed dynamic task IDs/source_refs\nBlocked path names missing SSOT fields and owner workflow\nBlocked report lists exact yaml_path, needed_for, question, and current_rtl_action: TBD — not implemented\nNext workflow is tb-gen after RTL gate pass",
       "priority": "normal"
     }
   ]

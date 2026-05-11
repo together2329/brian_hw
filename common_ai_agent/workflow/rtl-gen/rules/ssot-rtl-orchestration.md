@@ -71,6 +71,23 @@ Small repeated structures such as port declarations, parameter declarations, or 
 may be written mechanically during the RTL edit, but the source of truth remains the
 YAML content and the production quality gates.
 
+## SSOT-Only Implementation / TBD Policy
+
+- Implement only behavior that is explicitly present in SSOT. Do not infer missing registers, FSM states, reset values, timing, handshake rules, error responses, interrupts, debug signals, security policy, integration wiring, or side effects from IP kind or common protocol expectations.
+- When a required RTL fact is absent, contradictory, or placeholder-only, mark the affected item `TBD (missing in SSOT)`. `TBD` is a blocking state, not an implementation strategy and not PASS evidence.
+- Draft RTL skeletons may keep a comment like `// TBD: SSOT missing function_model.transactions[2].side_effects — define writeback behavior`, but rtl-gen must not replace that marker with tie-off/heartbeat/dummy logic or guessed protocol behavior.
+- Every blocked handoff must include:
+  ```
+  [SSOT TBD REPORT] -> ssot-gen
+  Module  : <ip_name>
+  Missing :
+  - yaml_path: <exact SSOT field path>
+    needed_for: <rtl file/module/signal/task>
+    question: <specific fact ssot-gen must add>
+    current_rtl_action: TBD — not implemented
+  ```
+- A DONE handoff must include `SSOT TBD REPORT: none`.
+
 Generated RTL policy:
 - RTL filenames remain `.sv`.
 - Default syntax is Verilog-2001: `wire`/`reg`, `assign`, `always @(...)`, `always @(*)`, `case`.
@@ -113,6 +130,7 @@ Write `<ip>/list/<ip>.f` from `filelist.rtl` section:
 ## Error Recovery
 
 - Missing YAML section → report to ssot-gen, skip that file
+- Missing YAML semantics inside an otherwise present section → leave that behavior `TBD`, do not infer it, and emit `[SSOT TBD REPORT] -> ssot-gen` with exact YAML paths
 - RTL preflight blocks → run the LLM direct-write loop from SSOT TODOs; do not add a fixed generator/template path.
 - Compile error in LLM-authored RTL → repair the owning RTL module and rerun compile.
 - Lint warning → fix source. Waivers are valid only when SSOT `coding_rules.lint_waivers` names the exact warning code, file, signal, and rationale; never add ad-hoc `verilator lint_off` comments to LLM-authored RTL.
