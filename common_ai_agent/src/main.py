@@ -264,7 +264,21 @@ def _setup_workspace(name: str) -> None:
                 base = _orig(ctx, **kwargs) if ctx is not None else _orig(**kwargs)
                 if isinstance(base, dict):
                     base = (base.get("static", "") + "\n\n" + base.get("dynamic", "")).strip()
-                return merge_prompt(base, _ws_text, _ws_mode)
+                merged = merge_prompt(base, _ws_text, _ws_mode)
+                # SSOT incremental-write POC: surface a single-line
+                # directive in the system prompt so the to-ssot skill
+                # can branch on the active mode without each tool call
+                # re-checking env. The skill itself documents both
+                # processes; this header just tells it which one to run.
+                try:
+                    import config as _cfg
+                    if getattr(_cfg, "SSOT_INCREMENTAL_WRITE", False):
+                        merged = "[SSOT_WRITE_MODE: incremental]\n\n" + merged
+                    else:
+                        merged = "[SSOT_WRITE_MODE: one-shot]\n\n" + merged
+                except Exception:
+                    pass
+                return merged
 
             _pb.build_system_prompt = _patched_build_system_prompt
         except Exception:

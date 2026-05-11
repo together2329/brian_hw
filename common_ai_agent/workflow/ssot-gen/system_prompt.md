@@ -874,3 +874,61 @@ For every new IP / SSOT request, regardless of whether the user typed
    `workflow_todos.<stage>[]` with `content`, `detail`, `criteria`, and
    `source_refs`. Empty answer = take the suggested default only when the
    prompt explicitly stated that default.
+
+---
+
+## SSOT write mode (gated by `config.SSOT_INCREMENTAL_WRITE`)
+
+The runtime injects a `[SSOT_WRITE_MODE: …]` marker at the very top of
+this system prompt. Honor it whenever you produce or update an SSOT YAML:
+
+- **`[SSOT_WRITE_MODE: one-shot]`** (default) — produce the complete
+  SSOT YAML and call `write_file` **once** with the whole document.
+  Historic behaviour; appropriate for small SSOTs or when the user
+  explicitly asked for one shot. If no marker is present, behave as
+  one-shot.
+
+- **`[SSOT_WRITE_MODE: incremental]`** — build the SSOT in two phases
+  so the open preview / SSOT view / file tree refresh as each section
+  lands, and so a truncation halfway through doesn't lose earlier work:
+
+  **Phase 1 — Skeleton.** First `write_file` a minimal but valid YAML
+  with every canonical top-level key present and its value set to the
+  string `TBD`. Example:
+  ```yaml
+  ip: <ip>
+  version: draft
+  purpose: TBD
+  type: TBD
+  io_list: TBD
+  registers: TBD
+  fsm: TBD
+  submodules: TBD
+  cycle_model: TBD
+  function_model: TBD
+  test_requirements: TBD
+  ```
+  Keep each TBD on its own line; uniqueness of the `<key>: TBD` token
+  matters for phase 2.
+
+  **Phase 2 — Replace per section.** Use `replace_in_file` once per
+  canonical key in this dependency order:
+  `purpose → type → io_list → registers → fsm → submodules
+  → function_model → cycle_model → test_requirements`.
+  Each call must match the exact `<key>: TBD` line as `old_string`;
+  `new_string` is the populated section. After each replace the backend
+  emits a `file_changed` event and the frontend reloads — the user can
+  review that section while you draft the next one.
+
+  Constraints:
+  - Do **NOT** call `write_file` on the SSOT path again after the
+    phase-1 skeleton. Every subsequent edit goes through `replace_in_file`.
+  - Respect the dependency order so cross-section references (e.g.
+    register fields by io_list signals) resolve.
+  - Run `workflow/ssot-gen/scripts/check_ssot_disk.sh <ip>` only after
+    the last section lands; intermediate skeletons are expected to
+    fail validation.
+  - If a section is genuinely unknown, leave its `TBD` and continue;
+    follow up with `ask_user` / pending QA cards. Do not invent.
+  - Stop and report rather than silently switching back to `write_file`
+    if a section's value cannot be expressed as a single replace.
