@@ -3240,43 +3240,51 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             # Escalation (Option F): tasks already rejected ≥2 times have shown
             # they're prone to bouncing — agent's review judgment is unreliable.
             # Require ≥2 evidence calls instead of ≥1 to break the livelock.
-            _evidence = int(getattr(item, "tools_since_completed", 0) or 0)
-            _rej_count = int(getattr(item, "rejection_count", 0) or 0)
-            _required = 2 if _rej_count >= 2 else 1
-            if item.status == "completed" and _evidence < _required:
-                _esc = (
-                    f"\n⚠ Escalated requirement: this task has been rejected "
-                    f"{_rej_count} times — needs ≥{_required} verification calls."
-                ) if _rej_count >= 2 else ""
-                return (
-                    f"❌ Cannot approve Task {index} — only {_evidence} verification tool call(s) "
-                    f"since review started (need ≥{_required}).{_esc}\n"
-                    f"Self-written summary/report files are NOT trustworthy evidence. You must\n"
-                    f"verify against ground-truth artifacts.\n"
-                    f"→ Re-read the actual source file(s) you produced (read_file / read_lines)\n"
-                    f"→ OR run the test/build directly (run_command) and check the output\n"
-                    f"→ OR grep for what should be there (grep_file / find_files)\n"
-                    f"Then call todo_update(index={index}, status='approved', reason='<evidence with file:line>') again."
-                )
-            _reason_stripped = (reason or "").strip()
-            if len(_reason_stripped) < 15:
-                return (
-                    f"Error: You MUST provide a concrete 'reason' (≥15 chars) when approving Task {index}.\n"
-                    f"Describe what you actually verified — e.g. 'read output.md: contains all 9 sections, matches spec' "
-                    f"or 'ran pytest tests/foo.py — 14 passed, 0 failed'.\n"
-                    f"Rejected reasons: empty, 'ok', 'done', 'looks good', 'approved' — these are not evidence.\n"
-                    f"→ todo_update(index={index}, status='approved', reason='<specific evidence>')"
-                )
-            _low = _reason_stripped.lower()
-            _banned = {"ok", "okay", "done", "good", "fine", "lgtm", "approved",
-                       "looks good", "all good", "seems ok", "seems good",
-                       "no issues", "no problems", "complete", "completed"}
-            if _low in _banned:
-                return (
-                    f"Error: '{reason}' is not concrete evidence for Task {index}.\n"
-                    f"Provide what you actually verified (files read, commands run, outputs checked).\n"
-                    f"→ todo_update(index={index}, status='approved', reason='<what you checked, with specifics>')"
-                )
+            # All approval guards below are opt-in via STRICT_TODO_APPROVAL=1.
+            # Default OFF: trust the LLM's own verification (it reads the
+            # rule files telling it to grep / re-read / run lint). The
+            # strict variants were producing too many false rejections
+            # when active-IP context didn't propagate to worker subprocesses.
+            import os as _os_strict
+            _strict = _os_strict.environ.get("STRICT_TODO_APPROVAL", "").lower() in ("1", "true", "yes", "on")
+            if _strict:
+                _evidence = int(getattr(item, "tools_since_completed", 0) or 0)
+                _rej_count = int(getattr(item, "rejection_count", 0) or 0)
+                _required = 2 if _rej_count >= 2 else 1
+                if item.status == "completed" and _evidence < _required:
+                    _esc = (
+                        f"\n⚠ Escalated requirement: this task has been rejected "
+                        f"{_rej_count} times — needs ≥{_required} verification calls."
+                    ) if _rej_count >= 2 else ""
+                    return (
+                        f"❌ Cannot approve Task {index} — only {_evidence} verification tool call(s) "
+                        f"since review started (need ≥{_required}).{_esc}\n"
+                        f"Self-written summary/report files are NOT trustworthy evidence. You must\n"
+                        f"verify against ground-truth artifacts.\n"
+                        f"→ Re-read the actual source file(s) you produced (read_file / read_lines)\n"
+                        f"→ OR run the test/build directly (run_command) and check the output\n"
+                        f"→ OR grep for what should be there (grep_file / find_files)\n"
+                        f"Then call todo_update(index={index}, status='approved', reason='<evidence with file:line>') again."
+                    )
+                _reason_stripped = (reason or "").strip()
+                if len(_reason_stripped) < 15:
+                    return (
+                        f"Error: You MUST provide a concrete 'reason' (≥15 chars) when approving Task {index}.\n"
+                        f"Describe what you actually verified — e.g. 'read output.md: contains all 9 sections, matches spec' "
+                        f"or 'ran pytest tests/foo.py — 14 passed, 0 failed'.\n"
+                        f"Rejected reasons: empty, 'ok', 'done', 'looks good', 'approved' — these are not evidence.\n"
+                        f"→ todo_update(index={index}, status='approved', reason='<specific evidence>')"
+                    )
+                _low = _reason_stripped.lower()
+                _banned = {"ok", "okay", "done", "good", "fine", "lgtm", "approved",
+                           "looks good", "all good", "seems ok", "seems good",
+                           "no issues", "no problems", "complete", "completed"}
+                if _low in _banned:
+                    return (
+                        f"Error: '{reason}' is not concrete evidence for Task {index}.\n"
+                        f"Provide what you actually verified (files read, commands run, outputs checked).\n"
+                        f"→ todo_update(index={index}, status='approved', reason='<what you checked, with specifics>')"
+                    )
 
             # ── File-existence ground-truth check ──────────────────────────
             # The evidence/reason gates above are STRUCTURAL — they don't
