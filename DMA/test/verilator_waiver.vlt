@@ -1,4 +1,0 @@
-`verilator_config
-    lint_off -rule WIDTHEXPAND
-    lint_off -rule WIDTHTRUNC
-    lint_off -rule IMPLICITSTATIC
