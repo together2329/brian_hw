@@ -452,6 +452,21 @@ def _git_auto_commit(path: str, operation: str, stats: str = "", content_hint: s
             git_root = _find_git_root(abs_path)
             if git_root is None:
                 return
+            # PROJECT_ROOT escape guard: if the walk-up landed at OR ABOVE the
+            # project root (e.g. common_ai_agent has no .git of its own and
+            # the search climbed to its parent's .git), don't commit there —
+            # that pollutes the outer repo with per-task auto-commits. Atlas's
+            # _auto_commit_for_path in atlas_ui.py already has this guard;
+            # this is the mirror for tools.py.
+            _proj_root = os.environ.get("ATLAS_PROJECT_ROOT") or os.getcwd()
+            try:
+                _proj_real = os.path.realpath(_proj_root)
+                _git_real  = os.path.realpath(git_root)
+                # Refuse if git_root is the project root itself OR an ancestor.
+                if _git_real == _proj_real or _proj_real.startswith(_git_real + os.sep):
+                    return
+            except Exception:
+                pass
             subprocess.run(['git', 'add', abs_path], capture_output=True, cwd=git_root)
             rel = os.path.relpath(abs_path, git_root)
             timestamp = _dt.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -3228,6 +3243,7 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             )
 
         if status == "approved":
+            _reason_stripped = (reason or "").strip()
             # Review-gate: must have called at least one non-write evidence tool
             # since the task transitioned to "completed". Prevents the agent from
             # approving based on its own self-written summary file (sim_report.txt
@@ -3266,7 +3282,6 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                         f"→ OR grep for what should be there (grep_file / find_files)\n"
                         f"Then call todo_update(index={index}, status='approved', reason='<evidence with file:line>') again."
                     )
-                _reason_stripped = (reason or "").strip()
                 if len(_reason_stripped) < 15:
                     return (
                         f"Error: You MUST provide a concrete 'reason' (≥15 chars) when approving Task {index}.\n"

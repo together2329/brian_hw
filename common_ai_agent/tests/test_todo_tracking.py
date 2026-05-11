@@ -537,6 +537,8 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         self._config_patcher.start()
 
     def tearDown(self):
+        os.environ.pop("STRICT_TODO_APPROVAL", None)
+        os.environ.pop("STRICT_DELIVERABLE_CHECK", None)
         self._config_patcher.stop()
         import main as main_mod
         main_mod.todo_tracker = None
@@ -603,6 +605,7 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
     def test_approved_requires_reason(self):
         """Approving without reason is rejected."""
         from core.tools import todo_update
+        os.environ["STRICT_TODO_APPROVAL"] = "1"
         self._setup_three_tasks()
         todo_update(index=3, status="in_progress")
         self.tracker.todos[2].tools_since_in_progress = 1
@@ -617,6 +620,7 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
     def test_approved_with_reason(self):
         """Approving with reason succeeds."""
         from core.tools import todo_update
+        os.environ["STRICT_TODO_APPROVAL"] = "1"
         self._setup_three_tasks()
         todo_update(index=3, status="in_progress")
         self.tracker.todos[2].tools_since_in_progress = 1
@@ -629,10 +633,26 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         self.assertIn("✅", result)
         self.assertIn("All tasks complete", result)
 
+    def test_approved_default_strict_off_uses_reason_without_unbound_error(self):
+        """Default approval path still passes the provided reason to the tracker."""
+        from core.tools import todo_update
+        os.environ.pop("STRICT_TODO_APPROVAL", None)
+        self._setup_three_tasks()
+        todo_update(index=3, status="in_progress")
+        self.tracker.todos[2].tools_since_in_progress = 1
+        self.tracker.save()
+        todo_update(index=3, status="completed")
+
+        result = todo_update(index=3, status="approved", reason="Verified default approval path")
+
+        self.assertIn("✅", result)
+        self.assertEqual(self.tracker.todos[2].approved_reason, "Verified default approval path")
+
     def test_approval_allows_short_filelist_with_ip_relative_rtl_entry(self):
         """A valid one-entry .f filelist is a real deliverable even under 50 bytes."""
         import shutil
         from core.tools import todo_update
+        os.environ["STRICT_DELIVERABLE_CHECK"] = "1"
         ip_root = Path(tempfile.mkdtemp(prefix="todo_gate_demo_", dir=os.getcwd()))
         try:
             (ip_root / "rtl").mkdir(parents=True)
@@ -673,6 +693,7 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         """A .f filelist is not approved when its RTL entry is missing."""
         import shutil
         from core.tools import todo_update
+        os.environ["STRICT_DELIVERABLE_CHECK"] = "1"
         ip_root = Path(tempfile.mkdtemp(prefix="todo_gate_demo_", dir=os.getcwd()))
         try:
             (ip_root / "list").mkdir(parents=True)
