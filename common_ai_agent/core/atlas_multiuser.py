@@ -468,6 +468,22 @@ class _MultiUserBridge:
             return
         self._ensure_session(session_id).request_stop()
 
+    def exit_session(self, session_id: str | None) -> None:
+        session = self._ensure_session(session_id)
+        if self._process_manager is not None:
+            self._process_manager.kill(session.session_id)
+        else:
+            session.request_stop()
+        session.agent_running = False
+        session.agent_alive = False
+        session.emit("agent_state", running=False)
+        session.emit("worker_exited", session_id=session.session_id)
+        session.emit("done")
+
+    def exit_active_session(self) -> None:
+        session = self._active_session()
+        self.exit_session(session.session_id)
+
     def submit_answer(self, flow_id: str, payload: dict[str, Any]) -> bool:
         return self._active_session().submit_answer(flow_id, payload)
 

@@ -345,6 +345,36 @@ def test_kill_and_cleanup(dummy_worker_script):
             pass
 
 
+def test_bridge_exit_session_kills_only_target_worker(dummy_worker_script):
+    db_path = _temp_db()
+    bridge = _MultiUserBridge(use_processes=True)
+    bridge._process_manager = DummyProcessManager(
+        db_path=db_path, dummy_script_path=dummy_worker_script
+    )
+
+    try:
+        bridge.submit_prompt_for_session("user-a", "prompt-a")
+        bridge.submit_prompt_for_session("user-b", "prompt-b")
+        time.sleep(0.3)
+
+        assert bridge._process_manager.is_alive("user-a")
+        assert bridge._process_manager.is_alive("user-b")
+
+        bridge.exit_session("user-a")
+        time.sleep(0.2)
+
+        assert not bridge._process_manager.is_alive("user-a")
+        assert bridge._process_manager.is_alive("user-b")
+        assert bridge.get_session("user-a").agent_alive is False
+    finally:
+        if bridge._process_manager:
+            bridge._process_manager.stop_all()
+        try:
+            os.unlink(db_path)
+        except OSError:
+            pass
+
+
 def test_stop_all(dummy_worker_script):
     db_path = _temp_db()
     manager = DummyProcessManager(db_path=db_path, dummy_script_path=dummy_worker_script)

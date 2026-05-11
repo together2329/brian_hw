@@ -849,12 +849,11 @@ const App = () => {
   // there should cancel the card (handled inside that component).
   React.useEffect(() => {
     const onKey = (e) => {
-      // Ctrl+Q (or Cmd+Q) → ask to shut down the server + close tab.
+      // Ctrl+Q (or Cmd+Q) → ask to terminate the current session worker.
       if ((e.ctrlKey || e.metaKey) && (e.key === 'q' || e.key === 'Q')) {
         e.preventDefault();
-        if (!confirm('Shut down the server and close this tab?')) return;
+        if (!confirm('Terminate this session worker? Atlas UI will stay open.')) return;
         sendControl('shutdown');
-        setTimeout(() => { try { window.close(); } catch (_) {} }, 600);
         return;
       }
       // Esc → tell the agent to abort the current iteration.
@@ -876,7 +875,6 @@ const App = () => {
   };
   const exitAll = () => {
     sendControl('shutdown');
-    setTimeout(() => { try { window.close(); } catch (_) {} }, 600);
   };
 
   // Auth gate must short-circuit before any workspace state touches
@@ -1125,7 +1123,7 @@ const App = () => {
                 title="Abort the agent's current iteration  (Esc)"
                 onClick={stopAgent}>■ Stop</button>
         <button className="dir-btn"
-                title="Shut down the Python server and close this tab  (Ctrl/⌘+Q)"
+                title="Terminate this session worker; Atlas UI server stays alive  (Ctrl/⌘+Q)"
                 onClick={exitAll}>✕ Exit</button>
         <span style={{ width: 12 }} />
         {window.ATLAS_USER && (
