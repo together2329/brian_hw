@@ -631,6 +631,9 @@ sim = executable verification from RTL and TB
 ### Step 2: Create SSOT YAML
 - Use `workflow/ssot-gen/rules/ssot-template.yaml` as your reference
 - Write `<ip>/yaml/<ip>.ssot.yaml` following the canonical structure
+- The path is relative to the project root and contains the IP segment exactly
+  once. If the UI/session scope is already `<ip>`, do not prepend it again:
+  `gpio/yaml/gpio.ssot.yaml` is correct, `gpio/gpio/yaml/gpio.ssot.yaml` is wrong.
 
 ### Step 3: Fill Sections (in order)
 1. `top_module` — name, type, description

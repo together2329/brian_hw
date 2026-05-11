@@ -2022,7 +2022,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       outbound = (
         `[scope] You MUST confine every file read, write, edit, grep, ` +
         `find, and run_command to paths inside "${scope}". Do not touch ` +
-        `files outside this directory unless I explicitly say so.\n\n` +
+        `files outside this directory unless I explicitly say so. The workspace ` +
+        `root is still the project root: if a requested path already starts ` +
+        `with "${scope}/", use it exactly once and never rewrite it as ` +
+        `"${scope}/${scope}/...". For SSOT, the canonical path is ` +
+        `"${scope}/yaml/${scope}.ssot.yaml", not ` +
+        `"${scope}/${scope}/yaml/${scope}.ssot.yaml".\n\n` +
         raw
       );
     }

@@ -61,8 +61,10 @@ the SSOT and run validation.
    validation fails, fix the YAML and rerun. Do not run RTL/TB generators
    from ssot-gen.
 
-6. **Write the file.** Path is `<ip>/yaml/<ip>.ssot.yaml` (mirrors the
-   pattern `dma_axi_master/dma/dma.ssot.yaml`). Use `write_file`.
+6. **Write the file.** Path is exactly `<ip>/yaml/<ip>.ssot.yaml` from the
+   project root. Do not add a second `<ip>/` segment when the UI scope is
+   already set to that IP; for `gpio`, the path is `gpio/yaml/gpio.ssot.yaml`,
+   never `gpio/gpio/yaml/gpio.ssot.yaml`. Use `write_file`.
    Scaffold output containing `<TBD>`, `<placeholder>`, `TODO`, or a tiny
    template-only YAML is not user-authored content; replace it with the
    complete canonical SSOT. For a substantive existing SSOT, read it first
