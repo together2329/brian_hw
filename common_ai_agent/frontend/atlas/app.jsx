@@ -1081,13 +1081,11 @@ const App = () => {
                 : 'Connecting to backend…'}
             </span>
             <span style={{ flex: 1 }} />
-            {bootDone && (
-              <button onClick={() => setBootHidden(true)}
-                      style={{ background: 'transparent', border: 'none',
-                               color: 'currentColor', cursor: 'pointer',
-                               fontSize: 18, lineHeight: 1, padding: 0 }}
-                      title="dismiss">×</button>
-            )}
+            <button onClick={() => setBootHidden(true)}
+                    style={{ background: 'transparent', border: 'none',
+                             color: 'currentColor', cursor: 'pointer',
+                             fontSize: 18, lineHeight: 1, padding: 0 }}
+                    title="dismiss">×</button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {Object.entries(bootSteps).map(([k, v]) => {
@@ -1182,12 +1180,6 @@ const App = () => {
                 title="SoC block diagram + status grid · mock data"
                 onClick={() => setScreen('architect')}>◫ Architect</button>
         <span style={{ width: 12 }} />
-        <button className={`dir-btn ${uiLang === 'ko' ? 'active' : ''}`}
-                title="Prefer Korean for visible agent output"
-                onClick={() => chooseUiLang('ko')}>한국어</button>
-        <button className={`dir-btn ${uiLang === 'en' ? 'active' : ''}`}
-                title="Prefer English for visible agent output"
-                onClick={() => chooseUiLang('en')}>English</button>
         <label className="dir-select-wrap" title="Change UI font family">
           <span>font</span>
           <select
@@ -1225,11 +1217,12 @@ const App = () => {
             ))}
           </select>
         </label>
-        <span style={{ width: 12 }} />
-        <button className={`dir-btn ${dir === 'A' ? 'active' : ''}`}
-                onClick={() => setDir('A')}>A · Console</button>
-        <button className={`dir-btn ${dir === 'B' ? 'active' : ''}`}
-                onClick={() => setDir('B')}>B · Workbench</button>
+        <button className={`dir-btn ${uiLang === 'ko' ? 'active' : ''}`}
+                title="Prefer Korean for visible agent output"
+                onClick={() => chooseUiLang('ko')}>한국어</button>
+        <button className={`dir-btn ${uiLang === 'en' ? 'active' : ''}`}
+                title="Prefer English for visible agent output"
+                onClick={() => chooseUiLang('en')}>English</button>
         <span style={{ width: 12 }} />
         <button className={`dir-btn ${theme === 'dark' ? 'active' : ''}`}
                 onClick={() => setTheme('dark')}>Dark</button>

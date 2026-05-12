@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="atlas-backend" content="live">
 <title>ATLAS</title>
-<link rel="stylesheet" href="styles.css?v=atlas-20260512-light-readability">
+<link rel="stylesheet" href="styles.css?v=atlas-20260512-light-feed-readability">
 <style>
   html, body {
     margin: 0; padding: 0;
@@ -94,7 +94,14 @@
             if (typeof a === 'object') return JSON.stringify(a);
             return String(a);
           });
-          append('console.error', parts.join(' '));
+          var rendered = parts.join(' ');
+          // Babel emits this as console.error for large in-browser JSX files,
+          // but it is only a code-generator formatting notice. Suppress it
+          // completely so normal startup does not look like a runtime error.
+          if (/^\[BABEL\] Note: The code generator has deoptimised the styling of /.test(rendered)) {
+            return;
+          }
+          append('console.error', rendered);
         } catch (_) {}
         origErr.apply(null, arguments);
       };
@@ -174,13 +181,13 @@
   <script type="text/babel" data-presets="react" src="git-tab.jsx?v=atlas-20260511-gittab"></script>
   <!-- coverage workflow panel — same loading rule as sim_debug -->
   <script type="text/babel" data-presets="react" src="coverage.jsx?v=atlas-20260503-strict-status"></script>
-  <script type="text/babel" data-presets="react" src="workspace.jsx?v=atlas-20260512-fsm-graph"></script>
+  <script type="text/babel" data-presets="react" src="workspace.jsx?v=atlas-20260512-light-feed-readability"></script>
   <!-- SoC Architect (mock data; loaded before app.jsx so the screen
        toggle in app.jsx can mount <SocArchitect />). -->
   <script type="text/babel" data-presets="react" src="soc-data.jsx?v=atlas-20260503-strict-status"></script>
   <script type="text/babel" data-presets="react" src="soc-shared.jsx?v=atlas-20260503-strict-status"></script>
   <script type="text/babel" data-presets="react" src="soc-architect.jsx?v=atlas-20260503-strict-status"></script>
-  <script type="text/babel" data-presets="react" src="app.jsx?v=atlas-20260512-resolution"></script>
+  <script type="text/babel" data-presets="react" src="app.jsx?v=atlas-20260512-light-overlay-dismiss"></script>
 
   <script>
     const ATLAS_RESOLUTION_PRESETS = {

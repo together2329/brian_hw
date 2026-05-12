@@ -4233,8 +4233,8 @@ const LiveAgentPreview = React.memo(({ text }) => {
   const body = String(text || '');
   if (!body.trim()) return null;
   return (
-    <div className="has-hover-affordance" style={{ padding: '8px 0 12px', marginBottom: 4, position: 'relative' }}>
-      <span className="ok" style={{ fontWeight: 600, marginRight: 8,
+    <div className="feed-entry feed-entry-agent feed-entry-live has-hover-affordance" style={{ padding: '8px 0 12px', marginBottom: 4, position: 'relative' }}>
+      <span className="feed-entry-label ok" style={{ fontWeight: 600, marginRight: 8,
         fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Agent</span>
       <span className="ts-pill">streaming</span>
       <div
@@ -4260,8 +4260,8 @@ const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, dir, summ
     // Plain single-line user inputs still render fine via marked.
     const userHtml = _markdownHtml(userText);
     return (
-      <div style={{ padding: '10px 14px', marginBottom: 12, borderLeft: '2px solid var(--accent)', background: 'var(--bg-2)', borderRadius: 2 }}>
-        <span className="acc" style={{ fontWeight: 600, marginRight: 8, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>You</span>
+      <div className="feed-entry feed-entry-user" style={{ padding: '10px 14px', marginBottom: 12, borderLeft: '2px solid var(--accent)', background: 'var(--bg-2)', borderRadius: 2 }}>
+        <span className="feed-entry-label acc" style={{ fontWeight: 600, marginRight: 8, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>You</span>
         <div
           className="md-user md-agent"
           style={{ fontFamily: 'var(--mono)', fontSize: 'var(--ui-font-size)', display: 'inline-block', verticalAlign: 'top' }}
@@ -4274,8 +4274,8 @@ const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, dir, summ
   if (entry.kind === 'agent') {
     const html = _markdownHtml(entry.text || '');
     return (
-      <div className="has-hover-affordance" style={{ padding: '8px 0 12px', marginBottom: 4, position: 'relative' }}>
-        <span className="ok" style={{ fontWeight: 600, marginRight: 8,
+      <div className="feed-entry feed-entry-agent has-hover-affordance" style={{ padding: '8px 0 12px', marginBottom: 4, position: 'relative' }}>
+        <span className="feed-entry-label ok" style={{ fontWeight: 600, marginRight: 8,
           fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Agent</span>
         {entry.createdAt ? (
           <span className="ts-pill">{_relTime(entry.createdAt)}</span>
