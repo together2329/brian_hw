@@ -54,11 +54,21 @@ def _safe_name(raw: Any, fallback: str) -> str:
 # Trigger check
 # ---------------------------------------------------------------------------
 
+def _extract_backend(cm: dict[str, Any]) -> str:
+    backend = str(cm.get("executable") or cm.get("backend") or "python").strip().lower()
+    if backend in {"pymtl", "pymtl3", "pymtl_3"}:
+        return "pymtl3"
+    return backend or "python"
+
+
 def _check_trigger(ssot: dict[str, Any], ip: str) -> tuple[bool, str]:
     """Return (triggered, reason). Exit 0 with message if not triggered."""
     cm = ssot.get("cycle_model")
     if not isinstance(cm, dict):
         return False, "cycle_model key missing"
+
+    if _extract_backend(cm) == "pymtl3":
+        return True, "cycle_model.executable=pymtl3"
 
     handshake = cm.get("handshake_rules")
     if handshake and (isinstance(handshake, (list, dict)) and len(handshake) > 0):
@@ -75,6 +85,12 @@ def _check_trigger(ssot: dict[str, Any], ip: str) -> tuple[bool, str]:
     outstanding = cm.get("outstanding")
     if isinstance(outstanding, int) and outstanding > 1:
         return True, f"cycle_model.outstanding={outstanding} > 1"
+
+    performance = cm.get("performance")
+    if isinstance(performance, dict) and any(
+        performance.get(key) for key in ("frequency_mhz", "throughput", "outstanding", "depth")
+    ):
+        return True, "cycle_model.performance is defined"
 
     latency = cm.get("latency")
     if isinstance(latency, dict):
@@ -147,7 +163,41 @@ def _extract_outstanding(cm: dict[str, Any]) -> int:
     val = cm.get("outstanding")
     if isinstance(val, int) and val >= 1:
         return val
+    perf = cm.get("performance") if isinstance(cm.get("performance"), dict) else {}
+    raw = perf.get("outstanding") if isinstance(perf, dict) else None
+    if isinstance(raw, int) and raw >= 1:
+        return raw
+    if isinstance(raw, dict):
+        candidates = [
+            raw.get("max"),
+            raw.get("read_max"),
+            raw.get("write_max"),
+            raw.get("total_max"),
+        ]
+        nums = [int(item) for item in candidates if isinstance(item, int) and item >= 1]
+        if nums:
+            return max(nums)
     return 1
+
+
+def _extract_performance(cm: dict[str, Any]) -> dict[str, Any]:
+    perf = cm.get("performance") if isinstance(cm.get("performance"), dict) else {}
+    depth = perf.get("depth") if isinstance(perf.get("depth"), dict) else {}
+    throughput = perf.get("throughput") if isinstance(perf.get("throughput"), dict) else perf.get("throughput")
+    outstanding = perf.get("outstanding")
+    if isinstance(outstanding, dict):
+        outstanding = {
+            key: value
+            for key, value in outstanding.items()
+            if key in {"max", "read_max", "write_max", "total_max", "description"}
+        }
+    return {
+        "frequency_mhz": perf.get("frequency_mhz"),
+        "throughput": throughput,
+        "outstanding": outstanding,
+        "pipeline_stages": depth.get("pipeline_stages"),
+        "queue_depth": depth.get("queue_depth"),
+    }
 
 
 def _extract_self_check_kinds(ssot: dict[str, Any]) -> list[str]:
@@ -200,10 +250,12 @@ def _check_forbidden(src: str) -> None:
 
 def _cycle_model_source(
     ip: str,
+    backend: str,
     latency: dict[str, int],
     handshake_rules: list[dict[str, Any]],
     ordering_rules: list[dict[str, Any]],
     outstanding_cap: int,
+    performance_targets: dict[str, Any],
     self_check_kinds: list[str],
     cl_bins: dict[str, str],
     ssot_model_payload: dict[str, Any],
@@ -220,10 +272,20 @@ try:
 except ImportError:
     from functional_model import FunctionalModel
 
+try:
+    from pymtl3 import Bits1, Bits32, Component, InPort, OutPort, update_ff
+    HAS_PYMTL3 = True
+except Exception:
+    Bits1 = Bits32 = Component = InPort = OutPort = update_ff = None
+    HAS_PYMTL3 = False
+
 
 # ---------------------------------------------------------------------------
 # SSOT-derived tables (baked at generation time)
 # ---------------------------------------------------------------------------
+
+# Requested executable backend.  PyMTL3 is the default CL shell; FunctionalModel remains the oracle.
+MODEL_BACKEND: str = {backend!r}
 
 # Latency table: transaction kind -> cycles.  max_cycles when defined; min_cycles otherwise; default=1.
 _LATENCY: dict[str, int] = {latency!r}
@@ -236,6 +298,9 @@ _ORDERING_RULES: list[dict] = {ordering_rules!r}
 
 # Maximum outstanding transactions before stalling.
 _OUTSTANDING_CAP: int = {outstanding_cap!r}
+
+# Cycle/performance targets used by coverage and PyMTL shell instrumentation.
+PERFORMANCE_TARGETS: dict = {performance_targets!r}
 
 # Transaction kinds for self-check, derived from function_model.transactions at generation time.
 _SELF_CHECK_KINDS: list[str] = {self_check_kinds!r}
@@ -356,11 +421,58 @@ class CycleModel:
         hit_bins = sum(1 for v in self.cov.values() if v > 0)
         return {{
             "passed": bool(obs),
+            "backend": MODEL_BACKEND,
+            "pymtl3_available": HAS_PYMTL3,
             "transactions": len(kinds),
             "results_observed": len(obs),
             "coverage_bins": total_bins,
             "coverage_hit": hit_bins,
+            "performance_targets": PERFORMANCE_TARGETS,
         }}
+
+
+if HAS_PYMTL3:
+    class CycleModelPyMTL(Component):
+        """PyMTL3 cycle shell around CycleModel for cycle/performance validation.
+
+        The wrapper intentionally delegates behavioral results to CycleModel,
+        which delegates function evaluation to FunctionalModel.  PyMTL owns the
+        clocked shell and observable counters used by CL coverage.
+        """
+
+        def construct(s):
+            s.reset_in = InPort(Bits1)
+            s.valid = InPort(Bits1)
+            s.ready = OutPort(Bits1)
+            s.cycle_count = OutPort(Bits32)
+            s.outstanding = OutPort(Bits32)
+            s.queue_depth = OutPort(Bits32)
+            s._model = CycleModel()
+
+            @update_ff
+            def cl_tick():
+                if s.reset_in:
+                    s._model.reset()
+                    s.ready <<= 1
+                    s.cycle_count <<= 0
+                    s.outstanding <<= 0
+                    s.queue_depth <<= 0
+                else:
+                    next_cycle = s._model.now + 1
+                    s._model.tick(next_cycle)
+                    s.ready <<= int(s._model._outstanding < _OUTSTANDING_CAP)
+                    s.cycle_count <<= next_cycle
+                    s.outstanding <<= s._model._outstanding
+                    s.queue_depth <<= len(s._model.in_q)
+else:
+    CycleModelPyMTL = None
+
+
+def make_pymtl_cycle_model():
+    """Return the PyMTL3 cycle shell.  Use direct Python smoke, not pytest-pymtl3."""
+    if not HAS_PYMTL3:
+        raise RuntimeError("pymtl3 is not importable in this Python environment")
+    return CycleModelPyMTL()
 
 
 if __name__ == "__main__":
@@ -432,7 +544,9 @@ def main() -> int:
     latency = _extract_latency(cm)
     handshake_rules = _extract_handshake_rules(cm)
     ordering_rules = _extract_ordering_rules(cm)
+    backend = _extract_backend(cm)
     outstanding_cap = _extract_outstanding(cm)
+    performance_targets = _extract_performance(cm)
     self_check_kinds = _extract_self_check_kinds(ssot)
     cl_bins = _extract_cl_bins(handshake_rules, ordering_rules, latency, self_check_kinds)
 
@@ -462,10 +576,12 @@ def main() -> int:
     # 4. Render source
     src = _cycle_model_source(
         ip=args.ip,
+        backend=backend,
         latency=latency,
         handshake_rules=handshake_rules,
         ordering_rules=ordering_rules,
         outstanding_cap=outstanding_cap,
+        performance_targets=performance_targets,
         self_check_kinds=self_check_kinds,
         cl_bins=cl_bins,
         ssot_model_payload=ssot_payload,
@@ -491,9 +607,12 @@ def main() -> int:
         "type": "cl_model_check",
         "ip": args.ip,
         "source": str(model_path.relative_to(ip_dir)),
+        "backend": backend,
+        "pymtl3_available": bool(check.get("pymtl3_available")),
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "passed": passed,
         "self_check": check,
+        "performance_targets": performance_targets,
         "decomposition_units": len(ssot.get("sub_modules") or []) or 1,
         "fcov_bins": len(cl_bins),
     }

@@ -9970,7 +9970,7 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
     for (const c of children) {
       while (cursor < c.line_start) { out.push(renderLineRow(cursor)); cursor += 1; }
       const color = _FOLD_KIND_COLOR[c.kind] || 'var(--fg-mute)';
-      const opened = (depth === 0) || (c.kind === 'section' && depth <= 1);
+      const opened = (depth === 0 && c.label === 'top_module');
       const inner = [];
       // The fold summary already labels c.line_start (with the parsed
       // key + line range), so rendering that same line again as a
