@@ -133,6 +133,174 @@ const CocotbTreeView = ({ data, ipName, onOpenFile }) => {
   );
 };
 
+const SimResultBadge = ({ status }) => {
+  const st = String(status || 'pending').toLowerCase();
+  const color = st === 'pass' ? 'var(--ok)' : st === 'fail' ? 'var(--err)' : 'var(--warn)';
+  const label = st === 'skip' ? 'pending' : st;
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      minWidth: 64, padding: '2px 8px', borderRadius: 3,
+      border: '1px solid color-mix(in oklch, ' + color + ' 34%, var(--line))',
+      background: 'color-mix(in oklch, ' + color + ' 12%, transparent)',
+      color, fontFamily: 'var(--mono)', fontSize: 10, fontWeight: 800,
+      letterSpacing: '0.06em', textTransform: 'uppercase',
+    }}>{label}</span>
+  );
+};
+
+const SimSummaryPanel = ({ ipName, data, loading, error, cocotbData, onOpenFile, onRefresh }) => {
+  const scenarioRows = Array.isArray(data?.tests) ? data.tests.map((t, i) => ({
+    id: t.scenario_id || `TC${i + 1}`,
+    name: t.name || t.scenario_id || `TC${i + 1}`,
+    status: t.status || 'pending',
+    evidence: `${t.pass_rows || 0} pass / ${t.fail_rows || 0} fail`,
+    expected: t.expected || '',
+    checker: t.checker || '',
+    source: t.source || 'ssot',
+    file: '',
+    line: 0,
+  })) : [];
+  const resultCases = Array.isArray(cocotbData?.results?.cases)
+    ? cocotbData.results.cases.map((c, i) => ({
+      id: c.name || `TC${i + 1}`,
+      name: c.classname ? `${c.classname}.${c.name}` : (c.name || `TC${i + 1}`),
+      status: c.status === 'skip' ? 'pending' : (c.status || 'pending'),
+      evidence: c.sim_time_ns ? `${parseFloat(c.sim_time_ns || '0').toFixed(0)} ns` : `${Math.round((c.time_s || 0) * 1000)} ms`,
+      expected: '',
+      checker: 'results.xml',
+      source: 'results.xml',
+      file: c.file || '',
+      line: c.line || 0,
+    }))
+    : [];
+  const rows = scenarioRows.length ? scenarioRows : resultCases;
+  const counts = rows.reduce((acc, r) => {
+    const st = r.status === 'skip' ? 'pending' : (r.status || 'pending');
+    acc[st] = (acc[st] || 0) + 1;
+    acc.total += 1;
+    return acc;
+  }, { pass: 0, fail: 0, pending: 0, total: 0 });
+  const evidencePaths = [
+    data?.ssot_path,
+    data?.sb_path,
+    ipName ? `${ipName}/sim/results.xml` : '',
+    ipName ? `${ipName}/tb/cocotb/results.xml` : '',
+  ].filter(Boolean);
+
+  const Stat = ({ label, value, color }) => (
+    <div style={{
+      minWidth: 118, padding: '10px 12px',
+      border: '1px solid var(--line)', borderRadius: 4,
+      background: 'var(--bg-2)',
+    }}>
+      <div style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</div>
+      <div style={{ color, fontSize: 24, fontWeight: 800, fontFamily: 'var(--mono)', marginTop: 4 }}>{value}</div>
+    </div>
+  );
+
+  return (
+    <div style={{
+      flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
+      background: 'var(--panel)', color: 'var(--fg)',
+    }}>
+      <div style={{
+        padding: '12px 14px', borderBottom: '1px solid var(--line)',
+        display: 'flex', alignItems: 'center', gap: 10,
+      }}>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            Sim Summary
+          </div>
+          <div style={{ color: 'var(--fg-mute)', fontSize: 11, marginTop: 2, fontFamily: 'var(--mono)' }}>
+            {ipName || '(no IP selected)'} · TC pass/fail
+          </div>
+        </div>
+        <span style={{ flex: 1 }} />
+        {loading && <span style={{ color: 'var(--accent)', fontSize: 10, fontFamily: 'var(--mono)' }}>loading</span>}
+        <button className="btn" onClick={onRefresh} style={{ padding: '2px 8px', fontSize: 10 }}>refresh</button>
+      </div>
+
+      <div style={{ padding: 14, display: 'flex', gap: 10, flexWrap: 'wrap', borderBottom: '1px solid var(--line)' }}>
+        <Stat label="pass" value={counts.pass || 0} color="var(--ok)" />
+        <Stat label="fail" value={counts.fail || 0} color="var(--err)" />
+        <Stat label="pending" value={counts.pending || 0} color="var(--warn)" />
+        <Stat label="total" value={counts.total || 0} color="var(--fg)" />
+      </div>
+
+      {error && (
+        <div style={{
+          padding: '8px 14px', borderBottom: '1px solid var(--err)',
+          background: 'color-mix(in oklch, var(--err) 10%, transparent)',
+          color: 'var(--err)', fontFamily: 'var(--mono)', fontSize: 11,
+        }}>{error}</div>
+      )}
+
+      <div style={{ padding: '8px 14px', borderBottom: '1px solid var(--line)', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {evidencePaths.length ? evidencePaths.map(p => (
+          <button
+            key={p}
+            className="btn"
+            onClick={() => onOpenFile && onOpenFile(p, 0)}
+            title={p}
+            style={{ padding: '2px 8px', fontSize: 10, fontFamily: 'var(--mono)' }}
+          >{p.split('/').slice(-2).join('/')}</button>
+        )) : (
+          <span style={{ color: 'var(--fg-mute)', fontSize: 11, fontFamily: 'var(--mono)' }}>no sim evidence files resolved</span>
+        )}
+      </div>
+
+      <div style={{ flex: 1, overflow: 'auto', padding: 14 }}>
+        {rows.length ? (
+          <div style={{ border: '1px solid var(--line)', borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'minmax(120px, 0.9fr) minmax(220px, 1.4fr) 88px minmax(120px, 0.8fr) minmax(220px, 1.2fr)',
+              gap: 0, padding: '7px 10px', background: 'var(--bg-2)',
+              color: 'var(--fg-mute)', fontSize: 10, fontFamily: 'var(--mono)',
+              letterSpacing: '0.07em', textTransform: 'uppercase', borderBottom: '1px solid var(--line)',
+            }}>
+              <span>TC</span><span>Name</span><span>Status</span><span>Evidence</span><span>Checker / Expected</span>
+            </div>
+            {rows.map((r, i) => (
+              <div
+                key={`${r.id}-${i}`}
+                onClick={() => r.file && onOpenFile && onOpenFile(r.file, r.line || 0)}
+                style={{
+                  display: 'grid', gridTemplateColumns: 'minmax(120px, 0.9fr) minmax(220px, 1.4fr) 88px minmax(120px, 0.8fr) minmax(220px, 1.2fr)',
+                  gap: 0, padding: '8px 10px', borderBottom: i === rows.length - 1 ? 'none' : '1px solid var(--line)',
+                  background: i % 2 ? 'var(--bg)' : 'transparent',
+                  cursor: r.file ? 'pointer' : 'default', alignItems: 'center',
+                  fontSize: 11,
+                }}
+                title={r.file ? `${r.file}:${r.line || 0}` : ''}
+              >
+                <span style={{ fontFamily: 'var(--mono)', color: 'var(--cyan)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.id}</span>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
+                <SimResultBadge status={r.status} />
+                <span style={{ fontFamily: 'var(--mono)', color: 'var(--fg-mute)' }}>{r.evidence || r.source}</span>
+                <span style={{ color: 'var(--fg-mute)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {r.checker || r.expected || r.source || '-'}
+                  {r.expected && r.checker ? ` · ${r.expected}` : ''}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{
+            border: '1px solid var(--line)', borderRadius: 4,
+            padding: 20, color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 12,
+            background: 'var(--bg-2)',
+          }}>
+            {ipName
+              ? `No TC rows yet for ${ipName}.`
+              : 'Select IP_ID to load sim summary.'}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // TB class hierarchy — env → agents → drivers/monitors → sequencer →
 // sequences. Plus tests at the top. Each entry clickable for source jump.
 const TBHierarchyView = ({ h, onOpenFile }) => {
@@ -424,6 +592,10 @@ window.SimDebug = () => {
   // Left panel mode — switch between RTL hierarchy and TB (cocotb) tree.
   const [leftTab, setLeftTab] = React.useState('rtl');  // 'rtl' | 'tb'
   const [cocotbData, setCocotbData] = React.useState(null);
+  const [simSummary, setSimSummary] = React.useState(null);
+  const [simSummaryLoading, setSimSummaryLoading] = React.useState(false);
+  const [simSummaryError, setSimSummaryError] = React.useState('');
+  const [simSummaryReload, setSimSummaryReload] = React.useState(0);
   // No mock srcRange — the live SourceViewer drives everything from
   // srcLines / srcCursor. Kept as a stub for any leftover references.
   const [srcRange, setSrcRange] = React.useState({ from: 0, to: 0, hl: [], cur: 0 });
@@ -445,7 +617,8 @@ window.SimDebug = () => {
   //   wave      = source (collapsible) + waveform (the rest)
   //   hierarchy = full-width instance tree
   //   trace     = source + driver/sink list (full width)
-  const [topTab, setTopTab] = React.useState('wave'); // wave | hierarchy | trace
+  //   summary   = TC pass/fail table from SSOT scenarios + scoreboard
+  const [topTab, setTopTab] = React.useState('summary'); // summary | wave | hierarchy | trace | tb
   const [rightTab, setRightTab] = React.useState('wave'); // legacy, mirrors topTab
   React.useEffect(() => { setRightTab(topTab); }, [topTab]);
   const [ipName, setIpName] = React.useState('');
@@ -541,6 +714,37 @@ window.SimDebug = () => {
     })();
     return () => { cancelled = true; };
   }, [ipName]);
+
+  // Fetch TC pass/fail rollup for the Sim Summary tab. The backend
+  // merges SSOT scenarios with scoreboard_events.jsonl, and also
+  // includes scoreboard-only IDs so failed generated tests are not hidden.
+  React.useEffect(() => {
+    if (!ipName) {
+      setSimSummary(null);
+      setSimSummaryError('');
+      setSimSummaryLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setSimSummaryLoading(true);
+    (async () => {
+      try {
+        const r = await fetch('/api/debug/scenarios?ip=' + encodeURIComponent(ipName), { cache: 'no-store' });
+        const d = await r.json();
+        if (cancelled) return;
+        setSimSummary(d);
+        setSimSummaryError(r.ok ? (d.error || '') : (d.error || `HTTP ${r.status}`));
+      } catch (e) {
+        if (!cancelled) {
+          setSimSummary(null);
+          setSimSummaryError(String(e));
+        }
+      } finally {
+        if (!cancelled) setSimSummaryLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [ipName, simSummaryReload]);
 
   // Fetch hierarchy when IP is known.
   React.useEffect(() => {
@@ -1120,6 +1324,34 @@ window.SimDebug = () => {
     >{glyph}</button>
   );
 
+  const selectTopTab = (id) => {
+    setTopTab(id);
+    if (id === 'hierarchy') {
+      setLeftTab('rtl');
+      setExpand('hierarchy');
+    } else if (id === 'tb') {
+      setLeftTab('tb');
+      setExpand('split');
+    } else if (id === 'wave' || id === 'trace') {
+      setExpand('split');
+    }
+  };
+
+  const ModeBtn = ({ id, label, title }) => (
+    <button
+      onClick={() => selectTopTab(id)}
+      title={title || label}
+      style={{
+        background: topTab === id ? 'var(--accent)' : 'transparent',
+        color: topTab === id ? 'var(--bg)' : 'var(--fg-mute)',
+        border: '1px solid var(--line)', borderRadius: 3,
+        padding: '2px 8px', fontSize: 10, cursor: 'pointer',
+        fontFamily: 'var(--mono)', fontWeight: 800,
+        letterSpacing: '0.06em', textTransform: 'uppercase',
+      }}
+    >{label}</button>
+  );
+
   const Splitter = ({ orient, onMouseDown, onDoubleClick }) => (
     <div
       onMouseDown={onMouseDown}
@@ -1169,6 +1401,12 @@ window.SimDebug = () => {
         padding: '6px 14px', borderBottom: '1px solid var(--line)',
         background: 'var(--bg-2)', fontSize: 11, flexShrink: 0,
       }}>
+        <span style={{ color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>MODE</span>
+        <ModeBtn id="summary" label="Sim Summary" title="TC pass/fail summary" />
+        <ModeBtn id="wave" label="Wave" title="source + waveform" />
+        <ModeBtn id="hierarchy" label="RTL" title="RTL hierarchy" />
+        <ModeBtn id="tb" label="TB" title="TB hierarchy and cocotb files" />
+        <span style={{ color: 'var(--line-2)', margin: '0 4px' }}>│</span>
         <span style={{ color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>VCD</span>
         <select
           value={vcdActive}
@@ -1209,7 +1447,21 @@ window.SimDebug = () => {
         <ExpandBtn id="split"     glyph="⊞"   title="split (default)" />
       </div>
 
-      {/* Body grid: [HIERARCHY | splitter | CENTER (source/wave) | splitter | CHAT] */}
+      {topTab === 'summary' ? (
+        <SimSummaryPanel
+          ipName={ipName}
+          data={simSummary}
+          loading={simSummaryLoading}
+          error={simSummaryError}
+          cocotbData={cocotbData}
+          onOpenFile={(p, line) => {
+            loadSourceFile(p, line || 0);
+            setTopTab('wave');
+            setExpand('split');
+          }}
+          onRefresh={() => setSimSummaryReload(v => v + 1)}
+        />
+      ) : (
       <div style={{
         display: 'grid',
         gridTemplateColumns: bodyGridColumns,
@@ -1723,6 +1975,7 @@ window.SimDebug = () => {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 

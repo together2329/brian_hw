@@ -65,6 +65,79 @@ const WORKFLOW_RESULT_TOOLS = new Set([
 ]);
 const _isWorkflowResultTool = (tool) => WORKFLOW_RESULT_TOOLS.has(String(tool || '').toLowerCase());
 const INPUT_HISTORY_LIMIT = 200;
+const WORKFLOW_REPORT_TABS = {
+  lint: {
+    label: 'lint report',
+    title: 'Lint Report',
+    folders: ['lint'],
+    paths: (ip) => [
+      `${ip}/lint/dut_lint.json`,
+      `${ip}/lint/rtl_lint.json`,
+      `${ip}/lint/lint_report.txt`,
+      `${ip}/lint/verilator.log`,
+      `${ip}/lint/lint.log`,
+    ],
+  },
+  syn: {
+    label: 'syn_report',
+    title: 'Synthesis Report',
+    folders: ['syn', 'reports/synth'],
+    paths: (ip) => [
+      `${ip}/syn/out/syn.report.md`,
+      `${ip}/syn/out/area.json`,
+      `${ip}/syn/out/synth.v`,
+      `${ip}/syn/out/yosys.log`,
+      `${ip}/syn/syn.report.md`,
+      `${ip}/reports/synth/qor.json`,
+    ],
+  },
+  sta: {
+    label: 'sta_report',
+    title: 'STA Report',
+    folders: ['sta', 'reports/sta'],
+    paths: (ip) => [
+      `${ip}/sta/out/sta.report.md`,
+      `${ip}/sta/out/wns.json`,
+      `${ip}/sta/out/timing.rpt`,
+      `${ip}/sta/out/setup.rpt`,
+      `${ip}/sta/out/hold.rpt`,
+      `${ip}/sta/out/sta.log`,
+      `${ip}/reports/sta/timing.json`,
+    ],
+  },
+  pnr: {
+    label: 'pnr_report',
+    title: 'PNR Report',
+    folders: ['pnr', 'reports/pnr'],
+    paths: (ip) => [
+      `${ip}/pnr/out/pnr.report.md`,
+      `${ip}/pnr/out/route.json`,
+      `${ip}/pnr/out/drc.json`,
+      `${ip}/pnr/out/density.json`,
+      `${ip}/pnr/out/pnr.log`,
+      `${ip}/pnr/out/routed.def`,
+      `${ip}/reports/pnr/route.json`,
+    ],
+  },
+  'tb-gen': {
+    label: 'TB Structure',
+    title: 'TB Structure',
+    folders: ['tb', 'tc', 'verify', 'sim'],
+    paths: (ip) => [
+      `${ip}/tb/cocotb/tb_structure.json`,
+      `${ip}/tb/cocotb/test_${ip}.py`,
+      `${ip}/tb/cocotb/sequences.py`,
+      `${ip}/tb/cocotb/agents.py`,
+      `${ip}/tb/cocotb/scoreboard.py`,
+      `${ip}/tb/tb_${ip}.sv`,
+      `${ip}/tc/tc_list.json`,
+      `${ip}/tc/test_list.json`,
+      `${ip}/verify/equivalence_goals.json`,
+      `${ip}/sim/scoreboard_events.jsonl`,
+      `${ip}/yaml/${ip}.ssot.yaml`,
+    ],
+  },
+};
 
 // Detect success/error in a tool result body. Used by ObsCard to
 // stamp a leading ✓/✗ badge + override border color on errors.
@@ -1245,11 +1318,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // the contents of the file at previewPath with syntax highlighting;
   // 'split' keeps chat and preview visible side-by-side.
   // 'ssot' shows a reviewer-friendly section-by-section SSOT view.
-  // 'debug' / 'coverage' are workflow-specific first tabs.
+  // 'debug' / 'coverage' / 'workflow_report' are workflow-specific first tabs.
   // 'qa' is only available when centerLayout === 'tabbed' — it surfaces
   // the dedicated ask_user pane with breadcrumb-tabbed batched questions.
   // Double-clicking a file in the left tree sets previewPath + flips tab.
-  const [mainTab, setMainTab] = React.useState('split');    // chat | ssot | qa | split | preview | debug | coverage
+  const [mainTab, setMainTab] = React.useState('split');    // chat | ssot | qa | split | preview | debug | coverage | workflow_report
   const [previewPath, setPreviewPath] = React.useState(null);
   // Git diff display: when the GitPanel emits atlas-git-show with a
   // commit sha, the center pane swaps in GitDiffPane to render the
@@ -1685,6 +1758,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   const showSsotTab = workflow === 'ssot-gen' || (window.SSOT_FILES || []).length > 0 || isSsotYamlPath(previewPath);
   const showDebugTab = workflow === 'sim_debug';
   const showCoverageTab = workflow === 'coverage';
+  const workflowReportMeta = WORKFLOW_REPORT_TABS[workflow] || null;
+  const showWorkflowReportTab = !!workflowReportMeta;
   const lastWorkflowTabRef = React.useRef(null);
   React.useEffect(() => {
     if (lastWorkflowTabRef.current === workflow) return;
@@ -1697,7 +1772,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       setMainTab('coverage');
       return;
     }
-    setMainTab(t => (t === 'debug' || t === 'coverage') ? 'split' : t);
+    if (WORKFLOW_REPORT_TABS[workflow]) {
+      setMainTab('workflow_report');
+      return;
+    }
+    setMainTab(t => (t === 'debug' || t === 'coverage' || t === 'workflow_report') ? 'split' : t);
   }, [workflow]);
   React.useEffect(() => { setAskSel(0); }, [pendingQcard?.flowId, pendingQcardActiveTab]);
 
@@ -3248,12 +3327,27 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 }}
               >coverage</span>
             )}
+            {showWorkflowReportTab && (
+              <span
+                className="tab-chip"
+                onClick={() => setMainTab('workflow_report')}
+                title={workflowReportMeta.title}
+                style={{
+                  cursor: 'pointer',
+                  padding: '2px 8px', borderRadius: 2,
+                  color: mainTab === 'workflow_report' ? 'var(--accent)' : 'var(--fg-mute)',
+                  background: mainTab === 'workflow_report' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                  border: '1px solid ' + (mainTab === 'workflow_report' ? 'var(--accent)' : 'transparent'),
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                }}
+              >{workflowReportMeta.label}</span>
+            )}
             <span
               className="tab-chip"
               onClick={() => setMainTab('chat')}
               style={{
                 cursor: 'pointer', padding: '2px 8px', borderRadius: 2,
-                marginLeft: (showDebugTab || showCoverageTab) ? 4 : 0,
+                marginLeft: (showDebugTab || showCoverageTab || showWorkflowReportTab) ? 4 : 0,
                 color: mainTab === 'chat' ? 'var(--accent)' : 'var(--fg-mute)',
                 background: mainTab === 'chat' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
                 border: '1px solid ' + (mainTab === 'chat' ? 'var(--accent)' : 'transparent'),
@@ -3364,6 +3458,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}>
                 coverage workflow · SSOT goals · gaps
               </span>
+            ) : mainTab === 'workflow_report' ? (
+              <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}>
+                {workflowReportMeta ? workflowReportMeta.title : 'workflow report'} · {activeIp || 'no IP'}
+              </span>
             ) : (
               <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}
                     title={previewPath || ''}>
@@ -3394,6 +3492,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 Coverage · loading…
               </div>
             )
+          ) : mainTab === 'workflow_report' ? (
+            <WorkflowReportPane workflow={workflow} activeIp={activeIp} />
           ) : mainTab === 'chat' ? (
             renderChatPane()
           ) : (mainTab === 'split' || mainTab === 'preview') ? (() => {
@@ -9970,7 +10070,7 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
     for (const c of children) {
       while (cursor < c.line_start) { out.push(renderLineRow(cursor)); cursor += 1; }
       const color = _FOLD_KIND_COLOR[c.kind] || 'var(--fg-mute)';
-      const opened = (depth === 0 && (c.label === 'top_module' || c.kind === 'module'));
+      const opened = true;
       const inner = [];
       // The fold summary already labels c.line_start (with the parsed
       // key + line range), so rendering that same line again as a
@@ -10037,6 +10137,132 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
           💬 Comment L{floating.lo}-L{floating.hi}
         </button>
       )}
+    </div>
+  );
+};
+
+const WorkflowReportPane = ({ workflow, activeIp }) => {
+  const meta = WORKFLOW_REPORT_TABS[workflow] || null;
+  const ip = String(activeIp || '').trim();
+  const [dataTick, setDataTick] = React.useState(0);
+  const [selected, setSelected] = React.useState('');
+
+  React.useEffect(() => {
+    const handler = (ev) => {
+      const detail = ev && ev.detail;
+      if (detail === 'FILE_TREE' || detail === 'SCOPE_PATH') setDataTick(v => v + 1);
+    };
+    window.addEventListener('atlas-data-changed', handler);
+    return () => window.removeEventListener('atlas-data-changed', handler);
+  }, []);
+
+  React.useEffect(() => {
+    if (!window.atlasData?.refreshFileTree) return;
+    try {
+      window.atlasData.refreshFileTree(ip || window.SCOPE_PATH || '', { recursive: true });
+    } catch (_) {}
+  }, [workflow, ip]);
+
+  const paths = React.useMemo(() => {
+    if (!meta || !ip) return [];
+    const candidatePaths = (meta.paths ? meta.paths(ip) : []).filter(Boolean);
+    const scope = String(window.SCOPE_PATH || '').replace(/^\/+|\/+$/g, '');
+    const folderPrefixes = (meta.folders || []).map(f => `${ip}/${f.replace(/^\/+|\/+$/g, '')}/`);
+    const related = (window.FILE_TREE || [])
+      .filter(n => n && n.type === 'file')
+      .map(n => {
+        const relName = String(n.name || '').replace(/^\/+|\/+$/g, '');
+        return (scope ? `${scope}/` : '') + relName;
+      })
+      .filter(p => folderPrefixes.some(prefix => p.startsWith(prefix)))
+      .sort((a, b) => a.localeCompare(b));
+    return Array.from(new Set([...candidatePaths, ...related]));
+  }, [meta, ip, dataTick]);
+
+  const pathsKey = paths.join('\n');
+  React.useEffect(() => {
+    if (!paths.length) {
+      setSelected('');
+      return;
+    }
+    setSelected(current => (current && paths.includes(current)) ? current : paths[0]);
+  }, [pathsKey]);
+
+  if (!meta) {
+    return (
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-mute)' }}>
+        No report surface for this workflow.
+      </div>
+    );
+  }
+
+  if (!ip) {
+    return (
+      <div style={{
+        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 12,
+      }}>
+        Select IP_ID to load {meta.title}.
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: '300px minmax(0, 1fr)', overflow: 'hidden' }}>
+      <div style={{
+        minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column',
+        borderRight: '1px solid var(--line)', background: 'var(--panel)',
+      }}>
+        <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--line)' }}>
+          <div style={{ fontWeight: 800, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{meta.title}</div>
+          <div style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, marginTop: 3 }}>{ip} · {paths.length} artifact(s)</div>
+        </div>
+        <div style={{ padding: 8, borderBottom: '1px solid var(--line)', display: 'flex', gap: 6 }}>
+          <button
+            className="btn"
+            onClick={() => {
+              try { window.atlasData?.refreshFileTree?.(ip || window.SCOPE_PATH || '', { recursive: true }); } catch (_) {}
+              if (selected) readAtlasAsyncResource('file', selected, true).catch(() => {});
+            }}
+            style={{ padding: '2px 8px', fontSize: 10 }}
+          >refresh</button>
+          <span style={{ flex: 1 }} />
+          <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, alignSelf: 'center' }}>{workflow}</span>
+        </div>
+        <div style={{ flex: 1, overflow: 'auto', padding: '6px 0' }}>
+          {paths.map((p, i) => {
+            const active = selected === p;
+            const name = p.split('/').slice(1).join('/') || p;
+            return (
+              <div
+                key={p}
+                onClick={() => setSelected(p)}
+                onMouseEnter={() => readAtlasAsyncResource('file', p).catch(() => {})}
+                title={p}
+                style={{
+                  display: 'grid', gridTemplateColumns: '22px minmax(0, 1fr)',
+                  gap: 6, padding: '5px 10px', cursor: 'pointer',
+                  background: active ? 'var(--select)' : 'transparent',
+                  color: active ? 'var(--accent)' : 'var(--fg)',
+                  borderLeft: '2px solid ' + (active ? 'var(--accent)' : 'transparent'),
+                  fontFamily: 'var(--mono)', fontSize: 11,
+                }}
+              >
+                <span style={{ color: 'var(--fg-mute)' }}>{i + 1}</span>
+                <span className="trunc">{name}</span>
+              </div>
+            );
+          })}
+          {!paths.length && (
+            <div style={{ padding: 12, color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 11 }}>
+              No known report artifacts under {ip}.
+            </div>
+          )}
+        </div>
+      </div>
+      <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <PreviewPane path={selected} onClose={() => {}} />
+      </div>
     </div>
   );
 };

@@ -1247,8 +1247,11 @@ def create_app():
                 bucket["fail"] += 1
 
         tests = []
+        seen_sids: set[str] = set()
         for sc in scenarios:
             sid = sc.get("id")
+            if sid:
+                seen_sids.add(str(sid))
             b = by_sid.get(sid, {"pass": 0, "fail": 0, "rows": []})
             if b["fail"] > 0:
                 status = "fail"
@@ -1266,6 +1269,27 @@ def create_app():
                 "coverage": sc.get("coverage", []),
                 "pass_rows": b["pass"],
                 "fail_rows": b["fail"],
+                "source": "ssot",
+            })
+        for sid in sorted(k for k in by_sid.keys() if str(k) not in seen_sids):
+            b = by_sid.get(sid, {"pass": 0, "fail": 0, "rows": []})
+            if b["fail"] > 0:
+                status = "fail"
+            elif b["pass"] > 0:
+                status = "pass"
+            else:
+                status = "pending"
+            tests.append({
+                "scenario_id": sid,
+                "name": sid,
+                "status": status,
+                "stimulus": "",
+                "expected": "",
+                "checker": "",
+                "coverage": [],
+                "pass_rows": b["pass"],
+                "fail_rows": b["fail"],
+                "source": "scoreboard",
             })
         summary = {
             "pass":    sum(1 for t in tests if t["status"] == "pass"),
@@ -1331,16 +1355,20 @@ def create_app():
     # workflow/sim_debug/ to sys.path globally.
     _ELAB_CACHE = {}
     def _load_sim_debug_elab():
-        if "mod" in _ELAB_CACHE:
-            return _ELAB_CACHE["mod"]
         import importlib.util as _ilu
         elab_path = SOURCE_ROOT / "workflow" / "sim_debug" / "elab.py"
         if not elab_path.is_file():
             raise FileNotFoundError(f"sim_debug elab module not found at {elab_path}")
+        try:
+            mtime_ns = elab_path.stat().st_mtime_ns
+        except OSError:
+            mtime_ns = 0
+        if _ELAB_CACHE.get("path") == str(elab_path) and _ELAB_CACHE.get("mtime_ns") == mtime_ns:
+            return _ELAB_CACHE["mod"]
         spec = _ilu.spec_from_file_location("sim_debug_elab", str(elab_path))
         mod = _ilu.module_from_spec(spec)
         spec.loader.exec_module(mod)
-        _ELAB_CACHE["mod"] = mod
+        _ELAB_CACHE.update({"mod": mod, "path": str(elab_path), "mtime_ns": mtime_ns})
         return mod
 
     # ── Elab endpoints (pyslang / Verilator / slang) — sim_debug hierarchy + trace ─
