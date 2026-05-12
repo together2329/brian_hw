@@ -286,6 +286,8 @@ class _MultiUserBridge:
                 payload = msg.get("payload")
                 event = dict(payload) if isinstance(payload, dict) else {}
                 event["type"] = str(msg.get("msg_type") or "")
+                if event["type"] == "agent_state" and isinstance(event.get("running"), bool):
+                    session.agent_running = bool(event["running"])
                 if session.session_id != "default":
                     event.setdefault("session_id", session.session_id)
                 if event["type"] == "ask_user":
@@ -603,9 +605,8 @@ class _MultiUserBridge:
         if self._single_user:
             return self._default_session.agent_running
         if self._process_manager is not None:
-            with self._active_lock:
-                session_id = self._active_session_id
-            return self._process_manager.is_alive(session_id)
+            with self._sessions_lock:
+                return any(session.agent_running for session in self._sessions.values())
         with self._sessions_lock:
             return any(session.agent_running for session in self._sessions.values())
 

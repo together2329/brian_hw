@@ -152,6 +152,39 @@ const App = () => {
     setTimeout(() => setTopNotice(''), 5000);
   }, []);
 
+  const [agentRunning, _setAgentRunning] = React.useState(false);
+  const agentRunningRef = React.useRef(false);
+  const setAgentRunningState = React.useCallback((running) => {
+    const next = !!running;
+    agentRunningRef.current = next;
+    try { window.ATLAS_AGENT_RUNNING = next; } catch (_) {}
+    _setAgentRunning(next);
+  }, []);
+  React.useEffect(() => {
+    const subs = [];
+    const onGlobalRunning = (ev) => {
+      setAgentRunningState(!!(ev && ev.detail && ev.detail.running));
+    };
+    try {
+      if (typeof window.ATLAS_AGENT_RUNNING === 'boolean') {
+        setAgentRunningState(window.ATLAS_AGENT_RUNNING);
+      }
+      window.addEventListener('atlas-agent-running', onGlobalRunning);
+      if (window.backend?.subscribe) {
+        subs.push(window.backend.subscribe('hello', (m) => {
+          if (m && typeof m.running === 'boolean') setAgentRunningState(m.running);
+        }));
+        subs.push(window.backend.subscribe('agent_state', (m) => {
+          if (m && typeof m.running === 'boolean') setAgentRunningState(m.running);
+        }));
+      }
+    } catch (_) {}
+    return () => {
+      try { window.removeEventListener('atlas-agent-running', onGlobalRunning); } catch (_) {}
+      subs.forEach(u => { try { u && u(); } catch (_) {} });
+    };
+  }, [setAgentRunningState]);
+
   // Workspace switch in-flight indicator. Backend emits
   // `workspace_changing` right before _setup_workspace runs and
   // `workspace_changed` after success. The banner shows a spinner so
@@ -165,12 +198,16 @@ const App = () => {
       subs.push(window.backend.subscribe('workspace_changing', (m) => {
         setWfSwitching({ from: m?.prev || '', to: m?.workspace || '', ip: m?.ip || '' });
       }));
-      subs.push(window.backend.subscribe('workspace_changed', () => {
-        setWfSwitching(null);
+      subs.push(window.backend.subscribe('workspace_changed', (m) => {
+        const loaded = m?.workspace || '';
+        setTimeout(() => {
+          setWfSwitching(cur => (!loaded || (cur && cur.to === loaded)) ? null : cur);
+        }, 300);
+        setAgentRunningState(false);
       }));
     } catch (_) {}
     return () => { subs.forEach(u => { try { u && u(); } catch (_) {} }); };
-  }, []);
+  }, [setAgentRunningState]);
 
   // First-connect handshake indicator. Runs a small protocol on mount:
   //   1) WS connects               → 'ws'
@@ -329,6 +366,32 @@ const App = () => {
     }
   }, [normalizeSession, uiLang]);
 
+  const stopForWorkflowSwitch = React.useCallback(() => {
+    setAgentRunningState(false);
+    try {
+      if (window.backend && typeof window.backend.send === 'function') {
+        window.backend.send({ type: 'stop' });
+      }
+    } catch (_) {}
+    try {
+      fetch('/api/control/stop', {
+        method: 'POST',
+        cache: 'no-store',
+        keepalive: true,
+      }).catch(() => {});
+    } catch (_) {}
+  }, [setAgentRunningState]);
+
+  const confirmStopForWorkflowSwitch = React.useCallback((workflow) => {
+    const running = agentRunningRef.current || agentRunning || window.ATLAS_AGENT_RUNNING === true;
+    if (!running) return true;
+    const wf = normalizeSession(workflow) || WORKFLOW_DEFAULT;
+    const ok = window.confirm(`Agent is running. Stop it and switch workflow to "${wf}"?`);
+    if (!ok) return false;
+    stopForWorkflowSwitch();
+    return true;
+  }, [agentRunning, normalizeSession, stopForWorkflowSwitch]);
+
   const syncNamespaceUrl = React.useCallback((namespace, owner, ip, workflow) => {
     try {
       const url = new URL(window.location.href);
@@ -350,17 +413,19 @@ const App = () => {
     const ip = normalizeSession(ipId || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
     const wf = normalizeSession(workflow || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
     const namespace = namespaceFor(owner, ip, wf);
-    // Stop the running agent BEFORE flipping the workspace whenever any
-    // of the triple changes. Without this, in-flight tool calls keep
-    // running against the old IP/workflow even after the UI has pivoted,
-    // which produces "wrote to wrong workspace" surprises that are hard
-    // to back out of. Fire-and-forget — `/api/control/stop` is idempotent
-    // and the activate POST below doesn't wait on it. Only triggers on
-    // an actual change (no-op activates from re-renders won't bother
-    // the bridge).
     const prev = window.ACTIVE_SESSION || '';
-    if (prev && prev !== namespace) {
+    const prevParts = splitSessionNamespace(prev || '');
+    const prevWf = prevParts.workflow || WORKFLOW_DEFAULT;
+    const workflowChanged = !!(prev && prev !== namespace && prevWf !== wf);
+    if (workflowChanged) {
+      setWfSwitching({ from: prevWf, to: wf, ip });
+    }
+    // Stop only when the UI knows an agent is actually running. Stopped
+    // workflow changes should load directly without manufacturing a stale
+    // "end of loop" state.
+    if (prev && prev !== namespace && agentRunningRef.current) {
       try {
+        setAgentRunningState(false);
         fetch('/api/control/stop', { method: 'POST' }).catch(() => {});
       } catch (_) {}
     }
@@ -397,6 +462,7 @@ const App = () => {
     // inbox on a triple change, so by the time /wf lands the bridge
     // is quiescent and the env vars already point at the new IP).
     const _activateAndDispatch = async () => {
+      const loadStartedAt = Date.now();
       try {
         await fetch('/api/session/activate', {
           method: 'POST',
@@ -412,10 +478,19 @@ const App = () => {
       // dispatch /wf default so the backend cannot stay pinned to the
       // previous workspace.
       if (syncWorkflow) activateBackendWorkflow(wf, namespace);
+      if (workflowChanged) {
+        setAgentRunningState(false);
+        const delay = Math.max(0, 450 - (Date.now() - loadStartedAt));
+        setTimeout(() => {
+          setWfSwitching(cur => (
+            cur && cur.to === wf && cur.ip === ip ? null : cur
+          ));
+        }, delay);
+      }
     };
     _activateAndDispatch();
     return namespace;
-  }, [activateBackendWorkflow, namespaceFor, normalizeSession, syncNamespaceUrl]);
+  }, [activateBackendWorkflow, namespaceFor, normalizeSession, setAgentRunningState, splitSessionNamespace, syncNamespaceUrl]);
 
   // Synthetic / reserved namespace segments that should never show
   // up in the ip_id dropdown. 'soc' is the SoC architect placeholder,
@@ -633,6 +708,9 @@ const App = () => {
   // backend prompt, TODO file and workspace config all follow the UI.
   const selectWorkflow = (rawWf) => {
     const wf = normalizeSession(rawWf) || WORKFLOW_DEFAULT;
+    if (wf === (currentWorkflow() || WORKFLOW_DEFAULT)) return;
+    const ok = confirmStopForWorkflowSwitch(wf);
+    if (!ok) return;
     const ip = activeIp || WORKFLOW_DEFAULT;
     activateNamespace(activeSessionId, ip, wf, true);
   };
@@ -923,9 +1001,10 @@ const App = () => {
             animation: 'atlas-spin 0.9s linear infinite',
           }} />
           <span style={{ flex: 1 }}>
-            Switching workspace <code>{wfSwitching.from || '∅'}</code> → <code>{wfSwitching.to}</code>
+            <strong>Workflow Loading ...</strong>{' '}
+            <code>{wfSwitching.from || 'default'}</code> → <code>{wfSwitching.to}</code>
             {wfSwitching.ip ? <> · ip=<code>{wfSwitching.ip}</code></> : null}
-            <span style={{ marginLeft: 8, opacity: 0.7 }}>(reloading prompts / skills / hooks…)</span>
+            <span style={{ marginLeft: 8, opacity: 0.7 }}>(agent stopped while loading)</span>
           </span>
           <style>{`@keyframes atlas-spin{to{transform:rotate(360deg)}}`}</style>
         </div>

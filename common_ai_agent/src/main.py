@@ -2384,6 +2384,11 @@ def chat_loop():
                         if _textual_emit_flush_fn is not None:
                             try: _textual_emit_flush_fn()
                             except Exception: pass
+                        if _textual_set_agent_running_fn is not None:
+                            try:
+                                _textual_set_agent_running_fn(False)
+                            except Exception:
+                                pass
                         continue
 
                     elif result.startswith("MODEL_SWITCH:"):

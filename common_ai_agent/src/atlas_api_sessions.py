@@ -99,10 +99,17 @@ def register_sessions_routes(
         # makes the transition deterministic regardless of order.
         prev = active_session_value() or ""
         triple_changed = prev != canonical
-        if triple_changed:
+        was_running = bool(getattr(bridge, "agent_running", False))
+        if triple_changed and was_running:
             try:
                 bridge.request_stop_for_session(prev or canonical)
+                try:
+                    bridge.get_session(prev or canonical).agent_running = False
+                except Exception:
+                    pass
                 bridge.emit("agent_state", running=False, session_id=prev or canonical)
+                if prev and prev != canonical:
+                    bridge.emit("agent_state", running=False, session_id=canonical)
             except Exception:
                 pass
         atlas_active_session_cv.set(canonical)

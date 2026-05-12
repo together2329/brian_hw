@@ -1228,14 +1228,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     // to default on both the UI and backend; otherwise CONTEXT refresh
     // can re-enter the old workflow after local React state cleared.
     const next = workflow === w ? null : w;
-    // Always halt the agent before flipping workflow. Without this, an
-    // in-flight react_loop can keep iterating against the OLD workspace
-    // after the UI has pivoted, generating "wrote to wrong workflow"
-    // surprises. Fire-and-forget — backend stop is idempotent.
+    const runningNow = streamingRef.current || window.ATLAS_AGENT_RUNNING === true;
+    if (runningNow) {
+      const label = next || 'default';
+      if (!window.confirm(`Agent is running. Stop it and switch workflow to "${label}"?`)) return;
+      try { if (window.backend) window.backend.send({ type: 'stop' }); } catch (_) {}
+      try {
+        fetch('/api/control/stop', {
+          method: 'POST', cache: 'no-store', keepalive: true,
+        }).catch(() => {});
+      } catch (_) {}
+    }
+    setStreaming(false);
     try {
-      fetch('/api/control/stop', {
-        method: 'POST', cache: 'no-store', keepalive: true,
-      }).catch(() => {});
+      window.ATLAS_AGENT_RUNNING = false;
+      window.dispatchEvent(new CustomEvent('atlas-agent-running', { detail: { running: false } }));
     } catch (_) {}
     setWorkflow(next);
     window.CONTEXT = Object.assign({}, window.CONTEXT || {}, { workspace: next || '' });
@@ -1328,6 +1335,14 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   const streamingRef = React.useRef(false);
   const streamBufferRef = React.useRef('');
   React.useEffect(() => { streamingRef.current = streaming; }, [streaming]);
+  React.useEffect(() => {
+    try {
+      window.ATLAS_AGENT_RUNNING = !!streaming;
+      window.dispatchEvent(new CustomEvent('atlas-agent-running', {
+        detail: { running: !!streaming },
+      }));
+    } catch (_) {}
+  }, [streaming]);
   const [backendState, setBackendState] = React.useState(() => {
     if (!window.backend) return 'missing';
     return window.backend.getConnectionState ? window.backend.getConnectionState() : 'connecting';

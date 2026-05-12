@@ -687,6 +687,7 @@ def create_app():
         is wedged behind a larger message.
         """
         bridge.request_stop()
+        bridge.agent_running = False
         bridge.emit("agent_state", running=False)
         return JSONResponse({"ok": True, "action": "stop"})
 
@@ -5847,9 +5848,15 @@ def create_app():
             # todo bindings. Queue that specialized state transition through
             # the agent control loop, but keep the chat command itself out
             # of the LLM prompt stream.
+            was_running = bool(getattr(client_session, "agent_running", False))
             bridge.submit_prompt_for_session(client_session.session_id, raw)
-            client_session.emit("agent_state", running=True)
-            _emit_slash_output(client_session, "Workflow switch command accepted.", finish=False)
+            if not was_running:
+                client_session.agent_running = False
+            _emit_slash_output(
+                client_session,
+                "Workflow switch command accepted.",
+                finish=not was_running,
+            )
             return True
 
         if result in {"CLEAR_ALL", "GIT_CLEAR"} or result.startswith("TODO_REVERT:"):
@@ -10980,8 +10987,12 @@ def create_app():
         except Exception:
             pass
         try:
+            try:
+                _session_running = bool(getattr(bridge.get_session(session_id), "agent_running", False))
+            except Exception:
+                _session_running = bool(bridge.agent_running)
             await websocket.send_json({"type": "hello", "frontend": "atlas",
-                                        "running": bridge.agent_running,
+                                        "running": _session_running,
                                         "center_layout": _center_layout,
                                         "chat_feed_summary": _chat_feed_summary})
             for pending_event in bridge.session_pending_ask_user_events(session_id):
