@@ -76,6 +76,8 @@ const WORKFLOW_REPORT_TABS = {
       `${ip}/lint/lint_report.txt`,
       `${ip}/lint/verilator.log`,
       `${ip}/lint/lint.log`,
+      `gpio/${ip}/lint/dut_lint.json`,
+      `gpio/${ip}/lint/dut_lint.log`,
     ],
   },
   syn: {
@@ -10188,6 +10190,187 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
   );
 };
 
+const LintToolResultCard = ({ result }) => {
+  const passed = result?.passed === true;
+  const diagnostics = Array.isArray(result?.diagnostics) ? result.diagnostics : [];
+  return (
+    <div style={{
+      border: '1px solid ' + (passed ? 'color-mix(in oklch, var(--ok) 35%, var(--line))' : 'color-mix(in oklch, var(--err) 35%, var(--line))'),
+      background: 'var(--panel)',
+      borderRadius: 4,
+      padding: 10,
+      minWidth: 0,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+        <span style={{ fontFamily: 'var(--mono)', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          {result?.tool || 'tool'}
+        </span>
+        <AtlasStatusBadge status={passed ? 'approved' : 'error'} label={passed ? 'pass' : 'fail'} compact />
+        <span style={{ flex: 1 }} />
+        <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+          rc {result?.returncode ?? '?'}
+        </span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 8 }}>
+        {[
+          ['errors', result?.errors ?? 0],
+          ['warnings', result?.warnings ?? 0],
+          ['diagnostics', diagnostics.length],
+        ].map(([label, value]) => (
+          <div key={label} style={{ border: '1px solid var(--line)', background: 'var(--bg)', borderRadius: 3, padding: '6px 7px' }}>
+            <div style={{ color: 'var(--fg-mute)', fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</div>
+            <div style={{ fontFamily: 'var(--mono)', fontWeight: 800, fontSize: 14 }}>{value}</div>
+          </div>
+        ))}
+      </div>
+      <div className="trunc" title={result?.command || ''} style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+        {result?.command || '(no command)'}
+      </div>
+      {diagnostics.length > 0 && (
+        <div style={{ marginTop: 8, display: 'grid', gap: 5 }}>
+          {diagnostics.slice(0, 5).map((d, idx) => (
+            <div key={idx} style={{
+              borderLeft: '2px solid ' + (String(d.severity || '').toLowerCase() === 'error' ? 'var(--err)' : 'var(--warn)'),
+              paddingLeft: 7,
+              color: 'var(--fg)',
+              fontFamily: 'var(--mono)',
+              fontSize: 10,
+              lineHeight: 1.35,
+            }}>
+              <span style={{ color: 'var(--fg-mute)' }}>
+                {d.severity || 'diag'} {d.file || ''}{d.line ? `:${d.line}` : ''}
+              </span>
+              <div>{String(d.message || '').slice(0, 260)}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const LintReportSummary = ({ ip, onSelectPath }) => {
+  const [data, setData] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+  const [err, setErr] = React.useState('');
+  const [tick, setTick] = React.useState(0);
+  const [running, setRunning] = React.useState(false);
+
+  const load = React.useCallback((refresh = false) => {
+    if (!ip) return Promise.resolve();
+    setLoading(true);
+    setErr('');
+    if (refresh) setRunning(true);
+    const url = `/api/lint/report?ip=${encodeURIComponent(ip)}${refresh ? '&refresh=1' : ''}`;
+    return fetch(url, { cache: 'no-store' })
+      .then(async r => {
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
+        setData(d);
+        if (d.report_path && !refresh) onSelectPath?.(d.report_path);
+      })
+      .catch(e => setErr(String(e.message || e)))
+      .finally(() => {
+        setLoading(false);
+        setRunning(false);
+      });
+  }, [ip, onSelectPath]);
+
+  React.useEffect(() => { load(false); }, [load, tick]);
+
+  const tools = Array.isArray(data?.tool_results) ? data.tool_results : [];
+  const passed = data?.passed === true;
+  const hasReport = data?.exists === true;
+  const runOutput = data?.run?.output || '';
+
+  return (
+    <div style={{
+      borderBottom: '1px solid var(--line)',
+      background: 'var(--bg-2)',
+      padding: 12,
+      display: 'grid',
+      gap: 10,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div>
+          <div style={{ fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 12 }}>
+            pyslang + verilator lint
+          </div>
+          <div style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, marginTop: 2 }}>
+            {data?.resolved_ip || ip} {data?.timestamp ? `· ${data.timestamp}` : ''}
+          </div>
+        </div>
+        <span style={{ flex: 1 }} />
+        {hasReport && <AtlasStatusBadge status={passed ? 'approved' : 'error'} label={passed ? 'clean' : 'issues'} compact />}
+        <button
+          className="btn"
+          onClick={() => setTick(v => v + 1)}
+          disabled={loading}
+          style={{ padding: '2px 8px', fontSize: 10 }}
+        >refresh</button>
+        <button
+          className="btn"
+          onClick={() => load(true)}
+          disabled={running || loading}
+          style={{ padding: '2px 8px', fontSize: 10 }}
+        >run report</button>
+      </div>
+
+      {err && (
+        <div style={{ color: 'var(--err)', fontFamily: 'var(--mono)', fontSize: 11 }}>{err}</div>
+      )}
+      {!err && !hasReport && !loading && (
+        <div style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 11 }}>
+          No dut_lint.json found yet.
+        </div>
+      )}
+      {loading && (
+        <div style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 11 }}>
+          {running ? 'Running canonical DUT lint...' : 'Loading lint report...'}
+        </div>
+      )}
+
+      {hasReport && (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 8 }}>
+            {[
+              ['tool', data.tool || 'pyslang+verilator'],
+              ['errors', data.errors ?? 0],
+              ['warnings', data.warnings ?? 0],
+              ['suppressions', data.suppression_violations ?? 0],
+              ['style', data.style_violations ?? 0],
+            ].map(([label, value]) => (
+              <div key={label} style={{ border: '1px solid var(--line)', background: 'var(--panel)', borderRadius: 3, padding: '6px 8px', minWidth: 0 }}>
+                <div style={{ color: 'var(--fg-mute)', fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</div>
+                <div className="trunc" title={String(value)} style={{ fontFamily: 'var(--mono)', fontWeight: 800, fontSize: 13 }}>{value}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }}>
+            {tools.map((result, idx) => (
+              <LintToolResultCard key={`${result.tool || 'tool'}-${idx}`} result={result} />
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button className="btn" onClick={() => data.report_path && onSelectPath?.(data.report_path)} style={{ padding: '2px 8px', fontSize: 10 }}>
+              open json
+            </button>
+            <button className="btn" onClick={() => data.log_path && onSelectPath?.(data.log_path)} disabled={!data.log_exists} style={{ padding: '2px 8px', fontSize: 10 }}>
+              open log
+            </button>
+            <span className="trunc" title={data.command || ''} style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+              {data.command || '(no command)'}
+            </span>
+          </div>
+          {runOutput && (
+            <ToolOutputPre text={runOutput} tool="bash" />
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
 const WorkflowReportPane = ({ workflow, activeIp }) => {
   const meta = WORKFLOW_REPORT_TABS[workflow] || null;
   const ip = String(activeIp || '').trim();
@@ -10308,6 +10491,9 @@ const WorkflowReportPane = ({ workflow, activeIp }) => {
         </div>
       </div>
       <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        {workflow === 'lint' && (
+          <LintReportSummary ip={ip} onSelectPath={setSelected} />
+        )}
         <PreviewPane path={selected} onClose={() => {}} />
       </div>
     </div>

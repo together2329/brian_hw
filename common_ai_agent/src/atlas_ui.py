@@ -31,6 +31,7 @@ import os
 import queue
 import re
 import shlex
+import subprocess
 import sys
 import threading
 import time
@@ -978,6 +979,144 @@ def create_app():
         return JSONResponse({
             "path": path, "size": stat.st_size, "mtime": stat.st_mtime,
             "truncated": truncated, "content": content,
+        })
+
+    def _lint_ip_candidates(ip: str) -> list[Path]:
+        clean = str(ip or "").strip().strip("/")
+        if not clean:
+            return []
+        parts = [p for p in clean.split("/") if p]
+        if any(p in {".", ".."} or not re.match(r"^[A-Za-z0-9_.-]+$", p) for p in parts):
+            return []
+
+        candidates: list[Path] = []
+        if len(parts) > 1:
+            target = _safe(clean)
+            if target is not None:
+                candidates.append(target)
+        else:
+            leaf = parts[0]
+            direct = _safe(leaf)
+            if direct is not None:
+                candidates.append(direct)
+            for pattern in (f"*/{leaf}", f"*/*/{leaf}"):
+                for match in PROJECT_ROOT.glob(pattern):
+                    try:
+                        match.relative_to(PROJECT_ROOT)
+                    except ValueError:
+                        continue
+                    if any(part in SKIP_DIRS for part in match.parts):
+                        continue
+                    candidates.append(match)
+
+        out: list[Path] = []
+        seen: set[str] = set()
+        for candidate in candidates:
+            try:
+                resolved = candidate.resolve()
+                rel = resolved.relative_to(PROJECT_ROOT).as_posix()
+            except (OSError, ValueError):
+                continue
+            if rel in seen or not resolved.is_dir():
+                continue
+            seen.add(rel)
+            out.append(resolved)
+        return out
+
+    def _choose_lint_ip_dir(ip: str) -> Optional[Path]:
+        candidates = _lint_ip_candidates(ip)
+        if not candidates:
+            return None
+        with_report = [p for p in candidates if (p / "lint" / "dut_lint.json").is_file()]
+        if with_report:
+            return max(with_report, key=lambda p: (p / "lint" / "dut_lint.json").stat().st_mtime)
+        with_filelist = [p for p in candidates if (p / "list" / f"{p.name}.f").is_file()]
+        if with_filelist:
+            return with_filelist[0]
+        return candidates[0]
+
+    def _read_lint_report(ip_dir: Path) -> tuple[dict, str]:
+        report_path = ip_dir / "lint" / "dut_lint.json"
+        if not report_path.is_file():
+            return {}, "missing lint/dut_lint.json"
+        try:
+            return json.loads(report_path.read_text(encoding="utf-8")), ""
+        except Exception as exc:
+            return {}, f"invalid lint report: {exc}"
+
+    @app.get("/api/lint/report")
+    async def api_lint_report(ip: str, top: str = "", refresh: int = 0):
+        """Return the canonical DUT lint report, split by pyslang/Verilator.
+
+        `refresh=1` runs workflow/lint/scripts/dut_lint_report.py first so
+        the UI can regenerate the report without asking the user to leave ATLAS.
+        """
+        ip_dir = _choose_lint_ip_dir(ip)
+        if ip_dir is None:
+            return JSONResponse({"error": "IP directory not found", "ip": ip}, status_code=404)
+
+        rel_ip = ip_dir.relative_to(PROJECT_ROOT).as_posix()
+        run_info: dict[str, Any] | None = None
+        if refresh:
+            script = SOURCE_ROOT / "workflow" / "lint" / "scripts" / "dut_lint_report.py"
+            cmd = [sys.executable, str(script), rel_ip, "--top", top or ip_dir.name]
+
+            def _run_lint_report():
+                return subprocess.run(
+                    cmd,
+                    cwd=PROJECT_ROOT,
+                    text=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    timeout=180,
+                )
+
+            try:
+                proc = await asyncio.to_thread(_run_lint_report)
+                run_info = {
+                    "command": " ".join(cmd),
+                    "returncode": proc.returncode,
+                    "output": proc.stdout[-12000:] if proc.stdout else "",
+                }
+            except subprocess.TimeoutExpired as exc:
+                run_info = {
+                    "command": " ".join(cmd),
+                    "returncode": 124,
+                    "output": str(exc),
+                }
+            except Exception as exc:
+                run_info = {
+                    "command": " ".join(cmd),
+                    "returncode": 1,
+                    "output": str(exc),
+                }
+
+        report, error = _read_lint_report(ip_dir)
+        report_path = ip_dir / "lint" / "dut_lint.json"
+        log_path = ip_dir / "lint" / "dut_lint.log"
+        tool_results = report.get("tool_results") if isinstance(report, dict) else []
+        if not isinstance(tool_results, list):
+            tool_results = []
+        return JSONResponse({
+            "ip": ip,
+            "resolved_ip": rel_ip,
+            "top": top or ip_dir.name,
+            "exists": bool(report),
+            "error": error,
+            "report_path": report_path.relative_to(PROJECT_ROOT).as_posix(),
+            "log_path": log_path.relative_to(PROJECT_ROOT).as_posix(),
+            "log_exists": log_path.is_file(),
+            "tool": report.get("tool", "") if report else "",
+            "passed": report.get("passed") if report else None,
+            "errors": int(report.get("errors") or 0) if report else 0,
+            "warnings": int(report.get("warnings") or 0) if report else 0,
+            "suppression_violations": int(report.get("suppression_violation_count") or 0) if report else 0,
+            "style_violations": int(report.get("style_violation_count") or 0) if report else 0,
+            "command": report.get("command", "") if report else "",
+            "timestamp": report.get("timestamp", "") if report else "",
+            "rtl_files": report.get("rtl_files", []) if report else [],
+            "tool_results": tool_results,
+            "run": run_info,
         })
 
     # ── Foldable structure for PreviewPane (sv / yaml) ────────────
