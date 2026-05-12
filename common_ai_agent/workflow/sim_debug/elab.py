@@ -23,11 +23,15 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Iterable, Optional
+
+
+ELAB_CACHE_VERSION = "sim-debug-elab-v5-pyslang-fallback"
 
 
 def _project_root() -> Path:
@@ -42,6 +46,8 @@ def _cache_dir() -> Path:
 
 def _cache_key(backend: str, top: str, sources: list[Path]) -> str:
     h = hashlib.sha1()
+    h.update(ELAB_CACHE_VERSION.encode())
+    h.update(b"\0")
     h.update(backend.encode())
     h.update(b"\0")
     h.update(top.encode())
@@ -66,10 +72,191 @@ def _cache_get(key: str) -> Optional[dict]:
 
 
 def _cache_put(key: str, data: dict) -> None:
+    # Do not persist transient compiler/API errors. pyslang wheels have had
+    # incompatible Python API shapes, and caching those failures makes the UI
+    # look broken even after the environment or fallback logic is fixed.
+    if data.get("error") and not data.get("tree"):
+        return
     try:
         (_cache_dir() / f"{key}.json").write_text(json.dumps(data))
     except OSError:
         pass
+
+
+_SV_RESERVED = {
+    "module", "endmodule", "always", "always_ff", "always_comb", "always_latch",
+    "if", "else", "begin", "end", "case", "endcase", "casex", "casez", "for",
+    "while", "assign", "wire", "reg", "logic", "input", "output", "inout",
+    "parameter", "localparam", "function", "endfunction", "task", "endtask",
+    "generate", "endgenerate", "return", "initial", "final", "typedef", "enum",
+    "struct", "union", "package", "endpackage", "import", "export", "interface",
+    "endinterface", "modport", "class", "endclass",
+}
+
+
+def _strip_sv_comments(text: str) -> str:
+    """Remove comments while preserving line numbers for source links."""
+    text = re.sub(r"/\*.*?\*/", lambda m: "\n" * m.group(0).count("\n"), text, flags=re.DOTALL)
+    return re.sub(r"//.*?$", "", text, flags=re.MULTILINE)
+
+
+def _module_index_from_text(sources: list[Path]) -> dict[str, dict]:
+    modules: dict[str, dict] = {}
+    module_re = re.compile(r"^\s*module\s+([A-Za-z_]\w*)\b")
+    endmodule_re = re.compile(r"^\s*endmodule\b")
+
+    def _scan_module_token(lines: list[str], idx: int) -> str:
+        for j in range(idx - 1, max(-1, idx - 40), -1):
+            stripped = lines[j].strip()
+            if not stripped or stripped.startswith(".") or stripped.startswith(")"):
+                continue
+            m = re.match(r"^([A-Za-z_]\w*)\s*(?:#\s*\(?\s*)?$", stripped)
+            if m and m.group(1) not in _SV_RESERVED:
+                return m.group(1)
+            m = re.match(r"^([A-Za-z_]\w*)\s*#\s*\(", stripped)
+            if m and m.group(1) not in _SV_RESERVED:
+                return m.group(1)
+            if stripped.endswith(";") or stripped.startswith(("module ", "endmodule")):
+                break
+        return ""
+
+    def _instances(body_lines: list[str], base_line: int) -> list[dict]:
+        out: list[dict] = []
+        single_re = re.compile(
+            r"^\s*([A-Za-z_]\w*)\s*(?:#\s*\(.*\)\s*)?\s+([A-Za-z_]\w*)\s*\("
+        )
+        close_param_re = re.compile(r"^\s*\)\s*([A-Za-z_]\w*)\s*\(")
+        for idx, line in enumerate(body_lines):
+            stripped = line.strip()
+            if not stripped or stripped.startswith("."):
+                continue
+            m = single_re.match(line)
+            if m:
+                mod_name, inst_name = m.group(1), m.group(2)
+                if mod_name not in _SV_RESERVED and inst_name not in _SV_RESERVED:
+                    out.append({"module": mod_name, "name": inst_name, "line": base_line + idx})
+                    continue
+            m = close_param_re.match(line)
+            if m:
+                mod_name = _scan_module_token(body_lines, idx)
+                if mod_name:
+                    out.append({"module": mod_name, "name": m.group(1), "line": base_line + idx})
+        return out
+
+    for src in sources:
+        try:
+            lines = _strip_sv_comments(src.read_text(encoding="utf-8", errors="replace")).splitlines()
+        except OSError:
+            continue
+        cur_name = ""
+        cur_start = 0
+        cur_body: list[str] = []
+        for line_no, line in enumerate(lines, start=1):
+            if not cur_name:
+                m = module_re.match(line)
+                if m:
+                    cur_name = m.group(1)
+                    cur_start = line_no
+                    cur_body = []
+                continue
+            if endmodule_re.match(line):
+                insts = _instances(cur_body, cur_start + 1)
+                prev = modules.get(cur_name)
+                if prev is None or len(insts) >= len(prev.get("instances") or []):
+                    modules[cur_name] = {
+                        "file": src.as_posix(),
+                        "line": cur_start,
+                        "instances": insts,
+                    }
+                cur_name = ""
+                cur_body = []
+            else:
+                cur_body.append(line)
+    return modules
+
+
+def _static_hierarchy(top: str, sources: list[Path], reason: str) -> dict:
+    modules = _module_index_from_text(sources)
+    if not modules:
+        return {"error": f"pyslang compile: {reason}", "tree": None}
+
+    instantiated = {
+        inst.get("module")
+        for meta in modules.values()
+        for inst in meta.get("instances") or []
+        if inst.get("module") in modules
+    }
+    chosen = top if top in modules else ""
+    if not chosen:
+        roots = [name for name in modules if name not in instantiated]
+        chosen = roots[0] if roots else next(iter(modules))
+
+    def _walk(module_name: str, inst_path: str, seen: set[str]) -> dict:
+        meta = modules.get(module_name, {})
+        children = []
+        for inst in meta.get("instances") or []:
+            child_mod = str(inst.get("module") or "")
+            child_inst = str(inst.get("name") or child_mod or "?")
+            child_path = f"{inst_path}.{child_inst}" if inst_path else child_inst
+            if child_mod in modules and child_mod not in seen:
+                children.append(_walk(child_mod, child_path, seen | {child_mod}))
+            else:
+                children.append({"name": child_path, "module": child_mod or child_inst, "children": []})
+        return {"name": inst_path or module_name, "module": module_name, "children": children}
+
+    module_files = {
+        name: {"file": meta.get("file", ""), "line": int(meta.get("line") or 0)}
+        for name, meta in modules.items()
+    }
+    return {
+        "backend": "pyslang-text-fallback",
+        "warning": f"pyslang compile failed; used static RTL hierarchy fallback: {reason}",
+        "tree": _walk(chosen, chosen, {chosen}),
+        "modules_found": sorted(modules),
+        "module_files": module_files,
+    }
+
+
+def _static_trace_driver(signal: str, sources: list[Path], reason: str) -> dict:
+    bare = signal.rsplit(".", 1)[-1]
+    bare = re.sub(r"\s*\[[^\]]+\]\s*$", "", bare).strip()
+    if not bare:
+        return {"error": f"pyslang compile: {reason}", "driver": None, "sinks": []}
+    word_re = re.compile(r"(?<![A-Za-z0-9_])" + re.escape(bare) + r"(?![A-Za-z0-9_])")
+    assign_re = re.compile(r"<=|(?<![<>!=])=(?!=)")
+    decl_re = re.compile(r"\b(input|output|inout|wire|reg|logic)\b[^;]*\b" + re.escape(bare) + r"\b")
+    driver = None
+    decl = None
+    sinks: list[dict] = []
+    for src in sources:
+        try:
+            lines = _strip_sv_comments(src.read_text(encoding="utf-8", errors="replace")).splitlines()
+        except OSError:
+            continue
+        for line_no, line in enumerate(lines, start=1):
+            if not word_re.search(line):
+                continue
+            fl = f"{src.as_posix()}:{line_no}"
+            if decl is None and decl_re.search(line):
+                decl = {"file_line": fl, "kind": "declaration (text fallback)"}
+            m = assign_re.search(line)
+            if m:
+                lhs, rhs = line[:m.start()], line[m.end():]
+                if driver is None and word_re.search(lhs):
+                    driver = {"file_line": fl, "kind": "assignment (text fallback)"}
+                if word_re.search(rhs):
+                    sinks.append({"file_line": fl, "context": bare, "access": "RD"})
+            elif re.search(r"\.\s*[A-Za-z_]\w*\s*\(\s*" + re.escape(bare) + r"\s*\)", line):
+                sinks.append({"file_line": fl, "context": bare, "access": "PORT"})
+    if driver is None and decl is not None:
+        driver = decl
+    return {
+        "backend": "pyslang-text-fallback",
+        "warning": f"pyslang compile failed; used static RTL trace fallback: {reason}",
+        "driver": driver,
+        "sinks": sinks[:20],
+        "sink_count": len(sinks),
+    }
 
 
 # ── Base ─────────────────────────────────────────────────────────
@@ -487,7 +674,11 @@ class PyslangElab(ElabBackend):
             import pyslang
         except Exception:
             return False
-        return self._syntax_tree_cls(pyslang) is not None and hasattr(pyslang, "Compilation")
+        # Some pyslang wheels import successfully but expose a different
+        # SyntaxTree surface. Treat importable pyslang as serviceable because
+        # build_hierarchy/trace_driver can fall back to static RTL parsing
+        # instead of making sim_debug show a blank hierarchy.
+        return hasattr(pyslang, "Compilation") or self._syntax_tree_cls(pyslang) is not None
 
     @staticmethod
     def _syntax_tree_cls(pyslang):
@@ -554,6 +745,9 @@ class PyslangElab(ElabBackend):
         if comp is None:
             return {"error": "pyslang not importable", "tree": None}
         if isinstance(comp, tuple) and comp[0] == "error":
+            fallback = _static_hierarchy(top, sources, comp[1])
+            if fallback.get("tree"):
+                return fallback
             return {"error": f"pyslang compile: {comp[1]}", "tree": None}
 
         try:
@@ -693,6 +887,9 @@ class PyslangElab(ElabBackend):
         if comp is None:
             return {"error": "pyslang not importable", "driver": None, "sinks": []}
         if isinstance(comp, tuple) and comp[0] == "error":
+            fallback = _static_trace_driver(signal, sources, comp[1])
+            if fallback.get("driver") or fallback.get("sinks"):
+                return fallback
             return {"error": f"pyslang compile: {comp[1]}", "driver": None, "sinks": []}
 
         try:
