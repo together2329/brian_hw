@@ -64,7 +64,7 @@ const atlasResolutionPreset = (key) =>
   ATLAS_UI_RESOLUTION_PRESETS[0];
 
 const App = () => {
-  const [dir, setDir] = React.useState('B');     // 'B' = Workbench (default)
+  const dir = 'B';     // Workbench is the only visible Atlas shell mode.
   const [theme, setTheme] = React.useState('light');
   const [uiLang, setUiLang] = React.useState(() => {
     try {
@@ -1217,17 +1217,17 @@ const App = () => {
             ))}
           </select>
         </label>
+        <span style={{ width: 12 }} />
+        <button className={`dir-btn ${theme === 'dark' ? 'active' : ''}`}
+                onClick={() => setTheme('dark')}>Dark</button>
+        <button className={`dir-btn ${theme === 'light' ? 'active' : ''}`}
+                onClick={() => setTheme('light')}>Light</button>
         <button className={`dir-btn ${uiLang === 'ko' ? 'active' : ''}`}
                 title="Prefer Korean for visible agent output"
                 onClick={() => chooseUiLang('ko')}>한국어</button>
         <button className={`dir-btn ${uiLang === 'en' ? 'active' : ''}`}
                 title="Prefer English for visible agent output"
                 onClick={() => chooseUiLang('en')}>English</button>
-        <span style={{ width: 12 }} />
-        <button className={`dir-btn ${theme === 'dark' ? 'active' : ''}`}
-                onClick={() => setTheme('dark')}>Dark</button>
-        <button className={`dir-btn ${theme === 'light' ? 'active' : ''}`}
-                onClick={() => setTheme('light')}>Light</button>
         <span style={{ width: 12 }} />
         <button className="dir-btn"
                 title="Abort the agent's current iteration  (Esc)"
