@@ -3,5 +3,6 @@
   "description": "Route stage — global + detailed route + SPEF extraction → routed.{def,v,spef}",
   "aliases": ["route"],
   "handler": "bash:run_route.sh",
-  "usage": "/pnr-route"
+  "usage": "/pnr-route <ip>",
+  "timeout_sec": 900
 }

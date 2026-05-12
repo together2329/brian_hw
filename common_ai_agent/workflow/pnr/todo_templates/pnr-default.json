@@ -4,7 +4,7 @@
   "tasks": [
     {
       "content": "[PNR HANDOFF] Verify input netlist + SDC + LEFs",
-      "detail": "Determine input netlist:\n- [ ] If <ip>/dft/out/scan.v exists → use it (DFT-inserted)\n- [ ] Else <ip>/syn/out/synth.v\n- [ ] Else STOP with `[PNR HANDOFF MISSING] run /syn first`\nVerify SDC: <ip>/sta/out/<ip>.sdc must exist (run /sta-sdc if not).\nVerify env: $SKY130_TLEF, $SKY130_LEF, $SKY130_LIB all readable.\nGate: input + SDC + tech all present.",
+      "detail": "Run scripts/preflight.sh <ip> first.\nDetermine input netlist:\n- [ ] If <ip>/dft/out/scan.v exists → use it (DFT-inserted)\n- [ ] Else <ip>/syn/out/synth.v\n- [ ] Else STOP with `[PNR HANDOFF MISSING] run /syn first`\nVerify SDC: <ip>/sta/out/<ip>.sdc must exist (run /sta-sdc if not).\nVerify bundled/source-tree PDK: $SKY130_TLEF, $SKY130_LEF, $SKY130_LIB, $SKY130_TRACKS, and $SKY130_RCX_RULES all readable.\nVerify sky130 IO layer directions: horizontal=met3, vertical=met2 unless SSOT intentionally overrides to matching layer directions.\nGate: input + SDC + tech + physical constraints all present.",
       "priority": "high"
     },
     {

@@ -3,6 +3,11 @@
 # Args: <ip>. Reads cts.def + cts.v. Writes routed.def + routed.v + routed.spef.
 set -uo pipefail
 
+if [ $# -eq 0 ] && [ -n "${HOOK_CMD_ARGS:-}" ]; then
+  # shellcheck disable=SC2086
+  set -- ${HOOK_CMD_ARGS}
+fi
+
 DIR="$(dirname "$0")"
 . "${DIR}/_pnr_common.sh"
 
@@ -50,7 +55,8 @@ RC=${PIPESTATUS[0]}
 # DRC summary
 DRC_COUNT=0
 if [ -f "${DRC}" ]; then
-  DRC_COUNT=$(grep -cE '^violation' "${DRC}" || echo 0)
+  DRC_COUNT=$(grep -cE '^violation' "${DRC}" || true)
+  DRC_COUNT="${DRC_COUNT:-0}"
 fi
 python3 - "${IP}/pnr/out/drc.json" "${DRC_COUNT}" "${DRC}" <<'PY' || true
 import json, sys, pathlib, re

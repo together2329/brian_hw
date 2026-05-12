@@ -3,6 +3,11 @@
 # Args: <ip>
 set -uo pipefail
 
+if [ $# -eq 0 ] && [ -n "${HOOK_CMD_ARGS:-}" ]; then
+  # shellcheck disable=SC2086
+  set -- ${HOOK_CMD_ARGS}
+fi
+
 DIR="$(dirname "$0")"
 . "${DIR}/_pnr_common.sh"
 

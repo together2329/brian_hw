@@ -38,6 +38,35 @@ pnr_check_tools () {
   return 0
 }
 
+pnr_layer_direction () {
+  local layer="$1"
+  awk -v want="${layer}" '
+    toupper($1) == "LAYER" && $2 == want { in_layer = 1; next }
+    in_layer && toupper($1) == "DIRECTION" {
+      gsub(/;/, "", $2)
+      print tolower($2)
+      exit
+    }
+    in_layer && toupper($1) == "END" { in_layer = 0 }
+  ' "${SKY130_TLEF:-}"
+}
+
+pnr_check_io_layers () {
+  local hor="$1" ver="$2"
+  local hor_dir ver_dir
+  hor_dir="$(pnr_layer_direction "${hor}")"
+  ver_dir="$(pnr_layer_direction "${ver}")"
+  if [ "${hor_dir}" != "horizontal" ]; then
+    echo "[PNR IO LAYER ERROR] horizontal layer ${hor} has direction ${hor_dir:-unknown}; use a horizontal routing layer such as met3" >&2
+    return 8
+  fi
+  if [ "${ver_dir}" != "vertical" ]; then
+    echo "[PNR IO LAYER ERROR] vertical layer ${ver} has direction ${ver_dir:-unknown}; use a vertical routing layer such as met2" >&2
+    return 8
+  fi
+  return 0
+}
+
 pnr_check_handoff () {
   local ip="$1"
   local netlist; netlist=$(pnr_resolve_input_netlist "${ip}")

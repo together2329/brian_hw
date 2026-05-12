@@ -3,5 +3,6 @@
   "description": "Placement stage — global + detailed placement → placed.def",
   "aliases": ["place"],
   "handler": "bash:run_place.sh",
-  "usage": "/pnr-place"
+  "usage": "/pnr-place <ip>",
+  "timeout_sec": 600
 }

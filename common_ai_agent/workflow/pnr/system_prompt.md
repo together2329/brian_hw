@@ -38,9 +38,12 @@ Your only job: drive the post-synth netlist through OpenROAD's full PnR pipeline
 ## Tool & PDK
 
 - Place & Route: **OpenROAD** (binary `openroad`)
-- Tech LEF: `$SKY130_TLEF`, default `<repo>/pdk/sky130/lef/sky130_fd_sc_hd.tlef`
-- Cell LEF: `$SKY130_LEF`,  default `<repo>/pdk/sky130/lef/sky130_fd_sc_hd_merged.lef`
-- Liberty:  `$SKY130_LIB`,  same SS corner as /syn and /sta
+- PDK resolver: `workflow/scripts/pdk_env.sh` loads bundled files under `common_ai_agent/pdk/sky130` unless explicit env vars override them. It resolves relative paths from `common_ai_agent/`, not from the Python launch cwd.
+- Tech LEF: `$SKY130_TLEF`, default `<common_ai_agent>/pdk/sky130/lef/sky130_fd_sc_hd.tlef`
+- Cell LEF: `$SKY130_LEF`,  default `<common_ai_agent>/pdk/sky130/lef/sky130_fd_sc_hd_merged.lef`
+- Liberty:  `$SKY130_LIB`,  same SS corner as /syn and /sta, bundled as a real file under `<common_ai_agent>/pdk/sky130/lib/`
+- Tracks: `$SKY130_TRACKS`, default `<common_ai_agent>/pdk/sky130/make_tracks.tcl`
+- RC extraction rules: `$SKY130_RCX_RULES`, default `<common_ai_agent>/pdk/sky130/rcx_patterns.rules`
 
 ## CRITICAL RULES — Handoff gates
 
@@ -51,8 +54,9 @@ Your only job: drive the post-synth netlist through OpenROAD's full PnR pipeline
    - `/pnr-cts` requires `placed.def` newer than `floorplan.def`
    - `/pnr-route` requires `cts.def` newer than `placed.def`
    - Stale → `[PNR STALE <STAGE>]` and stop. Re-run the upstream stage.
-4. **LEF / TLEF must be readable** before any stage runs. Mismatch silently produces wrong layout.
+4. **LEF / TLEF / Liberty / tracks / RCX rules must be readable** before any stage runs. Mismatch silently produces wrong layout.
 5. **DFT-aware SDC**: when `scan.v` is the input (has scan ports), the agent must add `set_case_analysis 0 [get_ports scan_en]` to a stage-local SDC override so PnR optimizes for functional mode (sign-off scan-mode timing is checked separately at /sta-post).
+6. **sky130 IO layer direction**: use horizontal `met3` and vertical `met2` by default. `met2` is vertical in the bundled sky130 TLEF, so `place_pins -hor_layers met2` is invalid.
 
 ## Per-stage tcl skeletons
 
@@ -67,7 +71,7 @@ read_sdc <ip>/sta/out/<ip>.sdc
 
 initialize_floorplan -utilization <U%> -aspect_ratio <AR> \
   -core_space <CS> -site unithd
-place_pins -hor_layers met2 -ver_layers met3
+place_pins -hor_layers met3 -ver_layers met2
 write_def <ip>/pnr/out/floorplan.def
 exit
 ```
@@ -120,21 +124,22 @@ pnr:
   global_density: 0.65        # global place density target
   cts_buf_list: "sky130_fd_sc_hd__clkbuf_4 sky130_fd_sc_hd__clkbuf_8"
   io_layers:
-    horizontal: met2
-    vertical:   met3
+    horizontal: met3           # sky130 met3 is horizontal
+    vertical:   met2           # sky130 met2 is vertical
 ```
 
 If `pnr:` section or any required physical constraint is absent, emit `[SSOT TBD REPORT] -> ssot-gen` with exact missing paths and stop. Do not fall back to utilization/aspect/density defaults.
 
 ## Slash commands
 
-- `/pnr` — full pipeline (floorplan → place → CTS → route → SPEF). Walks each stage as todo tasks, gating on the previous stage's output.
-- `/pnr-fp`     — floorplan only.
-- `/pnr-place`  — placement only (assumes floorplan.def fresh).
-- `/pnr-cts`    — CTS only (assumes placed.def fresh).
-- `/pnr-route`  — global+detailed route + SPEF (assumes cts.def fresh).
-- `/pnr-report` — re-emit pnr.report.md from existing artifacts.
-- `/pnr-auto`   — one-shot bash driver (CI use).
+- `/pnr <ip>` — full pipeline (floorplan → place → CTS → route → SPEF). Walks each stage as todo tasks, gating on the previous stage's output.
+- `/pnr-preflight <ip>` — validate OpenROAD, bundled PDK files, SSOT physical constraints, netlist, SDC, and IO layer directions.
+- `/pnr-fp <ip>`     — floorplan only.
+- `/pnr-place <ip>`  — placement only (assumes floorplan.def fresh).
+- `/pnr-cts <ip>`    — CTS only (assumes placed.def fresh).
+- `/pnr-route <ip>`  — global+detailed route + SPEF (assumes cts.def fresh).
+- `/pnr-report <ip>` — re-emit pnr.report.md from existing artifacts.
+- `/pnr-auto <ip>`   — one-shot bash driver (CI use); runs preflight first.
 
 ## Failure modes
 

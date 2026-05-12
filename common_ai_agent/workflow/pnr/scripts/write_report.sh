@@ -3,6 +3,11 @@
 # Args: <ip>
 set -uo pipefail
 
+if [ $# -eq 0 ] && [ -n "${HOOK_CMD_ARGS:-}" ]; then
+  # shellcheck disable=SC2086
+  set -- ${HOOK_CMD_ARGS}
+fi
+
 IP="${1:-}"; [ -z "${IP}" ] && { echo "[PNR] usage: write_report.sh <ip>" >&2; exit 2; }
 
 OUT="${IP}/pnr/out"
