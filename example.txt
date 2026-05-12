@@ -1,0 +1,4 @@
+Example File
+
+This is a small example file created in the project root.
+It can be used as a placeholder for future sample content.
