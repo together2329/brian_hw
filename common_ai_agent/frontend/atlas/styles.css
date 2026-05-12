@@ -1530,13 +1530,12 @@
   line-height: 1.55;
   tab-size: 2;
   -moz-tab-size: 2;
-  /* Pin the surface to the demo palette (#1d1f21 / #d8d8d8) so the
-     Material Theme token colors below land on the contrast they were
-     picked for. The wider ATLAS theme variables are tuned for chat
-     panels and don't map 1-to-1 onto code-pane contrast. */
-  background: #1d1f21;
-  color: #d8d8d8;
+  /* Codex-like dark code surface: near-black, high contrast text, and
+     varied syntax colors. Scoped here so the rest of ATLAS keeps its theme. */
+  background: #080808;
+  color: #e6edf3;
   position: relative;
+  border-color: #262626;
 }
 [data-theme="light"] .foldable-pane {
   background: #ffffff;
@@ -1550,14 +1549,14 @@
   display: flex;
   gap: 8px;
   padding: 6px 10px;
-  border-bottom: 1px solid var(--line);
-  background: var(--bg-3);
+  border-bottom: 1px solid #262626;
+  background: #101010;
   position: sticky; top: 0; z-index: 1;
 }
 .foldable-toolbar button {
   background: transparent;
-  border: 1px solid var(--line);
-  color: var(--fg-mute);
+  border: 1px solid #303030;
+  color: #9ca3af;
   padding: 2px 10px;
   border-radius: 3px;
   cursor: pointer;
@@ -1565,9 +1564,9 @@
   font-size: 11px;
 }
 .foldable-toolbar button:hover {
-  background: color-mix(in oklch, var(--accent) 10%, transparent);
-  color: var(--fg);
-  border-color: var(--accent);
+  background: #171f2a;
+  color: #e6edf3;
+  border-color: #58a6ff;
 }
 .foldable-body {
   padding: 4px 0 4px 0;
@@ -1579,13 +1578,13 @@
   align-items: baseline;
 }
 .foldable-pane .line-row.sel {
-  background: color-mix(in oklch, var(--accent) 18%, transparent);
+  background: #10243a;
 }
 [data-theme="light"] .foldable-pane.yaml-pane .line-row.sel {
   background: #dbeafe;
 }
 .foldable-pane .lineno {
-  color: var(--fg-mute);
+  color: #6e7681;
   text-align: right;
   padding-right: 12px;
   user-select: none;
@@ -1593,66 +1592,82 @@
   opacity: 0.7;
 }
 .foldable-pane .lineno:hover {
-  color: var(--fg);
-  background: color-mix(in oklch, var(--bg-2) 80%, transparent);
+  color: #c9d1d9;
+  background: #161b22;
   opacity: 1;
 }
 .foldable-pane .line {
   white-space: pre;
-  color: var(--fg);
+  color: #e6edf3;
 }
-/* Syntax token palette — Material Theme inspired. Scoped to
-   .foldable-pane so the rest of ATLAS keeps the global Prism
-   Tomorrow defaults. Picks readable contrast on the dark surface
-   the pane uses (var(--bg-3) and friends). */
+/* Syntax token palette — GitHub/Codex-dark inspired and scoped to
+   .foldable-pane so the rest of ATLAS keeps the global Prism colors. */
 .foldable-pane .line .token.keyword,
 .foldable-pane .line .token.boolean,
 .foldable-pane .line .token.constant,
 .foldable-pane .line .token.atrule {
-  color: #c792ea;
+  color: #ff7b72 !important;
 }
 .foldable-pane .line .token.string,
 .foldable-pane .line .token.attr-value,
 .foldable-pane .line .token.char {
-  color: #c3e88d;
+  color: #a5d6ff !important;
 }
 .foldable-pane .line .token.number,
 .foldable-pane .line .token.symbol {
-  color: #f78c6c;
+  color: #79c0ff !important;
 }
 .foldable-pane .line .token.operator,
 .foldable-pane .line .token.entity {
-  color: #89ddff;
+  color: #ffdf5d !important;
 }
 .foldable-pane .line .token.punctuation {
-  color: #abb2bf;
+  color: #c9d1d9 !important;
 }
 .foldable-pane .line .token.comment,
 .foldable-pane .line .token.prolog,
 .foldable-pane .line .token.cdata {
-  color: #6a737d;
+  color: #8b949e !important;
   font-style: italic;
 }
 .foldable-pane .line .token.function,
 .foldable-pane .line .token.class-name,
 .foldable-pane .line .token.attr-name,
 .foldable-pane .line .token.key {
-  color: #82aaff;
+  color: #d2a8ff !important;
 }
 .foldable-pane .line .token.tag,
 .foldable-pane .line .token.selector {
-  color: #f78c6c;
+  color: #7ee787 !important;
 }
 .foldable-pane .line .token.regex,
 .foldable-pane .line .token.important {
-  color: #ffcb6b;
+  color: #ffa657 !important;
 }
 .foldable-pane .line .token.builtin {
-  color: #ffcb6b;
+  color: #ffa657 !important;
 }
 .foldable-pane .line .token.variable,
 .foldable-pane .line .token.namespace {
-  color: #d6dde6;
+  color: #ffa657 !important;
+}
+.foldable-pane.yaml-pane .line .token.key {
+  color: #7dd3fc !important;
+  font-weight: 700;
+}
+.foldable-pane.yaml-pane .line .token.string {
+  color: #a7f3d0 !important;
+}
+.foldable-pane.yaml-pane .line .token.number {
+  color: #fbbf24 !important;
+}
+.foldable-pane.yaml-pane .line .token.boolean,
+.foldable-pane.yaml-pane .line .token.null {
+  color: #f472b6 !important;
+}
+.foldable-pane.yaml-pane .line .token.comment {
+  color: #94a3b8 !important;
+  font-style: italic;
 }
 [data-theme="light"] .foldable-pane .line .token.keyword,
 [data-theme="light"] .foldable-pane .line .token.boolean,
@@ -1743,7 +1758,7 @@
 .foldable-pane .fold-summary {
   cursor: pointer;
   padding: 1px 8px;
-  background: color-mix(in oklch, var(--bg-2) 75%, transparent);
+  background: #101010;
   border-left: 3px solid;
   list-style: none;
   font-weight: 600;
@@ -1753,7 +1768,7 @@
   gap: 6px;
 }
 .foldable-pane .fold-summary:hover {
-  background: color-mix(in oklch, var(--bg-2) 50%, transparent);
+  background: #161b22;
 }
 .foldable-pane .fold-summary::-webkit-details-marker { display: none; }
 .foldable-pane .fold-summary::before {
@@ -1775,7 +1790,7 @@
   color: inherit;
 }
 .foldable-pane .fold-control-summary.sel {
-  background: color-mix(in oklch, var(--accent) 18%, transparent);
+  background: #10243a;
 }
 .foldable-pane .fold-control-summary .fold-label {
   min-width: 0;
@@ -1809,12 +1824,13 @@
   font-weight: normal;
   font-size: 10px;
   white-space: nowrap;
-  opacity: 0.65;
+  color: #8b949e;
+  opacity: 1;
 }
 .foldable-pane .fold-comment-btn {
   background: transparent;
-  border: 1px solid var(--line);
-  color: var(--fg-mute);
+  border: 1px solid #30363d;
+  color: #8b949e;
   padding: 0 8px;
   border-radius: 3px;
   cursor: pointer;
@@ -1824,9 +1840,9 @@
   align-self: center;
 }
 .foldable-pane .fold-comment-btn:hover {
-  background: color-mix(in oklch, var(--ok) 16%, transparent);
-  color: var(--ok);
-  border-color: var(--ok);
+  background: #0f2a1a;
+  color: #7ee787;
+  border-color: #238636;
 }
 .foldable-pane .fold-floating-comment {
   /* position is set inline (absolute) via React. Button is a child
