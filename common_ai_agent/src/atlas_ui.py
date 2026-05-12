@@ -210,7 +210,7 @@ def _model_option_rows(active_model: str = "") -> list[dict[str, str]]:
     seen_models: set[str] = set()
     for key in _MODEL_OPTION_KEYS:
         model = option_values.get(key, "")
-        if not model or model in seen_models:
+        if not model or model in seen_models or model.lower().startswith("default"):
             continue
         seen_models.add(model)
         rows.append({"key": key, "model": model})

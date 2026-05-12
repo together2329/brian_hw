@@ -11609,7 +11609,7 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
               disabled={savingModel}
               title={_ctx.model || ''}
               onChange={(ev) => updateModel(ev.currentTarget.value)}>
-              {modelOptions.map(opt => (
+              {modelOptions.filter(opt => opt.model && !opt.model.toLowerCase().startsWith('default')).map(opt => (
                 <option key={opt.key} value={opt.key}>
                   {opt.model}
                 </option>
