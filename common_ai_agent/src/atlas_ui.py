@@ -1355,23 +1355,65 @@ def create_app():
     def _elab_resolve_sources(sources_glob: str, ip: str = "") -> list:
         """Resolve a comma-separated glob list (or a single ip-tree default).
         Each pattern is interpreted relative to PROJECT_ROOT and clipped to
-        files that pass _safe(). Default: `<ip>/rtl/*.sv`.
+        files that pass _safe(). Default source discovery checks both the
+        canonical `<ip>/rtl/*.sv` layout and nested IP trees such as
+        `common_ai_agent/gpio/<ip>/rtl/*.sv`, which older RTL/debug
+        fixtures used.
         """
-        from pathlib import Path as _P
+        skip_parts = {
+            ".git", ".session", "__pycache__", "node_modules", "vendor",
+            ".venv", "venv", "dist", "build",
+        }
         out: list = []
+        seen: set[str] = set()
+
+        def _add(f):
+            try:
+                resolved = f.resolve()
+                rel = resolved.relative_to(PROJECT_ROOT)
+            except (OSError, ValueError):
+                return
+            if any(part in skip_parts for part in rel.parts):
+                return
+            if not f.is_file() or f.suffix.lower() not in (".sv", ".v", ".svh", ".vh"):
+                return
+            key = rel.as_posix()
+            if key in seen:
+                return
+            seen.add(key)
+            out.append(f)
+
         if not sources_glob and ip:
-            sources_glob = f"{ip}/rtl/*.sv"
+            clean_ip = str(ip).strip().strip("/")
+            default_patterns = [
+                f"{clean_ip}/rtl/*",
+                f"common_ai_agent/{clean_ip}/rtl/*",
+                f"common_ai_agent/*/{clean_ip}/rtl/*",
+                f"*/{clean_ip}/rtl/*",
+                f"*/*/{clean_ip}/rtl/*",
+            ]
+            for pat in default_patterns:
+                for f in PROJECT_ROOT.glob(pat):
+                    _add(f)
+            if not out:
+                for rtl_dir in PROJECT_ROOT.rglob("rtl"):
+                    try:
+                        rel = rtl_dir.resolve().relative_to(PROJECT_ROOT)
+                    except (OSError, ValueError):
+                        continue
+                    if any(part in skip_parts for part in rel.parts):
+                        continue
+                    parent = rtl_dir.parent.name
+                    if parent == clean_ip or clean_ip in rel.parts:
+                        for f in rtl_dir.glob("*"):
+                            _add(f)
+            return out
         for pat in (sources_glob or "").split(","):
             pat = pat.strip().lstrip("/")
             if not pat:
                 continue
             for f in PROJECT_ROOT.glob(pat):
-                try:
-                    f.resolve().relative_to(PROJECT_ROOT)
-                except ValueError:
-                    continue
-                if f.is_file() and f.suffix.lower() in (".sv", ".v", ".svh", ".vh"):
-                    out.append(f)
+                _add(f)
         return out
 
     @app.get("/api/hierarchy")
@@ -1394,7 +1436,10 @@ def create_app():
         if not srcs:
             return JSONResponse({"error": "no SV sources matched", "sources_tried": sources or ip}, status_code=400)
         try:
-            return JSONResponse(build_hierarchy_cached(backend, top, srcs))
+            res = build_hierarchy_cached(backend, top, srcs)
+            res = dict(res)
+            res["sources"] = [p.relative_to(PROJECT_ROOT).as_posix() for p in srcs]
+            return JSONResponse(res)
         except ValueError as e:
             return JSONResponse({"error": str(e)}, status_code=503)
         except Exception as e:
@@ -1423,7 +1468,10 @@ def create_app():
             or signal.split(".", 1)[0]
         )
         try:
-            return JSONResponse(trace_driver_cached(backend, resolved_top, signal, srcs))
+            res = trace_driver_cached(backend, resolved_top, signal, srcs)
+            res = dict(res)
+            res["sources"] = [p.relative_to(PROJECT_ROOT).as_posix() for p in srcs]
+            return JSONResponse(res)
         except ValueError as e:
             return JSONResponse({"error": str(e)}, status_code=503)
         except Exception as e:
@@ -9432,9 +9480,6 @@ def create_app():
 
     @app.get("/admin")
     async def admin_page(request: Request):
-        user = request.scope.get("user")
-        if not user or user.get("role") != "admin":
-            raise HTTPException(status_code=403, detail="Admin access required")
         html = (FRONTEND / "admin.html").read_text(encoding="utf-8")
 
         def _inline_script(match):

@@ -668,9 +668,10 @@ class PyslangElab(ElabBackend):
         except Exception as e:
             return {"error": f"pyslang root: {e}", "driver": None, "sinks": []}
 
-        bare = signal.rsplit(".", 1)[-1]
-        # Word boundary regex so `dir` doesn't match `dir_reg`.
         import re as _re
+        bare = signal.rsplit(".", 1)[-1]
+        bare = _re.sub(r"\s*\[[^\]]+\]\s*$", "", bare).strip()
+        # Word boundary regex so `dir` doesn't match `dir_reg`.
         word_re = _re.compile(r"(?<![A-Za-z0-9_])" + _re.escape(bare) + r"(?![A-Za-z0-9_])")
 
         decl = None       # declaration site (Port / Var / Net)
@@ -775,14 +776,27 @@ class PyslangElab(ElabBackend):
                     if body is not None:
                         _visit(body)
 
-        try:
+        visited_top = False
+
+        def _visit_top_instances(filter_top: bool) -> None:
+            nonlocal visited_top
             for inst in root.topInstances:
                 # Match by definition name when caller specified `top`.
-                if top:
+                if filter_top and top:
                     inst_def = inst.definition.name if hasattr(inst, "definition") and inst.definition else inst.name
                     if inst_def != top:
                         continue
+                visited_top = True
                 _visit(inst.body)
+
+        try:
+            _visit_top_instances(True)
+            if top and not visited_top:
+                # VCDs and directories often carry the IP name while the
+                # actual elaborated top differs. Hierarchy already falls
+                # back to the first top instance; tracing should do the
+                # same so waveform clicks remain connected to source.
+                _visit_top_instances(False)
         except Exception as e:
             return {"error": f"pyslang walk: {e}", "driver": driver, "sinks": sinks[:20]}
 

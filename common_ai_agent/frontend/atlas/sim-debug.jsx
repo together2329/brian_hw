@@ -438,6 +438,7 @@ window.SimDebug = () => {
   const [vcdActive, setVcdActive] = React.useState('');
   const [vcdData, setVcdData] = React.useState(null);   // {signals, samples, timeRange}
   const [hierarchy, setHierarchy] = React.useState(null);
+  const [hierarchyError, setHierarchyError] = React.useState('');
   // Top-level tab — full-width view selector. Replaces the old
   // chip-toggle on the right rail; the user picks which DEBUG MODE
   // to focus on and that mode takes the entire center space.
@@ -551,8 +552,19 @@ window.SimDebug = () => {
                               '&ip=' + encodeURIComponent(ipName));
         const d = await r.json();
         if (cancelled) return;
-        if (d.tree) setHierarchy(d.tree);
-      } catch (e) { /* ignore */ }
+        if (d.tree) {
+          setHierarchy(d.tree);
+          setHierarchyError('');
+        } else {
+          setHierarchy(null);
+          setHierarchyError(d.error || 'no hierarchy tree returned');
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setHierarchy(null);
+          setHierarchyError(String(e));
+        }
+      }
     })();
     return () => { cancelled = true; };
   }, [ipName]);
@@ -566,6 +578,7 @@ window.SimDebug = () => {
     if (vcdData && vcdData.signals && vcdData.signals.length) {
       return vcdData.signals.slice(0, 24).map(s => ({
         name: s.name + (s.range || ''),
+        signalName: s.name,
         scope: s.scope,
         // VCD samples come keyed by ID — re-key by display name for
         // WaveRow which expects [time, value] arrays.
@@ -848,13 +861,14 @@ window.SimDebug = () => {
   }, [ipName, loadSourceFile]);
 
   // Wave signal click → /api/trace returns driver file_line; fetch + scroll.
-  const onSelectWaveSignal = React.useCallback(async (signalName) => {
+  const onSelectWaveSignal = React.useCallback(async (signalName, signalScope = '') => {
     setSelectedSig(signalName);
     if (!signalName || !ipName) return;
     try {
       const r = await fetch(
         `/api/trace?signal=${encodeURIComponent(signalName)}` +
-        `&top=${encodeURIComponent(ipName)}&ip=${encodeURIComponent(ipName)}`);
+        `&top=${encodeURIComponent(ipName)}&ip=${encodeURIComponent(ipName)}` +
+        (signalScope ? `&scope=${encodeURIComponent(signalScope)}` : ''));
       const d = await r.json();
       const drv = d && d.driver;
       if (drv && drv.file_line) {
@@ -1088,7 +1102,7 @@ window.SimDebug = () => {
   const eff = (() => {
     if (expand === 'wave')      return { lw: 0,     rw: 0,      th: 0,    showSource: false, showWave: true,  showHier: false, showChat: false };
     if (expand === 'source')    return { lw: 0,     rw: 0,      th: 1.0,  showSource: true,  showWave: false, showHier: false, showChat: false };
-    if (expand === 'hierarchy') return { lw: 1,     rw: 0,      th: 0,    showSource: false, showWave: false, showHier: true,  showChat: false };
+    if (expand === 'hierarchy') return { lw: leftW || 320, rw: 0, th: 0, showSource: false, showWave: false, showHier: true, showChat: false };
     return { lw: leftW, rw: rightW, th: topH, showSource: true, showWave: true, showHier: leftW > 0, showChat: rightW > 0 };
   })();
 
@@ -1118,6 +1132,10 @@ window.SimDebug = () => {
       }}
     />
   );
+
+  const bodyGridColumns = expand === 'hierarchy'
+    ? '1fr 0 0 0 0'
+    : `${eff.showHier ? eff.lw + 'px' : '0'} ${eff.showHier && eff.lw > 0 ? '4px' : '0'} 1fr ${eff.showChat && eff.rw > 0 ? '4px' : '0'} ${eff.showChat ? eff.rw + 'px' : '0'}`;
 
   return (
     <div className="atlas-frame" style={{
@@ -1194,7 +1212,7 @@ window.SimDebug = () => {
       {/* Body grid: [HIERARCHY | splitter | CENTER (source/wave) | splitter | CHAT] */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: `${eff.showHier ? eff.lw + 'px' : '0'} ${eff.showHier && eff.lw > 0 ? '4px' : '0'} 1fr ${eff.showChat && eff.rw > 0 ? '4px' : '0'} ${eff.showChat ? eff.rw + 'px' : '0'}`,
+        gridTemplateColumns: bodyGridColumns,
         flex: 1, minHeight: 0, overflow: 'hidden',
       }}>
         {/* LEFT — hierarchy panel */}
@@ -1245,7 +1263,12 @@ window.SimDebug = () => {
                   activeModule={srcModule} />
               ) : (
                 <div style={{ color: 'var(--fg-mute)', padding: 8 }}>
-                  No hierarchy yet. Pick a workspace IP to elaborate.
+                  No RTL hierarchy yet.<br />
+                  {hierarchyError ? (
+                    <span style={{ color: 'var(--err)' }}>{hierarchyError}</span>
+                  ) : (
+                    <span>Pick a workspace IP to elaborate.</span>
+                  )}
                 </div>
               )}
               {vcdData && vcdData.signals && vcdData.signals.length > 0 && (
@@ -1256,7 +1279,7 @@ window.SimDebug = () => {
                   {vcdData.signals.slice(0, 30).map(s => (
                     <div
                       key={s.id}
-                      onClick={() => onSelectWaveSignal(s.name)}
+                      onClick={() => onSelectWaveSignal(s.name, s.scope)}
                       style={{
                         padding: '2px 4px', cursor: 'pointer',
                         color: selectedSig === s.name ? 'var(--accent)' : 'var(--fg)',
@@ -1404,9 +1427,9 @@ window.SimDebug = () => {
                   setViewRange={setViewRange}
                 />
                 <button className="btn" style={{ padding: '1px 8px', fontSize: 11, marginRight: 2, fontWeight: 700 }}
-                        onClick={zoomIn}    title="zoom in  (shortcut: + or =)">−</button>
+                        onClick={zoomIn}    title="zoom in  (shortcut: + or =)">+</button>
                 <button className="btn" style={{ padding: '1px 8px', fontSize: 11, marginRight: 2, fontWeight: 700 }}
-                        onClick={zoomOut}   title="zoom out (shortcut: − or _)">+</button>
+                        onClick={zoomOut}   title="zoom out (shortcut: − or _)">−</button>
                 <button className="btn" style={{ padding: '1px 6px', fontSize: 10, marginRight: 2 }}
                         onClick={() => panBy(-0.25)} title="pan left  (shortcut: ←)">◀</button>
                 <button className="btn" style={{ padding: '1px 6px', fontSize: 10, marginRight: 2 }}
@@ -1531,9 +1554,9 @@ window.SimDebug = () => {
                           width={waveWidth}
                           isBus={t.isBus}
                           radix={t.radix || 'HEX'}
-                          selected={selectedSig === t.name}
+                          selected={selectedSig === (t.signalName || t.name) || selectedSig === t.name}
                           colorHint={color}
-                          onClick={() => onSelectWaveSignal(t.name)}
+                          onClick={() => onSelectWaveSignal(t.signalName || t.name, t.scope || '')}
                         />
                       </div>
                     );
