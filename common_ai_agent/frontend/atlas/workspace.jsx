@@ -4148,18 +4148,18 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
   // Replace/edit tools default to OPEN so the diff is visible without an
   // extra click. Other tools default to closed in summary mode.
   const isReplaceTool = tool && /^(replace_in_file|replace_lines|write_file|edit|patch|update_file)/i.test(tool);
-  const isRunCommandTool = tool && /^run_command$/i.test(tool);
+  const showFullArgsByDefault = !!tool && /^(run_command|todo_update)$/i.test(tool);
   const obsLines = obs ? obsText.split('\n') : [];
   const obsIsMulti = obsLines.length > 1;
-  // run_command / long-argument tools: the command itself is what the
-  // user wants to read, so make a long args string expandable too.
+  // Command and todo updates are useful as the primary payload, so show
+  // their arguments by default while keeping the result body collapsible.
   // Threshold: > 100 chars or contains a newline.
   const argsIsLong = !!argsText && (argsText.length > 100 || /\n/.test(argsText));
   const [obsOpen, setObsOpen] = React.useState(!summaryMode || isReplaceTool);
   React.useEffect(() => {
     setObsOpen(!summaryMode || isReplaceTool);
   }, [summaryMode, isReplaceTool]);
-  const showArgsExpanded = obsOpen || isRunCommandTool;
+  const showArgsExpanded = obsOpen || showFullArgsByDefault;
   const headClickable = (!!obs && obsIsMulti) || argsIsLong;
   const toggleObs = () => { if (headClickable) setObsOpen(v => !v); };
   return (
@@ -4182,7 +4182,7 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
         title={headClickable ? (obsOpen ? 'click to collapse' : 'click to expand') : undefined}
       >
         <span className="tool-card-glyph" style={{ color: 'var(--fg)' }}>{theme.glyph}</span>
-        <span className="tool-card-tool" style={{ color: 'var(--fg)', fontWeight: 700 }}>{tool || '?'}</span>
+        <span className="tool-card-tool">{tool || '?'}</span>
         {argsText && (
           <span
             className={`tool-card-args${showArgsExpanded ? '' : ' trunc'}`}
@@ -4191,9 +4191,8 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
               ...(showArgsExpanded ? {
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',
-                overflow: isRunCommandTool && !obsOpen ? 'hidden' : 'visible',
+                overflow: 'visible',
                 textOverflow: 'clip',
-                maxHeight: isRunCommandTool && !obsOpen ? 'calc(1.35em * 4)' : undefined,
               } : {}),
             }}
           >{argsText}</span>

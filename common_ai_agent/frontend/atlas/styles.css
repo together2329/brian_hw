@@ -1244,7 +1244,7 @@
   padding: 3px 0;
 }
 .tool-card .tool-card-glyph { font-size: 15px; line-height: 1; }
-.tool-card .tool-card-tool  { font-weight: 700; }
+.tool-card .tool-card-tool  { color: #fbbf24; font-weight: 700; }
 .tool-card .tool-card-args  { color: var(--fg-mute); font-size: var(--ui-font-size); flex: 1; min-width: 0; }
 .tool-card .tool-card-status { font-size: var(--ui-font-size); }
 .tool-card .tool-card-ts    {
@@ -1476,6 +1476,9 @@
 [data-theme="light"] .tool-card {
   background: #ffffff;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+[data-theme="light"] .tool-card .tool-card-tool {
+  color: var(--fg);
 }
 [data-theme="light"] .tool-card-sep {
   background: #d8e1ec;
