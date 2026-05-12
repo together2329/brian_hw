@@ -1,0 +1,6 @@
+TESTS=1 PASS=1 FAIL=0
+results=timer/sim/results.xml
+scoreboard=timer/sim/scoreboard_events.jsonl
+coverage_functional=timer/cov/coverage_functional.json
+waveforms=timer/sim/timer.vcd
+0 errors, 0 warnings

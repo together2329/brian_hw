@@ -105,6 +105,7 @@ def _param_defaults(ssot: dict[str, Any]) -> dict[str, int]:
 
 def _as_ports(ssot: dict[str, Any]) -> list[dict[str, Any]]:
     ports: list[dict[str, Any]] = []
+    params = _param_defaults(ssot)
 
     def add(raw: dict[str, Any]) -> None:
         name = raw.get("name")
@@ -113,10 +114,13 @@ def _as_ports(ssot: dict[str, Any]) -> list[dict[str, Any]]:
         direction = str(raw.get("direction") or raw.get("type") or "input").lower()
         if direction not in {"input", "output", "inout"}:
             direction = "input"
+        width = raw.get("width", 1)
+        if isinstance(width, str) and width in params:
+            width = params[width]
         ports.append({
             "name": _ident(name),
             "direction": direction,
-            "width": _width_value(raw.get("width", 1)),
+            "width": _width_value(width),
         })
 
     for raw in ssot.get("ports") or []:
@@ -971,6 +975,9 @@ def _field_route_prefix(field: str) -> str:
 
 def _port_width(manifest: dict[str, Any], port: str) -> int:
     raw = (manifest.get("port_widths") or {}).get(port, 1)
+    params = manifest.get("parameters") or {}
+    if isinstance(raw, str) and raw in params:
+        raw = params[raw]
     try:
         return max(int(raw), 1)
     except Exception:
@@ -1148,7 +1155,12 @@ def _drive_inputs(dut, manifest: dict[str, Any], stimulus: dict[str, Any]) -> No
         driven.add(port)
     sample_active = bool(stimulus.get("_sample_active", True))
     for port in manifest.get("sample_inputs") or []:
-        _set_signal(dut, port, 1 if sample_active else 0)
+        raw = int(stimulus.get(port, 1 if sample_active else 0))
+        if _port_width(manifest, port) == 1:
+            value = 1 if raw else 0
+        else:
+            value = _fit_port_value(manifest, port, raw)
+        _set_signal(dut, port, value)
         driven.add(port)
     input_ports = set(manifest.get("input_ports") or [])
     kind_text = " ".join(str(stimulus.get(k, "")) for k in ("kind", "op", "scenario_id")).lower()

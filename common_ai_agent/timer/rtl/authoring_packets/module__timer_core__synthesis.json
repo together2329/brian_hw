@@ -1,0 +1,245 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 17,
+      "enabled": true,
+      "index": 12,
+      "key": "synthesis",
+      "module_task_count": 87,
+      "rule": "Owner module timer_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "synthesis",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/timer.sv",
+      "name": "timer_core",
+      "refs": [
+        "cycle_model",
+        "fsm",
+        "function_model",
+        "function_model.transactions.FM_TICK",
+        "io_list",
+        "parameters",
+        "rtl_contract"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/timer.sv",
+        "name": "timer_core",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "timer",
+  "kind": "module",
+  "owner_file": "rtl/timer.sv",
+  "owner_module": "timer_core",
+  "packet_id": "module__timer_core__synthesis",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "synthesis.constraints": 3
+    },
+    "module_slice": {
+      "count": 17,
+      "enabled": true,
+      "index": 12,
+      "key": "synthesis",
+      "module_task_count": 87,
+      "rule": "Owner module timer_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "synthesis",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 3,
+    "source_refs": [
+      "synthesis.constraints.constraint_0",
+      "synthesis.constraints.constraint_1",
+      "synthesis.constraints.constraint_2"
+    ],
+    "status_counts": {
+      "pass": 3
+    },
+    "task_count": 3
+  },
+  "tasks": [
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_0",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_0.\nOwner: timer_core in rtl/timer.sv via single_owner.\nSSOT item context: value=No inferred latches..",
+      "evidence_terms": [],
+      "id": "RTL-0095",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_0",
+      "ssot_context": {
+        "value": "No inferred latches."
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_1",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_1.\nOwner: timer_core in rtl/timer.sv via single_owner.\nSSOT item context: value=No unresolved black boxes..",
+      "evidence_terms": [],
+      "id": "RTL-0096",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_1",
+      "ssot_context": {
+        "value": "No unresolved black boxes."
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_2",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_2",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_2.\nOwner: timer_core in rtl/timer.sv via single_owner.\nSSOT item context: value=COUNT_WIDTH must remain a positive integer..",
+      "evidence_terms": [
+        "COUNT",
+        "COUNT_WIDTH",
+        "WIDTH"
+      ],
+      "id": "RTL-0097",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_2",
+      "ssot_context": {
+        "value": "COUNT_WIDTH must remain a positive integer."
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "165765ecb941a931579eb51e442b504a2dca3a2f95193e4892a808ed0175a192",
+  "top": "timer",
+  "type": "rtl_authoring_packet"
+}

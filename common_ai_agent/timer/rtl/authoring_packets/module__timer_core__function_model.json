@@ -1,0 +1,1303 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 17,
+      "enabled": true,
+      "index": 5,
+      "key": "function_model",
+      "module_task_count": 87,
+      "rule": "Owner module timer_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/timer.sv",
+      "name": "timer_core",
+      "refs": [
+        "cycle_model",
+        "fsm",
+        "function_model",
+        "function_model.transactions.FM_TICK",
+        "io_list",
+        "parameters",
+        "rtl_contract"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/timer.sv",
+        "name": "timer_core",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "timer",
+  "kind": "module",
+  "owner_file": "rtl/timer.sv",
+  "owner_module": "timer_core",
+  "packet_id": "module__timer_core__function_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.error_case": 1,
+      "function_model.invariant": 4,
+      "function_model.output": 3,
+      "function_model.output_rule": 3,
+      "function_model.precondition": 2,
+      "function_model.side_effect": 3,
+      "function_model.state_update": 3,
+      "function_model.state_variable": 3,
+      "function_model.transaction": 1
+    },
+    "module_slice": {
+      "count": 17,
+      "enabled": true,
+      "index": 5,
+      "key": "function_model",
+      "module_task_count": 87,
+      "rule": "Owner module timer_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 23,
+    "source_refs": [
+      "function_model.state_variables.count_q",
+      "function_model.state_variables.running_q",
+      "function_model.state_variables.done_q",
+      "function_model.transactions.FM_TICK",
+      "function_model.transactions.FM_TICK.preconditions.precondition_0",
+      "function_model.transactions.FM_TICK.preconditions.precondition_1",
+      "function_model.transactions.FM_TICK.outputs.output_0",
+      "function_model.transactions.FM_TICK.outputs.output_1",
+      "function_model.transactions.FM_TICK.outputs.output_2",
+      "function_model.transactions.FM_TICK.output_rules.count_next",
+      "function_model.transactions.FM_TICK.output_rules.running_next",
+      "function_model.transactions.FM_TICK.output_rules.done_pulse",
+      "function_model.transactions.FM_TICK.state_updates.count_q",
+      "function_model.transactions.FM_TICK.state_updates.running_q",
+      "function_model.transactions.FM_TICK.state_updates.done_q",
+      "function_model.transactions.FM_TICK.side_effects.side_effect_0",
+      "function_model.transactions.FM_TICK.side_effects.side_effect_1",
+      "function_model.transactions.FM_TICK.side_effects.side_effect_2",
+      "function_model.transactions.FM_TICK.error_cases.error_case_0",
+      "function_model.invariants.invariant_0",
+      "function_model.invariants.invariant_1",
+      "function_model.invariants.invariant_2",
+      "function_model.invariants.invariant_3"
+    ],
+    "status_counts": {
+      "pass": 23
+    },
+    "task_count": 23
+  },
+  "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state count_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.count_q",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "count_q width matches SSOT value 16",
+        "count_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.count_q.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: name=count_q; width=16; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0033",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.count_q",
+      "ssot_context": {
+        "name": "count_q",
+        "reset": "0",
+        "width": "16"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.count_q"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state running_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.running_q",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "running_q width matches SSOT value 1",
+        "running_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.running_q.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: name=running_q; width=1; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.running_q",
+      "ssot_context": {
+        "name": "running_q",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.running_q"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state done_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.done_q",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "done_q width matches SSOT value 1",
+        "done_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.done_q.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: name=done_q; width=1; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0035",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.done_q",
+      "ssot_context": {
+        "name": "done_q",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.done_q"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_TICK",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_TICK.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: id=FM_TICK; name=timer_control_tick.",
+      "evidence_terms": [],
+      "id": "RTL-0036",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK",
+      "ssot_context": {
+        "id": "FM_TICK",
+        "name": "timer_control_tick"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_TICK: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.preconditions.precondition_0.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: value=rst_n is deasserted.",
+      "evidence_terms": [
+        "rst",
+        "rst_n"
+      ],
+      "id": "RTL-0037",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "rst_n is deasserted"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "rst",
+          "rst_n"
+        ],
+        "source_scope": "rtl/timer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_TICK: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.preconditions.precondition_1.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: value=load is in the range 0 to 2**COUNT_WIDTH-1.",
+      "evidence_terms": [
+        "COUNT",
+        "COUNT_WIDTH",
+        "WIDTH"
+      ],
+      "id": "RTL-0038",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "load is in the range 0 to 2**COUNT_WIDTH-1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "COUNT",
+          "COUNT_WIDTH",
+          "WIDTH"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "COUNT",
+          "COUNT_WIDTH",
+          "WIDTH"
+        ],
+        "source_scope": "rtl/timer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_TICK: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.outputs.output_0",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.outputs.output_0.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: value=count.",
+      "evidence_terms": [],
+      "id": "RTL-0039",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.outputs.output_0",
+      "ssot_context": {
+        "value": "count"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.outputs.output_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_TICK: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.outputs.output_1",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.outputs.output_1.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: value=running.",
+      "evidence_terms": [],
+      "id": "RTL-0040",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.outputs.output_1",
+      "ssot_context": {
+        "value": "running"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.outputs.output_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_TICK: output_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.outputs.output_2",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.outputs.output_2.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: value=done.",
+      "evidence_terms": [],
+      "id": "RTL-0041",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.outputs.output_2",
+      "ssot_context": {
+        "value": "done"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.outputs.output_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_TICK: count_next",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.output_rules.count_next",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "count_next width matches SSOT value 16",
+        "count_next RTL expression implements SSOT expression 0 if clear else (load if start else ((count_q - 1) if (enable and running_q and (count_q > 0)) else count_q))",
+        "DUT port count is the implementation/observation point for count_next",
+        "count_next is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.output_rules.count_next.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: name=count_next; port=count; expr=0 if clear else (load if start else ((count_q - 1) if (enable and running_q and (count_q > 0)) else count_q)); width=16.",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "running",
+        "running_q"
+      ],
+      "id": "RTL-0042",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.output_rules.count_next",
+      "ssot_context": {
+        "expr": "0 if clear else (load if start else ((count_q - 1) if (enable and running_q and (count_q > 0)) else count_q))",
+        "name": "count_next",
+        "port": "count",
+        "width": "16"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.output_rules.count_next"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "running",
+          "running_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "running",
+          "running_q"
+        ],
+        "source_scope": "rtl/timer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_TICK: running_next",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.output_rules.running_next",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "running_next width matches SSOT value 1",
+        "running_next RTL expression implements SSOT expression 0 if clear else ((load > 0) if start else (0 if (enable and running_q and (count_q <= 1)) else running_q))",
+        "DUT port running is the implementation/observation point for running_next",
+        "running_next is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.output_rules.running_next.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: name=running_next; port=running; expr=0 if clear else ((load > 0) if start else (0 if (enable and running_q and (count_q <= 1)) else running_q)); width=1.",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "running",
+        "running_q"
+      ],
+      "id": "RTL-0043",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.output_rules.running_next",
+      "ssot_context": {
+        "expr": "0 if clear else ((load > 0) if start else (0 if (enable and running_q and (count_q <= 1)) else running_q))",
+        "name": "running_next",
+        "port": "running",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.output_rules.running_next"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "running",
+          "running_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "running",
+          "running_q"
+        ],
+        "source_scope": "rtl/timer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_TICK: done_pulse",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.output_rules.done_pulse",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "done_pulse width matches SSOT value 1",
+        "done_pulse RTL expression implements SSOT expression 0 if clear else (0 if start else (1 if (enable and running_q and (count_q == 1)) else 0))",
+        "DUT port done is the implementation/observation point for done_pulse",
+        "done_pulse is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.output_rules.done_pulse.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: name=done_pulse; port=done; expr=0 if clear else (0 if start else (1 if (enable and running_q and (count_q == 1)) else 0)); width=1.",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "running",
+        "running_q"
+      ],
+      "id": "RTL-0044",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.output_rules.done_pulse",
+      "ssot_context": {
+        "expr": "0 if clear else (0 if start else (1 if (enable and running_q and (count_q == 1)) else 0))",
+        "name": "done_pulse",
+        "port": "done",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.output_rules.done_pulse"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "running",
+          "running_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "running",
+          "running_q"
+        ],
+        "source_scope": "rtl/timer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_TICK: count_q",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.state_updates.count_q",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "count_q width matches SSOT value 16",
+        "count_q reset behavior matches SSOT value 0",
+        "count_q RTL expression implements SSOT expression 0 if clear else (load if start else ((count_q - 1) if (enable and running_q and (count_q > 0)) else count_q))",
+        "count_q updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.state_updates.count_q.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: name=count_q; expr=0 if clear else (load if start else ((count_q - 1) if (enable and running_q and (count_q > 0)) else count_q)); width=16; reset=0.",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "running",
+        "running_q"
+      ],
+      "id": "RTL-0045",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.state_updates.count_q",
+      "ssot_context": {
+        "expr": "0 if clear else (load if start else ((count_q - 1) if (enable and running_q and (count_q > 0)) else count_q))",
+        "name": "count_q",
+        "reset": "0",
+        "width": "16"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.state_updates.count_q"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "running",
+          "running_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "running",
+          "running_q"
+        ],
+        "source_scope": "rtl/timer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_TICK: running_q",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.state_updates.running_q",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "running_q width matches SSOT value 1",
+        "running_q reset behavior matches SSOT value 0",
+        "running_q RTL expression implements SSOT expression 0 if clear else ((load > 0) if start else (0 if (enable and running_q and (count_q <= 1)) else running_q))",
+        "running_q updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.state_updates.running_q.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: name=running_q; expr=0 if clear else ((load > 0) if start else (0 if (enable and running_q and (count_q <= 1)) else running_q)); width=1; reset=0.",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "running",
+        "running_q"
+      ],
+      "id": "RTL-0046",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.state_updates.running_q",
+      "ssot_context": {
+        "expr": "0 if clear else ((load > 0) if start else (0 if (enable and running_q and (count_q <= 1)) else running_q))",
+        "name": "running_q",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.state_updates.running_q"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "running",
+          "running_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "running",
+          "running_q"
+        ],
+        "source_scope": "rtl/timer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_TICK: done_q",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.state_updates.done_q",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "done_q width matches SSOT value 1",
+        "done_q reset behavior matches SSOT value 0",
+        "done_q RTL expression implements SSOT expression 0 if clear else (0 if start else (1 if (enable and running_q and (count_q == 1)) else 0))",
+        "done_q updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.state_updates.done_q.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: name=done_q; expr=0 if clear else (0 if start else (1 if (enable and running_q and (count_q == 1)) else 0)); width=1; reset=0.",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "running",
+        "running_q"
+      ],
+      "id": "RTL-0047",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.state_updates.done_q",
+      "ssot_context": {
+        "expr": "0 if clear else (0 if start else (1 if (enable and running_q and (count_q == 1)) else 0))",
+        "name": "done_q",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.state_updates.done_q"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "running",
+          "running_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "running",
+          "running_q"
+        ],
+        "source_scope": "rtl/timer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_TICK: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.side_effects.side_effect_0.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: value=count updates according to start, clear, and enable priority..",
+      "evidence_terms": [],
+      "id": "RTL-0048",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "count updates according to start, clear, and enable priority."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_TICK: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.side_effects.side_effect_1.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: value=running drops when the countdown consumes the final count..",
+      "evidence_terms": [],
+      "id": "RTL-0049",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.side_effects.side_effect_1",
+      "ssot_context": {
+        "value": "running drops when the countdown consumes the final count."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_TICK: side_effect_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.side_effects.side_effect_2",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.side_effects.side_effect_2.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: value=done pulses for the terminal countdown tick..",
+      "evidence_terms": [],
+      "id": "RTL-0050",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.side_effects.side_effect_2",
+      "ssot_context": {
+        "value": "done pulses for the terminal countdown tick."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.side_effects.side_effect_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_TICK: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.error_cases.error_case_0.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: value=No protocol error is generated; out-of-range load values are impossible after port truncation..",
+      "evidence_terms": [],
+      "id": "RTL-0051",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.error_cases.error_case_0",
+      "ssot_context": {
+        "value": "No protocol error is generated; out-of-range load values are impossible after port truncation."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_0",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_0",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: value=Reset or clear leaves count=0, running=0, and done=0..",
+      "evidence_terms": [],
+      "id": "RTL-0052",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_0",
+      "ssot_context": {
+        "value": "Reset or clear leaves count=0, running=0, and done=0."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_1",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_1",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: value=done is asserted only on a terminal enabled countdown tick..",
+      "evidence_terms": [],
+      "id": "RTL-0053",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_1",
+      "ssot_context": {
+        "value": "done is asserted only on a terminal enabled countdown tick."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_2",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_2",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: value=count never underflows below zero because the decrement rule is gated by count > 0..",
+      "evidence_terms": [],
+      "id": "RTL-0054",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_2",
+      "ssot_context": {
+        "value": "count never underflows below zero because the decrement rule is gated by count > 0."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_3",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_3",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_3.\nOwner: timer_core in rtl/timer.sv via function_model.\nSSOT item context: value=When enable is low and no start or clear is asserted, count and running hold their previous values..",
+      "evidence_terms": [],
+      "id": "RTL-0055",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_3",
+      "ssot_context": {
+        "value": "When enable is low and no start or clear is asserted, count and running hold their previous values."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "165765ecb941a931579eb51e442b504a2dca3a2f95193e4892a808ed0175a192",
+  "top": "timer",
+  "type": "rtl_authoring_packet"
+}

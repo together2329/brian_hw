@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "type": "protocol_assertions_summary",
+  "ip": "timer",
+  "source": "timer/yaml/timer.ssot.yaml",
+  "assertions_total": 6,
+  "output": "verify/protocol_assertions.sva"
+}

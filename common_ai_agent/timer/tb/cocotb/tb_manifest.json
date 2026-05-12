@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_manifest",
+  "ip": "timer",
+  "top": "timer",
+  "generated_at": "2026-05-12T13:54:46Z",
+  "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
+  "ssot": "timer/yaml/timer.ssot.yaml",
+  "equivalence_goals": "timer/verify/equivalence_goals.json",
+  "rtl_contract": "timer/rtl/rtl_contract.json",
+  "clock": "clk",
+  "reset": "rst_n",
+  "reset_active": "low",
+  "latency_cycles": 1,
+  "parameters": {
+    "COUNT_WIDTH": 16
+  },
+  "ports": [
+    {
+      "name": "clk",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "rst_n",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "start",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "enable",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "clear",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "load_value",
+      "direction": "input",
+      "width": 16
+    },
+    {
+      "name": "count",
+      "direction": "output",
+      "width": 16
+    },
+    {
+      "name": "running",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "done",
+      "direction": "output",
+      "width": 1
+    }
+  ],
+  "port_widths": {
+    "clk": 1,
+    "rst_n": 1,
+    "start": 1,
+    "enable": 1,
+    "clear": 1,
+    "load_value": 16,
+    "count": 16,
+    "running": 1,
+    "done": 1
+  },
+  "input_ports": [
+    "clear",
+    "clk",
+    "enable",
+    "load_value",
+    "rst_n",
+    "start"
+  ],
+  "output_ports": [
+    "count",
+    "done",
+    "running"
+  ],
+  "input_map": {
+    "load": "load_value"
+  },
+  "sample_condition": "(((start) != 0) || ((clear) != 0) || ((enable) != 0) || ((done_q) != 0))",
+  "sample_inputs": [
+    "clear",
+    "enable",
+    "start"
+  ],
+  "outputs": [
+    {
+      "name": "count_next",
+      "port": "count",
+      "width": 16
+    },
+    {
+      "name": "running_next",
+      "port": "running",
+      "width": 1
+    },
+    {
+      "name": "done_pulse",
+      "port": "done",
+      "width": 1
+    },
+    {
+      "name": "count",
+      "port": "count",
+      "width": 16
+    },
+    {
+      "name": "done",
+      "port": "done",
+      "width": 1
+    },
+    {
+      "name": "running",
+      "port": "running",
+      "width": 1
+    }
+  ],
+  "special_outputs": {},
+  "transaction_kind": "FM_TICK",
+  "rtl_sources": [
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/timer/rtl/timer.sv"
+  ],
+  "goal_count": 24,
+  "module_goal_count": 1,
+  "module_goals": [
+    {
+      "goal_id": "EQ_MODULE_TIMER_CORE",
+      "rtl_module": "timer_core",
+      "rtl_file": "rtl/timer.sv"
+    }
+  ]
+}

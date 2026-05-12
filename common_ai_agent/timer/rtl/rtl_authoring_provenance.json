@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "type": "rtl_authoring_provenance",
+  "agent": "common_ai_agent",
+  "workflow": "rtl-gen",
+  "surface": "headless_common_engine",
+  "generator": "codex_timer_rtl_authoring",
+  "generated_at": "2026-05-12T13:45:00Z",
+  "todo_plan_sha256": "165765ecb941a931579eb51e442b504a2dca3a2f95193e4892a808ed0175a192",
+  "rtl_files": [
+    "rtl/timer.sv"
+  ],
+  "authoring_packets": [
+    "module__timer_core__function_model",
+    "module__timer_core__cycle_model",
+    "module__timer_core__fsm",
+    "rtl_gate_tool_evidence"
+  ]
+}

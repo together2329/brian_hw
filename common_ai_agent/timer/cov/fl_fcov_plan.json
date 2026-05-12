@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "type": "fl_functional_coverage_plan",
+  "ip": "timer",
+  "source": "timer/yaml/timer.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "fl",
+  "summary": {
+    "total_bins": 10,
+    "by_class": {
+      "scenario": 3,
+      "transaction_type": 1,
+      "state_transition": 5,
+      "error": 1
+    }
+  },
+  "bins": [
+    {
+      "id": "SC_RESET_CLEAR_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC_RESET_CLEAR",
+      "description": "reset and clear force idle"
+    },
+    {
+      "id": "SC_COUNTDOWN_DONE_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC_COUNTDOWN_DONE",
+      "description": "countdown reaches done"
+    },
+    {
+      "id": "SC_ENABLE_HOLD_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC_ENABLE_HOLD",
+      "description": "enable low holds state"
+    },
+    {
+      "id": "function_timer_control_tick",
+      "class": "transaction_type",
+      "source": "function_model.transactions[0]",
+      "description": "timer_control_tick"
+    },
+    {
+      "id": "fsm_control_idle_to_run_0",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[0]",
+      "description": "start and load_value != 0"
+    },
+    {
+      "id": "fsm_control_run_to_run_1",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[1]",
+      "description": "enable and count > 1"
+    },
+    {
+      "id": "fsm_control_run_to_done_pulse_2",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[2]",
+      "description": "enable and count == 1"
+    },
+    {
+      "id": "fsm_control_done_pulse_to_idle_3",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[3]",
+      "description": "next control cycle without start"
+    },
+    {
+      "id": "fsm_control_run_to_idle_4",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[4]",
+      "description": "clear"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "source": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_NONE', 'condition': 'No malformed transaction class exists for this leaf IP.', 'architectural_effect': 'No error output is asserted.'}"
+    }
+  ]
+}

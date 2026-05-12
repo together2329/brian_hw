@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "type": "generic_ssot_rule_rtl_contract",
+  "ip": "timer",
+  "top": "timer",
+  "generated_at": "2026-05-12T13:44:38Z",
+  "contract": {
+    "top": "timer",
+    "transaction": "FM_TICK",
+    "clock": "clk",
+    "reset": "rst_n",
+    "reset_active": "low",
+    "sample_condition": "(((start) != 0) || ((clear) != 0) || ((enable) != 0) || ((done_q) != 0))",
+    "outputs": [
+      {
+        "name": "count_next",
+        "port": "count",
+        "expr": "((((start) != 0) ? (load_value) : ((((clear) != 0) ? (0) : (((((((enable) != 0) && ((running_q) != 0) && (((((((count_q) > (0))) != 0))) != 0))) != 0) ? ((count_q - 1)) : (count_q)))))))",
+        "width": 16,
+        "source": {
+          "name": "count_next",
+          "port": "count",
+          "width": 16,
+          "expr": "load if start else (0 if clear else ((count_q - 1) if (enable and running_q and (count_q > 0)) else count_q))"
+        }
+      },
+      {
+        "name": "running_next",
+        "port": "running",
+        "expr": "(((((clear) != 0) ? 1'b0 : (((((start) != 0) ? (((((((load_value) > (0))) != 0))) != 0) : ((((((((enable) != 0) && ((running_q) != 0) && (((((((count_q) <= (1))) != 0))) != 0))) != 0) ? 1'b0 : ((running_q) != 0))) != 0))) != 0))) != 0)",
+        "width": 1,
+        "source": {
+          "name": "running_next",
+          "port": "running",
+          "width": 1,
+          "expr": "0 if clear else ((load > 0) if start else (0 if (enable and running_q and (count_q <= 1)) else running_q))"
+        }
+      },
+      {
+        "name": "done_pulse",
+        "port": "done",
+        "expr": "(((((clear) != 0) ? 1'b0 : (((((start) != 0) ? 1'b0 : ((((((((enable) != 0) && ((running_q) != 0) && (((((((count_q) == (1))) != 0))) != 0))) != 0) ? 1'b1 : 1'b0)) != 0))) != 0))) != 0)",
+        "width": 1,
+        "source": {
+          "name": "done_pulse",
+          "port": "done",
+          "width": 1,
+          "expr": "0 if clear else (0 if start else (1 if (enable and running_q and (count_q == 1)) else 0))"
+        }
+      }
+    ],
+    "state_vars": {
+      "count_q": {
+        "width": 16,
+        "reset": 0
+      },
+      "running_q": {
+        "width": 1,
+        "reset": 0
+      },
+      "done_q": {
+        "width": 1,
+        "reset": 0
+      }
+    },
+    "state_updates": [
+      {
+        "name": "count_q",
+        "expr": "(((start) != 0) ? (load_value) : ((((clear) != 0) ? (0) : (((((((enable) != 0) && ((running_q) != 0) && (((((((count_q) > (0))) != 0))) != 0))) != 0) ? ((count_q - 1)) : (count_q))))))",
+        "source": {
+          "name": "count_q",
+          "width": 16,
+          "reset": 0,
+          "expr": "load if start else (0 if clear else ((count_q - 1) if (enable and running_q and (count_q > 0)) else count_q))"
+        }
+      },
+      {
+        "name": "running_q",
+        "expr": "(((clear) != 0) ? 1'b0 : (((((start) != 0) ? (((((((load_value) > (0))) != 0))) != 0) : ((((((((enable) != 0) && ((running_q) != 0) && (((((((count_q) <= (1))) != 0))) != 0))) != 0) ? 1'b0 : ((running_q) != 0))) != 0))) != 0))",
+        "source": {
+          "name": "running_q",
+          "width": 1,
+          "reset": 0,
+          "expr": "0 if clear else ((load > 0) if start else (0 if (enable and running_q and (count_q <= 1)) else running_q))"
+        }
+      },
+      {
+        "name": "done_q",
+        "expr": "(((clear) != 0) ? 1'b0 : (((((start) != 0) ? 1'b0 : ((((((((enable) != 0) && ((running_q) != 0) && (((((((count_q) == (1))) != 0))) != 0))) != 0) ? 1'b1 : 1'b0)) != 0))) != 0))",
+        "source": {
+          "name": "done_q",
+          "width": 1,
+          "reset": 0,
+          "expr": "0 if clear else (0 if start else (1 if (enable and running_q and (count_q == 1)) else 0))"
+        }
+      }
+    ],
+    "special_outputs": {},
+    "pipeline_stages": [
+      "S0_CONTROL_SAMPLE",
+      "S1_STATE_VISIBLE"
+    ],
+    "fsm_states": [
+      "IDLE",
+      "RUN",
+      "DONE_PULSE"
+    ],
+    "fsm_transitions": [
+      {
+        "from": "IDLE",
+        "to": "RUN",
+        "condition": "start and load_value != 0"
+      },
+      {
+        "from": "RUN",
+        "to": "RUN",
+        "condition": "enable and count > 1"
+      },
+      {
+        "from": "RUN",
+        "to": "DONE_PULSE",
+        "condition": "enable and count == 1"
+      },
+      {
+        "from": "DONE_PULSE",
+        "to": "IDLE",
+        "condition": "next control cycle without start"
+      },
+      {
+        "from": "RUN",
+        "to": "IDLE",
+        "condition": "clear"
+      }
+    ],
+    "input_map": {
+      "load": "load_value"
+    },
+    "apb_registers": {},
+    "source": "rtl_contract + function_model.output_rules"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "type": "cl_functional_coverage_plan",
+  "ip": "timer",
+  "source": "timer/yaml/timer.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "cl",
+  "summary": {
+    "total_bins": 3,
+    "by_class": {
+      "protocol_handshake": 3
+    }
+  },
+  "bins": [
+    {
+      "id": "cycle_start_load",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[0]",
+      "description": "start samples load_value on the active clock edge and makes the loaded count visible after that edge."
+    },
+    {
+      "id": "cycle_enabled_tick",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[1]",
+      "description": "enable advances count only while running is high."
+    },
+    {
+      "id": "cycle_clear_priority",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[2]",
+      "description": "clear returns the timer to idle regardless of enable or running."
+    }
+  ]
+}

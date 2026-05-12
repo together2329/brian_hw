@@ -1,0 +1,61 @@
+// Auto-generated from SSOT cycle_model. Do not hand-edit.
+// Source: timer/yaml/timer.ssot.yaml
+// Schema: protocol_assertions/v1
+// Bind to DUT under simulation. Clock: clk; reset: rst_n
+
+module timer_protocol_assertions (
+    input logic clk,
+    input logic rst_n
+    /* Bind additional DUT signals via downstream `bind` directive. */
+);
+
+// start samples load_value on the active clock edge and makes the loaded count visible after that edge.
+property p_a_start_load;
+  @(posedge clk) disable iff (!rst_n)
+    (1'b1) |-> ##[0:0] ($stable(1'b1) || 1'b1);
+endproperty
+a_start_load_chk: assert property (p_a_start_load) else
+  $error("[start_load] start samples load_value on the active clock edge and makes the loaded count visible after that edge.");
+
+// enable advances count only while running is high.
+property p_a_enabled_tick;
+  @(posedge clk) disable iff (!rst_n)
+    (1'b1) |-> ##[0:0] ($stable(1'b1) || 1'b1);
+endproperty
+a_enabled_tick_chk: assert property (p_a_enabled_tick) else
+  $error("[enabled_tick] enable advances count only while running is high.");
+
+// clear returns the timer to idle regardless of enable or running.
+property p_a_clear_priority;
+  @(posedge clk) disable iff (!rst_n)
+    (1'b1) |-> ##[0:0] ($stable(1'b1) || 1'b1);
+endproperty
+a_clear_priority_chk: assert property (p_a_clear_priority) else
+  $error("[clear_priority] clear returns the timer to idle regardless of enable or running.");
+
+// ORDERING: clear has highest priority.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_0_placeholder;
+  @(posedge clk) disable iff (!rst_n) 1'b1;
+endproperty
+o_ordering_0_chk: assert property (p_o_ordering_0_placeholder);
+
+// ORDERING: start load is applied before enabled countdown behavior for a new interval.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_1_placeholder;
+  @(posedge clk) disable iff (!rst_n) 1'b1;
+endproperty
+o_ordering_1_chk: assert property (p_o_ordering_1_placeholder);
+
+// ORDERING: done is observed on the same state-visible cycle as the terminal decrement.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_2_placeholder;
+  @(posedge clk) disable iff (!rst_n) 1'b1;
+endproperty
+o_ordering_2_chk: assert property (p_o_ordering_2_placeholder);
+
+
+endmodule

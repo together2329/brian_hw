@@ -1,0 +1,743 @@
+top_module:
+  name: timer
+  description: Small parameterized countdown timer used as an ATLAS SSOT pipeline smoke fixture.
+  owner: ssot-gen
+  quality_profile: standard
+
+sub_modules:
+  - name: timer_core
+    file: rtl/timer.sv
+    ownership: manifest
+    rtl_emit: true
+    implements:
+      - function_model.transactions.FM_TICK
+      - cycle_model
+      - rtl_contract
+    source_sections:
+      - io_list
+      - parameters
+      - function_model
+      - cycle_model
+      - fsm
+      - rtl_contract
+    description: Single-leaf RTL block for countdown state, done pulse, and observable debug outputs.
+
+decomposition:
+  modules:
+    - name: timer_core
+      role: countdown datapath and control
+      owns:
+        - count
+        - running
+        - done
+  ownership:
+    function_model: timer_core
+    cycle_model: timer_core
+    rtl_contract: timer_core
+  internal_state:
+    - name: count_q
+      drives_output: count
+    - name: running_q
+      drives_output: running
+    - name: done_q
+      drives_output: done
+
+rtl_contract:
+  clock: clk
+  reset: rst_n
+  reset_active: low
+  transaction: FM_TICK
+  sample_condition: "start or clear or enable or done_q"
+  input_map:
+    load: load_value
+  output_map:
+    count_next: count
+    running_next: running
+    done_pulse: done
+  output_rules:
+    - name: count_next
+      port: count
+      width: 16
+      expr: "0 if clear else (load if start else ((count_q - 1) if (enable and running_q and (count_q > 0)) else count_q))"
+    - name: running_next
+      port: running
+      width: 1
+      expr: "0 if clear else ((load > 0) if start else (0 if (enable and running_q and (count_q <= 1)) else running_q))"
+    - name: done_pulse
+      port: done
+      width: 1
+      expr: "0 if clear else (0 if start else (1 if (enable and running_q and (count_q == 1)) else 0))"
+  state_updates:
+    - name: count_q
+      width: 16
+      reset: 0
+      expr: "0 if clear else (load if start else ((count_q - 1) if (enable and running_q and (count_q > 0)) else count_q))"
+    - name: running_q
+      width: 1
+      reset: 0
+      expr: "0 if clear else ((load > 0) if start else (0 if (enable and running_q and (count_q <= 1)) else running_q))"
+    - name: done_q
+      width: 1
+      reset: 0
+      expr: "0 if clear else (0 if start else (1 if (enable and running_q and (count_q == 1)) else 0))"
+
+parameters:
+  - name: COUNT_WIDTH
+    type: int
+    default: 16
+    description: Width of load_value and count.
+    user_editable: true
+
+io_list:
+  clock_domains:
+    - name: main
+      ports:
+        - name: clk
+          direction: input
+          width: 1
+  resets:
+    - name: rst_n
+      active: low
+      ports:
+        - name: rst_n
+          direction: input
+          width: 1
+  interfaces:
+    - name: timer_ctrl
+      type: custom_control
+      ports:
+        - name: start
+          direction: input
+          width: 1
+          description: Load load_value and start the countdown.
+        - name: enable
+          direction: input
+          width: 1
+          description: Advance the countdown while running.
+        - name: clear
+          direction: input
+          width: 1
+          description: Clear and stop the timer.
+        - name: load_value
+          direction: input
+          width: COUNT_WIDTH
+          parameter_ref: COUNT_WIDTH
+          description: Initial count value loaded on start.
+        - name: count
+          direction: output
+          width: COUNT_WIDTH
+          parameter_ref: COUNT_WIDTH
+          description: Current countdown value.
+        - name: running
+          direction: output
+          width: 1
+          description: High while the timer is active.
+        - name: done
+          direction: output
+          width: 1
+          description: One-cycle pulse when the countdown reaches zero.
+
+features:
+  - name: parameterized_countdown
+    description: Countdown width is controlled by COUNT_WIDTH so users can resize the timer without changing control logic.
+    requirement_trace: req/requirements.md#functional-behavior
+  - name: done_pulse
+    description: done pulses when the timer consumes count value 1 and then clears on the next observable control cycle.
+    requirement_trace: req/requirements.md#functional-behavior
+  - name: clear_priority
+    description: clear has priority over countdown tick behavior and clears observable state.
+    requirement_trace: req/requirements.md#functional-behavior
+
+dataflow:
+  sequence:
+    - Reset clears count, running, and done.
+    - start samples load_value into count and asserts running when load_value is non-zero.
+    - enable advances the countdown by one while running is high.
+    - clear overrides timer progress and returns observable state to idle.
+  ordering:
+    - clear is evaluated before countdown decrement.
+    - start creates a new timer interval before enable tick side effects are considered.
+    - done is derived from the cycle where count is one and enable is asserted.
+  state_flow:
+    - load_value -> count_q -> count
+    - count_q/running_q/enable -> count_next/running_next/done_pulse
+
+function_model:
+  purpose: Cycle-independent timer reference model for scoreboard and RTL equivalence checks.
+  state_variables:
+    - name: count_q
+      width: 16
+      reset: 0
+      description: Internal current countdown value that drives count.
+    - name: running_q
+      width: 1
+      reset: 0
+      description: Internal timer active state that drives running.
+    - name: done_q
+      width: 1
+      reset: 0
+      description: Internal completion pulse state that drives done.
+  transactions:
+    - id: FM_TICK
+      name: timer_control_tick
+      required_fields:
+        - start
+        - enable
+        - clear
+        - load
+      preconditions:
+        - rst_n is deasserted
+        - load is in the range 0 to 2**COUNT_WIDTH-1
+      outputs:
+        - count
+        - running
+        - done
+      output_rules:
+        - name: count_next
+          port: count
+          width: 16
+          expr: "0 if clear else (load if start else ((count_q - 1) if (enable and running_q and (count_q > 0)) else count_q))"
+        - name: running_next
+          port: running
+          width: 1
+          expr: "0 if clear else ((load > 0) if start else (0 if (enable and running_q and (count_q <= 1)) else running_q))"
+        - name: done_pulse
+          port: done
+          width: 1
+          expr: "0 if clear else (0 if start else (1 if (enable and running_q and (count_q == 1)) else 0))"
+      state_updates:
+        - name: count_q
+          width: 16
+          reset: 0
+          expr: "0 if clear else (load if start else ((count_q - 1) if (enable and running_q and (count_q > 0)) else count_q))"
+        - name: running_q
+          width: 1
+          reset: 0
+          expr: "0 if clear else ((load > 0) if start else (0 if (enable and running_q and (count_q <= 1)) else running_q))"
+        - name: done_q
+          width: 1
+          reset: 0
+          expr: "0 if clear else (0 if start else (1 if (enable and running_q and (count_q == 1)) else 0))"
+      side_effects:
+        - count updates according to start, clear, and enable priority.
+        - running drops when the countdown consumes the final count.
+        - done pulses for the terminal countdown tick.
+      error_cases:
+        - No protocol error is generated; out-of-range load values are impossible after port truncation.
+  invariants:
+    - Reset or clear leaves count=0, running=0, and done=0.
+    - done is asserted only on a terminal enabled countdown tick.
+    - count never underflows below zero because the decrement rule is gated by count > 0.
+    - When enable is low and no start or clear is asserted, count and running hold their previous values.
+  reference_model_hint: FunctionalModel.apply(start, enable, clear, load) returns count, running, and done after one control tick.
+
+cycle_model:
+  executable: pymtl3
+  backend_policy: Use PyMTL3 for the cycle model shell and keep the FunctionalModel as the behavioral oracle.
+  clock: clk
+  reset: rst_n
+  latency: 1
+  handshake_rules:
+    - name: start_load
+      description: start samples load_value on the active clock edge and makes the loaded count visible after that edge.
+    - name: enabled_tick
+      description: enable advances count only while running is high.
+    - name: clear_priority
+      description: clear returns the timer to idle regardless of enable or running.
+  pipeline:
+    - stage: S0_CONTROL_SAMPLE
+      cycle: 0
+      action: Sample start, enable, clear, load_value, count, and running.
+    - stage: S1_STATE_VISIBLE
+      cycle: 1
+      action: Present updated count, running, and done.
+  ordering:
+    - clear has highest priority.
+    - start load is applied before enabled countdown behavior for a new interval.
+    - done is observed on the same state-visible cycle as the terminal decrement.
+  backpressure:
+    - There is no ready/valid backpressure; enable controls timer progress.
+  performance:
+    frequency_mhz: 100
+    throughput:
+      sustained_ticks_per_cycle: 1
+      condition: enable asserted while running
+    outstanding:
+      max: 1
+      description: One active countdown interval at a time.
+    depth:
+      pipeline_stages: 1
+      queue_depth: 0
+      description: Registered state update with no internal queue.
+    pipelining:
+      style: single_stage_registered_control
+      overlap: none
+
+clock_reset_domains:
+  domains:
+    - name: main
+      clock: clk
+      reset: rst_n
+      reset_active: low
+
+cdc_requirements:
+  crossings: []
+  rationale: Single clock domain.
+
+rdc_requirements:
+  crossings: []
+  rationale: Single reset domain.
+
+registers:
+  register_list: []
+  architectural_state:
+    - name: count_q
+      reset: 0
+      source: function_model.state_variables.count_q
+      drives_output: count
+    - name: running_q
+      reset: 0
+      source: function_model.state_variables.running_q
+      drives_output: running
+    - name: done_q
+      reset: 0
+      source: function_model.state_variables.done_q
+      drives_output: done
+
+memory:
+  instances: []
+  rationale: No memory is needed for this small countdown timer.
+
+interrupts:
+  sources: []
+  outputs: []
+  rationale: The smoke fixture exposes done as a pulse output instead of an interrupt line.
+
+fsm:
+  control:
+    diagram_kind: state_transition
+    reset_state: IDLE
+    states:
+      - name: IDLE
+        description: Timer is not running and count is zero or waiting for start.
+      - name: RUN
+        description: Timer is counting down while running is high.
+      - name: DONE_PULSE
+        description: One-cycle observable completion pulse.
+    transitions:
+      - from: IDLE
+        to: RUN
+        condition: start and load_value != 0
+        action: Load count and assert running.
+      - from: RUN
+        to: RUN
+        condition: enable and count > 1
+        action: Decrement count.
+      - from: RUN
+        to: DONE_PULSE
+        condition: enable and count == 1
+        action: Drive done and stop running.
+      - from: DONE_PULSE
+        to: IDLE
+        condition: next control cycle without start
+        action: Clear done.
+      - from: RUN
+        to: IDLE
+        condition: clear
+        action: Clear state.
+
+timing:
+  target_clocks:
+    - name: clk
+      frequency_mhz: 100
+      period_ns: 10.0
+  latency_budget:
+    start_to_count_visible:
+      min: 1
+      max: 1
+      unit: cycles
+    terminal_tick_to_done:
+      min: 1
+      max: 1
+      unit: cycles
+
+power:
+  domains:
+    - name: PD_MAIN
+      clock_domains:
+        - main
+      isolation: not_required
+  power_states:
+    - name: ON
+      entry: rst_n deasserted
+      exit: rst_n asserted or integration power down
+      guarantees:
+        - Timer state follows function_model.
+
+security:
+  classification: non_secure_leaf_ip
+  assets:
+    - name: timer_state_integrity
+      protection: count, running, and done must match the function_model.
+  threat_model:
+    - threat: silent timer completion corruption
+      mitigation: FL-vs-RTL scoreboard and done_pulse coverage bins.
+
+error_handling:
+  error_sources:
+    - id: ERR_NONE
+      condition: No malformed transaction class exists for this leaf IP.
+      architectural_effect: No error output is asserted.
+  propagation:
+    - Error propagation is not applicable.
+  recovery:
+    - action: clear
+      clears:
+        - count
+        - running
+        - done
+    - action: reset
+      clears:
+        - count
+        - running
+        - done
+
+debug_observability:
+  waveform_must_probe:
+    - clk
+    - rst_n
+    - start
+    - enable
+    - clear
+    - load_value
+    - count
+    - running
+    - done
+  trace_events:
+    - name: timer_start
+      trigger: start
+    - name: timer_tick
+      trigger: enable and running
+    - name: timer_done
+      trigger: done
+
+integration:
+  bus_attachment:
+    type: native_control
+    interfaces:
+      - timer_ctrl
+  dependencies:
+    external_modules: []
+    external_clocks:
+      - clk
+    external_resets:
+      - rst_n
+  connections: []
+
+dft:
+  scan_required: false
+  controllability:
+    reset: rst_n
+    clock: clk
+    inputs:
+      - start
+      - enable
+      - clear
+      - load_value
+  observability:
+    outputs:
+      - count
+      - running
+      - done
+
+synthesis:
+  dialect: systemverilog_2012
+  constraints:
+    - No inferred latches.
+    - No unresolved black boxes.
+    - COUNT_WIDTH must remain a positive integer.
+  required_outputs:
+    - rtl/timer.sv
+    - list/timer.f
+    - reports/syn/syn_report.json
+  pdk_policy:
+    default_family: sky130
+    library_root: pdk/
+    fallback: report actionable missing-lib message rather than silently using fake timing.
+
+coding_rules:
+  verilog_style: systemverilog_2012
+  port_declaration_default: input logic and output logic
+  arithmetic_policy:
+    multiply: prefer shifts when the operation is a power-of-two scale.
+    divide: prefer shifts when the divisor is a power of two.
+    timer_note: This timer uses subtract-by-one only; no multiply or divide is required.
+  conventions:
+    - Use parameterized widths for load_value and count.
+    - Comment reset, clear, start, tick, and done-pulse behavior clearly.
+    - Keep combinational expressions machine-checkable against function_model output_rules.
+  lint_waivers: []
+
+reuse_modules: []
+
+custom:
+  assumptions:
+    - This smoke fixture intentionally avoids bus integration to keep the pipeline test fast.
+    - load_value zero starts an empty interval and immediately leaves running low after the next state update.
+  optional_behavior_policy:
+    resolution: No optional timer modes are enabled by default.
+    downstream_rule: rtl-gen and tb-gen must implement only the explicit function_model and cycle_model rules.
+
+dir_structure:
+  yaml_dir: yaml/
+  req_dir: req/
+  rtl_dir: rtl/
+  list_dir: list/
+  tb_dir: tb/
+  sim_dir: sim/
+  cov_dir: cov/
+  lint_dir: lint/
+  doc_dir: doc/
+  reports_dir: reports/
+
+filelist:
+  rtl:
+    - rtl/timer.sv
+  tb:
+    - tb/cocotb/test_timer.py
+  coverage:
+    - cov/coverage.json
+    - cov/fcov_plan.json
+
+test_requirements:
+  scenarios:
+    - id: SC_RESET_CLEAR
+      name: reset and clear force idle
+      stimulus: Assert reset, then start the timer, then assert clear.
+      expected: count=0, running=0, done=0 after reset or clear.
+      checker: Scoreboard compares outputs against FunctionalModel reset and clear state.
+      coverage:
+        - fcov_clear_priority
+        - ccov_reset_recovery
+    - id: SC_COUNTDOWN_DONE
+      name: countdown reaches done
+      stimulus: start with load_value=3 and keep enable asserted.
+      expected: count decrements 3 to 2 to 1 to 0, running drops, and done pulses once.
+      checker: Scoreboard compares every cycle against FunctionalModel.apply.
+      coverage:
+        - fcov_done_pulse
+        - ccov_terminal_tick
+    - id: SC_ENABLE_HOLD
+      name: enable low holds state
+      stimulus: start with load_value=4, deassert enable for two cycles, then resume enable.
+      expected: count and running hold while enable is low.
+      checker: Cycle checker verifies no decrement occurs when enable is low.
+      coverage:
+        - fcov_enable_hold
+        - ccov_hold_cycle
+  scoreboard_checks:
+    - reset_state
+    - clear_priority
+    - countdown_sequence
+    - done_pulse_width
+    - enable_hold
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: function_model
+      description: Functional coverage for start, clear, enabled countdown, hold, and done pulse behavior.
+      bins:
+        - id: fcov_start_load
+          source_ref: function_model.transactions.FM_TICK
+          class: transaction
+          description: start loads load_value into count.
+        - id: fcov_clear_priority
+          source_ref: function_model.invariants.clear
+          class: state
+          description: clear returns all observable state to idle.
+        - id: fcov_done_pulse
+          source_ref: function_model.transactions.FM_TICK.output_rules.done_pulse
+          class: event
+          description: terminal enabled tick asserts done for one pulse.
+        - id: fcov_enable_hold
+          source_ref: function_model.invariants.enable_hold
+          class: state
+          description: enable low prevents countdown progress.
+    cycle:
+      target_pct: 100
+      model: cycle_model
+      description: Cycle coverage for reset, start-load latency, enabled tick latency, hold cycles, and terminal done timing.
+      bins:
+        - id: ccov_start_visible_next_cycle
+          source_ref: cycle_model.pipeline.S1_STATE_VISIBLE
+          class: latency
+          description: start result is visible on the next clock edge.
+        - id: ccov_terminal_tick
+          source_ref: cycle_model.handshake_rules.enabled_tick
+          class: timing
+          description: terminal countdown tick drives done timing.
+        - id: ccov_hold_cycle
+          source_ref: cycle_model.backpressure
+          class: control
+          description: enable low hold is observed.
+    planned_bins:
+      - id: fcov_start_load
+        class: transaction
+        coverage_domain: function
+        source_ref: function_model.transactions.FM_TICK
+        description: start loads load_value.
+      - id: fcov_done_pulse
+        class: event
+        coverage_domain: function
+        source_ref: function_model.transactions.FM_TICK.output_rules.done_pulse
+        description: done pulse observed.
+      - id: ccov_terminal_tick
+        class: timing
+        coverage_domain: cycle
+        source_ref: cycle_model.handshake_rules.enabled_tick
+        description: terminal tick timing observed.
+
+quality_gates:
+  ssot:
+    pass: check_ssot_disk.sh exits 0 for timer/yaml/timer.ssot.yaml.
+    evidence:
+      - workflow/ssot-gen/scripts/check_ssot_disk.sh PASS
+  rtl:
+    pass: RTL implements function_model and cycle_model with DUT-only compile and lint evidence.
+    evidence:
+      - timer/rtl/timer.sv
+      - timer/list/timer.f
+      - timer/rtl_compile.json
+      - timer/lint/dut_lint.json
+  dv:
+    pass: Cocotb scenarios pass against FunctionalModel scoreboard.
+    evidence:
+      - timer/sim/results.xml
+      - timer/sim/scoreboard_events.jsonl
+  coverage:
+    pass: Function and cycle coverage plans include start, hold, terminal tick, and done pulse bins.
+    evidence:
+      - timer/cov/fl_fcov_plan.json
+      - timer/cov/cl_fcov_plan.json
+      - timer/cov/fcov_plan.json
+  eda:
+    pass: Lint, synthesis, STA, and PNR report actionable pass/fail evidence or missing-tool blockers.
+    evidence:
+      - timer/lint/lint_report.json
+      - timer/reports/syn/syn_report.json
+      - timer/reports/sta/sta_report.json
+      - timer/reports/pnr/pnr_report.json
+  signoff:
+    pass: Goal audit shows SSOT, model, RTL, lint, simulation, coverage, and EDA gates have evidence.
+    evidence:
+      - timer/reports/goal_audit.json
+
+traceability:
+  requirements:
+    - timer/req/requirements.md
+  llm_stage: ssot-gen
+  yaml_to_output:
+    - yaml: io_list
+      output: rtl/timer.sv port list and cocotb driver
+    - yaml: function_model
+      output: model/functional_model.py and scoreboard expected values
+    - yaml: cycle_model
+      output: model/cycle_model.py and cycle coverage plan
+    - yaml: fsm
+      output: SSOT design review FSM transition diagram
+    - yaml: test_requirements
+      output: tb/cocotb/test_timer.py and coverage bins
+
+workflow_todos:
+  rtl-gen:
+    - id: RTL_TIMER_CONTROL
+      content: Implement timer control priority from the SSOT.
+      detail: clear must override countdown progress, start must load load_value, enable must decrement only while running, and done must pulse on the terminal tick.
+      criteria:
+        - clear returns count, running, and done to zero.
+        - start loads load_value through the COUNT_WIDTH parameterized datapath.
+        - enable decrements count only while running is true.
+        - done pulses on count==1 with enable and running asserted.
+      source_refs:
+        - function_model.transactions.FM_TICK
+        - cycle_model.handshake_rules.enabled_tick
+        - fsm.control.transitions
+      owner_module: timer_core
+      owner_file: rtl/timer.sv
+      priority: high
+      required: true
+    - id: RTL_TIMER_OBSERVABILITY
+      content: Preserve waveform-observable timer state.
+      detail: Expose count, running, and done exactly as declared in debug_observability so sim_debug can correlate source, hierarchy, waveform, and scoreboard events.
+      criteria:
+        - count is driven from the timer state register.
+        - running is driven from the timer state register.
+        - done is a visible pulse output.
+        - waveform probes include every debug_observability.waveform_must_probe signal.
+      source_refs:
+        - debug_observability.waveform_must_probe
+        - io_list.interfaces.timer_ctrl
+        - test_requirements.scenarios.SC_COUNTDOWN_DONE
+      owner_module: timer_core
+      owner_file: rtl/timer.sv
+      priority: medium
+      required: true
+    - id: RTL_TIMER_PARAMETERIZATION
+      content: Keep timer input and output widths user-editable.
+      detail: Use COUNT_WIDTH for load_value and count so the timer can be resized by changing the SSOT parameter.
+      criteria:
+        - COUNT_WIDTH parameter controls load_value width.
+        - COUNT_WIDTH parameter controls count width.
+        - No hard-coded count datapath width is used outside the parameter declaration.
+      source_refs:
+        - parameters.COUNT_WIDTH
+        - io_list.interfaces.timer_ctrl.ports.load_value
+        - coding_rules.port_declaration_default
+      owner_module: timer_core
+      owner_file: rtl/timer.sv
+      priority: medium
+      required: true
+  tb-gen:
+    - id: TB_TIMER_SCENARIOS
+      content: Generate reset, clear, countdown, and hold tests.
+      detail: The cocotb test list must mirror test_requirements.scenarios.
+      criteria:
+        - SC_RESET_CLEAR is implemented.
+        - SC_COUNTDOWN_DONE is implemented.
+        - SC_ENABLE_HOLD is implemented.
+      source_refs:
+        - test_requirements.scenarios
+  sim_debug:
+    - id: DEBUG_TIMER_WAVES
+      content: Correlate timer waveform, source, and scoreboard events.
+      detail: Sim debug should show count, running, done, start, enable, clear, and load_value in the first debug view.
+      criteria:
+        - waveform includes all debug_observability.waveform_must_probe entries.
+        - source view opens rtl/timer.sv.
+        - hierarchy contains timer.
+      source_refs:
+        - debug_observability
+
+generation_flow:
+  steps:
+    - name: validate_ssot
+      command: bash workflow/ssot-gen/scripts/check_ssot_disk.sh timer
+      description: Validate the timer SSOT structure on disk.
+    - name: generate_fl_model
+      command: /ssot-fl-model timer
+      description: Generate FunctionalModel and coverage seeds from the SSOT.
+    - name: generate_cycle_model
+      command: /ssot-cycle-model timer
+      description: Generate the PyMTL cycle model shell and cycle checker evidence.
+    - name: generate_coverage
+      command: /ssot-dual-fcov timer
+      description: Split function and cycle coverage plans.
+    - name: generate_equivalence
+      command: /ssot-equiv-goals timer
+      description: Create FL/RTL equivalence goals.
+    - name: generate_rtl
+      command: /ssot-rtl timer
+      description: Generate or validate RTL from SSOT-derived RTL TODOs.
+    - name: run_lint
+      command: /lint timer
+      description: Produce lint report evidence.

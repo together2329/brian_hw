@@ -1,0 +1,2010 @@
+{
+  "source": "ssot_coverage_summary",
+  "status": "pass",
+  "ssot": "timer/yaml/timer.ssot.yaml",
+  "module": "timer",
+  "dv_plan": {
+    "scenarios": 3,
+    "scoreboard_checks": [
+      "reset_state",
+      "clear_priority",
+      "countdown_sequence",
+      "done_pulse_width",
+      "enable_hold"
+    ],
+    "coverage_goals": {
+      "function": {
+        "target_pct": 100,
+        "model": "function_model",
+        "description": "Functional coverage for start, clear, enabled countdown, hold, and done pulse behavior.",
+        "bins": [
+          {
+            "id": "fcov_start_load",
+            "source_ref": "function_model.transactions.FM_TICK",
+            "class": "transaction",
+            "description": "start loads load_value into count."
+          },
+          {
+            "id": "fcov_clear_priority",
+            "source_ref": "function_model.invariants.clear",
+            "class": "state",
+            "description": "clear returns all observable state to idle."
+          },
+          {
+            "id": "fcov_done_pulse",
+            "source_ref": "function_model.transactions.FM_TICK.output_rules.done_pulse",
+            "class": "event",
+            "description": "terminal enabled tick asserts done for one pulse."
+          },
+          {
+            "id": "fcov_enable_hold",
+            "source_ref": "function_model.invariants.enable_hold",
+            "class": "state",
+            "description": "enable low prevents countdown progress."
+          }
+        ]
+      },
+      "cycle": {
+        "target_pct": 100,
+        "model": "cycle_model",
+        "description": "Cycle coverage for reset, start-load latency, enabled tick latency, hold cycles, and terminal done timing.",
+        "bins": [
+          {
+            "id": "ccov_start_visible_next_cycle",
+            "source_ref": "cycle_model.pipeline.S1_STATE_VISIBLE",
+            "class": "latency",
+            "description": "start result is visible on the next clock edge."
+          },
+          {
+            "id": "ccov_terminal_tick",
+            "source_ref": "cycle_model.handshake_rules.enabled_tick",
+            "class": "timing",
+            "description": "terminal countdown tick drives done timing."
+          },
+          {
+            "id": "ccov_hold_cycle",
+            "source_ref": "cycle_model.backpressure",
+            "class": "control",
+            "description": "enable low hold is observed."
+          }
+        ]
+      },
+      "planned_bins": [
+        {
+          "id": "fcov_start_load",
+          "class": "transaction",
+          "coverage_domain": "function",
+          "source_ref": "function_model.transactions.FM_TICK",
+          "description": "start loads load_value."
+        },
+        {
+          "id": "fcov_done_pulse",
+          "class": "event",
+          "coverage_domain": "function",
+          "source_ref": "function_model.transactions.FM_TICK.output_rules.done_pulse",
+          "description": "done pulse observed."
+        },
+        {
+          "id": "ccov_terminal_tick",
+          "class": "timing",
+          "coverage_domain": "cycle",
+          "source_ref": "cycle_model.handshake_rules.enabled_tick",
+          "description": "terminal tick timing observed."
+        }
+      ]
+    }
+  },
+  "functional": {
+    "hit": 30,
+    "total": 30,
+    "pct": 100.0
+  },
+  "function_coverage": {
+    "hit": 9,
+    "total": 9,
+    "pct": 100.0,
+    "target_pct": 100.0,
+    "meets_target": true,
+    "bins": {
+      "SC_RESET_CLEAR_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC_RESET_CLEAR_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[0]",
+          "scenario": "SC_RESET_CLEAR",
+          "description": "reset and clear force idle"
+        },
+        "class": "scenario",
+        "description": "reset and clear force idle",
+        "coverage_domain": "function"
+      },
+      "SC_COUNTDOWN_DONE_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC_COUNTDOWN_DONE",
+        "scenario_id": "SC_003_EQ_SCENARIO_SC_COUNTDOWN_DONE",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC_COUNTDOWN_DONE_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[1]",
+          "scenario": "SC_COUNTDOWN_DONE",
+          "description": "countdown reaches done"
+        },
+        "class": "scenario",
+        "description": "countdown reaches done",
+        "coverage_domain": "function"
+      },
+      "SC_ENABLE_HOLD_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC_ENABLE_HOLD",
+        "scenario_id": "SC_004_EQ_SCENARIO_SC_ENABLE_HOLD",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC_ENABLE_HOLD_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[2]",
+          "scenario": "SC_ENABLE_HOLD",
+          "description": "enable low holds state"
+        },
+        "class": "scenario",
+        "description": "enable low holds state",
+        "coverage_domain": "function"
+      },
+      "fcov_start_load": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_START_LOAD",
+        "scenario_id": "SC_005_EQ_PROTOCOL_START_LOAD",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fcov_start_load",
+          "class": "transaction",
+          "coverage_domain": "function",
+          "source": "test_requirements.coverage_goals.planned_bins[0]",
+          "source_ref": "function_model.transactions.FM_TICK",
+          "description": "start loads load_value."
+        },
+        "class": "transaction",
+        "coverage_domain": "function",
+        "description": "start loads load_value.",
+        "source_ref": "function_model.transactions.FM_TICK"
+      },
+      "fcov_done_pulse": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_DONE_PULSE_TO_IDLE_3",
+        "scenario_id": "SC_015_EQ_STATE_CONTROL_DONE_PULSE_TO_IDLE_3",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fcov_done_pulse",
+          "class": "event",
+          "coverage_domain": "function",
+          "source": "test_requirements.coverage_goals.planned_bins[1]",
+          "source_ref": "function_model.transactions.FM_TICK.output_rules.done_pulse",
+          "description": "done pulse observed."
+        },
+        "class": "event",
+        "coverage_domain": "function",
+        "description": "done pulse observed.",
+        "source_ref": "function_model.transactions.FM_TICK.output_rules.done_pulse"
+      },
+      "fcov_clear_priority": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fcov_clear_priority",
+          "class": "state",
+          "coverage_domain": "function",
+          "source": "function_model.invariants.clear",
+          "source_ref": "function_model.invariants.clear",
+          "description": "clear returns all observable state to idle."
+        },
+        "class": "state",
+        "coverage_domain": "function",
+        "description": "clear returns all observable state to idle.",
+        "source_ref": "function_model.invariants.clear"
+      },
+      "fcov_enable_hold": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_FCOV_ENABLE_HOLD",
+        "scenario_id": "SC_020_EQ_COVERAGE_FCOV_ENABLE_HOLD",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fcov_enable_hold",
+          "class": "state",
+          "coverage_domain": "function",
+          "source": "function_model.invariants.enable_hold",
+          "source_ref": "function_model.invariants.enable_hold",
+          "description": "enable low prevents countdown progress."
+        },
+        "class": "state",
+        "coverage_domain": "function",
+        "description": "enable low prevents countdown progress.",
+        "source_ref": "function_model.invariants.enable_hold"
+      },
+      "function_timer_control_tick": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "function_timer_control_tick",
+          "class": "transaction_type",
+          "coverage_domain": "function",
+          "source": "function_model.transactions[0]",
+          "source_ref": "function_model.transactions.fm_tick",
+          "description": "timer_control_tick"
+        },
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "description": "timer_control_tick",
+        "source_ref": "function_model.transactions.fm_tick"
+      },
+      "error_error_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_011_EQ_ERROR_NONE",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "error_error_0",
+          "class": "error",
+          "coverage_domain": "function",
+          "source": "error_handling.error_sources[0]",
+          "source_ref": "error_handling.error_sources[0]",
+          "description": "{'id': 'ERR_NONE', 'condition': 'No malformed transaction class exists for this leaf IP.', 'architectural_effect': 'No error output is asserted.'}"
+        },
+        "class": "error",
+        "coverage_domain": "function",
+        "description": "{'id': 'ERR_NONE', 'condition': 'No malformed transaction class exists for this leaf IP.', 'architectural_effect': 'No error output is asserted.'}",
+        "source_ref": "error_handling.error_sources[0]"
+      }
+    }
+  },
+  "cycle_coverage": {
+    "hit": 21,
+    "total": 21,
+    "pct": 100.0,
+    "target_pct": 100.0,
+    "meets_target": true,
+    "bins": {
+      "ccov_terminal_tick": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CCOV_TERMINAL_TICK",
+        "scenario_id": "SC_019_EQ_COVERAGE_CCOV_TERMINAL_TICK",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "ccov_terminal_tick",
+          "class": "timing",
+          "coverage_domain": "cycle",
+          "source": "test_requirements.coverage_goals.planned_bins[2]",
+          "source_ref": "cycle_model.handshake_rules.enabled_tick",
+          "description": "terminal tick timing observed."
+        },
+        "class": "timing",
+        "coverage_domain": "cycle",
+        "description": "terminal tick timing observed.",
+        "source_ref": "cycle_model.handshake_rules.enabled_tick"
+      },
+      "ccov_start_visible_next_cycle": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CCOV_START_VISIBLE_NEXT_CYCLE",
+        "scenario_id": "SC_021_EQ_COVERAGE_CCOV_START_VISIBLE_NEXT_CYCLE",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "ccov_start_visible_next_cycle",
+          "class": "latency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline.S1_STATE_VISIBLE",
+          "source_ref": "cycle_model.pipeline.S1_STATE_VISIBLE",
+          "description": "start result is visible on the next clock edge."
+        },
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "description": "start result is visible on the next clock edge.",
+        "source_ref": "cycle_model.pipeline.S1_STATE_VISIBLE"
+      },
+      "ccov_hold_cycle": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "ccov_hold_cycle",
+          "class": "control",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.backpressure",
+          "source_ref": "cycle_model.backpressure",
+          "description": "enable low hold is observed."
+        },
+        "class": "control",
+        "coverage_domain": "cycle",
+        "description": "enable low hold is observed.",
+        "source_ref": "cycle_model.backpressure"
+      },
+      "cycle_start_load": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_CLEAR_PRIORITY",
+        "scenario_id": "SC_007_EQ_PROTOCOL_CLEAR_PRIORITY",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_start_load",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[0]",
+          "source_ref": "cycle_model.handshake_rules[0]",
+          "description": "start samples load_value on the active clock edge and makes the loaded count visible after that edge."
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "start samples load_value on the active clock edge and makes the loaded count visible after that edge.",
+        "source_ref": "cycle_model.handshake_rules[0]"
+      },
+      "cycle_enabled_tick": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_enabled_tick",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[1]",
+          "source_ref": "cycle_model.handshake_rules[1]",
+          "description": "enable advances count only while running is high."
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "enable advances count only while running is high.",
+        "source_ref": "cycle_model.handshake_rules[1]"
+      },
+      "cycle_clear_priority": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_clear_priority",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[2]",
+          "source_ref": "cycle_model.handshake_rules[2]",
+          "description": "clear returns the timer to idle regardless of enable or running."
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "clear returns the timer to idle regardless of enable or running.",
+        "source_ref": "cycle_model.handshake_rules[2]"
+      },
+      "cycle_pipeline_s0_control_sample": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_s0_control_sample",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[0]",
+          "source_ref": "cycle_model.pipeline[0]",
+          "description": "Sample start, enable, clear, load_value, count, and running."
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "Sample start, enable, clear, load_value, count, and running.",
+        "source_ref": "cycle_model.pipeline[0]"
+      },
+      "cycle_pipeline_s1_state_visible": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_s1_state_visible",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[1]",
+          "source_ref": "cycle_model.pipeline[1]",
+          "description": "Present updated count, running, and done."
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "Present updated count, running, and done.",
+        "source_ref": "cycle_model.pipeline[1]"
+      },
+      "cycle_ordering_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TIMING_ORDERING_2",
+        "scenario_id": "SC_010_EQ_TIMING_ORDERING_2",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ordering_0",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[0]",
+          "source_ref": "cycle_model.ordering[0]",
+          "description": "clear has highest priority."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "clear has highest priority.",
+        "source_ref": "cycle_model.ordering[0]"
+      },
+      "cycle_ordering_1": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TIMING_ORDERING_2",
+        "scenario_id": "SC_010_EQ_TIMING_ORDERING_2",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ordering_1",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[1]",
+          "source_ref": "cycle_model.ordering[1]",
+          "description": "start load is applied before enabled countdown behavior for a new interval."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "start load is applied before enabled countdown behavior for a new interval.",
+        "source_ref": "cycle_model.ordering[1]"
+      },
+      "cycle_ordering_2": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TIMING_ORDERING_2",
+        "scenario_id": "SC_010_EQ_TIMING_ORDERING_2",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ordering_2",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[2]",
+          "source_ref": "cycle_model.ordering[2]",
+          "description": "done is observed on the same state-visible cycle as the terminal decrement."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "done is observed on the same state-visible cycle as the terminal decrement.",
+        "source_ref": "cycle_model.ordering[2]"
+      },
+      "cycle_backpressure_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_backpressure_0",
+          "class": "backpressure",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.backpressure[0]",
+          "source_ref": "cycle_model.backpressure[0]",
+          "description": "There is no ready/valid backpressure; enable controls timer progress."
+        },
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "description": "There is no ready/valid backpressure; enable controls timer progress.",
+        "source_ref": "cycle_model.backpressure[0]"
+      },
+      "cycle_perf_outstanding": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+        "scenario_id": "SC_022_EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_outstanding",
+          "class": "performance",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.outstanding",
+          "source_ref": "cycle_model.performance.outstanding",
+          "description": "{'max': 1, 'description': 'One active countdown interval at a time.'}"
+        },
+        "class": "performance",
+        "coverage_domain": "cycle",
+        "description": "{'max': 1, 'description': 'One active countdown interval at a time.'}",
+        "source_ref": "cycle_model.performance.outstanding"
+      },
+      "cycle_perf_depth": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+        "scenario_id": "SC_023_EQ_COVERAGE_CYCLE_PERF_DEPTH",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_depth",
+          "class": "performance",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.depth",
+          "source_ref": "cycle_model.performance.depth",
+          "description": "{'pipeline_stages': 1, 'queue_depth': 0, 'description': 'Registered state update with no internal queue.'}"
+        },
+        "class": "performance",
+        "coverage_domain": "cycle",
+        "description": "{'pipeline_stages': 1, 'queue_depth': 0, 'description': 'Registered state update with no internal queue.'}",
+        "source_ref": "cycle_model.performance.depth"
+      },
+      "cycle_perf_frequency_mhz": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "scenario_id": "SC_024_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_frequency_mhz",
+          "class": "frequency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.frequency_mhz",
+          "source_ref": "cycle_model.performance.frequency_mhz",
+          "description": "100"
+        },
+        "class": "frequency",
+        "coverage_domain": "cycle",
+        "description": "100",
+        "source_ref": "cycle_model.performance.frequency_mhz"
+      },
+      "cycle_perf_throughput": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_throughput",
+          "class": "throughput",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.throughput",
+          "source_ref": "cycle_model.performance.throughput",
+          "description": "{'sustained_ticks_per_cycle': 1, 'condition': 'enable asserted while running'}"
+        },
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "description": "{'sustained_ticks_per_cycle': 1, 'condition': 'enable asserted while running'}",
+        "source_ref": "cycle_model.performance.throughput"
+      },
+      "fsm_control_idle_to_run_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_control_idle_to_run_0",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.control.transitions[0]",
+          "source_ref": "fsm.control.transitions[0]",
+          "description": "start and load_value != 0"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "start and load_value != 0",
+        "source_ref": "fsm.control.transitions[0]"
+      },
+      "fsm_control_run_to_run_1": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_control_run_to_run_1",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.control.transitions[1]",
+          "source_ref": "fsm.control.transitions[1]",
+          "description": "enable and count > 1"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "enable and count > 1",
+        "source_ref": "fsm.control.transitions[1]"
+      },
+      "fsm_control_run_to_done_pulse_2": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_control_run_to_done_pulse_2",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.control.transitions[2]",
+          "source_ref": "fsm.control.transitions[2]",
+          "description": "enable and count == 1"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "enable and count == 1",
+        "source_ref": "fsm.control.transitions[2]"
+      },
+      "fsm_control_done_pulse_to_idle_3": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_control_done_pulse_to_idle_3",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.control.transitions[3]",
+          "source_ref": "fsm.control.transitions[3]",
+          "description": "next control cycle without start"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "next control cycle without start",
+        "source_ref": "fsm.control.transitions[3]"
+      },
+      "fsm_control_run_to_idle_4": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "count",
+          "count_next",
+          "done",
+          "done_pulse",
+          "running",
+          "running_next"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_control_run_to_idle_4",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.control.transitions[4]",
+          "source_ref": "fsm.control.transitions[4]",
+          "description": "clear"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "clear",
+        "source_ref": "fsm.control.transitions[4]"
+      }
+    }
+  },
+  "coverage_model": {
+    "function": {
+      "source": "function_model",
+      "target_pct": 100.0,
+      "hit": 9,
+      "total": 9,
+      "pct": 100.0,
+      "meets_target": true
+    },
+    "cycle": {
+      "source": "cycle_model",
+      "target_pct": 100.0,
+      "hit": 21,
+      "total": 21,
+      "pct": 100.0,
+      "meets_target": true
+    }
+  },
+  "planned_bins": [
+    "SC_RESET_CLEAR_executed",
+    "SC_COUNTDOWN_DONE_executed",
+    "SC_ENABLE_HOLD_executed",
+    "fcov_start_load",
+    "fcov_done_pulse",
+    "ccov_terminal_tick",
+    "fcov_clear_priority",
+    "fcov_enable_hold",
+    "ccov_start_visible_next_cycle",
+    "ccov_hold_cycle",
+    "function_timer_control_tick",
+    "cycle_start_load",
+    "cycle_enabled_tick",
+    "cycle_clear_priority",
+    "cycle_pipeline_s0_control_sample",
+    "cycle_pipeline_s1_state_visible",
+    "cycle_ordering_0",
+    "cycle_ordering_1",
+    "cycle_ordering_2",
+    "cycle_backpressure_0",
+    "cycle_perf_outstanding",
+    "cycle_perf_depth",
+    "cycle_perf_frequency_mhz",
+    "cycle_perf_throughput",
+    "fsm_control_idle_to_run_0",
+    "fsm_control_run_to_run_1",
+    "fsm_control_run_to_done_pulse_2",
+    "fsm_control_done_pulse_to_idle_3",
+    "fsm_control_run_to_idle_4",
+    "error_error_0"
+  ],
+  "functional_bins": {
+    "SC_RESET_CLEAR_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC_RESET_CLEAR_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[0]",
+        "scenario": "SC_RESET_CLEAR",
+        "description": "reset and clear force idle"
+      },
+      "class": "scenario",
+      "description": "reset and clear force idle",
+      "coverage_domain": "function"
+    },
+    "SC_COUNTDOWN_DONE_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC_COUNTDOWN_DONE",
+      "scenario_id": "SC_003_EQ_SCENARIO_SC_COUNTDOWN_DONE",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC_COUNTDOWN_DONE_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[1]",
+        "scenario": "SC_COUNTDOWN_DONE",
+        "description": "countdown reaches done"
+      },
+      "class": "scenario",
+      "description": "countdown reaches done",
+      "coverage_domain": "function"
+    },
+    "SC_ENABLE_HOLD_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC_ENABLE_HOLD",
+      "scenario_id": "SC_004_EQ_SCENARIO_SC_ENABLE_HOLD",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC_ENABLE_HOLD_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[2]",
+        "scenario": "SC_ENABLE_HOLD",
+        "description": "enable low holds state"
+      },
+      "class": "scenario",
+      "description": "enable low holds state",
+      "coverage_domain": "function"
+    },
+    "fcov_start_load": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_START_LOAD",
+      "scenario_id": "SC_005_EQ_PROTOCOL_START_LOAD",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fcov_start_load",
+        "class": "transaction",
+        "coverage_domain": "function",
+        "source": "test_requirements.coverage_goals.planned_bins[0]",
+        "source_ref": "function_model.transactions.FM_TICK",
+        "description": "start loads load_value."
+      },
+      "class": "transaction",
+      "coverage_domain": "function",
+      "description": "start loads load_value.",
+      "source_ref": "function_model.transactions.FM_TICK"
+    },
+    "fcov_done_pulse": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_DONE_PULSE_TO_IDLE_3",
+      "scenario_id": "SC_015_EQ_STATE_CONTROL_DONE_PULSE_TO_IDLE_3",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fcov_done_pulse",
+        "class": "event",
+        "coverage_domain": "function",
+        "source": "test_requirements.coverage_goals.planned_bins[1]",
+        "source_ref": "function_model.transactions.FM_TICK.output_rules.done_pulse",
+        "description": "done pulse observed."
+      },
+      "class": "event",
+      "coverage_domain": "function",
+      "description": "done pulse observed.",
+      "source_ref": "function_model.transactions.FM_TICK.output_rules.done_pulse"
+    },
+    "ccov_terminal_tick": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CCOV_TERMINAL_TICK",
+      "scenario_id": "SC_019_EQ_COVERAGE_CCOV_TERMINAL_TICK",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "ccov_terminal_tick",
+        "class": "timing",
+        "coverage_domain": "cycle",
+        "source": "test_requirements.coverage_goals.planned_bins[2]",
+        "source_ref": "cycle_model.handshake_rules.enabled_tick",
+        "description": "terminal tick timing observed."
+      },
+      "class": "timing",
+      "coverage_domain": "cycle",
+      "description": "terminal tick timing observed.",
+      "source_ref": "cycle_model.handshake_rules.enabled_tick"
+    },
+    "fcov_clear_priority": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fcov_clear_priority",
+        "class": "state",
+        "coverage_domain": "function",
+        "source": "function_model.invariants.clear",
+        "source_ref": "function_model.invariants.clear",
+        "description": "clear returns all observable state to idle."
+      },
+      "class": "state",
+      "coverage_domain": "function",
+      "description": "clear returns all observable state to idle.",
+      "source_ref": "function_model.invariants.clear"
+    },
+    "fcov_enable_hold": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_FCOV_ENABLE_HOLD",
+      "scenario_id": "SC_020_EQ_COVERAGE_FCOV_ENABLE_HOLD",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fcov_enable_hold",
+        "class": "state",
+        "coverage_domain": "function",
+        "source": "function_model.invariants.enable_hold",
+        "source_ref": "function_model.invariants.enable_hold",
+        "description": "enable low prevents countdown progress."
+      },
+      "class": "state",
+      "coverage_domain": "function",
+      "description": "enable low prevents countdown progress.",
+      "source_ref": "function_model.invariants.enable_hold"
+    },
+    "ccov_start_visible_next_cycle": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CCOV_START_VISIBLE_NEXT_CYCLE",
+      "scenario_id": "SC_021_EQ_COVERAGE_CCOV_START_VISIBLE_NEXT_CYCLE",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "ccov_start_visible_next_cycle",
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline.S1_STATE_VISIBLE",
+        "source_ref": "cycle_model.pipeline.S1_STATE_VISIBLE",
+        "description": "start result is visible on the next clock edge."
+      },
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "description": "start result is visible on the next clock edge.",
+      "source_ref": "cycle_model.pipeline.S1_STATE_VISIBLE"
+    },
+    "ccov_hold_cycle": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "ccov_hold_cycle",
+        "class": "control",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.backpressure",
+        "source_ref": "cycle_model.backpressure",
+        "description": "enable low hold is observed."
+      },
+      "class": "control",
+      "coverage_domain": "cycle",
+      "description": "enable low hold is observed.",
+      "source_ref": "cycle_model.backpressure"
+    },
+    "function_timer_control_tick": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "function_timer_control_tick",
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "source": "function_model.transactions[0]",
+        "source_ref": "function_model.transactions.fm_tick",
+        "description": "timer_control_tick"
+      },
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "description": "timer_control_tick",
+      "source_ref": "function_model.transactions.fm_tick"
+    },
+    "cycle_start_load": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_CLEAR_PRIORITY",
+      "scenario_id": "SC_007_EQ_PROTOCOL_CLEAR_PRIORITY",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_start_load",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[0]",
+        "source_ref": "cycle_model.handshake_rules[0]",
+        "description": "start samples load_value on the active clock edge and makes the loaded count visible after that edge."
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "start samples load_value on the active clock edge and makes the loaded count visible after that edge.",
+      "source_ref": "cycle_model.handshake_rules[0]"
+    },
+    "cycle_enabled_tick": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_enabled_tick",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[1]",
+        "source_ref": "cycle_model.handshake_rules[1]",
+        "description": "enable advances count only while running is high."
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "enable advances count only while running is high.",
+      "source_ref": "cycle_model.handshake_rules[1]"
+    },
+    "cycle_clear_priority": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_clear_priority",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[2]",
+        "source_ref": "cycle_model.handshake_rules[2]",
+        "description": "clear returns the timer to idle regardless of enable or running."
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "clear returns the timer to idle regardless of enable or running.",
+      "source_ref": "cycle_model.handshake_rules[2]"
+    },
+    "cycle_pipeline_s0_control_sample": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_s0_control_sample",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[0]",
+        "source_ref": "cycle_model.pipeline[0]",
+        "description": "Sample start, enable, clear, load_value, count, and running."
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "Sample start, enable, clear, load_value, count, and running.",
+      "source_ref": "cycle_model.pipeline[0]"
+    },
+    "cycle_pipeline_s1_state_visible": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_s1_state_visible",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[1]",
+        "source_ref": "cycle_model.pipeline[1]",
+        "description": "Present updated count, running, and done."
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "Present updated count, running, and done.",
+      "source_ref": "cycle_model.pipeline[1]"
+    },
+    "cycle_ordering_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "scenario_id": "SC_010_EQ_TIMING_ORDERING_2",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ordering_0",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[0]",
+        "source_ref": "cycle_model.ordering[0]",
+        "description": "clear has highest priority."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "clear has highest priority.",
+      "source_ref": "cycle_model.ordering[0]"
+    },
+    "cycle_ordering_1": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "scenario_id": "SC_010_EQ_TIMING_ORDERING_2",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ordering_1",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[1]",
+        "source_ref": "cycle_model.ordering[1]",
+        "description": "start load is applied before enabled countdown behavior for a new interval."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "start load is applied before enabled countdown behavior for a new interval.",
+      "source_ref": "cycle_model.ordering[1]"
+    },
+    "cycle_ordering_2": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "scenario_id": "SC_010_EQ_TIMING_ORDERING_2",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ordering_2",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[2]",
+        "source_ref": "cycle_model.ordering[2]",
+        "description": "done is observed on the same state-visible cycle as the terminal decrement."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "done is observed on the same state-visible cycle as the terminal decrement.",
+      "source_ref": "cycle_model.ordering[2]"
+    },
+    "cycle_backpressure_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_backpressure_0",
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.backpressure[0]",
+        "source_ref": "cycle_model.backpressure[0]",
+        "description": "There is no ready/valid backpressure; enable controls timer progress."
+      },
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "description": "There is no ready/valid backpressure; enable controls timer progress.",
+      "source_ref": "cycle_model.backpressure[0]"
+    },
+    "cycle_perf_outstanding": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+      "scenario_id": "SC_022_EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_outstanding",
+        "class": "performance",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.outstanding",
+        "source_ref": "cycle_model.performance.outstanding",
+        "description": "{'max': 1, 'description': 'One active countdown interval at a time.'}"
+      },
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "description": "{'max': 1, 'description': 'One active countdown interval at a time.'}",
+      "source_ref": "cycle_model.performance.outstanding"
+    },
+    "cycle_perf_depth": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "scenario_id": "SC_023_EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_depth",
+        "class": "performance",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.depth",
+        "source_ref": "cycle_model.performance.depth",
+        "description": "{'pipeline_stages': 1, 'queue_depth': 0, 'description': 'Registered state update with no internal queue.'}"
+      },
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "description": "{'pipeline_stages': 1, 'queue_depth': 0, 'description': 'Registered state update with no internal queue.'}",
+      "source_ref": "cycle_model.performance.depth"
+    },
+    "cycle_perf_frequency_mhz": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "scenario_id": "SC_024_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_frequency_mhz",
+        "class": "frequency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.frequency_mhz",
+        "source_ref": "cycle_model.performance.frequency_mhz",
+        "description": "100"
+      },
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "description": "100",
+      "source_ref": "cycle_model.performance.frequency_mhz"
+    },
+    "cycle_perf_throughput": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_throughput",
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.throughput",
+        "source_ref": "cycle_model.performance.throughput",
+        "description": "{'sustained_ticks_per_cycle': 1, 'condition': 'enable asserted while running'}"
+      },
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "description": "{'sustained_ticks_per_cycle': 1, 'condition': 'enable asserted while running'}",
+      "source_ref": "cycle_model.performance.throughput"
+    },
+    "fsm_control_idle_to_run_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_control_idle_to_run_0",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.control.transitions[0]",
+        "source_ref": "fsm.control.transitions[0]",
+        "description": "start and load_value != 0"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "start and load_value != 0",
+      "source_ref": "fsm.control.transitions[0]"
+    },
+    "fsm_control_run_to_run_1": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_control_run_to_run_1",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.control.transitions[1]",
+        "source_ref": "fsm.control.transitions[1]",
+        "description": "enable and count > 1"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "enable and count > 1",
+      "source_ref": "fsm.control.transitions[1]"
+    },
+    "fsm_control_run_to_done_pulse_2": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_control_run_to_done_pulse_2",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.control.transitions[2]",
+        "source_ref": "fsm.control.transitions[2]",
+        "description": "enable and count == 1"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "enable and count == 1",
+      "source_ref": "fsm.control.transitions[2]"
+    },
+    "fsm_control_done_pulse_to_idle_3": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_control_done_pulse_to_idle_3",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.control.transitions[3]",
+        "source_ref": "fsm.control.transitions[3]",
+        "description": "next control cycle without start"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "next control cycle without start",
+      "source_ref": "fsm.control.transitions[3]"
+    },
+    "fsm_control_run_to_idle_4": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_control_run_to_idle_4",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.control.transitions[4]",
+        "source_ref": "fsm.control.transitions[4]",
+        "description": "clear"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "clear",
+      "source_ref": "fsm.control.transitions[4]"
+    },
+    "error_error_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_ERROR_NONE",
+      "scenario_id": "SC_011_EQ_ERROR_NONE",
+      "rtl_observed_keys": [
+        "count",
+        "count_next",
+        "done",
+        "done_pulse",
+        "running",
+        "running_next"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "error_error_0",
+        "class": "error",
+        "coverage_domain": "function",
+        "source": "error_handling.error_sources[0]",
+        "source_ref": "error_handling.error_sources[0]",
+        "description": "{'id': 'ERR_NONE', 'condition': 'No malformed transaction class exists for this leaf IP.', 'architectural_effect': 'No error output is asserted.'}"
+      },
+      "class": "error",
+      "coverage_domain": "function",
+      "description": "{'id': 'ERR_NONE', 'condition': 'No malformed transaction class exists for this leaf IP.', 'architectural_effect': 'No error output is asserted.'}",
+      "source_ref": "error_handling.error_sources[0]"
+    }
+  },
+  "raw_functional": {
+    "hit": 30,
+    "total": 30,
+    "pct": 100.0
+  },
+  "raw_functional_bins": {
+    "function_timer_control_tick": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "SC_RESET_CLEAR_executed": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "SC_COUNTDOWN_DONE_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC_COUNTDOWN_DONE",
+      "scenario_id": "SC_003_EQ_SCENARIO_SC_COUNTDOWN_DONE"
+    },
+    "SC_ENABLE_HOLD_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC_ENABLE_HOLD",
+      "scenario_id": "SC_004_EQ_SCENARIO_SC_ENABLE_HOLD"
+    },
+    "fcov_start_load": {
+      "hit": true,
+      "goal_id": "EQ_PROTOCOL_START_LOAD",
+      "scenario_id": "SC_005_EQ_PROTOCOL_START_LOAD"
+    },
+    "cycle_start_load": {
+      "hit": true,
+      "goal_id": "EQ_PROTOCOL_CLEAR_PRIORITY",
+      "scenario_id": "SC_007_EQ_PROTOCOL_CLEAR_PRIORITY"
+    },
+    "cycle_enabled_tick": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "cycle_clear_priority": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "fcov_clear_priority": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "cycle_ordering_0": {
+      "hit": true,
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "scenario_id": "SC_010_EQ_TIMING_ORDERING_2"
+    },
+    "cycle_ordering_1": {
+      "hit": true,
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "scenario_id": "SC_010_EQ_TIMING_ORDERING_2"
+    },
+    "cycle_ordering_2": {
+      "hit": true,
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "scenario_id": "SC_010_EQ_TIMING_ORDERING_2"
+    },
+    "error_error_0": {
+      "hit": true,
+      "goal_id": "EQ_ERROR_NONE",
+      "scenario_id": "SC_011_EQ_ERROR_NONE"
+    },
+    "ccov_hold_cycle": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "cycle_pipeline_s0_control_sample": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "cycle_pipeline_s1_state_visible": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "cycle_backpressure_0": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "cycle_perf_throughput": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "fsm_control_idle_to_run_0": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "fsm_control_run_to_run_1": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "fsm_control_run_to_done_pulse_2": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "fsm_control_done_pulse_to_idle_3": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "fsm_control_run_to_idle_4": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "fcov_done_pulse": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_DONE_PULSE_TO_IDLE_3",
+      "scenario_id": "SC_015_EQ_STATE_CONTROL_DONE_PULSE_TO_IDLE_3"
+    },
+    "ccov_terminal_tick": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CCOV_TERMINAL_TICK",
+      "scenario_id": "SC_019_EQ_COVERAGE_CCOV_TERMINAL_TICK"
+    },
+    "fcov_enable_hold": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_FCOV_ENABLE_HOLD",
+      "scenario_id": "SC_020_EQ_COVERAGE_FCOV_ENABLE_HOLD"
+    },
+    "ccov_start_visible_next_cycle": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CCOV_START_VISIBLE_NEXT_CYCLE",
+      "scenario_id": "SC_021_EQ_COVERAGE_CCOV_START_VISIBLE_NEXT_CYCLE"
+    },
+    "cycle_perf_outstanding": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+      "scenario_id": "SC_022_EQ_COVERAGE_CYCLE_PERF_OUTSTANDING"
+    },
+    "cycle_perf_depth": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "scenario_id": "SC_023_EQ_COVERAGE_CYCLE_PERF_DEPTH"
+    },
+    "cycle_perf_frequency_mhz": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "scenario_id": "SC_024_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
+    }
+  },
+  "rtl_observed": {
+    "status": "pass",
+    "scoreboard_events": 24,
+    "scoreboard_passed_events_with_refs": 22,
+    "goal_refs": [
+      "SC_COUNTDOWN_DONE_executed",
+      "SC_ENABLE_HOLD_executed",
+      "SC_RESET_CLEAR_executed",
+      "ccov_hold_cycle",
+      "ccov_start_visible_next_cycle",
+      "ccov_terminal_tick",
+      "cycle_backpressure_0",
+      "cycle_clear_priority",
+      "cycle_enabled_tick",
+      "cycle_ordering_0",
+      "cycle_ordering_1",
+      "cycle_ordering_2",
+      "cycle_perf_depth",
+      "cycle_perf_frequency_mhz",
+      "cycle_perf_outstanding",
+      "cycle_perf_throughput",
+      "cycle_pipeline_s0_control_sample",
+      "cycle_pipeline_s1_state_visible",
+      "cycle_start_load",
+      "error_error_0",
+      "fcov_clear_priority",
+      "fcov_done_pulse",
+      "fcov_enable_hold",
+      "fcov_start_load",
+      "fsm_control_done_pulse_to_idle_3",
+      "fsm_control_idle_to_run_0",
+      "fsm_control_run_to_done_pulse_2",
+      "fsm_control_run_to_idle_4",
+      "fsm_control_run_to_run_1",
+      "function_timer_control_tick"
+    ],
+    "missing_bins": [],
+    "invalid_rows": []
+  },
+  "lines": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": null,
+    "meets_target": true
+  },
+  "branches": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": null,
+    "meets_target": true
+  },
+  "functions": {
+    "hit": 0,
+    "total": 0,
+    "pct": null
+  },
+  "fsm_state": {
+    "target_pct": null,
+    "hit": 5,
+    "total": 5,
+    "pct": 100.0,
+    "meets_target": true,
+    "source": "SSOT functional coverage bins"
+  },
+  "files": {},
+  "limitations": {},
+  "static_universe_not_instrumented": {},
+  "total_checks": 0,
+  "passed": 0,
+  "failed": 0,
+  "escalations": []
+}

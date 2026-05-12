@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "type": "cl_model_check",
+  "ip": "timer",
+  "source": "model/cycle_model.py",
+  "backend": "pymtl3",
+  "pymtl3_available": true,
+  "timestamp": "2026-05-12T13:54:24Z",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "backend": "pymtl3",
+    "pymtl3_available": true,
+    "transactions": 1,
+    "results_observed": 1,
+    "coverage_bins": 7,
+    "coverage_hit": 7,
+    "performance_targets": {
+      "frequency_mhz": 100,
+      "throughput": {
+        "sustained_ticks_per_cycle": 1,
+        "condition": "enable asserted while running"
+      },
+      "outstanding": {
+        "max": 1,
+        "description": "One active countdown interval at a time."
+      },
+      "pipeline_stages": 1,
+      "queue_depth": 0
+    }
+  },
+  "performance_targets": {
+    "frequency_mhz": 100,
+    "throughput": {
+      "sustained_ticks_per_cycle": 1,
+      "condition": "enable asserted while running"
+    },
+    "outstanding": {
+      "max": 1,
+      "description": "One active countdown interval at a time."
+    },
+    "pipeline_stages": 1,
+    "queue_depth": 0
+  },
+  "decomposition_units": 1,
+  "fcov_bins": 7
+}

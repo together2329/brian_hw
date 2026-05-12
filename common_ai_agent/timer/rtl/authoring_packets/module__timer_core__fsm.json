@@ -1,0 +1,556 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 17,
+      "enabled": true,
+      "index": 7,
+      "key": "fsm",
+      "module_task_count": 87,
+      "rule": "Owner module timer_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/timer.sv",
+      "name": "timer_core",
+      "refs": [
+        "cycle_model",
+        "fsm",
+        "function_model",
+        "function_model.transactions.FM_TICK",
+        "io_list",
+        "parameters",
+        "rtl_contract"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/timer.sv",
+        "name": "timer_core",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "timer",
+  "kind": "module",
+  "owner_file": "rtl/timer.sv",
+  "owner_module": "timer_core",
+  "packet_id": "module__timer_core__fsm",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "fsm.state": 3,
+      "fsm.transition": 5
+    },
+    "module_slice": {
+      "count": 17,
+      "enabled": true,
+      "index": 7,
+      "key": "fsm",
+      "module_task_count": 87,
+      "rule": "Owner module timer_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 8,
+    "source_refs": [
+      "fsm.control.states.IDLE",
+      "fsm.control.states.RUN",
+      "fsm.control.states.DONE_PULSE",
+      "fsm.control.transitions.transition_0",
+      "fsm.control.transitions.transition_1",
+      "fsm.control.transitions.transition_2",
+      "fsm.control.transitions.transition_3",
+      "fsm.control.transitions.transition_4"
+    ],
+    "status_counts": {
+      "pass": 8
+    },
+    "task_count": 8
+  },
+  "tasks": [
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state control.IDLE",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.control.states.IDLE",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.states.IDLE.\nOwner: timer_core in rtl/timer.sv via fsm.\nSSOT item context: name=IDLE.",
+      "evidence_terms": [],
+      "id": "RTL-0071",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.states.IDLE",
+      "ssot_context": {
+        "name": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.control.states.IDLE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state control.RUN",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.control.states.RUN",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.states.RUN.\nOwner: timer_core in rtl/timer.sv via fsm.\nSSOT item context: name=RUN.",
+      "evidence_terms": [],
+      "id": "RTL-0072",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.states.RUN",
+      "ssot_context": {
+        "name": "RUN"
+      },
+      "ssot_refs": [
+        "fsm.control.states.RUN"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state control.DONE_PULSE",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.control.states.DONE_PULSE",
+        "Primary implementation evidence is in rtl/timer.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.states.DONE_PULSE.\nOwner: timer_core in rtl/timer.sv via fsm.\nSSOT item context: name=DONE_PULSE.",
+      "evidence_terms": [],
+      "id": "RTL-0073",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.states.DONE_PULSE",
+      "ssot_context": {
+        "name": "DONE_PULSE"
+      },
+      "ssot_refs": [
+        "fsm.control.states.DONE_PULSE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_0",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_0",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "fsm.control.transitions.transition_0 condition is implemented as RTL control logic: start and load_value != 0",
+        "fsm.control.transitions.transition_0 transition path IDLE -> RUN is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_0.\nOwner: timer_core in rtl/timer.sv via fsm.\nSSOT item context: from=IDLE; to=RUN; condition=start and load_value != 0.",
+      "evidence_terms": [
+        "IDLE",
+        "RUN",
+        "load",
+        "load_value",
+        "value"
+      ],
+      "id": "RTL-0074",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_0",
+      "ssot_context": {
+        "condition": "start and load_value != 0",
+        "from": "IDLE",
+        "to": "RUN"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "IDLE",
+          "RUN",
+          "load",
+          "load_value",
+          "value"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "RUN",
+          "load",
+          "load_value",
+          "value"
+        ],
+        "source_scope": "rtl/timer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_1",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_1",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "fsm.control.transitions.transition_1 condition is implemented as RTL control logic: enable and count > 1",
+        "fsm.control.transitions.transition_1 transition path RUN -> RUN is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_1.\nOwner: timer_core in rtl/timer.sv via fsm.\nSSOT item context: from=RUN; to=RUN; condition=enable and count > 1.",
+      "evidence_terms": [
+        "RUN"
+      ],
+      "id": "RTL-0075",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_1",
+      "ssot_context": {
+        "condition": "enable and count > 1",
+        "from": "RUN",
+        "to": "RUN"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "RUN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RUN"
+        ],
+        "source_scope": "rtl/timer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_2",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_2",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "fsm.control.transitions.transition_2 condition is implemented as RTL control logic: enable and count == 1",
+        "fsm.control.transitions.transition_2 transition path RUN -> DONE_PULSE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_2.\nOwner: timer_core in rtl/timer.sv via fsm.\nSSOT item context: from=RUN; to=DONE_PULSE; condition=enable and count == 1.",
+      "evidence_terms": [
+        "DONE_PULSE",
+        "RUN"
+      ],
+      "id": "RTL-0076",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_2",
+      "ssot_context": {
+        "condition": "enable and count == 1",
+        "from": "RUN",
+        "to": "DONE_PULSE"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_2"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "DONE_PULSE",
+          "RUN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DONE_PULSE",
+          "RUN"
+        ],
+        "source_scope": "rtl/timer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_3",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_3",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "fsm.control.transitions.transition_3 condition is implemented as RTL control logic: next control cycle without start",
+        "fsm.control.transitions.transition_3 transition path DONE_PULSE -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_3.\nOwner: timer_core in rtl/timer.sv via fsm.\nSSOT item context: from=DONE_PULSE; to=IDLE; condition=next control cycle without start.",
+      "evidence_terms": [
+        "DONE_PULSE",
+        "IDLE"
+      ],
+      "id": "RTL-0077",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_3",
+      "ssot_context": {
+        "condition": "next control cycle without start",
+        "from": "DONE_PULSE",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_3"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "DONE_PULSE",
+          "IDLE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DONE_PULSE",
+          "IDLE"
+        ],
+        "source_scope": "rtl/timer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_4",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_4",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "fsm.control.transitions.transition_4 condition is implemented as RTL control logic: clear",
+        "fsm.control.transitions.transition_4 transition path RUN -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_4.\nOwner: timer_core in rtl/timer.sv via fsm.\nSSOT item context: from=RUN; to=IDLE; condition=clear.",
+      "evidence_terms": [
+        "IDLE",
+        "RUN"
+      ],
+      "id": "RTL-0078",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_4",
+      "ssot_context": {
+        "condition": "clear",
+        "from": "RUN",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_4"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "IDLE",
+          "RUN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "RUN"
+        ],
+        "source_scope": "rtl/timer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "165765ecb941a931579eb51e442b504a2dca3a2f95193e4892a808ed0175a192",
+  "top": "timer",
+  "type": "rtl_authoring_packet"
+}

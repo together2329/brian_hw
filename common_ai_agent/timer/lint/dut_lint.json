@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "type": "dut_lint",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "pyslang+verilator",
+  "command": "pyslang rtl/timer.sv && verilator --lint-only -Wall -Irtl -f list/timer.f --top-module timer",
+  "cwd": "timer",
+  "top": "timer",
+  "filelist": "timer/list/timer.f",
+  "rtl_files": [
+    "rtl/timer.sv"
+  ],
+  "timestamp": "2026-05-12T13:54:45.740072+00:00",
+  "returncode": 0,
+  "errors": 0,
+  "warnings": 0,
+  "waived_warnings": 0,
+  "tool_results": [
+    {
+      "tool": "pyslang",
+      "available": true,
+      "command": "pyslang rtl/timer.sv",
+      "returncode": 0,
+      "errors": 0,
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "tool": "verilator",
+      "available": true,
+      "command": "verilator --lint-only -Wall -Irtl -f list/timer.f --top-module timer",
+      "returncode": 0,
+      "errors": 0,
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": true
+    }
+  ],
+  "suppression_violation_count": 0,
+  "suppression_violations": [],
+  "style_violation_count": 0,
+  "style_violations": [],
+  "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while defaulting to the Verilog-2001 subset: no package/import/interface/modport/function/task/for/while and no logic/typedef/enum/always_ff/always_comb.",
+  "passed": true
+}

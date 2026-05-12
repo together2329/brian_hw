@@ -1,0 +1,177 @@
+{
+  "name": "timer-rtl",
+  "description": "Auto-generated UI TodoTracker groups from SSOT RTL plan for timer. The full SSOT-derived ledger remains in rtl_todo_plan.json; UI TODOs group section/work-type items and keep the detailed ledger entries as criteria.",
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "source_task_count": 104,
+  "ui_grouping": {
+    "strategy": "ssot_section_plus_rtl_work_type",
+    "target_min": 20,
+    "target_max": 30,
+    "actual_count": 23,
+    "detail_policy": "Full ledger items are criteria in UI TODOs and authoritative records in rtl_todo_plan.json."
+  },
+  "lock_additions": false,
+  "tasks": [
+    {
+      "content": "Prepare SSOT-derived RTL generation authority",
+      "activeForm": "Prepare SSOT-derived RTL generation authority",
+      "detail": "Grouped from 1 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0001.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: rtl_flow\nPriority mix: critical=0, high=1.",
+      "criteria": "Close every ledger item represented by this UI TODO (1 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0001 top_module: Read SSOT and build dynamic RTL implementation ledger",
+      "priority": "high"
+    },
+    {
+      "content": "Implement top module, ports, reset, and filelist",
+      "activeForm": "Implementing top module, ports, reset, and filelist",
+      "detail": "Grouped from 10 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0002..RTL-0032.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: io_list, rtl_flow\nPriority mix: critical=0, high=1.",
+      "criteria": "Close every ledger item represented by this UI TODO (10 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0002 io_list: Implement top-level ports, reset, and filelist integration\nRTL-0024 io_list.clock_domains.main.ports.clk: Implement and connect port clk\nRTL-0025 io_list.resets.rst_n.ports.rst_n: Implement and connect port rst_n\nRTL-0026 io_list.interfaces.timer_ctrl.ports.start: Implement and connect port start\nRTL-0027 io_list.interfaces.timer_ctrl.ports.enable: Implement and connect port enable\nRTL-0028 io_list.interfaces.timer_ctrl.ports.clear: Implement and connect port clear\nRTL-0029 io_list.interfaces.timer_ctrl.ports.load_value: Implement and connect port load_value\nRTL-0030 io_list.interfaces.timer_ctrl.ports.count: Implement and connect port count\nRTL-0031 io_list.interfaces.timer_ctrl.ports.running: Implement and connect port running\nRTL-0032 io_list.interfaces.timer_ctrl.ports.done: Implement and connect port done",
+      "priority": "high"
+    },
+    {
+      "content": "Implement Verilog include parameters and constants",
+      "activeForm": "Implementing Verilog include parameters and constants",
+      "detail": "Grouped from 1 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0023.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: parameters",
+      "criteria": "Close every ledger item represented by this UI TODO (1 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0023 parameters.COUNT_WIDTH: Implement parameter COUNT_WIDTH",
+      "priority": "normal"
+    },
+    {
+      "content": "Implement register decode, storage, and field behavior",
+      "activeForm": "Implementing register decode, storage, and field behavior",
+      "detail": "Grouped from 3 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0068..RTL-0070.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: registers\nPriority mix: critical=0, high=3.",
+      "criteria": "Close every ledger item represented by this UI TODO (3 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0068 registers.architectural_state.count_q: Implement architectural state count_q\nRTL-0069 registers.architectural_state.running_q: Implement architectural state running_q\nRTL-0070 registers.architectural_state.done_q: Implement architectural state done_q",
+      "priority": "high"
+    },
+    {
+      "content": "Execute SSOT-authored rtl-gen workflow TODOs",
+      "activeForm": "Execute SSOT-authored rtl-gen workflow TODOs",
+      "detail": "Grouped from 3 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0020..RTL-0022.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: workflow_todo\nPriority mix: critical=0, high=3.",
+      "criteria": "Close every ledger item represented by this UI TODO (3 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0020 workflow_todos.rtl-gen[0]: Implement timer control priority from the SSOT.\nRTL-0021 workflow_todos.rtl-gen[1]: Preserve waveform-observable timer state.\nRTL-0022 workflow_todos.rtl-gen[2]: Keep timer input and output widths user-editable.",
+      "priority": "high"
+    },
+    {
+      "content": "Implement function_model inputs, outputs, and transactions",
+      "activeForm": "Implementing function_model inputs, outputs, and transactions",
+      "detail": "Grouped from 7 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0036..RTL-0044.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: function_model\nPriority mix: critical=0, high=7.",
+      "criteria": "Close every ledger item represented by this UI TODO (7 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0036 function_model.transactions.FM_TICK: Implement transaction FM_TICK\nRTL-0039 function_model.transactions.FM_TICK.outputs.output_0: Implement output for FM_TICK: output_0\nRTL-0040 function_model.transactions.FM_TICK.outputs.output_1: Implement output for FM_TICK: output_1\nRTL-0041 function_model.transactions.FM_TICK.outputs.output_2: Implement output for FM_TICK: output_2\nRTL-0042 function_model.transactions.FM_TICK.output_rules.count_next: Implement output rule for FM_TICK: count_next\nRTL-0043 function_model.transactions.FM_TICK.output_rules.running_next: Implement output rule for FM_TICK: running_next\nRTL-0044 function_model.transactions.FM_TICK.output_rules.done_pulse: Implement output rule for FM_TICK: done_pulse",
+      "priority": "high"
+    },
+    {
+      "content": "Implement function_model preconditions and invariants",
+      "activeForm": "Implementing function_model preconditions and invariants",
+      "detail": "Grouped from 6 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0037..RTL-0055.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: function_model\nPriority mix: critical=0, high=6.",
+      "criteria": "Close every ledger item represented by this UI TODO (6 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0037 function_model.transactions.FM_TICK.preconditions.precondition_0: Implement precondition for FM_TICK: precondition_0\nRTL-0038 function_model.transactions.FM_TICK.preconditions.precondition_1: Implement precondition for FM_TICK: precondition_1\nRTL-0052 function_model.invariants.invariant_0: Preserve FL invariant invariant_0\nRTL-0053 function_model.invariants.invariant_1: Preserve FL invariant invariant_1\nRTL-0054 function_model.invariants.invariant_2: Preserve FL invariant invariant_2\nRTL-0055 function_model.invariants.invariant_3: Preserve FL invariant invariant_3",
+      "priority": "high"
+    },
+    {
+      "content": "Implement function_model state and side effects",
+      "activeForm": "Implementing function_model state and side effects",
+      "detail": "Grouped from 9 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0033..RTL-0050.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: function_model\nPriority mix: critical=0, high=9.",
+      "criteria": "Close every ledger item represented by this UI TODO (9 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0033 function_model.state_variables.count_q: Implement RTL state owner for FL state count_q\nRTL-0034 function_model.state_variables.running_q: Implement RTL state owner for FL state running_q\nRTL-0035 function_model.state_variables.done_q: Implement RTL state owner for FL state done_q\nRTL-0045 function_model.transactions.FM_TICK.state_updates.count_q: Implement state update for FM_TICK: count_q\nRTL-0046 function_model.transactions.FM_TICK.state_updates.running_q: Implement state update for FM_TICK: running_q\nRTL-0047 function_model.transactions.FM_TICK.state_updates.done_q: Implement state update for FM_TICK: done_q\nRTL-0048 function_model.transactions.FM_TICK.side_effects.side_effect_0: Implement side effect for FM_TICK: side_effect_0\nRTL-0049 function_model.transactions.FM_TICK.side_effects.side_effect_1: Implement side effect for FM_TICK: side_effect_1\nRTL-0050 function_model.transactions.FM_TICK.side_effects.side_effect_2: Implement side effect for FM_TICK: side_effect_2",
+      "priority": "high"
+    },
+    {
+      "content": "Implement function_model error cases",
+      "activeForm": "Implementing function_model error cases",
+      "detail": "Grouped from 1 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0051.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: function_model\nPriority mix: critical=0, high=1.",
+      "criteria": "Close every ledger item represented by this UI TODO (1 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0051 function_model.transactions.FM_TICK.error_cases.error_case_0: Implement error case for FM_TICK: error_case_0",
+      "priority": "high"
+    },
+    {
+      "content": "Implement cycle_model handshake, backpressure, and arbitration",
+      "activeForm": "Implementing cycle_model handshake, backpressure, and arbitration",
+      "detail": "Grouped from 4 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0059..RTL-0067.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: cycle_model\nPriority mix: critical=0, high=4.",
+      "criteria": "Close every ledger item represented by this UI TODO (4 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0059 cycle_model.handshake_rules.start_load: Implement handshake rule: start_load\nRTL-0060 cycle_model.handshake_rules.enabled_tick: Implement handshake rule: enabled_tick\nRTL-0061 cycle_model.handshake_rules.clear_priority: Implement handshake rule: clear_priority\nRTL-0067 cycle_model.backpressure.backpressure_rule_0: Implement backpressure rule: backpressure_rule_0",
+      "priority": "high"
+    },
+    {
+      "content": "Implement cycle_model timing, ordering, pipeline, and reset",
+      "activeForm": "Implementing cycle_model timing, ordering, pipeline, and reset",
+      "detail": "Grouped from 8 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0056..RTL-0066.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: cycle_model\nPriority mix: critical=0, high=8.",
+      "criteria": "Close every ledger item represented by this UI TODO (8 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0056 cycle_model.clock: Implement cycle-model clock\nRTL-0057 cycle_model.reset: Implement cycle-model reset\nRTL-0058 cycle_model.latency: Implement cycle-model latency\nRTL-0062 cycle_model.pipeline.S0_CONTROL_SAMPLE: Implement pipeline stage: S0_CONTROL_SAMPLE\nRTL-0063 cycle_model.pipeline.S1_STATE_VISIBLE: Implement pipeline stage: S1_STATE_VISIBLE\nRTL-0064 cycle_model.ordering.ordering_rule_0: Implement ordering rule: ordering_rule_0\nRTL-0065 cycle_model.ordering.ordering_rule_1: Implement ordering rule: ordering_rule_1\nRTL-0066 cycle_model.ordering.ordering_rule_2: Implement ordering rule: ordering_rule_2",
+      "priority": "high"
+    },
+    {
+      "content": "Implement FSM states and transitions",
+      "activeForm": "Implementing FSM states and transitions",
+      "detail": "Grouped from 8 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0071..RTL-0078.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: fsm\nPriority mix: critical=0, high=8.",
+      "criteria": "Close every ledger item represented by this UI TODO (8 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0071 fsm.control.states.IDLE: Implement FSM state control.IDLE\nRTL-0072 fsm.control.states.RUN: Implement FSM state control.RUN\nRTL-0073 fsm.control.states.DONE_PULSE: Implement FSM state control.DONE_PULSE\nRTL-0074 fsm.control.transitions.transition_0: Implement FSM transition control.transition_0\nRTL-0075 fsm.control.transitions.transition_1: Implement FSM transition control.transition_1\nRTL-0076 fsm.control.transitions.transition_2: Implement FSM transition control.transition_2\nRTL-0077 fsm.control.transitions.transition_3: Implement FSM transition control.transition_3\nRTL-0078 fsm.control.transitions.transition_4: Implement FSM transition control.transition_4",
+      "priority": "high"
+    },
+    {
+      "content": "Implement SSOT dataflow and ordering behavior",
+      "activeForm": "Implementing SSOT dataflow and ordering behavior",
+      "detail": "Grouped from 7 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0082..RTL-0088.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: dataflow\nPriority mix: critical=0, high=7.",
+      "criteria": "Close every ledger item represented by this UI TODO (7 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0082 dataflow.sequence.sequence_0: Implement dataflow sequence: sequence_0\nRTL-0083 dataflow.sequence.sequence_1: Implement dataflow sequence: sequence_1\nRTL-0084 dataflow.sequence.sequence_2: Implement dataflow sequence: sequence_2\nRTL-0085 dataflow.sequence.sequence_3: Implement dataflow sequence: sequence_3\nRTL-0086 dataflow.ordering.ordering_0: Implement dataflow ordering: ordering_0\nRTL-0087 dataflow.ordering.ordering_1: Implement dataflow ordering: ordering_1\nRTL-0088 dataflow.ordering.ordering_2: Implement dataflow ordering: ordering_2",
+      "priority": "high"
+    },
+    {
+      "content": "Implement feature-level RTL contracts",
+      "activeForm": "Implementing feature-level RTL contracts",
+      "detail": "Grouped from 3 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0079..RTL-0081.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: features\nPriority mix: critical=0, high=3.",
+      "criteria": "Close every ledger item represented by this UI TODO (3 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0079 features.parameterized_countdown: Implement feature parameterized_countdown\nRTL-0080 features.done_pulse: Implement feature done_pulse\nRTL-0081 features.clear_priority: Implement feature clear_priority",
+      "priority": "high"
+    },
+    {
+      "content": "Implement error handling and recovery behavior",
+      "activeForm": "Implementing error handling and recovery behavior",
+      "detail": "Grouped from 2 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0089..RTL-0090.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: error_handling\nPriority mix: critical=0, high=2.",
+      "criteria": "Close every ledger item represented by this UI TODO (2 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0089 error_handling.recovery.recovery_0: Implement error/fault item recovery_0\nRTL-0090 error_handling.recovery.recovery_1: Implement error/fault item recovery_1",
+      "priority": "high"
+    },
+    {
+      "content": "Close security, integration, and synthesis constraints",
+      "activeForm": "Closing security, integration, and synthesis constraints",
+      "detail": "Grouped from 7 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0091..RTL-0097.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: integration, security, synthesis\nPriority mix: critical=0, high=7.",
+      "criteria": "Close every ledger item represented by this UI TODO (7 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0091 security.assets.timer_state_integrity: Implement security item timer_state_integrity\nRTL-0092 integration.dependencies.external_modules: Implement integration item external_modules\nRTL-0093 integration.dependencies.external_clocks: Implement integration item external_clocks\nRTL-0094 integration.dependencies.external_resets: Implement integration item external_resets\nRTL-0095 synthesis.constraints.constraint_0: Implement synthesis item constraint_0\nRTL-0096 synthesis.constraints.constraint_1: Implement synthesis item constraint_1\nRTL-0097 synthesis.constraints.constraint_2: Implement synthesis item constraint_2",
+      "priority": "high"
+    },
+    {
+      "content": "Preserve RTL evidence for SSOT test scenarios",
+      "activeForm": "Preserve RTL evidence for SSOT test scenarios",
+      "detail": "Grouped from 3 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0099..RTL-0101.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: test_requirements",
+      "criteria": "Close every ledger item represented by this UI TODO (3 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0099 test_requirements.scenarios.SC_RESET_CLEAR: Keep RTL observable for scenario SC_RESET_CLEAR\nRTL-0100 test_requirements.scenarios.SC_COUNTDOWN_DONE: Keep RTL observable for scenario SC_COUNTDOWN_DONE\nRTL-0101 test_requirements.scenarios.SC_ENABLE_HOLD: Keep RTL observable for scenario SC_ENABLE_HOLD",
+      "priority": "normal"
+    },
+    {
+      "content": "Preserve RTL evidence for SSOT coverage goals",
+      "activeForm": "Preserve RTL evidence for SSOT coverage goals",
+      "detail": "Grouped from 3 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0102..RTL-0104.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: coverage",
+      "criteria": "Close every ledger item represented by this UI TODO (3 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0102 test_requirements.coverage_goals.planned_bins.fcov_start_load: Provide RTL evidence for coverage bin fcov_start_load\nRTL-0103 test_requirements.coverage_goals.planned_bins.fcov_done_pulse: Provide RTL evidence for coverage bin fcov_done_pulse\nRTL-0104 test_requirements.coverage_goals.planned_bins.ccov_terminal_tick: Provide RTL evidence for coverage bin ccov_terminal_tick",
+      "priority": "normal"
+    },
+    {
+      "content": "Preserve FL-vs-RTL module equivalence mapping",
+      "activeForm": "Preserve FL-vs-RTL module equivalence mapping",
+      "detail": "Grouped from 1 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0098.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: equivalence\nPriority mix: critical=0, high=1.",
+      "criteria": "Close every ledger item represented by this UI TODO (1 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0098 sub_modules.timer_core.module_equivalence: Prove module timer_core is functionally equivalent to FL",
+      "priority": "high"
+    },
+    {
+      "content": "Close RTL authority and provenance gates",
+      "activeForm": "Closing RTL authority and provenance gates",
+      "detail": "Grouped from 3 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0003..RTL-0006.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: rtl_gate\nPriority mix: critical=3, high=0.",
+      "criteria": "Close every ledger item represented by this UI TODO (3 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0003 quality_gates.rtl_gen.ssot_required_sections: Gate: SSOT function_model and cycle_model are present before RTL generation\nRTL-0004 quality_gates.rtl_gen.workflow_todo_contract: Gate: SSOT-authored rtl-gen workflow TODOs are well formed\nRTL-0006 quality_gates.rtl_gen.common_ai_agent_authoring: Gate: RTL is authored by common_ai_agent rtl-gen, not by direct operator edits",
+      "priority": "critical"
+    },
+    {
+      "content": "Close RTL traceability and implementation-depth gates",
+      "activeForm": "Closing RTL traceability and implementation-depth gates",
+      "detail": "Grouped from 5 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0005..RTL-0019.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: rtl_gate\nPriority mix: critical=5, high=0.",
+      "criteria": "Close every ledger item represented by this UI TODO (5 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0005 quality_gates.rtl_gen.owner_traceability: Gate: every SSOT-derived RTL behavior has an owner module\nRTL-0007 quality_gates.rtl_gen.static_rtl_evidence: Gate: required SSOT behavior has static DUT RTL evidence after audit\nRTL-0008 quality_gates.rtl_gen.owner_logic_structure_evidence: Gate: behavior-owner RTL modules contain real implementation structure\nRTL-0009 quality_gates.rtl_gen.rtl_placeholder_free_evidence: Gate: RTL sources contain no placeholder markers or disallowed generated-RTL constructs\nRTL-0019 quality_gates.rtl_gen.dynamic_todo_closure: Gate: every required rtl_todo_plan item is closed before rtl-gen PASS",
+      "priority": "critical"
+    },
+    {
+      "content": "Close top IO, hierarchy, and connection gates",
+      "activeForm": "Closing top IO, hierarchy, and connection gates",
+      "detail": "Grouped from 7 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0010..RTL-0016.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: rtl_gate\nPriority mix: critical=7, high=0.",
+      "criteria": "Close every ledger item represented by this UI TODO (7 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0010 quality_gates.rtl_gen.top_io_contract_evidence: Gate: SSOT top IO contracts match the RTL top module\nRTL-0011 quality_gates.rtl_gen.top_output_drive_evidence: Gate: SSOT top outputs are driven by real RTL logic\nRTL-0012 quality_gates.rtl_gen.top_input_consumption_evidence: Gate: SSOT top inputs are consumed by RTL logic or child inputs\nRTL-0013 quality_gates.rtl_gen.manifest_hierarchy_integration: Gate: manifest-owned RTL modules are integrated into the top hierarchy\nRTL-0014 quality_gates.rtl_gen.manifest_port_connection_evidence: Gate: manifest-owned child instances have machine-checkable port connections\nRTL-0015 quality_gates.rtl_gen.manifest_signal_flow_evidence: Gate: manifest child port connections carry live RTL signal flow\nRTL-0016 quality_gates.rtl_gen.manifest_connection_contract_evidence: Gate: SSOT connection contracts match RTL child port maps",
+      "priority": "critical"
+    },
+    {
+      "content": "Run DUT-only compile and lint closure gates",
+      "activeForm": "Running DUT-only compile and lint closure gates",
+      "detail": "Grouped from 2 SSOT-derived RTL ledger item(s).\nLedger ids: RTL-0017..RTL-0018.\nUse rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.\nSSOT sections: rtl_gate\nPriority mix: critical=2, high=0.",
+      "criteria": "Close every ledger item represented by this UI TODO (2 item(s))\nPreserve the original source_ref and owner evidence in rtl_todo_plan.json\nRTL-0017 quality_gates.rtl_gen.dut_compile: Gate: DUT-only RTL compile report passes after the final RTL edit\nRTL-0018 quality_gates.rtl_gen.dut_lint: Gate: DUT-only lint report passes after the final RTL edit",
+      "priority": "critical"
+    }
+  ]
+}
