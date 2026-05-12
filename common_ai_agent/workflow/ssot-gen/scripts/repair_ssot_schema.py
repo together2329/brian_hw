@@ -1033,10 +1033,33 @@ def _ensure_test_requirements(doc: dict[str, Any]) -> dict[str, Any]:
     tr["coverage_goals"] = {
         **(
             {
-                "functional": (
-                    "100% of SSOT-planned functional bins from function_model transactions, "
-                    "debug/status observability, error paths, state transitions, ordering, and protocol backpressure bins covered"
-                ),
+                "function": {
+                    "target_pct": 100,
+                    "model": "function_model",
+                    "description": "Behavioral coverage for function_model transactions, state updates, outputs, errors, and debug/status observability.",
+                    "bins": [
+                        {
+                            "id": "FCOV_PRIMARY_TRANSACTION",
+                            "source_ref": "function_model.transactions",
+                            "class": "transaction",
+                            "description": "Primary function_model transaction observed with RTL scoreboard evidence",
+                        }
+                    ],
+                },
+                "cycle": {
+                    "target_pct": 100,
+                    "model": "cycle_model",
+                    "description": "Cycle coverage for cycle_model latency, pipeline stages, ordering, handshake rules, backpressure, and FSM transitions.",
+                    "bins": [
+                        {
+                            "id": "CCOV_PRIMARY_CYCLE_RULE",
+                            "source_ref": "cycle_model",
+                            "class": "cycle_rule",
+                            "description": "Primary cycle_model rule observed with RTL waveform/checker evidence",
+                        }
+                    ],
+                },
+                "functional": "Legacy alias: coverage_goals.function and coverage_goals.cycle must both close.",
                 "evidence": (
                     "Tool-instrumented structural metrics are optional unless an explicit SSOT metric goal "
                     "with matching tool evidence is added."
@@ -1047,6 +1070,20 @@ def _ensure_test_requirements(doc: dict[str, Any]) -> dict[str, Any]:
         ),
         "scenario": "All SSOT scenarios pass with executable cocotb/pyuvm checkers and FL-vs-RTL scoreboard evidence",
     }
+    goals = tr["coverage_goals"]
+    if isinstance(goals, dict):
+        goals.setdefault("function", {
+            "target_pct": 100,
+            "model": "function_model",
+            "description": "Behavioral coverage for function_model transactions and architecturally visible results.",
+            "bins": [],
+        })
+        goals.setdefault("cycle", {
+            "target_pct": 100,
+            "model": "cycle_model",
+            "description": "Cycle/handshake/latency/FSM coverage from cycle_model.",
+            "bins": [],
+        })
     return tr
 
 

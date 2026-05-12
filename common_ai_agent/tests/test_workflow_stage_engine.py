@@ -386,6 +386,79 @@ def test_coverage_stage_requires_sim_evidence_and_preserves_raw_functional_bins(
     assert coverage["limitations"] == {}
 
 
+def test_coverage_stage_reports_function_and_cycle_model_coverage_separately(tmp_path: Path):
+    ip = "coverage_model_split_probe"
+    _write_coverage_ready_fixture(tmp_path, ip)
+    ip_dir = tmp_path / ip
+    ssot_path = ip_dir / "yaml" / f"{ip}.ssot.yaml"
+    doc = yaml.safe_load(ssot_path.read_text(encoding="utf-8"))
+    doc["test_requirements"]["coverage_goals"] = {
+        "function": {
+            "target_pct": 100,
+            "model": "function_model",
+            "bins": [
+                {
+                    "id": "FCOV_DOUBLE",
+                    "source_ref": "function_model.transactions.FM_DOUBLE",
+                    "class": "transaction",
+                }
+            ],
+        },
+        "cycle": {
+            "target_pct": 100,
+            "model": "cycle_model",
+            "bins": [
+                {
+                    "id": "CCOV_LATENCY_ONE",
+                    "source_ref": "cycle_model.latency",
+                    "class": "latency",
+                }
+            ],
+        },
+    }
+    ssot_path.write_text(yaml.safe_dump(doc, sort_keys=False), encoding="utf-8")
+    fcov_plan = json.loads((ip_dir / "cov" / "fcov_plan.json").read_text(encoding="utf-8"))
+    fcov_plan["bins"][0]["coverage_domain"] = "function"
+    fcov_plan["bins"].append(
+        {
+            "id": "CCOV_LATENCY_ONE",
+            "class": "latency",
+            "coverage_domain": "cycle",
+            "goal_id": "EQ_DOUBLE",
+            "source": "cycle_model.latency",
+        }
+    )
+    (ip_dir / "cov" / "fcov_plan.json").write_text(json.dumps(fcov_plan, indent=2) + "\n", encoding="utf-8")
+    functional = json.loads((ip_dir / "cov" / "coverage_functional.json").read_text(encoding="utf-8"))
+    functional["functional"]["bins"]["CCOV_LATENCY_ONE"] = {
+        "hit": True,
+        "goal_id": "EQ_DOUBLE",
+        "scenario_id": "SC_DOUBLE",
+    }
+    (ip_dir / "cov" / "coverage_functional.json").write_text(json.dumps(functional, indent=2) + "\n", encoding="utf-8")
+    goals = json.loads((ip_dir / "verify" / "equivalence_goals.json").read_text(encoding="utf-8"))
+    goals["goals"][0]["coverage_refs"] = ["FCOV_DOUBLE", "CCOV_LATENCY_ONE"]
+    (ip_dir / "verify" / "equivalence_goals.json").write_text(json.dumps(goals, indent=2) + "\n", encoding="utf-8")
+    row = json.loads((ip_dir / "sim" / "scoreboard_events.jsonl").read_text(encoding="utf-8"))
+    row["coverage_refs"] = ["FCOV_DOUBLE", "CCOV_LATENCY_ONE"]
+    (ip_dir / "sim" / "scoreboard_events.jsonl").write_text(json.dumps(row, sort_keys=True) + "\n", encoding="utf-8")
+
+    result = WorkflowStageEngine(tmp_path).run_stage("coverage", ip)
+
+    assert result.status == "pass", result.message
+    coverage = json.loads((ip_dir / "cov" / "coverage.json").read_text(encoding="utf-8"))
+    assert coverage["function_coverage"]["hit"] == 1
+    assert coverage["function_coverage"]["total"] == 1
+    assert coverage["function_coverage"]["pct"] == 100.0
+    assert coverage["cycle_coverage"]["hit"] == 1
+    assert coverage["cycle_coverage"]["total"] == 1
+    assert coverage["cycle_coverage"]["pct"] == 100.0
+    assert coverage["functional_bins"]["FCOV_DOUBLE"]["coverage_domain"] == "function"
+    assert coverage["functional_bins"]["CCOV_LATENCY_ONE"]["coverage_domain"] == "cycle"
+    assert coverage["coverage_model"]["function"]["source"] == "function_model"
+    assert coverage["coverage_model"]["cycle"]["source"] == "cycle_model"
+
+
 def test_coverage_stage_rejects_raw_functional_bins_without_rtl_observed_scoreboard(tmp_path: Path):
     ip = "coverage_raw_only_probe"
     _write_coverage_ready_fixture(tmp_path, ip)

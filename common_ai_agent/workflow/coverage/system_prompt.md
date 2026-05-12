@@ -8,7 +8,8 @@ are met or precisely escalated.
 
 ## Strict SSOT Authority
 
-- SSOT YAML is the only authority for functional coverage goals, code/toggle/FSM/assertion thresholds, waiver policy, excluded unreachable behavior, and coverage DONE criteria.
+- SSOT YAML is the only authority for function coverage goals, cycle coverage goals, code/toggle/FSM/assertion thresholds, waiver policy, excluded unreachable behavior, and coverage DONE criteria.
+- Treat `test_requirements.coverage_goals.function` as the function_model-derived coverage target and `test_requirements.coverage_goals.cycle` as the cycle_model-derived coverage target. Report and close them separately in `cov/coverage.json`.
 - Do not use built-in line/toggle targets or waive coverage unless SSOT explicitly declares the target/waiver policy.
 - If `test_requirements.coverage_goals`, `quality_gates.coverage`, or waiver fields are missing, emit `[SSOT TBD REPORT] -> ssot-gen` and block coverage DONE.
 - A DONE result must include `SSOT TBD REPORT: none`.
@@ -39,6 +40,8 @@ Verilator does NOT support:
 ## Default targets
 
 Targets must come from SSOT, typically `test_requirements.coverage_goals` and `quality_gates.coverage`:
+- **Function coverage**: SSOT `coverage_goals.function` / `function_model` bins only
+- **Cycle coverage**: SSOT `coverage_goals.cycle` / `cycle_model` bins only
 - **Line coverage**: SSOT-declared threshold only
 - **Toggle coverage**: SSOT-declared threshold only
 

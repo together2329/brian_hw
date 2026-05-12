@@ -663,17 +663,54 @@ def _fcov_bins(ssot: dict[str, Any]) -> list[dict[str, Any]]:
     bins = _scenario_bins(ssot)
     tr = ssot.get("test_requirements") if isinstance(ssot.get("test_requirements"), dict) else {}
     coverage_goals = tr.get("coverage_goals") if isinstance(tr.get("coverage_goals"), dict) else {}
+    def _goal_domain(item: dict[str, Any]) -> str:
+        raw = str(
+            item.get("coverage_domain")
+            or item.get("domain")
+            or item.get("model")
+            or item.get("coverage_type")
+            or item.get("class")
+            or item.get("source")
+            or item.get("source_ref")
+            or ""
+        ).lower()
+        if "cycle_model" in raw or any(tok in raw for tok in ("cycle", "handshake", "latency", "protocol", "fsm")):
+            return "cycle"
+        return "function"
+
     planned_bins = coverage_goals.get("planned_bins") if isinstance(coverage_goals.get("planned_bins"), list) else []
     for idx, item in enumerate(planned_bins):
         if not isinstance(item, dict):
             continue
         bid = _safe_name(item.get("id") or item.get("name"), f"planned_bin_{idx}")
+        domain = _goal_domain(item)
         bins.append({
             "id": bid,
             "class": str(item.get("class") or "planned_functional"),
+            "coverage_domain": domain,
             "source": f"test_requirements.coverage_goals.planned_bins[{idx}]",
+            "source_ref": str(item.get("source_ref") or item.get("source") or ""),
             "description": str(item.get("description") or item.get("goal") or bid),
         })
+    for key, domain in (("function", "function"), ("function_coverage", "function"), ("cycle", "cycle"), ("cycle_coverage", "cycle")):
+        section = coverage_goals.get(key)
+        if not isinstance(section, dict):
+            continue
+        section_bins = section.get("bins") or section.get("planned_bins") or section.get("coverage_bins") or []
+        if not isinstance(section_bins, list):
+            continue
+        for idx, item in enumerate(section_bins):
+            if not isinstance(item, dict):
+                continue
+            bid = _safe_name(item.get("id") or item.get("name"), f"{domain}_bin_{idx}")
+            bins.append({
+                "id": bid,
+                "class": str(item.get("class") or domain),
+                "coverage_domain": domain,
+                "source": str(item.get("source") or item.get("source_ref") or f"test_requirements.coverage_goals.{key}.bins[{idx}]"),
+                "source_ref": str(item.get("source_ref") or item.get("source") or ""),
+                "description": str(item.get("description") or item.get("goal") or bid),
+            })
     fm = ssot.get("function_model") if isinstance(ssot.get("function_model"), dict) else {}
     for idx, tx in enumerate(fm.get("transactions") or []):
         if isinstance(tx, dict):
@@ -681,19 +718,70 @@ def _fcov_bins(ssot: dict[str, Any]) -> list[dict[str, Any]]:
             bins.append({
                 "id": f"function_{name}",
                 "class": "transaction_type",
+                "coverage_domain": "function",
                 "source": f"function_model.transactions[{idx}]",
+                "source_ref": f"function_model.transactions.{_safe_name(tx.get('id') or tx.get('name'), f'transaction_{idx}')}",
                 "description": str(tx.get("description") or tx.get("expected") or name),
             })
     cm = ssot.get("cycle_model") if isinstance(ssot.get("cycle_model"), dict) else {}
+    def _add_cycle_bin(bid: str, klass: str, source: str, description: str) -> None:
+        bins.append({
+            "id": bid,
+            "class": klass,
+            "coverage_domain": "cycle",
+            "source": source,
+            "source_ref": source,
+            "description": description,
+        })
+
     for idx, rule in enumerate(cm.get("handshake_rules") or []):
         if isinstance(rule, dict):
             name = _safe_name(rule.get("name") or rule.get("id"), f"handshake_{idx}")
-            bins.append({
-                "id": f"cycle_{name}",
-                "class": "protocol",
-                "source": f"cycle_model.handshake_rules[{idx}]",
-                "description": str(rule.get("description") or rule),
-            })
+            _add_cycle_bin(f"cycle_{name}", "protocol", f"cycle_model.handshake_rules[{idx}]", str(rule.get("description") or rule))
+    latency = cm.get("latency")
+    if isinstance(latency, dict):
+        for name, spec in latency.items():
+            _add_cycle_bin(
+                f"cycle_latency_{_safe_name(name, 'latency')}",
+                "latency",
+                f"cycle_model.latency.{name}",
+                str(spec),
+            )
+    for idx, stage in enumerate(cm.get("pipeline") or []):
+        if isinstance(stage, dict):
+            name = _safe_name(stage.get("stage") or stage.get("name") or stage.get("id"), f"stage_{idx}")
+            _add_cycle_bin(
+                f"cycle_pipeline_{name}",
+                "pipeline_stage",
+                f"cycle_model.pipeline[{idx}]",
+                str(stage.get("action") or stage),
+            )
+    for idx, rule in enumerate(cm.get("ordering") or []):
+        _add_cycle_bin(
+            f"cycle_ordering_{idx}",
+            "ordering",
+            f"cycle_model.ordering[{idx}]",
+            str(rule),
+        )
+    for idx, rule in enumerate(cm.get("backpressure") or []):
+        _add_cycle_bin(
+            f"cycle_backpressure_{idx}",
+            "backpressure",
+            f"cycle_model.backpressure[{idx}]",
+            str(rule),
+        )
+    perf = cm.get("performance") if isinstance(cm.get("performance"), dict) else {}
+    for key in ("outstanding", "depth", "queue_depth", "pipeline_depth", "frequency_mhz", "throughput", "sustained_beats_per_cycle"):
+        value = perf.get(key, cm.get(key))
+        if value is None:
+            continue
+        klass = "frequency" if "frequency" in key else "throughput" if "throughput" in key or "beats" in key else "performance"
+        _add_cycle_bin(
+            f"cycle_perf_{_safe_name(key, 'metric')}",
+            klass,
+            f"cycle_model.performance.{key}",
+            str(value),
+        )
     fsm = ssot.get("fsm") if isinstance(ssot.get("fsm"), dict) else {}
     fsm_blocks = fsm.values() if fsm and all(isinstance(v, dict) for v in fsm.values()) else [fsm]
     for block_name, block in zip(fsm.keys() if fsm else [], fsm_blocks):
@@ -706,7 +794,9 @@ def _fcov_bins(ssot: dict[str, Any]) -> list[dict[str, Any]]:
                 bins.append({
                     "id": f"fsm_{_safe_name(block_name, 'fsm')}_{src}_to_{dst}_{idx}",
                     "class": "state_transition",
+                    "coverage_domain": "cycle",
                     "source": f"fsm.{block_name}.transitions[{idx}]",
+                    "source_ref": f"fsm.{block_name}.transitions[{idx}]",
                     "description": str(trn.get("condition") or trn),
                 })
     err = ssot.get("error_handling") if isinstance(ssot.get("error_handling"), dict) else {}
@@ -715,7 +805,9 @@ def _fcov_bins(ssot: dict[str, Any]) -> list[dict[str, Any]]:
         bins.append({
             "id": f"error_{name}",
             "class": "error",
+            "coverage_domain": "function",
             "source": f"error_handling.error_sources[{idx}]",
+            "source_ref": f"error_handling.error_sources[{idx}]",
             "description": str(src),
         })
     seen: set[str] = set()

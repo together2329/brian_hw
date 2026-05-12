@@ -135,16 +135,94 @@ def load_fcov_plan(cov_dir: Path) -> dict[str, Any]:
     return doc if isinstance(doc, dict) else {}
 
 
-def planned_bin_ids(fcov_plan: dict[str, Any]) -> list[str]:
-    out: list[str] = []
+def _as_list(value: Any) -> list[Any]:
+    if isinstance(value, list):
+        return value
+    if value is None:
+        return []
+    return [value]
+
+
+def _bin_id(item: Any, idx: int, prefix: str = "planned_bin") -> str:
+    if isinstance(item, dict):
+        return str(item.get("id") or item.get("name") or f"{prefix}_{idx}").strip()
+    return str(item or f"{prefix}_{idx}").strip()
+
+
+def _goal_section_bins(section: Any, domain: str) -> list[dict[str, Any]]:
+    """Return SSOT-declared bins from coverage_goals.function/cycle sections."""
+    if not isinstance(section, dict):
+        return []
+    raw = (
+        section.get("bins")
+        or section.get("planned_bins")
+        or section.get("coverage_bins")
+        or section.get("points")
+        or []
+    )
+    out: list[dict[str, Any]] = []
+    for idx, item in enumerate(_as_list(raw)):
+        if isinstance(item, dict):
+            bid = _bin_id(item, idx, f"{domain}_bin")
+            if not bid:
+                continue
+            out.append(
+                {
+                    **item,
+                    "id": bid,
+                    "coverage_domain": item.get("coverage_domain") or item.get("domain") or domain,
+                    "source": item.get("source")
+                    or item.get("source_ref")
+                    or f"test_requirements.coverage_goals.{domain}.bins[{idx}]",
+                }
+            )
+        else:
+            bid = _bin_id(item, idx, f"{domain}_bin")
+            if bid:
+                out.append(
+                    {
+                        "id": bid,
+                        "coverage_domain": domain,
+                        "description": str(item),
+                        "source": f"test_requirements.coverage_goals.{domain}.bins[{idx}]",
+                    }
+                )
+    return out
+
+
+def planned_bin_entries(fcov_plan: dict[str, Any], goals: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    out: dict[str, dict[str, Any]] = {}
     bins = fcov_plan.get("bins") if isinstance(fcov_plan.get("bins"), list) else []
     for idx, item in enumerate(bins):
         if not isinstance(item, dict):
             continue
-        bid = str(item.get("id") or item.get("name") or f"planned_bin_{idx}").strip()
-        if bid and bid not in out:
-            out.append(bid)
+        bid = _bin_id(item, idx)
+        if bid:
+            out.setdefault(bid, {**item, "id": bid})
+    flat = goals.get("planned_bins") if isinstance(goals.get("planned_bins"), list) else []
+    for idx, item in enumerate(flat):
+        if not isinstance(item, dict):
+            continue
+        bid = _bin_id(item, idx)
+        if bid:
+            out.setdefault(bid, {**item, "id": bid, "source": f"test_requirements.coverage_goals.planned_bins[{idx}]"})
+    for key, domain in (
+        ("function", "function"),
+        ("function_coverage", "function"),
+        ("functional_model", "function"),
+        ("cycle", "cycle"),
+        ("cycle_coverage", "cycle"),
+        ("cycle_model", "cycle"),
+    ):
+        for item in _goal_section_bins(goals.get(key), domain):
+            bid = str(item["id"])
+            out.setdefault(bid, item)
     return out
+
+
+def planned_bin_ids(fcov_plan: dict[str, Any], goals: dict[str, Any] | None = None) -> list[str]:
+    entries = planned_bin_entries(fcov_plan, goals or {})
+    return list(entries)
 
 
 def bin_hit(value: Any) -> bool:
@@ -337,6 +415,8 @@ def _metric_text_matches(raw: Any, names: tuple[str, ...]) -> bool:
         "branch": ("branch coverage", "branch >=", "branches >=", "branch >"),
         "fsm": ("fsm coverage", "fsm-state", "fsm state", "fsm >=", "fsm >"),
         "functional": ("functional coverage", "functional bins", "functional >="),
+        "function": ("function coverage", "function_model", "function model", "transaction coverage"),
+        "cycle": ("cycle coverage", "cycle_model", "cycle model", "handshake coverage", "latency coverage"),
         "scenario": ("scenario coverage", "scenarios pass", "scenario bins"),
         "transition": ("transition coverage", "transition bins"),
     }
@@ -373,6 +453,53 @@ def bin_coverage(functional_bins: dict[str, Any], names: tuple[str, ...]) -> dic
     return {"hit": hit, "total": total, "pct": pct(hit, total), "bins": selected}
 
 
+def _norm_domain(value: Any) -> str:
+    text = str(value or "").strip().lower().replace("-", "_").replace(" ", "_")
+    if text in {"function", "functional", "function_model", "functional_model", "fl", "transaction"}:
+        return "function"
+    if text in {"cycle", "cycle_model", "cl", "protocol", "timing", "latency", "handshake", "fsm", "performance", "throughput", "frequency", "pipeline", "depth", "outstanding"}:
+        return "cycle"
+    return ""
+
+
+def infer_coverage_domain(bid: str, value: Any, meta: dict[str, Any] | None = None) -> str:
+    parts: list[str] = [bid]
+    for obj in (meta or {}, value if isinstance(value, dict) else {}):
+        for key in ("coverage_domain", "domain", "model", "coverage_type", "class", "kind", "source", "source_ref", "ssot_ref"):
+            domain = _norm_domain(obj.get(key))
+            if domain:
+                return domain
+            raw = obj.get(key)
+            if raw:
+                parts.append(str(raw))
+        refs = obj.get("refs") or obj.get("coverage_refs") or obj.get("source_refs")
+        if isinstance(refs, list):
+            parts.extend(str(ref) for ref in refs)
+    text = " ".join(parts).lower()
+    if "cycle_model" in text or re.search(r"\b(cycle|handshake|latency|backpressure|protocol|fsm|state_transition|pipeline|pipelining|performance|throughput|frequency|freq|depth|outstanding)\b", text):
+        return "cycle"
+    if "function_model" in text or re.search(r"\b(function|functional|transaction|scenario|datapath|error)\b", text):
+        return "function"
+    return "function"
+
+
+def domain_coverage(functional_bins: dict[str, Any], domain: str, target: float | None) -> dict[str, Any]:
+    selected = {
+        bid: value
+        for bid, value in functional_bins.items()
+        if isinstance(value, dict) and value.get("coverage_domain") == domain
+    }
+    hit = sum(1 for value in selected.values() if bin_hit(value))
+    total = len(selected)
+    measured = {"hit": hit, "total": total, "pct": pct(hit, total)}
+    return {
+        **measured,
+        "target_pct": target,
+        "meets_target": target is None or (measured["pct"] is not None and measured["pct"] >= target),
+        "bins": selected,
+    }
+
+
 def main() -> int:
     if len(sys.argv) < 2:
         print("usage: ssot_coverage_summary.py <ip>", file=sys.stderr)
@@ -395,7 +522,8 @@ def main() -> int:
     raw_functional = merge_functional_cov(cov_dir)
     rtl_cov = scoreboard_coverage(ip_dir)
     fcov_plan = load_fcov_plan(cov_dir)
-    planned_bins = planned_bin_ids(fcov_plan)
+    planned_meta = planned_bin_entries(fcov_plan, goals)
+    planned_bins = list(planned_meta)
     raw_bins = raw_functional["functional_bins"]
     rtl_bins = rtl_cov["bins"] if isinstance(rtl_cov.get("bins"), dict) else {}
     all_bin_ids: list[str] = []
@@ -407,18 +535,32 @@ def main() -> int:
 
     functional_bins: dict[str, Any] = {}
     for bid in all_bin_ids:
+        meta = planned_meta.get(bid, {})
         if bid in rtl_bins:
             item = dict(rtl_bins[bid])
             item["raw_hit"] = bin_hit(raw_bins.get(bid)) if bid in raw_bins else None
+            if meta:
+                item.setdefault("plan", meta)
+                for key in ("class", "coverage_domain", "domain", "description", "source", "source_ref"):
+                    if key in meta and key not in item:
+                        item[key] = meta[key]
+            item["coverage_domain"] = infer_coverage_domain(bid, item, meta)
             functional_bins[bid] = item
             continue
         raw_value = raw_bins.get(bid, {"hit": False, "source": "fcov_plan"})
-        functional_bins[bid] = {
+        item = {
             "hit": False,
             "raw_hit": bin_hit(raw_value),
             "source": "missing_rtl_observed_scoreboard_evidence",
             "raw": raw_value,
         }
+        if meta:
+            item["plan"] = meta
+            for key in ("class", "coverage_domain", "domain", "description", "source_ref"):
+                if key in meta:
+                    item[key] = meta[key]
+        item["coverage_domain"] = infer_coverage_domain(bid, raw_value, meta)
+        functional_bins[bid] = item
 
     functional = {
         **raw_functional,
@@ -434,16 +576,28 @@ def main() -> int:
     branch_goal = metric_goal(goals, ("branch",))
     fsm_goal = metric_goal(goals, ("fsm",))
     functional_goal = metric_goal(goals, ("functional", "scenario", "transition"))
+    function_goal = metric_goal(goals, ("function", "functional", "scenario", "transaction"))
+    cycle_goal = metric_goal(goals, ("cycle", "protocol", "handshake", "latency", "fsm", "transition"))
     line_target = threshold(line_goal)
     branch_target = threshold(branch_goal)
     fsm_target = threshold(fsm_goal)
     functional_target = threshold(functional_goal)
+    function_target = threshold(function_goal)
+    cycle_target = threshold(cycle_goal)
     if functional_target is None and all_bin_ids:
         functional_target = 100.0
 
     fsm_bins = bin_coverage(functional["functional_bins"], ("fsm",))
     if fsm_goal is not None and fsm_target is None and fsm_bins["total"]:
         fsm_target = 100.0
+    function_coverage = domain_coverage(functional["functional_bins"], "function", function_target)
+    cycle_coverage = domain_coverage(functional["functional_bins"], "cycle", cycle_target)
+    if function_goal is not None and function_coverage["target_pct"] is None and function_coverage["total"]:
+        function_coverage["target_pct"] = 100.0
+        function_coverage["meets_target"] = function_coverage["pct"] is not None and function_coverage["pct"] >= 100.0
+    if cycle_goal is not None and cycle_coverage["target_pct"] is None and cycle_coverage["total"]:
+        cycle_coverage["target_pct"] = 100.0
+        cycle_coverage["meets_target"] = cycle_coverage["pct"] is not None and cycle_coverage["pct"] >= 100.0
 
     limitations: dict[str, Any] = {}
     if not planned_bins:
@@ -498,7 +652,9 @@ def main() -> int:
             and functional["functional"]["pct"] >= functional_target
         )
     )
-    status = "pass" if (line_ok and branch_ok and fsm_ok and checks_ok and functional_ok and not limitations) else "blocked"
+    function_ok = function_coverage["meets_target"]
+    cycle_ok = cycle_coverage["meets_target"]
+    status = "pass" if (line_ok and branch_ok and fsm_ok and checks_ok and functional_ok and function_ok and cycle_ok and not limitations) else "blocked"
     if functional["failed"] > 0:
         status = "fail"
 
@@ -513,6 +669,26 @@ def main() -> int:
             "coverage_goals": goals,
         },
         "functional": functional["functional"],
+        "function_coverage": function_coverage,
+        "cycle_coverage": cycle_coverage,
+        "coverage_model": {
+            "function": {
+                "source": "function_model",
+                "target_pct": function_coverage["target_pct"],
+                "hit": function_coverage["hit"],
+                "total": function_coverage["total"],
+                "pct": function_coverage["pct"],
+                "meets_target": function_coverage["meets_target"],
+            },
+            "cycle": {
+                "source": "cycle_model",
+                "target_pct": cycle_coverage["target_pct"],
+                "hit": cycle_coverage["hit"],
+                "total": cycle_coverage["total"],
+                "pct": cycle_coverage["pct"],
+                "meets_target": cycle_coverage["meets_target"],
+            },
+        },
         "planned_bins": planned_bins,
         "functional_bins": functional["functional_bins"],
         "raw_functional": raw_functional["functional"],
@@ -557,6 +733,8 @@ def main() -> int:
         f"DV scenarios: {len(scenarios)}",
         f"Scoreboard checks: {scoreboard_checks}",
         f"Functional bins: {functional['functional']['hit']}/{functional['functional']['total']}",
+        f"Function coverage: {function_coverage['hit']}/{function_coverage['total']} ({function_coverage['pct']}%) target={function_coverage['target_pct']}",
+        f"Cycle coverage: {cycle_coverage['hit']}/{cycle_coverage['total']} ({cycle_coverage['pct']}%) target={cycle_coverage['target_pct']}",
         (
             "RTL-observed coverage events: "
             f"{rtl_cov.get('scoreboard_passed_events_with_refs', 0)}/{rtl_cov.get('scoreboard_events', 0)}"

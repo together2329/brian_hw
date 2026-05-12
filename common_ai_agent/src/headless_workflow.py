@@ -441,13 +441,42 @@ def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
             ],
             "scoreboard_checks": 3,
             "coverage_goals": {
+                "function": {
+                    "target_pct": 100,
+                    "model": "function_model",
+                    "description": "Behavioral coverage for function_model transaction results and state updates.",
+                    "bins": [
+                        {
+                            "id": "FCOV_RULE_DOUBLE",
+                            "source_ref": "function_model.transactions.RULE_DOUBLE",
+                            "class": "transaction",
+                            "description": "sampled data_in doubling rule observed",
+                        }
+                    ],
+                },
+                "cycle": {
+                    "target_pct": 100,
+                    "model": "cycle_model",
+                    "description": "Cycle coverage for sample/result pipeline stages and valid/ready timing.",
+                    "bins": [
+                        {
+                            "id": "CCOV_SAMPLE_RESULT_PIPELINE",
+                            "source_ref": "cycle_model.pipeline",
+                            "class": "pipeline_stage",
+                            "description": "sample-to-result cycle path observed",
+                        }
+                    ],
+                },
                 "planned_bins": [
                     {
                         "id": "FCOV_RULE_DOUBLE",
                         "class": "datapath",
+                        "coverage_domain": "function",
+                        "source_ref": "function_model.transactions.RULE_DOUBLE",
                         "description": "sampled data_in doubling rule observed",
                     }
-                ]
+                ],
+                "functional": "Legacy alias: coverage_goals.function and coverage_goals.cycle must both close.",
             },
         },
         "quality_gates": {

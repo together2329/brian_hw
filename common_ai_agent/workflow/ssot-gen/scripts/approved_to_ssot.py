@@ -1523,12 +1523,35 @@ def _doc(ip: str, state: dict[str, Any]) -> dict[str, Any]:
             "scenarios": scenarios,
             "scoreboard_checks": len(scenarios),
             "coverage_goals": {
-                "functional": (
-                    "100% of SSOT-planned functional bins from scenarios, function_model transactions, "
-                    "error paths, CSR/control paths, handshake/backpressure paths, and protocol phase coverage pass."
-                ),
+                "function": {
+                    "target_pct": 100,
+                    "model": "function_model",
+                    "description": "Behavioral coverage for function_model transactions, architectural state updates, outputs, errors, and CSR/control effects.",
+                    "bins": [
+                        {
+                            "id": "FCOV_PRIMARY_TRANSACTION",
+                            "source_ref": "function_model.transactions.FM_PRIMARY",
+                            "class": "transaction",
+                            "description": "Primary approved function_model transaction observed by scoreboard",
+                        }
+                    ],
+                },
+                "cycle": {
+                    "target_pct": 100,
+                    "model": "cycle_model",
+                    "description": "Cycle coverage for cycle_model handshake, latency, ordering, backpressure, protocol phase, and FSM timing behavior.",
+                    "bins": [
+                        {
+                            "id": "CCOV_PRIMARY_HANDSHAKE",
+                            "source_ref": "cycle_model.handshake_rules",
+                            "class": "handshake",
+                            "description": "Primary cycle_model handshake rule observed by checker/waveform evidence",
+                        }
+                    ],
+                },
+                "functional": "Legacy alias: coverage_goals.function and coverage_goals.cycle must both close.",
                 "evidence": (
-                    "Functional closure uses cov/fcov_plan.json, cov/coverage_functional.json, "
+                    "Function/cycle closure uses cov/fcov_plan.json, cov/coverage_functional.json, "
                     "sim/scoreboard_events.jsonl, and cov/coverage.json. Tool-instrumented structural "
                     "metrics are optional unless an explicit SSOT metric goal with matching tool evidence is added."
                 ),

@@ -169,6 +169,57 @@ const CovStatsWidget = ({ summary, dut, onRefresh, lastRefresh }) => {
   );
 };
 
+// SSOT model coverage widget — reads cov/coverage.json emitted by
+// ssot_coverage_summary.py. Function coverage is sourced from
+// function_model; cycle coverage is sourced from cycle_model.
+const CovModelWidget = ({ snapshot }) => {
+  const fmtPct = (v) => (v == null ? '—' : `${Number(v).toFixed(2)}%`);
+  const model = snapshot && snapshot.coverage_model || {};
+  const fn = snapshot && (snapshot.function_coverage || model.function) || null;
+  const cy = snapshot && (snapshot.cycle_coverage || model.cycle) || null;
+  const Cell = ({ label, data, color }) => {
+    const pct = data && data.pct != null ? Number(data.pct) : 0;
+    const target = data && data.target_pct != null ? Number(data.target_pct) : null;
+    const ok = data && data.meets_target;
+    return (
+      <div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <span style={{ fontSize: 10, color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</span>
+          <span style={{ fontSize: 10, color: ok ? 'var(--ok, #3fb950)' : 'var(--fg-mute)' }}>
+            {target == null ? '' : `target ${target}%`}
+          </span>
+        </div>
+        <div style={{ fontSize: 22, fontWeight: 600, fontFamily: 'var(--mono)', marginTop: 2 }}>
+          {data ? fmtPct(data.pct) : '—'}
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--fg-mute)', marginTop: 2 }}>
+          {data ? `${data.hit || 0} / ${data.total || 0}` : 'no SSOT model bins'}
+        </div>
+        <div style={{ marginTop: 6, height: 6, background: 'var(--bg-2)', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{
+            width: `${Math.max(0, Math.min(100, pct))}%`,
+            height: '100%',
+            background: color,
+          }} />
+        </div>
+      </div>
+    );
+  };
+  return (
+    <div className="box">
+      <div className="box-h">
+        <span>▸ SSOT model coverage</span>
+        <span style={{ flex: 1 }} />
+        <span className="mute" style={{ fontSize: 10 }}>{snapshot ? snapshot.status || 'unknown' : 'no snapshot'}</span>
+      </div>
+      <div style={{ padding: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+        <Cell label="Function" data={fn} color="var(--ok, #3fb950)" />
+        <Cell label="Cycle" data={cy} color="var(--accent, #39c5cf)" />
+      </div>
+    </div>
+  );
+};
+
 // Reusable collapse-arrow span used in box headers. Positioned at the
 // far right of the header next to the count. Click → onCollapse().
 const _collapseArrow = (onCollapse, dir) => onCollapse ? (
@@ -540,6 +591,7 @@ const CovCollapsedStrip = ({ side, label, onExpand }) => (
 window.Coverage = () => {
   const [dut, setDut] = React.useState(_covRuntimeDut);
   const [summary, setSummary] = React.useState(null);
+  const [coverageSnapshot, setCoverageSnapshot] = React.useState(null);
   const [toggle, setToggle] = React.useState(null);
   const [history, setHistory] = React.useState([]);
   const [activeFile, setActiveFile] = React.useState(null);
@@ -595,6 +647,7 @@ window.Coverage = () => {
       && dutDir.entries.some(e => e && e.type === 'dir' && e.name === 'cov');
     if (!hasCovDir) {
       setSummary(null);
+      setCoverageSnapshot(null);
       setToggle(null);
       setHistory([]);
       setHtmlAvailable(false);
@@ -658,8 +711,15 @@ window.Coverage = () => {
     if (snapshotResp) {
       try {
         const snap = JSON.parse(snapshotResp.content || '{}');
+        setCoverageSnapshot(snap);
         setHtmlAvailable(!!snap.html_available);
-      } catch (_) { setHtmlAvailable(false); }
+      } catch (_) {
+        setCoverageSnapshot(null);
+        setHtmlAvailable(false);
+      }
+    } else {
+      setCoverageSnapshot(null);
+      setHtmlAvailable(false);
     }
   }, [dut, activeFile]);
 
@@ -722,12 +782,13 @@ window.Coverage = () => {
         )}
       </div>
 
-      {/* Middle row: toggle widget + delta tracker */}
+      {/* Middle row: SSOT function/cycle + toggle widget + delta tracker */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
+        gridTemplateColumns: '1.2fr 1fr 1fr',
         gap: 12,
       }}>
+        <CovModelWidget snapshot={coverageSnapshot} />
         <CovToggleWidget toggle={toggle} />
         <CovDeltaWidget history={history} />
       </div>

@@ -1245,10 +1245,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // the contents of the file at previewPath with syntax highlighting;
   // 'split' keeps chat and preview visible side-by-side.
   // 'ssot' shows a reviewer-friendly section-by-section SSOT view.
+  // 'debug' / 'coverage' are workflow-specific first tabs.
   // 'qa' is only available when centerLayout === 'tabbed' — it surfaces
   // the dedicated ask_user pane with breadcrumb-tabbed batched questions.
   // Double-clicking a file in the left tree sets previewPath + flips tab.
-  const [mainTab, setMainTab] = React.useState('split');    // chat | ssot | qa | split | preview | debug
+  const [mainTab, setMainTab] = React.useState('split');    // chat | ssot | qa | split | preview | debug | coverage
   const [previewPath, setPreviewPath] = React.useState(null);
   // Git diff display: when the GitPanel emits atlas-git-show with a
   // commit sha, the center pane swaps in GitDiffPane to render the
@@ -1682,6 +1683,22 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     : 0;
   const showQaTab = centerLayout === 'tabbed' || workflow === 'ssot-gen' || !!pendingQcard;
   const showSsotTab = workflow === 'ssot-gen' || (window.SSOT_FILES || []).length > 0 || isSsotYamlPath(previewPath);
+  const showDebugTab = workflow === 'sim_debug';
+  const showCoverageTab = workflow === 'coverage';
+  const lastWorkflowTabRef = React.useRef(null);
+  React.useEffect(() => {
+    if (lastWorkflowTabRef.current === workflow) return;
+    lastWorkflowTabRef.current = workflow;
+    if (workflow === 'sim_debug') {
+      setMainTab('debug');
+      return;
+    }
+    if (workflow === 'coverage') {
+      setMainTab('coverage');
+      return;
+    }
+    setMainTab(t => (t === 'debug' || t === 'coverage') ? 'split' : t);
+  }, [workflow]);
   React.useEffect(() => { setAskSel(0); }, [pendingQcard?.flowId, pendingQcardActiveTab]);
 
   // Auto-focus the ask_user prompt area when one opens
@@ -3177,30 +3194,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       {/* LEFT ↔ CENTER splitter — keep visible at 0px so collapsed panels can reopen. */}
       <Splitter width={leftW} side="left" onResize={setLeftW} onToggle={toggleLeft} />
 
-      {/* CENTER — sim_debug / coverage workflows swap the chat panel for
-          their domain-specific UI (waveform debug center / coverage stats
-          + annotated source viewer); every other workflow keeps the chat. */}
-      {workflow === 'coverage' && window.Coverage ? (
-        <div style={{
-          width: '100%', height: '100%',
-          minWidth: 0, overflow: 'hidden', position: 'relative',
-          display: 'flex', flexDirection: 'column',
-        }}>
-          <window.Coverage />
-          <button
-            onClick={() => switchWorkflow('coverage')}
-            title="Exit coverage → restore default ATLAS layout"
-            style={{
-              position: 'absolute', top: 8, right: 8, zIndex: 100,
-              background: 'rgba(20,24,30,0.85)', color: 'var(--fg)',
-              border: '1px solid var(--line)', borderRadius: 4,
-              padding: '4px 10px', fontSize: 11,
-              fontFamily: 'var(--mono)', cursor: 'pointer',
-              backdropFilter: 'blur(2px)',
-            }}
-          >← exit coverage</button>
-        </div>
-      ) : (
+      {/* CENTER — workflow-specific tabs can claim the first screen
+          (sim_debug → debug, coverage → coverage); the shared chat /
+          preview / Q&A tabs stay available where appropriate. */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
         {intent === 'plan' && (
           <div style={{
@@ -3222,11 +3218,42 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             {/* Tab strip — order: chat · ssot · Q&A · split view · full view.
                 "full view" is the file-only pane (was "preview").
                 "split view" puts chat and the preview side by side. */}
+            {showDebugTab && (
+              <span
+                className="tab-chip"
+                onClick={() => setMainTab('debug')}
+                title="Debug view: hierarchy, source, waveform"
+                style={{
+                  cursor: 'pointer',
+                  padding: '2px 8px', borderRadius: 2,
+                  color: mainTab === 'debug' ? 'var(--accent)' : 'var(--fg-mute)',
+                  background: mainTab === 'debug' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                  border: '1px solid ' + (mainTab === 'debug' ? 'var(--accent)' : 'transparent'),
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                }}
+              >debug</span>
+            )}
+            {showCoverageTab && (
+              <span
+                className="tab-chip"
+                onClick={() => setMainTab('coverage')}
+                title="Coverage view: SSOT goals, metrics, files, and gaps"
+                style={{
+                  cursor: 'pointer',
+                  padding: '2px 8px', borderRadius: 2,
+                  color: mainTab === 'coverage' ? 'var(--accent)' : 'var(--fg-mute)',
+                  background: mainTab === 'coverage' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                  border: '1px solid ' + (mainTab === 'coverage' ? 'var(--accent)' : 'transparent'),
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                }}
+              >coverage</span>
+            )}
             <span
               className="tab-chip"
               onClick={() => setMainTab('chat')}
               style={{
                 cursor: 'pointer', padding: '2px 8px', borderRadius: 2,
+                marginLeft: (showDebugTab || showCoverageTab) ? 4 : 0,
                 color: mainTab === 'chat' ? 'var(--accent)' : 'var(--fg-mute)',
                 background: mainTab === 'chat' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
                 border: '1px solid ' + (mainTab === 'chat' ? 'var(--accent)' : 'transparent'),
@@ -3302,19 +3329,6 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             >full view</span>
             <span
               className="tab-chip"
-              onClick={() => setMainTab('debug')}
-              title="Debug view: hierarchy, source, waveform"
-              style={{
-                cursor: 'pointer',
-                padding: '2px 8px', borderRadius: 2, marginLeft: 4,
-                color: mainTab === 'debug' ? 'var(--accent)' : 'var(--fg-mute)',
-                background: mainTab === 'debug' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
-                border: '1px solid ' + (mainTab === 'debug' ? 'var(--accent)' : 'transparent'),
-                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
-              }}
-            >debug</span>
-            <span
-              className="tab-chip"
               onClick={() => setMainTab('git')}
               title="Git: per-IP commit history graph + revert"
               style={{
@@ -3342,6 +3356,14 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}>
                 SSOT section review
               </span>
+            ) : mainTab === 'debug' ? (
+              <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}>
+                sim_debug hierarchy · source · wave
+              </span>
+            ) : mainTab === 'coverage' ? (
+              <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}>
+                coverage workflow · SSOT goals · gaps
+              </span>
             ) : (
               <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}
                     title={previewPath || ''}>
@@ -3362,7 +3384,17 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               </span>
             )}
           </div>
-          {mainTab === 'chat' ? (
+          {mainTab === 'coverage' ? (
+            window.Coverage ? (
+              <ErrorBoundary label="Coverage">
+                <window.Coverage />
+              </ErrorBoundary>
+            ) : (
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-mute)' }}>
+                Coverage · loading…
+              </div>
+            )
+          ) : mainTab === 'chat' ? (
             renderChatPane()
           ) : (mainTab === 'split' || mainTab === 'preview') ? (() => {
             // Unified split/full-view layout — chat | splitter | preview.
@@ -3719,7 +3751,6 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             <StatusBar/> below already exposes the model + the same
             shift+tab/⌘+/ hints. */}
       </div>
-      )}
 
       {/* CENTER ↔ RIGHT splitter — keep visible at 0px so collapsed panels can reopen. */}
       <Splitter width={rightW} side="right" onResize={setRightW} onToggle={toggleRight} />

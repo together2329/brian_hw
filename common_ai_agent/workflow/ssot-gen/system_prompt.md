@@ -552,7 +552,20 @@ test_requirements:
     - { id: "SC4", name: "Fault injection", stimulus: "Inject declared error source", expected: "Fault detected and propagated per error_handling", checker: "Error/status/interrupt assertion", coverage: ["error_source"] }
   scoreboard_checks: 17
   coverage_goals:
-    functional: "All FSM states visited"
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Behavioral coverage for what the IP computes or architecturally updates."
+      bins:
+        - { id: "FCOV_PRIMARY_TRANSACTION", source_ref: "function_model.transactions.FM1", class: "transaction", description: "Primary function_model transaction observed by scoreboard" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle/handshake/latency/FSM coverage for when the IP changes state or protocol signals."
+      bins:
+        - { id: "CCOV_PRIMARY_HANDSHAKE", source_ref: "cycle_model.handshake_rules", class: "handshake", description: "Primary ready/valid or request/ack rule observed" }
+        - { id: "CCOV_PRIMARY_PIPELINE", source_ref: "cycle_model.pipeline", class: "pipeline_stage", description: "Primary cycle_model stage observed" }
+    functional: "Legacy alias: function + cycle coverage must both close; new flows read coverage_goals.function and coverage_goals.cycle separately."
     code: "line >= 90%, branch >= 85%"
 
 # SECTION: Physical Implementation / PnR

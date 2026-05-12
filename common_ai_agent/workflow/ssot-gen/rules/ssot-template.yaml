@@ -311,6 +311,11 @@ cycle_model:
     - "Interrupt status updates occur on the same rising edge as the terminal status transition."
   backpressure:
     - "Downstream ready deassertion stalls only the active handshake stage; architectural state remains stable unless the handshake completes."
+  performance:
+    frequency_mhz: 500
+    throughput: { sustained_beats_per_cycle: 1, condition: "No downstream backpressure and aligned single-beat transfers" }
+    outstanding: { read_max: 1, write_max: 1, description: "Baseline single outstanding read/write operation" }
+    depth: { pipeline_stages: 5, queue_depth: 1, description: "Pipeline and buffering depth visible to cycle coverage" }
   observability:
     - "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
 
@@ -776,7 +781,26 @@ test_requirements:
       coverage: ["ERR_AXI_RD", "ERR_AXI_WR", "CH_FAULT"]
   scoreboard_checks: 17
   coverage_goals:
-    functional: "All function_model transactions, cycle_model pipeline stages, FSM states, error_sources, and interrupt sources covered"
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Cycle-independent behavioral intent coverage; proves what the IP computes/updates."
+      bins:
+        - { id: "FCOV_FM1_SINGLE_BEAT_COPY", source_ref: "function_model.transactions.FM1", class: "transaction", description: "FM1 legal single-beat copy observed by scoreboard" }
+        - { id: "FCOV_ERR_AXI_RD", source_ref: "function_model.transactions.FM1.error_cases.ERR_AXI_RD", class: "error_case", description: "Declared AXI read error behavior observed" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle/handshake/latency/FSM coverage; proves when behavior occurs."
+      bins:
+        - { id: "CCOV_STAGE_ACCEPT", source_ref: "cycle_model.pipeline.S0_ACCEPT_CMD", class: "pipeline_stage", description: "Command accept stage observed" }
+        - { id: "CCOV_ARVALID_HOLD", source_ref: "cycle_model.handshake_rules.arvalid", class: "handshake", description: "arvalid hold-until-ready rule observed" }
+        - { id: "CCOV_FSM_IDLE_TO_READ", source_ref: "fsm.proven_core_fsm.transitions", class: "state_transition", description: "Representative legal FSM transition observed" }
+        - { id: "CCOV_PERF_OUTSTANDING", source_ref: "cycle_model.performance.outstanding", class: "outstanding", description: "Declared outstanding operation limit exercised" }
+        - { id: "CCOV_PERF_DEPTH", source_ref: "cycle_model.performance.depth", class: "depth", description: "Declared pipeline/buffer depth exercised" }
+        - { id: "CCOV_PERF_THROUGHPUT", source_ref: "cycle_model.performance.throughput", class: "throughput", description: "Declared sustained throughput condition exercised" }
+        - { id: "CCOV_PERF_FREQUENCY", source_ref: "cycle_model.performance.frequency_mhz", class: "frequency", description: "Declared cycle/frequency assumption recorded in coverage evidence" }
+    functional: "Legacy alias: function + cycle coverage must both close; new flows read coverage_goals.function and coverage_goals.cycle separately."
     line: ">= 90% instrumented line coverage or explicit project waiver"
     branch: ">= 85% instrumented branch coverage or explicit project waiver"
     fsm: "100% declared FSM states and legal transitions covered"

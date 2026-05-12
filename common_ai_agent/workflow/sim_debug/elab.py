@@ -484,10 +484,30 @@ class PyslangElab(ElabBackend):
 
     def available(self) -> bool:
         try:
-            import pyslang  # noqa: F401
-            return True
+            import pyslang
         except Exception:
             return False
+        return self._syntax_tree_cls(pyslang) is not None and hasattr(pyslang, "Compilation")
+
+    @staticmethod
+    def _syntax_tree_cls(pyslang):
+        """Return the SyntaxTree class for the installed pyslang binding.
+
+        pyslang has had a few Python packaging shapes. Current wheels expose
+        `pyslang.SyntaxTree`; some builds nest generated classes under helper
+        namespaces. Treat import-only pyslang as unavailable if no SyntaxTree
+        API exists so the caller gets a clear backend-availability error
+        instead of an AttributeError from the UI request path.
+        """
+        direct = getattr(pyslang, "SyntaxTree", None)
+        if direct is not None:
+            return direct
+        for ns_name in ("syntax", "parsing", "ast"):
+            ns = getattr(pyslang, ns_name, None)
+            candidate = getattr(ns, "SyntaxTree", None) if ns is not None else None
+            if candidate is not None:
+                return candidate
+        return None
 
     def _compile(self, sources: list[Path]):
         try:
@@ -495,10 +515,23 @@ class PyslangElab(ElabBackend):
         except ImportError:
             return None
         try:
-            tree = pyslang.SyntaxTree
+            tree_cls = self._syntax_tree_cls(pyslang)
+            if tree_cls is None:
+                location = getattr(pyslang, "__file__", "<unknown>")
+                return (
+                    "error",
+                    "installed pyslang package does not expose a SyntaxTree API "
+                    f"(module={location}). Install/upgrade the official pyslang wheel "
+                    "or set SIM_DEBUG_ELAB_BACKEND=verilator.",
+                )
             comp = pyslang.Compilation()
             for s in sources:
-                t = pyslang.SyntaxTree.fromFile(str(s))
+                if hasattr(tree_cls, "fromFile"):
+                    t = tree_cls.fromFile(str(s))
+                elif hasattr(tree_cls, "fromText"):
+                    t = tree_cls.fromText(s.read_text(encoding="utf-8", errors="replace"), str(s))
+                else:
+                    return ("error", "installed pyslang SyntaxTree lacks fromFile/fromText")
                 comp.addSyntaxTree(t)
             comp.getRoot()  # force elaboration
             return comp
