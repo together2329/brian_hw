@@ -30,6 +30,8 @@
   --ui-font-size: 13px;
   --ui-control-font-size: 11px;
   --ui-small-font-size: 10px;
+  --atlas-canvas-w: 1920px;
+  --atlas-canvas-h: 1080px;
   /* main reading surface (chat / agent reply markdown) gets a small
      readability bump; the chrome (--ui-font-size / control / small)
      stays pinned to the original 1920x1080 layout so chips, dropdowns
@@ -226,8 +228,8 @@
   font-family: var(--mono);
   background: var(--bg);
   color: var(--fg);
-  width: 1920px;
-  height: 1080px;
+  width: var(--atlas-canvas-w, 1920px);
+  height: var(--atlas-canvas-h, 1080px);
   overflow: hidden;
   position: relative;
   font-size: var(--ui-font-size);
@@ -237,6 +239,19 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.atlas-mermaid-fsm svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.atlas-mermaid-fsm .edgeLabel,
+.atlas-mermaid-fsm .stateLabel,
+.atlas-mermaid-fsm .label {
+  font-family: var(--mono);
 }
 
 .app-main {
@@ -426,6 +441,10 @@
 .dir-select.ip {
   min-width: 78px;
   max-width: 120px;
+}
+.dir-select.res {
+  min-width: 98px;
+  max-width: 116px;
 }
 .dir-select.mini {
   min-width: 58px;
@@ -1746,6 +1765,24 @@
 }
 .foldable-pane details:not([open]) > .fold-summary::before {
   content: "▸";
+}
+.foldable-pane .fold-control-summary {
+  display: grid;
+  grid-template-columns: 14px minmax(12ch, max-content) auto auto;
+  align-items: baseline;
+  gap: 6px;
+  min-height: 20px;
+  color: inherit;
+}
+.foldable-pane .fold-control-summary.sel {
+  background: color-mix(in oklch, var(--accent) 18%, transparent);
+}
+.foldable-pane .fold-control-summary .fold-label {
+  min-width: 0;
+  max-width: 42ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .foldable-pane .source-fold-summary {
   display: grid;

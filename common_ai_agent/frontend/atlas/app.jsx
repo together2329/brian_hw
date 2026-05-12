@@ -50,6 +50,19 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+const ATLAS_UI_RESOLUTION_PRESETS = [
+  { key: '1366x768', label: '1366x768', width: 1366, height: 768 },
+  { key: '1600x900', label: '1600x900', width: 1600, height: 900 },
+  { key: '1920x1080', label: '1920x1080', width: 1920, height: 1080 },
+  { key: '2560x1440', label: '2560x1440', width: 2560, height: 1440 },
+  { key: '3840x2160', label: '3840x2160', width: 3840, height: 2160 },
+];
+const DEFAULT_ATLAS_RESOLUTION = '1920x1080';
+const atlasResolutionPreset = (key) =>
+  ATLAS_UI_RESOLUTION_PRESETS.find(p => p.key === key) ||
+  ATLAS_UI_RESOLUTION_PRESETS.find(p => p.key === DEFAULT_ATLAS_RESOLUTION) ||
+  ATLAS_UI_RESOLUTION_PRESETS[0];
+
 const App = () => {
   const [dir, setDir] = React.useState('B');     // 'B' = Workbench (default)
   const [theme, setTheme] = React.useState('light');
@@ -75,6 +88,11 @@ const App = () => {
       return ['compact', 'normal', 'large', 'xl'].includes(saved) ? saved : 'large';
     } catch (_) { return 'large'; }
   });
+  const [resolution, setResolution] = React.useState(() => {
+    try {
+      return atlasResolutionPreset(localStorage.getItem('atlasResolution')).key;
+    } catch (_) { return DEFAULT_ATLAS_RESOLUTION; }
+  });
   React.useEffect(() => {
     window.ATLAS_UI_LANG = uiLang;
     try { localStorage.setItem('atlasUiLang', uiLang); } catch (_) {}
@@ -86,6 +104,15 @@ const App = () => {
   React.useEffect(() => {
     try { localStorage.setItem('atlasFontScale', fontScale); } catch (_) {}
   }, [fontScale]);
+  React.useEffect(() => {
+    const preset = atlasResolutionPreset(resolution);
+    document.documentElement.setAttribute('data-resolution', preset.key);
+    document.documentElement.style.setProperty('--atlas-canvas-w', `${preset.width}px`);
+    document.documentElement.style.setProperty('--atlas-canvas-h', `${preset.height}px`);
+    window.ATLAS_RESOLUTION = preset;
+    try { localStorage.setItem('atlasResolution', preset.key); } catch (_) {}
+    window.dispatchEvent(new CustomEvent('atlas-resolution-changed', { detail: preset }));
+  }, [resolution]);
   const chooseUiLang = React.useCallback((next) => {
     setUiLang(next === 'ko' ? 'ko' : 'en');
     try { localStorage.setItem('atlasUiLangUserSet', '1'); } catch (_) {}
@@ -1185,6 +1212,17 @@ const App = () => {
             <option value="normal">M</option>
             <option value="large">L</option>
             <option value="xl">XL</option>
+          </select>
+        </label>
+        <label className="dir-select-wrap" title="Change virtual canvas resolution">
+          <span>res</span>
+          <select
+            className="dir-select res"
+            value={resolution}
+            onChange={e => setResolution(e.currentTarget.value)}>
+            {ATLAS_UI_RESOLUTION_PRESETS.map(p => (
+              <option key={p.key} value={p.key}>{p.label}</option>
+            ))}
           </select>
         </label>
         <span style={{ width: 12 }} />

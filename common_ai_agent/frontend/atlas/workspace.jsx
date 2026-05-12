@@ -6599,6 +6599,33 @@ const truncateSvgText = (value, limit = 24) => {
   return text.length > limit ? `${text.slice(0, Math.max(1, limit - 1))}...` : text;
 };
 
+const fsmStateKey = (value) => String(value || '').trim();
+
+const fsmSafeId = (value, index = 0) => {
+  const base = String(value || 'state')
+    .trim()
+    .replace(/[^a-zA-Z0-9_]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 40) || 'state';
+  return `S${index}_${/^[A-Za-z_]/.test(base) ? base : `_${base}`}`;
+};
+
+const fsmTransitionLabel = (tr, limit = 120) => {
+  const condition = String((tr && tr.condition) || '').trim();
+  const action = String((tr && tr.action) || '').trim();
+  const raw = String((tr && tr.raw) || '').trim();
+  const label = [condition, action].filter(Boolean).join(' / ') || raw;
+  return limit ? truncateSvgText(label, limit) : label;
+};
+
+const escapeMermaidLabel = (value) => (
+  String(value || '')
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/[\r\n]+/g, ' ')
+    .trim()
+);
+
 const uniqueFsmStates = (machine) => {
   const out = [];
   const add = (value) => {
@@ -6614,78 +6641,215 @@ const uniqueFsmStates = (machine) => {
   return out;
 };
 
-const edgePoint = (from, to, nodeW, nodeH) => {
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  if (Math.abs(dx) > Math.abs(dy)) {
-    return {
-      x: from.x + (dx > 0 ? nodeW / 2 : -nodeW / 2),
-      y: from.y + (nodeH / 2) * (dy / Math.max(Math.abs(dx), 1)),
+const fsmGraphFromMachine = (machine) => {
+  const stateMap = new Map();
+  const states = [];
+  const addState = (value) => {
+    const key = fsmStateKey(value);
+    if (!key || key === '-') return null;
+    if (stateMap.has(key)) return stateMap.get(key);
+    const node = {
+      id: fsmSafeId(key, states.length),
+      label: key,
+      reset: false,
     };
-  }
+    stateMap.set(key, node);
+    states.push(node);
+    return node;
+  };
+
+  (machine.states || []).forEach(addState);
+  (machine.transitions || []).forEach((tr) => {
+    addState(tr.from);
+    addState(tr.to);
+  });
+  const reset = addState(machine.resetState);
+  if (reset) reset.reset = true;
+
+  const transitions = (machine.transitions || []).map((tr, idx) => {
+    const from = addState(tr.from);
+    const to = addState(tr.to);
+    const label = fsmTransitionLabel(tr, 96);
+    const fullLabel = fsmTransitionLabel(tr, 0);
+    return {
+      id: `T${idx + 1}`,
+      index: idx + 1,
+      from,
+      to,
+      fromLabel: fsmStateKey(tr.from),
+      toLabel: fsmStateKey(tr.to),
+      condition: String((tr && tr.condition) || '').trim(),
+      action: String((tr && tr.action) || '').trim(),
+      raw: String((tr && tr.raw) || '').trim(),
+      label,
+      fullLabel,
+      drawable: !!(from && to),
+    };
+  });
+
   return {
-    x: from.x + (nodeW / 2) * (dx / Math.max(Math.abs(dy), 1)),
-    y: from.y + (dy > 0 ? nodeH / 2 : -nodeH / 2),
+    name: machine.name || 'FSM',
+    sourceKey: machine.sourceKey || '',
+    reset,
+    states,
+    transitions,
+    drawableTransitions: transitions.filter(t => t.drawable),
   };
 };
 
-const FsmTransitionDiagram = ({ machine, index = 0 }) => {
-  const states = uniqueFsmStates(machine);
-  const transitions = (machine.transitions || []).filter(tr => tr.from && tr.to);
+const fsmGraphToMermaid = (graph) => {
+  const lines = ['stateDiagram-v2', '  direction LR'];
+  (graph.states || []).forEach((state) => {
+    lines.push(`  state "${escapeMermaidLabel(state.label)}" as ${state.id}`);
+  });
+  if (graph.reset) lines.push(`  [*] --> ${graph.reset.id}`);
+  (graph.drawableTransitions || []).forEach((tr) => {
+    const label = tr.label ? `: ${escapeMermaidLabel(tr.label)}` : '';
+    lines.push(`  ${tr.from.id} --> ${tr.to.id}${label}`);
+  });
+  if (!(graph.drawableTransitions || []).length && graph.states.length) {
+    lines.push(`  [*] --> ${graph.states[0].id}`);
+  }
+  return lines.join('\n');
+};
+
+const ensureAtlasMermaid = () => {
+  const mermaid = window.mermaid;
+  if (!mermaid || !mermaid.render) return null;
+  if (!window.__ATLAS_MERMAID_INITIALIZED) {
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'strict',
+      htmlLabels: false,
+      theme: 'base',
+      themeVariables: {
+        background: 'transparent',
+        primaryColor: '#101827',
+        primaryBorderColor: '#38bdf8',
+        primaryTextColor: '#f7fbff',
+        lineColor: '#38bdf8',
+        secondaryColor: '#152235',
+        tertiaryColor: '#0b111c',
+        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+      },
+    });
+    window.__ATLAS_MERMAID_INITIALIZED = true;
+  }
+  return mermaid;
+};
+
+const FsmModeButton = ({ active, children, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    style={{
+      border: `1px solid ${active ? 'var(--accent)' : 'var(--line)'}`,
+      borderRadius: 3,
+      background: active ? 'color-mix(in oklch, var(--accent) 16%, var(--bg-2))' : 'var(--bg-2)',
+      color: active ? 'var(--accent)' : 'var(--fg)',
+      fontFamily: 'var(--mono)',
+      fontSize: 10,
+      padding: '4px 8px',
+      cursor: 'pointer',
+    }}
+  >
+    {children}
+  </button>
+);
+
+const FsmLayeredSvgDiagram = ({ graph, diagramId }) => {
+  const states = graph.states || [];
+  const transitions = graph.drawableTransitions || [];
   if (!states.length || !transitions.length) {
     return <DigestEmpty text="No drawable FSM transitions yet. Add transition entries with from/to fields." />;
   }
 
-  const nodeW = 112;
-  const nodeH = 38;
-  const pad = 42;
-  const colGap = 52;
-  const rowGap = 78;
-  const cols = Math.min(5, Math.max(2, Math.ceil(Math.sqrt(states.length) * 1.35)));
-  const rows = Math.ceil(states.length / cols);
-  const width = Math.max(360, pad * 2 + cols * nodeW + (cols - 1) * colGap);
-  const height = Math.max(170, pad * 2 + rows * nodeH + (rows - 1) * rowGap);
-  const markerId = `${fsmDiagramId(machine.name, index)}-arrow`;
-  const pos = {};
-  states.forEach((state, idx) => {
-    const row = Math.floor(idx / cols);
-    const col = idx % cols;
-    const rowCount = row === rows - 1 ? states.length - row * cols : cols;
-    const usedW = rowCount * nodeW + (rowCount - 1) * colGap;
-    const x0 = (width - usedW) / 2;
-    pos[state] = {
-      x: x0 + col * (nodeW + colGap) + nodeW / 2,
-      y: pad + row * (nodeH + rowGap) + nodeH / 2,
-    };
+  const adjacency = new Map();
+  transitions.forEach((tr) => {
+    const list = adjacency.get(tr.from.id) || [];
+    list.push(tr.to.id);
+    adjacency.set(tr.from.id, list);
   });
 
+  const levelById = new Map();
+  const start = (graph.reset || states[0]).id;
+  const queue = [start];
+  levelById.set(start, 0);
+  while (queue.length) {
+    const id = queue.shift();
+    const level = levelById.get(id) || 0;
+    (adjacency.get(id) || []).forEach((next) => {
+      if (!levelById.has(next)) {
+        levelById.set(next, level + 1);
+        queue.push(next);
+      }
+    });
+  }
+  let maxLevel = Math.max(0, ...Array.from(levelById.values()));
+  states.forEach((state) => {
+    if (!levelById.has(state.id)) {
+      maxLevel += 1;
+      levelById.set(state.id, maxLevel);
+    }
+  });
+
+  const levels = [];
+  states.forEach((state) => {
+    const level = levelById.get(state.id) || 0;
+    if (!levels[level]) levels[level] = [];
+    levels[level].push(state);
+  });
+
+  const nodeW = 152;
+  const nodeH = 42;
+  const pad = 42;
+  const colGap = 92;
+  const rowGap = 38;
+  const maxRows = Math.max(1, ...levels.map(group => (group || []).length));
+  const width = Math.max(460, pad * 2 + levels.length * nodeW + Math.max(0, levels.length - 1) * colGap);
+  const height = Math.max(180, pad * 2 + maxRows * nodeH + Math.max(0, maxRows - 1) * rowGap);
+  const pos = {};
+  levels.forEach((group, level) => {
+    const groupH = group.length * nodeH + Math.max(0, group.length - 1) * rowGap;
+    const y0 = (height - groupH) / 2;
+    group.forEach((state, row) => {
+      pos[state.id] = {
+        x: pad + level * (nodeW + colGap) + nodeW / 2,
+        y: y0 + row * (nodeH + rowGap) + nodeH / 2,
+      };
+    });
+  });
+
+  const pairCounts = {};
+  const markerId = `${diagramId}-fallback-arrow`;
+
   return (
-    <div style={{ marginTop: 10, overflowX: 'auto', border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)' }}>
+    <div style={{ overflowX: 'auto' }}>
       <svg
         role="img"
-        aria-label={`${machine.name} FSM transition diagram`}
+        aria-label={`${graph.name} fallback FSM graph`}
         viewBox={`0 0 ${width} ${height}`}
-        style={{ width: '100%', minWidth: Math.min(width, 760), height: 'auto', display: 'block' }}
+        style={{ width: '100%', minWidth: Math.min(width, 920), height: 'auto', display: 'block' }}
       >
         <defs>
           <marker id={markerId} markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
             <path d="M0,0 L9,4 L0,8 Z" fill="var(--cyan)" />
           </marker>
         </defs>
-        {machine.resetState && pos[machine.resetState] ? (
+        {graph.reset && pos[graph.reset.id] ? (
           <g>
             <line
-              x1={Math.max(8, pos[machine.resetState].x - nodeW / 2 - 34)}
-              y1={pos[machine.resetState].y}
-              x2={pos[machine.resetState].x - nodeW / 2 - 4}
-              y2={pos[machine.resetState].y}
+              x1={Math.max(8, pos[graph.reset.id].x - nodeW / 2 - 34)}
+              y1={pos[graph.reset.id].y}
+              x2={pos[graph.reset.id].x - nodeW / 2 - 5}
+              y2={pos[graph.reset.id].y}
               stroke="var(--accent)"
               strokeWidth="1.8"
               markerEnd={`url(#${markerId})`}
             />
             <text
-              x={Math.max(10, pos[machine.resetState].x - nodeW / 2 - 33)}
-              y={pos[machine.resetState].y - 8}
+              x={Math.max(10, pos[graph.reset.id].x - nodeW / 2 - 34)}
+              y={pos[graph.reset.id].y - 8}
               fill="var(--accent)"
               fontFamily="var(--mono)"
               fontSize="10"
@@ -6694,65 +6858,75 @@ const FsmTransitionDiagram = ({ machine, index = 0 }) => {
             </text>
           </g>
         ) : null}
-        {transitions.map((tr, trIdx) => {
-          const from = pos[tr.from];
-          const to = pos[tr.to];
+        {transitions.map((tr) => {
+          const from = pos[tr.from.id];
+          const to = pos[tr.to.id];
           if (!from || !to) return null;
-          const label = tr.condition || tr.action || tr.raw || '';
-          if (tr.from === tr.to) {
+          const pairKey = `${tr.from.id}->${tr.to.id}`;
+          const pairIdx = pairCounts[pairKey] || 0;
+          pairCounts[pairKey] = pairIdx + 1;
+          const lane = (pairIdx % 4) * 10;
+          const startX = from.x + nodeW / 2;
+          const startY = from.y + Math.min(nodeH / 2 - 8, lane);
+          const endX = to.x - nodeW / 2;
+          const endY = to.y + Math.min(nodeH / 2 - 8, lane);
+          let path = '';
+          let labelX = (startX + endX) / 2;
+          let labelY = (startY + endY) / 2;
+          if (tr.from.id === tr.to.id) {
             const x = from.x + nodeW / 2 - 4;
-            const y = from.y - nodeH / 2 + 2;
-            return (
-              <g key={`${machine.name}:self:${trIdx}`}>
-                <path
-                  d={`M ${x} ${y} C ${x + 38} ${y - 34}, ${x + 38} ${y + 34}, ${x} ${y + nodeH - 4}`}
-                  fill="none"
-                  stroke="var(--cyan)"
-                  strokeWidth="1.4"
-                  markerEnd={`url(#${markerId})`}
-                />
-                {label ? (
-                  <text x={x + 20} y={y - 8} fill="var(--muted)" fontFamily="var(--mono)" fontSize="10">
-                    <title>{label}</title>
-                    {truncateSvgText(label, 22)}
-                  </text>
-                ) : null}
-              </g>
-            );
+            const y = from.y - nodeH / 2 + 4;
+            path = `M ${x} ${y} C ${x + 46} ${y - 34}, ${x + 46} ${y + 34}, ${x} ${y + nodeH - 8}`;
+            labelX = x + 34;
+            labelY = y - 6;
+          } else if ((levelById.get(tr.to.id) || 0) >= (levelById.get(tr.from.id) || 0)) {
+            const bend = Math.max(60, Math.abs(endX - startX) * 0.45);
+            path = `M ${startX} ${startY} C ${startX + bend} ${startY}, ${endX - bend} ${endY}, ${endX} ${endY}`;
+          } else {
+            const laneY = Math.min(height - 18, Math.max(startY, endY) + 34 + lane);
+            path = `M ${from.x} ${from.y + nodeH / 2} L ${from.x} ${laneY} L ${to.x} ${laneY} L ${to.x} ${to.y + nodeH / 2}`;
+            labelX = (from.x + to.x) / 2;
+            labelY = laneY - 6;
           }
-          const start = edgePoint(from, to, nodeW, nodeH);
-          const end = edgePoint(to, from, nodeW, nodeH);
-          const mx = (start.x + end.x) / 2;
-          const my = (start.y + end.y) / 2;
-          const dx = end.x - start.x;
-          const dy = end.y - start.y;
-          const len = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
-          const bend = ((trIdx % 3) - 1) * 14;
-          const cx = mx + (-dy / len) * bend;
-          const cy = my + (dx / len) * bend;
           return (
-            <g key={`${machine.name}:edge:${trIdx}:${tr.from}:${tr.to}`}>
+            <g key={`${graph.name}:fallback-edge:${tr.id}`}>
               <path
-                d={`M ${start.x} ${start.y} Q ${cx} ${cy} ${end.x} ${end.y}`}
+                d={path}
                 fill="none"
                 stroke="var(--cyan)"
                 strokeWidth="1.35"
                 markerEnd={`url(#${markerId})`}
               />
-              {label ? (
-                <text x={cx + 4} y={cy - 5} fill="var(--muted)" fontFamily="var(--mono)" fontSize="10">
-                  <title>{label}</title>
-                  {truncateSvgText(label, 28)}
+              <g>
+                <rect
+                  x={labelX - 10}
+                  y={labelY - 13}
+                  width="20"
+                  height="16"
+                  rx="3"
+                  fill="var(--bg-2)"
+                  stroke="var(--line-2)"
+                />
+                <text
+                  x={labelX}
+                  y={labelY - 1}
+                  textAnchor="middle"
+                  fill="var(--fg)"
+                  fontFamily="var(--mono)"
+                  fontSize="9"
+                >
+                  <title>{tr.fullLabel || tr.label || tr.id}</title>
+                  {tr.index}
                 </text>
-              ) : null}
+              </g>
             </g>
           );
         })}
-        {states.map(state => {
-          const p = pos[state];
-          const isReset = state === machine.resetState;
+        {states.map((state) => {
+          const p = pos[state.id];
+          const isReset = !!state.reset;
           return (
-            <g key={`${machine.name}:state:${state}`}>
+            <g key={`${graph.name}:fallback-state:${state.id}`}>
               <rect
                 x={p.x - nodeW / 2}
                 y={p.y - nodeH / 2}
@@ -6772,13 +6946,185 @@ const FsmTransitionDiagram = ({ machine, index = 0 }) => {
                 fontSize="11"
                 fontWeight={isReset ? '700' : '500'}
               >
-                <title>{state}</title>
-                {truncateSvgText(state, 16)}
+                <title>{state.label}</title>
+                {truncateSvgText(state.label, 18)}
               </text>
             </g>
           );
         })}
       </svg>
+    </div>
+  );
+};
+
+const MermaidFsmGraph = ({ graph, code, diagramId }) => {
+  const [renderState, setRenderState] = React.useState({ status: 'loading', svg: '', error: '' });
+
+  React.useEffect(() => {
+    let cancelled = false;
+    const mermaid = ensureAtlasMermaid();
+    if (!mermaid) {
+      setRenderState({ status: 'fallback', svg: '', error: 'Mermaid library is unavailable.' });
+      return () => { cancelled = true; };
+    }
+
+    const renderId = `${diagramId}-${Date.now()}-${Math.random().toString(36).slice(2)}`.replace(/[^a-zA-Z0-9_-]/g, '-');
+    setRenderState({ status: 'loading', svg: '', error: '' });
+    Promise.resolve(mermaid.render(renderId, code))
+      .then((result) => {
+        if (cancelled) return;
+        const rawSvg = (result && result.svg) || '';
+        const svg = (window.DOMPurify && window.DOMPurify.sanitize)
+          ? window.DOMPurify.sanitize(rawSvg, { USE_PROFILES: { svg: true, svgFilters: true } })
+          : rawSvg;
+        setRenderState({ status: 'ready', svg, error: '' });
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setRenderState({
+          status: 'fallback',
+          svg: '',
+          error: err && err.message ? err.message : 'Mermaid render failed.',
+        });
+      });
+
+    return () => { cancelled = true; };
+  }, [code, diagramId]);
+
+  if (renderState.status === 'ready' && renderState.svg) {
+    return (
+      <div
+        className="atlas-mermaid-fsm"
+        style={{ overflowX: 'auto', padding: 10 }}
+        dangerouslySetInnerHTML={{ __html: renderState.svg }}
+      />
+    );
+  }
+
+  return (
+    <div>
+      {renderState.status === 'fallback' ? (
+        <div
+          className="mute"
+          style={{
+            margin: '8px 10px 0',
+            padding: '6px 8px',
+            border: '1px solid var(--line)',
+            borderRadius: 3,
+            color: 'var(--warn)',
+            fontFamily: 'var(--mono)',
+            fontSize: 10,
+          }}
+        >
+          Mermaid fallback: {renderState.error}
+        </div>
+      ) : null}
+      <FsmLayeredSvgDiagram graph={graph} diagramId={diagramId} />
+    </div>
+  );
+};
+
+const FsmTransitionTable = ({ graph }) => {
+  const rows = graph.transitions || [];
+  if (!rows.length) return <DigestEmpty text="No transitions listed for this FSM." />;
+  return (
+    <div style={{ display: 'grid', gap: 4 }}>
+      <div
+        className="mute"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '36px minmax(90px, 0.65fr) 20px minmax(90px, 0.65fr) minmax(0, 1.5fr)',
+          gap: 8,
+          fontFamily: 'var(--mono)',
+          fontSize: 10,
+        }}
+      >
+        <span>#</span><span>from</span><span></span><span>to</span><span>condition/action</span>
+      </div>
+      {rows.map((tr, idx) => (
+        <div
+          key={`${graph.name}:tr:${idx}:${tr.raw}`}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '36px minmax(90px, 0.65fr) 20px minmax(90px, 0.65fr) minmax(0, 1.5fr)',
+            gap: 8,
+            alignItems: 'baseline',
+            fontFamily: 'var(--mono)',
+            fontSize: 11,
+            borderTop: idx ? '1px solid var(--line)' : 'none',
+            paddingTop: idx ? 5 : 0,
+          }}
+        >
+          <span className="mute">{tr.index}</span>
+          <span style={{ color: tr.from ? 'var(--fg)' : 'var(--warn)' }}>{tr.fromLabel || '-'}</span>
+          <span className="mute">-&gt;</span>
+          <span style={{ color: tr.to ? 'var(--cyan)' : 'var(--warn)' }}>{tr.toLabel || '-'}</span>
+          <span className="mute" style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+            {tr.fullLabel || '-'}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const FsmTransitionDiagram = ({ machine, index = 0 }) => {
+  const graph = fsmGraphFromMachine(machine);
+  const [mode, setMode] = React.useState('graph');
+  const mermaidCode = fsmGraphToMermaid(graph);
+  const diagramId = fsmDiagramId(machine.name, index);
+
+  if (!graph.states.length || !graph.transitions.length) {
+    return <DigestEmpty text="No drawable FSM transitions yet. Add transition entries with from/to fields." />;
+  }
+
+  return (
+    <div style={{ marginTop: 10, border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)', overflow: 'hidden' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 8,
+          padding: '7px 9px',
+          borderBottom: '1px solid var(--line)',
+          background: 'var(--bg-2)',
+        }}
+      >
+        <div className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>
+          {graph.states.length} states / {graph.drawableTransitions.length} drawable transitions
+        </div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <FsmModeButton active={mode === 'graph'} onClick={() => setMode('graph')}>Graph</FsmModeButton>
+          <FsmModeButton active={mode === 'mermaid'} onClick={() => setMode('mermaid')}>Mermaid</FsmModeButton>
+          <FsmModeButton active={mode === 'table'} onClick={() => setMode('table')}>Table</FsmModeButton>
+        </div>
+      </div>
+      {mode === 'graph' ? (
+        <MermaidFsmGraph graph={graph} code={mermaidCode} diagramId={diagramId} />
+      ) : null}
+      {mode === 'mermaid' ? (
+        <pre
+          className="tool-output-pre language-mermaid"
+          style={{
+            margin: 0,
+            border: 'none',
+            borderRadius: 0,
+            maxHeight: 360,
+            overflow: 'auto',
+            background: 'var(--code-bg)',
+            padding: '10px 12px',
+            whiteSpace: 'pre',
+          }}
+        >
+          <code>{mermaidCode}</code>
+        </pre>
+      ) : null}
+      {mode === 'table' ? (
+        <div style={{ padding: 10 }}>
+          <FsmTransitionTable graph={graph} />
+        </div>
+      ) : null}
     </div>
   );
 };
@@ -8032,7 +8378,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
       <div style={{ display: 'grid', gap: 10 }}>
         <DigestCard
           title="FSM Summary"
-          meta={`${fsmMachines.length} machines · ${fsmMachines.reduce((sum, m) => sum + m.states.length, 0)} states · ${fsmMachines.reduce((sum, m) => sum + m.transitions.length, 0)} transitions`}
+          meta={`${fsmMachines.length} machines · ${fsmMachines.reduce((sum, m) => sum + uniqueFsmStates(m).length, 0)} states · ${fsmMachines.reduce((sum, m) => sum + m.transitions.length, 0)} transitions`}
         >
           {fsmMachines.length ? (
             <DigestKV rows={[
@@ -8044,88 +8390,50 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
             <DigestEmpty text="No structured FSM section found. Add fsm.<machine>.states and fsm.<machine>.transitions to SSOT." />
           )}
         </DigestCard>
-        {fsmMachines.map((machine, machineIdx) => (
-          <DigestCard
-            key={machine.name}
-            title={machine.name}
-            meta={`${machine.states.length} states · ${machine.transitions.length} transitions`}
-          >
-            <DigestKV rows={[
-              ['reset', machine.resetState],
-              ['illegal recovery', machine.illegalRecovery],
-              ['outputs', machine.outputs.join('; ')],
-              ['actions', machine.actions.join('; ')],
-              ['note', machine.note],
-            ]} />
-            <FsmTransitionDiagram machine={machine} index={machineIdx} />
-            {machine.states.length ? (
-              <div style={{ marginTop: 10 }}>
-                <div className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10, marginBottom: 5 }}>states</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {machine.states.map(state => (
-                    <span
-                      key={`${machine.name}:${state}`}
-                      style={{
-                        border: '1px solid var(--line-2)',
-                        borderRadius: 3,
-                        padding: '3px 7px',
-                        fontFamily: 'var(--mono)',
-                        fontSize: 11,
-                        color: state === machine.resetState ? 'var(--accent)' : 'var(--fg)',
-                        background: state === machine.resetState
-                          ? 'color-mix(in oklch, var(--accent) 14%, transparent)'
-                          : 'var(--bg-3)',
-                      }}
-                    >
-                      {state}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-            {machine.transitions.length ? (
-              <div style={{ marginTop: 12, display: 'grid', gap: 4 }}>
-                <div
-                  className="mute"
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'minmax(90px, 0.7fr) 20px minmax(90px, 0.7fr) minmax(0, 1.4fr)',
-                    gap: 8,
-                    fontFamily: 'var(--mono)',
-                    fontSize: 10,
-                  }}
-                >
-                  <span>from</span><span></span><span>to</span><span>condition/action</span>
-                </div>
-                {machine.transitions.map((tr, idx) => (
-                  <div
-                    key={`${machine.name}:tr:${idx}:${tr.raw}`}
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'minmax(90px, 0.7fr) 20px minmax(90px, 0.7fr) minmax(0, 1.4fr)',
-                      gap: 8,
-                      alignItems: 'baseline',
-                      fontFamily: 'var(--mono)',
-                      fontSize: 11,
-                      borderTop: idx ? '1px solid var(--line)' : 'none',
-                      paddingTop: idx ? 5 : 0,
-                    }}
-                  >
-                    <span style={{ color: 'var(--fg)' }}>{tr.from || '-'}</span>
-                    <span className="mute">-&gt;</span>
-                    <span style={{ color: 'var(--cyan)' }}>{tr.to || '-'}</span>
-                    <span className="mute" style={{ whiteSpace: 'normal' }}>
-                      {tr.condition || tr.action || tr.raw || '-'}
-                      {tr.condition && tr.action ? ` / ${tr.action}` : ''}
-                    </span>
+        {fsmMachines.map((machine, machineIdx) => {
+          const graph = fsmGraphFromMachine(machine);
+          return (
+            <DigestCard
+              key={machine.name}
+              title={machine.name}
+              meta={`${graph.states.length} states · ${graph.transitions.length} transitions`}
+            >
+              <DigestKV rows={[
+                ['reset', machine.resetState],
+                ['illegal recovery', machine.illegalRecovery],
+                ['outputs', machine.outputs.join('; ')],
+                ['actions', machine.actions.join('; ')],
+                ['note', machine.note],
+              ]} />
+              {graph.states.length ? (
+                <div style={{ marginTop: 10 }}>
+                  <div className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10, marginBottom: 5 }}>states</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {graph.states.map(state => (
+                      <span
+                        key={`${machine.name}:${state.id}`}
+                        style={{
+                          border: '1px solid var(--line-2)',
+                          borderRadius: 3,
+                          padding: '3px 7px',
+                          fontFamily: 'var(--mono)',
+                          fontSize: 11,
+                          color: state.reset ? 'var(--accent)' : 'var(--fg)',
+                          background: state.reset
+                            ? 'color-mix(in oklch, var(--accent) 14%, transparent)'
+                            : 'var(--bg-3)',
+                        }}
+                      >
+                        {state.label}
+                      </span>
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <DigestEmpty text="No transitions listed for this FSM." />
-            )}
-          </DigestCard>
-        ))}
+                </div>
+              ) : null}
+              <FsmTransitionDiagram machine={machine} index={machineIdx} />
+            </DigestCard>
+          );
+        })}
       </div>
     </>
   );
@@ -10336,9 +10644,9 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0 }) => {
   );
   const tree = React.useMemo(() => _buildFoldTree(ranges), [ranges]);
 
-  // Render the source as nested <details> + line-rows. Fold headers keep
-  // the original source line visible; the parsed fold kind/range is only
-  // a small affordance beside the code, never a replacement for it.
+  // Render the source as nested <details> + line-rows. Fold controls are
+  // deliberately separate rows above the source range: the original YAML/RTL
+  // line always remains in the body, so the preview stays faithful to the file.
   const renderLineRow = (ln) => {
     const text = srcLines[ln - 1] != null ? srcLines[ln - 1] : '';
     const html = highlightLine(text);
@@ -10358,24 +10666,14 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0 }) => {
   };
 
   const renderFoldSummary = (c, color, depth) => {
-    const ln = c.line_start;
-    const text = srcLines[ln - 1] != null ? srcLines[ln - 1] : '';
-    const html = highlightLine(text);
-    const inSel = sel && ln >= sel.lo && ln <= sel.hi;
+    const inSel = sel && c.line_start <= sel.hi && c.line_end >= sel.lo;
     return (
       <summary
-        className={'fold-summary source-fold-summary' + (inSel ? ' sel' : '')}
-        style={{ borderLeftColor: color, paddingLeft: `calc(${depth * 1.5}ch + 8px)` }}
+        className={'fold-summary fold-control-summary' + (inSel ? ' sel' : '')}
+        style={{ borderLeftColor: color, color, paddingLeft: `calc(${depth * 1.5}ch + 8px)` }}
       >
-        <span className="source-fold-line line-row" data-ln={ln}>
-          <span className="lineno"
-                data-ln={ln}
-                onMouseDown={(ev) => onLineMouseDown(ln, ev)}
-                onMouseEnter={() => onLineMouseEnter(ln)}>
-            {ln}
-          </span>
-          <span className="line"
-                dangerouslySetInnerHTML={{ __html: html === text ? _escHtml(text) || ' ' : html }} />
+        <span className="fold-label" title={c.label}>
+          {c.label || c.kind}
         </span>
         <span className="fold-range mute" title={c.label}>
           {c.kind} L{c.line_start}-L{c.line_end}
@@ -10397,8 +10695,9 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0 }) => {
       const color = _FOLD_KIND_COLOR[c.kind] || 'var(--fg-mute)';
       const opened = true;
       const inner = [];
-      // The summary itself renders the original c.line_start source
-      // line, so the collapsible body starts with the next line.
+      // Keep the original start line in the body. The summary above is
+      // only a fold affordance, never a replacement for source text.
+      inner.push(renderLineRow(c.line_start));
       cursor = c.line_start + 1;
       const sub = renderTree(c, cursor, depth + 1);
       inner.push(...sub.elements);
