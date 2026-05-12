@@ -800,7 +800,12 @@ def _fsm_pipeline(doc: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _ensure_cycle_model(doc: dict[str, Any]) -> dict[str, Any]:
-    cm = doc.get("cycle_model") if isinstance(doc.get("cycle_model"), dict) else {}
+    cm = dict(doc.get("cycle_model")) if isinstance(doc.get("cycle_model"), dict) else {}
+    cm.setdefault("executable", "pymtl3")
+    cm.setdefault(
+        "backend_policy",
+        "Use PyMTL3 for the clocked cycle model shell; FunctionalModel remains the behavioral oracle.",
+    )
     generic_handshake = (
         isinstance(cm.get("handshake_rules"), list)
         and len(cm.get("handshake_rules") or []) <= 1
@@ -813,6 +818,8 @@ def _ensure_cycle_model(doc: dict[str, Any]) -> dict[str, Any]:
     dataflow = doc.get("dataflow") if isinstance(doc.get("dataflow"), dict) else {}
     return {
         "purpose": "Cycle/handshake contract for rtl-gen and waveform-based verification.",
+        "executable": "pymtl3",
+        "backend_policy": "Use PyMTL3 for the clocked cycle model shell; FunctionalModel remains the behavioral oracle.",
         "clock": clock,
         "reset": {
             "signal": reset,
@@ -837,6 +844,12 @@ def _ensure_cycle_model(doc: dict[str, Any]) -> dict[str, Any]:
             "Backpressure stalls the active handshake stage without corrupting stored state.",
         ] + (["Read/dataflow stages must precede dependent write/output stages where declared in dataflow."] if dataflow else []),
         "backpressure": ["Ready/valid deassertion stalls only the affected interface stage; payload and route/control state remain stable."],
+        "performance": {
+            "frequency_mhz": freq,
+            "throughput": {"sustained_beats_per_cycle": 1, "condition": "No backpressure on the active interface"},
+            "outstanding": {"max": 1, "description": "Default one accepted operation until the SSOT declares deeper buffering"},
+            "depth": {"pipeline_stages": 3, "queue_depth": 1, "description": "Default accept/evaluate/observe cycle model depth"},
+        },
         "observability": ["Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."],
     }
 

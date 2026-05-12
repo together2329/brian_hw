@@ -287,6 +287,8 @@ function_model:
 # =============================================================================
 cycle_model:
   purpose: "Cycle/handshake contract for rtl-gen; describes when state, valid/ready, outputs, and interrupts may change."
+  executable: "pymtl3"
+  backend_policy: "Use PyMTL3 for the clocked cycle model shell; keep FunctionalModel as the behavioral oracle and run direct Python smoke checks instead of relying on pytest-pymtl3."
   clock: "dmaclk"
   reset:
     assertion: "dmacresetn low asynchronously clears all architectural state"

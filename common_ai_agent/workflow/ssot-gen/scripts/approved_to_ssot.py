@@ -1287,6 +1287,7 @@ def _rtl_contract(ip: str, decisions: dict[str, str], io: dict[str, Any], fm: di
 
 def _cycle_model(decisions: dict[str, str], io: dict[str, Any]) -> dict[str, Any]:
     clk = io["clock_domains"][0]["ports"][0]["name"]
+    freq = io["clock_domains"][0].get("frequency_mhz") or 100
     rst = io["resets"][0]
     rules = [
         {"signal": "valid_ready", "rule": "A transfer is accepted only on valid && ready or the equivalent approved protocol phase."},
@@ -1299,6 +1300,8 @@ def _cycle_model(decisions: dict[str, str], io: dict[str, Any]) -> dict[str, Any
         rules.append({"signal": "axis", "rule": "AXI4-Stream accepts beats on tvalid && tready; tlast closes the packet transaction."})
     return {
         "purpose": "Cycle-accurate protocol, reset, latency, and observability contract for rtl-gen.",
+        "executable": "pymtl3",
+        "backend_policy": "Use PyMTL3 for the clocked cycle model shell; FunctionalModel remains the behavioral oracle.",
         "clock": clk,
         "reset": {
             "signal": rst["name"],
@@ -1321,6 +1324,12 @@ def _cycle_model(decisions: dict[str, str], io: dict[str, Any]) -> dict[str, Any
             "CSR side effects occur in program order at the accepted control transaction boundary.",
         ],
         "backpressure": ["Input data and control state remain stable while the selected protocol applies backpressure."],
+        "performance": {
+            "frequency_mhz": freq,
+            "throughput": {"sustained_beats_per_cycle": 1, "condition": "No downstream or internal backpressure"},
+            "outstanding": {"max": 1, "description": "Default one accepted operation until Q&A declares deeper buffering"},
+            "depth": {"pipeline_stages": 3, "queue_depth": 1, "description": "Accept/update/observe default cycle structure"},
+        },
         "observability": ["busy", "error", "all protocol valid/ready signals", "all CSR side-effect points"],
     }
 

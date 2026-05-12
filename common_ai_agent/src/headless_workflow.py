@@ -319,6 +319,8 @@ def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
             "reference_model_hint": "FunctionalModel.apply(value) returns result=value*2 and increments accepted_count.",
         },
         "cycle_model": {
+            "executable": "pymtl3",
+            "backend_policy": "Use PyMTL3 for the clocked cycle model shell; FunctionalModel remains the behavioral oracle.",
             "clock": "clk",
             "reset": "rst_n",
             "latency": 1,
@@ -337,6 +339,12 @@ def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
                 "Reset clears pending valid output before any new transaction is accepted.",
             ],
             "backpressure": ["ready remains asserted in this one-deep sample rule IP."],
+            "performance": {
+                "frequency_mhz": 100,
+                "throughput": {"sustained_beats_per_cycle": 1, "condition": "ready remains asserted"},
+                "outstanding": {"max": 1, "description": "One sampled transaction at a time"},
+                "depth": {"pipeline_stages": 2, "queue_depth": 1, "description": "Sample/result default cycle depth"},
+            },
         },
         "clock_reset_domains": {
             "domains": [{"name": "main", "clock": "clk", "reset": "rst_n", "reset_active": "low"}],
