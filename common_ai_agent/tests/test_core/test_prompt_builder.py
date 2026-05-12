@@ -12,7 +12,13 @@ _project_root = os.path.dirname(os.path.dirname(_tests_dir))
 sys.path.insert(0, os.path.join(_project_root, 'core'))
 sys.path.insert(0, os.path.join(_project_root, 'src'))
 
-from prompt_builder import build_system_prompt, _build_system_prompt_str, PromptContext
+from prompt_builder import (
+    MEMORY_OVERRIDE_START,
+    PromptContext,
+    apply_memory_override,
+    build_system_prompt,
+    _build_system_prompt_str,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -163,7 +169,7 @@ class TestBuildSystemPromptStr(unittest.TestCase):
         """When memory_system is provided and returns content, it's in the prompt."""
 
         class MockMemory:
-            def format_all_for_prompt(self):
+            def format_all_for_prompt(self, workflow=None):
                 return "=== PREFERENCES ===\nkey: value"
 
         ctx = PromptContext(memory_system=MockMemory())
@@ -174,6 +180,22 @@ class TestBuildSystemPromptStr(unittest.TestCase):
             messages=[{"role": "user", "content": "hello"}],
         )
         self.assertIn("PREFERENCES", result)
+        self.assertTrue(result.startswith(MEMORY_OVERRIDE_START))
+
+    def test_memory_override_stays_above_workspace_prompt(self):
+        """Re-applying memory after workspace merge keeps it at the top."""
+
+        class MockMemory:
+            def format_all_for_prompt(self, workflow=None):
+                return f"Workflow {workflow}: memory wins"
+
+        prompt = "WORKSPACE RULES\n\n" + MEMORY_OVERRIDE_START + "\nstale\n=== END MEMORY OVERRIDES ===\n\nBASE"
+        result = apply_memory_override(prompt, MockMemory(), workflow="rtl-gen")
+
+        self.assertTrue(result.startswith(MEMORY_OVERRIDE_START))
+        self.assertIn("Workflow rtl-gen: memory wins", result)
+        self.assertNotIn("stale", result)
+        self.assertLess(result.index(MEMORY_OVERRIDE_START), result.index("WORKSPACE RULES"))
 
 
 if __name__ == '__main__':

@@ -282,6 +282,10 @@ def _setup_workspace(name: str) -> None:
                     )
                 except Exception:
                     pass
+                try:
+                    merged = _pb.apply_memory_override(merged, memory_system, workflow=name)
+                except Exception:
+                    pass
                 return merged
 
             _pb.build_system_prompt = _patched_build_system_prompt
@@ -1820,6 +1824,19 @@ def chat_loop():
                 result = slash_registry.execute(user_input)
 
                 if result is not None:
+                    if user_input.split(maxsplit=1)[0] in ("/memory", "/mem"):
+                        try:
+                            _new_sys = _build_system_prompt_str(agent_mode=agent_mode)
+                            if messages and messages[0].get("role") == "system":
+                                messages[0]["content"] = _new_sys
+                            else:
+                                messages.insert(0, {"role": "system", "content": _new_sys})
+                            save_conversation_history(messages)
+                            context_tracker.update_system_prompt(_new_sys)
+                            context_tracker.update_messages(messages, exclude_system=True)
+                        except Exception as _mem_err:
+                            print(Color.warning(f"\n⚠ Memory updated, but prompt refresh failed: {_mem_err}\n"))
+
                     # Check for special commands
                     if result == "CLEAR_ALL":
                         # 1. Delete .git directory

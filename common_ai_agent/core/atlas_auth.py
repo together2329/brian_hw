@@ -41,6 +41,7 @@ else:
 
 _COOKIE_NAME = "atlas_session"
 _MAX_AGE = 90 * 24 * 60 * 60
+_DEFAULT_ADMIN_USERS = "admin"
 
 
 def _default_cookie_secret() -> str:
@@ -68,6 +69,23 @@ def _default_cookie_secret() -> str:
 
 def _now() -> float:
     return time.time()
+
+
+def _admin_usernames() -> set[str]:
+    """Usernames that should be treated as Atlas admins.
+
+    ATLAS_ADMIN_USERS is a comma-separated bootstrap list. The default keeps
+    the local "admin" account useful without requiring manual SQLite edits.
+    Set ATLAS_ADMIN_USERS="" to disable this bootstrap behavior.
+    """
+    raw = os.environ.get("ATLAS_ADMIN_USERS", _DEFAULT_ADMIN_USERS)
+    return {item.strip().lower() for item in raw.split(",") if item.strip()}
+
+
+def _bootstrap_role_for_username(username: str) -> str:
+    if username.strip().lower() in _admin_usernames():
+        return "admin"
+    return "user"
 
 
 def hash_password(password: str) -> str:
@@ -152,6 +170,16 @@ class GuestAuth:
             return None
         return self.db.get_user(user_id)
 
+    def ensure_bootstrap_role(self, user: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """Apply configured bootstrap admin role to an existing user."""
+        if not user:
+            return user
+        expected_role = _bootstrap_role_for_username(str(user.get("username") or ""))
+        if expected_role == "admin" and user.get("role") != "admin":
+            refreshed = self.db.set_user_role(str(user["id"]), "admin")
+            return refreshed or {**user, "role": "admin"}
+        return user
+
 async def get_current_user(request: Request) -> dict:
     """FastAPI dependency that extracts user from cookie."""
     auth: Optional[GuestAuth] = getattr(request.app.state, "auth", None)
@@ -163,7 +191,7 @@ async def get_current_user(request: Request) -> dict:
     return user
 
 
-_PUBLIC_PATHS = {"/", "/index.html", "/healthz", "/favicon.ico"}
+_PUBLIC_PATHS = {"/", "/index.html", "/admin", "/healthz", "/favicon.ico"}
 _PUBLIC_PREFIXES = ("/static/", "/assets/", "/api/auth/", "/git/")
 _PUBLIC_EXT = {"js", "jsx", "css", "html", "png", "jpg", "jpeg", "svg", "ico", "woff", "woff2", "ttf", "map"}
 
@@ -183,7 +211,7 @@ class AuthMiddleware:
 
         path = scope.get("path", "")
         request = StarletteRequest(scope, receive)
-        scope["user"] = self.auth.get_user_from_cookie(request)
+        scope["user"] = self.auth.ensure_bootstrap_role(self.auth.get_user_from_cookie(request))
 
         if self._is_public(path) or scope["user"] is not None:
             await self.app(scope, receive, send)
@@ -240,7 +268,12 @@ def create_auth_endpoints(app: FastAPI, auth: GuestAuth) -> None:
         if auth.db.get_user_by_username(username) is not None:
             raise HTTPException(status_code=409, detail="username already exists")
 
-        user = auth.db.create_user(username, display_name, hash_password(password))
+        user = auth.db.create_user(
+            username,
+            display_name,
+            hash_password(password),
+            role=_bootstrap_role_for_username(username),
+        )
         auth._set_cookie(response, user["id"])
         return {"user": _sanitize_user(user)}
 
@@ -257,6 +290,7 @@ def create_auth_endpoints(app: FastAPI, auth: GuestAuth) -> None:
         if user is None or not verify_password(password, user.get("password_hash") or ""):
             raise HTTPException(status_code=401, detail="invalid credentials")
 
+        user = auth.ensure_bootstrap_role(user) or user
         auth.db._execute(
             "UPDATE users SET last_login_at = ? WHERE id = ?",
             (_now(), user["id"]),

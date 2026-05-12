@@ -1,32 +1,36 @@
 ---
 name: grill-me
-description: Sweep the SSOT for every TBD / unknown / null / missing-required field and resolve each one with the ask_user tool so the answer is captured via a GUI question card. Use whenever a draft SSOT has gaps or the user says "grill me", "fill the SSOT", or "ask me what's missing".
+description: Sweep the SSOT for every TBD / unknown / null / missing-required field and capture each human decision through ATLAS QA tools. Use ask_user for immediate blockers and record_ssot_qa for deferred Review cards, so both paths appear as pending/approved in QA Review.
 ---
 
-# Grill Me — SSOT-Gen Edition (TBD-driven, ask_user-mandatory)
+# Grill Me — SSOT-Gen Edition (TBD-driven QA Review)
 
 Adapted from <https://github.com/mattpocock/skills> (`productivity/grill-me`,
 MIT). The original interviews the user about a plan; this version is
 tuned for the ssot-gen workflow: **find every TBD field in the SSOT and
-resolve it via the `ask_user` tool**, never via plain prose.
+capture it through ATLAS QA tools**, never via plain prose. Use
+`record_ssot_qa` for deferred Review items and `ask_user` only when the
+answer blocks the next SSOT write/import pass.
 
 ## Iron rules
 
-1. **Use the `ask_user` tool for every question.** Plain-text "what should I
-   set X to?" is forbidden in this skill — the Atlas UI renders `ask_user`
-   calls as a GUI question card with options + a free-form note field, and
-   that is the channel the user expects. The terminal UI also supports it.
+1. **Use QA tools for every question.** Plain-text "what should I set X to?"
+   is forbidden in this skill. Use `record_ssot_qa` when the decision can
+   stay pending in QA Review while drafting continues. Use `ask_user` when
+   the answer is an immediate blocker. Both paths must create QA Review
+   records: pending first, approved after the user answers.
 
 2. **Never invent values.** If a field's correct value can't be derived
    from (a) the canonical template `workflow/ssot-gen/rules/ssot-template.yaml`,
    (b) an existing IP's `*.ssot.yaml`, (c) an explicit user message in the
-   conversation, you MUST `ask_user`. Default values from the template are
-   acceptable, but only after the user confirms via `ask_user`.
+   conversation, you MUST create a QA Review item. Default values from the
+   template are acceptable, but only after the user confirms via
+   `ask_user` or answers a `record_ssot_qa` pending card.
 
-3. **One `ask_user` per gap, in dependency order.** Resolve §0 → §1 → §2 →
-   … so later questions can use earlier answers. Do not batch-ask all
-   gaps at once — the user picks one, agent re-evaluates the SSOT, then
-   asks the next.
+3. **Status is part of the contract.** `record_ssot_qa` creates pending
+   cards. `ask_user` creates pending cards while open and flips them to
+   approved when the user submits. Do not leave an `ask_user` answer only in
+   chat history when it belongs to SSOT.
 
 ## Process
 
@@ -68,8 +72,10 @@ why_required}`.
 
 §0 → §1 → … through the canonical SSOT sections. Within a section, parents before children
 (e.g. `top_module.type` before `top_module.target.clock_freq_mhz`).
-For each gap, emit ONE `ask_user` call. Keep the question *narrow* —
-one decision per call.
+For each gap, emit one QA item. Keep the question *narrow* — one decision
+per card. Prefer `record_ssot_qa(questions=[...])` for non-blocking gaps
+so the user can answer them from QA Review. Use `ask_user(questions=[...])`
+only for immediate blockers.
 
 #### Question shape
 
@@ -84,7 +90,7 @@ For each TBD field, pick the right `kind`:
 | Identifier / free name (sub-module name, signal name) | `"input"` | (no options) |
 | Description text | `"input"` | (no options) |
 
-Mandatory fields in the `ask_user` call:
+Mandatory fields in each `record_ssot_qa` or `ask_user` question object:
 
 - `question` — short, single-decision
 - `subtitle` — cite §section + field path so the user sees where the
@@ -106,7 +112,7 @@ field. Recommendations follow these defaults:
 
 ### 4. Apply each answer
 
-After `ask_user` returns:
+After `ask_user` returns or the user answers a pending QA card:
 
 - Parse the result string (it comes back as `"selected: <label>"` or
   `"selected: …  ·  note: <free-form>"`).
@@ -120,7 +126,8 @@ After `ask_user` returns:
 
 ### 5. Stop conditions
 
-- Every TBD resolved → propose `/to-ssot` to write the YAML.
+- Every TBD resolved or recorded as a pending QA Review card → propose the
+  next review/write step.
 - User says "stop", "done", "skip the rest" → write the YAML with the
   remaining gaps left as `# TODO: confirm` comments.
 - A single `ask_user` returns empty (no selection, no note) → treat as
@@ -137,8 +144,8 @@ When done, summarize:
 ## Anti-patterns (do not do)
 
 - Asking "what do you want for §3?" without the field path or options.
-- Presenting more than one decision per `ask_user`.
-- Using plain prose to elicit values when `ask_user` is available.
+- Presenting more than one decision per QA card.
+- Using plain prose to elicit values when ATLAS QA tools are available.
 - Filling a value yourself and noting it as "(needs confirm)" without
   asking the user — the whole point of this skill is to NOT silently
   default.

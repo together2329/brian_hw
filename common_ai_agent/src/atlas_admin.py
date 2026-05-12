@@ -75,9 +75,6 @@ def create_admin_app(project_root: Path):
 
     @app.get("/admin")
     async def admin_page(request: Request):
-        user = request.scope.get("user")
-        if not user or user.get("role") != "admin":
-            return JSONResponse({"error": "Admin access required"}, status_code=403)
         frontend = project_root / "frontend" / "atlas"
         html_path = frontend / "admin.html"
         if not html_path.is_file():

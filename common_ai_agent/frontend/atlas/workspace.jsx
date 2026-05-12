@@ -1017,6 +1017,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       return 'default';
     }
   });
+  const activeSessionRef = React.useRef(activeSession);
+  const hydratedConversationSessionRef = React.useRef(activeSession);
+  React.useEffect(() => { activeSessionRef.current = activeSession; }, [activeSession]);
 
   const refreshFeed = (newIntent /*, newWorkflow */) => {
     // Do not reset the conversation on mode/workflow switches. The
@@ -1272,6 +1275,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // qaState is keyed by flow_id. Dynamic flows are added on-the-fly
   // when the agent emits an ask_user event over the WS.
   const [qaState, setQaState] = React.useState({});
+  const qaStateRef = React.useRef(qaState);
+  React.useEffect(() => { qaStateRef.current = qaState; }, [qaState]);
   // qaHistory: every submitted ask_user round-trip, newest first.
   // Each entry is {flowId, ts, ip, workflow, source, items: [{
   //   question, kind, selected: [{id,label}], custom
@@ -1537,9 +1542,26 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // conversation.json. data.jsx fires 'atlas-conversation-loaded' after
   // active session changes so screen switches do not erase chat history.
   React.useEffect(() => {
+    const placeholderTexts = new Set([
+      NORMAL_FEED[0]?.text || '',
+      PLAN_FEED[0]?.text || '',
+    ]);
+    const hasLiveFeedEntries = (items) => Array.isArray(items) && items.some(e => {
+      if (!e || typeof e !== 'object') return false;
+      if (e.kind === 'turn_end') return false;
+      if (e.kind === 'agent') {
+        const text = String(e.text || '');
+        return !!text.trim() && !placeholderTexts.has(text);
+      }
+      return ['user', 'qcard', 'action', 'obs', 'ssot_approval'].includes(e.kind);
+    });
+    const hasPendingAskUser = () => {
+      const state = qaStateRef.current || {};
+      return Object.values(state).some(st => st && !st.submitted);
+    };
     const onConvLoaded = (ev) => {
       const msgs = (ev.detail && ev.detail.messages) || [];
-      const session = ev.detail && ev.detail.session;
+      const session = normalizeUiSession(ev.detail && ev.detail.session || '');
       if (session) setActiveSession(session);
       if (streamingRef.current || (streamBufferRef.current || '').trim()) {
         return;
@@ -1587,16 +1609,26 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
           text: `↓ live (${session ? `.session/${session}` : 'session history'} above) ↓`,
         });
       }
-      // Always replace the feed on namespace change — even when the
-      // new namespace has zero messages on disk yet. Previously we
-      // only replaced on non-empty results, which left the OLD feed
-      // visible when switching to a fresh ssot-gen / rtl-gen workflow
-      // and made it look like "session, ip, workflow별 conversation
-      // 분리"가 무시된 것처럼 보였다. Empty new namespace → empty
-      // feed (no fake "Agent: .session/..." placeholder; the path
-      // leaked internal info and the message was misleadingly
-      // attributed to the agent).
-      setFeed(newFeed);
+      setFeed(prev => {
+        const prevSession = normalizeUiSession(hydratedConversationSessionRef.current || '');
+        const namespaceChanged = !!(session && prevSession && session !== prevSession);
+        const sameActiveSession = !session || session === normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || '');
+        // ask_user can trigger a session-state refresh before the agent
+        // flushes conversation.json. That empty same-session snapshot
+        // should not erase the live chat or the pending Q&A card.
+        // Real namespace switches still replace the feed below.
+        const lateEmptySnapshot = (
+          sameActiveSession
+          && !namespaceChanged
+          && newFeed.length === 0
+          && (hasLiveFeedEntries(prev) || hasPendingAskUser())
+        );
+        if (lateEmptySnapshot) {
+          return prev;
+        }
+        if (session) hydratedConversationSessionRef.current = session;
+        return newFeed;
+      });
     };
     window.addEventListener('atlas-conversation-loaded', onConvLoaded);
     if (window.ATLAS_LAST_CONVERSATION) {
@@ -3334,17 +3366,18 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             renderChatPane()
           ) : (mainTab === 'split' || mainTab === 'preview') ? (() => {
             // Unified split/full-view layout — chat | splitter | preview.
-            // Going to full view animates the chat column to 0 and the
-            // preview column to 100% so the right pane "slides open" toward
-            // the left without a hard DOM swap.
+            // splitRightW is the persisted preview-pane width. The chat
+            // pane takes the remaining space, so dragging the handle gives
+            // the user direct left/right control instead of a fixed 50/50.
             const fullView = mainTab === 'preview';
-            const chatPct = fullView ? 0 : 50;        // % of grid
-            const previewPct = fullView ? 100 : 50;
+            const splitColumns = fullView
+              ? '0px 4px minmax(0, 1fr)'
+              : `minmax(260px, 1fr) 4px minmax(300px, ${splitRightW}px)`;
             return (
               <div style={{
                 flex: 1, minHeight: 0, display: 'grid',
-                gridTemplateColumns: `${chatPct}% 4px ${previewPct}%`,
-                transition: 'grid-template-columns 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                gridTemplateColumns: splitColumns,
+                transition: fullView ? 'grid-template-columns 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none',
                 overflow: 'hidden',
               }}>
                 <div style={{
@@ -5616,6 +5649,7 @@ const SSOT_DIGEST_VIEWS = [
   { id: 'interfaces', label: 'Interfaces', keys: ['io_list', 'decomposition'] },
   { id: 'feature_map', label: 'Feature Map', keys: ['features', 'sub_modules', 'decomposition', 'function_model', 'cycle_model', 'registers', 'dataflow'] },
   { id: 'function_model', label: 'Function Model', keys: ['function_model'] },
+  { id: 'fsm', label: 'FSM', keys: ['fsm'] },
   { id: 'cycle_model', label: 'Cycle Model', keys: ['cycle_model', 'timing'] },
   { id: 'registers', label: 'Register Map', keys: ['registers'] },
   { id: 'dataflow', label: 'Dataflow', keys: ['dataflow'] },
@@ -5982,6 +6016,74 @@ const extractRegisters = (section) => {
   }));
 };
 
+const _stateNameFromBlock = (block) => {
+  const first = String((block && block.text) || '').split(/\r?\n/)[0] || '';
+  return blockField(block, 'name')
+    || blockField(block, 'state')
+    || stripYamlScalar(first.replace(/^\s*-\s*/, ''));
+};
+
+const _parseFsmTransition = (block) => {
+  const first = String((block && block.text) || '').split(/\r?\n/)[0] || '';
+  const scalar = stripYamlScalar(first.replace(/^\s*-\s*/, ''));
+  let from = blockField(block, 'from');
+  let to = blockField(block, 'to');
+  let condition = blockField(block, 'condition', 280)
+    || blockField(block, 'guard', 280)
+    || blockField(block, 'when', 280)
+    || blockField(block, 'on', 280);
+  const action = blockField(block, 'action', 240) || blockField(block, 'output', 240);
+  if ((!from || !to) && scalar) {
+    const m = scalar.match(/^(.+?)\s*(?:->|=>|to)\s*(.+?)(?:\s+(?:when|if|on)\s+(.+))?$/i);
+    if (m) {
+      from = from || stripYamlScalar(m[1]);
+      to = to || stripYamlScalar(m[2]);
+      condition = condition || stripYamlScalar(m[3] || '');
+    }
+  }
+  return { from, to, condition, action, raw: scalar };
+};
+
+const _fsmFromText = (name, text, sourceKey = '') => {
+  const stateBlocks = listBlocksFromText(text, 'states');
+  const transitionBlocks = listBlocksFromText(text, 'transitions');
+  const states = stateBlocks.map(_stateNameFromBlock).filter(Boolean);
+  const transitions = transitionBlocks.map(_parseFsmTransition).filter(t => (
+    t.from || t.to || t.condition || t.raw
+  ));
+  return {
+    name,
+    sourceKey,
+    states,
+    transitions,
+    resetState: fieldFromText(text, 'reset_state')
+      || fieldFromText(text, 'initial_state')
+      || fieldFromText(text, 'reset')
+      || states[0]
+      || '',
+    illegalRecovery: fieldFromText(text, 'illegal_state_recovery', 360)
+      || fieldFromText(text, 'default_recovery', 360)
+      || fieldFromText(text, 'safe_state', 240),
+    outputs: blockListValues({ text }, 'outputs', 8),
+    actions: blockListValues({ text }, 'actions', 8),
+    note: fieldFromText(text, 'note', 360) || fieldFromText(text, 'description', 360),
+  };
+};
+
+const extractFsms = (section) => {
+  if (!section) return [];
+  const groups = mapGroupsFromSection(section)
+    .filter(group => !/^(states|transitions|outputs|actions)$/i.test(group.key || ''));
+  if (groups.length) {
+    return groups
+      .map(group => _fsmFromText(ssotTitleFor(group.key), group.text, section.key))
+      .filter(machine => machine.states.length || machine.transitions.length || machine.note);
+  }
+  const direct = _fsmFromText(ssotTitleFor(section.key), section.text, section.key);
+  if (direct.states.length || direct.transitions.length) return [direct];
+  return [];
+};
+
 const sourceSectionsForDigestView = (view, sections) => {
   const source = sectionsForKeys(sections, view && view.keys);
   const addMatching = (rx) => {
@@ -6001,6 +6103,9 @@ const sourceSectionsForDigestView = (view, sections) => {
       break;
     case 'function_model':
       addMatching(/function|fsm|state|logic|arbitration|ack|interrupt/i);
+      break;
+    case 'fsm':
+      addMatching(/fsm|state|transition/i);
       break;
     case 'cycle_model':
       addMatching(/cycle|timing|latency|handshake|pipeline|scl/i);
@@ -6155,14 +6260,6 @@ const YamlSectionCard = ({ section, statusByKey }) => {
   }
   // Default open for short sections, closed for long ones (>40 lines).
   const [open, setOpen] = React.useState(lines.length <= 40);
-  const codeRef = React.useRef(null);
-  React.useEffect(() => {
-    if (!open) return;
-    const code = codeRef.current;
-    const Prism = window.Prism;
-    if (!code || !Prism) return;
-    try { Prism.highlightElement(code); } catch (_) {}
-  }, [open, text]);
   const statusColor = status === 'approved'
     ? 'var(--ok)'
     : (status === 'flag' || status === 'warn' ? 'var(--warn)' : 'var(--accent)');
@@ -6222,7 +6319,10 @@ const YamlSectionCard = ({ section, statusByKey }) => {
             whiteSpace: 'pre',
           }}
         >
-          <code ref={codeRef} className="language-yaml">{text}</code>
+          <code
+            className="language-yaml"
+            dangerouslySetInnerHTML={{ __html: _highlightYamlBlock(text) }}
+          />
         </pre>
       ) : null}
     </div>
@@ -7231,6 +7331,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
     synchronizer: blockField(block, 'synchronizer'),
     description: blockField(block, 'description', 260),
   }));
+  const fsmMachines = extractFsms(fsmSection);
   const dataflowGroups = mapGroupsFromSection(dataflowSection).filter(g => g.key !== 'locked_decisions');
   const transactions = listBlocksFromSection(functionSection, 'transactions');
   const stateVars = listBlocksFromSection(functionSection, 'state_variables');
@@ -7284,6 +7385,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
     { label: 'Architecture', status: statusForPresence(submods.length > 0 || moduleContracts.length > 0), detail: `${submods.length || moduleContracts.length} modules` },
     { label: 'Interfaces', status: statusForPresence(interfaces.length > 0), detail: `${interfaces.length} interfaces` },
     { label: 'Function model', status: statusForPresence(!!functionSection || semanticSectionNames(/function|fsm|logic|state/i, 1).length > 0), detail: functionSection ? 'function_model' : compactDigestItems(semanticSectionNames(/function|fsm|logic|state/i, 3), 3) },
+    { label: 'FSM', status: statusForPresence(fsmMachines.length > 0), detail: fsmMachines.length ? `${fsmMachines.length} machines` : compactDigestItems(semanticSectionNames(/fsm|state|transition/i, 3), 3) },
     { label: 'Cycle model', status: statusForPresence(!!cycleSection || !!timingSection || semanticSectionNames(/cycle|timing|latency|scl/i, 1).length > 0), detail: cycleSection ? 'cycle_model' : compactDigestItems(semanticSectionNames(/cycle|timing|latency|scl/i, 3), 3) },
     { label: 'Register map', status: statusForPresence(registers.length > 0), detail: `${registers.length} registers` },
     { label: 'Dataflow', status: statusForPresence(dataflowGroups.length > 0 || semanticSectionNames(/dataflow|flow|fifo|buffer|open_drain|access/i, 1).length > 0), detail: dataflowGroups.length ? `${dataflowGroups.length} flows` : compactDigestItems(semanticSectionNames(/dataflow|flow|fifo|buffer|open_drain|access/i, 3), 3) },
@@ -7330,6 +7432,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
               ['registers', compactDigestItems(registers.map(reg => `${reg.name}${reg.offset ? ` @ ${reg.offset}` : ''}`), 5)],
               ['dataflow', compactDigestItems(dataflowGroups.map(g => ssotTitleFor(g.key)), 5) || compactDigestItems(semanticSectionNames(/dataflow|flow|fifo|buffer|open_drain|access/i, 5), 5)],
               ['function', sectionFact(functionSection, 'purpose') || compactDigestItems(semanticSectionNames(/function|fsm|logic|state/i, 4), 4)],
+              ['fsm', compactDigestItems(fsmMachines.map(machine => `${machine.name} (${machine.states.length} states)`), 4)],
               ['cycle', sectionFact(cycleSection, 'purpose') || compactDigestItems(semanticSectionNames(/cycle|timing|latency|scl/i, 4), 4)],
             ]} />
           </DigestCard>
@@ -7511,6 +7614,109 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
             </div>
           ) : <DigestEmpty />}
         </DigestCard>
+      </div>
+    </>
+  );
+
+  const renderFsm = () => (
+    <>
+      {header}
+      <div style={{ display: 'grid', gap: 10 }}>
+        <DigestCard
+          title="FSM Summary"
+          meta={`${fsmMachines.length} machines · ${fsmMachines.reduce((sum, m) => sum + m.states.length, 0)} states · ${fsmMachines.reduce((sum, m) => sum + m.transitions.length, 0)} transitions`}
+        >
+          {fsmMachines.length ? (
+            <DigestKV rows={[
+              ['machines', compactDigestItems(fsmMachines.map(machine => machine.name), 8)],
+              ['reset states', compactDigestItems(fsmMachines.map(machine => machine.resetState ? `${machine.name}: ${machine.resetState}` : '').filter(Boolean), 6)],
+              ['source', fsmSection ? `fsm section line ${fsmSection.startLine}` : 'No fsm section found'],
+            ]} />
+          ) : (
+            <DigestEmpty text="No structured FSM section found. Add fsm.<machine>.states and fsm.<machine>.transitions to SSOT." />
+          )}
+        </DigestCard>
+        {fsmMachines.map(machine => (
+          <DigestCard
+            key={machine.name}
+            title={machine.name}
+            meta={`${machine.states.length} states · ${machine.transitions.length} transitions`}
+          >
+            <DigestKV rows={[
+              ['reset', machine.resetState],
+              ['illegal recovery', machine.illegalRecovery],
+              ['outputs', machine.outputs.join('; ')],
+              ['actions', machine.actions.join('; ')],
+              ['note', machine.note],
+            ]} />
+            {machine.states.length ? (
+              <div style={{ marginTop: 10 }}>
+                <div className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10, marginBottom: 5 }}>states</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {machine.states.map(state => (
+                    <span
+                      key={`${machine.name}:${state}`}
+                      style={{
+                        border: '1px solid var(--line-2)',
+                        borderRadius: 3,
+                        padding: '3px 7px',
+                        fontFamily: 'var(--mono)',
+                        fontSize: 11,
+                        color: state === machine.resetState ? 'var(--accent)' : 'var(--fg)',
+                        background: state === machine.resetState
+                          ? 'color-mix(in oklch, var(--accent) 14%, transparent)'
+                          : 'var(--bg-3)',
+                      }}
+                    >
+                      {state}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            {machine.transitions.length ? (
+              <div style={{ marginTop: 12, display: 'grid', gap: 4 }}>
+                <div
+                  className="mute"
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(90px, 0.7fr) 20px minmax(90px, 0.7fr) minmax(0, 1.4fr)',
+                    gap: 8,
+                    fontFamily: 'var(--mono)',
+                    fontSize: 10,
+                  }}
+                >
+                  <span>from</span><span></span><span>to</span><span>condition/action</span>
+                </div>
+                {machine.transitions.map((tr, idx) => (
+                  <div
+                    key={`${machine.name}:tr:${idx}:${tr.raw}`}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'minmax(90px, 0.7fr) 20px minmax(90px, 0.7fr) minmax(0, 1.4fr)',
+                      gap: 8,
+                      alignItems: 'baseline',
+                      fontFamily: 'var(--mono)',
+                      fontSize: 11,
+                      borderTop: idx ? '1px solid var(--line)' : 'none',
+                      paddingTop: idx ? 5 : 0,
+                    }}
+                  >
+                    <span style={{ color: 'var(--fg)' }}>{tr.from || '-'}</span>
+                    <span className="mute">-&gt;</span>
+                    <span style={{ color: 'var(--cyan)' }}>{tr.to || '-'}</span>
+                    <span className="mute" style={{ whiteSpace: 'normal' }}>
+                      {tr.condition || tr.action || tr.raw || '-'}
+                      {tr.condition && tr.action ? ` / ${tr.action}` : ''}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <DigestEmpty text="No transitions listed for this FSM." />
+            )}
+          </DigestCard>
+        ))}
       </div>
     </>
   );
@@ -7737,6 +7943,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
   else if (view.id === 'architecture') body = renderArchitecture();
   else if (view.id === 'feature_map') body = renderFeatureMap();
   else if (view.id === 'function_model') body = renderFunctionModel();
+  else if (view.id === 'fsm') body = renderFsm();
   else if (view.id === 'cycle_model') body = renderCycleModel();
   else if (view.id === 'interfaces') body = renderInterfaces();
   else if (view.id === 'registers') body = renderRegisters();
@@ -7948,9 +8155,11 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
                   width: '100%', textAlign: 'left', display: 'grid',
                   gridTemplateColumns: '22px minmax(0, 1fr) auto',
                   gap: 8, alignItems: 'center',
-                  background: activeRow ? 'color-mix(in oklch, var(--magenta) 14%, transparent)' : 'transparent',
+                  background: activeRow
+                    ? (view.id === 'raw_yaml' ? 'var(--bg-3)' : 'color-mix(in oklch, var(--magenta) 14%, transparent)')
+                    : 'transparent',
                   color: activeRow ? 'var(--fg)' : 'var(--fg-mute)',
-                  border: '1px solid ' + (activeRow ? 'var(--magenta)' : 'transparent'),
+                  border: '1px solid ' + (activeRow ? (view.id === 'raw_yaml' ? 'var(--line-2)' : 'var(--magenta)') : 'transparent'),
                   borderRadius: 3, padding: '6px 7px', marginBottom: 4,
                   cursor: 'pointer', fontFamily: 'var(--mono)',
                 }}
@@ -9507,6 +9716,73 @@ const _FOLD_KIND_COLOR = {
   object: '#88c', array: '#8cc',
 };
 
+const _splitYamlComment = (value) => {
+  let quote = '';
+  for (let i = 0; i < value.length; i++) {
+    const ch = value[i];
+    if (quote) {
+      if (ch === quote && value[i - 1] !== '\\') quote = '';
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+      continue;
+    }
+    if (ch === '#' && (i === 0 || /\s/.test(value[i - 1]))) {
+      return [value.slice(0, i), value.slice(i)];
+    }
+  }
+  return [value, ''];
+};
+
+const _highlightYamlValue = (value) => {
+  if (!value) return '';
+  const [body, comment] = _splitYamlComment(value);
+  const leading = body.match(/^\s*/)?.[0] || '';
+  const trailing = body.match(/\s*$/)?.[0] || '';
+  const core = body.slice(leading.length, body.length - trailing.length);
+  let cls = 'plain';
+  if (/^(['"]).*\1$/.test(core)) cls = 'string';
+  else if (/^(true|false|yes|no|on|off)$/i.test(core)) cls = 'boolean';
+  else if (/^(null|~)$/i.test(core)) cls = 'null';
+  else if (/^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i.test(core)) cls = 'number';
+  else if (/^[|>]$/.test(core)) cls = 'operator';
+  const coreHtml = core
+    ? `<span class="token ${cls}">${_escHtml(core)}</span>`
+    : '';
+  const commentHtml = comment
+    ? `<span class="token comment">${_escHtml(comment)}</span>`
+    : '';
+  return `${_escHtml(leading)}${coreHtml}${_escHtml(trailing)}${commentHtml}`;
+};
+
+const _highlightYamlLine = (line) => {
+  if (!line || !line.trim()) return _escHtml(line || ' ');
+  const commentOnly = line.match(/^(\s*)(#.*)$/);
+  if (commentOnly) {
+    return `${_escHtml(commentOnly[1])}<span class="token comment">${_escHtml(commentOnly[2])}</span>`;
+  }
+  const keyLine = line.match(/^(\s*)(-\s+)?([^:#\n][^:\n]*?)(\s*:\s*)(.*)$/);
+  if (keyLine) {
+    const [, indent, dash = '', key, sep, rest] = keyLine;
+    return [
+      _escHtml(indent),
+      dash ? `<span class="token punctuation">${_escHtml(dash)}</span>` : '',
+      `<span class="token key">${_escHtml(key.trimEnd())}</span>`,
+      `<span class="token punctuation">${_escHtml(sep)}</span>`,
+      _highlightYamlValue(rest),
+    ].join('');
+  }
+  const listLine = line.match(/^(\s*-\s+)(.*)$/);
+  if (listLine) {
+    return `<span class="token punctuation">${_escHtml(listLine[1])}</span>${_highlightYamlValue(listLine[2])}`;
+  }
+  return _highlightYamlValue(line);
+};
+
+const _highlightYamlBlock = (text) =>
+  String(text || '').split(/\r?\n/).map(_highlightYamlLine).join('\n');
+
 // FoldablePane renders the file body as one <div class="line-row"> per
 // source line, wrapping ranges from /api/fold-symbols in <details>.
 // Supports:
@@ -9614,6 +9890,7 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
   // known and Prism has the grammar).
   const highlightLine = React.useCallback((line) => {
     if (!line || !line.trim()) return line || ' ';
+    if (lang === 'yaml' || lang === 'yml') return _highlightYamlLine(line);
     const Prism = window.Prism;
     if (!Prism || !lang || lang === 'none' ||
         !Prism.languages || !Prism.languages[lang]) {
@@ -9703,7 +9980,7 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
   while (cur <= lineCount) { trail.push(renderLineRow(cur)); cur += 1; }
 
   return (
-    <div className="foldable-pane" ref={paneRef}>
+    <div className={`foldable-pane ${lang === 'yaml' || lang === 'yml' ? 'yaml-pane' : ''}`} ref={paneRef}>
       {skipped && (
         <div style={{ padding: '6px 14px', color: 'var(--warn)', fontSize: 11, fontFamily: 'var(--mono)' }}>
           fold disabled — {skipped}

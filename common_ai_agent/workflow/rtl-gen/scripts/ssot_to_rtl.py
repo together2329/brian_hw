@@ -2120,10 +2120,7 @@ def _sv_port_decl(port: dict, procedural_outputs: set[str] | None = None) -> str
     if direction not in {"input", "output", "inout"}:
         direction = "input"
     name = str(port["name"])
-    if direction == "output" and name in (procedural_outputs or set()):
-        net_type = "reg"
-    else:
-        net_type = "wire"
+    net_type = "wire" if direction == "inout" else "logic"
     return f"{direction} {net_type} {_sv_range(_port_width(port))}{name}"
 
 
@@ -2162,7 +2159,7 @@ def _generic_rule_rtl_source(ip: str, top: str, ports: list[dict], contract: dic
     by_name = {p["name"]: p for p in ports}
     output_ports = {p["name"] for p in ports if str(p.get("direction") or "").lower() == "output"}
     net_keyword = "wire"
-    reg_keyword = "reg"
+    reg_keyword = "logic"
     always_keyword = "always"
     clock = _ident(contract.get("clock") or "clk")
     reset = _ident(contract.get("reset") or "rst_n")
@@ -2194,7 +2191,6 @@ def _generic_rule_rtl_source(ip: str, top: str, ports: list[dict], contract: dic
 
     declared_internal: set[str] = set()
     lines: list[str] = [
-        "`default_nettype none",
         f"module {top} (",
     ]
     for idx, port in enumerate(ports):
@@ -2289,7 +2285,6 @@ def _generic_rule_rtl_source(ip: str, top: str, ports: list[dict], contract: dic
 
     lines += [
         "endmodule",
-        "`default_nettype wire",
         "",
     ]
     return "\n".join(lines)

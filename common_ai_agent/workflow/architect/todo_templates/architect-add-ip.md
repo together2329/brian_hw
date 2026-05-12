@@ -11,9 +11,9 @@ todo sequence (all items start as `pending`):
 3. **Pick `addr`** if not provided. Find the next 4-KiB-aligned hole
    in `addrMap` after the highest existing entry; default range
    `0x1000`.
-4. **Scaffold the IP layout.** `scaffold_ip(name=name)`. Confirm
-   `<name>/yaml/<name>.ssot.yaml` was created with the standard TBD
-   placeholders.
+4. **Ensure the IP layout exists.** Prefer the `/new-ip <name>` flow;
+   it creates `<name>/yaml/<name>.ssot.yaml` with standard TBD
+   placeholders. Do not call `scaffold_ip` after `/new-ip`.
 5. **Patch soc.ssot.yaml.** Add to `instances[]`:
        { id: <name>, ssot: <name>/yaml/<name>.ssot.yaml, addr: <addr> }
    Add to `addrMap[]`:

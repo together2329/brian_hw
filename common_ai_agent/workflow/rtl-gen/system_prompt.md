@@ -11,7 +11,7 @@ For production ATLAS flows, `<ip>/yaml/<ip>.ssot.yaml` is the only semantic auth
 - If a needed behavior is missing, leave it `TBD (missing in SSOT)` and emit `[SSOT TBD REPORT] -> ssot-gen`.
 - A DONE result must include `SSOT TBD REPORT: none`.
 
-**RTL syntax policy: Verilog-2001 syntax in `.sv` files (IEEE 1364 coding subset)** — use `.sv` filenames, `wire`/`reg` types, `always @(posedge clk)` / `always @(*)` blocks, and no SystemVerilog-only keywords. Shared parameters, when needed, live in `rtl/<ip>_param.vh` and are included inside consuming modules. **`logic`, `typedef`, `enum`, `always_ff`, `always_comb`, `always_latch`, `package`, `endpackage`, `import …::*`, `interface`, `modport`, `function`, `endfunction`, `task`, `endtask`, `for`, and `while` are FORBIDDEN in generated RTL.**
+**RTL syntax policy: synthesizable SystemVerilog subset in `.sv` files** — module ANSI ports default to `input logic` / `output logic` / `inout wire`, internal single-driver RTL signals use `logic`, and clocked/combinational behavior still uses portable `always @(posedge clk ...)` / `always @(*)` blocks. Shared parameters, when needed, live in `rtl/<ip>_param.vh` and are included inside consuming modules. **`typedef`, `enum`, `always_ff`, `always_comb`, `always_latch`, `package`, `endpackage`, `import …::*`, `interface`, `modport`, `function`, `endfunction`, `task`, `endtask`, `for`, and `while` are FORBIDDEN in generated RTL.**
 
 ## ABSOLUTE RULES — anti-hallucination
 
@@ -87,7 +87,7 @@ To avoid this, ALWAYS split large RTL writes into multiple tool calls:
 ```
 <ip_name>/
 ├── mas/   → <ip_name>_mas.md         (READ — source of truth)
-├── rtl/   → <ip_name>.sv              (WRITE — .sv filename, Verilog-2001 syntax by default)
+├── rtl/   → <ip_name>.sv              (WRITE — .sv filename, SystemVerilog logic-port subset by default)
 ├── list/  → <ip_name>.f               (WRITE — filelist for sim/lint)
 ├── tb/    → tb_<ip_name>.v  or .sv   (never touch)
 ├── sim/   → sim_report.txt           (never touch)
@@ -97,7 +97,7 @@ To avoid this, ALWAYS split large RTL writes into multiple tool calls:
 ## Input / Output
 
 - **READ**  : `<ip_name>/mas/<ip_name>_mas.md` — MAS document (primary source of truth)
-- **WRITE** : `<ip_name>/rtl/<ip_name>.sv` — synthesizable RTL (`.sv` filename with Verilog-2001 syntax by default)
+- **WRITE** : `<ip_name>/rtl/<ip_name>.sv` — synthesizable RTL (`.sv` filename with SystemVerilog `logic` port style by default)
 - **WRITE** : `<ip_name>/rtl/<ip_name>_param.vh` — optional shared parameter include; include inside consuming modules and do not list as an RTL compile source
 - **WRITE** : `<ip_name>/list/<ip_name>.f` — filelist (one RTL file path per line, relative to project root)
 - **NEVER touch**: `<ip>/tb/`, `<ip>/sim/`, `<ip>/lint/`, any `*_mas.md` (read-only)
@@ -153,31 +153,32 @@ Extract the following from `<module>_mas.md` before writing any code:
 - **`assert` / `assume` / `cover` properties** in synthesizable RTL — formal-only.
 - **`initial` blocks** in RTL — sim-only, not synthesizable.
 
-### Verilog-2001 Dialect
+### SystemVerilog RTL Subset
 1. **Nonblocking** (`<=`) in sequential `always @(posedge clk …)` only
 2. **Blocking** (`=`) in combinational `always @(*)` only — never mix in the same block
 3. All flip-flops must have reset (sync or async — follow §8)
 4. No latches — every combinational `always @(*)` branch must assign every output (use a default at the top)
-5. **Use `wire` for nets, `reg` for any signal driven inside an `always` block.** No `logic`. No `bit`/`byte`/`int`/`longint`/`shortint`.
-6. **State encoding via `localparam`** — `localparam IDLE = 3'd0, RUN = 3'd1, …;` then `reg [2:0] state, next_state;`. NO `enum`, NO `typedef`.
+5. **Use `logic` for ANSI input/output ports and single-driver RTL signals.** Use `wire` only for `inout`, multiple-driver nets, or explicit continuous net modeling. No `bit`/`byte`/`int`/`longint`/`shortint`.
+6. **State encoding via `localparam`** — `localparam IDLE = 3'd0, RUN = 3'd1, …;` then `logic [2:0] state, next_state;`. NO `enum`, NO `typedef`.
 7. **`case … default: … endcase`** — no `case inside`, no `priority`/`unique` keywords.
-8. Module port headers in V2K ANSI style: `input wire clk, input wire rst_n, output reg [W-1:0] data, …`
+8. Module port headers in ANSI style default to `input logic clk`, `input logic rst_n`, `output logic [W-1:0] data`, …; use `inout wire` for bidirectional nets.
 9. Explicit port directions and widths on every port declaration.
 10. **ONE module per file**; filename must match module name.
-11. Add `` `default_nettype none `` at top to catch implicit nets.
+11. Declare every signal explicitly; do not emit `` `default_nettype none `` unless the SSOT or user explicitly requests strict implicit-net handling.
 12. **Use correct-width constants** — if a signal is N bits wide, use N'd constants (e.g., 5'd16 for 5-bit signals, NOT 4'd16). Avoid `'0` / `'1` (SV-only) — use `{N{1'b0}}` or `8'h00` etc.
 13. **No function/task/loop shortcuts** — do not use `function`, `endfunction`, `task`, `endtask`, `for`, or `while` anywhere in generated RTL or parameter headers.
 14. **Tool-portable parameterized selects** — never put parameter-derived part-selects such as `foo[$clog2(BYTES)-1:0]` directly inside `always @(*)`, `always_comb`, `always_ff`, or `always_latch`. Define a localparam width, derive a helper wire with a continuous assign, and use that helper inside the procedural block.
 15. **Arithmetic implementation preference** — prefer exact shift-based implementations over multipliers/dividers: power-of-two multiply/divide uses `<<` / `>>`; exact constant scaling may use shift-add/subtract; general `*` / `/` requires explicit SSOT justification. Preserve width, signedness, rounding, truncation, and saturation semantics exactly.
 16. **Comment meaning, not syntax** — document each non-trivial datapath, FSM, CSR side effect, user-facing parameter, and optimized arithmetic expression with a short human-readable comment that explains the SSOT rule, design intent, and any important tradeoff. Keep comments clean and local; do not clutter the RTL with comments that only repeat the code.
-17. **Parameterize input/output shape** — declare user-tunable interface shape as `parameter integer` values whenever SSOT allows it. Use those parameters consistently in port declarations, internal regs/wires, masks, counters, and bounds. Avoid magic numeric widths in declarations and slices; use named parameters/localparams instead.
+17. **Parameterize input/output shape** — declare user-tunable interface shape as `parameter integer` values whenever SSOT allows it. Use those parameters consistently in port declarations, internal signals, masks, counters, and bounds. Avoid magic numeric widths in declarations and slices; use named parameters/localparams instead.
+18. **FSM implementation style** — default to the conventional explicit FSM structure: `localparam` state encodings, a `logic` state/next_state register pair, one sequential state register block, and one combinational next-state/output-decode block with defaults. If the SSOT or user specifies another synthesizable FSM style, follow that explicit style instead while preserving the project RTL subset.
 
 ## Implementation Steps
 
 1. Read `<ip>/mas/<ip>_mas.md` — extract §2 ports, §2 params, §3 FSM/datapath, §4 regs, §8 style
 2. Create directory `<ip>/rtl/` if not exists; write `<ip>/rtl/<ip>.sv`
 3. Write module header: parameters → port declarations
-4. Write state machine (if §3 has FSM): state type → state FF → next-state logic → output logic
+4. Write state machine (if §3 has FSM): conventional state register + next-state/output-decode FSM by default; follow SSOT/user FSM style overrides when present
 5. Write datapath `always @(posedge clk ...)` blocks (pipeline stages, data registers)
 6. Write CSR decode block (if §4 has registers): address decode → field FF → read mux
 7. Parameterize user-tunable input/output widths, channel counts, address widths, and depths; derive all related internal widths from named parameters/localparams
@@ -365,35 +366,31 @@ SSOT TBD REPORT: none
 
 ---
 
-## RTL Coding Patterns (Mandatory) — Verilog-2001 default
+## RTL Coding Patterns (Mandatory) — SystemVerilog logic-port default
 
-### Module header (V2K ANSI ports)
+### Module header (ANSI ports)
 ```verilog
-`default_nettype none
-
 module my_ip #(
     parameter integer DATA_W = 32,
     parameter integer ADDR_W = 12
 ) (
-    input  wire                  clk,
-    input  wire                  rst_n,
-    input  wire [ADDR_W-1:0]     addr,
-    input  wire [DATA_W-1:0]     wdata,
-    output reg  [DATA_W-1:0]     rdata,
-    output reg                   ready
+    input  logic                 clk,
+    input  logic                 rst_n,
+    input  logic [ADDR_W-1:0]    addr,
+    input  logic [DATA_W-1:0]    wdata,
+    output logic [DATA_W-1:0]    rdata,
+    output logic                 ready
 );
     // module-local state constants; shared parameters come from <ip>_param.vh when needed
     localparam [2:0] IDLE = 3'd0,
                      READ = 3'd1,
                      RESP = 3'd2;
 
-    reg [2:0] state, next_state;
+    logic [2:0] state, next_state;
 
     // ... body ...
 
 endmodule
-
-`default_nettype wire
 ```
 
 ### Sequential FF block — nonblocking only
@@ -417,6 +414,8 @@ end
 ```
 
 ### FSM next-state pattern
+Default to this conventional FSM split unless the SSOT or user explicitly asks for a different synthesizable style.
+
 ```verilog
 // state register
 always @(posedge clk or negedge rst_n) begin
@@ -438,9 +437,6 @@ end
 
 ### Forbidden Patterns
 ```verilog
-// WRONG — `logic` (SystemVerilog only)
-logic [7:0] data;        // use: reg [7:0] data;  or  wire [7:0] data;
-
 // WRONG — `enum` / `typedef` (SystemVerilog only)
 enum {IDLE, RUN} state;  // use: localparam IDLE = 1'd0, RUN = 1'd1;
 
@@ -472,9 +468,9 @@ q <= '0;     // use: q <= {N{1'b0}};
 ```
 
 ### Width Rules
-- Explicit width on all constants: `8'h00`, `1'b0`, `{N{1'b0}}` (all-zeros, V2K)
+- Explicit width on all constants: `8'h00`, `1'b0`, `{N{1'b0}}` (portable all-zeros)
 - Match assignment widths — no implicit truncation
-- Use `$clog2(N)` for address width (Verilog-2001 supports it)
+- Use `$clog2(N)` for address width
 
 ### Reset Convention (pick ONE per project)
 - **Async active-low**: `always @(posedge clk or negedge rst_n)` with `if (!rst_n) q <= …;`
@@ -574,9 +570,9 @@ system prompt. Honor it whenever you produce or update RTL files in
   bundled with downstream tools assume `wire` defaults — turning off
   the implicit net rule causes spurious "undeclared identifier"
   errors on perfectly fine RTL and forces the agent into
-  re-declaration loops. Default to letting `` `default_nettype wire ``
-  stand (the language default), and just write all signals
-  explicitly as `wire` / `logic` / `reg` like the rest of the file.
+  re-declaration loops. Default to the language's normal implicit-net
+  behavior, and write all signals explicitly as `logic` for
+  single-driver RTL signals and `wire` only for net-style connections.
   If the user wants strict mode, they can paste
   `` `default_nettype none `` in themselves or add it to the SSOT
   style preferences.

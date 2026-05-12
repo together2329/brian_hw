@@ -952,8 +952,10 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         (
             "Create the canonical IP directory layout under <root>/<name>/ "
             "with subdirs: yaml, rtl, list, tb, tc, sim, sdc, lint, doc, req. "
-            "Idempotent — never overwrites existing files. Call this FIRST "
-            "for any new IP request before writing the SSOT."
+            "Idempotent — never overwrites existing files. Legacy/internal "
+            "fallback only in Atlas; prefer /new-ip <name>, and do not call "
+            "this after /new-ip because /new-ip already created the layout "
+            "and initial SSOT draft."
         ),
         properties={
             "name": {

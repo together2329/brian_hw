@@ -1692,14 +1692,16 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
     if task_tools:
         tool_lines["Task Management"] = task_tools
 
-    # Workflow / IP scaffolding / interactive Q&A (visible in text mode too —
-    # otherwise the LLM falls back to run_command(scaffold_ip(...)) and emits
-    # inline fake-dialogs because it doesn't know ask_user exists).
+    # Workflow / IP scaffolding / interactive Q&A (visible in text mode too).
+    # Atlas uses /new-ip as the single user-facing IP creation flow; keep
+    # scaffold_ip visible only as a legacy/internal fallback for older prompts.
     workflow_tools = [
         _tool_line("scaffold_ip", 'name, root="."',
                    "Create the canonical IP directory layout under <root>/<name>/ "
                    "(yaml, rtl, list, tb, tc, sim, sdc, lint, doc, req). "
-                   "Idempotent. Call this FIRST for any new IP request."),
+                   "Idempotent legacy fallback. Prefer /new-ip <name>; do not "
+                   "call scaffold_ip after /new-ip because /new-ip already "
+                   "created the layout and initial SSOT draft."),
         _tool_line("ask_user", 'question, kind, options=[], subtitle="", questions=None',
                    "Ask the user one or more decisions via the GUI/TUI and "
                    "BLOCK until answered. Single mode: pass question+kind+options. "

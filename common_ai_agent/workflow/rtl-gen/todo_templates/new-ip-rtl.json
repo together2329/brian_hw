@@ -8,13 +8,13 @@
       "priority": "high"
     },
     {
-      "content": "Write module header: `default_nettype none, parameters, port declarations",
-      "detail": "First lines: `default_nettype none. module <name> #(parameters) (ports); Match §2 port table exactly — every port with explicit direction+type+width. Parameterize user-tunable input/output shape from MAS/SSOT, such as data width, address width, input/output channel count, lane count, and depth. Use Verilog-2001 port types: input wire, output wire, or output reg when driven by an always block. Add inline comments for clock domains on each port and short comments for user-facing parameters.",
+      "content": "Write module header: parameters and input/output logic port declarations",
+      "detail": "First lines: module <name> #(parameters) (ports); Match §2 port table exactly — every port with explicit direction+type+width. Parameterize user-tunable input/output shape from MAS/SSOT, such as data width, address width, input/output channel count, lane count, and depth. Use SystemVerilog ANSI port types by default: input logic, output logic, and inout wire for bidirectional nets. Add inline comments for clock domains on each port and short comments for user-facing parameters.",
       "priority": "high"
     },
     {
       "content": "Implement control FSM (MAS §3 FSM table)",
-      "detail": "Declare state encodings with localparam and state registers with reg. Use always @(posedge clk or negedge rst_n) for the state register. Use always @(*) for next-state logic and FSM output assignments with defaults at the top. Every state/transition from MAS §3 FSM table must be present. No unreachable states.",
+      "detail": "Implement the conventional explicit FSM style by default: localparam state encodings, logic state/next_state signals, one always @(posedge clk or negedge rst_n) state-register block, and one always @(*) next-state/output-decode block with defaults at the top. If MAS/SSOT or the user specifies another synthesizable FSM style, follow that explicit style. Every state/transition from MAS §3 FSM table must be present. No unreachable states.",
       "priority": "high"
     },
     {

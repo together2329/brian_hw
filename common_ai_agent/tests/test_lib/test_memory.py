@@ -151,6 +151,42 @@ class TestPromptFormatting(unittest.TestCase):
         formatted = self.memory.format_all_for_prompt()
         self.assertIsInstance(formatted, str)
 
+    def test_workflow_memory_rules(self):
+        """Workflow rules are stored separately and formatted only for that workflow."""
+        self.memory.add_rule("Always prefer concise answers")
+        self.memory.add_rule("Use shift operators for constant multiply/divide", workflow="rtl-gen")
+        self.memory.add_rule("Ask TBD questions first", workflow="ssot-gen")
+
+        rtl_rules = self.memory.list_rules(workflow="rtl-gen")
+        self.assertIn("Always prefer concise answers", rtl_rules["global"])
+        self.assertEqual(
+            rtl_rules["workflow"]["rules"],
+            ["Use shift operators for constant multiply/divide"],
+        )
+
+        formatted = self.memory.format_all_for_prompt(workflow="rtl-gen")
+        self.assertIn("Memory Rules", formatted)
+        self.assertIn("Global", formatted)
+        self.assertIn("Workflow [rtl-gen]", formatted)
+        self.assertIn("Use shift operators", formatted)
+        self.assertNotIn("Ask TBD questions first", formatted)
+
+    def test_memory_rules_export_import_and_clear(self):
+        """Rules participate in export/import and can be cleared by scope."""
+        self.memory.add_rule("Global rule")
+        self.memory.add_rule("Workflow rule", workflow="rtl-gen")
+        exported = self.memory.export_to_dict()
+
+        other_dir = tempfile.mkdtemp()
+        try:
+            other = MemorySystem(memory_dir=other_dir)
+            other.import_from_dict(exported)
+            self.assertEqual(other.list_rules(workflow="rtl-gen")["workflow"]["rules"], ["Workflow rule"])
+            self.assertEqual(other.clear_rules(workflow="rtl-gen"), 1)
+            self.assertEqual(other.list_rules(workflow="rtl-gen")["workflow"]["rules"], [])
+        finally:
+            shutil.rmtree(other_dir, ignore_errors=True)
+
 
 class TestImportExport(unittest.TestCase):
     """Test import/export functionality"""

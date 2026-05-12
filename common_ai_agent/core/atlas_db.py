@@ -268,23 +268,25 @@ class AtlasDB:
         username: str,
         display_name: str,
         password_hash: str = None,
+        role: str = "user",
     ) -> Dict[str, Any]:
         """Create a new user. Returns the user dict."""
         user_id = self._new_id()
         now = self._now()
+        role = role or "user"
         self._execute(
             """
             INSERT INTO users (id, username, display_name, password_hash, role, created_at, last_login_at)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (user_id, username, display_name, password_hash, "user", now, None),
+            (user_id, username, display_name, password_hash, role, now, None),
         )
         return {
             "id": user_id,
             "username": username,
             "display_name": display_name,
             "password_hash": password_hash,
-            "role": "user",
+            "role": role,
             "created_at": now,
             "last_login_at": None,
         }
@@ -302,6 +304,11 @@ class AtlasDB:
         if row is None:
             return None
         return self._row_to_dict(row, "users")
+
+    def set_user_role(self, user_id: str, role: str) -> Optional[Dict[str, Any]]:
+        """Update a user's role and return the refreshed user."""
+        self._execute("UPDATE users SET role = ? WHERE id = ?", (role, user_id))
+        return self.get_user(user_id)
 
     # ---------- Sessions ----------
 

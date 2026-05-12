@@ -553,7 +553,17 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                         base = _orig_bsp(ctx, **kw) if ctx is not None else _orig_bsp(**kw)
                         if isinstance(base, dict):
                             base = (base.get("static", "") + "\n\n" + base.get("dynamic", "")).strip()
-                        return merge_prompt(base, _ws_sys_text, _ws_sys_mode)
+                        merged = merge_prompt(base, _ws_sys_text, _ws_sys_mode)
+                        try:
+                            from lib.memory import MemorySystem
+                            merged = _pb.apply_memory_override(
+                                merged,
+                                MemorySystem(memory_dir=getattr(config, "MEMORY_DIR", ".memory")),
+                                workflow=workflow,
+                            )
+                        except Exception:
+                            pass
+                        return merged
 
                     _pb.build_system_prompt = _ws_patched_bsp
                 except Exception:
@@ -642,7 +652,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         import config
         from core.react_loop import ReactLoopDeps, run_react_agent_impl
         from core.compressor import compress_history as _compress_history
-        from core.prompt_builder import build_system_prompt
+        from core.prompt_builder import PromptContext, apply_memory_override, build_system_prompt
         from core.observation_processor import process_observation
         from core.action_parser import _strip_native_tool_tokens, _strip_thinking_tags
         from core.tools import AVAILABLE_TOOLS
@@ -751,6 +761,14 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         run_overrides.update(session_overrides)
         run_cfg = _RunCfg(_snapshot_config_module(), run_overrides)
 
+        worker_memory_system = None
+        if getattr(run_cfg, "ENABLE_MEMORY", False):
+            try:
+                from lib.memory import MemorySystem
+                worker_memory_system = MemorySystem(memory_dir=getattr(run_cfg, "MEMORY_DIR", ".memory"))
+            except Exception as e:
+                entry.add_log("system", f"memory unavailable: {e}", role="system")
+
         native_tools = None
         if getattr(run_cfg, "ENABLE_NATIVE_TOOL_CALLS", False):
             try:
@@ -780,13 +798,25 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                     cfg=run_cfg,
                     allowed_tools=allowed_tools,
                     agent_mode=agent_mode,
+                    context=PromptContext(
+                        memory_system=worker_memory_system,
+                        todo_tracker=run_todo_tracker,
+                    ),
                 )
                 if isinstance(prompt, str):
-                    return worker_guidance + "\n" + prompt
+                    return apply_memory_override(
+                        worker_guidance + "\n" + prompt,
+                        worker_memory_system,
+                        workflow=workflow,
+                    )
                 elif isinstance(prompt, dict):
                     # CACHE_OPTIMIZATION_MODE
                     if "static" in prompt:
-                        prompt["static"] = worker_guidance + "\n" + prompt.get("static", "")
+                        prompt["static"] = apply_memory_override(
+                            worker_guidance + "\n" + prompt.get("static", ""),
+                            worker_memory_system,
+                            workflow=workflow,
+                        )
                     if "dynamic" in prompt:
                         prompt["dynamic"] = prompt.get("dynamic", "")
                     return prompt

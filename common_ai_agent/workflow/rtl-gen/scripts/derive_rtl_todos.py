@@ -1597,18 +1597,19 @@ def _add_rtl_gate_todo_tasks(tasks: list[dict[str, Any]], owner: dict[str, str],
         {
             "kind": "rtl_placeholder_free_evidence",
             "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-            "content": "Gate: RTL sources contain no placeholder markers or disallowed SV/default-policy constructs",
+            "content": "Gate: RTL sources contain no placeholder markers or disallowed generated-RTL constructs",
             "detail": (
                 "Production RTL cannot carry TODO/TBD/FIXME/stub/dummy/not-implemented markers in source code or comments. "
-                "Generated RTL also keeps .sv filenames but defaults to Verilog-2001 syntax: no package/import/interface/modport, "
-                "no function/task, no for/while, and no logic/typedef/enum/always_ff/always_comb. "
+                "Generated RTL uses the project SystemVerilog subset: ANSI ports default to input/output logic, "
+                "with no package/import/interface/modport, no function/task, no for/while, and no typedef/enum/always_ff/always_comb. "
                 "If behavior is intentionally reserved, it must be expressed in the SSOT as a waiver or explicit tieoff/unused contract."
             ),
             "criteria": [
                 "Listed RTL source files contain no TODO/TBD/FIXME/HACK markers",
                 "Listed RTL source files contain no placeholder/stub/dummy/not-implemented implementation text",
                 "Listed RTL source files and rtl/<ip>_param.vh contain no banned package/function/task/loop constructs",
-                "Default generated RTL uses Verilog-2001 wire/reg and always @ syntax even though filenames end in .sv",
+                "Default generated RTL uses input/output logic ports and portable always @ syntax",
+                "FSMs use the conventional explicit style by default, unless SSOT/user specifies another synthesizable style",
                 "Intentional reserved behavior is represented in SSOT contracts instead of RTL placeholder comments",
             ],
             "artifact": "rtl/rtl_todo_plan.json",
@@ -2285,10 +2286,14 @@ def _add_fsm_tasks(tasks: list[dict[str, Any]], doc: dict[str, Any], modules: li
                 category="fsm.state",
                 source_ref=ref,
                 title=f"Implement FSM state {ctrl_name}.{name}",
-                detail="Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation.",
+                detail=(
+                    "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. "
+                    "Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style."
+                ),
                 criteria=[
                     "State is encoded/reachable or explicitly replaced by equivalent logic",
                     "Reset/entry/exit behavior matches SSOT",
+                    "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
                     "Coverage can observe the state or equivalent condition",
                 ],
                 owner=_owner_for(ref, modules, top),
@@ -2302,7 +2307,10 @@ def _add_fsm_tasks(tasks: list[dict[str, Any]], doc: dict[str, Any], modules: li
                 category="fsm.transition",
                 source_ref=ref,
                 title=f"Implement FSM transition {ctrl_name}.{name}",
-                detail="Transition condition, action, and timing must be implemented in RTL and covered downstream.",
+                detail=(
+                    "Transition condition, action, and timing must be implemented in RTL and covered downstream. "
+                    "Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style."
+                ),
                 criteria=[
                     "Transition condition is present in RTL control logic",
                     "Transition action/state update is implemented",
@@ -5332,7 +5340,6 @@ def _audit_rtl_placeholder_free(ip_dir: Path) -> dict[str, Any]:
         (re.compile(r"\b(?:function|endfunction|task|endtask)\b"), "RTL source uses function/task blocks"),
         (re.compile(r"\bfor\s*\("), "RTL source uses a for loop"),
         (re.compile(r"\bwhile\s*\("), "RTL source uses a while loop"),
-        (re.compile(r"\blogic\b"), "RTL source uses SystemVerilog logic instead of Verilog-2001 wire/reg"),
         (re.compile(r"\b(?:typedef|enum)\b"), "RTL source uses SystemVerilog typedef/enum instead of localparam state encoding"),
         (re.compile(r"\balways_(?:ff|comb|latch)\b"), "RTL source uses SystemVerilog always_ff/always_comb/always_latch"),
         (re.compile(r"\b(?:bit|byte|int|longint|shortint)\b"), "RTL source uses SystemVerilog scalar integer types"),

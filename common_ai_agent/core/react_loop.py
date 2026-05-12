@@ -1523,7 +1523,11 @@ def run_react_agent_impl(
                     tool_start = time.time()
 
                     _SLOW_TOOLS = {"run_command", "background_task", "background_output"}
-                    _WRITE_TOOLS = {"write_file", "replace_in_file", "replace_lines"}
+                    _WRITE_TOOLS = {
+                        "write_file", "write_to_file",
+                        "replace_in_file", "replace_lines", "replace_file_content",
+                        "multi_replace_file_content", "edit_file", "create_file",
+                    }
                     _debug = getattr(cfg, "DEBUG_MODE", False)
                     _is_plan_blocked = (
                         agent_mode in ("plan", "plan_q")

@@ -2,7 +2,7 @@
 name: git
 description: >
   Git version control operations: 히스토리 조회, 파일 복구(revert), diff 확인.
-  이 agent는 write_file / replace_in_file 실행 시 자동으로 git add + commit을 수행함
+  이 agent는 write/replace 계열 파일 변경 실행 시 자동으로 git add + commit을 수행함
   (GIT_VERSION_CONTROL_ENABLE=true, .config에서 설정).
   Trigger on: 'revert', 'undo', '이전 버전', '되돌려', 'git log', 'git history',
   'restore', '복구', '어떤 파일 바뀌었어', 'what changed'.
@@ -17,7 +17,10 @@ requires_tools: [git_status, git_diff, run_command]
 
 ## 핵심 개념
 
-이 agent는 **write_file / replace_in_file 호출 시 자동으로 커밋**을 생성한다:
+이 agent는 **write/replace 계열 파일 변경 호출 시 자동으로 커밋**을 생성한다.
+포함 도구: `write_file`, `write_to_file`, `replace_in_file`,
+`replace_lines`, `replace_file_content`, `multi_replace_file_content`,
+`edit_file`, `patch_file`, `apply_patch`, `update_file`.
 
 ```
 auto: write rtl/dma_top.v [2026-03-26 17:11:57] — DMA top AXI4 인터페이스 추가
@@ -104,5 +107,6 @@ Action: run_command(command="git revert <hash>")
 - `git checkout <hash> -- <file>` 은 해당 파일만 복구, 다른 파일 영향 없음
 - `git reset --hard` 는 이후 모든 커밋이 사라짐 → **반드시 사용자 확인 후 실행**
 - auto-commit은 `GIT_VERSION_CONTROL_ENABLE=true` 일 때만 동작 (.config)
+- write/replace/patch 계열 tool_result 또는 file_changed 타이밍에 변경 파일을 감지한다
 - commit msg 포맷은 `GIT_COMMIT_MSG_MODE=simple|summary` 로 제어
 - summary 모드는 `GIT_COMMIT_SUMMARY_MODEL` (기본: qwen) 로 생성

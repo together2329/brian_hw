@@ -90,7 +90,8 @@ YAML content and the production quality gates.
 
 Generated RTL policy:
 - RTL filenames remain `.sv`.
-- Default syntax is Verilog-2001: `wire`/`reg`, `assign`, `always @(...)`, `always @(*)`, `case`.
+- Default syntax is the project SystemVerilog RTL subset: ANSI ports use `input logic` / `output logic`, internal single-driver RTL signals use `logic`, and behavior uses `assign`, `always @(...)`, `always @(*)`, and plain `case`.
+- FSMs default to the conventional explicit structure: localparam state encodings, `logic` state/next_state signals, one sequential state register block, and one combinational next-state/output-decode block with defaults. If SSOT or the user specifies another synthesizable FSM style, that explicit style wins.
 - Shared parameters, if needed, live in `rtl/<ip>_param.vh` and are included inside consuming module bodies.
 - Never create `*_pkg.sv`, `package`, `import`, `interface`, `modport`, `function`, `task`, `for`, or `while` constructs.
 

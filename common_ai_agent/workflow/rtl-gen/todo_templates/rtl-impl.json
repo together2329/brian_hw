@@ -9,7 +9,7 @@
     },
     {
       "content": "Write module header: parameters and port declarations",
-      "detail": "module <name> #(params) (ports); Match §2 exactly. All ports with explicit direction+type+width. Parameterize user-tunable input/output shape from MAS/SSOT, such as data width, address width, input/output channel count, lane count, and depth. Use clear parameter names and derive port/internal widths from them instead of scattering numeric literals. Add `default_nettype none at top.",
+      "detail": "module <name> #(params) (ports); Match §2 exactly. All ports with explicit direction+type+width. Use SystemVerilog ANSI port types by default: input logic, output logic, and inout wire for bidirectional nets. Parameterize user-tunable input/output shape from MAS/SSOT, such as data width, address width, input/output channel count, lane count, and depth. Use clear parameter names and derive port/internal widths from them instead of scattering numeric literals.",
       "priority": "high"
     },
     {
@@ -19,7 +19,7 @@
     },
     {
       "content": "Implement control FSM (from MAS §3)",
-      "detail": "Implement FSM exactly as defined in MAS §3 state table. Use localparam state encodings, one always @(posedge clk ...) for the state register, and one always @(*) for next-state + output logic. All states must be reachable. Add default clause.",
+      "detail": "Implement FSM exactly as defined in MAS §3 state table. Use the conventional explicit FSM style by default: localparam state encodings, logic state/next_state signals, one always @(posedge clk ...) state-register block, and one always @(*) next-state/output-decode block with defaults. If MAS/SSOT or the user specifies another synthesizable FSM style, follow that explicit style. All states must be reachable. Add default clause.",
       "priority": "high"
     },
     {

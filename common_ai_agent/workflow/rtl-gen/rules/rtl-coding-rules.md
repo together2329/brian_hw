@@ -1,6 +1,6 @@
 # RTL Coding Rules (rtl-gen)
 
-**RTL syntax policy: Verilog-2001 (IEEE 1364) in `.sv` files** — use `wire`/`reg`, `localparam` state encoding, and `always @(…)` blocks. SystemVerilog RTL constructs are not part of generated RTL.
+**RTL syntax policy: synthesizable SystemVerilog subset in `.sv` files** — use ANSI `input logic` / `output logic` ports by default, `logic` for single-driver RTL signals, `wire` for true nets/inouts, `localparam` state encoding, and portable `always @(...)` blocks. Higher-level SystemVerilog constructs are not part of generated RTL.
 
 ## Always Banned
 
@@ -13,20 +13,18 @@
 | `assert` / `assume` / `cover` properties | Move to formal-only files outside the synthesizable RTL. |
 | `initial` blocks (in synthesizable RTL) | Sim-only — keep out of `<ip>/rtl/`. |
 
-## Verilog-2001 Mode
+## SystemVerilog RTL Subset
 
 ### Mandatory Patterns
 
 ```verilog
-`default_nettype none
-
 module my_ip #(
     parameter integer DATA_W = 32
 ) (
-    input  wire              clk,
-    input  wire              rst_n,
-    input  wire [DATA_W-1:0] d,
-    output reg  [DATA_W-1:0] q
+    input  logic             clk,
+    input  logic             rst_n,
+    input  logic [DATA_W-1:0] d,
+    output logic [DATA_W-1:0] q
 );
 
     // FSM states via localparam (NO enum, NO typedef)
@@ -34,7 +32,7 @@ module my_ip #(
                      RUN  = 2'd1,
                      DONE = 2'd2;
 
-    reg [1:0] state, next_state;
+    logic [1:0] state, next_state;
 
     // Sequential — nonblocking only
     always @(posedge clk or negedge rst_n) begin
@@ -54,16 +52,18 @@ module my_ip #(
     end
 
 endmodule
-
-`default_nettype wire
 ```
+
+### FSM Style
+
+- Default to the conventional explicit FSM form: `localparam` state encodings, `logic` state/next_state signals, one sequential state-register block, and one combinational next-state/output-decode block with defaults.
+- If the SSOT or user specifies a different synthesizable FSM style, follow that explicit style instead while preserving the project subset: no `enum`, no `typedef`, no `always_ff`, and no `always_comb`.
 
 ### Banned SystemVerilog Constructs
 
 ```verilog
-// NEVER: SystemVerilog-only types
-logic [7:0] data;          // use: reg [7:0] data;  or  wire [7:0] data;
-bit / byte / int / longint / shortint   // use Verilog primitives
+// NEVER: SystemVerilog scalar integer types
+bit / byte / int / longint / shortint   // use logic vectors with explicit widths
 
 // NEVER: SystemVerilog blocks
 always_ff @(posedge clk) ...     // use: always @(posedge clk …)
@@ -71,16 +71,16 @@ always_comb / always_latch       // use: always @(*)
 
 // NEVER: enum / typedef
 enum {IDLE, RUN} state;          // use: localparam IDLE = 1'd0, RUN = 1'd1;
-typedef logic [7:0] byte_t;      // not allowed
+typedef logic [7:0] byte_t;      // not allowed; declare the vector directly
 
 // NEVER: SystemVerilog literals
 q <= '0;                         // use: q <= {N{1'b0}};
 q <= '1;                         // use: q <= {N{1'b1}};
-'{a, b, c}                       // not allowed in V2K
+'{a, b, c}                       // not allowed in generated RTL subset
 
 // NEVER: case extensions
 case (sel) inside ...            // use plain `case`
-priority case / unique case      // not in V2K
+priority case / unique case      // not in generated RTL subset
 
 // NEVER: mixed blocking/nonblocking
 always @(posedge clk) begin
@@ -99,7 +99,7 @@ initial begin reg_val = 0; end   // not synthesizable
 
 ## Width Rules
 
-- Explicit width on all constants: `8'h00`, `1'b0`. In V2K use `{N{1'b0}}` for all-zeros (no `'0`).
+- Explicit width on all constants: `8'h00`, `1'b0`. Use `{N{1'b0}}` for portable all-zeros (no `'0`).
 - Check width match in assignments — no implicit truncation.
 - Use `$clog2(N)` for address-width calculation.
 
@@ -107,7 +107,7 @@ initial begin reg_val = 0; end   // not synthesizable
 
 - Expose user-tunable input/output shape as `parameter integer` values when the SSOT permits configurability: data width, address width, input/output channel count, lane count, FIFO depth, burst length, and similar interface dimensions.
 - Use clear parameter names such as `DATA_W`, `ADDR_W`, `IN_CH`, `OUT_CH`, `LANES`, and `DEPTH`; derive internal helper widths with named `localparam` values.
-- Do not scatter magic numeric widths through port declarations, regs/wires, masks, counters, or slices. Reference the parameter/localparam instead.
+- Do not scatter magic numeric widths through port declarations, signals, masks, counters, or slices. Reference the parameter/localparam instead.
 - If the SSOT fixes an external interface width, keep that public contract exact but centralize the literal in one named parameter/localparam so a future SSOT-approved change is easy.
 - Add a short comment beside each user-facing parameter explaining what changes when the user overrides it.
 

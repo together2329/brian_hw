@@ -18,7 +18,7 @@ from core.session_names import normalize_session_name
 
 _atlas_bridge_session_id_cv = contextvars.ContextVar("atlas_bridge_session_id", default="")
 _WRITE_TOOL_RE = re.compile(
-    r"^(?:write_file|replace_in_file|replace_lines|edit_file|apply_patch|patch|update_file)\b",
+    r"^(?:write_file|write_to_file|replace_in_file|replace_lines|replace_file_content|multi_replace_file_content|edit_file|patch_file|apply_patch|patch|update_file)\b",
     re.IGNORECASE,
 )
 

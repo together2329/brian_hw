@@ -705,13 +705,9 @@
 .token.deleted           { color: var(--err) !important; }
 .token.inserted          { color: var(--ok) !important; }
 
-/* Toned-down YAML palette — used by Raw YAML cards (.tool-output-yaml).
-   Default Prism YAML highlighting fires 5+ distinct hues which gets
-   noisy for SSOT files with hundreds of lines. Restrict to 3 colors:
-     - keys           → cyan
-     - everything else → fg (white-ish)
-     - comments       → muted/dim
-   Tags and anchors keep the cyan accent so structure still reads.   */
+/* Readable YAML palette for Raw YAML cards. The renderer emits a small
+   deterministic token set, so SSOT structure stays visible even when Prism
+   does not have a YAML grammar loaded. */
 .tool-output-yaml .token,
 .tool-output-yaml code .token { color: var(--fg) !important; font-weight: normal !important; }
 .tool-output-yaml .token.key,
@@ -725,6 +721,12 @@
 .tool-output-yaml .token.doctype,
 .tool-output-yaml .token.cdata    { color: var(--fg-mute) !important; font-style: italic; opacity: 0.85; }
 .tool-output-yaml .token.punctuation { color: var(--fg-dim) !important; }
+.tool-output-yaml .token.string { color: var(--ok) !important; }
+.tool-output-yaml .token.number { color: var(--tool-accent) !important; }
+.tool-output-yaml .token.boolean,
+.tool-output-yaml .token.null { color: var(--magenta) !important; font-weight: 600 !important; }
+.tool-output-yaml .token.operator { color: var(--accent) !important; font-weight: 600 !important; }
+.tool-output-yaml .token.plain { color: var(--fg) !important; }
 [data-theme="light"] .tool-output-yaml,
 [data-theme="light"] .tool-output-yaml code {
   color: #0f1720;
@@ -755,6 +757,27 @@
 [data-theme="light"] .tool-output-yaml .token.punctuation {
   color: #111827 !important;
   opacity: 1;
+}
+[data-theme="light"] .tool-output-yaml .token.string {
+  color: #0f6b35 !important;
+  font-weight: 650 !important;
+}
+[data-theme="light"] .tool-output-yaml .token.number {
+  color: #8a3f00 !important;
+  font-weight: 700 !important;
+}
+[data-theme="light"] .tool-output-yaml .token.boolean,
+[data-theme="light"] .tool-output-yaml .token.null {
+  color: #8f2350 !important;
+  font-weight: 750 !important;
+}
+[data-theme="light"] .tool-output-yaml .token.operator {
+  color: #111827 !important;
+  font-weight: 650 !important;
+}
+[data-theme="light"] .tool-output-yaml .token.plain {
+  color: #07111f !important;
+  font-weight: 500 !important;
 }
 
 /* prompt input */
@@ -1500,6 +1523,10 @@
   background: #ffffff;
   color: #0f1720;
 }
+[data-theme="light"] .foldable-pane.yaml-pane {
+  background: #ffffff;
+  color: #07111f;
+}
 .foldable-toolbar {
   display: flex;
   gap: 8px;
@@ -1534,6 +1561,9 @@
 }
 .foldable-pane .line-row.sel {
   background: color-mix(in oklch, var(--accent) 18%, transparent);
+}
+[data-theme="light"] .foldable-pane.yaml-pane .line-row.sel {
+  background: #dbeafe;
 }
 .foldable-pane .lineno {
   color: var(--fg-mute);
@@ -1645,6 +1675,45 @@
 [data-theme="light"] .foldable-pane .line .token.important,
 [data-theme="light"] .foldable-pane .line .token.builtin {
   color: #76400f !important;
+}
+[data-theme="light"] .foldable-pane.yaml-pane .fold-summary {
+  background: #f8fafc;
+  color: #0f1720 !important;
+}
+[data-theme="light"] .foldable-pane.yaml-pane .line {
+  color: #07111f;
+  font-weight: 500;
+}
+[data-theme="light"] .foldable-pane.yaml-pane .line .token.key {
+  color: #0046ad !important;
+  font-weight: 800;
+}
+[data-theme="light"] .foldable-pane.yaml-pane .line .token.string {
+  color: #0f6b35 !important;
+  font-weight: 650;
+}
+[data-theme="light"] .foldable-pane.yaml-pane .line .token.number {
+  color: #8a3f00 !important;
+  font-weight: 700;
+}
+[data-theme="light"] .foldable-pane.yaml-pane .line .token.boolean,
+[data-theme="light"] .foldable-pane.yaml-pane .line .token.null {
+  color: #8f2350 !important;
+  font-weight: 750;
+}
+[data-theme="light"] .foldable-pane.yaml-pane .line .token.operator,
+[data-theme="light"] .foldable-pane.yaml-pane .line .token.punctuation {
+  color: #111827 !important;
+  font-weight: 650;
+}
+[data-theme="light"] .foldable-pane.yaml-pane .line .token.comment {
+  color: #374151 !important;
+  font-style: normal;
+  font-weight: 500;
+}
+[data-theme="light"] .foldable-pane.yaml-pane .line .token.plain {
+  color: #07111f !important;
+  font-weight: 500;
 }
 [data-theme="light"] .foldable-pane .lineno,
 [data-theme="light"] .foldable-pane .fold-range {

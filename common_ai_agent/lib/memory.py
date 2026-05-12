@@ -10,7 +10,7 @@ import tempfile
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from lib.file_utils import read_json_file as _read_json_file_util, atomic_write_json as _atomic_write_json_util
 
@@ -36,9 +36,11 @@ class MemorySystem:
         self.memory_dir = Path.home() / memory_dir
         self.preferences_file = self.memory_dir / "preferences.json"
         self.project_context_file = self.memory_dir / "project_context.json"
+        self.memory_rules_file = self.memory_dir / "rules.json"
 
         self._preferences: Dict[str, Any] = {}
         self._project_context: Dict[str, Any] = {}
+        self._memory_rules: Dict[str, Any] = {"global": [], "workflows": {}}
 
         self._ensure_initialized()
         self._load()
@@ -52,6 +54,9 @@ class MemorySystem:
 
         if not self.project_context_file.exists():
             self._save_project_context()
+
+        if not self.memory_rules_file.exists():
+            self._save_memory_rules()
 
     # ========== Low-level File Helpers ==========
 
@@ -109,6 +114,12 @@ class MemorySystem:
         except (FileNotFoundError, json.JSONDecodeError):
             self._project_context = {}
 
+        try:
+            with open(self.memory_rules_file, 'r') as f:
+                self._memory_rules = self._normalize_memory_rules(json.load(f))
+        except (FileNotFoundError, json.JSONDecodeError):
+            self._memory_rules = {"global": [], "workflows": {}}
+
     def _save_preferences(self):
         """Save preferences to disk (atomic + locked)."""
         with self._file_lock(self.preferences_file):
@@ -118,6 +129,46 @@ class MemorySystem:
         """Save project context to disk (atomic + locked)."""
         with self._file_lock(self.project_context_file):
             self._atomic_write_json(self.project_context_file, self._project_context)
+
+    def _save_memory_rules(self):
+        """Save priority memory rules to disk (atomic + locked)."""
+        with self._file_lock(self.memory_rules_file):
+            self._atomic_write_json(self.memory_rules_file, self._memory_rules)
+
+    def _normalize_workflow_name(self, workflow: Optional[str]) -> Optional[str]:
+        """Normalize active session paths to a workflow name."""
+        if workflow is None:
+            return None
+        name = str(workflow).strip().strip("/")
+        if not name:
+            return None
+        parts = [p for p in name.split("/") if p]
+        return parts[-1] if parts else None
+
+    def _normalize_rule_list(self, rules: Any) -> List[str]:
+        if not isinstance(rules, list):
+            return []
+        return [str(rule).strip() for rule in rules if str(rule).strip()]
+
+    def _normalize_memory_rules(self, data: Any) -> Dict[str, Any]:
+        """Normalize rules.json so callers can tolerate older or broken files."""
+        if isinstance(data, list):
+            return {"global": self._normalize_rule_list(data), "workflows": {}}
+        if not isinstance(data, dict):
+            return {"global": [], "workflows": {}}
+
+        global_rules = self._normalize_rule_list(data.get("global", []))
+        workflows_raw = data.get("workflows", {})
+        workflows: Dict[str, List[str]] = {}
+        if isinstance(workflows_raw, dict):
+            for workflow, rules in workflows_raw.items():
+                name = self._normalize_workflow_name(workflow)
+                if name:
+                    normalized = self._normalize_rule_list(rules)
+                    if normalized:
+                        workflows[name] = normalized
+
+        return {"global": global_rules, "workflows": workflows}
 
     # ========== Preferences Management ==========
 
@@ -256,16 +307,128 @@ class MemorySystem:
 
         return "\n".join(lines)
 
+    # ========== Priority Rule Memory ==========
+
+    def add_rule(self, rule: str, workflow: Optional[str] = None) -> int:
+        """
+        Add a high-priority memory rule.
+
+        Args:
+            rule: Rule text to inject into the system prompt.
+            workflow: Optional workflow name. None means global.
+
+        Returns:
+            1-based index of the inserted rule within its scope.
+        """
+        rule_text = str(rule).strip()
+        if not rule_text:
+            raise ValueError("memory rule cannot be empty")
+
+        workflow_name = self._normalize_workflow_name(workflow)
+        with self._file_lock(self.memory_rules_file):
+            current = self._normalize_memory_rules(self._read_json_file(self.memory_rules_file))
+            if workflow_name:
+                rules = current.setdefault("workflows", {}).setdefault(workflow_name, [])
+            else:
+                rules = current.setdefault("global", [])
+            rules.append(rule_text)
+            self._memory_rules = current
+            self._atomic_write_json(self.memory_rules_file, current)
+            return len(rules)
+
+    def list_rules(self, workflow: Optional[str] = None, include_global: bool = True) -> Dict[str, Any]:
+        """List memory rules for the requested scope."""
+        workflow_name = self._normalize_workflow_name(workflow)
+        current = self._normalize_memory_rules(self._memory_rules)
+        result: Dict[str, Any] = {}
+        if include_global:
+            result["global"] = list(current.get("global", []))
+        if workflow_name:
+            workflows = current.get("workflows", {})
+            result["workflow"] = {
+                "name": workflow_name,
+                "rules": list(workflows.get(workflow_name, [])),
+            }
+        else:
+            result["workflows"] = {
+                name: list(rules)
+                for name, rules in sorted(current.get("workflows", {}).items())
+            }
+        return result
+
+    def remove_rule(self, index: int, workflow: Optional[str] = None) -> bool:
+        """Remove a 1-based memory rule from global or workflow scope."""
+        if index < 1:
+            return False
+        workflow_name = self._normalize_workflow_name(workflow)
+        with self._file_lock(self.memory_rules_file):
+            current = self._normalize_memory_rules(self._read_json_file(self.memory_rules_file))
+            if workflow_name:
+                rules = current.setdefault("workflows", {}).get(workflow_name, [])
+            else:
+                rules = current.setdefault("global", [])
+            if index > len(rules):
+                return False
+            del rules[index - 1]
+            if workflow_name and not rules:
+                current.setdefault("workflows", {}).pop(workflow_name, None)
+            self._memory_rules = current
+            self._atomic_write_json(self.memory_rules_file, current)
+            return True
+
+    def clear_rules(self, workflow: Optional[str] = None) -> int:
+        """Clear global or workflow-scoped memory rules. Returns removed count."""
+        workflow_name = self._normalize_workflow_name(workflow)
+        with self._file_lock(self.memory_rules_file):
+            current = self._normalize_memory_rules(self._read_json_file(self.memory_rules_file))
+            if workflow_name:
+                workflows = current.setdefault("workflows", {})
+                removed = len(workflows.get(workflow_name, []))
+                workflows.pop(workflow_name, None)
+            else:
+                removed = len(current.get("global", []))
+                current["global"] = []
+            self._memory_rules = current
+            self._atomic_write_json(self.memory_rules_file, current)
+            return removed
+
+    def format_rules_for_prompt(self, workflow: Optional[str] = None) -> str:
+        """Format global plus active-workflow memory rules for prompt injection."""
+        workflow_name = self._normalize_workflow_name(workflow)
+        current = self._normalize_memory_rules(self._memory_rules)
+        global_rules = current.get("global", [])
+        workflow_rules = []
+        if workflow_name:
+            workflow_rules = current.get("workflows", {}).get(workflow_name, [])
+
+        if not global_rules and not workflow_rules:
+            return ""
+
+        lines = ["Memory Rules:"]
+        if global_rules:
+            lines.append("Global:")
+            for idx, rule in enumerate(global_rules, 1):
+                lines.append(f"{idx}. {rule}")
+        if workflow_name and workflow_rules:
+            lines.append(f"Workflow [{workflow_name}]:")
+            for idx, rule in enumerate(workflow_rules, 1):
+                lines.append(f"{idx}. {rule}")
+        return "\n".join(lines)
+
     # ========== Combined Formatting ==========
 
-    def format_all_for_prompt(self) -> str:
+    def format_all_for_prompt(self, workflow: Optional[str] = None) -> str:
         """
         Format all memories for LLM prompt.
 
         Returns:
-            Complete formatted string with preferences and context
+            Complete formatted string with rules, preferences, and context.
         """
         sections = []
+
+        rules = self.format_rules_for_prompt(workflow=workflow)
+        if rules:
+            sections.append(rules)
 
         pref = self.format_preferences_for_prompt()
         if pref:
@@ -290,12 +453,16 @@ class MemorySystem:
         with self._file_lock(self.project_context_file):
             self._project_context = {}
             self._atomic_write_json(self.project_context_file, self._project_context)
+        with self._file_lock(self.memory_rules_file):
+            self._memory_rules = {"global": [], "workflows": {}}
+            self._atomic_write_json(self.memory_rules_file, self._memory_rules)
 
     def export_to_dict(self) -> Dict[str, Any]:
         """Export all memories as dictionary"""
         return {
             "preferences": self._preferences,
-            "project_context": self._project_context
+            "project_context": self._project_context,
+            "rules": self._memory_rules,
         }
 
     def import_from_dict(self, data: Dict[str, Any]):
@@ -311,6 +478,12 @@ class MemorySystem:
             with self._file_lock(self.project_context_file):
                 self._project_context = ctx
                 self._atomic_write_json(self.project_context_file, ctx)
+
+        if "rules" in data:
+            rules = self._normalize_memory_rules(data["rules"])
+            with self._file_lock(self.memory_rules_file):
+                self._memory_rules = rules
+                self._atomic_write_json(self.memory_rules_file, rules)
 
     # ========== Mem0-style Auto Update ==========
 

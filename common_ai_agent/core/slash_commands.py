@@ -268,6 +268,10 @@ class SlashCommandRegistry:
                      '워크플로우 전환: /workflow <name> | /workflow (현재)',
                      aliases=['wf'])
 
+        self.register('memory', self._cmd_memory,
+                     '우선순위 memory rule: /memory add <rule> | /memory workflow add <rule>',
+                     aliases=['mem'])
+
         self.register('project', self._cmd_project,
                      'Project management: /project | /project <name> | /project create <name> | /project delete <name>')
 
@@ -1354,26 +1358,183 @@ class SlashCommandRegistry:
 
         return "\n".join(lines)
 
+    def _current_workflow_name(self) -> str:
+        """Resolve the active workflow for workflow-scoped commands."""
+        sess = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/").split("/")
+        sess = [s for s in sess if s]
+        if len(sess) >= 3:
+            return sess[-1]
+        return os.environ.get("ACTIVE_WORKSPACE") or "default"
+
+    def _memory_store(self):
+        import config as _cfg
+        from lib.memory import MemorySystem
+        return MemorySystem(memory_dir=getattr(_cfg, "MEMORY_DIR", ".memory"))
+
+    def _memory_usage(self) -> str:
+        return "\n".join([
+            "Usage:",
+            "  /memory                         show global + current workflow rules",
+            "  /memory all                     show all workflow rules",
+            "  /memory add <rule>              add global rule",
+            "  /memory remove <n>              remove global rule",
+            "  /memory clear                   clear global rules",
+            "  /memory workflow add <rule>     add rule to current workflow",
+            "  /memory workflow <wf> add <rule>",
+            "  /memory workflow remove <n>",
+            "  /memory workflow <wf> remove <n>",
+            "  /memory workflow clear",
+            "  /memory workflow <wf> clear",
+        ])
+
+    def _format_memory_listing(self, memory, workflow: str = "", show_all: bool = False) -> str:
+        active = self._current_workflow_name()
+        lines = [
+            "Memory rules (highest priority)",
+            "Memory is injected above project/workflow/default rules.",
+            f"Active workflow: {active}",
+            f"File: {memory.memory_rules_file}",
+            "",
+        ]
+
+        if show_all:
+            data = memory.list_rules()
+            global_rules = data.get("global", [])
+            workflows = data.get("workflows", {})
+        else:
+            target = workflow or active
+            data = memory.list_rules(workflow=target)
+            global_rules = data.get("global", [])
+            wf_data = data.get("workflow", {})
+            workflows = {wf_data.get("name", target): wf_data.get("rules", [])}
+
+        lines.append("Global:")
+        if global_rules:
+            for idx, rule in enumerate(global_rules, 1):
+                lines.append(f"  {idx}. {rule}")
+        else:
+            lines.append("  (none)")
+
+        if show_all:
+            lines.append("")
+            lines.append("Workflows:")
+            if workflows:
+                for wf_name, rules in sorted(workflows.items()):
+                    lines.append(f"  [{wf_name}]")
+                    for idx, rule in enumerate(rules, 1):
+                        lines.append(f"    {idx}. {rule}")
+            else:
+                lines.append("  (none)")
+        else:
+            wf_name, rules = next(iter(workflows.items()))
+            lines.append("")
+            lines.append(f"Workflow [{wf_name}]:")
+            if rules:
+                for idx, rule in enumerate(rules, 1):
+                    lines.append(f"  {idx}. {rule}")
+            else:
+                lines.append("  (none)")
+
+        return "\n".join(lines)
+
+    def _cmd_memory(self, args: str) -> str:
+        """Manage high-priority memory rules."""
+        import shlex
+
+        raw = args.strip()
+        memory = self._memory_store()
+        try:
+            parts = shlex.split(raw)
+        except ValueError as exc:
+            return f"Invalid /memory arguments: {exc}\n\n{self._memory_usage()}"
+
+        if not parts or parts[0].lower() in ("list", "show"):
+            target = parts[1] if len(parts) > 1 else self._current_workflow_name()
+            if str(target).lower() in ("all", "--all"):
+                return self._format_memory_listing(memory, show_all=True)
+            return self._format_memory_listing(memory, workflow=target)
+
+        cmd = parts[0].lower()
+        if cmd in ("all", "--all", "workflows"):
+            return self._format_memory_listing(memory, show_all=True)
+
+        if cmd in ("help", "-h", "--help"):
+            return self._memory_usage()
+
+        if cmd in ("add", "set"):
+            rule = " ".join(parts[1:]).strip()
+            if not rule:
+                return self._memory_usage()
+            idx = memory.add_rule(rule)
+            return f"Added global memory rule #{idx}.\n\n{self._format_memory_listing(memory)}"
+
+        if cmd in ("remove", "rm", "delete", "del"):
+            if len(parts) < 2 or not parts[1].isdigit():
+                return self._memory_usage()
+            ok = memory.remove_rule(int(parts[1]))
+            if not ok:
+                return f"Global memory rule #{parts[1]} not found."
+            return f"Removed global memory rule #{parts[1]}.\n\n{self._format_memory_listing(memory)}"
+
+        if cmd == "clear":
+            removed = memory.clear_rules()
+            return f"Cleared {removed} global memory rule(s).\n\n{self._format_memory_listing(memory)}"
+
+        if cmd in ("workflow", "wf"):
+            active = self._current_workflow_name()
+            rest = parts[1:]
+            if not rest:
+                return self._format_memory_listing(memory, workflow=active)
+
+            actions = {"list", "show", "add", "set", "remove", "rm", "delete", "del", "clear"}
+            if rest[0].lower() in actions:
+                workflow = active
+                action = rest[0].lower()
+                action_args = rest[1:]
+            else:
+                workflow = rest[0]
+                action = rest[1].lower() if len(rest) > 1 else "list"
+                action_args = rest[2:] if len(rest) > 1 else []
+
+            if action in ("list", "show"):
+                return self._format_memory_listing(memory, workflow=workflow)
+
+            if action in ("add", "set"):
+                rule = " ".join(action_args).strip()
+                if not rule:
+                    return self._memory_usage()
+                idx = memory.add_rule(rule, workflow=workflow)
+                return (
+                    f"Added memory rule #{idx} for workflow [{workflow}].\n\n"
+                    f"{self._format_memory_listing(memory, workflow=workflow)}"
+                )
+
+            if action in ("remove", "rm", "delete", "del"):
+                if not action_args or not action_args[0].isdigit():
+                    return self._memory_usage()
+                ok = memory.remove_rule(int(action_args[0]), workflow=workflow)
+                if not ok:
+                    return f"Workflow [{workflow}] memory rule #{action_args[0]} not found."
+                return (
+                    f"Removed memory rule #{action_args[0]} for workflow [{workflow}].\n\n"
+                    f"{self._format_memory_listing(memory, workflow=workflow)}"
+                )
+
+            if action == "clear":
+                removed = memory.clear_rules(workflow=workflow)
+                return (
+                    f"Cleared {removed} memory rule(s) for workflow [{workflow}].\n\n"
+                    f"{self._format_memory_listing(memory, workflow=workflow)}"
+                )
+
+        return self._memory_usage()
+
     def _cmd_workspace(self, args: str) -> str:
         """Switch workspace/workflow. /workspace <name> or /workspace to show current."""
         import sys, os
         name = args.strip()
 
-        def _current_workflow() -> str:
-            """Resolve the active workflow.
-
-            Prefer the trailing segment of ATLAS_ACTIVE_SESSION (which
-            atlas_ui sets per-request to `<owner>/<ip>/<workflow>`),
-            because ACTIVE_WORKSPACE only refreshes when /wf <name>
-            actually swaps and goes stale otherwise.
-            """
-            sess = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/").split("/")
-            sess = [s for s in sess if s]
-            if len(sess) >= 3:
-                return sess[-1]
-            return os.environ.get("ACTIVE_WORKSPACE") or "default"
-
-        current = _current_workflow()
+        current = self._current_workflow_name()
 
         if not name:
             # Show current workspace and available ones

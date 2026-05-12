@@ -95,6 +95,39 @@ def test_changed_paths_from_patch_summary():
     print("PASS: changed path extraction from patch summary")
 
 
+def test_changed_paths_from_write_replace_results():
+    paths = changed_paths_from_tool_result(
+        "write_file",
+        "Successfully wrote to 'gpio/yaml/gpio.ssot.yaml'.",
+    )
+    assert paths == ["gpio/yaml/gpio.ssot.yaml"]
+
+    paths = changed_paths_from_tool_result(
+        "write_to_file",
+        "Successfully wrote to 'gpio/yaml/gpio.ssot.yaml'.",
+    )
+    assert paths == ["gpio/yaml/gpio.ssot.yaml"]
+
+    paths = changed_paths_from_tool_result(
+        "replace_file_content",
+        "Replaced 2 occurrence(s) in gpio/rtl/gpio.sv\n",
+    )
+    assert paths == ["gpio/rtl/gpio.sv"]
+
+    paths = changed_paths_from_tool_result(
+        "replace_lines",
+        "Update(gpio/rtl/gpio_ctrl.sv)\n@@\n-old\n+new\n",
+    )
+    assert paths == ["gpio/rtl/gpio_ctrl.sv"]
+
+    paths = changed_paths_from_tool_result(
+        "multi_replace_file_content",
+        "updated file: gpio/doc/gpio_mas.md\nupdated file: gpio/list/gpio.f\n",
+    )
+    assert paths == ["gpio/doc/gpio_mas.md", "gpio/list/gpio.f"]
+    print("PASS: changed path extraction from write/replace results")
+
+
 def test_patch_summary_emits_file_changed():
     bridge = _MultiUserBridge()
     session = bridge._ensure_session("user-a")
@@ -124,5 +157,6 @@ if __name__ == "__main__":
     test_queue_prompt()
     test_next_event_wakes_for_late_non_default_event()
     test_changed_paths_from_patch_summary()
+    test_changed_paths_from_write_replace_results()
     test_patch_summary_emits_file_changed()
     print("ALL INTEGRATION TESTS PASSED")

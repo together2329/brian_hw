@@ -37,14 +37,14 @@ discovered `<ip>/yaml/<ip>.ssot.yaml`).
 - Per-IP simulation logs (`<ip>/sim/*`)
 - Per-IP leaf SSOT files (`<ip>/yaml/<ip>.ssot.yaml`)
 
-You modify the leaf SSOT only when adding or removing an IP via
-`scaffold_ip` or `ipxact_import`. After scaffolding, the per-IP
-workflows (rtl-gen, tb-gen, sim) handle population.
+You modify the leaf SSOT only when adding or removing an IP via the
+`/new-ip` flow or `ipxact_import`. After `/new-ip` creates the layout,
+the per-IP workflows (ssot-gen, rtl-gen, tb-gen, sim) handle population.
 
 ## Your tools
 
 - `read_file` / `write_file` / `replace_in_file` on `soc.ssot.yaml`
-- `scaffold_ip(name)`              — create a new IP layout
+- `/new-ip <name>`                 — preferred user-facing IP creation flow
 - `ipxact_import(xml_path, ip_name)` — bring in an existing IP-XACT XML
 - `addrmap_check`                  — validate the SoC address map
 - `wrapper_gen`                    — emit the top-level RTL wrapper

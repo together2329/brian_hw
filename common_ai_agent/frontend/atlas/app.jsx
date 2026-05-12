@@ -95,6 +95,15 @@ const App = () => {
     'mas-gen', 'pnr', 'rtl-gen', 'signoff', 'sim', 'sim_debug',
     'ssot-gen', 'sta', 'syn', 'tb-gen',
   ]), []);
+  const WORKFLOW_DEFAULT = 'default';
+  const WORKFLOW_OPTIONS = React.useMemo(
+    () => [WORKFLOW_DEFAULT].concat(Array.from(TOP_WORKFLOWS).sort()),
+    [TOP_WORKFLOWS]
+  );
+  const isWorkflowSegment = React.useCallback((value) => {
+    const wf = String(value || '');
+    return wf === WORKFLOW_DEFAULT || TOP_WORKFLOWS.has(wf);
+  }, [TOP_WORKFLOWS]);
 
   const normalizeSession = React.useCallback((value) => {
     const norm = (window.atlasData && window.atlasData.normalizeSessionName) || window.normalizeAtlasSessionName;
@@ -105,23 +114,23 @@ const App = () => {
   const splitSessionNamespace = React.useCallback((session) => {
     const sid = normalizeSession(session);
     const parts = sid.split('/').filter(Boolean);
-    if (!parts.length) return { sessionId: 'default', ipId: '', workflow: '' };
+    if (!parts.length) return { sessionId: WORKFLOW_DEFAULT, ipId: WORKFLOW_DEFAULT, workflow: WORKFLOW_DEFAULT };
     const last = parts[parts.length - 1];
-    if (parts.length >= 3 && TOP_WORKFLOWS.has(last)) {
+    if (parts.length >= 3 && isWorkflowSegment(last)) {
       return {
         sessionId: parts[0],
-        ipId: parts[parts.length - 2],
+        ipId: parts[parts.length - 2] || WORKFLOW_DEFAULT,
         workflow: last,
       };
+    }
+    if (parts.length >= 2 && parts[1] === WORKFLOW_DEFAULT) {
+      return { sessionId: parts[0], ipId: WORKFLOW_DEFAULT, workflow: WORKFLOW_DEFAULT };
     }
     if (parts.length === 2 && TOP_WORKFLOWS.has(last)) {
       return { sessionId: 'default', ipId: parts[0], workflow: last };
     }
-    if (parts.length >= 2 && parts[1] === 'default') {
-      return { sessionId: parts[0], ipId: '', workflow: '' };
-    }
     return { sessionId: parts[0] || 'default', ipId: '', workflow: '' };
-  }, [TOP_WORKFLOWS, normalizeSession]);
+  }, [TOP_WORKFLOWS, isWorkflowSegment, normalizeSession]);
 
   const initialSplit = splitSessionNamespace(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || '');
   const [activeSessionId, setActiveSessionId] = React.useState(
@@ -129,9 +138,9 @@ const App = () => {
   );
   const [activeNamespace, setActiveNamespace] = React.useState(
     normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession'))
-      || `${activeSessionId}/default`
+      || `${activeSessionId}/default/default`
   );
-  const [activeIp, setActiveIp] = React.useState(initialSplit.ipId || '');
+  const [activeIp, setActiveIp] = React.useState(initialSplit.ipId || WORKFLOW_DEFAULT);
   const [sessionIdOptions, setSessionIdOptions] = React.useState([]);
   const [ipOptions, setIpOptions] = React.useState([]);
   // Inline notice for + IP / + SESSION errors. window.alert/prompt
@@ -196,22 +205,22 @@ const App = () => {
           const currentOwner = (currentNs.split('/').filter(Boolean)[0] || '');
           localStorage.setItem('atlasUserSessionId', username);
           if (!currentNs || currentNs === 'default' || (currentOwner && currentOwner !== username)) {
-            const nextNs = `${username}/default`;
+            const nextNs = `${username}/default/default`;
             window.ACTIVE_SESSION = nextNs;
             localStorage.setItem('atlasActiveSession', nextNs);
             setActiveSessionId(username);
             setActiveNamespace(nextNs);
-            setActiveIp('');
+            setActiveIp(WORKFLOW_DEFAULT);
             const url = new URL(window.location.href);
             url.searchParams.set('session', nextNs);
             url.searchParams.set('session_id', username);
-            url.searchParams.delete('ip');
+            url.searchParams.set('ip', WORKFLOW_DEFAULT);
+            url.searchParams.set('workflow', WORKFLOW_DEFAULT);
             url.searchParams.delete('ip_id');
-            url.searchParams.delete('workflow');
             url.searchParams.delete('wf');
             window.history.replaceState(null, '', url);
           }
-          const activeForBackend = normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || `${username}/default`) || `${username}/default`;
+          const activeForBackend = normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || `${username}/default/default`) || `${username}/default/default`;
           if (window.backend && typeof window.backend.disconnect === 'function' && typeof window.backend.connect === 'function') {
             window.backend.disconnect();
             setTimeout(() => window.backend.connect(activeForBackend), 0);
@@ -297,27 +306,14 @@ const App = () => {
   const currentWorkflow = React.useCallback(() => {
     return splitSessionNamespace(window.ACTIVE_SESSION || activeNamespace).workflow
       || normalizeSession(window.CONTEXT && window.CONTEXT.workspace)
-      || 'ssot-gen';
+      || WORKFLOW_DEFAULT;
   }, [activeNamespace, normalizeSession, splitSessionNamespace]);
 
   const namespaceFor = React.useCallback((sessionId, ipId, workflow) => {
     const owner = normalizeSession(sessionId) || normalizeSession(window.ATLAS_USER_SESSION_ID || '') || 'default';
-    const ip = normalizeSession(ipId || '');
-    const wf = normalizeSession(workflow || '');
-    if (ip && wf) return `${owner}/${ip}/${wf}`;
-    // Picking an IP without an explicit workflow → use 'default' as
-    // the workflow segment so the namespace stays unambiguous and the
-    // splitSessionNamespace round-trip preserves the IP.
-    if (ip) return `${owner}/${ip}/default`;
-    // Workflow without IP — drop the legacy `${owner}/soc/${wf}`
-    // synthesis. It used to plant a `.session/<owner>/soc/<wf>/`
-    // tree for plain ssot-gen / rtl-gen runs that aren't SoC-level
-    // at all, confusing operators. Use `${owner}/${wf}` so the
-    // workflow-only case lands at `.session/<owner>/<wf>/`. SoC
-    // Architect runs explicitly set ipId='soc' and keep the
-    // legacy three-segment shape via the (ip && wf) branch above.
-    if (wf) return `${owner}/${wf}`;
-    return `${owner}/default`;
+    const ip = normalizeSession(ipId || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
+    const wf = normalizeSession(workflow || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
+    return `${owner}/${ip}/${wf}`;
   }, [normalizeSession]);
 
   const activateBackendWorkflow = React.useCallback((workflow, session) => {
@@ -351,8 +347,8 @@ const App = () => {
 
   const activateNamespace = React.useCallback((sessionId, ipId, workflow, syncWorkflow = true) => {
     const owner = normalizeSession(sessionId) || 'default';
-    const ip = normalizeSession(ipId || '');
-    const wf = normalizeSession(workflow || '');
+    const ip = normalizeSession(ipId || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
+    const wf = normalizeSession(workflow || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
     const namespace = namespaceFor(owner, ip, wf);
     // Stop the running agent BEFORE flipping the workspace whenever any
     // of the triple changes. Without this, in-flight tool calls keep
@@ -412,10 +408,9 @@ const App = () => {
           }),
         });
       } catch (_) {}
-      // No `&& wf` guard — picking 'default' from the workflow
-      // dropdown sends an empty wf string, but activateBackendWorkflow
-      // resolves it to /wf default so the agent's workspace actually
-      // flips. Skipping here would leave the backend pinned.
+      // No `&& wf` guard — default is a real workflow and must still
+      // dispatch /wf default so the backend cannot stay pinned to the
+      // previous workspace.
       if (syncWorkflow) activateBackendWorkflow(wf, namespace);
     };
     _activateAndDispatch();
@@ -424,12 +419,13 @@ const App = () => {
 
   // Synthetic / reserved namespace segments that should never show
   // up in the ip_id dropdown. 'soc' is the SoC architect placeholder,
-  // 'default' is the no-IP fallback, 'user' is the legacy ip-less
-  // sentinel (still in the wild on disk from older runs), and any
-  // workflow name (ssot-gen, rtl-gen, …) that slipped into the IP
-  // slot from `${owner}/${wf}` namespaces gets filtered too.
+  // 'user' is the legacy ip-less sentinel (still in the wild on disk
+  // from older runs), and any workflow name (ssot-gen, rtl-gen, …)
+  // that slipped into the IP slot from `${owner}/${wf}` namespaces
+  // gets filtered too. 'default' stays selectable as the explicit
+  // default IP_ID.
   const RESERVED_IP_NAMES = React.useMemo(
-    () => new Set(['soc', 'default', 'user', ...TOP_WORKFLOWS]),
+    () => new Set(['soc', 'user', ...TOP_WORKFLOWS]),
     [TOP_WORKFLOWS]
   );
 
@@ -437,8 +433,8 @@ const App = () => {
     const nextSessionIds = new Set(['default']);
     const currentUserSession = normalizeSession(window.ATLAS_USER_SESSION_ID || activeSessionId);
     if (currentUserSession) nextSessionIds.add(currentUserSession);
-    const nextIps = new Set();
-    const acceptIp = (id) => id && !RESERVED_IP_NAMES.has(id);
+    const nextIps = new Set([WORKFLOW_DEFAULT]);
+    const acceptIp = (id) => id && (id === WORKFLOW_DEFAULT || !RESERVED_IP_NAMES.has(id));
     try {
       const r = await fetch('/api/session/list', { cache: 'no-store' });
       if (r.ok) {
@@ -499,14 +495,18 @@ const App = () => {
       if (b === 'default') return 1;
       return a.localeCompare(b);
     }));
-    const sortedIps = Array.from(nextIps).sort((a, b) => a.localeCompare(b));
+    const sortedIps = Array.from(nextIps).sort((a, b) => {
+      if (a === WORKFLOW_DEFAULT) return -1;
+      if (b === WORKFLOW_DEFAULT) return 1;
+      return a.localeCompare(b);
+    });
     setIpOptions(sortedIps);
     // Expose for inline-code-chip click validation in workspace.jsx so
     // only IPs that actually exist on disk become clickable.
     window.IP_OPTIONS = sortedIps;
     setActiveSessionId(parsedLive.sessionId || currentUserSession || 'default');
     setActiveNamespace(liveNamespace);
-    setActiveIp(parsedLive.ipId === 'soc' ? '' : (parsedLive.ipId || ''));
+    setActiveIp(parsedLive.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsedLive.ipId || WORKFLOW_DEFAULT));
   }, [activeIp, activeNamespace, activeSessionId, currentWorkflow, namespaceFor, normalizeSession, splitSessionNamespace]);
 
   React.useEffect(() => {
@@ -537,7 +537,7 @@ const App = () => {
       const parsed = splitSessionNamespace(namespace);
       setActiveNamespace(namespace || namespaceFor(activeSessionId, activeIp, currentWorkflow()));
       setActiveSessionId(parsed.sessionId || activeSessionId);
-      setActiveIp(parsed.ipId === 'soc' ? '' : (parsed.ipId || activeIp || ''));
+      setActiveIp(parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsed.ipId || activeIp || WORKFLOW_DEFAULT));
       // Push the canonical triple into the URL so the address bar
       // never silently disagrees with what the server reports.
       // Without this, reloading after a triple flip kept the OLD
@@ -545,8 +545,8 @@ const App = () => {
       // tree had pivoted to the new triple.
       try {
         const owner = parsed.sessionId || activeSessionId || 'default';
-        const ipSeg = parsed.ipId === 'soc' ? '' : (parsed.ipId || '');
-        const wfSeg = parsed.workflow || '';
+        const ipSeg = parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsed.ipId || WORKFLOW_DEFAULT);
+        const wfSeg = parsed.workflow || WORKFLOW_DEFAULT;
         if (namespace) syncNamespaceUrl(namespace, owner, ipSeg, wfSeg);
       } catch (_) {}
       clearTimeout(timer);
@@ -579,7 +579,12 @@ const App = () => {
     // gate will rewrite localStorage and we'll re-fire then.
     const owner = parsed.sessionId || '';
     if (owner && owner !== (window.ATLAS_USER.username || '')) return;
-    activateNamespace(parsed.sessionId || activeSessionId || 'default', parsed.ipId || '', parsed.workflow || '', !!parsed.workflow);
+    activateNamespace(
+      parsed.sessionId || activeSessionId || 'default',
+      parsed.ipId || WORKFLOW_DEFAULT,
+      parsed.workflow || WORKFLOW_DEFAULT,
+      true
+    );
     // Run once on mount AFTER auth: this is the URL/localStorage → backend handshake.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authState]);
@@ -593,8 +598,13 @@ const App = () => {
       const owner = normalizeSession(parsed.sessionId || sessionId);
       setActiveSessionId(owner);
       setActiveNamespace(namespace || window.ACTIVE_SESSION || namespaceFor(owner, activeIp, currentWorkflow()));
-      setActiveIp(parsed.ipId === 'soc' ? '' : (parsed.ipId || activeIp || ''));
-      syncNamespaceUrl(namespace || window.ACTIVE_SESSION || '', owner, parsed.ipId === 'soc' ? '' : (parsed.ipId || ''), parsed.workflow || '');
+      setActiveIp(parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsed.ipId || activeIp || WORKFLOW_DEFAULT));
+      syncNamespaceUrl(
+        namespace || window.ACTIVE_SESSION || '',
+        owner,
+        parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsed.ipId || WORKFLOW_DEFAULT),
+        parsed.workflow || WORKFLOW_DEFAULT
+      );
       refreshTopTargets();
     };
     window.addEventListener('atlas-session-switched', onSwitch);
@@ -603,36 +613,28 @@ const App = () => {
 
   const selectSessionId = (rawSessionId) => {
     const owner = normalizeSession(rawSessionId) || 'default';
-    const wf = activeIp ? currentWorkflow() : '';
-    activateNamespace(owner, activeIp, wf, !!wf);
+    const ip = activeIp || WORKFLOW_DEFAULT;
+    const wf = currentWorkflow() || WORKFLOW_DEFAULT;
+    activateNamespace(owner, ip, wf, true);
   };
 
   const selectIp = (rawIp) => {
-    const ip = normalizeSession(rawIp);
-    // Picking an IP also re-anchors the workflow: ssot-gen by default
-    // (the natural starting workflow for any IP), or whatever the user
-    // already had if it's a valid workflow. Clearing the IP also
-    // clears the workflow.
-    let wf = '';
-    if (ip) {
-      const cur = currentWorkflow();
-      wf = cur && TOP_WORKFLOWS.has(cur) ? cur : 'ssot-gen';
-    }
-    activateNamespace(activeSessionId, ip, wf, !!wf);
+    const ip = normalizeSession(rawIp) || WORKFLOW_DEFAULT;
+    // Picking an IP keeps the current workflow when it is valid. The
+    // explicit default IP_ID is a real selectable namespace segment, not
+    // a request to clear the workflow.
+    const cur = currentWorkflow();
+    const wf = isWorkflowSegment(cur) ? cur : WORKFLOW_DEFAULT;
+    activateNamespace(activeSessionId, ip, wf, true);
   };
 
-  // Switch workflow segment of the active namespace. Empty string falls
-  // back to 'default' (no /wf dispatch). Anything in TOP_WORKFLOWS fires
-  // /wf to swap the agent's workspace just like clicking a chip in the
-  // Workspace screen — keeps the dir-switcher source-of-truth.
+  // Switch workflow segment of the active namespace. default is an
+  // explicit workflow segment and still dispatches /wf default so the
+  // backend prompt, TODO file and workspace config all follow the UI.
   const selectWorkflow = (rawWf) => {
-    const wf = normalizeSession(rawWf);
-    // Always sync to the backend — picking 'default' (empty input)
-    // must still dispatch /wf default so the agent's TODO_FILE,
-    // system prompt and todo template flip back to the plain
-    // workspace. Previously syncWorkflow=!!wf made the call a no-op
-    // for default and the backend stayed on the old workflow.
-    activateNamespace(activeSessionId, activeIp, wf, true);
+    const wf = normalizeSession(rawWf) || WORKFLOW_DEFAULT;
+    const ip = activeIp || WORKFLOW_DEFAULT;
+    activateNamespace(activeSessionId, ip, wf, true);
   };
 
   const newSessionId = () => {
@@ -647,8 +649,9 @@ const App = () => {
       return;
     }
     setSessionIdOptions(prev => Array.from(new Set([owner].concat(prev || []))));
-    const wf = activeIp ? currentWorkflow() : '';
-    activateNamespace(owner, activeIp, wf, !!wf);
+    const ip = activeIp || WORKFLOW_DEFAULT;
+    const wf = currentWorkflow() || WORKFLOW_DEFAULT;
+    activateNamespace(owner, ip, wf, true);
   };
 
   // Create a brand-new IP under the current user_session and switch
@@ -1024,17 +1027,19 @@ const App = () => {
           <span>ip_id</span>
           <select
             className="dir-select ip"
-            value={activeIp || ''}
+            value={activeIp || WORKFLOW_DEFAULT}
             onChange={e => selectIp(e.currentTarget.value)}>
-            <option value="">None</option>
+            <option value={WORKFLOW_DEFAULT}>{WORKFLOW_DEFAULT}</option>
             {/* `value=` of the <select> must exist as an <option>; otherwise
                 React renders the first option (label "default") even though
                 state holds a real IP like "PL330", which makes the dropdown
                 disagree with the URL/session it is supposed to mirror. */}
-            {activeIp && !ipOptions.includes(activeIp) && (
+            {activeIp && activeIp !== WORKFLOW_DEFAULT && !ipOptions.includes(activeIp) && (
               <option key={activeIp} value={activeIp}>{activeIp}</option>
             )}
-            {ipOptions.map(ip => <option key={ip} value={ip}>{ip}</option>)}
+            {ipOptions.filter(ip => ip !== WORKFLOW_DEFAULT).map(ip => (
+              <option key={ip} value={ip}>{ip}</option>
+            ))}
           </select>
         </label>
         <button className="dir-btn"
@@ -1044,10 +1049,9 @@ const App = () => {
           <span>workflow</span>
           <select
             className="dir-select"
-            value={currentWorkflow() || ''}
+            value={currentWorkflow() || WORKFLOW_DEFAULT}
             onChange={e => selectWorkflow(e.currentTarget.value)}>
-            <option value="">default</option>
-            {Array.from(TOP_WORKFLOWS).sort().map(wf => (
+            {WORKFLOW_OPTIONS.map(wf => (
               <option key={wf} value={wf}>{wf}</option>
             ))}
           </select>

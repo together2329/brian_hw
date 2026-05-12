@@ -14,7 +14,7 @@
     },
     {
       "content": "Apply FSM changes: add new states, keep existing transitions intact",
-      "detail": "Add new localparam state encodings and reg state declarations as needed. Add new transitions in the always @(*) next-state block — only in the default/new state case clauses. NEVER modify existing state transition logic unless the MAS delta explicitly requires it. Verify existing state sequences still reachable with same conditions.",
+      "detail": "Add new localparam state encodings and logic state declarations as needed. Keep the existing FSM style when updating legacy RTL; for new FSM regions, default to the conventional state-register plus next-state/output-decode structure unless MAS/SSOT or the user specifies another synthesizable style. Add new transitions in the always @(*) next-state block — only in the default/new state case clauses. NEVER modify existing state transition logic unless the MAS delta explicitly requires it. Verify existing state sequences still reachable with same conditions.",
       "priority": "high"
     },
     {

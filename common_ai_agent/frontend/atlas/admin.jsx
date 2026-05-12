@@ -11,6 +11,11 @@ function AdminPage() {
   const [deleting, setDeleting] = React.useState(null);
   const [expandedUsage, setExpandedUsage] = React.useState(null);
   const [resolving, setResolving] = React.useState(null);
+  const [authState, setAuthState] = React.useState('checking');
+  const [loginUsername, setLoginUsername] = React.useState('admin');
+  const [loginPassword, setLoginPassword] = React.useState('');
+  const [loginError, setLoginError] = React.useState(null);
+  const [loginPending, setLoginPending] = React.useState(false);
 
   async function reloadFeedback() {
     try {
@@ -21,40 +26,83 @@ function AdminPage() {
     } catch (_) {}
   }
 
-  React.useEffect(() => {
-    async function init() {
-      try {
-        setLoading(true);
-        const [usersResp, sessionsResp, usageResp, fbResp] = await Promise.all([
-          fetch('/api/admin/users'),
-          fetch('/api/admin/sessions'),
-          fetch('/api/admin/usage'),
-          fetch('/api/admin/feedback'),
-        ]);
-        if (usersResp.status === 403 || sessionsResp.status === 403 || usageResp.status === 403) {
-          setError('Admin access required');
-          setLoading(false);
-          return;
-        }
-        const usersData = await usersResp.json();
-        const sessionsData = await sessionsResp.json();
-        const usageData = usageResp.ok ? await usageResp.json() : { users: [] };
-        const fbData = fbResp.ok ? await fbResp.json() : { feedback: [] };
-        setUsers(usersData.users || []);
-        setSessions(sessionsData.sessions || []);
-        setUsage(usageData.users || []);
-        setCostContexts(usageData.cost_by_context || []);
-        setDateCosts(usageData.cost_by_date || []);
-        setFeedback(fbData.feedback || []);
-        setError(null);
-      } catch (e) {
-        setError(String(e));
-      } finally {
-        setLoading(false);
+  const loadAdminData = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const [usersResp, sessionsResp, usageResp, fbResp] = await Promise.all([
+        fetch('/api/admin/users'),
+        fetch('/api/admin/sessions'),
+        fetch('/api/admin/usage'),
+        fetch('/api/admin/feedback'),
+      ]);
+      if ([usersResp, sessionsResp, usageResp, fbResp].some((r) => r.status === 401)) {
+        setAuthState('unauthenticated');
+        return;
       }
+      if ([usersResp, sessionsResp, usageResp, fbResp].some((r) => r.status === 403)) {
+        setAuthState('forbidden');
+        setError('Admin access required');
+        return;
+      }
+      if (!usersResp.ok || !sessionsResp.ok) {
+        const bad = !usersResp.ok ? usersResp : sessionsResp;
+        let detail = `HTTP ${bad.status}`;
+        try {
+          const body = await bad.json();
+          detail = body.error || body.detail || detail;
+        } catch (_) {}
+        throw new Error(detail);
+      }
+      const usersData = await usersResp.json();
+      const sessionsData = await sessionsResp.json();
+      const usageData = usageResp.ok ? await usageResp.json() : { users: [] };
+      const fbData = fbResp.ok ? await fbResp.json() : { feedback: [] };
+      setUsers(usersData.users || []);
+      setSessions(sessionsData.sessions || []);
+      setUsage(usageData.users || []);
+      setCostContexts(usageData.cost_by_context || []);
+      setDateCosts(usageData.cost_by_date || []);
+      setFeedback(fbData.feedback || []);
+      setAuthState('authorized');
+      setLoginError(null);
+    } catch (e) {
+      setAuthState('error');
+      setError(String(e));
+    } finally {
+      setLoading(false);
     }
-    init();
   }, []);
+
+  React.useEffect(() => {
+    loadAdminData();
+  }, [loadAdminData]);
+
+  const handleLogin = async (ev) => {
+    ev.preventDefault();
+    setLoginPending(true);
+    setLoginError(null);
+    try {
+      const resp = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: loginUsername, password: loginPassword }),
+      });
+      if (!resp.ok) {
+        let detail = `Login failed (HTTP ${resp.status})`;
+        try {
+          const body = await resp.json();
+          detail = body.detail || body.error || detail;
+        } catch (_) {}
+        throw new Error(detail);
+      }
+      await loadAdminData();
+    } catch (e) {
+      setLoginError(String(e).replace(/^Error:\s*/, ''));
+    } finally {
+      setLoginPending(false);
+    }
+  };
 
   const handleResolveFeedback = async (fid) => {
     setResolving(fid);
@@ -234,6 +282,53 @@ function AdminPage() {
     background: 'rgba(224,108,117,0.08)',
   };
 
+  const loginPanelStyle = {
+    width: 360,
+    maxWidth: '100%',
+    margin: '80px auto 0',
+    background: '#161d25',
+    border: '1px solid #2a3540',
+    borderRadius: 8,
+    padding: 22,
+    boxShadow: '0 18px 50px rgba(0,0,0,0.32)',
+  };
+
+  const labelStyle = {
+    display: 'block',
+    fontSize: 11,
+    fontWeight: 600,
+    color: '#a3aebb',
+    marginBottom: 6,
+  };
+
+  const inputStyle = {
+    width: '100%',
+    boxSizing: 'border-box',
+    background: '#10161d',
+    color: '#e6edf3',
+    border: '1px solid #2f3c49',
+    borderRadius: 4,
+    padding: '9px 10px',
+    fontFamily: 'inherit',
+    fontSize: 13,
+    outline: 'none',
+  };
+
+  const loginButtonStyle = {
+    width: '100%',
+    marginTop: 14,
+    background: '#a35f22',
+    color: '#fff7ed',
+    border: '1px solid #b87333',
+    borderRadius: 4,
+    padding: '9px 12px',
+    fontSize: 13,
+    fontWeight: 700,
+    fontFamily: 'inherit',
+    cursor: loginPending ? 'wait' : 'pointer',
+    opacity: loginPending ? 0.7 : 1,
+  };
+
   const formatDate = (ts) => {
     if (!ts) return '—';
     try {
@@ -270,7 +365,43 @@ function AdminPage() {
           </div>
         )}
 
-        {!loading && !error && (
+        {!loading && authState === 'unauthenticated' && (
+          <form style={loginPanelStyle} onSubmit={handleLogin}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#f0c674', marginBottom: 4 }}>
+              Admin Login
+            </div>
+            <div style={{ fontSize: 12, color: '#8893a3', marginBottom: 18 }}>
+              Sign in with an Atlas admin account.
+            </div>
+            <label style={labelStyle} htmlFor="atlas-admin-username">Username</label>
+            <input
+              id="atlas-admin-username"
+              style={inputStyle}
+              value={loginUsername}
+              autoComplete="username"
+              onChange={(ev) => setLoginUsername(ev.target.value)}
+            />
+            <label style={{ ...labelStyle, marginTop: 12 }} htmlFor="atlas-admin-password">Password</label>
+            <input
+              id="atlas-admin-password"
+              style={inputStyle}
+              value={loginPassword}
+              type="password"
+              autoComplete="current-password"
+              onChange={(ev) => setLoginPassword(ev.target.value)}
+            />
+            {loginError && (
+              <div style={{ color: '#e06c75', fontSize: 12, marginTop: 10 }}>
+                {loginError}
+              </div>
+            )}
+            <button style={loginButtonStyle} disabled={loginPending} type="submit">
+              {loginPending ? 'Signing in...' : 'Login'}
+            </button>
+          </form>
+        )}
+
+        {!loading && !error && authState === 'authorized' && (
           <>
             <div style={tabRowStyle}>
               <button style={tabStyle(activeTab === 'users')} onClick={() => setActiveTab('users')}>

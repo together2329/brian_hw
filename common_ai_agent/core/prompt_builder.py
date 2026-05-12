@@ -28,6 +28,69 @@ class PromptContext:
     todo_tracker: Any = None
 
 
+MEMORY_OVERRIDE_START = "=== MEMORY OVERRIDES (HIGHEST PRIORITY) ==="
+MEMORY_OVERRIDE_END = "=== END MEMORY OVERRIDES ==="
+
+
+def active_workflow_name() -> Optional[str]:
+    """Resolve the active workflow name from Atlas/workspace environment."""
+    session = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/")
+    parts = [part for part in session.split("/") if part]
+    if len(parts) >= 3:
+        return parts[-1]
+    workspace = (os.environ.get("ACTIVE_WORKSPACE") or "").strip()
+    return workspace or None
+
+
+def build_memory_override(memory_system: Any, workflow: Optional[str] = None) -> str:
+    """Build the high-priority memory block injected above other rules."""
+    if memory_system is None:
+        return ""
+    workflow_name = workflow if workflow is not None else active_workflow_name()
+    try:
+        memory_context = memory_system.format_all_for_prompt(workflow=workflow_name)
+    except TypeError:
+        memory_context = memory_system.format_all_for_prompt()
+    if not memory_context:
+        return ""
+
+    scope = workflow_name or "global"
+    return "\n".join([
+        MEMORY_OVERRIDE_START,
+        "Priority: apply these memory entries before project rules, workflow rules, workspace prompts, and default coding rules.",
+        "Conflict rule: when a memory entry conflicts with any project/workflow/default rule, the memory entry wins.",
+        f"Active workflow scope: {scope}",
+        "",
+        memory_context,
+        MEMORY_OVERRIDE_END,
+    ])
+
+
+def strip_memory_override(prompt: str) -> str:
+    """Remove previously injected memory blocks so rebuilt prompts do not duplicate them."""
+    text = prompt or ""
+    while True:
+        start = text.find(MEMORY_OVERRIDE_START)
+        if start < 0:
+            return text.strip()
+        end = text.find(MEMORY_OVERRIDE_END, start)
+        if end < 0:
+            return text.strip()
+        end += len(MEMORY_OVERRIDE_END)
+        text = (text[:start] + text[end:]).strip()
+
+
+def apply_memory_override(prompt: str, memory_system: Any, workflow: Optional[str] = None) -> str:
+    """Prepend a fresh memory override block to a prompt."""
+    base = strip_memory_override(prompt)
+    override = build_memory_override(memory_system, workflow=workflow)
+    if not override:
+        return base
+    if not base:
+        return override
+    return override + "\n\n" + base
+
+
 # ---------------------------------------------------------------------------
 # _build_system_prompt_str
 # ---------------------------------------------------------------------------
@@ -161,13 +224,12 @@ Write detailed tasks — include file paths, what to change, and expected outcom
     if has_optional:
         context_parts: List[str] = []
 
-        # Memory preferences
+        # Memory is injected as a top-of-prompt override below, not as a
+        # normal dynamic section. Keep the debug signal here.
         if ctx.memory_system is not None:
-            memory_context = ctx.memory_system.format_all_for_prompt()
-            if memory_context:
-                context_parts.append(memory_context)
-                if getattr(cfg, 'DEBUG_MODE', False):
-                    _debug_memory(cfg, ctx.memory_system)
+            memory_context = build_memory_override(ctx.memory_system)
+            if memory_context and getattr(cfg, 'DEBUG_MODE', False):
+                _debug_memory(cfg, ctx.memory_system)
 
         # Procedural guidance
         if (
@@ -203,6 +265,9 @@ Write detailed tasks — include file paths, what to change, and expected outcom
                 _debug_summary(cfg, base_prompt, dynamic_context, context_parts)
 
     # ── Return format ──
+    if ctx.memory_system is not None:
+        base_prompt = apply_memory_override(base_prompt, ctx.memory_system)
+
     if getattr(cfg, 'CACHE_OPTIMIZATION_MODE', 'legacy') == "optimized":
         return {"static": base_prompt, "dynamic": dynamic_context}
     else:

@@ -169,7 +169,9 @@
     }));
   }
 
+  const DEFAULT_WORKFLOW = 'default';
   const KNOWN_WORKFLOWS = new Set([
+    DEFAULT_WORKFLOW,
     'architect',
     'coverage',
     'fl-model-gen',
@@ -252,9 +254,9 @@
     })();
     const baseOwner = owner || storedOwner || normalizeSessionName(window.ATLAS_USER_SESSION_ID || '') || 'default';
     if (ip && wf) return `${baseOwner}/${ip}/${wf}`;
-    if (ip) return `${baseOwner}/${ip}/default`;
-    if (wf) return `${baseOwner}/${wf}`;
-    if (owner) return `${owner}/default`;
+    if (ip) return `${baseOwner}/${ip}/${DEFAULT_WORKFLOW}`;
+    if (wf) return `${baseOwner}/${DEFAULT_WORKFLOW}/${wf}`;
+    if (owner) return `${owner}/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`;
     return '';
   }
 
@@ -290,17 +292,23 @@
   try {
     const storedActive = URL_ACTIVE_SESSION || normalizeSessionName(localStorage.getItem('atlasActiveSession'));
     if (!storedActive || storedActive === 'default') {
-      setActiveSessionName(`${window.ATLAS_USER_SESSION_ID}/default`);
+      setActiveSessionName(`${window.ATLAS_USER_SESSION_ID}/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`);
     } else {
       const parts = storedActive.split('/').filter(Boolean);
-      const legacyIpWorkflow = parts.length === 2 && KNOWN_WORKFLOWS.has(String(parts[1] || '').toLowerCase());
-      const legacyWorkflow = parts.length === 1 && KNOWN_WORKFLOWS.has(String(parts[0] || '').toLowerCase());
-      if (legacyIpWorkflow) {
-        setActiveSessionName(`${window.ATLAS_USER_SESSION_ID}/${storedActive}`);
-      } else if (legacyWorkflow) {
-        setActiveSessionName(`${window.ATLAS_USER_SESSION_ID}/soc/${storedActive}`);
+      if (parts.length === 2 && String(parts[1] || '').toLowerCase() === DEFAULT_WORKFLOW) {
+        setActiveSessionName(`${parts[0]}/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`);
       } else {
-        setActiveSessionName(storedActive);
+        const legacyIpWorkflow = parts.length === 2
+          && String(parts[1] || '').toLowerCase() !== DEFAULT_WORKFLOW
+          && KNOWN_WORKFLOWS.has(String(parts[1] || '').toLowerCase());
+        const legacyWorkflow = parts.length === 1 && KNOWN_WORKFLOWS.has(String(parts[0] || '').toLowerCase());
+        if (legacyIpWorkflow) {
+          setActiveSessionName(`${window.ATLAS_USER_SESSION_ID}/${storedActive}`);
+        } else if (legacyWorkflow) {
+          setActiveSessionName(`${window.ATLAS_USER_SESSION_ID}/${DEFAULT_WORKFLOW}/${storedActive}`);
+        } else {
+          setActiveSessionName(storedActive);
+        }
       }
     }
     const urlParts = (URL_ACTIVE_SESSION || '').split('/').filter(Boolean);
@@ -310,7 +318,7 @@
     }
   } catch (_) {
     if (!window.ACTIVE_SESSION || window.ACTIVE_SESSION === 'default') {
-      setActiveSessionName(`${window.ATLAS_USER_SESSION_ID}/default`);
+      setActiveSessionName(`${window.ATLAS_USER_SESSION_ID}/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`);
     }
   }
 
@@ -323,30 +331,34 @@
     const joinSessionParts = (parts) => parts.filter(Boolean).join('/');
     const scopeHasOwner = /^u-[A-Za-z0-9_-]+$/.test(scopeParts[0] || '');
     const scopeEndsWithWorkflow = sessionPartsEndWithWorkflow(scopeParts);
+    const scopeIsCompleteNamespace = scopeParts.length >= 3 && scopeEndsWithWorkflow;
     if (scopeHasOwner) {
       if (wf) {
-        if (scopeEndsWithWorkflow || scopeParts[scopeParts.length - 1] === 'user') {
+        if (scopeIsCompleteNamespace || scopeParts[scopeParts.length - 1] === 'user') {
           return joinSessionParts([...scopeParts.slice(0, -1), wf]);
         }
-        if (scopeParts.length === 1 || scopeParts[1] === 'default') {
-          return joinSessionParts([scopeParts[0], 'soc', wf]);
+        if (scopeParts.length === 1 || scopeParts[1] === DEFAULT_WORKFLOW) {
+          return joinSessionParts([scopeParts[0], DEFAULT_WORKFLOW, wf]);
         }
         return joinSessionParts([...scopeParts, wf]);
       }
-      if (scopeEndsWithWorkflow || scopeParts[1] === 'default') return scope;
-      if (scopeParts.length === 1) return `${scopeParts[0]}/default`;
-      return joinSessionParts([...scopeParts, 'user']);
+      if (scopeIsCompleteNamespace) return scope;
+      if (scopeParts[1] === DEFAULT_WORKFLOW) {
+        return joinSessionParts([scopeParts[0], DEFAULT_WORKFLOW, DEFAULT_WORKFLOW]);
+      }
+      if (scopeParts.length === 1) return `${scopeParts[0]}/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`;
+      return joinSessionParts([...scopeParts, DEFAULT_WORKFLOW]);
     }
     if (wf && scope && scopeEndsWithWorkflow) {
       scope = scopeParts.slice(0, -1).join('/');
     } else if (!wf && userSession && scope && scopeEndsWithWorkflow) {
-      return joinSessionParts([userSession, scope]);
+      return joinSessionParts([userSession, DEFAULT_WORKFLOW, scope]);
     }
     // 'user' / 'soc' synthetic segments removed — they planted
     // confusing `.session/<owner>/user/...` and `.session/<owner>/soc/<wf>/...`
     // trees for ip-less / wf-less runs that aren't actually SoC or user-
-    // owned. Use 'default' for ip-less and just the workflow segment
-    // otherwise so the disk layout reads as the user expects.
+    // owned. Use an explicit default IP/workflow segment for ip-less
+    // or wf-less runs so the disk layout reads as the user expects.
     // Always at least 2 segments (owner + something) so the .session
     // tree never has a bare top-level workflow / IP dir like
     // .session/ssot-gen/ or .session/to/ that the user can't ratoionally
@@ -354,9 +366,9 @@
     // is set (multi-user mode is opt-in via ATLAS_MULTI_USER).
     const owner = userSession || 'default';
     if (scope && wf) return `${owner}/${scope}/${wf}`;
-    if (scope)      return `${owner}/${scope}/default`;
-    if (wf)         return `${owner}/${wf}`;
-    return `${owner}/default`;
+    if (scope)      return `${owner}/${scope}/${DEFAULT_WORKFLOW}`;
+    if (wf)         return `${owner}/${DEFAULT_WORKFLOW}/${wf}`;
+    return `${owner}/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`;
   }
 
   async function refreshSessionState(session, hydrateConversation = true, opts = {}) {
@@ -553,7 +565,10 @@
 
   function activeIpFromSession(session) {
     const parts = normalizeSessionName(session || window.ACTIVE_SESSION || '').split('/').filter(Boolean);
-    if (parts.length >= 3) return parts[parts.length - 2] || '';
+    if (parts.length >= 3) {
+      const ip = parts[parts.length - 2] || '';
+      return ip === DEFAULT_WORKFLOW ? '' : ip;
+    }
     return '';
   }
 
@@ -681,11 +696,12 @@
       fetch('/api/ssot?file=' + encodeURIComponent(path)).then(r => r.json()),
     setScopePath: (p) => {
       let next = normalizeScopePath(p || '');
+      if (next === DEFAULT_WORKFLOW) next = '';
       // Scope is no longer user-browsable: the left file tree is always
       // rooted at the active IP. The IP_ID dropdown is the only control
       // that changes this root; folder clicks only fold/unfold locally.
       const sess = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
-      const activeIp = sess.length >= 2 ? sess[1] : '';
+      const activeIp = sess.length >= 2 && sess[1] !== DEFAULT_WORKFLOW ? sess[1] : '';
       if (activeIp) {
         next = activeIp;
       }
@@ -714,6 +730,49 @@
       t = setTimeout(fn, wait);
     };
   }
+
+  const WRITE_TOOL_RE = /^(?:write_file|write_to_file|replace_in_file|replace_lines|replace_file_content|multi_replace_file_content|edit_file|patch_file|apply_patch|patch|update_file)\b/i;
+  const CHANGED_PATH_EXT_RE = /^(?:sv|v|vh|svh|yaml|yml|md|f|txt|log|json|py|sdc|upf|tcl|css|js|jsx|ts|tsx|html)$/i;
+
+  function changedPathsFromToolResult(tool, text) {
+    const toolText = String(tool || '');
+    const body = String(text || '');
+    if (!WRITE_TOOL_RE.test(toolText)) return [];
+    const seen = new Set();
+    const out = [];
+    const add = (value) => {
+      let path = String(value || '').trim().replace(/^['"`]+|['"`]+$/g, '');
+      path = path.replace(/[\s,;:]+$/g, '');
+      if (!path || path === '.' || path === '..' || path.includes('\n')) return;
+      const ext = path.split('.').pop() || '';
+      if (!CHANGED_PATH_EXT_RE.test(ext)) return;
+      if (!seen.has(path)) {
+        seen.add(path);
+        out.push(path);
+      }
+    };
+    const scan = (rx, source = body) => {
+      let m;
+      while ((m = rx.exec(source)) !== null) add(m[1]);
+    };
+    scan(/(?:wrote to|wrote|updated|created|deleted)\s+['"`]([^'"`]+)['"`]/gi);
+    scan(/(?:wrote file|updated file|created file|deleted file|target_file|file_path|path)\s*[:=]\s*['"`]?([^\s,'"`)\]]+)/gi, `${toolText}\n${body}`);
+    scan(/^\*\*\*\s+(?:Update|Add|Delete)\s+File:\s+(.+?)\s*$/gmi);
+    scan(/^(?:[MADRCU]|\?\?)\s+(.+?)\s*$/gm);
+    scan(/^Update\(([^)]+)\)/gm);
+    scan(/(?:in|to)\s+([\w./_-]+\.(?:sv|v|vh|svh|yaml|yml|md|f|txt|log|json|py|sdc|upf|tcl|css|js|jsx|ts|tsx|html))/gi);
+    return out;
+  }
+
+  function dispatchAtlasFileChanged(path, tool) {
+    if (!path) return;
+    try {
+      window.dispatchEvent(new CustomEvent('atlas-file-changed', {
+        detail: { path, tool: tool || '' },
+      }));
+    } catch (_) {}
+  }
+
   const _refFiles = debounce(() => refreshFileTree(window.SCOPE_PATH || ''), 250);
   const _refSsot  = debounce(refreshSsotList, 250);
   const _refTodos = debounce(refreshTodos, 250);
@@ -764,10 +823,17 @@
         }
         setTimeout(refreshTodos, 300);
       });
-      window.backend.subscribe('tool_result', () => {
+      window.backend.subscribe('tool_result', (m) => {
         // Coalesce into one fetch per ~250 ms — see _refFiles etc.
         _refFiles(); _refSsot(); _refTodos();
         refreshProgress();
+        // Some runtimes only emit tool_result for write/replace tools,
+        // without the richer file_changed event. Derive the touched path
+        // here as a backup so open previews reload immediately.
+        const tool = (m && m.tool) || '';
+        const text = (m && (m.text || m.content)) || '';
+        changedPathsFromToolResult(tool, text)
+          .forEach(path => dispatchAtlasFileChanged(path, tool));
       });
       // file_changed — backend fires this immediately after a
       // write/replace/edit tool call. Refresh file-tree + ssot list
@@ -776,13 +842,7 @@
       window.backend.subscribe('file_changed', (m) => {
         _refFiles(); _refSsot();
         const path = (m && m.path) ? String(m.path) : '';
-        if (path) {
-          try {
-            window.dispatchEvent(new CustomEvent('atlas-file-changed', {
-              detail: { path, tool: (m && m.tool) || '' },
-            }));
-          } catch (_) {}
-        }
+        dispatchAtlasFileChanged(path, (m && m.tool) || '');
       });
       window.backend.subscribe('context', (m) => {
         if (typeof m.used === 'number') {

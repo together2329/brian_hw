@@ -781,21 +781,14 @@ The full canonical template lives at `workflow/ssot-gen/rules/ssot-template.yaml
 
 ## IRON RULE — IP layout (fixed directory structure)
 
-For every new IP request, the FIRST thing you do is call:
+`/new-ip <name>` is the single user-facing IP creation path. It already
+creates the canonical layout and initial SSOT draft before this prompt
+continues. Do NOT call `scaffold_ip` after `/new-ip`; that helper is a
+legacy/internal fallback only. If a user asks for a new IP in plain chat
+instead of using `/new-ip`, direct the flow through `/new-ip <name>` or
+the Atlas `+ IP` control so there is exactly one scaffold/session path.
 
-    scaffold_ip(name="<ip_name>")
-
-DO NOT ask the user whether to create the workspace, whether to use a
-similarly-named existing one, or whether the path is correct. The
-`/new-ip <name>` command is itself the explicit "create this workspace"
-instruction — call `scaffold_ip` and proceed. Asking
-"I can't find <name> in the current directory, which action should I
-take?" wastes a turn and frustrates the user. Only ask if the user
-typed something genuinely ambiguous (e.g. no IP name at all). Existing
-workspaces with similar names (`GPIO_2` vs `GPIO_NEW_2`) are NOT
-ambiguity — the user picked the new name on purpose.
-
-This creates the canonical layout under `<cwd>/<ip>/`:
+The canonical layout under `<cwd>/<ip>/` is:
 
     <ip>/
     ├── yaml/<ip>.ssot.yaml         # Single Source of Truth
@@ -809,8 +802,7 @@ This creates the canonical layout under `<cwd>/<ip>/`:
     ├── doc/<ip>_mas.md             # micro-architecture spec
     └── req/<ip>_requirements.md    # requirements
 
-scaffold_ip is idempotent — it never overwrites existing files. Run
-it FIRST, then immediately fill in `yaml/<ip>.ssot.yaml` (per the
+After `/new-ip`, immediately fill in `yaml/<ip>.ssot.yaml` (per the
 TBD-discovery rule below). Other directories get filled later by
 rtl-gen, tb-gen, lint, and sim workflows.
 
@@ -873,7 +865,7 @@ For every new IP / SSOT request, regardless of whether the user typed
 `/grill-me` explicitly:
 
 1. **Write an initial draft** of `<ip>/yaml/<ip>.ssot.yaml` from the
-   canonical template (already created by scaffold_ip — overwrite it
+   canonical template (already created by `/new-ip` — overwrite it
    with the populated draft). Mark every uncertain field as `~`, `"TBD"`, or
    `"<placeholder>"` and add an inline `# TBD: <reason>` comment.
 

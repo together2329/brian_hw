@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check that every reg/output is driven by exactly ONE always block.
+"""Check that every sequential signal/output is driven by exactly ONE always block.
 
 Catches the SC3-style multi-driver race where the same reg gets NBA
 assignments from two separate `always_ff @(posedge clk ...)` blocks,
@@ -7,7 +7,7 @@ producing simulator-dependent indeterminate behavior.
 
 Strategy (regex-based, no external deps):
   1. For each .sv / .v file in <ip>/rtl/:
-     a. Find all `reg [...] name;` declarations (also output reg).
+     a. Find all `reg`/`logic` declarations (also output reg/logic).
      b. Find all `always @(posedge ... or negedge ...)` blocks (and
         always_ff equivalents).
      c. For each always block, extract every `name <= expr;` NBA
@@ -32,9 +32,9 @@ from typing import Any
 
 # ── Regex helpers ────────────────────────────────────────────────────
 
-# `reg [...] name;` or `reg name;` or `output reg [...] name`
-_REG_DECL = re.compile(
-    r"\b(?:output\s+)?reg\b(?:\s*\[[^\]]*\])?\s+([A-Za-z_]\w*)\s*[,;)]",
+# `logic [...] name;` / `reg name;` / `output logic [...] name`
+_STORAGE_DECL = re.compile(
+    r"\b(?:output\s+)?(?:reg|logic)\b(?:\s*\[[^\]]*\])?\s+([A-Za-z_]\w*)\s*[,;)]",
 )
 
 # `always @(posedge sys_clk_i or negedge sys_resetn_i) begin ... end`
@@ -129,9 +129,9 @@ def check_file(path: Path) -> dict[str, Any]:
     src = path.read_text(encoding="utf-8", errors="ignore")
     src_clean = _strip_comments(src)
 
-    # Collect declared reg names.
+    # Collect declared sequential-capable signal names.
     declared: set[str] = set()
-    for m in _REG_DECL.finditer(src_clean):
+    for m in _STORAGE_DECL.finditer(src_clean):
         nm = m.group(1)
         if nm not in _IGNORED_NAMES:
             declared.add(nm)
@@ -151,7 +151,7 @@ def check_file(path: Path) -> dict[str, Any]:
     for name, lines in drivers.items():
         unique_blocks = sorted(set(lines))
         if len(unique_blocks) > 1:
-            # Only count if the name was declared as a reg in this file
+            # Only count if the name was declared as storage in this file
             # OR is a known output (we don't need to filter strictly —
             # multi-NBA-driven anything is a problem).
             violations.append({
@@ -163,6 +163,7 @@ def check_file(path: Path) -> dict[str, Any]:
     return {
         "file": str(path),
         "regs_declared": len(declared),
+        "storage_declared": len(declared),
         "always_blocks": len(blocks),
         "violations": violations,
     }
