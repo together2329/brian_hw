@@ -75,11 +75,13 @@ _PROTECTED_ENV_KEYS = frozenset({
 })
 
 _ALLOW_EMPTY_ENV_KEYS = frozenset({
+    'LLM_MODEL_NAME_2', 'LLM_MODEL_NAME_3',
     'LLM_BASE_NAME_2', 'LLM_BASE_NAME_3',
     'LLM_BASE_MODEL_2', 'LLM_BASE_MODEL_3',
 })
 
-_MODEL_DROPDOWN_KEYS = ('LLM_BASE_NAME', 'LLM_BASE_NAME_2', 'LLM_BASE_NAME_3')
+_MODEL_DROPDOWN_KEYS = ('LLM_MODEL_NAME', 'LLM_MODEL_NAME_2', 'LLM_MODEL_NAME_3')
+_BASE_MODEL_DROPDOWN_KEYS = ('LLM_BASE_NAME', 'LLM_BASE_NAME_2', 'LLM_BASE_NAME_3')
 _LEGACY_MODEL_DROPDOWN_KEYS = ('LLM_BASE_MODEL', 'LLM_BASE_MODEL_2', 'LLM_BASE_MODEL_3')
 
 # mtime cache: path -> last seen mtime. reload_env() only does I/O when at
@@ -195,21 +197,32 @@ def _resolve_pdk_env_defaults() -> None:
         os.environ[key] = _resolve_source_path(raw) if raw else str(Path(default).resolve(strict=False))
 
 
+def _canonical_model_dropdown_key(key: str) -> str:
+    raw = str(key or "").strip()
+    for group in (_MODEL_DROPDOWN_KEYS, _BASE_MODEL_DROPDOWN_KEYS, _LEGACY_MODEL_DROPDOWN_KEYS):
+        if raw in group:
+            return _MODEL_DROPDOWN_KEYS[group.index(raw)]
+    return raw
+
+
+def _model_dropdown_value(index: int) -> str:
+    for group in (_MODEL_DROPDOWN_KEYS, _BASE_MODEL_DROPDOWN_KEYS, _LEGACY_MODEL_DROPDOWN_KEYS):
+        value = os.getenv(group[index], "").strip()
+        if value:
+            return value
+    return ""
+
+
 def _apply_model_dropdown_selection() -> None:
     if (
-        "LLM_MODEL_NAME" in _INITIAL_ENV_KEYS
-        or "MODEL_NAME" in _INITIAL_ENV_KEYS
+        "MODEL_NAME" in _INITIAL_ENV_KEYS
         or "LLM_PROFILE" in _INITIAL_ENV_KEYS
     ):
         return
-    selected_key = os.getenv("LLM_SELECTED_MODEL_KEY", "").strip()
+    selected_key = _canonical_model_dropdown_key(os.getenv("LLM_SELECTED_MODEL_KEY", ""))
     model = ""
     if selected_key in _MODEL_DROPDOWN_KEYS:
-        model = os.getenv(selected_key, "").strip()
-    elif selected_key in _LEGACY_MODEL_DROPDOWN_KEYS:
-        legacy_index = _LEGACY_MODEL_DROPDOWN_KEYS.index(selected_key)
-        selected_key = _MODEL_DROPDOWN_KEYS[legacy_index]
-        model = os.getenv(selected_key, "").strip() or os.getenv(_LEGACY_MODEL_DROPDOWN_KEYS[legacy_index], "").strip()
+        model = _model_dropdown_value(_MODEL_DROPDOWN_KEYS.index(selected_key))
     else:
         return
     if not model:
@@ -217,6 +230,7 @@ def _apply_model_dropdown_selection() -> None:
     globals()['MODEL_NAME'] = model
     os.environ['LLM_MODEL_NAME'] = model
     os.environ['MODEL_NAME'] = model
+    os.environ['LLM_ACTIVE_MODEL_NAME'] = model
     os.environ['LLM_ACTIVE_BASE_NAME'] = model
     os.environ['LLM_ACTIVE_BASE_MODEL'] = model
 

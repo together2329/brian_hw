@@ -93,7 +93,8 @@ _REASONING_EFFORT_ALIASES = {
     "xhigh": "xhigh",
     "xh": "xhigh",
 }
-_MODEL_OPTION_KEYS = ("LLM_BASE_NAME", "LLM_BASE_NAME_2", "LLM_BASE_NAME_3")
+_MODEL_OPTION_KEYS = ("LLM_MODEL_NAME", "LLM_MODEL_NAME_2", "LLM_MODEL_NAME_3")
+_BASE_MODEL_OPTION_KEYS = ("LLM_BASE_NAME", "LLM_BASE_NAME_2", "LLM_BASE_NAME_3")
 _LEGACY_MODEL_OPTION_KEYS = ("LLM_BASE_MODEL", "LLM_BASE_MODEL_2", "LLM_BASE_MODEL_3")
 
 _atlas_active_session_cv = contextvars.ContextVar("atlas_active_session", default="")
@@ -167,6 +168,24 @@ def _read_env_file_values() -> dict[str, str]:
     return values
 
 
+def _canonical_model_option_key(key: str) -> str:
+    raw = str(key or "").strip()
+    for group in (_MODEL_OPTION_KEYS, _BASE_MODEL_OPTION_KEYS, _LEGACY_MODEL_OPTION_KEYS):
+        if raw in group:
+            return _MODEL_OPTION_KEYS[group.index(raw)]
+    return raw
+
+
+def _model_option_value(env_file: dict[str, str], index: int) -> str:
+    """Return dropdown slot value, preferring LLM_MODEL_NAME* over old names."""
+    for group in (_MODEL_OPTION_KEYS, _BASE_MODEL_OPTION_KEYS, _LEGACY_MODEL_OPTION_KEYS):
+        key = group[index]
+        value = (env_file.get(key, os.environ.get(key, "")) or "").strip()
+        if value:
+            return value
+    return ""
+
+
 def _refresh_config_after_persist() -> None:
     """Refresh config mtime cache so the next /healthz does not undo runtime settings."""
     for mod_name in ("src.config", "config"):
@@ -194,22 +213,11 @@ def _set_runtime_reasoning_effort(effort: str) -> None:
 
 def _model_option_rows(active_model: str = "") -> list[dict[str, str]]:
     env_file = _read_env_file_values()
-    new_values = {
-        key: (env_file.get(key, os.environ.get(key, "")) or "").strip()
-        for key in _MODEL_OPTION_KEYS
-    }
-    if any(new_values.values()):
-        option_values = new_values
-    else:
-        option_values = {
-            key: (env_file.get(legacy, os.environ.get(legacy, "")) or "").strip()
-            for key, legacy in zip(_MODEL_OPTION_KEYS, _LEGACY_MODEL_OPTION_KEYS)
-        }
 
     rows: list[dict[str, str]] = []
     seen_models: set[str] = set()
-    for key in _MODEL_OPTION_KEYS:
-        model = option_values.get(key, "")
+    for index, key in enumerate(_MODEL_OPTION_KEYS):
+        model = _model_option_value(env_file, index)
         if not model or model in seen_models or model.lower().startswith("default"):
             continue
         seen_models.add(model)
@@ -219,6 +227,7 @@ def _model_option_rows(active_model: str = "") -> list[dict[str, str]]:
         env_file.get("LLM_SELECTED_MODEL_KEY", "")
         or os.environ.get("LLM_SELECTED_MODEL_KEY", "")
     ).strip()
+    selected_key = _canonical_model_option_key(selected_key)
     if selected_key:
         selected_row = next((row for row in rows if row["key"] == selected_key), None)
         if selected_row and (not active_model or selected_row["model"] == active_model):
@@ -237,10 +246,11 @@ def _model_option_rows(active_model: str = "") -> list[dict[str, str]]:
 def _set_runtime_model(model: str, selected_key: str = "") -> None:
     os.environ["LLM_MODEL_NAME"] = model
     os.environ["MODEL_NAME"] = model
+    os.environ["LLM_ACTIVE_MODEL_NAME"] = model
     os.environ["LLM_ACTIVE_BASE_NAME"] = model
     os.environ["LLM_ACTIVE_BASE_MODEL"] = model
     if selected_key:
-        os.environ["LLM_SELECTED_MODEL_KEY"] = selected_key
+        os.environ["LLM_SELECTED_MODEL_KEY"] = _canonical_model_option_key(selected_key)
     for mod_name in ("src.config", "config"):
         mod = sys.modules.get(mod_name)
         if mod is not None:
@@ -248,14 +258,9 @@ def _set_runtime_model(model: str, selected_key: str = "") -> None:
 
 
 def _apply_selected_model_from_env() -> str:
-    selected_key = os.environ.get("LLM_SELECTED_MODEL_KEY", "").strip()
-    if selected_key in _LEGACY_MODEL_OPTION_KEYS:
-        selected_key = _MODEL_OPTION_KEYS[_LEGACY_MODEL_OPTION_KEYS.index(selected_key)]
+    selected_key = _canonical_model_option_key(os.environ.get("LLM_SELECTED_MODEL_KEY", ""))
     if selected_key in _MODEL_OPTION_KEYS:
-        model = (
-            os.environ.get(selected_key, "").strip()
-            or os.environ.get(_LEGACY_MODEL_OPTION_KEYS[_MODEL_OPTION_KEYS.index(selected_key)], "").strip()
-        )
+        model = _model_option_value({}, _MODEL_OPTION_KEYS.index(selected_key))
         if model:
             _set_runtime_model(model, selected_key)
             return model
@@ -764,8 +769,9 @@ def create_app():
         model = selected["model"]
         try:
             _persist_env_values({
-                "LLM_MODEL_NAME": model,
+                selected["key"]: model,
                 "LLM_SELECTED_MODEL_KEY": selected["key"],
+                "LLM_ACTIVE_MODEL_NAME": model,
                 "LLM_ACTIVE_BASE_NAME": model,
             })
             _refresh_config_after_persist()
