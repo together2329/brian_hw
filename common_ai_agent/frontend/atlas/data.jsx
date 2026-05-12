@@ -33,6 +33,7 @@
     { cmd: '/compact', alias: 'co', hint: 'compress history' },
     { cmd: '/exit',    alias: 'q',  hint: 'leave the session' },
     { cmd: '/todo',    alias: 't',  hint: 'show / manage todos' },
+    { cmd: '/pipeline', alias: 'pl', hint: '(client) dispatch full SSOT pipeline: /pipeline <ip>' },
     { cmd: '/scope',   alias: 'sc', hint: '(client) confine agent to a directory: /scope <path>' },
     { cmd: '/cd',      alias: 'cd', hint: '(client) alias for /scope' },
     { cmd: '/session', alias: 'ss', hint: '(client) show or switch session: /session default' },
@@ -523,6 +524,9 @@
           { cmd: '/session', alias: 'ss',
             hint: '(client) show or switch session: /session default',
             desc: '(client) show or switch session: /session default' },
+          { cmd: '/pipeline', alias: 'pl',
+            hint: '(client) dispatch full SSOT pipeline: /pipeline <ip>',
+            desc: '(client) dispatch full SSOT pipeline: /pipeline <ip>' },
         ];
         const present = new Set(live.map(c => c.cmd));
         for (const c of clientOnly) {

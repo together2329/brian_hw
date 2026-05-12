@@ -2095,6 +2095,51 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       return;
     }
 
+    const pipelineMatch = raw.match(/^\/(pipeline|pipe|full-pipeline)(\s+(\S+))?$/i);
+    if (pipelineMatch) {
+      const ipName = (pipelineMatch[3] || window.ACTIVE_IP || activeIp || '').trim();
+      setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      const _clearStreaming = () => {
+        setStreaming(false);
+        streamBufferRef.current = '';
+        setStreamText('');
+      };
+      if (!ipName || ipName === 'default') {
+        setFeed(f => [...f, {
+          kind: 'agent',
+          text: 'Usage: `/pipeline <ip>` — dispatches SSOT → FL/CL → RTL → lint → TB → sim → coverage → syn → sta → pnr → sta-post.',
+        }]);
+        _clearStreaming();
+        return;
+      }
+      fetch('/api/pipeline/dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip: ipName }),
+      })
+        .then(async r => {
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok || j.error || j.detail) throw new Error(j.error || j.detail || `HTTP ${r.status}`);
+          return j;
+        })
+        .then(j => {
+          const stages = Array.isArray(j.stages)
+            ? j.stages.map(s => s && s.id).filter(Boolean).join(' → ')
+            : '';
+          setFeed(f => [...f, {
+            kind: 'agent',
+            text: `Dispatched pipeline \`${j.pipeline_id || 'unknown'}\` for \`${ipName}\`${stages ? `.\nStages: ${stages}` : '.'}`,
+          }]);
+          window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'JOBS' }));
+        })
+        .catch(err => setFeed(f => [...f, {
+          kind: 'agent',
+          text: 'Pipeline dispatch failed: ' + (err && err.message || err),
+        }]));
+      _clearStreaming();
+      return;
+    }
+
     // /commit <msg> — labeled checkpoint in the active IP's per-IP git.
     const commitMatch = raw.match(/^\/commit(\s+([\s\S]+))?$/i);
     if (commitMatch) {
