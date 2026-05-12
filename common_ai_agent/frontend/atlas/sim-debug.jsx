@@ -13,6 +13,20 @@ const normalizeProjectSourcePath = (rawPath) => {
   return raw.replace(/^\/+/, '');
 };
 
+const isDumpScopeName = (name) => {
+  const n = String(name || '');
+  return n === 'iverilog_dump' || n === 'atlas_iverilog_vcd_dump' || /_vcd_dump$/.test(n);
+};
+
+const inferRtlTopFromVcd = (parsed, fallback = '') => {
+  const signals = Array.isArray(parsed?.signals) ? parsed.signals : [];
+  for (const sig of signals) {
+    const first = String(sig?.scope || '').split('.').find(Boolean) || '';
+    if (first && !isDumpScopeName(first)) return first;
+  }
+  return fallback || '';
+};
+
 // Cocotb (testbench) tree view — categorised file list + parsed
 // results.xml summary. Click any file to load it in the source viewer.
 const CocotbTreeView = ({ data, ipName, onOpenFile }) => {
@@ -633,6 +647,7 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
   const [rightTab, setRightTab] = React.useState('wave'); // legacy, mirrors topTab
   React.useEffect(() => { setRightTab(topTab); }, [topTab]);
   const [ipName, setIpName] = React.useState('');
+  const [rtlTop, setRtlTop] = React.useState('');
 
   // Auto-detect IP. Two parallel signals are checked:
   //   1) window.ACTIVE_SESSION's middle segment — fires immediately on
@@ -695,6 +710,8 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
         if (d.content && window.parseVCD) {
           const parsed = window.parseVCD(d.content);
           setVcdData(parsed);
+          const inferredTop = inferRtlTopFromVcd(parsed, '');
+          if (inferredTop) setRtlTop(prev => prev || inferredTop);
           // Reset view to fit the whole VCD on parse.
           setViewRange(null);
           // Position cursors at sensible spots inside the actual VCD
@@ -757,17 +774,25 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
     return () => { cancelled = true; };
   }, [ipName, simSummaryReload]);
 
-  // Fetch hierarchy when IP is known.
+  React.useEffect(() => {
+    setRtlTop('');
+  }, [ipName]);
+
+  // Fetch hierarchy when IP is known. The UI is scoped by IP directory, but
+  // elaboration must use the real RTL top from tb_manifest/SSOT/VCD scope.
   React.useEffect(() => {
     if (!ipName) return;
     let cancelled = false;
     (async () => {
       try {
-        const r = await fetch('/api/hierarchy?top=' + encodeURIComponent(ipName) +
+        const topForHierarchy = rtlTop || ipName;
+        const r = await fetch('/api/hierarchy?top=' + encodeURIComponent(topForHierarchy) +
                               '&ip=' + encodeURIComponent(ipName));
         const d = await r.json();
         if (cancelled) return;
         setHierarchyMeta(d);
+        const resolvedTop = d?.resolved_top || d?.tree?.module || '';
+        if (resolvedTop && resolvedTop !== rtlTop) setRtlTop(resolvedTop);
         if (d.tree) {
           setHierarchy(d.tree);
           setHierarchyError('');
@@ -784,7 +809,7 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
       }
     })();
     return () => { cancelled = true; };
-  }, [ipName]);
+  }, [ipName, rtlTop]);
 
   const hierarchyBackendLabel = React.useMemo(() => {
     const backend = String(hierarchyMeta?.backend || '').trim();
@@ -793,8 +818,9 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
       ? 'pyslang + verilator'
       : (backend || 'pyslang + verilator');
     const primarySuffix = primary ? ` (${primary})` : '';
-    return ipName ? `${display}${primarySuffix} · ${ipName}` : `${display}${primarySuffix}`;
-  }, [hierarchyMeta, ipName]);
+    const topSuffix = rtlTop && rtlTop !== ipName ? ` · top ${rtlTop}` : '';
+    return ipName ? `${display}${primarySuffix} · ${ipName}${topSuffix}` : `${display}${primarySuffix}`;
+  }, [hierarchyMeta, ipName, rtlTop]);
 
   const hierarchyBackendTitle = React.useMemo(() => {
     const results = hierarchyMeta?.backend_results || [];
@@ -1067,7 +1093,7 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
     setSrcModule(moduleName);
     (async () => {
       try {
-        const r = await fetch('/api/hierarchy?top=' + encodeURIComponent(ipName) +
+        const r = await fetch('/api/hierarchy?top=' + encodeURIComponent(rtlTop || ipName) +
                               '&ip=' + encodeURIComponent(ipName));
         const d = await r.json();
         if (d?.error) {
@@ -1094,7 +1120,7 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
         setSrcPath('');
       }
     })();
-  }, [ipName, loadSourceFile]);
+  }, [ipName, rtlTop, loadSourceFile]);
 
   // Wave signal click → /api/trace returns driver file_line; fetch + scroll.
   const onSelectWaveSignal = React.useCallback(async (signalName, signalScope = '') => {
@@ -1103,7 +1129,7 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
     try {
       const r = await fetch(
         `/api/trace?signal=${encodeURIComponent(signalName)}` +
-        `&top=${encodeURIComponent(ipName)}&ip=${encodeURIComponent(ipName)}` +
+        `&top=${encodeURIComponent(rtlTop || ipName)}&ip=${encodeURIComponent(ipName)}` +
         (signalScope ? `&scope=${encodeURIComponent(signalScope)}` : ''));
       const d = await r.json();
       const drv = d && d.driver;
@@ -1118,7 +1144,7 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
         }
       }
     } catch (e) { /* trace failed; keep current source */ }
-  }, [ipName, loadSourceFile]);
+  }, [ipName, rtlTop, loadSourceFile]);
 
   // Auto-load top module source the first time hierarchy resolves.
   React.useEffect(() => {
@@ -1228,10 +1254,12 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
       try {
         await onSelectWaveSignal(sig);
         // Re-fetch /api/trace to print a summary in the chat.
+        const activeTop = rtlTop || ipName || sig.split('.')[0] || '';
+        const activeIp = ipName || activeTop;
         const r = await fetch(
           `/api/trace?signal=${encodeURIComponent(sig)}` +
-          `&top=${encodeURIComponent(ipName || 'gpio_pad')}` +
-          `&ip=${encodeURIComponent(ipName || 'gpio_pad')}`);
+          `&top=${encodeURIComponent(activeTop)}` +
+          `&ip=${encodeURIComponent(activeIp)}`);
         const d = await r.json();
         const drv = d?.driver;
         const sinks = d?.sinks || [];
@@ -1256,7 +1284,9 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
       setChatFeed(f => [...f, { kind: 'sys', text: `→ loading hierarchy + source for ${mod}`, ts: Date.now() }]);
       onSelectModule(mod, mod);
       try {
-        const r = await fetch(`/api/hierarchy?top=${encodeURIComponent(mod)}&ip=${encodeURIComponent(mod)}`);
+        const r = await fetch(
+          `/api/hierarchy?top=${encodeURIComponent(mod)}` +
+          `&ip=${encodeURIComponent(ipName || mod)}`);
         const d = await r.json();
         const tree = d?.tree;
         const flatten = (n, depth) => {

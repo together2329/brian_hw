@@ -1272,6 +1272,27 @@ def _copy_waveforms(build_dir: Path, sim_dir: Path, ip: str) -> list[Path]:
     return copied
 
 
+def _with_icarus_vcd_dump(sources: list[str], build_dir: Path, top: str, ip: str) -> tuple[list[str], list[str]]:
+    """Create an Icarus-only VCD dump helper without wrapping the DUT.
+
+    Icarus/vvp has no Tcl wave-control layer. To keep Atlas' browser VCD
+    viewer source-traceable, dump the real RTL top scope directly and add the
+    helper as a second top-level root that the UI can ignore.
+    """
+    dump_module = "atlas_iverilog_vcd_dump"
+    dump_src = build_dir / f"{dump_module}.v"
+    dump_src.write_text(
+        f"module {dump_module}();\\n"
+        "initial begin\\n"
+        f"  $dumpfile(\\"{ip}.vcd\\");\\n"
+        f"  $dumpvars(0, {top});\\n"
+        "end\\n"
+        "endmodule\\n",
+        encoding="utf-8",
+    )
+    return [*sources, str(dump_src)], [top, dump_module]
+
+
 def _parse_results(path: Path) -> tuple[int, int, int]:
     root = ET.parse(path).getroot()
     tests = failures = errors = 0
@@ -1316,15 +1337,22 @@ def main() -> int:
     }
     os.environ.pop("COCOTB_RESULTS_FILE", None)
     try:
+        simulator = os.environ.get("SIM", "icarus")
+        run_sources = sources
+        run_top = manifest["top"]
+        waves = True
+        if simulator == "icarus":
+            run_sources, run_top = _with_icarus_vcd_dump(sources, build_dir, manifest["top"], ip)
+            waves = False
         results_file = run(
-            simulator=os.environ.get("SIM", "icarus"),
-            verilog_sources=sources,
-            toplevel=manifest["top"],
+            simulator=simulator,
+            verilog_sources=run_sources,
+            toplevel=run_top,
             module=f"test_{ip}",
             python_search=[str(tb_dir), str(runtime_dir)],
             sim_build=str(build_dir),
             timescale="1ns/1ps",
-            waves=True,
+            waves=waves,
             force_compile=True,
             extra_env=env,
         )

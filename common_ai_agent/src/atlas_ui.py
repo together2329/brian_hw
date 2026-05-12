@@ -2507,7 +2507,7 @@ def create_app():
             if key in seen:
                 return
             seen.add(key)
-            out.append(f)
+            out.append(resolved)
 
         def _project_relative_file(p: Path, suffixes: tuple[str, ...]) -> Optional[Path]:
             try:
@@ -2647,14 +2647,20 @@ def create_app():
         try:
             mod = _load_sim_debug_elab()
             build_hierarchy_cached = mod.build_hierarchy_cached
+            from atlas_sim_debug_top import resolve_sim_debug_top
         except Exception as e:
             return JSONResponse({"error": f"elab module: {e}"}, status_code=500)
         srcs = _elab_resolve_sources(sources, ip)
         if not srcs:
             return JSONResponse({"error": "no SV sources matched", "sources_tried": sources or ip}, status_code=400)
         try:
-            res = build_hierarchy_cached(backend, top, srcs)
+            top_info = resolve_sim_debug_top(PROJECT_ROOT, ip=ip, requested_top=top)
+            resolved_top = top_info.get("top") or top
+            res = build_hierarchy_cached(backend, resolved_top, srcs)
             res = dict(res)
+            res["requested_top"] = top
+            res["resolved_top"] = resolved_top
+            res["top_resolution"] = top_info
             res["sources"] = [p.relative_to(PROJECT_ROOT).as_posix() for p in srcs]
             return JSONResponse(res)
         except ValueError as e:
@@ -2672,21 +2678,25 @@ def create_app():
         try:
             mod = _load_sim_debug_elab()
             trace_driver_cached = mod.trace_driver_cached
+            from atlas_sim_debug_top import resolve_sim_debug_top
         except Exception as e:
             return JSONResponse({"error": f"elab module: {e}"}, status_code=500)
         srcs = _elab_resolve_sources(sources, ip)
         if not srcs:
             return JSONResponse({"error": "no SV sources matched"}, status_code=400)
-        # Prefer explicit top > scope's first segment > ip > signal's first segment.
-        resolved_top = (
-            top
-            or (scope.split(".", 1)[0] if scope else "")
-            or ip
-            or signal.split(".", 1)[0]
+        top_info = resolve_sim_debug_top(
+            PROJECT_ROOT,
+            ip=ip,
+            requested_top=top,
+            vcd_scope=scope,
         )
+        resolved_top = top_info.get("top") or signal.split(".", 1)[0]
         try:
             res = trace_driver_cached(backend, resolved_top, signal, srcs)
             res = dict(res)
+            res["requested_top"] = top
+            res["resolved_top"] = resolved_top
+            res["top_resolution"] = top_info
             res["sources"] = [p.relative_to(PROJECT_ROOT).as_posix() for p in srcs]
             return JSONResponse(res)
         except ValueError as e:
