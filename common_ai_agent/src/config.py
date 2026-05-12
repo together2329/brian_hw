@@ -55,6 +55,7 @@ def _apply_workspace_env_early():
 
 
 _apply_workspace_env_early()
+_INITIAL_ENV_KEYS = frozenset(os.environ)
 
 # ── .env loading + hot reload ─────────────────────────────────────────────
 # Two failure modes are addressed here:
@@ -72,6 +73,12 @@ _apply_workspace_env_early()
 _PROTECTED_ENV_KEYS = frozenset({
     'ACTIVE_WORKSPACE', 'WORKSPACE', 'ACTIVE_PROJECT',
 })
+
+_ALLOW_EMPTY_ENV_KEYS = frozenset({
+    'LLM_BASE_MODEL_2', 'LLM_BASE_MODEL_3',
+})
+
+_MODEL_DROPDOWN_KEYS = ('LLM_BASE_MODEL', 'LLM_BASE_MODEL_2', 'LLM_BASE_MODEL_3')
 
 # mtime cache: path -> last seen mtime. reload_env() only does I/O when at
 # least one .env file has changed since the previous successful reload.
@@ -121,7 +128,7 @@ def load_env_file(force_reload: bool = False):
             value = value.strip()
             if '#' in value:
                 value = value.split('#')[0].strip()
-            if not key or not value:
+            if not key or (not value and key not in _ALLOW_EMPTY_ENV_KEYS):
                 continue
             if key in _PROTECTED_ENV_KEYS:
                 continue
@@ -133,6 +140,90 @@ def _env_bool(name: str, default: str = "false") -> bool:
     return os.getenv(name, default).strip().lower() in ("true", "1", "yes", "on")
 
 
+def _source_root() -> Path:
+    return Path(__file__).resolve().parent.parent
+
+
+def _resolve_source_path(value: str) -> str:
+    raw = os.path.expandvars(os.path.expanduser(str(value or "").strip()))
+    if not raw:
+        return ""
+    path = Path(raw)
+    if not path.is_absolute():
+        path = _source_root() / path
+    return str(path.resolve(strict=False))
+
+
+def _first_readable(paths: list[Path]) -> Path:
+    for path in paths:
+        if path.is_file() and os.access(path, os.R_OK):
+            return path
+    return paths[0] if paths else Path()
+
+
+def _resolve_pdk_env_defaults() -> None:
+    """Populate PDK env vars from common_ai_agent/pdk when not explicit."""
+    root = _resolve_source_path(os.getenv("PDK_ROOT") or "pdk")
+    os.environ["PDK_ROOT"] = root
+
+    sky130_root_raw = os.getenv("SKY130_PDK_ROOT", "").strip()
+    if sky130_root_raw:
+        sky130_root = _resolve_source_path(sky130_root_raw)
+    else:
+        sky130_root = str((Path(root) / "sky130").resolve(strict=False))
+    os.environ["SKY130_PDK_ROOT"] = sky130_root
+
+    sky130 = Path(sky130_root)
+    lib_dir = sky130 / "lib"
+    lib_default = _first_readable([
+        lib_dir / "sky130_fd_sc_hd__ss_100C_1v40.lib",
+        lib_dir / "sky130_fd_sc_hd__ss_n40C_1v40.lib",
+        *sorted(lib_dir.glob("*.lib")),
+    ])
+    defaults = {
+        "PDK_LIB_PATH": lib_dir,
+        "SKY130_LIB": lib_default,
+        "SKY130_TLEF": sky130 / "lef" / "sky130_fd_sc_hd.tlef",
+        "SKY130_LEF": sky130 / "lef" / "sky130_fd_sc_hd_merged.lef",
+        "SKY130_TRACKS": sky130 / "make_tracks.tcl",
+        "SKY130_RCX_RULES": sky130 / "rcx_patterns.rules",
+    }
+    for key, default in defaults.items():
+        raw = os.getenv(key, "").strip()
+        os.environ[key] = _resolve_source_path(raw) if raw else str(Path(default).resolve(strict=False))
+
+
+def _apply_model_dropdown_selection() -> None:
+    if (
+        "LLM_MODEL_NAME" in _INITIAL_ENV_KEYS
+        or "MODEL_NAME" in _INITIAL_ENV_KEYS
+        or "LLM_PROFILE" in _INITIAL_ENV_KEYS
+    ):
+        return
+    selected_key = os.getenv("LLM_SELECTED_MODEL_KEY", "").strip()
+    if selected_key not in _MODEL_DROPDOWN_KEYS:
+        return
+    model = os.getenv(selected_key, "").strip()
+    if not model:
+        return
+    globals()['MODEL_NAME'] = model
+    os.environ['LLM_MODEL_NAME'] = model
+    os.environ['MODEL_NAME'] = model
+    os.environ['LLM_ACTIVE_BASE_MODEL'] = model
+
+
+def _should_apply_env_profile() -> bool:
+    if "LLM_PROFILE" in _INITIAL_ENV_KEYS:
+        return True
+    explicit_single_model = (
+        "LLM_MODEL_NAME" in _INITIAL_ENV_KEYS
+        or "MODEL_NAME" in _INITIAL_ENV_KEYS
+        or "LLM_BASE_URL" in _INITIAL_ENV_KEYS
+        or "LLM_API_KEY" in _INITIAL_ENV_KEYS
+    )
+    return not explicit_single_model
+
+
 def _refresh_runtime_globals():
     """Re-derive the module-level config globals from current os.environ.
 
@@ -140,6 +231,7 @@ def _refresh_runtime_globals():
     the new value without re-importing the module. Mirrors the assignment
     block lower in this file — keep them in sync if either side changes.
     """
+    _resolve_pdk_env_defaults()
     g = globals()
     g['BASE_URL'] = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
     g['API_KEY'] = os.getenv("LLM_API_KEY", "your-openai-api-key-here")
@@ -157,6 +249,13 @@ def _refresh_runtime_globals():
     layout = os.getenv("ATLAS_CENTER_LAYOUT", "classic").lower()
     g['ATLAS_CENTER_LAYOUT'] = layout if layout in ("classic", "tabbed") else "classic"
     g['ATLAS_CHAT_FEED_SUMMARY'] = _env_bool("ATLAS_CHAT_FEED_SUMMARY", "true")
+    reasoning_mode = os.getenv("REASONING_MODE", os.getenv("REASONING_EFFORT", "medium")).lower()
+    g['REASONING_MODE'] = reasoning_mode
+    g['REASONING_EFFORT'] = reasoning_mode
+    _apply_model_dropdown_selection()
+    for key in ("PDK_ROOT", "PDK_LIB_PATH", "SKY130_PDK_ROOT", "SKY130_LIB",
+                "SKY130_TLEF", "SKY130_LEF", "SKY130_TRACKS", "SKY130_RCX_RULES"):
+        g[key] = os.getenv(key, "")
 
 
 def reload_env() -> bool:
@@ -181,6 +280,7 @@ def reload_env() -> bool:
             changed = True
     if changed:
         load_env_file(force_reload=True)
+        _resolve_pdk_env_defaults()
         _refresh_runtime_globals()
         # Re-apply the active profile after refreshing globals so an edit
         # to PROFILE_<active>_* in .env is picked up live. Guarded against
@@ -188,8 +288,9 @@ def reload_env() -> bool:
         # defined later in the file.
         try:
             active = os.getenv("LLM_PROFILE", "").strip()
-            if active:
+            if active and _should_apply_env_profile():
                 _apply_profile(active)  # type: ignore[name-defined]
+            _apply_model_dropdown_selection()
         except NameError:
             pass
     return changed
@@ -202,6 +303,7 @@ for _p in _env_search_paths():
     except OSError:
         _ENV_MTIME_CACHE[str(_p)] = 0.0
 load_env_file()
+_resolve_pdk_env_defaults()
 
 # Configuration for the Internal LLM
 # Users can override these via environment variables
@@ -354,8 +456,18 @@ def set_active_profile(name: str) -> bool:
 # or shell export). After this point, BASE_URL / API_KEY / MODEL_NAME
 # reflect the active profile rather than the bare LLM_* vars.
 _active_profile = os.getenv("LLM_PROFILE", "").strip()
-if _active_profile:
+if _active_profile and _should_apply_env_profile():
     _apply_profile(_active_profile)
+_apply_model_dropdown_selection()
+
+PDK_ROOT = os.getenv("PDK_ROOT", "")
+PDK_LIB_PATH = os.getenv("PDK_LIB_PATH", "")
+SKY130_PDK_ROOT = os.getenv("SKY130_PDK_ROOT", "")
+SKY130_LIB = os.getenv("SKY130_LIB", "")
+SKY130_TLEF = os.getenv("SKY130_TLEF", "")
+SKY130_LEF = os.getenv("SKY130_LEF", "")
+SKY130_TRACKS = os.getenv("SKY130_TRACKS", "")
+SKY130_RCX_RULES = os.getenv("SKY130_RCX_RULES", "")
 
 # ============================================================
 # cursor-agent Backend Configuration

@@ -4,6 +4,9 @@
 # Pipeline: write run.ys → yosys → sanity gate → area.json → syn.report.md
 set -uo pipefail
 
+PDK_ENV="$(cd "$(dirname "$0")/../.." && pwd -P)/scripts/pdk_env.sh"
+[ -f "${PDK_ENV}" ] && source "${PDK_ENV}"
+
 IP="${1:-}"
 if [ -z "${IP}" ]; then echo "[SYN] usage: auto_syn.sh <ip_name>" >&2; exit 2; fi
 if [ ! -d "${IP}" ]; then echo "[SYN] no such IP dir: ${IP}" >&2; exit 2; fi
@@ -16,7 +19,7 @@ mkdir -p "${OUT}"
 if ! command -v yosys >/dev/null 2>&1; then
   echo "[SYN TOOL MISSING] yosys not on PATH" >&2; exit 3
 fi
-LIB="${SKY130_LIB:-pdk/sky130/lib/sky130_fd_sc_hd__ss_n40C_1v40.lib}"
+LIB="${SKY130_LIB:-}"
 if [ ! -r "${LIB}" ]; then
   echo "[SYN MISSING PDK] \$SKY130_LIB unreadable: ${LIB}" >&2; exit 4
 fi

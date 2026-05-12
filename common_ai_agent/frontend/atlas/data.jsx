@@ -626,6 +626,8 @@
         baseUrl:     d.base_url   || '',
         provider:    d.provider   || '',
         reasoningEffort: d.reasoning_effort || '',
+        modelOptions: Array.isArray(d.model_options) ? d.model_options : [],
+        selectedModelKey: d.selected_model_key || '',
         activeSession: d.active_session || '',
         activeIp:      d.active_ip      || '',
         activeWorkflow: d.active_workflow || '',
@@ -845,11 +847,29 @@
         dispatchAtlasFileChanged(path, (m && m.tool) || '');
       });
       window.backend.subscribe('context', (m) => {
+        let changed = false;
         if (typeof m.used === 'number') {
           window.CONTEXT.tokens = m.used;
           window.CONTEXT.maxTokens = m.max || window.CONTEXT.maxTokens;
-          window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'CONTEXT' }));
+          changed = true;
         }
+        if (m.reasoning_effort) {
+          window.CONTEXT.reasoningEffort = m.reasoning_effort;
+          changed = true;
+        }
+        if (m.model) {
+          window.CONTEXT.model = m.model;
+          changed = true;
+        }
+        if (Array.isArray(m.model_options)) {
+          window.CONTEXT.modelOptions = m.model_options;
+          changed = true;
+        }
+        if (m.selected_model_key) {
+          window.CONTEXT.selectedModelKey = m.selected_model_key;
+          changed = true;
+        }
+        if (changed) window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'CONTEXT' }));
       });
       // Live cost — agent fires per-LLM-call. We accumulate into CONTEXT
       // so the sidebar reflects spend without waiting for the 5 s poll.

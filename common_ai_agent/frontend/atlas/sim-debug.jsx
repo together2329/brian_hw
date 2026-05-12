@@ -5,6 +5,14 @@
 // shown in the side panels — clicking a tool card scrolls/cursors
 // the relevant panel; the user can also drive panels manually.
 
+const normalizeProjectSourcePath = (rawPath) => {
+  const raw = String(rawPath || '').replace(/\\/g, '/').replace(/:\d+$/, '');
+  const marker = '/common_ai_agent/';
+  const idx = raw.indexOf(marker);
+  if (idx >= 0) return raw.slice(idx + marker.length);
+  return raw.replace(/^\/+/, '');
+};
+
 // Cocotb (testbench) tree view — categorised file list + parsed
 // results.xml summary. Click any file to load it in the source viewer.
 const CocotbTreeView = ({ data, ipName, onOpenFile }) => {
@@ -1052,10 +1060,10 @@ window.SimDebug = () => {
           setSrcPath('');
           return;
         }
-        // file may be absolute; strip PROJECT_ROOT prefix when present.
-        let rel = String(mf.file);
-        const m = rel.match(new RegExp(`(${ipName}/[^:]+\\.(?:sv|v|svh|vh))$`));
-        if (m) rel = m[1];
+        // file may already be relative (including nested trees such as
+        // gpio/<ip>/rtl/...). Preserve that exact backend path so
+        // /api/source opens the same file the elaborator used.
+        const rel = normalizeProjectSourcePath(mf.file);
         await loadSourceFile(rel, mf.line);
       } catch (e) {
         setSrcLines([`// hierarchy fetch failed: ${e}`]);
@@ -1076,17 +1084,12 @@ window.SimDebug = () => {
       const d = await r.json();
       const drv = d && d.driver;
       if (drv && drv.file_line) {
-        // file_line is "<absolute_path>:<line>" — strip project_root prefix.
-        const m = String(drv.file_line).match(/^(?:.*\/)?([^\/]+\/[^\/]+\/[^:]+):(\d+)$/);
+        // file_line is "<path>:<line>" — keep the backend path intact
+        // after stripping only a local PROJECT_ROOT prefix.
+        const m = String(drv.file_line).match(/^(.*):(\d+)$/);
         if (m) {
-          const relPath = m[1];
+          const relPath = normalizeProjectSourcePath(m[1]);
           const lineNo = parseInt(m[2], 10);
-          // Walk up: full path may have ip name. Find <ip>/rtl/... segment.
-          const ipMatch = String(drv.file_line).match(new RegExp(`(${ipName}\\/[^:]+):(\\d+)$`));
-          if (ipMatch) {
-            await loadSourceFile(ipMatch[1], parseInt(ipMatch[2], 10));
-            return;
-          }
           await loadSourceFile(relPath, lineNo);
         }
       }

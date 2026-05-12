@@ -267,9 +267,10 @@ def _reasoning_env_override() -> bool:
 
     True when ANY of these is set:
       • REASONING_FORCE=true              — explicit force flag
-      • LLM_BASE_MODEL=<reasoning-model>  — points the heuristic at the
-                                            real base model behind a
-                                            deployment alias
+      • LLM_ACTIVE_BASE_MODEL / LLM_BASE_MODEL=<reasoning-model>
+                                            — points the heuristic at the
+                                              real base model behind a
+                                              deployment alias
       • LLM_PROVIDER=azure AND
         REASONING_MODE / REASONING_EFFORT is a Responses API reasoning.effort
         — Azure user wired the knob, treat that as a request to enable
@@ -277,7 +278,8 @@ def _reasoning_env_override() -> bool:
     import os as _os
     if _os.getenv('REASONING_FORCE', '').strip().lower() in ('1', 'true', 'yes'):
         return True
-    base = _os.getenv('LLM_BASE_MODEL', '').strip()
+    base = (_os.getenv('LLM_ACTIVE_BASE_MODEL', '').strip()
+            or _os.getenv('LLM_BASE_MODEL', '').strip())
     if base and _reasoning_keyword_match(base):
         return True
     provider = (getattr(config, 'LLM_PROVIDER', '') or '').lower()

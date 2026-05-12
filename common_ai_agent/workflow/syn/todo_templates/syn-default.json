@@ -9,7 +9,7 @@
     },
     {
       "content": "[SYN] Verify PDK Liberty ($SKY130_LIB)",
-      "detail": "Check that $SKY130_LIB is set and the file is readable.\nDefault: <repo>/pdk/sky130/lib/sky130_fd_sc_hd__ss_n40C_1v40.lib.\nIf missing or unreadable: STOP, emit `[SYN MISSING PDK]`, do NOT fall back to generic synth — STA will reject ungated netlist.\nGate: $SKY130_LIB resolves and `head -1 $SKY130_LIB` succeeds.",
+      "detail": "Check that $SKY130_LIB is set and the file is readable.\nDefault: <repo>/pdk/sky130/lib/sky130_fd_sc_hd__ss_100C_1v40.lib.\nIf missing or unreadable: STOP, emit `[SYN MISSING PDK]`, do NOT fall back to generic synth — STA will reject ungated netlist.\nGate: $SKY130_LIB resolves and `head -1 $SKY130_LIB` succeeds.",
       "priority": "high"
     },
     {

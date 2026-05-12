@@ -4,6 +4,9 @@
 # Pipeline: handoff gate → SSOT read → passthrough OR (tcl → openroad → parse → optional ATPG) → report
 set -uo pipefail
 
+PDK_ENV="$(cd "$(dirname "$0")/../.." && pwd -P)/scripts/pdk_env.sh"
+[ -f "${PDK_ENV}" ] && source "${PDK_ENV}"
+
 IP="${1:-}"
 if [ -z "${IP}" ]; then echo "[DFT] usage: auto_dft.sh <ip_name>" >&2; exit 2; fi
 if [ ! -d "${IP}" ]; then echo "[DFT] no such IP dir: ${IP}" >&2; exit 2; fi
@@ -61,7 +64,7 @@ fi
 if ! command -v openroad >/dev/null 2>&1; then
   echo "[DFT TOOL MISSING] openroad not on PATH" >&2; exit 3
 fi
-LIB="${SKY130_LIB:-pdk/sky130/lib/sky130_fd_sc_hd__ss_n40C_1v40.lib}"
+LIB="${SKY130_LIB:-}"
 if [ ! -r "${LIB}" ]; then
   echo "[DFT MISSING PDK] \$SKY130_LIB unreadable: ${LIB}" >&2; exit 4
 fi

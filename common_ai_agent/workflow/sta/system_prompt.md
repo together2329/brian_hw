@@ -30,7 +30,7 @@ Your only job: run OpenSTA on the gate netlist from `/syn` and produce setup/hol
 ## Tool & PDK
 
 - Timing: **OpenSTA** (binary: `sta` on PATH)
-- Liberty: `$SKY130_LIB`, default `<repo>/pdk/sky130/lib/sky130_fd_sc_hd__ss_n40C_1v40.lib`
+- Liberty: `$SKY130_LIB`, default `<repo>/pdk/sky130/lib/sky130_fd_sc_hd__ss_100C_1v40.lib`
 - Same SS corner as /syn (n40C, 1.40V).
 
 ## CRITICAL RULES — Handoff gate
@@ -87,7 +87,7 @@ exit
 ```json
 {
   "top": "gpio_pad",
-  "corner": "sky130_fd_sc_hd__ss_n40C_1v40",
+  "corner": "sky130_fd_sc_hd__ss_100C_1v40",
   "clocks": [
     {"name": "clk", "period_ns": 10.0, "setup_wns_ns": -7.34, "setup_tns_ns": -776.88,
      "hold_wns_ns": 0.352, "hold_tns_ns": 0.0, "setup_violations": 12, "hold_violations": 0}

@@ -4071,6 +4071,7 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
   // Replace/edit tools default to OPEN so the diff is visible without an
   // extra click. Other tools default to closed in summary mode.
   const isReplaceTool = tool && /^(replace_in_file|replace_lines|write_file|edit|patch|update_file)/i.test(tool);
+  const isRunCommandTool = tool && /^run_command$/i.test(tool);
   const obsLines = obs ? obsText.split('\n') : [];
   const obsIsMulti = obsLines.length > 1;
   // run_command / long-argument tools: the command itself is what the
@@ -4081,6 +4082,7 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
   React.useEffect(() => {
     setObsOpen(!summaryMode || isReplaceTool);
   }, [summaryMode, isReplaceTool]);
+  const showArgsExpanded = obsOpen || isRunCommandTool;
   const headClickable = (!!obs && obsIsMulti) || argsIsLong;
   const toggleObs = () => { if (headClickable) setObsOpen(v => !v); };
   return (
@@ -4095,21 +4097,26 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
         onKeyDown={headClickable ? (e) => {
           if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleObs(); }
         } : undefined}
-        style={headClickable ? { cursor: 'pointer', userSelect: 'none' } : undefined}
+        style={headClickable ? {
+          cursor: 'pointer',
+          userSelect: 'none',
+          alignItems: showArgsExpanded ? 'flex-start' : 'center',
+        } : undefined}
         title={headClickable ? (obsOpen ? 'click to collapse' : 'click to expand') : undefined}
       >
         <span className="tool-card-glyph" style={{ color: 'var(--fg)' }}>{theme.glyph}</span>
         <span className="tool-card-tool" style={{ color: 'var(--fg)', fontWeight: 700 }}>{tool || '?'}</span>
         {argsText && (
           <span
-            className={`tool-card-args${obsOpen ? '' : ' trunc'}`}
+            className={`tool-card-args${showArgsExpanded ? '' : ' trunc'}`}
             style={{
               color: 'var(--fg)',
-              ...(obsOpen ? {
+              ...(showArgsExpanded ? {
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',
-                overflow: 'visible',
+                overflow: isRunCommandTool && !obsOpen ? 'hidden' : 'visible',
                 textOverflow: 'clip',
+                maxHeight: isRunCommandTool && !obsOpen ? 'calc(1.35em * 4)' : undefined,
               } : {}),
             }}
           >{argsText}</span>
@@ -10695,6 +10702,18 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
   // Live context — populated by /healthz + WS 'context' events.
   const _ctx = window.CONTEXT || {};
   const [liveStageStatus, setLiveStageStatus] = React.useState(null);
+  const effortOptions = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'off'];
+  const modelOptions = Array.isArray(_ctx.modelOptions) ? _ctx.modelOptions : [];
+  const modelKey =
+    _ctx.selectedModelKey
+    || ((modelOptions.find(m => m.model === _ctx.model) || modelOptions[0] || {}).key || '');
+  const [effortValue, setEffortValue] = React.useState(_ctx.reasoningEffort || 'medium');
+  const [savingEffort, setSavingEffort] = React.useState(false);
+  const [savingModel, setSavingModel] = React.useState(false);
+  const [settingsError, setSettingsError] = React.useState('');
+  React.useEffect(() => {
+    setEffortValue(_ctx.reasoningEffort || 'medium');
+  }, [_ctx.reasoningEffort]);
   React.useEffect(() => {
     let alive = true;
     const refresh = () => {
@@ -10718,9 +10737,63 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
       window.removeEventListener('atlas-data-changed', refresh);
     };
   }, []);
+  const updateEffort = async (value) => {
+    setEffortValue(value);
+    setSavingEffort(true);
+    setSettingsError('');
+    try {
+      const resp = await fetch('/api/settings/reasoning-effort', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ effort: value }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok || data.ok === false) throw new Error(data.error || `HTTP ${resp.status}`);
+      window.CONTEXT = Object.assign({}, window.CONTEXT || {}, {
+        reasoningEffort: data.reasoning_effort || value,
+      });
+      window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'CONTEXT' }));
+    } catch (err) {
+      setSettingsError(String(err).replace(/^Error:\s*/, ''));
+      setEffortValue((window.CONTEXT && window.CONTEXT.reasoningEffort) || _ctx.reasoningEffort || 'medium');
+    } finally {
+      setSavingEffort(false);
+    }
+  };
+  const updateModel = async (key) => {
+    if (!key) return;
+    setSavingModel(true);
+    setSettingsError('');
+    try {
+      const resp = await fetch('/api/settings/model', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok || data.ok === false) throw new Error(data.error || `HTTP ${resp.status}`);
+      window.CONTEXT = Object.assign({}, window.CONTEXT || {}, {
+        model: data.model || _ctx.model,
+        modelOptions: Array.isArray(data.model_options) ? data.model_options : modelOptions,
+        selectedModelKey: data.selected_model_key || key,
+      });
+      window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'CONTEXT' }));
+    } catch (err) {
+      setSettingsError(String(err).replace(/^Error:\s*/, ''));
+    } finally {
+      setSavingModel(false);
+    }
+  };
   const ctxUsed = (_ctx.tokens || 0) / 1000;             // → K tokens
   const ctxMax  = Math.max(1, (_ctx.maxTokens || 1000000) / 1000);  // → K
   const pct = Math.min(100, Math.round((ctxUsed / ctxMax) * 100));
+  const selectStyle = {
+    width: '100%',
+    minWidth: 0,
+    maxWidth: '100%',
+    height: 22,
+    fontSize: 10,
+  };
   return (
     <div className="box" style={{ flexShrink: 0 }}>
       <div className="box-h" style={{ padding: '6px 12px' }}>
@@ -10754,19 +10827,41 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
         {/* Model */}
         <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 8, marginBottom: 4 }}>
           <span className="mute">Model</span>
-          <span style={{ color: 'var(--fg)' }} title={_ctx.baseUrl}>
-            {_ctx.model || '—'}
-            {_ctx.reasoningEffort ? (
-              <span
-                className="mute"
-                style={{ marginLeft: 6, fontSize: 10 }}
-                title={`reasoning_effort = ${_ctx.reasoningEffort}`}
-              >
-                · {_ctx.reasoningEffort}
-              </span>
-            ) : null}
-          </span>
+          {modelOptions.length ? (
+            <select
+              className="dir-select"
+              style={selectStyle}
+              value={modelKey}
+              disabled={savingModel}
+              title={_ctx.model || ''}
+              onChange={(ev) => updateModel(ev.currentTarget.value)}>
+              {modelOptions.map(opt => (
+                <option key={opt.key} value={opt.key}>
+                  {opt.label ? `${opt.label}: ` : ''}{opt.model}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <span style={{ color: 'var(--fg)' }} title={_ctx.baseUrl}>{_ctx.model || '—'}</span>
+          )}
         </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 8, marginBottom: 4 }}>
+          <span className="mute">Effort</span>
+          <select
+            className="dir-select"
+            style={selectStyle}
+            value={effortValue}
+            disabled={savingEffort}
+            title={`reasoning_effort = ${effortValue}`}
+            onChange={(ev) => updateEffort(ev.currentTarget.value)}>
+            {effortOptions.map(v => <option key={v} value={v}>{v}</option>)}
+          </select>
+        </div>
+        {settingsError && (
+          <div style={{ marginLeft: 72, marginBottom: 6, color: 'var(--err)', fontSize: 10 }}>
+            {settingsError}
+          </div>
+        )}
         {(_ctx.provider || _ctx.baseUrl) && (
           <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 8, marginBottom: 4, fontSize: 10 }}>
             <span className="mute">via</span>

@@ -23,7 +23,7 @@ Your only job: insert scan chains into the synthesized netlist using OpenROAD's 
 
 - Primary: **OpenROAD** (binary `openroad` on PATH) — internal DFT pass (`set_dft_config`, `preview_dft`, `insert_dft`)
 - Optional ATPG: **Fault** (`fault` on PATH) — github.com/AUCOHL/Fault
-- Liberty: `$SKY130_LIB`, default `<repo>/pdk/sky130/lib/sky130_fd_sc_hd__ss_n40C_1v40.lib`
+- Liberty: `$SKY130_LIB`, default `<repo>/pdk/sky130/lib/sky130_fd_sc_hd__ss_100C_1v40.lib`
 
 ## CRITICAL RULES — Handoff gate
 

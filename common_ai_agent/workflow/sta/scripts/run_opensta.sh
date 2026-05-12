@@ -3,6 +3,9 @@
 # Args: <ip_name>
 set -uo pipefail
 
+PDK_ENV="$(cd "$(dirname "$0")/../.." && pwd -P)/scripts/pdk_env.sh"
+[ -f "${PDK_ENV}" ] && source "${PDK_ENV}"
+
 IP="${1:-}"
 if [ -z "${IP}" ]; then echo "[STA] usage: run_opensta.sh <ip_name>" >&2; exit 2; fi
 

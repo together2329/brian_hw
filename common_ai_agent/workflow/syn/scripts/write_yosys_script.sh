@@ -5,6 +5,9 @@
 # Writes: <ip>/syn/run.ys
 set -uo pipefail
 
+PDK_ENV="$(cd "$(dirname "$0")/../.." && pwd -P)/scripts/pdk_env.sh"
+[ -f "${PDK_ENV}" ] && source "${PDK_ENV}"
+
 IP="${1:-}"
 if [ -z "${IP}" ]; then echo "[SYN] usage: write_yosys_script.sh <ip_name>" >&2; exit 2; fi
 
@@ -22,7 +25,7 @@ if [ -z "${TOP}" ]; then TOP="${IP}"; fi
 
 # yosys script-mode does not expand TCL env vars in -liberty arguments —
 # substitute the absolute path at script-write time.
-LIB="${SKY130_LIB:-pdk/sky130/lib/sky130_fd_sc_hd__ss_n40C_1v40.lib}"
+LIB="${SKY130_LIB:-}"
 
 mkdir -p "${IP}/syn" "${IP}/syn/out"
 

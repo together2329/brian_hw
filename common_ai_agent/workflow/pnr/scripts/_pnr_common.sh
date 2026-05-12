@@ -2,6 +2,9 @@
 # _pnr_common.sh — Sourced by every PnR stage script. Tool/PDK/handoff helpers.
 set -uo pipefail
 
+PDK_ENV="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)/scripts/pdk_env.sh"
+[ -f "${PDK_ENV}" ] && source "${PDK_ENV}"
+
 pnr_resolve_input_netlist () {
   local ip="$1"
   if [ -s "${ip}/dft/out/scan.v" ]; then echo "${ip}/dft/out/scan.v"; return 0; fi
@@ -13,11 +16,11 @@ pnr_check_tools () {
   if ! command -v openroad >/dev/null 2>&1; then
     echo "[PNR TOOL MISSING] openroad not on PATH" >&2; return 3
   fi
-  local tlef="${SKY130_TLEF:-pdk/sky130/lef/sky130_fd_sc_hd.tlef}"
-  local lef="${SKY130_LEF:-pdk/sky130/lef/sky130_fd_sc_hd_merged.lef}"
-  local lib="${SKY130_LIB:-pdk/sky130/lib/sky130_fd_sc_hd__ss_n40C_1v40.lib}"
-  local tracks="${SKY130_TRACKS:-pdk/sky130/make_tracks.tcl}"
-  local rcx="${SKY130_RCX_RULES:-pdk/sky130/rcx_patterns.rules}"
+  local tlef="${SKY130_TLEF:-}"
+  local lef="${SKY130_LEF:-}"
+  local lib="${SKY130_LIB:-}"
+  local tracks="${SKY130_TRACKS:-}"
+  local rcx="${SKY130_RCX_RULES:-}"
   if [ ! -r "${tlef}" ] || [ ! -r "${lef}" ]; then
     echo "[PNR MISSING LEF] tlef=${tlef} lef=${lef}" >&2; return 4
   fi

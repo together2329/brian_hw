@@ -6,7 +6,7 @@
     "ENABLE_MARKDOWN_RENDER": "true",
     "SYN_TOOL": "yosys",
     "SYN_PDK": "sky130_fd_sc_hd",
-    "SYN_LIB_NAME": "sky130_fd_sc_hd__ss_n40C_1v40.lib"
+    "SYN_LIB_NAME": "sky130_fd_sc_hd__ss_100C_1v40.lib"
   },
   "skills": {
     "force_activate": ["verilog-expert"],

@@ -6,6 +6,9 @@
 # coverage and emits a [DFT COVERAGE LOW] / [DFT ATPG SKIPPED] hint.
 set -uo pipefail
 
+PDK_ENV="$(cd "$(dirname "$0")/../.." && pwd -P)/scripts/pdk_env.sh"
+[ -f "${PDK_ENV}" ] && source "${PDK_ENV}"
+
 IP="${1:-}"
 if [ -z "${IP}" ]; then echo "[DFT] usage: run_fault_atpg.sh <ip_name>" >&2; exit 2; fi
 
@@ -40,7 +43,7 @@ PY
 #   fault [-m <model>] [-t <top>] -l <liberty> -o <test_out> <netlist>
 fault \
   -m "${MODEL}" -t "${TOP}" \
-  -l "${SKY130_LIB:-pdk/sky130/lib/sky130_fd_sc_hd__ss_n40C_1v40.lib}" \
+  -l "${SKY130_LIB:-}" \
   -o "${TEST}" \
   "${SCAN}" 2>&1 | tee "${LOG}" || true
 RC=${PIPESTATUS[0]:-1}

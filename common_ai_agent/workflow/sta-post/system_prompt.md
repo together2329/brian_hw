@@ -72,7 +72,7 @@ Same schema as `/sta` but with parasitic-aware values + a clock-skew summary:
 ```json
 {
   "top": "gpio_pad",
-  "corner": "sky130_fd_sc_hd__ss_n40C_1v40",
+  "corner": "sky130_fd_sc_hd__ss_100C_1v40",
   "mode": "post_route",
   "clocks": [
     {"name": "clk", "period_ns": 10.0,

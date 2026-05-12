@@ -77,6 +77,25 @@ PROJECT_ROOT = Path(os.getcwd()).resolve()
 # Backwards compat alias — older code references ROOT.
 ROOT         = SOURCE_ROOT
 
+_REASONING_EFFORT_OPTIONS = ("none", "minimal", "low", "medium", "high", "xhigh", "off")
+_REASONING_EFFORT_ALIASES = {
+    "none": "none",
+    "minimal": "minimal",
+    "min": "minimal",
+    "low": "low",
+    "l": "low",
+    "med": "medium",
+    "mid": "medium",
+    "medium": "medium",
+    "m": "medium",
+    "high": "high",
+    "h": "high",
+    "xhigh": "xhigh",
+    "xh": "xhigh",
+    "off": "off",
+}
+_MODEL_OPTION_KEYS = ("LLM_BASE_MODEL", "LLM_BASE_MODEL_2", "LLM_BASE_MODEL_3")
+
 _atlas_active_session_cv = contextvars.ContextVar("atlas_active_session", default="")
 _atlas_active_ip_cv = contextvars.ContextVar("atlas_active_ip", default="")
 _atlas_ui_lang_cv = contextvars.ContextVar("atlas_ui_lang", default="")
@@ -86,6 +105,116 @@ _plan_mode_cv = contextvars.ContextVar("plan_mode", default="false")
 
 def _active_session_value() -> str:
     return _atlas_active_session_cv.get() or os.environ.get("ATLAS_ACTIVE_SESSION", "")
+
+
+def _normalize_reasoning_effort(raw: Any) -> str:
+    effort = _REASONING_EFFORT_ALIASES.get(str(raw or "").strip().lower(), "")
+    if not effort:
+        raise ValueError(f"unknown reasoning effort: {raw!r}")
+    return effort
+
+
+def _persist_config_values(updates: dict[str, str]) -> None:
+    """Persist simple KEY=value settings to common_ai_agent/.config."""
+    config_path = SOURCE_ROOT / ".config"
+    try:
+        lines = config_path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        lines = []
+
+    seen = set()
+    key_re = "|".join(re.escape(k) for k in updates)
+    out = []
+    for line in lines:
+        match = re.match(rf"^(\s*)({key_re})(\s*)=.*$", line)
+        if match:
+            key = match.group(2)
+            out.append(f"{match.group(1)}{key}{match.group(3)}={updates[key]}")
+            seen.add(key)
+        else:
+            out.append(line)
+    for key, value in updates.items():
+        if key not in seen:
+            out.append(f"{key}={value}")
+    config_path.write_text("\n".join(out).rstrip() + "\n", encoding="utf-8")
+
+
+def _refresh_config_after_persist() -> None:
+    """Refresh config mtime cache so the next /healthz does not undo runtime settings."""
+    for mod_name in ("src.config", "config"):
+        mod = sys.modules.get(mod_name)
+        if mod is not None:
+            try:
+                mod.reload_env()
+            except Exception:
+                pass
+
+
+def _persist_reasoning_effort(effort: str) -> None:
+    _persist_config_values({"REASONING_MODE": effort, "REASONING_EFFORT": effort})
+
+
+def _set_runtime_reasoning_effort(effort: str) -> None:
+    os.environ["REASONING_MODE"] = effort
+    os.environ["REASONING_EFFORT"] = effort
+    for mod_name in ("src.config", "config"):
+        mod = sys.modules.get(mod_name)
+        if mod is not None:
+            setattr(mod, "REASONING_MODE", effort)
+            setattr(mod, "REASONING_EFFORT", effort)
+
+
+def _model_option_rows(active_model: str = "") -> list[dict[str, str]]:
+    labels = {
+        "LLM_BASE_MODEL": "default",
+        "LLM_BASE_MODEL_2": "model 2",
+        "LLM_BASE_MODEL_3": "model 3",
+    }
+    rows: list[dict[str, str]] = []
+    seen_models: set[str] = set()
+    for key, label in labels.items():
+        model = os.environ.get(key, "").strip()
+        if not model or model in seen_models:
+            continue
+        seen_models.add(model)
+        rows.append({"key": key, "label": label, "model": model})
+    selected = ""
+    selected_key = os.environ.get("LLM_SELECTED_MODEL_KEY", "").strip()
+    if selected_key:
+        selected_row = next((row for row in rows if row["key"] == selected_key), None)
+        if selected_row and (not active_model or selected_row["model"] == active_model):
+            selected = selected_key
+    for row in rows:
+        if not selected and active_model and row["model"] == active_model:
+            selected = row["key"]
+            break
+    if not selected and rows:
+        selected = rows[0]["key"]
+    for row in rows:
+        row["selected"] = "true" if row["key"] == selected else "false"
+    return rows
+
+
+def _set_runtime_model(model: str, selected_key: str = "") -> None:
+    os.environ["LLM_MODEL_NAME"] = model
+    os.environ["MODEL_NAME"] = model
+    os.environ["LLM_ACTIVE_BASE_MODEL"] = model
+    if selected_key:
+        os.environ["LLM_SELECTED_MODEL_KEY"] = selected_key
+    for mod_name in ("src.config", "config"):
+        mod = sys.modules.get(mod_name)
+        if mod is not None:
+            setattr(mod, "MODEL_NAME", model)
+
+
+def _apply_selected_model_from_env() -> str:
+    selected_key = os.environ.get("LLM_SELECTED_MODEL_KEY", "").strip()
+    if selected_key in _MODEL_OPTION_KEYS:
+        model = os.environ.get(selected_key, "").strip()
+        if model:
+            _set_runtime_model(model, selected_key)
+            return model
+    return ""
 
 
 def _active_ip_value() -> str:
@@ -496,6 +625,91 @@ def create_app():
         bridge.exit_active_session()
         return JSONResponse({"ok": True, "action": "exit_session"})
 
+    @app.post("/api/settings/reasoning-effort")
+    async def api_settings_reasoning_effort(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        try:
+            effort = _normalize_reasoning_effort(
+                body.get("effort") or body.get("reasoning_effort")
+            )
+        except ValueError as exc:
+            return JSONResponse({
+                "ok": False,
+                "error": str(exc),
+                "allowed": list(_REASONING_EFFORT_OPTIONS),
+            }, status_code=400)
+        try:
+            _persist_reasoning_effort(effort)
+            _refresh_config_after_persist()
+            _set_runtime_reasoning_effort(effort)
+            bridge.emit("context", reasoning_effort=effort)
+            return JSONResponse({"ok": True, "reasoning_effort": effort})
+        except Exception as exc:
+            return JSONResponse({"ok": False, "error": str(exc)}, status_code=500)
+
+    @app.post("/api/settings/model")
+    async def api_settings_model(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+
+        try:
+            import src.config as _cfg_model  # noqa: WPS433
+        except Exception:
+            try: import config as _cfg_model  # noqa: WPS433
+            except Exception: _cfg_model = None
+        if _cfg_model is not None:
+            try:
+                _cfg_model.reload_env()
+            except Exception:
+                pass
+
+        active = getattr(_cfg_model, "MODEL_NAME", "") if _cfg_model is not None else os.environ.get("LLM_MODEL_NAME", "")
+        options = _model_option_rows(active)
+        model_key = str(body.get("key") or body.get("model_key") or "").strip()
+        requested_model = str(body.get("model") or "").strip()
+
+        selected = None
+        if model_key:
+            selected = next((row for row in options if row["key"] == model_key), None)
+        if selected is None and requested_model:
+            selected = next((row for row in options if row["model"] == requested_model), None)
+        if selected is None:
+            return JSONResponse({
+                "ok": False,
+                "error": "unknown or empty model option",
+                "model_options": options,
+            }, status_code=400)
+
+        model = selected["model"]
+        try:
+            _persist_config_values({
+                "LLM_MODEL_NAME": model,
+                "MODEL_NAME": model,
+                "LLM_SELECTED_MODEL_KEY": selected["key"],
+                "LLM_ACTIVE_BASE_MODEL": model,
+            })
+            _refresh_config_after_persist()
+            _set_runtime_model(model, selected["key"])
+            updated_options = _model_option_rows(model)
+            updated_selected_key = next(
+                (row["key"] for row in updated_options if row.get("selected") == "true"),
+                selected["key"],
+            )
+            bridge.emit("context", model=model, model_options=updated_options, selected_model_key=updated_selected_key)
+            return JSONResponse({
+                "ok": True,
+                "model": model,
+                "selected_model_key": updated_selected_key,
+                "model_options": updated_options,
+            })
+        except Exception as exc:
+            return JSONResponse({"ok": False, "error": str(exc)}, status_code=500)
+
     @app.get("/healthz")
     async def healthz(request: Request):
         info = {
@@ -548,6 +762,11 @@ def create_app():
                     or getattr(_cfg, "LLM_MODEL_NAME", "")
                 )
             info["model"] = model
+            info["model_options"] = _model_option_rows(model)
+            info["selected_model_key"] = next(
+                (row["key"] for row in info["model_options"] if row.get("selected") == "true"),
+                "",
+            )
             # Use the active dispatch model as the primary display value.
             # PRIMARY_MODEL can remain stale after --model/profile overrides
             # (for example glm in .env while --model deepseek is active),
@@ -657,6 +876,11 @@ def create_app():
         else:
             import os as _os
             info["model"] = _os.environ.get("LLM_MODEL_NAME", "") or _os.environ.get("MODEL_NAME", "")
+            info["model_options"] = _model_option_rows(info["model"])
+            info["selected_model_key"] = next(
+                (row["key"] for row in info["model_options"] if row.get("selected") == "true"),
+                "",
+            )
             info["max_context"] = int(_os.environ.get("MAX_CONTEXT_TOKENS", "0") or "0")
             info["max_iterations"] = int(_os.environ.get("MAX_ITERATIONS", "0") or "0")
             info["workspace"] = _os.environ.get("ACTIVE_WORKSPACE", "") or _os.environ.get("WORKSPACE", "")
@@ -10053,8 +10277,9 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     _main._textual_emit_context_fn = _ctx_update
     def _emit_token(in_tok, cache_tok, out_tok):
         # Resolve pricing at LLM-call time so the rate matches the model
-        # actually used for THIS call (LLM_BASE_MODEL env can pin the base
-        # model; otherwise fall back to MODEL_NAME / LLM_MODEL_NAME).
+        # actually used for THIS call (LLM_ACTIVE_BASE_MODEL / LLM_BASE_MODEL
+        # can pin the base model; otherwise fall back to MODEL_NAME /
+        # LLM_MODEL_NAME).
         # Computing the USD delta on the backend keeps frontend math simple
         # and avoids drift between page-load /healthz pricing and the
         # current call's model.
@@ -10081,7 +10306,8 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         try:
             import os as _os_cost
             _model_now = (
-                _os_cost.getenv("LLM_BASE_MODEL", "").strip()
+                _os_cost.getenv("LLM_ACTIVE_BASE_MODEL", "").strip()
+                or _os_cost.getenv("LLM_BASE_MODEL", "").strip()
                 or _os_cost.getenv("LLM_MODEL_NAME", "").strip()
             )
             if not _model_now:

@@ -625,7 +625,7 @@ synthesis:
   technology:
     pdk: "sky130"
     standard_cell_library: "sky130_fd_sc_hd"
-    liberty_corner: "ss_n40C_1v40"
+    liberty_corner: "ss_100C_1v40"
     liberty_env: "SKY130_LIB"
     lef_env: "SKY130_LEF"
     tech_lef_env: "SKY130_TLEF"
