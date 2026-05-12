@@ -192,7 +192,7 @@ async def get_current_user(request: Request) -> dict:
 
 
 _PUBLIC_PATHS = {"/", "/index.html", "/admin", "/healthz", "/favicon.ico"}
-_PUBLIC_PREFIXES = ("/static/", "/assets/", "/api/auth/", "/git/")
+_PUBLIC_PREFIXES = ("/static/", "/assets/", "/api/auth/", "/api/admin/", "/git/")
 _PUBLIC_EXT = {"js", "jsx", "css", "html", "png", "jpg", "jpeg", "svg", "ico", "woff", "woff2", "ttf", "map"}
 
 

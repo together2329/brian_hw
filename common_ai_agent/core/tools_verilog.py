@@ -8,18 +8,23 @@ import re
 import glob
 from typing import Dict, List, Optional, Any
 
+from core.pyslang_compat import (
+    can_compile_probe,
+    compile_files as compile_pyslang_files,
+    diagnostic_is_error,
+    diagnostic_line,
+    diagnostic_message,
+    top_instances,
+)
+
 # pyslang: IEEE 1800-2017 SV parser — enables AST-level analysis without external binaries
 # Controlled by ENABLE_PYSLANG env var (default: true). Falls back to regex if unavailable.
 import os as _os
 _ENABLE_PYSLANG = _os.getenv("ENABLE_PYSLANG", "true").lower() in ("true", "1", "yes")
-try:
-    if _ENABLE_PYSLANG:
-        import pyslang as _pyslang
-        HAS_PYSLANG = True
-    else:
-        HAS_PYSLANG = False
-except ImportError:
-    HAS_PYSLANG = False
+HAS_PYSLANG, _PYSLANG_UNAVAILABLE_REASON = can_compile_probe() if _ENABLE_PYSLANG else (
+    False,
+    "disabled by ENABLE_PYSLANG",
+)
 
 # --- Phase 1: Foundation Tools ---
 
@@ -91,7 +96,14 @@ def analyze_verilog_module(path: str, deep: bool = False) -> Dict[str, Any]:
                     
                 # Parse direction: input, output, inout
                 # Regex: (dir) (type)? (width)? name
-                port_match = re.match(r'(input|output|inout)\s+(?:reg|wire)?\s*(?:\[.*?\])?\s*(\w+)', raw_port)
+                port_match = re.match(
+                    r'(input|output|inout)\s+'
+                    r'(?:(?:reg|wire|logic)\s+)?'
+                    r'(?:(?:signed|unsigned)\s+)?'
+                    r'(?:\[.*?\]\s*)?'
+                    r'(\w+)',
+                    raw_port,
+                )
                 if port_match:
                     p_dir = port_match.group(1)
                     p_name = port_match.group(2)
@@ -106,7 +118,11 @@ def analyze_verilog_module(path: str, deep: bool = False) -> Dict[str, Any]:
             # Fallback for Non-ANSI style (ports declared inside body)
             port_dirs = ["input", "output", "inout"]
             for p_dir in port_dirs:
-                pattern = rf'{p_dir}\s+(?:reg|wire)?\s*(?:\[.*?\])?\s*([^;]+);'
+                pattern = (
+                    rf'{p_dir}\s+(?:(?:reg|wire|logic)\s+)?'
+                    rf'(?:(?:signed|unsigned)\s+)?'
+                    rf'(?:\[.*?\]\s*)?([^;]+);'
+                )
                 matches = re.finditer(pattern, content_no_comments)
                 for m in matches:
                     raw_names = m.group(1)
@@ -738,6 +754,217 @@ def suggest_optimizations(path: str) -> List[str]:
 # pyslang-powered tools (require: pip install pyslang)
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _normalise_sv_direction(raw: Any) -> str:
+    value = str(raw).replace("ArgumentDirection.", "").lower()
+    return {
+        "in": "input",
+        "input": "input",
+        "out": "output",
+        "output": "output",
+        "inout": "inout",
+        "ref": "ref",
+    }.get(value, value or "unknown")
+
+
+def _split_sv_commas(text: str) -> List[str]:
+    parts = []
+    start = 0
+    depth = 0
+    pairs = {"(": ")", "[": "]", "{": "}"}
+    closers = set(pairs.values())
+    for idx, ch in enumerate(text):
+        if ch in pairs:
+            depth += 1
+        elif ch in closers and depth > 0:
+            depth -= 1
+        elif ch == "," and depth == 0:
+            parts.append(text[start:idx].strip())
+            start = idx + 1
+    tail = text[start:].strip()
+    if tail:
+        parts.append(tail)
+    return parts
+
+
+def _sv_width_from_range(width_expr: str) -> int:
+    m = re.search(r'\[(\d+)\s*:\s*(\d+)\]', width_expr or "")
+    if not m:
+        return 1
+    return abs(int(m.group(1)) - int(m.group(2))) + 1
+
+
+def _regex_module_summaries(path: str) -> List[Dict[str, Any]]:
+    with open(path, 'r', encoding='utf-8', errors='replace') as f:
+        content = f.read()
+    content_no_comments = re.sub(r'//.*', '', content)
+    content_no_comments = re.sub(r'/\*.*?\*/', '', content_no_comments, flags=re.DOTALL)
+
+    modules: List[Dict[str, Any]] = []
+    for match in re.finditer(r'\bmodule\s+(\w+)\b.*?\bendmodule\b', content_no_comments, re.DOTALL):
+        block = match.group(0)
+        name = match.group(1)
+        header_match = re.search(
+            rf'\bmodule\s+{re.escape(name)}\s*(?:#\s*\(.*?\)\s*)?\((.*?)\)\s*;',
+            block,
+            re.DOTALL,
+        )
+        header = header_match.group(1) if header_match else ""
+        body = block[header_match.end():] if header_match else block
+        ports: Dict[str, List[Dict[str, Any]]] = {"input": [], "output": [], "inout": []}
+
+        last_direction = ""
+        last_type = "logic"
+        last_width_expr = ""
+        for raw_port in _split_sv_commas(" ".join(header.split())):
+            port_match = re.match(
+                r'(?:(input|output|inout)\s+)?'
+                r'(?:(reg|wire|logic)\s+)?'
+                r'(?:(?:signed|unsigned)\s+)?'
+                r'(\[[^\]]+\]\s*)?'
+                r'(\w+)\b',
+                raw_port,
+            )
+            if not port_match:
+                continue
+            direction = port_match.group(1) or last_direction
+            if not direction:
+                continue
+            port_type = port_match.group(2) or last_type
+            width_expr = port_match.group(3) or last_width_expr
+            last_direction = direction
+            last_type = port_type
+            last_width_expr = width_expr
+            ports.setdefault(direction, []).append({
+                "name": port_match.group(4),
+                "direction": direction,
+                "type": port_type,
+                "width": _sv_width_from_range(width_expr),
+                "type_full": f"{port_type}{width_expr.strip()}".strip(),
+            })
+
+        for p_dir in ("input", "output", "inout"):
+            pattern = (
+                rf'{p_dir}\s+(?:(?:reg|wire|logic)\s+)?'
+                rf'(?:(?:signed|unsigned)\s+)?'
+                rf'(\[[^\]]+\]\s*)?([^;]+);'
+            )
+            for decl in re.finditer(pattern, body):
+                width_expr = decl.group(1) or ""
+                for name_part in _split_sv_commas(decl.group(2)):
+                    name_match = re.match(r'(\w+)', name_part.strip())
+                    if not name_match:
+                        continue
+                    pname = name_match.group(1)
+                    if any(p["name"] == pname for p in ports.get(p_dir, [])):
+                        continue
+                    ports.setdefault(p_dir, []).append({
+                        "name": pname,
+                        "direction": p_dir,
+                        "type": "logic",
+                        "width": _sv_width_from_range(width_expr),
+                        "type_full": f"logic{width_expr.strip()}".strip(),
+                    })
+
+        instance_pattern = r'^\s*(\w+)\s+(?:#\(.*?\)\s*)?(\w+)\s*\('
+        instances = []
+        for inst in re.finditer(instance_pattern, body, re.MULTILINE):
+            mod_type, inst_name = inst.group(1), inst.group(2)
+            if mod_type not in ["module", "always", "initial", "assign", "function", "task", "if", "else", "case", "endcase", "begin", "end"]:
+                instances.append({"module": mod_type, "instance": inst_name})
+
+        params = [
+            f"{m.group(1)}={m.group(2).strip()}"
+            for m in re.finditer(r'parameter\s+(?:\[.*?\]\s*)?(\w+)\s*=\s*([^;,)]+)', block)
+        ]
+        modules.append({"name": name, "ports": ports, "parameters": params, "instances": instances})
+    return modules
+
+
+def _select_regex_top(modules: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    if not modules:
+        return None
+    instantiated = {
+        inst.get("module")
+        for module in modules
+        for inst in module.get("instances", [])
+        if inst.get("module")
+    }
+    candidates = [module for module in modules if module.get("name") not in instantiated]
+    with_instances = [module for module in candidates if module.get("instances")]
+    if with_instances:
+        return with_instances[-1]
+    if candidates:
+        return candidates[-1]
+    return modules[-1]
+
+
+def _regex_ports_fallback(path: str, reason: str) -> List[Dict[str, Any]]:
+    try:
+        top = _select_regex_top(_regex_module_summaries(path))
+    except Exception:
+        top = None
+    if top is not None:
+        ports = []
+        for port_list in (top.get("ports") or {}).values():
+            for port in port_list:
+                ports.append({
+                    **port,
+                    "backend": "regex-fallback",
+                    "warning": reason,
+                })
+        if ports:
+            return ports
+
+    parsed = analyze_verilog_module(path)
+    if parsed.get("error"):
+        return [{"error": f"{reason}; regex fallback failed: {parsed['error']}"}]
+
+    ports: List[Dict[str, Any]] = []
+    for direction, names in (parsed.get("ports") or {}).items():
+        for name in names:
+            ports.append({
+                "name": name,
+                "direction": direction,
+                "type": "logic",
+                "width": 1,
+                "type_full": "logic",
+                "backend": "regex-fallback",
+                "warning": reason,
+            })
+    if ports:
+        return ports
+    return [{"error": f"{reason}; regex fallback found no ports"}]
+
+
+def _regex_hierarchy_fallback(path: str, reason: str) -> Dict[str, Any]:
+    try:
+        top = _select_regex_top(_regex_module_summaries(path))
+    except Exception:
+        top = None
+    if top is not None:
+        return {
+            "top": top.get("name"),
+            "parameters": top.get("parameters", []),
+            "instances": top.get("instances", []),
+            "backend": "regex-fallback",
+            "warning": reason,
+        }
+
+    parsed = analyze_verilog_module(path)
+    if parsed.get("error"):
+        return {"error": f"{reason}; regex fallback failed: {parsed['error']}"}
+    return {
+        "top": parsed.get("module_name"),
+        "parameters": parsed.get("parameters", []),
+        "instances": [
+            {"instance": inst.get("name"), "module": inst.get("type")}
+            for inst in parsed.get("instances", [])
+        ],
+        "backend": "regex-fallback",
+        "warning": reason,
+    }
+
+
 def sv_get_ports(path: str) -> List[Dict[str, Any]]:
     """
     Extract port list from a Verilog/SV file using pyslang AST.
@@ -750,19 +977,22 @@ def sv_get_ports(path: str) -> List[Dict[str, Any]]:
         List of dicts: [{"name": "clk", "direction": "input", "type": "logic", "width": 1}, ...]
         On error or pyslang unavailable, returns {"error": "..."} in a list.
     """
-    if not HAS_PYSLANG:
-        return [{"error": "pyslang not installed. Run: pip install pyslang"}]
     if not os.path.exists(path):
         return [{"error": f"File not found: {path}"}]
+    if not HAS_PYSLANG:
+        return _regex_ports_fallback(path, f"pyslang unavailable: {_PYSLANG_UNAVAILABLE_REASON}")
 
     try:
-        tree = _pyslang.SyntaxTree.fromFile(path)
-        comp = _pyslang.Compilation()
-        comp.addSyntaxTree(tree)
+        compiled = compile_pyslang_files([path])
+        if compiled.error:
+            return _regex_ports_fallback(path, f"pyslang compile setup failed: {compiled.error}")
+        comp = compiled.compilation
 
         ports = []
-        for inst in comp.getRoot().topInstances:
-            for port in inst.body.portList:
+        for inst in top_instances(comp):
+            body = getattr(inst, "body", None)
+            port_list = getattr(body, "portList", None) or getattr(inst, "ports", None) or []
+            for port in port_list:
                 t = port.type
                 type_str = str(t)
                 # Extract width from type string e.g. "logic[7:0]" → 8
@@ -771,17 +1001,18 @@ def sv_get_ports(path: str) -> List[Dict[str, Any]]:
                 if m:
                     width = abs(int(m.group(1)) - int(m.group(2))) + 1
                 base_type = re.sub(r'\[.*?\]', '', type_str).strip() or 'logic'
-                direction = str(port.direction).replace('ArgumentDirection.', '').lower()
+                direction = _normalise_sv_direction(getattr(port, "direction", ""))
                 ports.append({
-                    "name": port.name,
+                    "name": getattr(port, "name", ""),
                     "direction": direction,
                     "type": base_type,
                     "width": width,
                     "type_full": type_str,
+                    "backend": "pyslang",
                 })
-        return ports
+        return ports or _regex_ports_fallback(path, "pyslang returned no ports")
     except Exception as e:
-        return [{"error": str(e)}]
+        return _regex_ports_fallback(path, f"pyslang port extraction failed: {e}")
 
 
 def sv_get_hierarchy(path: str) -> Dict[str, Any]:
@@ -800,48 +1031,60 @@ def sv_get_hierarchy(path: str) -> Dict[str, Any]:
           "parameters": ["WIDTH=8"]
         }
     """
-    if not HAS_PYSLANG:
-        return {"error": "pyslang not installed. Run: pip install pyslang"}
     if not os.path.exists(path):
         return {"error": f"File not found: {path}"}
+    if not HAS_PYSLANG:
+        return _regex_hierarchy_fallback(path, f"pyslang unavailable: {_PYSLANG_UNAVAILABLE_REASON}")
 
     try:
-        tree = _pyslang.SyntaxTree.fromFile(path)
-        comp = _pyslang.Compilation()
-        comp.addSyntaxTree(tree)
+        compiled = compile_pyslang_files([path])
+        if compiled.error:
+            return _regex_hierarchy_fallback(path, f"pyslang compile setup failed: {compiled.error}")
+        comp = compiled.compilation
 
-        root = comp.getRoot()
-        top_instances = list(root.topInstances)
-        if not top_instances:
-            return {"error": "No top-level module found"}
+        tops = top_instances(comp)
+        if not tops:
+            return _regex_hierarchy_fallback(path, "pyslang found no top-level module")
 
-        top_inst = top_instances[0]
-        top_name = top_inst.definition.name
+        top_inst = tops[0]
+        top_name = getattr(getattr(top_inst, "definition", None), "name", None) or getattr(top_inst, "name", "")
 
         # Parameters
         params = []
-        for p in top_inst.body.parameters:
-            params.append(f"{p.name}={p.value}")
+        body = getattr(top_inst, "body", None)
+        for p in getattr(body, "parameters", []) or []:
+            params.append(f"{getattr(p, 'name', '')}={getattr(p, 'value', '')}")
 
         # Sub-instances via visitor
         sub_instances = []
         def visitor(node):
-            if node.kind == _pyslang.SymbolKind.Instance:
+            if "Instance" in str(getattr(node, "kind", "")) and "Body" not in str(getattr(node, "kind", "")):
                 sub_instances.append({
-                    "instance": node.name,
-                    "module": node.definition.name,
+                    "instance": getattr(node, "name", ""),
+                    "module": getattr(getattr(node, "definition", None), "name", ""),
                 })
-            return _pyslang.VisitAction.Advance
+            action = getattr(compiled.pyslang, "VisitAction", None)
+            return getattr(action, "Advance", None) if action is not None else None
 
-        top_inst.body.visit(visitor)
+        visit = getattr(body, "visit", None)
+        if visit is not None:
+            visit(visitor)
+        elif body is not None:
+            for member in body:
+                if "Instance" in str(getattr(member, "kind", "")) and "Body" not in str(getattr(member, "kind", "")):
+                    sub_instances.append({
+                        "instance": getattr(member, "name", ""),
+                        "module": getattr(getattr(member, "definition", None), "name", ""),
+                    })
 
         return {
             "top": top_name,
             "parameters": params,
             "instances": sub_instances,
+            "backend": "pyslang",
         }
     except Exception as e:
-        return {"error": str(e)}
+        return _regex_hierarchy_fallback(path, f"pyslang hierarchy extraction failed: {e}")
 
 
 def sv_compile(files: List[str]) -> str:
@@ -857,36 +1100,28 @@ def sv_compile(files: List[str]) -> str:
         Formatted string with all errors and warnings, or "No issues found."
     """
     if not HAS_PYSLANG:
-        return "pyslang not installed. Run: pip install pyslang"
+        return f"pyslang unavailable: {_PYSLANG_UNAVAILABLE_REASON}"
 
     missing = [f for f in files if not os.path.exists(f)]
     if missing:
         return f"Files not found: {', '.join(missing)}"
 
     try:
-        comp = _pyslang.Compilation()
-        sm = None
-        for f in files:
-            # Read file content directly to bypass pyslang's internal file cache
-            with open(f, 'r', encoding='utf-8', errors='replace') as _fh:
-                _src = _fh.read()
-            tree = _pyslang.SyntaxTree.fromText(_src, f)
-            if sm is None:
-                sm = tree.sourceManager
-            comp.addSyntaxTree(tree)
+        compiled = compile_pyslang_files(files)
+        if compiled.error:
+            return f"Compilation setup error: {compiled.error}"
 
-        diags = comp.getAllDiagnostics()
+        diags = compiled.diagnostics
         if not diags:
             return f"✅ No issues found across {len(files)} file(s)."
 
-        engine = _pyslang.DiagnosticEngine(sm)
+        sm = compiled.source_manager
         lines = []
         errors = warnings = 0
         for d in diags:
-            loc = d.location
-            line_num = sm.getLineNumber(loc) if loc else 0
-            msg = engine.formatMessage(d)
-            if d.isError():
+            line_num = diagnostic_line(d, sm)
+            msg = diagnostic_message(compiled.pyslang, d, sm)
+            if diagnostic_is_error(d):
                 lines.append(f"❌ Line {line_num}: {msg}")
                 errors += 1
             else:

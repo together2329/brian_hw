@@ -19,6 +19,8 @@ from __future__ import annotations
 
 from typing import Any, List, Dict
 
+from core.pyslang_compat import import_pyslang, make_syntax_tree
+
 
 def _yaml_label_for_seq_item(item) -> str:
     """Pick a human-friendly label for a sequence's mapping item.
@@ -167,13 +169,11 @@ def extract_verilog_folds(text: str) -> List[Dict[str, Any]]:
     """
     if not text or not text.strip():
         return []
-    try:
-        import pyslang  # type: ignore
-    except Exception:
+    pyslang, import_error = import_pyslang()
+    if import_error:
         return []
-    try:
-        tree = pyslang.SyntaxTree.fromText(text)
-    except Exception:
+    tree, tree_error = make_syntax_tree(pyslang, text=text)
+    if tree_error:
         return []
     if tree is None:
         return []

@@ -41,6 +41,25 @@ def test_admin_username_registers_with_admin_role(tmp_path, monkeypatch):
     assert "ATLAS Admin" in page.text
 
 
+def test_admin_dashboard_is_open_without_login(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    client = TestClient(atlas_ui.create_app())
+
+    page = client.get("/admin")
+    assert page.status_code == 200, page.text
+    assert "ATLAS Admin" in page.text
+
+    users = client.get("/api/admin/users")
+    assert users.status_code == 200, users.text
+    assert users.json()["users"] == []
+
+
 def test_existing_admin_username_cookie_is_promoted(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
     from core.atlas_db import AtlasDB

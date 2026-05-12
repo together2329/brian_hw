@@ -9373,10 +9373,14 @@ def create_app():
 
     # ── Admin endpoints ──────────────────────────────────────────
     def _admin_required(request: Request) -> Optional[dict]:
-        user = request.scope.get("user")
-        if not user or user.get("role") != "admin":
-            return None
-        return user
+        user = request.scope.get("user") or {}
+        # Local admin is intentionally open: /api/admin/* is exposed without
+        # account/password checks for the single-user desktop workflow.
+        return {
+            "id": user.get("id") or "local-admin",
+            "username": user.get("username") or "local-admin",
+            "role": "admin",
+        }
 
     @app.get("/api/admin/users")
     async def api_admin_users(request: Request):

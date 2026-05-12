@@ -15,6 +15,14 @@ import sys
 from pathlib import Path
 from typing import Optional, List
 
+from core.pyslang_compat import (
+    can_compile_probe,
+    compile_files as compile_pyslang_files,
+    diagnostic_is_error,
+    diagnostic_line,
+    diagnostic_message,
+)
+
 # Read simulator config without importing full config (avoid circular imports)
 # Default: vcs (Synopsys). Override with VERILOG_SIMULATOR=iverilog
 _VERILOG_SIMULATOR = os.getenv("VERILOG_SIMULATOR", "vcs")
@@ -22,14 +30,10 @@ _VERILOG_SIMULATOR = os.getenv("VERILOG_SIMULATOR", "vcs")
 # pyslang: IEEE 1800-2017 SystemVerilog parser — preferred over external binaries
 # Controlled by ENABLE_PYSLANG env var (default: true). Falls back if not installed.
 _ENABLE_PYSLANG = os.getenv("ENABLE_PYSLANG", "true").lower() in ("true", "1", "yes")
-try:
-    if _ENABLE_PYSLANG:
-        import pyslang as _pyslang
-        HAS_PYSLANG = True
-    else:
-        HAS_PYSLANG = False
-except ImportError:
-    HAS_PYSLANG = False
+HAS_PYSLANG, _PYSLANG_UNAVAILABLE_REASON = can_compile_probe() if _ENABLE_PYSLANG else (
+    False,
+    "disabled by ENABLE_PYSLANG",
+)
 
 
 class LintError:
@@ -203,18 +207,20 @@ class SimpleLinter:
         """Lint using pyslang — IEEE 1800-2017 compliant, no binary required."""
         errors = []
         try:
-            tree = _pyslang.SyntaxTree.fromFile(str(filepath))
-            comp = _pyslang.Compilation()
-            comp.addSyntaxTree(tree)
+            compiled = compile_pyslang_files([filepath])
+            if compiled.error:
+                return [LintError(
+                    file=str(filepath),
+                    line=0,
+                    message=f"pyslang unavailable: {compiled.error}",
+                    severity="warning",
+                )]
 
-            sm = tree.sourceManager
-            engine = _pyslang.DiagnosticEngine(sm)
-
-            for diag in comp.getAllDiagnostics():
-                severity = "error" if diag.isError() else "warning"
-                loc = diag.location
-                line = sm.getLineNumber(loc) if loc else 0
-                message = engine.formatMessage(diag)
+            sm = compiled.source_manager
+            for diag in compiled.diagnostics:
+                severity = "error" if diagnostic_is_error(diag) else "warning"
+                line = diagnostic_line(diag, sm)
+                message = diagnostic_message(compiled.pyslang, diag, sm)
                 errors.append(LintError(
                     file=str(filepath),
                     line=line,
@@ -226,7 +232,7 @@ class SimpleLinter:
                 file=str(filepath),
                 line=0,
                 message=f"pyslang error: {e}",
-                severity="error",
+                severity="warning",
             ))
         return errors
 

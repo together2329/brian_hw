@@ -68,10 +68,13 @@ def create_admin_app(project_root: Path):
     create_auth_endpoints(app, auth)
 
     def _admin_required(request: Request):
-        user = request.scope.get("user")
-        if not user or user.get("role") != "admin":
-            return None
-        return user
+        user = request.scope.get("user") or {}
+        # Standalone local admin is intentionally open in desktop mode.
+        return {
+            "id": user.get("id") or "local-admin",
+            "username": user.get("username") or "local-admin",
+            "role": "admin",
+        }
 
     @app.get("/admin")
     async def admin_page(request: Request):

@@ -30,6 +30,10 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Iterable, Optional
 
+from core.pyslang_compat import compile_files as compile_pyslang_files
+from core.pyslang_compat import import_pyslang, syntax_tree_class
+from core.pyslang_compat import root_symbol, source_manager as pyslang_source_manager
+
 
 ELAB_CACHE_VERSION = "sim-debug-elab-v5-pyslang-fallback"
 
@@ -670,9 +674,8 @@ class PyslangElab(ElabBackend):
     name = "pyslang"
 
     def available(self) -> bool:
-        try:
-            import pyslang
-        except Exception:
+        pyslang, import_error = import_pyslang()
+        if import_error:
             return False
         # Some pyslang wheels import successfully but expose a different
         # SyntaxTree surface. Treat importable pyslang as serviceable because
@@ -690,44 +693,16 @@ class PyslangElab(ElabBackend):
         API exists so the caller gets a clear backend-availability error
         instead of an AttributeError from the UI request path.
         """
-        direct = getattr(pyslang, "SyntaxTree", None)
-        if direct is not None:
-            return direct
-        for ns_name in ("syntax", "parsing", "ast"):
-            ns = getattr(pyslang, ns_name, None)
-            candidate = getattr(ns, "SyntaxTree", None) if ns is not None else None
-            if candidate is not None:
-                return candidate
-        return None
+        return syntax_tree_class(pyslang)
 
     def _compile(self, sources: list[Path]):
-        try:
-            import pyslang
-        except ImportError:
+        pyslang, import_error = import_pyslang()
+        if import_error:
             return None
-        try:
-            tree_cls = self._syntax_tree_cls(pyslang)
-            if tree_cls is None:
-                location = getattr(pyslang, "__file__", "<unknown>")
-                return (
-                    "error",
-                    "installed pyslang package does not expose a SyntaxTree API "
-                    f"(module={location}). Install/upgrade the official pyslang wheel "
-                    "or set SIM_DEBUG_ELAB_BACKEND=verilator.",
-                )
-            comp = pyslang.Compilation()
-            for s in sources:
-                if hasattr(tree_cls, "fromFile"):
-                    t = tree_cls.fromFile(str(s))
-                elif hasattr(tree_cls, "fromText"):
-                    t = tree_cls.fromText(s.read_text(encoding="utf-8", errors="replace"), str(s))
-                else:
-                    return ("error", "installed pyslang SyntaxTree lacks fromFile/fromText")
-                comp.addSyntaxTree(t)
-            comp.getRoot()  # force elaboration
-            return comp
-        except Exception as e:
-            return ("error", str(e))
+        compiled = compile_pyslang_files(sources)
+        if compiled.error:
+            return ("error", compiled.error)
+        return compiled.compilation
 
     @staticmethod
     def _loc_to_file_line(comp, sm, loc):
@@ -751,9 +726,10 @@ class PyslangElab(ElabBackend):
             return {"error": f"pyslang compile: {comp[1]}", "tree": None}
 
         try:
-            import pyslang
-            sm = comp.sourceManager
-            root = comp.getRoot()
+            sm = pyslang_source_manager(comp)
+            root, root_error = root_symbol(comp)
+            if root_error:
+                raise RuntimeError(root_error)
         except Exception as e:
             return {"error": f"pyslang root: {e}", "tree": None}
 
@@ -893,8 +869,10 @@ class PyslangElab(ElabBackend):
             return {"error": f"pyslang compile: {comp[1]}", "driver": None, "sinks": []}
 
         try:
-            sm = comp.sourceManager
-            root = comp.getRoot()
+            sm = pyslang_source_manager(comp)
+            root, root_error = root_symbol(comp)
+            if root_error:
+                raise RuntimeError(root_error)
         except Exception as e:
             return {"error": f"pyslang root: {e}", "driver": None, "sinks": []}
 
