@@ -1747,13 +1747,31 @@
 .foldable-pane details:not([open]) > .fold-summary::before {
   content: "▸";
 }
+.foldable-pane .source-fold-summary {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  color: inherit;
+  gap: 6px;
+}
+.foldable-pane .source-fold-summary.sel {
+  background: color-mix(in oklch, var(--accent) 18%, transparent);
+}
+.foldable-pane .source-fold-summary .source-fold-line {
+  min-width: 0;
+}
+.foldable-pane .source-fold-summary .line {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .foldable-pane .fold-label {
   flex-shrink: 0;
 }
 .foldable-pane .fold-range {
   font-weight: normal;
   font-size: 10px;
-  flex: 1;
+  white-space: nowrap;
   opacity: 0.65;
 }
 .foldable-pane .fold-comment-btn {

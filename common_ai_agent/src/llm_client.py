@@ -267,7 +267,7 @@ def _reasoning_env_override() -> bool:
 
     True when ANY of these is set:
       • REASONING_FORCE=true              — explicit force flag
-      • LLM_ACTIVE_BASE_MODEL / LLM_BASE_MODEL=<reasoning-model>
+      • LLM_ACTIVE_BASE_NAME / LLM_BASE_NAME=<reasoning-model>
                                             — points the heuristic at the
                                               real base model behind a
                                               deployment alias
@@ -278,7 +278,9 @@ def _reasoning_env_override() -> bool:
     import os as _os
     if _os.getenv('REASONING_FORCE', '').strip().lower() in ('1', 'true', 'yes'):
         return True
-    base = (_os.getenv('LLM_ACTIVE_BASE_MODEL', '').strip()
+    base = (_os.getenv('LLM_ACTIVE_BASE_NAME', '').strip()
+            or _os.getenv('LLM_BASE_NAME', '').strip()
+            or _os.getenv('LLM_ACTIVE_BASE_MODEL', '').strip()
             or _os.getenv('LLM_BASE_MODEL', '').strip())
     if base and _reasoning_keyword_match(base):
         return True
@@ -288,7 +290,7 @@ def _reasoning_env_override() -> bool:
                 or getattr(config, 'REASONING_EFFORT', '')
                 or _os.getenv('REASONING_MODE', '')
                 or _os.getenv('REASONING_EFFORT', ''))
-        if _normalize_reasoning_effort(mode) in ('none', 'minimal', 'low', 'medium', 'high', 'xhigh'):
+        if _normalize_reasoning_effort(mode) in ('none', 'low', 'medium', 'high', 'xhigh'):
             return True
     return False
 
@@ -296,7 +298,7 @@ def _reasoning_env_override() -> bool:
 def _is_reasoning_model() -> bool:
     """Heuristic: does the current model produce reasoning/thinking tokens?
 
-    Honors LLM_BASE_MODEL / Azure-with-reasoning-mode / REASONING_FORCE
+    Honors LLM_BASE_NAME / Azure-with-reasoning-mode / REASONING_FORCE
     so deployment aliases (e.g. ``prod-router``) still light up reasoning
     when the operator configured it.
     """
@@ -309,9 +311,23 @@ def _is_reasoning_model_for_name(name: str) -> bool:
     """Same heuristic as ``_is_reasoning_model`` but pinned to a specific
     name (used by the Responses API path which receives the resolved
     deployment/model name per call).
+
+    Env/base-model overrides are only applied to opaque deployment aliases.
+    If the caller passes a recognizable non-reasoning model like ``gpt-4o``,
+    the explicit per-call model wins.
     """
     if _reasoning_keyword_match(name):
         return True
+    n = (name or '').strip().lower()
+    if not n:
+        return False
+    if '/' in n:
+        n = n.split('/')[-1]
+    known_non_opaque_markers = (
+        'gpt', 'claude', 'anthropic', 'qwen', 'kimi', 'moonshot'
+    )
+    if any(marker in n for marker in known_non_opaque_markers):
+        return False
     return _reasoning_env_override()
 
 
@@ -329,21 +345,20 @@ def _is_openai_gpt_model(model_name: str = None) -> bool:
 def _normalize_reasoning_effort(mode) -> str:
     """Normalize local config to official Responses API reasoning.effort values."""
     mode = str(mode or 'medium').lower().strip()
-    if mode in ('off', 'false', 'disabled', 'disable'):
-        return 'off'
+    if mode in ('off', 'false', 'disabled', 'disable', 'minimal', 'min'):
+        return 'medium'
     if mode in ('med', 'mid'):
         return 'medium'
     if mode in ('extra_high', 'extra-high', 'xhi', 'max'):
         return 'xhigh'
-    return mode if mode in ('none', 'minimal', 'low', 'medium', 'high', 'xhigh') else 'medium'
+    return mode if mode in ('none', 'low', 'medium', 'high', 'xhigh') else 'medium'
 
 
 def _get_responses_reasoning_mode() -> str:
     """Return normalized Responses API ``reasoning.effort``.
 
     OpenAI accepts (as of GPT-5.2/5.4/5.5):
-      • off                  — local legacy value; omit reasoning field
-      • none / minimal       — no / minimum reasoning
+      • none                 — no reasoning effort when supported
       • low / medium / high  — original tiers
       • xhigh                — extra-high for supported models
 
@@ -686,6 +701,8 @@ def _provider_supports_responses_api(model: str) -> bool:
     """
     if not model:
         return True  # unknown — leave the rest of the routing untouched
+    if is_azure_provider():
+        return True  # Azure deployments are often opaque aliases.
     name = model.lower().split('/')[-1]
     # Provider families known to NOT support Responses API
     if name.startswith('glm') or 'deepseek' in name or 'qwen' in name \
@@ -738,7 +755,7 @@ def use_responses_api(resolved_model: str = None) -> bool:
         return True
     # Azure reasoning requires the Responses API. This also covers opaque
     # deployment aliases because _is_reasoning_model_for_name honors
-    # LLM_BASE_MODEL, REASONING_FORCE, and Azure + REASONING_MODE.
+    # LLM_BASE_NAME, REASONING_FORCE, and Azure + REASONING_MODE.
     if is_azure_provider() and _is_reasoning_model_for_name(model):
         return True
     # Auto-detect: Azure + codex model
@@ -1100,15 +1117,13 @@ def _build_responses_request_body(
     _is_reasoning_model = _is_reasoning_model_for_name(model)
     if _is_reasoning_model:
         reasoning_mode = _get_responses_reasoning_mode()
-        if reasoning_mode == 'off':
-            return data
-        if reasoning_mode in ('none', 'minimal', 'low', 'medium', 'high', 'xhigh'):
+        if reasoning_mode in ('none', 'low', 'medium', 'high', 'xhigh'):
             reasoning = {"effort": reasoning_mode}
             if getattr(config, 'RESPONSES_REASONING_SUMMARY', True) and _supports_reasoning_summary(model):
                 reasoning["summary"] = "detailed"
             data["reasoning"] = reasoning
         elif getattr(config, 'DEBUG_MODE', False):
-            print(Color.warning(f"[DEBUG] Reasoning effort '{reasoning_mode}' not in (none/minimal/low/medium/high/xhigh) - skipping reasoning"))
+            print(Color.warning(f"[DEBUG] Reasoning effort '{reasoning_mode}' not in (none/low/medium/high/xhigh) - skipping reasoning"))
     elif getattr(config, 'DEBUG_MODE', False) and 'gpt-5' in (model or '').lower():
         print(Color.warning(f"[DEBUG] Model '{model}' not detected as reasoning model"))
 

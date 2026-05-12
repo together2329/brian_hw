@@ -879,7 +879,7 @@
         ctx.tokensCache = (ctx.tokensCache || 0) + (m.cached || 0);
         ctx.tokensOut   = (ctx.tokensOut   || 0) + (m.output || 0);
         // Backend now resolves pricing at LLM-call time (honors
-        // LLM_BASE_MODEL env) and ships both the USD delta and the pricing
+        // LLM_BASE_NAME env) and ships both the USD delta and the pricing
         // it used. Prefer those over the page-load pricing snapshot so the
         // sidebar reflects the actual model in use right now.
         if (m.pricing) ctx.pricing = m.pricing;

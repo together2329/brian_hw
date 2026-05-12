@@ -1001,6 +1001,7 @@ def get_tool_schemas(allowed_tools: List[str], compact: bool = False) -> List[Di
 
     if compact:
         import copy as _copy, re as _re
+        dynamic_names = set(_dynamic_schemas)
         # Tools to exclude in compact mode (bulky, rarely needed for basic tasks)
         _compact_exclude = {"background_task", "background_output", "background_cancel",
                             "background_list", "web_search", "web_fetch", "web_extract"}
@@ -1031,7 +1032,7 @@ def get_tool_schemas(allowed_tools: List[str], compact: bool = False) -> List[Di
         for s in schemas:
             fn = s.get("function", {})
             name = fn.get("name", "")
-            if name in _short_desc:
+            if name in _short_desc and name not in dynamic_names:
                 fn["description"] = _short_desc[name]
             else:
                 desc = fn.get("description", "")

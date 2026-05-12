@@ -1416,8 +1416,8 @@ class TestReasoningParameter(unittest.TestCase):
                 self.assertEqual(resp_data["reasoning"]["effort"], effort)
                 self.assertEqual(resp_data["reasoning"]["summary"], "detailed")
 
-    def test_reasoning_mode_off_omits_reasoning_param(self):
-        """REASONING_MODE=off should omit the reasoning field entirely."""
+    def test_legacy_reasoning_mode_off_falls_back_to_medium(self):
+        """Legacy REASONING_MODE=off is no longer a public option."""
         from src.llm_client import _build_responses_request
 
         with patch('src.llm_client.config') as mock_config:
@@ -1430,7 +1430,7 @@ class TestReasoningParameter(unittest.TestCase):
                 "stream": True,
             }
             resp_data = _build_responses_request(data, "gpt-5.1")
-            self.assertNotIn("reasoning", resp_data)
+            self.assertEqual(resp_data["reasoning"]["effort"], "medium")
 
     def test_reasoning_summary_can_be_disabled(self):
         """RESPONSES_REASONING_SUMMARY=false should omit the reasoning summary request."""

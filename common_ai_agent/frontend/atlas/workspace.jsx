@@ -6555,6 +6555,199 @@ const DigestEmpty = ({ text = 'No structured data in this section yet.' }) => (
   <div className="mute" style={{ fontSize: 12, fontFamily: 'var(--mono)' }}>{text}</div>
 );
 
+const fsmDiagramId = (name, index = 0) => (
+  `fsm-transition-${index}-${String(name || 'machine').toLowerCase().replace(/[^a-z0-9_-]+/g, '-')}`
+);
+
+const truncateSvgText = (value, limit = 24) => {
+  const text = String(value || '').trim();
+  return text.length > limit ? `${text.slice(0, Math.max(1, limit - 1))}...` : text;
+};
+
+const uniqueFsmStates = (machine) => {
+  const out = [];
+  const add = (value) => {
+    const state = String(value || '').trim();
+    if (!state || state === '-') return;
+    if (!out.includes(state)) out.push(state);
+  };
+  (machine.states || []).forEach(add);
+  (machine.transitions || []).forEach((tr) => {
+    add(tr.from);
+    add(tr.to);
+  });
+  return out;
+};
+
+const edgePoint = (from, to, nodeW, nodeH) => {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  if (Math.abs(dx) > Math.abs(dy)) {
+    return {
+      x: from.x + (dx > 0 ? nodeW / 2 : -nodeW / 2),
+      y: from.y + (nodeH / 2) * (dy / Math.max(Math.abs(dx), 1)),
+    };
+  }
+  return {
+    x: from.x + (nodeW / 2) * (dx / Math.max(Math.abs(dy), 1)),
+    y: from.y + (dy > 0 ? nodeH / 2 : -nodeH / 2),
+  };
+};
+
+const FsmTransitionDiagram = ({ machine, index = 0 }) => {
+  const states = uniqueFsmStates(machine);
+  const transitions = (machine.transitions || []).filter(tr => tr.from && tr.to);
+  if (!states.length || !transitions.length) {
+    return <DigestEmpty text="No drawable FSM transitions yet. Add transition entries with from/to fields." />;
+  }
+
+  const nodeW = 112;
+  const nodeH = 38;
+  const pad = 42;
+  const colGap = 52;
+  const rowGap = 78;
+  const cols = Math.min(5, Math.max(2, Math.ceil(Math.sqrt(states.length) * 1.35)));
+  const rows = Math.ceil(states.length / cols);
+  const width = Math.max(360, pad * 2 + cols * nodeW + (cols - 1) * colGap);
+  const height = Math.max(170, pad * 2 + rows * nodeH + (rows - 1) * rowGap);
+  const markerId = `${fsmDiagramId(machine.name, index)}-arrow`;
+  const pos = {};
+  states.forEach((state, idx) => {
+    const row = Math.floor(idx / cols);
+    const col = idx % cols;
+    const rowCount = row === rows - 1 ? states.length - row * cols : cols;
+    const usedW = rowCount * nodeW + (rowCount - 1) * colGap;
+    const x0 = (width - usedW) / 2;
+    pos[state] = {
+      x: x0 + col * (nodeW + colGap) + nodeW / 2,
+      y: pad + row * (nodeH + rowGap) + nodeH / 2,
+    };
+  });
+
+  return (
+    <div style={{ marginTop: 10, overflowX: 'auto', border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)' }}>
+      <svg
+        role="img"
+        aria-label={`${machine.name} FSM transition diagram`}
+        viewBox={`0 0 ${width} ${height}`}
+        style={{ width: '100%', minWidth: Math.min(width, 760), height: 'auto', display: 'block' }}
+      >
+        <defs>
+          <marker id={markerId} markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L9,4 L0,8 Z" fill="var(--cyan)" />
+          </marker>
+        </defs>
+        {machine.resetState && pos[machine.resetState] ? (
+          <g>
+            <line
+              x1={Math.max(8, pos[machine.resetState].x - nodeW / 2 - 34)}
+              y1={pos[machine.resetState].y}
+              x2={pos[machine.resetState].x - nodeW / 2 - 4}
+              y2={pos[machine.resetState].y}
+              stroke="var(--accent)"
+              strokeWidth="1.8"
+              markerEnd={`url(#${markerId})`}
+            />
+            <text
+              x={Math.max(10, pos[machine.resetState].x - nodeW / 2 - 33)}
+              y={pos[machine.resetState].y - 8}
+              fill="var(--accent)"
+              fontFamily="var(--mono)"
+              fontSize="10"
+            >
+              reset
+            </text>
+          </g>
+        ) : null}
+        {transitions.map((tr, trIdx) => {
+          const from = pos[tr.from];
+          const to = pos[tr.to];
+          if (!from || !to) return null;
+          const label = tr.condition || tr.action || tr.raw || '';
+          if (tr.from === tr.to) {
+            const x = from.x + nodeW / 2 - 4;
+            const y = from.y - nodeH / 2 + 2;
+            return (
+              <g key={`${machine.name}:self:${trIdx}`}>
+                <path
+                  d={`M ${x} ${y} C ${x + 38} ${y - 34}, ${x + 38} ${y + 34}, ${x} ${y + nodeH - 4}`}
+                  fill="none"
+                  stroke="var(--cyan)"
+                  strokeWidth="1.4"
+                  markerEnd={`url(#${markerId})`}
+                />
+                {label ? (
+                  <text x={x + 20} y={y - 8} fill="var(--muted)" fontFamily="var(--mono)" fontSize="10">
+                    <title>{label}</title>
+                    {truncateSvgText(label, 22)}
+                  </text>
+                ) : null}
+              </g>
+            );
+          }
+          const start = edgePoint(from, to, nodeW, nodeH);
+          const end = edgePoint(to, from, nodeW, nodeH);
+          const mx = (start.x + end.x) / 2;
+          const my = (start.y + end.y) / 2;
+          const dx = end.x - start.x;
+          const dy = end.y - start.y;
+          const len = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+          const bend = ((trIdx % 3) - 1) * 14;
+          const cx = mx + (-dy / len) * bend;
+          const cy = my + (dx / len) * bend;
+          return (
+            <g key={`${machine.name}:edge:${trIdx}:${tr.from}:${tr.to}`}>
+              <path
+                d={`M ${start.x} ${start.y} Q ${cx} ${cy} ${end.x} ${end.y}`}
+                fill="none"
+                stroke="var(--cyan)"
+                strokeWidth="1.35"
+                markerEnd={`url(#${markerId})`}
+              />
+              {label ? (
+                <text x={cx + 4} y={cy - 5} fill="var(--muted)" fontFamily="var(--mono)" fontSize="10">
+                  <title>{label}</title>
+                  {truncateSvgText(label, 28)}
+                </text>
+              ) : null}
+            </g>
+          );
+        })}
+        {states.map(state => {
+          const p = pos[state];
+          const isReset = state === machine.resetState;
+          return (
+            <g key={`${machine.name}:state:${state}`}>
+              <rect
+                x={p.x - nodeW / 2}
+                y={p.y - nodeH / 2}
+                width={nodeW}
+                height={nodeH}
+                rx="5"
+                fill={isReset ? 'color-mix(in oklch, var(--accent) 16%, var(--bg-2))' : 'var(--bg-2)'}
+                stroke={isReset ? 'var(--accent)' : 'var(--line-2)'}
+                strokeWidth={isReset ? '1.7' : '1.2'}
+              />
+              <text
+                x={p.x}
+                y={p.y + 4}
+                textAnchor="middle"
+                fill={isReset ? 'var(--accent)' : 'var(--fg)'}
+                fontFamily="var(--mono)"
+                fontSize="11"
+                fontWeight={isReset ? '700' : '500'}
+              >
+                <title>{state}</title>
+                {truncateSvgText(state, 16)}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+};
+
 // Feature-specific card with a stronger visual hierarchy than the
 // generic DigestCard/DigestKV combo. Each row (datapath / control /
 // output) gets its own glyph + accent color so a reviewer can scan a
@@ -7816,7 +8009,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
             <DigestEmpty text="No structured FSM section found. Add fsm.<machine>.states and fsm.<machine>.transitions to SSOT." />
           )}
         </DigestCard>
-        {fsmMachines.map(machine => (
+        {fsmMachines.map((machine, machineIdx) => (
           <DigestCard
             key={machine.name}
             title={machine.name}
@@ -7829,6 +8022,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
               ['actions', machine.actions.join('; ')],
               ['note', machine.note],
             ]} />
+            <FsmTransitionDiagram machine={machine} index={machineIdx} />
             {machine.states.length ? (
               <div style={{ marginTop: 10 }}>
                 <div className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10, marginBottom: 5 }}>states</div>
@@ -10107,9 +10301,9 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0 }) => {
   );
   const tree = React.useMemo(() => _buildFoldTree(ranges), [ranges]);
 
-  // Render the source as nested <details> + line-rows. The single
-  // recursive function walks the fold tree, emitting context lines
-  // before each child range and the wrapped range itself.
+  // Render the source as nested <details> + line-rows. Fold headers keep
+  // the original source line visible; the parsed fold kind/range is only
+  // a small affordance beside the code, never a replacement for it.
   const renderLineRow = (ln) => {
     const text = srcLines[ln - 1] != null ? srcLines[ln - 1] : '';
     const html = highlightLine(text);
@@ -10128,6 +10322,38 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0 }) => {
     );
   };
 
+  const renderFoldSummary = (c, color, depth) => {
+    const ln = c.line_start;
+    const text = srcLines[ln - 1] != null ? srcLines[ln - 1] : '';
+    const html = highlightLine(text);
+    const inSel = sel && ln >= sel.lo && ln <= sel.hi;
+    return (
+      <summary
+        className={'fold-summary source-fold-summary' + (inSel ? ' sel' : '')}
+        style={{ borderLeftColor: color, paddingLeft: `calc(${depth * 1.5}ch + 8px)` }}
+      >
+        <span className="source-fold-line line-row" data-ln={ln}>
+          <span className="lineno"
+                data-ln={ln}
+                onMouseDown={(ev) => onLineMouseDown(ln, ev)}
+                onMouseEnter={() => onLineMouseEnter(ln)}>
+            {ln}
+          </span>
+          <span className="line"
+                dangerouslySetInnerHTML={{ __html: html === text ? _escHtml(text) || ' ' : html }} />
+        </span>
+        <span className="fold-range mute" title={c.label}>
+          {c.kind} L{c.line_start}-L{c.line_end}
+        </span>
+        <button className="fold-comment-btn"
+                onClick={(ev) => { ev.preventDefault(); ev.stopPropagation();
+                                   dispatchComment(c.line_start, c.line_end, c.label); }}>
+          💬 comment
+        </button>
+      </summary>
+    );
+  };
+
   const renderTree = (node, cursor, depth) => {
     const out = [];
     const children = node.children.slice().sort((a, b) => a.line_start - b.line_start);
@@ -10136,11 +10362,8 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0 }) => {
       const color = _FOLD_KIND_COLOR[c.kind] || 'var(--fg-mute)';
       const opened = true;
       const inner = [];
-      // The fold summary already labels c.line_start (with the parsed
-      // key + line range), so rendering that same line again as a
-      // line-row produced visible duplicates — see the SSOT YAML
-      // screenshot where `io_list:` showed both as a fold header and
-      // as line 264. Skip line_start in the body and start from +1.
+      // The summary itself renders the original c.line_start source
+      // line, so the collapsible body starts with the next line.
       cursor = c.line_start + 1;
       const sub = renderTree(c, cursor, depth + 1);
       inner.push(...sub.elements);
@@ -10149,19 +10372,7 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0 }) => {
       out.push(
         <details key={`F${c.line_start}-${c.line_end}`} {...(opened ? { open: true } : {})}
                  data-kind={c.kind}>
-          <summary
-            className="fold-summary"
-            style={{ borderLeftColor: color, color,
-                     paddingLeft: `calc(${depth * 1.5}ch + 8px)` }}
-          >
-            <span className="fold-label">{c.label}</span>
-            <span className="fold-range mute"> L{c.line_start}-L{c.line_end}</span>
-            <button className="fold-comment-btn"
-                    onClick={(ev) => { ev.preventDefault(); ev.stopPropagation();
-                                       dispatchComment(c.line_start, c.line_end, c.label); }}>
-              💬 comment
-            </button>
-          </summary>
+          {renderFoldSummary(c, color, depth)}
           {inner}
         </details>
       );
@@ -10963,17 +11174,22 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
   // Live context — populated by /healthz + WS 'context' events.
   const _ctx = window.CONTEXT || {};
   const [liveStageStatus, setLiveStageStatus] = React.useState(null);
-  const effortOptions = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'off'];
+  const effortOptions = ['none', 'low', 'medium', 'high', 'xhigh'];
+  const normalizeEffortValue = (value) => (
+    effortOptions.includes(String(value || '').toLowerCase())
+      ? String(value || '').toLowerCase()
+      : 'medium'
+  );
   const modelOptions = Array.isArray(_ctx.modelOptions) ? _ctx.modelOptions : [];
   const modelKey =
     _ctx.selectedModelKey
     || ((modelOptions.find(m => m.model === _ctx.model) || modelOptions[0] || {}).key || '');
-  const [effortValue, setEffortValue] = React.useState(_ctx.reasoningEffort || 'medium');
+  const [effortValue, setEffortValue] = React.useState(normalizeEffortValue(_ctx.reasoningEffort));
   const [savingEffort, setSavingEffort] = React.useState(false);
   const [savingModel, setSavingModel] = React.useState(false);
   const [settingsError, setSettingsError] = React.useState('');
   React.useEffect(() => {
-    setEffortValue(_ctx.reasoningEffort || 'medium');
+    setEffortValue(normalizeEffortValue(_ctx.reasoningEffort));
   }, [_ctx.reasoningEffort]);
   React.useEffect(() => {
     let alive = true;
@@ -11098,7 +11314,7 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
               onChange={(ev) => updateModel(ev.currentTarget.value)}>
               {modelOptions.map(opt => (
                 <option key={opt.key} value={opt.key}>
-                  {opt.label ? `${opt.label}: ` : ''}{opt.model}
+                  {opt.model}
                 </option>
               ))}
             </select>

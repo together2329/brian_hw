@@ -48,7 +48,7 @@ All `rules/*.md` files are **auto-injected** into the agent's todo-rule context 
 Resolution order (first match wins):
 
 1. `--model <name>` CLI flag.
-2. `LLM_BASE_MODEL` env var.
+2. `LLM_BASE_NAME` env var.
 3. `common_ai_agent`'s own defaults (typically from `.config` / `.env`).
 
 This workflow's `workspace.json` deliberately leaves `env` empty — it never overrides model selection.
@@ -127,4 +127,4 @@ python3 workflow/integrate.py -w hephaestus
 
 - **No `dispatch_workflow`.** Hephaestus is a worker, not an orchestrator. If you need cross-workflow handoff (rtl-gen, tb-gen, sim, ...), use `mas-gen` or `architect` and let them dispatch.
 - **No domain-specific tools.** Hephaestus does not enable Verilog tools, EDA tools, or hardware-specific helpers. Use the matching workspace for those.
-- **No model pinning.** Pick the model at the shell — `--model` flag or `LLM_BASE_MODEL` env.
+- **No model pinning.** Pick the model at the shell — `--model` flag or `LLM_BASE_NAME` env.

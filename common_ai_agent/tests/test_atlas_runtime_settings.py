@@ -54,20 +54,19 @@ def test_model_endpoint_uses_non_empty_dropdown_slots(tmp_path, monkeypatch):
     monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
     monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
-    config_path = tmp_path / ".config"
-    config_path.write_text(
+    env_path = tmp_path / ".env"
+    env_path.write_text(
         "\n".join([
-            "LLM_BASE_MODEL=model-a",
-            "LLM_BASE_MODEL_2=model-b",
-            "LLM_BASE_MODEL_3=",
-            "LLM_SELECTED_MODEL_KEY=LLM_BASE_MODEL",
+            "LLM_BASE_NAME=model-a",
+            "LLM_BASE_NAME_2=model-b",
+            "LLM_BASE_NAME_3=",
+            "LLM_SELECTED_MODEL_KEY=LLM_BASE_NAME",
             "LLM_MODEL_NAME=model-a",
-            "MODEL_NAME=model-a",
             "",
         ]),
         encoding="utf-8",
     )
-    monkeypatch.setattr(config, "_env_search_paths", lambda: [config_path])
+    monkeypatch.setattr(config, "_env_search_paths", lambda: [env_path])
     config._ENV_MTIME_CACHE.clear()
     config.reload_env()
 
@@ -78,22 +77,23 @@ def test_model_endpoint_uses_non_empty_dropdown_slots(tmp_path, monkeypatch):
     health = client.get("/healthz")
     assert health.status_code == 200, health.text
     option_keys = [row["key"] for row in health.json()["model_options"]]
-    assert option_keys == ["LLM_BASE_MODEL", "LLM_BASE_MODEL_2"]
+    assert option_keys == ["LLM_BASE_NAME", "LLM_BASE_NAME_2"]
+    assert "label" not in health.json()["model_options"][0]
 
-    response = client.post("/api/settings/model", json={"key": "LLM_BASE_MODEL_2"})
+    response = client.post("/api/settings/model", json={"key": "LLM_BASE_NAME_2"})
     assert response.status_code == 200, response.text
     payload = response.json()
     assert payload["model"] == "model-b"
-    assert payload["selected_model_key"] == "LLM_BASE_MODEL_2"
+    assert payload["selected_model_key"] == "LLM_BASE_NAME_2"
     assert os.environ["LLM_MODEL_NAME"] == "model-b"
     assert os.environ["MODEL_NAME"] == "model-b"
-    assert os.environ["LLM_ACTIVE_BASE_MODEL"] == "model-b"
+    assert os.environ["LLM_ACTIVE_BASE_NAME"] == "model-b"
 
-    saved = config_path.read_text(encoding="utf-8")
-    assert "LLM_BASE_MODEL=model-a" in saved
-    assert "LLM_BASE_MODEL_2=model-b" in saved
-    assert "LLM_SELECTED_MODEL_KEY=LLM_BASE_MODEL_2" in saved
-    assert "LLM_ACTIVE_BASE_MODEL=model-b" in saved
+    saved = env_path.read_text(encoding="utf-8")
+    assert "LLM_BASE_NAME=model-a" in saved
+    assert "LLM_BASE_NAME_2=model-b" in saved
+    assert "LLM_SELECTED_MODEL_KEY=LLM_BASE_NAME_2" in saved
+    assert "LLM_ACTIVE_BASE_NAME=model-b" in saved
 
 
 def test_config_resolves_pdk_paths_from_source_root(monkeypatch):

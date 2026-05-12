@@ -79,11 +79,9 @@ PROJECT_ROOT = Path(os.getcwd()).resolve()
 # Backwards compat alias — older code references ROOT.
 ROOT         = SOURCE_ROOT
 
-_REASONING_EFFORT_OPTIONS = ("none", "minimal", "low", "medium", "high", "xhigh", "off")
+_REASONING_EFFORT_OPTIONS = ("none", "low", "medium", "high", "xhigh")
 _REASONING_EFFORT_ALIASES = {
     "none": "none",
-    "minimal": "minimal",
-    "min": "minimal",
     "low": "low",
     "l": "low",
     "med": "medium",
@@ -94,9 +92,9 @@ _REASONING_EFFORT_ALIASES = {
     "h": "high",
     "xhigh": "xhigh",
     "xh": "xhigh",
-    "off": "off",
 }
-_MODEL_OPTION_KEYS = ("LLM_BASE_MODEL", "LLM_BASE_MODEL_2", "LLM_BASE_MODEL_3")
+_MODEL_OPTION_KEYS = ("LLM_BASE_NAME", "LLM_BASE_NAME_2", "LLM_BASE_NAME_3")
+_LEGACY_MODEL_OPTION_KEYS = ("LLM_BASE_MODEL", "LLM_BASE_MODEL_2", "LLM_BASE_MODEL_3")
 
 _atlas_active_session_cv = contextvars.ContextVar("atlas_active_session", default="")
 _atlas_active_ip_cv = contextvars.ContextVar("atlas_active_ip", default="")
@@ -118,9 +116,17 @@ def _normalize_reasoning_effort(raw: Any) -> str:
 
 def _persist_config_values(updates: dict[str, str]) -> None:
     """Persist simple KEY=value settings to common_ai_agent/.config."""
-    config_path = SOURCE_ROOT / ".config"
+    _persist_key_values(SOURCE_ROOT / ".config", updates)
+
+
+def _persist_env_values(updates: dict[str, str]) -> None:
+    """Persist user-editable runtime settings to common_ai_agent/.env."""
+    _persist_key_values(SOURCE_ROOT / ".env", updates)
+
+
+def _persist_key_values(path: Path, updates: dict[str, str]) -> None:
     try:
-        lines = config_path.read_text(encoding="utf-8").splitlines()
+        lines = path.read_text(encoding="utf-8").splitlines()
     except OSError:
         lines = []
 
@@ -138,7 +144,27 @@ def _persist_config_values(updates: dict[str, str]) -> None:
     for key, value in updates.items():
         if key not in seen:
             out.append(f"{key}={value}")
-    config_path.write_text("\n".join(out).rstrip() + "\n", encoding="utf-8")
+    path.write_text("\n".join(out).rstrip() + "\n", encoding="utf-8")
+
+
+def _read_env_file_values() -> dict[str, str]:
+    values: dict[str, str] = {}
+    try:
+        lines = (SOURCE_ROOT / ".env").read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return values
+    for raw in lines:
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip()
+        if "#" in value:
+            value = value.split("#", 1)[0].strip()
+        if key:
+            values[key] = value
+    return values
 
 
 def _refresh_config_after_persist() -> None:
@@ -167,21 +193,32 @@ def _set_runtime_reasoning_effort(effort: str) -> None:
 
 
 def _model_option_rows(active_model: str = "") -> list[dict[str, str]]:
-    labels = {
-        "LLM_BASE_MODEL": "default",
-        "LLM_BASE_MODEL_2": "model 2",
-        "LLM_BASE_MODEL_3": "model 3",
+    env_file = _read_env_file_values()
+    new_values = {
+        key: (env_file.get(key, os.environ.get(key, "")) or "").strip()
+        for key in _MODEL_OPTION_KEYS
     }
+    if any(new_values.values()):
+        option_values = new_values
+    else:
+        option_values = {
+            key: (env_file.get(legacy, os.environ.get(legacy, "")) or "").strip()
+            for key, legacy in zip(_MODEL_OPTION_KEYS, _LEGACY_MODEL_OPTION_KEYS)
+        }
+
     rows: list[dict[str, str]] = []
     seen_models: set[str] = set()
-    for key, label in labels.items():
-        model = os.environ.get(key, "").strip()
+    for key in _MODEL_OPTION_KEYS:
+        model = option_values.get(key, "")
         if not model or model in seen_models:
             continue
         seen_models.add(model)
-        rows.append({"key": key, "label": label, "model": model})
+        rows.append({"key": key, "model": model})
     selected = ""
-    selected_key = os.environ.get("LLM_SELECTED_MODEL_KEY", "").strip()
+    selected_key = (
+        env_file.get("LLM_SELECTED_MODEL_KEY", "")
+        or os.environ.get("LLM_SELECTED_MODEL_KEY", "")
+    ).strip()
     if selected_key:
         selected_row = next((row for row in rows if row["key"] == selected_key), None)
         if selected_row and (not active_model or selected_row["model"] == active_model):
@@ -200,6 +237,7 @@ def _model_option_rows(active_model: str = "") -> list[dict[str, str]]:
 def _set_runtime_model(model: str, selected_key: str = "") -> None:
     os.environ["LLM_MODEL_NAME"] = model
     os.environ["MODEL_NAME"] = model
+    os.environ["LLM_ACTIVE_BASE_NAME"] = model
     os.environ["LLM_ACTIVE_BASE_MODEL"] = model
     if selected_key:
         os.environ["LLM_SELECTED_MODEL_KEY"] = selected_key
@@ -211,8 +249,13 @@ def _set_runtime_model(model: str, selected_key: str = "") -> None:
 
 def _apply_selected_model_from_env() -> str:
     selected_key = os.environ.get("LLM_SELECTED_MODEL_KEY", "").strip()
+    if selected_key in _LEGACY_MODEL_OPTION_KEYS:
+        selected_key = _MODEL_OPTION_KEYS[_LEGACY_MODEL_OPTION_KEYS.index(selected_key)]
     if selected_key in _MODEL_OPTION_KEYS:
-        model = os.environ.get(selected_key, "").strip()
+        model = (
+            os.environ.get(selected_key, "").strip()
+            or os.environ.get(_LEGACY_MODEL_OPTION_KEYS[_MODEL_OPTION_KEYS.index(selected_key)], "").strip()
+        )
         if model:
             _set_runtime_model(model, selected_key)
             return model
@@ -372,6 +415,36 @@ def create_app():
             return None
         except Exception:
             return client
+
+    def _is_websocket_disconnect(exc: BaseException) -> bool:
+        """Return True only for normal client-side websocket disconnects."""
+        seen: set[int] = set()
+        cur: BaseException | None = exc
+        while cur is not None and id(cur) not in seen:
+            seen.add(id(cur))
+            if isinstance(cur, WebSocketDisconnect):
+                return True
+            cls_name = cur.__class__.__name__
+            if cls_name in {
+                "ClientDisconnected",
+                "ConnectionClosed",
+                "ConnectionClosedError",
+                "ConnectionClosedOK",
+            }:
+                return True
+            if cls_name == "RuntimeError":
+                msg = str(cur).lower()
+                if "disconnect" in msg or "websocket is not connected" in msg:
+                    return True
+            cur = getattr(cur, "__cause__", None) or getattr(cur, "__context__", None)
+        return False
+
+    async def _close_websocket_quietly(client, *, code: int, reason: str) -> None:
+        try:
+            await client.close(code=code, reason=reason)
+        except Exception as exc:
+            if not _is_websocket_disconnect(exc):
+                raise
 
     async def _broadcast_outbox():
         """Single consumer for bridge events, broadcast to every live WS.
@@ -689,11 +762,10 @@ def create_app():
 
         model = selected["model"]
         try:
-            _persist_config_values({
+            _persist_env_values({
                 "LLM_MODEL_NAME": model,
-                "MODEL_NAME": model,
                 "LLM_SELECTED_MODEL_KEY": selected["key"],
-                "LLM_ACTIVE_BASE_MODEL": model,
+                "LLM_ACTIVE_BASE_NAME": model,
             })
             _refresh_config_after_persist()
             _set_runtime_model(model, selected["key"])
@@ -814,7 +886,7 @@ def create_app():
                 os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
             )
             # Per-model pricing (USD / 1M tokens) — input / cache / output.
-            # get_active_pricing honors LLM_BASE_MODEL env first, falling
+            # get_active_pricing honors LLM_BASE_NAME env first, falling
             # back to LLM_MODEL_NAME / config.MODEL_NAME, so the rate shown
             # in the sidebar always matches the model actually in use.
             info["pricing"] = None
@@ -4978,6 +5050,179 @@ def create_app():
             return "", ""
         parts = raw.split(None, 1)
         return parts[0].lstrip("/").lower(), (parts[1] if len(parts) > 1 else "").strip()
+
+    _SLASH_ANSI_RE = re.compile(
+        r"\x1b\[[0-9;?]*[a-zA-Z]"
+        r"|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)"
+        r"|\[(?:\d{1,3};)*\d{0,3}m"
+    )
+
+    def _clean_slash_output(text: str) -> str:
+        return _SLASH_ANSI_RE.sub("", str(text or "")).strip("\n")
+
+    def _emit_slash_output(client_session: Any, text: str = "", *, finish: bool = True) -> None:
+        cleaned = _clean_slash_output(text)
+        if cleaned:
+            client_session.emit("slash_output", text=cleaned)
+        # Slash commands are command-plane operations. They should not
+        # leave the chat input in "agent is streaming" state unless the
+        # command explicitly queues an agent task below.
+        if finish and not getattr(client_session, "agent_running", False):
+            client_session.emit("agent_state", running=False)
+        client_session.emit("flush")
+
+    def _apply_slash_model_switch(target: str, client_session: Any) -> str:
+        try:
+            import src.config as _cfg_model  # noqa: WPS433
+        except Exception:
+            import config as _cfg_model  # type: ignore  # noqa: WPS433
+
+        if target == "1":
+            model = str(getattr(_cfg_model, "PRIMARY_MODEL", "") or "").strip()
+            if not model:
+                return "No PRIMARY_MODEL is configured."
+            _set_runtime_model(model)
+            _cfg_model.MODEL_NAME = model
+            msg = f"Model switched to: {model}"
+        elif target == "2":
+            model = str(getattr(_cfg_model, "SECONDARY_MODEL", "") or "").strip()
+            if not model:
+                return "No SECONDARY_MODEL is configured."
+            _set_runtime_model(model)
+            _cfg_model.MODEL_NAME = model
+            msg = f"Model switched to: {model}"
+        elif target.startswith("profile:"):
+            profile = target.split(":", 1)[1]
+            if not _cfg_model.set_active_profile(profile):
+                return f"Profile '{profile}' is not defined."
+            _set_runtime_model(str(getattr(_cfg_model, "MODEL_NAME", "") or ""))
+            msg = (
+                f"Profile '{profile}' active -> "
+                f"{getattr(_cfg_model, 'MODEL_NAME', '')} @ {getattr(_cfg_model, 'BASE_URL', '')}"
+            )
+        elif target.startswith("opencode:"):
+            model = target.split(":", 1)[1]
+            if not _cfg_model.activate_opencode_oauth(model):
+                return (
+                    f"'{model}' needs ChatGPT OAuth but no opencode credential is available.\n"
+                    "Run: python -m src.opencode_backend login"
+                )
+            _set_runtime_model(str(getattr(_cfg_model, "MODEL_NAME", "") or ""))
+            msg = (
+                f"Opencode-OAuth active -> "
+                f"{getattr(_cfg_model, 'MODEL_NAME', '')} @ {getattr(_cfg_model, 'BASE_URL', '')}"
+            )
+        else:
+            model = target.strip()
+            _set_runtime_model(model)
+            _cfg_model.MODEL_NAME = model
+            msg = f"Model switched to: {model}"
+
+        model_now = str(getattr(_cfg_model, "MODEL_NAME", "") or os.environ.get("LLM_MODEL_NAME", ""))
+        options = _model_option_rows(model_now)
+        selected_key = next((row["key"] for row in options if row.get("selected") == "true"), "")
+        client_session.emit(
+            "context",
+            model=model_now,
+            model_options=options,
+            selected_model_key=selected_key,
+        )
+        return msg
+
+    def _execute_generic_slash_command(text: str, client_session: Any) -> bool:
+        """Run non-ATLAS slash commands immediately on the command plane."""
+        raw = (text or "").strip()
+        if not raw.startswith("/"):
+            return False
+        if raw.lower() == "/normal":
+            result = "AGENT_MODE:normal"
+        else:
+            try:
+                from core.slash_commands import get_registry as _get_slash_registry
+                result = _get_slash_registry().execute(raw)
+            except Exception as exc:
+                _emit_slash_output(client_session, f"Error executing {raw.split(None, 1)[0]}: {exc}")
+                return True
+        if result is None:
+            return False
+
+        if result.startswith("MODEL_SWITCH:"):
+            msg = _apply_slash_model_switch(result.split(":", 1)[1], client_session)
+            _emit_slash_output(client_session, msg)
+            return True
+
+        if result.startswith("AGENT_MODE:"):
+            target = result.split(":", 1)[1]
+            is_plan = target == "plan"
+            _agent_mode_override_cv.set("plan_q" if is_plan else "normal")
+            _plan_mode_cv.set("true" if is_plan else "false")
+            os.environ["AGENT_MODE_OVERRIDE"] = "plan_q" if is_plan else "normal"
+            os.environ["PLAN_MODE"] = "true" if is_plan else "false"
+            if not is_plan:
+                os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
+            client_session.emit("mode_change", mode="plan" if is_plan else "normal")
+            _emit_slash_output(
+                client_session,
+                "Plan mode: read-only until confirmation." if is_plan else "Normal mode: tools enabled.",
+            )
+            return True
+
+        if result.startswith("EXECUTION_MODE:"):
+            parts = result.split(":")
+            mode = parts[1] if len(parts) > 1 else "agent"
+            count = int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else 1
+            try:
+                import src.config as _cfg_exec  # noqa: WPS433
+            except Exception:
+                import config as _cfg_exec  # type: ignore  # noqa: WPS433
+            _cfg_exec.EXECUTION_MODE = mode
+            _cfg_exec.STEP_BY_STEP_MODE = mode == "step"
+            if mode == "chat":
+                _cfg_exec.CHAT_MAX_ITERATIONS = count
+            _emit_slash_output(client_session, f"Execution mode set to: {mode}")
+            return True
+
+        if result.startswith("WINDOW_MODE:") or result.startswith("COMPRESSION_MODE:"):
+            _emit_slash_output(client_session, result)
+            return True
+
+        if result.startswith("PLAN_AND_RUN:"):
+            task = result[len("PLAN_AND_RUN:"):].strip()
+            _agent_mode_override_cv.set("plan_q")
+            _plan_mode_cv.set("true")
+            os.environ["AGENT_MODE_OVERRIDE"] = "plan_q"
+            os.environ["PLAN_MODE"] = "true"
+            bridge.submit_prompt_for_session(client_session.session_id, task)
+            client_session.emit("agent_state", running=True)
+            _emit_slash_output(client_session, "Plan command accepted; agent task queued.", finish=False)
+            return True
+
+        if result.startswith("INJECT_PROMPT:"):
+            prompt = result[len("INJECT_PROMPT:"):].strip()
+            bridge.submit_prompt_for_session(client_session.session_id, prompt)
+            client_session.emit("agent_state", running=True)
+            _emit_slash_output(client_session, "Command accepted; agent task queued.", finish=False)
+            return True
+
+        if result.startswith("WORKSPACE_SWITCH:"):
+            # Workspace switching rewrites main.py's in-memory prompt and
+            # todo bindings. Queue that specialized state transition through
+            # the agent control loop, but keep the chat command itself out
+            # of the LLM prompt stream.
+            bridge.submit_prompt_for_session(client_session.session_id, raw)
+            client_session.emit("agent_state", running=True)
+            _emit_slash_output(client_session, "Workflow switch command accepted.", finish=False)
+            return True
+
+        if result in {"CLEAR_ALL", "GIT_CLEAR"} or result.startswith("TODO_REVERT:"):
+            _emit_slash_output(
+                client_session,
+                "This slash command is destructive and is not executed directly from the web command plane.",
+            )
+            return True
+
+        _emit_slash_output(client_session, result)
+        return True
 
     def _session_json_path(session: str) -> Path:
         """Map any session string (1/2/3-part) to the canonical
@@ -10034,7 +10279,12 @@ def create_app():
     # Starlette's WebSocketRoute talks to the function directly and ignores
     # parameter annotations entirely.
     async def ws_agent(websocket: WebSocket):
-        await websocket.accept()
+        try:
+            await websocket.accept()
+        except Exception as exc:
+            if _is_websocket_disconnect(exc):
+                return
+            raise
         session_id = websocket.query_params.get("session_id", "")
         _multi_raw = os.environ.get("ATLAS_MULTI_USER", "1").strip().lower()
         _multi_user = _multi_raw not in ("0", "false", "no", "off")
@@ -10048,7 +10298,7 @@ def create_app():
             cookies = websocket.scope.get("cookies") or {}
         user = auth.get_user_from_cookie(_WebSocketCookieRequest(cookies))
         if user is None:
-            await websocket.close(code=1008, reason="unauthenticated")
+            await _close_websocket_quietly(websocket, code=1008, reason="unauthenticated")
             return
 
         username = normalize_session_name(str(user.get("username") or ""))
@@ -10074,7 +10324,7 @@ def create_app():
         # each other's backend stream.
         session_id = _authorize_ws_session(session_id)
         if session_id is None:
-            await websocket.close(code=1008, reason="forbidden")
+            await _close_websocket_quietly(websocket, code=1008, reason="forbidden")
             return
         bridge.bind_client(websocket, session_id)
         _ensure_broadcaster()
@@ -10091,12 +10341,18 @@ def create_app():
             _chat_feed_summary = bool(getattr(_cfg_hello, "ATLAS_CHAT_FEED_SUMMARY", True))
         except Exception:
             pass
-        await websocket.send_json({"type": "hello", "frontend": "atlas",
-                                    "running": bridge.agent_running,
-                                    "center_layout": _center_layout,
-                                    "chat_feed_summary": _chat_feed_summary})
-        for pending_event in bridge.session_pending_ask_user_events(session_id):
-            await websocket.send_json(pending_event)
+        try:
+            await websocket.send_json({"type": "hello", "frontend": "atlas",
+                                        "running": bridge.agent_running,
+                                        "center_layout": _center_layout,
+                                        "chat_feed_summary": _chat_feed_summary})
+            for pending_event in bridge.session_pending_ask_user_events(session_id):
+                await websocket.send_json(pending_event)
+        except Exception as exc:
+            if not _is_websocket_disconnect(exc):
+                raise
+            bridge.unbind_client(websocket)
+            return
         try:
             while True:
                 data = await websocket.receive_text()
@@ -10187,6 +10443,8 @@ def create_app():
                     if _handle_to_ssot_gate(_txt, client_session=session):
                         continue
                     if _run_stage_command(_txt, client_session=session):
+                        continue
+                    if _execute_generic_slash_command(_txt, session):
                         continue
                     if _low in ("/plan", "/mode plan", "/mode normal", "/normal"):
                         is_plan = _low in ("/plan", "/mode plan")
@@ -10310,8 +10568,9 @@ def create_app():
                     session.emit("flush")
                     bridge.exit_session(session.session_id)
                 # Other types (e.g. run_stage, tool_call) can be wired later
-        except WebSocketDisconnect:
-            pass
+        except Exception as exc:
+            if not _is_websocket_disconnect(exc):
+                raise
         finally:
             bridge.unbind_client(websocket)
 
@@ -10542,7 +10801,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     _main._textual_emit_context_fn = _ctx_update
     def _emit_token(in_tok, cache_tok, out_tok):
         # Resolve pricing at LLM-call time so the rate matches the model
-        # actually used for THIS call (LLM_ACTIVE_BASE_MODEL / LLM_BASE_MODEL
+        # actually used for THIS call (LLM_ACTIVE_BASE_NAME / LLM_BASE_NAME
         # can pin the base model; otherwise fall back to MODEL_NAME /
         # LLM_MODEL_NAME).
         # Computing the USD delta on the backend keeps frontend math simple
@@ -10571,7 +10830,9 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         try:
             import os as _os_cost
             _model_now = (
-                _os_cost.getenv("LLM_ACTIVE_BASE_MODEL", "").strip()
+                _os_cost.getenv("LLM_ACTIVE_BASE_NAME", "").strip()
+                or _os_cost.getenv("LLM_BASE_NAME", "").strip()
+                or _os_cost.getenv("LLM_ACTIVE_BASE_MODEL", "").strip()
                 or _os_cost.getenv("LLM_BASE_MODEL", "").strip()
                 or _os_cost.getenv("LLM_MODEL_NAME", "").strip()
             )

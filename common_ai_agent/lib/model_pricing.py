@@ -59,14 +59,16 @@ _TABLE: Dict[str, Pricing] = {
 def get_pricing(model_name: str) -> Optional[Pricing]:
     """Return Pricing for model_name by longest prefix match, or None if unknown.
 
-    LLM_ACTIVE_BASE_MODEL / LLM_BASE_MODEL, when set, override model_name for
+    LLM_ACTIVE_BASE_NAME / LLM_BASE_NAME, when set, override model_name for
     pricing lookup. Use these when the runtime model alias (e.g. a vendor-
     specific deployment label) doesn't match a key in _TABLE but the
     underlying base model does.
     """
     import os
     base_override = (
-        os.getenv("LLM_ACTIVE_BASE_MODEL", "").strip()
+        os.getenv("LLM_ACTIVE_BASE_NAME", "").strip()
+        or os.getenv("LLM_BASE_NAME", "").strip()
+        or os.getenv("LLM_ACTIVE_BASE_MODEL", "").strip()
         or os.getenv("LLM_BASE_MODEL", "").strip()
     )
     lookup_name = base_override or (model_name or "")
@@ -96,12 +98,14 @@ def get_pricing(model_name: str) -> Optional[Pricing]:
 
 def get_active_pricing() -> Optional[Pricing]:
     """Resolve current model pricing without callers needing to know the
-    name resolution rules. Honors LLM_ACTIVE_BASE_MODEL / LLM_BASE_MODEL
+    name resolution rules. Honors LLM_ACTIVE_BASE_NAME / LLM_BASE_NAME
     first, then falls back to config.MODEL_NAME / LLM_MODEL_NAME.
     """
     import os
     base = (
-        os.getenv("LLM_ACTIVE_BASE_MODEL", "").strip()
+        os.getenv("LLM_ACTIVE_BASE_NAME", "").strip()
+        or os.getenv("LLM_BASE_NAME", "").strip()
+        or os.getenv("LLM_ACTIVE_BASE_MODEL", "").strip()
         or os.getenv("LLM_BASE_MODEL", "").strip()
     )
     if base:

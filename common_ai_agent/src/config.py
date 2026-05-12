@@ -75,10 +75,12 @@ _PROTECTED_ENV_KEYS = frozenset({
 })
 
 _ALLOW_EMPTY_ENV_KEYS = frozenset({
+    'LLM_BASE_NAME_2', 'LLM_BASE_NAME_3',
     'LLM_BASE_MODEL_2', 'LLM_BASE_MODEL_3',
 })
 
-_MODEL_DROPDOWN_KEYS = ('LLM_BASE_MODEL', 'LLM_BASE_MODEL_2', 'LLM_BASE_MODEL_3')
+_MODEL_DROPDOWN_KEYS = ('LLM_BASE_NAME', 'LLM_BASE_NAME_2', 'LLM_BASE_NAME_3')
+_LEGACY_MODEL_DROPDOWN_KEYS = ('LLM_BASE_MODEL', 'LLM_BASE_MODEL_2', 'LLM_BASE_MODEL_3')
 
 # mtime cache: path -> last seen mtime. reload_env() only does I/O when at
 # least one .env file has changed since the previous successful reload.
@@ -201,14 +203,21 @@ def _apply_model_dropdown_selection() -> None:
     ):
         return
     selected_key = os.getenv("LLM_SELECTED_MODEL_KEY", "").strip()
-    if selected_key not in _MODEL_DROPDOWN_KEYS:
+    model = ""
+    if selected_key in _MODEL_DROPDOWN_KEYS:
+        model = os.getenv(selected_key, "").strip()
+    elif selected_key in _LEGACY_MODEL_DROPDOWN_KEYS:
+        legacy_index = _LEGACY_MODEL_DROPDOWN_KEYS.index(selected_key)
+        selected_key = _MODEL_DROPDOWN_KEYS[legacy_index]
+        model = os.getenv(selected_key, "").strip() or os.getenv(_LEGACY_MODEL_DROPDOWN_KEYS[legacy_index], "").strip()
+    else:
         return
-    model = os.getenv(selected_key, "").strip()
     if not model:
         return
     globals()['MODEL_NAME'] = model
     os.environ['LLM_MODEL_NAME'] = model
     os.environ['MODEL_NAME'] = model
+    os.environ['LLM_ACTIVE_BASE_NAME'] = model
     os.environ['LLM_ACTIVE_BASE_MODEL'] = model
 
 
@@ -686,10 +695,9 @@ MAX_REASONING_TOKENS = int(os.getenv("MAX_REASONING_TOKENS", "0"))
 # Reasoning effort for Responses API models (GPT-5.x, o1, o3, o4).
 # Local env var name is REASONING_MODE, but the API field is reasoning.effort.
 # Controls how much compute the model spends "thinking" before responding.
-# Options: none | minimal | low | medium | high | xhigh
+# Options: none | low | medium | high | xhigh
 # Default: medium (good balance of quality and speed/cost)
 # - none:   request no reasoning effort when the model supports it
-# - minimal: minimum reasoning
 # - low:    fastest official reasoning tier
 # - medium: balanced (recommended for coding agents)
 # - high:   deeper reasoning, slower, more expensive

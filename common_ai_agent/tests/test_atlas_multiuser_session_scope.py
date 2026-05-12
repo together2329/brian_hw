@@ -134,6 +134,71 @@ def test_websocket_binds_full_session_namespace(tmp_path, monkeypatch):
         assert exc.code == 1008
 
 
+def test_websocket_close_unbinds_and_reconnects_same_session(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    session_id = "alice/ip_alpha/ssot-gen"
+    with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
+        hello = ws.receive_json()
+        assert hello["type"] == "hello"
+        session = app.state.bridge.get_session(session_id)
+        assert len(session.clients) == 1
+        ws.close()
+
+    assert len(app.state.bridge.get_session(session_id).clients) == 0
+
+    with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
+        hello = ws.receive_json()
+        assert hello["type"] == "hello"
+        assert len(app.state.bridge.get_session(session_id).clients) == 1
+
+    assert len(app.state.bridge.get_session(session_id).clients) == 0
+
+
+def test_websocket_slash_command_executes_without_agent_prompt(tmp_path, monkeypatch):
+    import os
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    session_id = "alice/ip_alpha/ssot-gen"
+    session = app.state.bridge._ensure_session(session_id)
+    session.agent_running = True
+    with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
+        assert ws.receive_json()["type"] == "hello"
+        ws.send_json({"type": "prompt", "text": "/effort high", "msg_id": "effort-1"})
+
+        seen = []
+        for _ in range(3):
+            seen.append(ws.receive_json())
+
+    assert os.environ["REASONING_MODE"] == "high"
+    assert any(msg.get("type") == "agent_received" for msg in seen)
+    assert any(msg.get("type") == "slash_output" and "high" in msg.get("text", "") for msg in seen)
+    assert not any(msg.get("type") == "agent_state" and msg.get("running") is False for msg in seen)
+    assert session.agent_running is True
+    assert session.agent_alive is False
+    assert session._inbox.empty()
+
+
 def test_multiuser_can_be_disabled(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 

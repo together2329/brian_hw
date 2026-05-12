@@ -3583,14 +3583,9 @@ class AgentTUI(App):
                     "mid": "medium",
                     "h": "high",
                     "xh": "xhigh",
-                    "o": "off",
-                    "f": "off",
-                    "disable": "off",
-                    "disabled": "off",
-                    "false": "off",
                 }
                 v = aliases.get(v, v)
-                return v if v in ("none", "minimal", "low", "medium", "high", "xhigh", "off") else v
+                return v if v in ("none", "low", "medium", "high", "xhigh") else "medium"
 
             def _short(name: str) -> str:
                 return name.split("/")[-1] if "/" in name else name

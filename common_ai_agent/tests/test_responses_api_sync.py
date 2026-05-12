@@ -194,7 +194,7 @@ class TestResponsesRequestBodyNormalization:
         )
         assert data["reasoning"] == {"effort": "medium", "summary": "detailed"}
 
-    def test_reasoning_mode_off_omits_responses_reasoning(self, monkeypatch):
+    def test_legacy_reasoning_mode_off_falls_back_to_medium(self, monkeypatch):
         monkeypatch.setattr(lc.config, "REASONING_MODE", "off", raising=False)
         monkeypatch.setattr(lc.config, "REASONING_EFFORT", "off", raising=False)
         monkeypatch.setattr(lc.config, "RESPONSES_REASONING_SUMMARY", True, raising=False)
@@ -204,7 +204,7 @@ class TestResponsesRequestBodyNormalization:
             stream=True,
             base_url="https://api.openai.com/v1/responses",
         )
-        assert "reasoning" not in data
+        assert data["reasoning"] == {"effort": "medium", "summary": "detailed"}
 
     def test_reasoning_mode_none_sends_none_effort(self, monkeypatch):
         monkeypatch.setattr(lc.config, "REASONING_MODE", "none", raising=False)

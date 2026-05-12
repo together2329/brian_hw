@@ -229,12 +229,6 @@ if __name__ == "__main__":
         'mid': 'medium',
         'h': 'high',
         'xh': 'xhigh',
-        'o': 'off',
-        'f': 'off',
-        'off': 'off',
-        'false': 'off',
-        'disable': 'off',
-        'disabled': 'off',
     }
 
     _parser = _argparse.ArgumentParser(
@@ -262,7 +256,7 @@ if __name__ == "__main__":
                               'all three at once; bare names only override LLM_MODEL_NAME. '
                               'gpt-5* names trigger ChatGPT OAuth (opencode_backend).')
     _parser.add_argument('--effort', default='',
-                        help='Responses API reasoning effort: none|minimal|low|medium|high|xhigh|off')
+                        help='Responses API reasoning effort: none|low|medium|high|xhigh')
     _parser.add_argument('--admin', nargs='?', const='3002', default=None,
                          help='Also launch the standalone admin server '
                               '(src/atlas_admin.py). Pass a port to override '
@@ -306,14 +300,14 @@ if __name__ == "__main__":
     if getattr(_args, 'effort', ''):
         _raw_effort = _args.effort.strip().lower()
         _effort = _effort_aliases.get(_raw_effort, _raw_effort)
-        if _effort in ('none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'off'):
+        if _effort in ('none', 'low', 'medium', 'high', 'xhigh'):
             config.REASONING_MODE = _effort
             config.REASONING_EFFORT = _effort
             os.environ['REASONING_MODE'] = _effort
             os.environ['REASONING_EFFORT'] = _effort
             print(f"[--effort] reasoning effort set to {_effort} (API: reasoning.effort={_effort})")
         else:
-            print(f"[--effort] unknown effort: {_raw_effort}. Allowed: none, minimal, low, medium, high, xhigh, off")
+            print(f"[--effort] unknown effort: {_raw_effort}. Allowed: none, low, medium, high, xhigh")
 
     _session_name = _args.session or _args.workspace or 'default'
     _agent._setup_session(_session_name)

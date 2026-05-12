@@ -211,7 +211,7 @@ class SlashCommandRegistry:
                      '모델 전환: /model 1|2|<name>, /model (현재)')
 
         self.register('effort', self._cmd_effort,
-                     'Reasoning effort: /effort low|med|medium|high|xhigh|none')
+                     'Reasoning effort: /effort none|low|medium|high|xhigh')
 
         self.register('help', self._cmd_help,
                      '커맨드 목록: /help, /help -v (전체)',
@@ -2895,7 +2895,7 @@ class SlashCommandRegistry:
         ]))
 
     def _cmd_effort(self, args: str) -> str:
-        """Show or set Responses API reasoning.effort. /effort low|med|medium|high|xhigh|none."""
+        """Show or set Responses API reasoning.effort. /effort none|low|medium|high|xhigh."""
         import os as _os
         import sys
         _config = sys.modules.get('config') or sys.modules.get('src.config')
@@ -2903,10 +2903,7 @@ class SlashCommandRegistry:
             import src.config as _config
 
         aliases = {
-            "off": "off",      # local legacy: omit reasoning field
             "none": "none",    # API value
-            "minimal": "minimal",
-            "min": "minimal",
             "low": "low",
             "l": "low",
             "med": "medium",
@@ -2926,7 +2923,7 @@ class SlashCommandRegistry:
                 f"Current reasoning effort: {current}",
                 f"Responses API default: {'on' if responses else 'off'}",
                 "",
-                "Usage: /effort low | med | medium | high | xhigh | none",
+                "Usage: /effort none | low | med | medium | high | xhigh",
                 "Aliases: /effort m, /effort h, /effort xh",
                 "Note: API field is reasoning.effort; /effort only changes local runtime config.",
             ])
@@ -2934,8 +2931,7 @@ class SlashCommandRegistry:
         if effort is None:
             return (
                 f"❌ Unknown effort: {args.strip()!r}\n"
-                "Valid: none, minimal, low, med, medium, high, xhigh\n"
-                "Legacy: off (omit reasoning field)"
+                "Valid: none, low, med, medium, high, xhigh"
             )
         _config.REASONING_MODE = effort
         _config.REASONING_EFFORT = effort
