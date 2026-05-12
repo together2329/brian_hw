@@ -1044,6 +1044,40 @@ def create_app():
         except Exception as exc:
             return {}, f"invalid lint report: {exc}"
 
+    def _lint_diagnostic_path(rel_ip: str, diag_file: Any) -> str:
+        file_text = str(diag_file or "").strip()
+        if not file_text:
+            return ""
+        try:
+            if os.path.isabs(file_text):
+                return Path(file_text).resolve().relative_to(PROJECT_ROOT).as_posix()
+        except (OSError, ValueError):
+            return file_text
+        file_text = file_text.replace("\\", "/").lstrip("/")
+        if file_text == rel_ip or file_text.startswith(rel_ip + "/"):
+            return file_text
+        return f"{rel_ip}/{file_text}"
+
+    def _normalize_lint_tool_results(report: dict, rel_ip: str) -> list[dict]:
+        raw_results = report.get("tool_results") if isinstance(report, dict) else []
+        if not isinstance(raw_results, list):
+            return []
+        out: list[dict] = []
+        for result in raw_results:
+            if not isinstance(result, dict):
+                continue
+            next_result = dict(result)
+            diagnostics = []
+            for diag in result.get("diagnostics") or []:
+                if not isinstance(diag, dict):
+                    continue
+                next_diag = dict(diag)
+                next_diag["path"] = _lint_diagnostic_path(rel_ip, next_diag.get("file"))
+                diagnostics.append(next_diag)
+            next_result["diagnostics"] = diagnostics
+            out.append(next_result)
+        return out
+
     @app.get("/api/lint/report")
     async def api_lint_report(ip: str, top: str = "", refresh: int = 0):
         """Return the canonical DUT lint report, split by pyslang/Verilator.
@@ -1094,9 +1128,7 @@ def create_app():
         report, error = _read_lint_report(ip_dir)
         report_path = ip_dir / "lint" / "dut_lint.json"
         log_path = ip_dir / "lint" / "dut_lint.log"
-        tool_results = report.get("tool_results") if isinstance(report, dict) else []
-        if not isinstance(tool_results, list):
-            tool_results = []
+        tool_results = _normalize_lint_tool_results(report, rel_ip) if report else []
         return JSONResponse({
             "ip": ip,
             "resolved_ip": rel_ip,

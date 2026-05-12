@@ -9969,7 +9969,7 @@ const _highlightYamlBlock = (text) =>
 //   • click ▾/▸ on a fold summary → toggle
 //   • click 💬 button on a summary → dispatch atlas-fold-comment
 //   • drag-select on line-number gutter → floating "Comment selection"
-const FoldablePane = ({ path, body, lang, lineCount }) => {
+const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0 }) => {
   const [ranges, setRanges] = React.useState([]);
   const [skipped, setSkipped] = React.useState(null);
   const [floating, setFloating] = React.useState(null);  // {top, left, lo, hi}
@@ -10046,6 +10046,21 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
     window.addEventListener('mouseup', onUp);
     return () => window.removeEventListener('mouseup', onUp);
   }, []);
+
+  React.useEffect(() => {
+    const line = Number(focusLine || 0);
+    if (!line || !paneRef.current) return undefined;
+    setSel({ lo: line, hi: line });
+    const timer = window.setTimeout(() => {
+      const pane = paneRef.current;
+      const row = pane?.querySelector(`.line-row[data-ln="${line}"]`)
+              || pane?.querySelector(`[data-ln="${line}"]`);
+      if (row && row.scrollIntoView) {
+        row.scrollIntoView({ block: 'center', inline: 'nearest' });
+      }
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [path, body.length, focusLine]);
 
   const dispatchComment = (lo, hi, label) => {
     // Slice the source lines for the selection so the chat prefill
@@ -10190,7 +10205,7 @@ const FoldablePane = ({ path, body, lang, lineCount }) => {
   );
 };
 
-const LintToolResultCard = ({ result }) => {
+const LintToolResultCard = ({ result, onOpenDiagnostic }) => {
   const passed = result?.passed === true;
   const diagnostics = Array.isArray(result?.diagnostics) ? result.diagnostics : [];
   return (
@@ -10229,19 +10244,25 @@ const LintToolResultCard = ({ result }) => {
       {diagnostics.length > 0 && (
         <div style={{ marginTop: 8, display: 'grid', gap: 5 }}>
           {diagnostics.slice(0, 5).map((d, idx) => (
-            <div key={idx} style={{
+            <button key={idx} type="button" onClick={() => onOpenDiagnostic?.(d)} style={{
+              textAlign: 'left',
+              border: 0,
+              background: 'transparent',
               borderLeft: '2px solid ' + (String(d.severity || '').toLowerCase() === 'error' ? 'var(--err)' : 'var(--warn)'),
-              paddingLeft: 7,
+              padding: '0 0 0 7px',
               color: 'var(--fg)',
               fontFamily: 'var(--mono)',
               fontSize: 10,
               lineHeight: 1.35,
+              cursor: d.path || d.file ? 'pointer' : 'default',
             }}>
               <span style={{ color: 'var(--fg-mute)' }}>
-                {d.severity || 'diag'} {d.file || ''}{d.line ? `:${d.line}` : ''}
+                {d.severity || 'diag'} {d.file || ''}{d.line ? `:${d.line}` : ''}{d.column ? `:${d.column}` : ''}
+                {d.rule ? ` ${d.rule}` : ''}
               </span>
               <div>{String(d.message || '').slice(0, 260)}</div>
-            </div>
+              {d.source && <div style={{ color: 'var(--fg-mute)' }}>{String(d.source).slice(0, 220)}</div>}
+            </button>
           ))}
         </div>
       )}
@@ -10249,7 +10270,7 @@ const LintToolResultCard = ({ result }) => {
   );
 };
 
-const LintReportSummary = ({ ip, onSelectPath }) => {
+const LintReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }) => {
   const [data, setData] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState('');
@@ -10348,7 +10369,11 @@ const LintReportSummary = ({ ip, onSelectPath }) => {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }}>
             {tools.map((result, idx) => (
-              <LintToolResultCard key={`${result.tool || 'tool'}-${idx}`} result={result} />
+              <LintToolResultCard
+                key={`${result.tool || 'tool'}-${idx}`}
+                result={result}
+                onOpenDiagnostic={onOpenDiagnostic}
+              />
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -10376,6 +10401,7 @@ const WorkflowReportPane = ({ workflow, activeIp }) => {
   const ip = String(activeIp || '').trim();
   const [dataTick, setDataTick] = React.useState(0);
   const [selected, setSelected] = React.useState('');
+  const [focusLine, setFocusLine] = React.useState(0);
 
   React.useEffect(() => {
     const handler = (ev) => {
@@ -10417,6 +10443,15 @@ const WorkflowReportPane = ({ workflow, activeIp }) => {
     }
     setSelected(current => (current && paths.includes(current)) ? current : paths[0]);
   }, [pathsKey]);
+
+  const openLintDiagnostic = React.useCallback((diag) => {
+    const diagPath = String(diag?.path || diag?.file || '').replace(/^\/+/, '');
+    const line = Number(diag?.line || 0);
+    if (!diagPath) return;
+    setSelected(diagPath);
+    setFocusLine(line || 0);
+    readAtlasAsyncResource('file', diagPath, true).catch(() => {});
+  }, []);
 
   if (!meta) {
     return (
@@ -10492,15 +10527,15 @@ const WorkflowReportPane = ({ workflow, activeIp }) => {
       </div>
       <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         {workflow === 'lint' && (
-          <LintReportSummary ip={ip} onSelectPath={setSelected} />
+          <LintReportSummary ip={ip} onSelectPath={setSelected} onOpenDiagnostic={openLintDiagnostic} />
         )}
-        <PreviewPane path={selected} onClose={() => {}} />
+        <PreviewPane path={selected} onClose={() => {}} focusLine={focusLine} />
       </div>
     </div>
   );
 };
 
-const PreviewPane = ({ path, onClose }) => {
+const PreviewPane = ({ path, onClose, focusLine = 0 }) => {
   const ext = (path ? (path.split('.').pop() || '') : '').toLowerCase();
   const lang = (window.PRISM_LANG_MAP && window.PRISM_LANG_MAP[ext]) || 'none';
   const isMarkdown = ['md', 'markdown', 'mdown', 'mkdn'].includes(ext);
@@ -10636,7 +10671,7 @@ const PreviewPane = ({ path, onClose }) => {
              gutter so drag-select-comment works universally. The
              server's fold extractor returns [] for unknown types,
              so the fold UI stays out of the way. */
-          <FoldablePane path={path} body={body} lang={lang} lineCount={lineCount} />
+          <FoldablePane path={path} body={body} lang={lang} lineCount={lineCount} focusLine={focusLine} />
         ) : (
           /* 2-column layout: line numbers (sticky left gutter) +
              code body. Both columns share the SAME font-size and

@@ -151,6 +151,53 @@ def _count_diagnostics(text: str) -> dict[str, int]:
     return {"errors": errors, "warnings": warnings}
 
 
+def _parse_verilator_diagnostics(text: str) -> list[dict[str, str | int]]:
+    """Extract file/line diagnostics from Verilator's lint output."""
+    header_re = re.compile(
+        r"^%(Warning|Error|Fatal)(?:-([A-Za-z0-9_]+))?:\s+(.+?):(\d+):(?:(\d+):)?\s*(.*)$"
+    )
+    diagnostics: list[dict[str, str | int]] = []
+    current: dict[str, str | int] | None = None
+    context: list[str] = []
+
+    def finish_current() -> None:
+        nonlocal current, context
+        if current is None:
+            context = []
+            return
+        snippet = ""
+        for line in context:
+            match = re.match(r"\s*\d+\s*\|\s?(.*)$", line)
+            if match:
+                snippet = match.group(1).rstrip()
+                break
+        if snippet:
+            current["source"] = snippet
+        diagnostics.append(current)
+        current = None
+        context = []
+
+    for raw in text.splitlines():
+        line = raw.rstrip()
+        match = header_re.match(line)
+        if match:
+            finish_current()
+            severity_raw, rule, file_name, line_no, column, message = match.groups()
+            current = {
+                "severity": "warning" if severity_raw.lower() == "warning" else "error",
+                "rule": rule or severity_raw.upper(),
+                "file": file_name.strip(),
+                "line": int(line_no),
+                "column": int(column or 0),
+                "message": message.strip(),
+            }
+            continue
+        if current is not None:
+            context.append(line)
+    finish_current()
+    return diagnostics[:100]
+
+
 def _verilator_command(ip_name: str, top: str) -> list[str]:
     return [
         "verilator",
@@ -282,6 +329,7 @@ def _verilator_lint(ip_name: str, top: str, ip_dir: Path) -> dict:
     proc = subprocess.run(command, cwd=ip_dir, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output = proc.stdout or ""
     diag = _count_diagnostics(output)
+    diagnostics = _parse_verilator_diagnostics(output)
     return {
         "tool": "verilator",
         "available": True,
@@ -289,7 +337,7 @@ def _verilator_lint(ip_name: str, top: str, ip_dir: Path) -> dict:
         "returncode": proc.returncode,
         "errors": diag["errors"],
         "warnings": diag["warnings"],
-        "diagnostics": [],
+        "diagnostics": diagnostics,
         "output": output,
         "passed": proc.returncode == 0 and diag["errors"] == 0 and diag["warnings"] == 0,
     }
