@@ -1449,10 +1449,10 @@ if ATLAS_CENTER_LAYOUT not in ("classic", "tabbed"):
 #   false = show rawer reasoning/tool output for debugging the transcript
 ATLAS_CHAT_FEED_SUMMARY = _env_bool("ATLAS_CHAT_FEED_SUMMARY", "true")
 
-# sim_debug elaboration backend: "pyslang" | "verilator" | "slang"
+# sim_debug elaboration backend: "dual" | "pyslang" | "verilator" | "slang"
 # Used by /api/hierarchy and /api/trace. Override via the
 # SIM_DEBUG_ELAB_BACKEND env var or this config value.
-SIM_DEBUG_ELAB_BACKEND = os.getenv("SIM_DEBUG_ELAB_BACKEND", "pyslang").lower()
+SIM_DEBUG_ELAB_BACKEND = os.getenv("SIM_DEBUG_ELAB_BACKEND", "dual").lower()
 
 # ============================================================
 # Phase 4: Autonomous Decision-Making

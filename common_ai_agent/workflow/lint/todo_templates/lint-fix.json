@@ -1,6 +1,6 @@
 {
   "name": "lint-fix",
-  "description": "Lint check: read RTL+filelist → run canonical DUT lint (Windows: iverilog; macOS/Linux: verilator or iverilog) → fix errors → fix warnings → report",
+  "description": "Lint check: read RTL+filelist → run canonical DUT lint (pyslang + Verilator) → fix errors → fix warnings → report",
   "tasks": [
     {
       "content": "[LINT] Read inputs: <ip>/rtl/<ip>.sv + <ip>/list/<ip>.f",
@@ -9,7 +9,7 @@
     },
     {
       "content": "[LINT] Run lint — get full error and warning list",
-      "detail": "Run the platform canonical lint command:\n  Windows: iverilog -Wall -g2012 -I <ip>/rtl -f <ip>/list/<ip>.f -s <top_module> -o <temp>/<ip>_dut_lint.vvp\n  macOS/Linux: verilator --lint-only -Wall -I <ip>/rtl -f <ip>/list/<ip>.f --top-module <top_module> (or iverilog fallback)\nCreate <ip>/lint/ folder if it does not exist.\nRecord:\n- [ ] Total errors\n- [ ] Total warnings\n- [ ] Per-file breakdown\nDo not fix anything yet — get the complete picture first.\nGate: Lint output captured.",
+      "detail": "Run the canonical lint command:\n  python3 ../brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py <ip> --top <top_module>\nThe report runs both pyslang compile diagnostics and Verilator --lint-only.\nCreate <ip>/lint/ folder if it does not exist.\nRecord:\n- [ ] Total errors\n- [ ] Total warnings\n- [ ] Per-tool breakdown\nDo not fix anything yet — get the complete picture first.\nGate: Lint output captured.",
       "priority": "high"
     },
     {
@@ -24,7 +24,7 @@
     },
     {
       "content": "[LINT] Confirm lint clean: 0 errors, 0 warnings",
-      "detail": "Run final DUT-only lint report from the project root:\n  Windows: python ../brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py <ip> --top <top_module>\n  macOS/Linux: python3 ../brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py <ip> --top <top_module>\n- [ ] Confirm 0 errors\n- [ ] Confirm 0 warnings\n- [ ] Confirm <ip>/lint/dut_lint.json has dut_only=true, scope=dut, passed=true\nGate: Clean canonical lint run before writing report.",
+      "detail": "Run final DUT-only lint report from the project root:\n  python3 ../brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py <ip> --top <top_module>\n- [ ] Confirm 0 errors\n- [ ] Confirm 0 warnings\n- [ ] Confirm <ip>/lint/dut_lint.json has tool=pyslang+verilator, dut_only=true, scope=dut, passed=true\nGate: Clean canonical lint run before writing report.",
       "priority": "high"
     },
     {

@@ -1,7 +1,8 @@
 """src/sim_debug_elab.py — SystemVerilog elaboration backends for
 sim_debug workspace.
 
-Strategy pattern: caller asks for a backend ("verilator" or "slang"); we
+Strategy pattern: caller asks for a backend ("dual", "pyslang", "verilator",
+or "slang"); we
 dispatch to the matching implementation. Both shell out to a real SV
 frontend so hierarchy + trace data is 100% accurate (regex extraction
 broke on generate / macro / bind).
@@ -11,7 +12,7 @@ Public API:
   - ElabBackend.available() -> bool
   - ElabBackend.build_hierarchy(top, sources) -> dict
   - ElabBackend.trace_driver(scope, signal, sources) -> dict
-  - status() -> {verilator: bool, slang: bool}
+  - status() -> {dual: bool, pyslang: bool, verilator: bool, slang: bool}
 
 Cache: results memoize on (backend, top, sources hash, source mtimes)
 to avoid re-elab on every UI click. Cache lives at
@@ -35,7 +36,7 @@ from core.pyslang_compat import import_pyslang, syntax_tree_class
 from core.pyslang_compat import root_symbol, source_manager as pyslang_source_manager
 
 
-ELAB_CACHE_VERSION = "sim-debug-elab-v5-pyslang-fallback"
+ELAB_CACHE_VERSION = "sim-debug-elab-v8-dual-crosscheck"
 
 
 def _project_root() -> Path:
@@ -1021,11 +1022,151 @@ class PyslangElab(ElabBackend):
         }
 
 
+def _compact_backend_result(name: str, result: dict) -> dict:
+    return {
+        "backend": name,
+        "ok": bool(result.get("tree") or result.get("driver") or result.get("sinks")),
+        "error": result.get("error") or "",
+        "warning": result.get("warning") or "",
+        "modules_found": result.get("modules_found") or [],
+        "driver": result.get("driver"),
+        "sink_count": result.get("sink_count", len(result.get("sinks") or [])),
+    }
+
+
+def _hierarchy_crosscheck(results: dict[str, dict]) -> dict:
+    def _real_modules(res: dict) -> set[str]:
+        return {
+            str(name)
+            for name in (res.get("modules_found") or [])
+            if str(name) and not str(name).startswith(("@", "$"))
+        }
+
+    module_sets = {
+        name: _real_modules(res)
+        for name, res in results.items()
+        if res.get("tree")
+    }
+    if len(module_sets) < 2:
+        return {"status": "single", "module_delta": {}}
+    all_modules = set().union(*module_sets.values())
+    return {
+        "status": "match" if all(mods == all_modules for mods in module_sets.values()) else "mismatch",
+        "module_delta": {
+            name: sorted(all_modules - mods)
+            for name, mods in module_sets.items()
+            if all_modules - mods
+        },
+    }
+
+
+def _merge_module_files(primary: dict, secondary: dict) -> dict:
+    merged = dict(secondary or {})
+    merged.update(primary or {})
+    return merged
+
+
+class DualElab(ElabBackend):
+    """Run pyslang and Verilator side-by-side.
+
+    pyslang remains the primary source/trace backend because it preserves
+    rich file:line metadata in-process. Verilator runs as an independent
+    structural cross-check. If pyslang cannot produce a usable result, the
+    UI still gets Verilator's hierarchy instead of going blank.
+    """
+
+    name = "dual"
+    order = ("pyslang", "verilator")
+
+    def available(self) -> bool:
+        return any(_BACKENDS[name].available() for name in self.order)
+
+    def _run_each(self, method: str, *args) -> dict[str, dict]:
+        results: dict[str, dict] = {}
+        for name in self.order:
+            backend = _BACKENDS[name]
+            if not backend.available():
+                results[name] = {"backend": name, "error": f"{name} not available"}
+                continue
+            try:
+                result = getattr(backend, method)(*args)
+            except Exception as exc:
+                result = {"backend": name, "error": str(exc)}
+            result = dict(result or {})
+            result["backend"] = name
+            results[name] = result
+        return results
+
+    def build_hierarchy(self, top: str, sources: list[Path]) -> dict:
+        results = self._run_each("build_hierarchy", top, sources)
+        primary_name = next((name for name in self.order if results.get(name, {}).get("tree")), "")
+        if not primary_name:
+            return {
+                "backend": "pyslang+verilator",
+                "primary_backend": "",
+                "tree": None,
+                "error": "; ".join(
+                    f"{name}: {res.get('error') or 'no tree'}"
+                    for name, res in results.items()
+                ),
+                "backend_results": [_compact_backend_result(name, res) for name, res in results.items()],
+            }
+        primary = results[primary_name]
+        secondary_name = next((name for name in self.order if name != primary_name), "")
+        secondary = results.get(secondary_name, {})
+        return {
+            **primary,
+            "backend": "pyslang+verilator",
+            "primary_backend": primary_name,
+            "module_files": _merge_module_files(primary.get("module_files") or {}, secondary.get("module_files") or {}),
+            "backend_results": [_compact_backend_result(name, res) for name, res in results.items()],
+            "crosscheck": _hierarchy_crosscheck(results),
+        }
+
+    def trace_driver(self, top: str, signal: str, sources: list[Path]) -> dict:
+        results = self._run_each("trace_driver", top, signal, sources)
+        primary_name = next(
+            (
+                name for name in self.order
+                if results.get(name, {}).get("driver") or results.get(name, {}).get("sinks")
+            ),
+            "",
+        )
+        if not primary_name:
+            return {
+                "backend": "pyslang+verilator",
+                "primary_backend": "",
+                "driver": None,
+                "sinks": [],
+                "error": "; ".join(
+                    f"{name}: {res.get('error') or 'no trace'}"
+                    for name, res in results.items()
+                ),
+                "backend_results": [_compact_backend_result(name, res) for name, res in results.items()],
+            }
+        primary = results[primary_name]
+        return {
+            **primary,
+            "backend": "pyslang+verilator",
+            "primary_backend": primary_name,
+            "backend_results": [_compact_backend_result(name, res) for name, res in results.items()],
+        }
+
+
 # ── Public API ───────────────────────────────────────────────────
 _BACKENDS = {
+    "dual":      DualElab(),
     "pyslang":   PyslangElab(),
     "verilator": VerilatorElab(),
     "slang":     SlangElab(),
+}
+
+_BACKEND_ALIASES = {
+    "both": "dual",
+    "all": "dual",
+    "pyslang+verilator": "dual",
+    "pyslang,verilator": "dual",
+    "pyslang-verilator": "dual",
 }
 
 
@@ -1033,20 +1174,22 @@ def _config_default_backend() -> str:
     """Resolve the default elab backend from .config / env. Priority:
        1. SIM_DEBUG_ELAB_BACKEND env var
        2. .config attribute SIM_DEBUG_ELAB_BACKEND (loaded by config.py)
-       3. hardcoded fallback 'pyslang'
+       3. hardcoded fallback 'dual' (pyslang + Verilator)
     """
     import os
     env = os.environ.get("SIM_DEBUG_ELAB_BACKEND", "").strip().lower()
+    env = _BACKEND_ALIASES.get(env, env)
     if env in _BACKENDS:
         return env
     try:
         import config as _cfg  # type: ignore
         v = getattr(_cfg, "SIM_DEBUG_ELAB_BACKEND", None)
-        if v and str(v).lower() in _BACKENDS:
-            return str(v).lower()
+        v = _BACKEND_ALIASES.get(str(v).lower(), str(v).lower()) if v else ""
+        if v in _BACKENDS:
+            return v
     except Exception:
         pass
-    return "pyslang"
+    return "dual"
 
 
 def get_backend(prefer: str = "") -> ElabBackend:
@@ -1055,6 +1198,7 @@ def get_backend(prefer: str = "") -> ElabBackend:
     missing, raise ValueError so the caller can show an honest error
     rather than guessing with another backend behind the user's back."""
     prefer = (prefer or _config_default_backend()).lower()
+    prefer = _BACKEND_ALIASES.get(prefer, prefer)
     if prefer not in _BACKENDS:
         raise ValueError(f"unknown elab backend '{prefer}'. Choose from: {sorted(_BACKENDS.keys())}")
     be = _BACKENDS[prefer]
@@ -1080,7 +1224,7 @@ def build_hierarchy_cached(prefer: str, top: str, sources: list[Path]) -> dict:
     if cached is not None:
         return cached
     res = be.build_hierarchy(top, sources)
-    res["backend"] = be.name
+    res.setdefault("backend", be.name)
     _cache_put(key, res)
     return res
 
@@ -1092,6 +1236,6 @@ def trace_driver_cached(prefer: str, top: str, signal: str, sources: list[Path])
     if cached is not None:
         return cached
     res = be.trace_driver(top, signal, sources)
-    res["backend"] = be.name
+    res.setdefault("backend", be.name)
     _cache_put(key, res)
     return res

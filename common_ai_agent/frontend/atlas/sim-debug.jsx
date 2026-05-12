@@ -585,7 +585,9 @@ const HierarchyNode = ({ node, depth, onSelectModule, activeModule }) => {
   );
 };
 
-window.SimDebug = () => {
+window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
+  const summaryOnly = view === 'summary';
+  const initialTopTab = summaryOnly ? 'summary' : (initialTab || 'wave');
   // Cross-panel state — the agent's "current focus"
   const [activeTool, setActiveTool] = React.useState('vcd.trace'); // last tool the user clicked
   // Cursors default to null until VCD loads — real positions come from
@@ -619,6 +621,7 @@ window.SimDebug = () => {
   const [vcdData, setVcdData] = React.useState(null);   // {signals, samples, timeRange}
   const [hierarchy, setHierarchy] = React.useState(null);
   const [hierarchyError, setHierarchyError] = React.useState('');
+  const [hierarchyMeta, setHierarchyMeta] = React.useState(null);
   // Top-level tab — full-width view selector. Replaces the old
   // chip-toggle on the right rail; the user picks which DEBUG MODE
   // to focus on and that mode takes the entire center space.
@@ -626,7 +629,7 @@ window.SimDebug = () => {
   //   hierarchy = full-width instance tree
   //   trace     = source + driver/sink list (full width)
   //   summary   = TC pass/fail table from SSOT scenarios + scoreboard
-  const [topTab, setTopTab] = React.useState('summary'); // summary | wave | hierarchy | trace | tb
+  const [topTab, setTopTab] = React.useState(initialTopTab); // summary | wave | hierarchy | trace | tb
   const [rightTab, setRightTab] = React.useState('wave'); // legacy, mirrors topTab
   React.useEffect(() => { setRightTab(topTab); }, [topTab]);
   const [ipName, setIpName] = React.useState('');
@@ -764,6 +767,7 @@ window.SimDebug = () => {
                               '&ip=' + encodeURIComponent(ipName));
         const d = await r.json();
         if (cancelled) return;
+        setHierarchyMeta(d);
         if (d.tree) {
           setHierarchy(d.tree);
           setHierarchyError('');
@@ -774,12 +778,32 @@ window.SimDebug = () => {
       } catch (e) {
         if (!cancelled) {
           setHierarchy(null);
+          setHierarchyMeta(null);
           setHierarchyError(String(e));
         }
       }
     })();
     return () => { cancelled = true; };
   }, [ipName]);
+
+  const hierarchyBackendLabel = React.useMemo(() => {
+    const backend = String(hierarchyMeta?.backend || '').trim();
+    const primary = String(hierarchyMeta?.primary_backend || '').trim();
+    const display = (backend === 'dual' || backend === 'pyslang+verilator')
+      ? 'pyslang + verilator'
+      : (backend || 'pyslang + verilator');
+    const primarySuffix = primary ? ` (${primary})` : '';
+    return ipName ? `${display}${primarySuffix} · ${ipName}` : `${display}${primarySuffix}`;
+  }, [hierarchyMeta, ipName]);
+
+  const hierarchyBackendTitle = React.useMemo(() => {
+    const results = hierarchyMeta?.backend_results || [];
+    if (!Array.isArray(results) || !results.length) return 'RTL hierarchy dual elaboration';
+    return results.map(r => {
+      const state = r.ok ? 'ok' : (r.error ? `error: ${r.error}` : 'no result');
+      return `${r.backend}: ${state}`;
+    }).join('\n');
+  }, [hierarchyMeta]);
 
   // Build the traceList — real VCD signals only. Mock SPI traces
   // were dropped here per user request: the wave pane should never
@@ -1405,10 +1429,25 @@ window.SimDebug = () => {
         background: 'var(--bg-2)', fontSize: 11, flexShrink: 0,
       }}>
         <span style={{ color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>MODE</span>
-        <ModeBtn id="summary" label="Sim Summary" title="TC pass/fail summary" />
-        <ModeBtn id="wave" label="Wave" title="source + waveform" />
-        <ModeBtn id="hierarchy" label="RTL" title="RTL hierarchy" />
-        <ModeBtn id="tb" label="TB" title="TB hierarchy and cocotb files" />
+        {summaryOnly ? (
+          <span className="pill" style={{
+            fontSize: 10, padding: '2px 8px',
+            background: 'color-mix(in oklch, var(--accent) 14%, transparent)',
+            color: 'var(--accent)',
+            border: '1px solid color-mix(in oklch, var(--accent) 40%, var(--line))',
+            borderRadius: 3,
+            fontFamily: 'var(--mono)', fontWeight: 800,
+            letterSpacing: '0.06em', textTransform: 'uppercase',
+          }}>
+            Sim Summary
+          </span>
+        ) : (
+          <>
+            <ModeBtn id="wave" label="Wave" title="source + waveform" />
+            <ModeBtn id="hierarchy" label="RTL" title="RTL hierarchy" />
+            <ModeBtn id="tb" label="TB" title="TB hierarchy and cocotb files" />
+          </>
+        )}
         <span style={{ color: 'var(--line-2)', margin: '0 4px' }}>│</span>
         <span style={{ color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>VCD</span>
         <select
@@ -1435,22 +1474,30 @@ window.SimDebug = () => {
             ✓ {vcdData.signals.length} sig · t={vcdData.timeRange[0]}–{vcdData.timeRange[1]} {vcdData.timescale}
           </span>
         )}
-        <span style={{ color: 'var(--line-2)', margin: '0 4px' }}>│</span>
-        <span style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}>cur A</span>
-        <span style={{ color: 'var(--accent)', fontWeight: 600, fontFamily: 'var(--mono)' }}>{waveCursor}ns</span>
-        <span style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}>B</span>
-        <span style={{ color: 'var(--cyan)', fontWeight: 600, fontFamily: 'var(--mono)' }}>{waveCursorB}ns</span>
-        <span style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Δ</span>
-        <span style={{ color: 'var(--magenta)', fontWeight: 600, fontFamily: 'var(--mono)' }}>{waveCursorB - waveCursor}ns</span>
+        {!summaryOnly && (
+          <>
+            <span style={{ color: 'var(--line-2)', margin: '0 4px' }}>│</span>
+            <span style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}>cur A</span>
+            <span style={{ color: 'var(--accent)', fontWeight: 600, fontFamily: 'var(--mono)' }}>{waveCursor}ns</span>
+            <span style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}>B</span>
+            <span style={{ color: 'var(--cyan)', fontWeight: 600, fontFamily: 'var(--mono)' }}>{waveCursorB}ns</span>
+            <span style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Δ</span>
+            <span style={{ color: 'var(--magenta)', fontWeight: 600, fontFamily: 'var(--mono)' }}>{waveCursorB - waveCursor}ns</span>
+          </>
+        )}
         <span style={{ flex: 1 }} />
-        <span style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase' }}>expand</span>
-        <ExpandBtn id="hierarchy" glyph="◧"   title="hierarchy only" />
-        <ExpandBtn id="source"    glyph="◨"   title="source only"    />
-        <ExpandBtn id="wave"      glyph="▣"   title="wave only"      />
-        <ExpandBtn id="split"     glyph="⊞"   title="split (default)" />
+        {!summaryOnly && (
+          <>
+            <span style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase' }}>expand</span>
+            <ExpandBtn id="hierarchy" glyph="◧"   title="hierarchy only" />
+            <ExpandBtn id="source"    glyph="◨"   title="source only"    />
+            <ExpandBtn id="wave"      glyph="▣"   title="wave only"      />
+            <ExpandBtn id="split"     glyph="⊞"   title="split (default)" />
+          </>
+        )}
       </div>
 
-      {topTab === 'summary' ? (
+      {summaryOnly || topTab === 'summary' ? (
         <SimSummaryPanel
           ipName={ipName}
           data={simSummary}
@@ -1459,8 +1506,10 @@ window.SimDebug = () => {
           cocotbData={cocotbData}
           onOpenFile={(p, line) => {
             loadSourceFile(p, line || 0);
-            setTopTab('wave');
-            setExpand('split');
+            if (!summaryOnly) {
+              setTopTab('wave');
+              setExpand('split');
+            }
           }}
           onRefresh={() => setSimSummaryReload(v => v + 1)}
         />
@@ -1499,7 +1548,9 @@ window.SimDebug = () => {
               >TB{cocotbData && cocotbData.exists ? '' : ' ⊘'}</button>
               <span style={{ color: 'var(--fg-mute)', marginLeft: 8, fontSize: 10 }}>
                 {leftTab === 'rtl'
-                  ? (ipName ? `pyslang · ${ipName}` : 'pyslang')
+                  ? (
+                    <span title={hierarchyBackendTitle}>{hierarchyBackendLabel}</span>
+                  )
                   : (cocotbData?.exists ? `cocotb · ${ipName}` : 'cocotb (none)')}
               </span>
               <span style={{ flex: 1 }} />

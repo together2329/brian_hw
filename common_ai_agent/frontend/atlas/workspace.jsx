@@ -1318,11 +1318,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // the contents of the file at previewPath with syntax highlighting;
   // 'split' keeps chat and preview visible side-by-side.
   // 'ssot' shows a reviewer-friendly section-by-section SSOT view.
-  // 'debug' / 'coverage' / 'workflow_report' are workflow-specific first tabs.
+  // 'sim_summary' / 'debug' / 'coverage' / 'workflow_report' are workflow-specific first tabs.
   // 'qa' is only available when centerLayout === 'tabbed' — it surfaces
   // the dedicated ask_user pane with breadcrumb-tabbed batched questions.
   // Double-clicking a file in the left tree sets previewPath + flips tab.
-  const [mainTab, setMainTab] = React.useState('split');    // chat | ssot | qa | split | preview | debug | coverage | workflow_report
+  const [mainTab, setMainTab] = React.useState('split');    // chat | ssot | qa | split | preview | sim_summary | debug | coverage | workflow_report
   const [previewPath, setPreviewPath] = React.useState(null);
   // Git diff display: when the GitPanel emits atlas-git-show with a
   // commit sha, the center pane swaps in GitDiffPane to render the
@@ -1756,6 +1756,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     : 0;
   const showQaTab = centerLayout === 'tabbed' || workflow === 'ssot-gen' || !!pendingQcard;
   const showSsotTab = workflow === 'ssot-gen' || (window.SSOT_FILES || []).length > 0 || isSsotYamlPath(previewPath);
+  const showSimSummaryTab = workflow === 'sim_debug';
   const showDebugTab = workflow === 'sim_debug';
   const showCoverageTab = workflow === 'coverage';
   const workflowReportMeta = WORKFLOW_REPORT_TABS[workflow] || null;
@@ -1765,7 +1766,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     if (lastWorkflowTabRef.current === workflow) return;
     lastWorkflowTabRef.current = workflow;
     if (workflow === 'sim_debug') {
-      setMainTab('debug');
+      setMainTab('sim_summary');
       return;
     }
     if (workflow === 'coverage') {
@@ -1776,7 +1777,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       setMainTab('workflow_report');
       return;
     }
-    setMainTab(t => (t === 'debug' || t === 'coverage' || t === 'workflow_report') ? 'split' : t);
+    setMainTab(t => (t === 'sim_summary' || t === 'debug' || t === 'coverage' || t === 'workflow_report') ? 'split' : t);
   }, [workflow]);
   React.useEffect(() => { setAskSel(0); }, [pendingQcard?.flowId, pendingQcardActiveTab]);
 
@@ -3297,6 +3298,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             {/* Tab strip — order: chat · ssot · Q&A · split view · full view.
                 "full view" is the file-only pane (was "preview").
                 "split view" puts chat and the preview side by side. */}
+            {showSimSummaryTab && (
+              <span
+                className="tab-chip"
+                onClick={() => setMainTab('sim_summary')}
+                title="SIM summary: scenarios, pass/fail, scoreboard"
+                style={{
+                  cursor: 'pointer',
+                  padding: '2px 8px', borderRadius: 2,
+                  color: mainTab === 'sim_summary' ? 'var(--accent)' : 'var(--fg-mute)',
+                  background: mainTab === 'sim_summary' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                  border: '1px solid ' + (mainTab === 'sim_summary' ? 'var(--accent)' : 'transparent'),
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                }}
+              >sim summary</span>
+            )}
             {showDebugTab && (
               <span
                 className="tab-chip"
@@ -3450,6 +3466,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}>
                 SSOT section review
               </span>
+            ) : mainTab === 'sim_summary' ? (
+              <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}>
+                sim_debug summary · scenarios · scoreboard
+              </span>
             ) : mainTab === 'debug' ? (
               <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}>
                 sim_debug hierarchy · source · wave
@@ -3559,6 +3579,26 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               initialPath={isSsotYamlPath(previewPath) ? previewPath : ''}
               onBack={() => setMainTab('chat')}
             />
+          ) : mainTab === 'sim_summary' ? (
+            window.SimDebug ? (
+              <ErrorBoundary label="SimSummary">
+                <window.SimDebug key="sim-summary-view" view="summary" />
+              </ErrorBoundary>
+            ) : window.DebugTab ? (
+              <ErrorBoundary label="Debug">
+                <window.DebugTab
+                  ip={(() => {
+                    const segs = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+                    return segs.length >= 2 ? segs[1] : '';
+                  })()}
+                  onOpenSource={(p) => { setPreviewPath(p); }}
+                />
+              </ErrorBoundary>
+            ) : (
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-mute)' }}>
+                SIM Summary · loading…
+              </div>
+            )
           ) : mainTab === 'debug' ? (
             // Prefer the full SimDebug pane (wave viewer + RTL hierarchy
             // + source folds + cocotb tree, all wired to /api/vcd/list +
@@ -3568,7 +3608,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             // resort: a "loading…" placeholder.
             window.SimDebug ? (
               <ErrorBoundary label="SimDebug">
-                <window.SimDebug />
+                <window.SimDebug key="sim-debug-view" view="debug" initialTab="wave" />
               </ErrorBoundary>
             ) : window.DebugTab ? (
               <ErrorBoundary label="Debug">
