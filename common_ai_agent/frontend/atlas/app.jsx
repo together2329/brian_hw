@@ -1013,7 +1013,7 @@ const App = () => {
         </div>
       )}
       {wfSwitching && (
-        <div className="atlas-boot-overlay" role="status" aria-live="polite" style={{
+        <div role="status" aria-live="polite" style={{
           padding: '6px 12px', fontSize: 12, fontFamily: 'var(--mono)',
           background: 'color-mix(in oklch, var(--accent) 12%, transparent)',
           color: 'var(--accent)', borderBottom: '1px solid var(--accent)',
@@ -1037,7 +1037,7 @@ const App = () => {
         </div>
       )}
       {!bootHidden && (
-        <div className="atlas-boot-overlay" role="status" aria-live="polite" style={{
+        <div role="status" aria-live="polite" style={{
           // Centered overlay so the user notices the handshake the
           // moment the page paints. Theme tokens drive bg/fg so dark
           // mode shows dark-on-dark and light mode shows light-on-
@@ -1114,7 +1114,7 @@ const App = () => {
           <style>{`@keyframes atlas-spin{to{transform:rotate(360deg)}}`}</style>
         </div>
       )}
-      <div className="dir-switcher atlas-topbar">
+      <div className="dir-switcher">
         <label className="dir-select-wrap" title={`Select user/browser session_id. Active namespace: .session/${normalizeSession(activeNamespace) || 'default'}`}>
           <span>session_id</span>
           <select
