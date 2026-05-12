@@ -4,6 +4,11 @@
 # Pipeline: handoff gate → SDC → tcl → OpenSTA → parse WNS/TNS → report
 set -uo pipefail
 
+if [ $# -eq 0 ] && [ -n "${HOOK_CMD_ARGS:-}" ]; then
+  # shellcheck disable=SC2086
+  set -- ${HOOK_CMD_ARGS}
+fi
+
 PDK_ENV="$(cd "$(dirname "$0")/../.." && pwd -P)/scripts/pdk_env.sh"
 [ -f "${PDK_ENV}" ] && source "${PDK_ENV}"
 
@@ -36,6 +41,7 @@ if [ ! -r "${LIB}" ]; then
   echo "[STA MISSING PDK] \$SKY130_LIB unreadable: ${LIB}" >&2; exit 4
 fi
 export SKY130_LIB="${LIB}"
+echo "[STA] liberty=${SKY130_LIB}"
 
 bash "${DIR}/write_sdc.sh"      "${IP}" || exit $?
 bash "${DIR}/write_sta_tcl.sh"  "${IP}" || exit $?

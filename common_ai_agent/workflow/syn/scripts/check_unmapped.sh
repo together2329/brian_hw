@@ -4,6 +4,11 @@
 # Args: <ip_name>
 set -uo pipefail
 
+if [ $# -eq 0 ] && [ -n "${HOOK_CMD_ARGS:-}" ]; then
+  # shellcheck disable=SC2086
+  set -- ${HOOK_CMD_ARGS}
+fi
+
 IP="${1:-}"
 if [ -z "${IP}" ]; then echo "[SYN] usage: check_unmapped.sh <ip_name>" >&2; exit 2; fi
 NETLIST="${IP}/syn/out/synth.v"
@@ -20,6 +25,7 @@ echo "[SYN] netlist: unmapped=${UNMAPPED} generic=${GENERIC} latch_cells=${LATCH
 
 if [ "${UNMAPPED}" -gt 0 ] || [ "${GENERIC}" -gt 0 ]; then
   echo "[SYN UNMAPPED] dfflibmap/abc did not bind every cell — check liberty path and synth.log" >&2
+  grep -nE '^\s*(\$paramod|\$_)' "${NETLIST}" | head -20 >&2 || true
   exit 7
 fi
 

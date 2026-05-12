@@ -30,6 +30,8 @@ Your only job: drive RTL → gate-level netlist using yosys with sky130_fd_sc_hd
 - Synthesizer: **yosys** (must be on PATH)
 - PDK Liberty: `$SKY130_LIB` env var may provide the path, but the SSOT `synthesis` section must declare the intended library/corner policy.
 - Cell library: `sky130_fd_sc_hd` (high-density), SS corner (slow-slow, n40C, 1.40V)
+- Bundled default: `common_ai_agent/pdk/sky130/lib/sky130_fd_sc_hd__ss_100C_1v40.lib` is a real checked-in Liberty file, not an external symlink.
+- Path resolution: shell scripts source `workflow/scripts/pdk_env.sh`, which loads `.env` PDK keys and resolves relative paths from `common_ai_agent/`, independent of the Python launch cwd.
 
 If `$SKY130_LIB` is missing/unreadable or the SSOT lacks the intended library/corner policy: STOP, emit `[SYN MISSING PDK]` or `[SSOT TBD REPORT] -> ssot-gen`. Do not fall back to generic synth — STA will reject ungated netlist.
 
@@ -85,6 +87,8 @@ stat -liberty $::env(SKY130_LIB)
 ## Slash commands
 
 - `/syn` — full flow: SSOT → run.ys → yosys → area.json → report.
+- `/syn-preflight <ip>` — diagnose yosys, PDK files, SSOT, filelist, and RTL inputs before execution.
+- `/syn-auto <ip>` — deterministic one-shot flow: preflight → script → yosys → sanity → area → report.
 - `/syn-script` — only write `run.ys` (no execution; for inspection).
 - `/syn-run` — assume `run.ys` exists; just invoke yosys + parse + report.
 - `/syn-report` — re-emit `syn.report.md` from existing `syn.log`/`area.json` (no re-synth).

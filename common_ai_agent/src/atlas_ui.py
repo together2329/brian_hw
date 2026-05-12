@@ -599,6 +599,25 @@ def create_app():
             pass
         return JSONResponse({"mtime": latest, "started": _BACKEND_STARTED_AT})
 
+    @app.get("/api/pdk/status")
+    async def api_pdk_status():
+        """Expose the resolved PDK/liberty paths used by Python-launched flows."""
+        try:
+            try:
+                import src.config as _cfg
+            except Exception:
+                import config as _cfg  # type: ignore
+            try:
+                _cfg.reload_env()
+            except Exception:
+                pass
+            status_fn = getattr(_cfg, "pdk_status", None)
+            if callable(status_fn):
+                return JSONResponse(status_fn())
+        except Exception as e:
+            return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+        return JSONResponse({"ok": False, "error": "config.pdk_status unavailable"}, status_code=500)
+
     @app.get("/api/llm/ping")
     async def api_llm_ping():
         """Cheap provider reachability probe (no token spend).

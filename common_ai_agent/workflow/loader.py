@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import shlex
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -590,24 +591,33 @@ def _make_command_handler(spec: dict, ws: "WorkspaceConfig"):
     if handler_str.startswith("bash:"):
         script_rel = handler_str[5:]
         script_path = (ws.scripts_dir / script_rel) if ws.scripts_dir else None
+        try:
+            timeout_sec = int(spec.get("timeout_sec") or os.getenv("WORKFLOW_COMMAND_TIMEOUT", "30"))
+        except (TypeError, ValueError):
+            timeout_sec = 30
+        timeout_sec = max(1, timeout_sec)
 
-        def _bash_handler(args: str, _s=script_path, _ws=ws) -> str:
+        def _bash_handler(args: str, _s=script_path, _ws=ws, _timeout=timeout_sec) -> str:
             if _s is None or not _s.exists():
                 return f"[Error] Script not found: {script_rel}"
+            try:
+                argv = shlex.split(args or "")
+            except ValueError as e:
+                return f"[Error] Invalid command arguments: {e}"
             env = {
                 **os.environ,
                 "HOOK_WORKSPACE": _ws.name,
                 "HOOK_CMD_ARGS": args or "",
-                "BENCHMARK_LOG": str(_ws.workspace_dir / ".benchmark"),
+                "BENCHMARK_LOG": str(getattr(_ws, "workspace_dir", Path.cwd()) / ".benchmark"),
             }
             try:
                 r = subprocess.run(
-                    ["bash", str(_s)], env=env,
-                    capture_output=True, text=True, timeout=30,
+                    ["bash", str(_s), *argv], env=env,
+                    capture_output=True, text=True, timeout=_timeout,
                 )
                 return (r.stdout or r.stderr or "(no output)").strip()
             except subprocess.TimeoutExpired:
-                return "[Error] Script timed out (30s)"
+                return f"[Error] Script timed out ({_timeout}s)"
             except Exception as e:
                 return f"[Error] {e}"
 

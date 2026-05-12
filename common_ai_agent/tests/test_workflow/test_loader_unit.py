@@ -622,6 +622,19 @@ class TestMakeCommandHandler(unittest.TestCase):
         result = h("")
         self.assertIn("[Error]", result)
 
+    def test_bash_handler_passes_args_as_argv_and_env(self):
+        with tempfile.TemporaryDirectory() as td:
+            scripts = Path(td)
+            script = scripts / "run.sh"
+            script.write_text(
+                "printf 'argv=%s/%s env=%s\\n' \"$1\" \"$2\" \"$HOOK_CMD_ARGS\"\n",
+                encoding="utf-8",
+            )
+            h = _make_command_handler({"handler": "bash:run.sh"}, self._ws(scripts_dir=scripts))
+            result = h("alpha beta")
+            self.assertIn("argv=alpha/beta", result)
+            self.assertIn("env=alpha beta", result)
+
     def test_todo_template_ignores_args(self):
         h = _make_command_handler({"handler": "todo:template:x"}, self._ws())
         self.assertEqual(h("some args"), "INJECT_TODO_TEMPLATE:x")

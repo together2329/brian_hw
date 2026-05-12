@@ -197,6 +197,38 @@ def _resolve_pdk_env_defaults() -> None:
         os.environ[key] = _resolve_source_path(raw) if raw else str(Path(default).resolve(strict=False))
 
 
+def pdk_status() -> dict:
+    """Return resolved PDK paths and readability for UI/debug surfaces."""
+    _resolve_pdk_env_defaults()
+    keys = (
+        "PDK_ROOT",
+        "SKY130_PDK_ROOT",
+        "PDK_LIB_PATH",
+        "SKY130_LIB",
+        "SKY130_TLEF",
+        "SKY130_LEF",
+        "SKY130_TRACKS",
+        "SKY130_RCX_RULES",
+    )
+    paths: dict[str, dict[str, object]] = {}
+    for key in keys:
+        raw = os.getenv(key, "")
+        path = Path(raw) if raw else Path()
+        paths[key] = {
+            "path": raw,
+            "exists": path.exists() if raw else False,
+            "readable": path.is_file() and os.access(path, os.R_OK) if raw else False,
+            "is_symlink": path.is_symlink() if raw else False,
+            "resolved": str(path.resolve(strict=False)) if raw else "",
+        }
+    return {
+        "source_root": str(_source_root()),
+        "cwd": str(Path.cwd().resolve(strict=False)),
+        "paths": paths,
+        "ok": bool(paths.get("SKY130_LIB", {}).get("readable")),
+    }
+
+
 def _canonical_model_dropdown_key(key: str) -> str:
     raw = str(key or "").strip()
     for group in (_MODEL_DROPDOWN_KEYS, _BASE_MODEL_DROPDOWN_KEYS, _LEGACY_MODEL_DROPDOWN_KEYS):

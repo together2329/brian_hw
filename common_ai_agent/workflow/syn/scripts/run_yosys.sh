@@ -3,6 +3,11 @@
 # Args: <ip_name>
 set -uo pipefail
 
+if [ $# -eq 0 ] && [ -n "${HOOK_CMD_ARGS:-}" ]; then
+  # shellcheck disable=SC2086
+  set -- ${HOOK_CMD_ARGS}
+fi
+
 PDK_ENV="$(cd "$(dirname "$0")/../.." && pwd -P)/scripts/pdk_env.sh"
 [ -f "${PDK_ENV}" ] && source "${PDK_ENV}"
 
@@ -21,7 +26,11 @@ if [ -z "${SKY130_LIB:-}" ] || [ ! -r "${SKY130_LIB}" ]; then
   echo "[SYN MISSING PDK] \$SKY130_LIB unreadable" >&2; exit 4
 fi
 
-yosys -l "${LOG}" -q "${SCRIPT}"
-RC=$?
-echo "[SYN] yosys rc=${RC} log=${LOG}"
+yosys -l "${LOG}" "${SCRIPT}" 2>&1 | tail -120
+RC=${PIPESTATUS[0]}
+echo "[SYN] yosys rc=${RC} log=${LOG} liberty=${SKY130_LIB}"
+if [ "${RC}" -ne 0 ]; then
+  echo "[SYN] yosys failed; last log lines:" >&2
+  tail -80 "${LOG}" >&2 || true
+fi
 exit "${RC}"

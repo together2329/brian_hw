@@ -3,6 +3,11 @@
 # Args: <ip_name>
 set -uo pipefail
 
+if [ $# -eq 0 ] && [ -n "${HOOK_CMD_ARGS:-}" ]; then
+  # shellcheck disable=SC2086
+  set -- ${HOOK_CMD_ARGS}
+fi
+
 IP="${1:-}"
 if [ -z "${IP}" ]; then echo "[STA] usage: write_report.sh <ip_name>" >&2; exit 2; fi
 

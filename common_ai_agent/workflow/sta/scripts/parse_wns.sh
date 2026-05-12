@@ -4,6 +4,11 @@
 # Writes <ip>/sta/out/wns.json
 set -uo pipefail
 
+if [ $# -eq 0 ] && [ -n "${HOOK_CMD_ARGS:-}" ]; then
+  # shellcheck disable=SC2086
+  set -- ${HOOK_CMD_ARGS}
+fi
+
 IP="${1:-}"
 if [ -z "${IP}" ]; then echo "[STA] usage: parse_wns.sh <ip_name>" >&2; exit 2; fi
 

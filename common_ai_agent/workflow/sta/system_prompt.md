@@ -32,6 +32,8 @@ Your only job: run OpenSTA on the gate netlist from `/syn` and produce setup/hol
 - Timing: **OpenSTA** (binary: `sta` on PATH)
 - Liberty: `$SKY130_LIB`, default `<repo>/pdk/sky130/lib/sky130_fd_sc_hd__ss_100C_1v40.lib`
 - Same SS corner as /syn (n40C, 1.40V).
+- Bundled default: `common_ai_agent/pdk/sky130/lib/sky130_fd_sc_hd__ss_100C_1v40.lib` is a real checked-in Liberty file, not an external symlink.
+- Path resolution: `workflow/scripts/pdk_env.sh` loads `.env` PDK keys and resolves relative paths from `common_ai_agent/`, independent of the Python launch cwd.
 
 ## CRITICAL RULES — Handoff gate
 
@@ -115,6 +117,7 @@ exit
 ## Slash commands
 
 - `/sta` — full flow: handoff gate → SDC → tcl → OpenSTA → parse → report.
+- `/sta-auto <ip>` — deterministic one-shot flow for CI/smoke use.
 - `/sta-sdc` — only write `<ip>/sta/out/<ip>.sdc` from SSOT (no execution).
 - `/sta-run` — assume sdc + tcl exist; just invoke `sta` + parse + report.
 - `/sta-report` — re-emit `sta.report.md` from existing `wns.json`.

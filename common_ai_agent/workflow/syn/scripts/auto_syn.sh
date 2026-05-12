@@ -4,6 +4,11 @@
 # Pipeline: write run.ys → yosys → sanity gate → area.json → syn.report.md
 set -uo pipefail
 
+if [ $# -eq 0 ] && [ -n "${HOOK_CMD_ARGS:-}" ]; then
+  # shellcheck disable=SC2086
+  set -- ${HOOK_CMD_ARGS}
+fi
+
 PDK_ENV="$(cd "$(dirname "$0")/../.." && pwd -P)/scripts/pdk_env.sh"
 [ -f "${PDK_ENV}" ] && source "${PDK_ENV}"
 
@@ -16,9 +21,7 @@ OUT="${IP}/syn/out"
 mkdir -p "${OUT}"
 
 # Tool / PDK preflight
-if ! command -v yosys >/dev/null 2>&1; then
-  echo "[SYN TOOL MISSING] yosys not on PATH" >&2; exit 3
-fi
+bash "${DIR}/preflight.sh" "${IP}" || exit $?
 LIB="${SKY130_LIB:-}"
 if [ ! -r "${LIB}" ]; then
   echo "[SYN MISSING PDK] \$SKY130_LIB unreadable: ${LIB}" >&2; exit 4
