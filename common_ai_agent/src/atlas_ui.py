@@ -2253,18 +2253,59 @@ def create_app():
     async def api_ip_list(request: Request, session_id: str = ""):
         """List IPs that belong to a session namespace.
 
-        The IP_ID dropdown must not show project-global directories or
-        another user's IP history. In multi-user mode the authoritative
-        source is `.session/<session_id>/<ip>/<workflow>/`, so this route
-        enumerates the selected session owner only. A missing session root
-        returns an empty list instead of falling back to PROJECT_ROOT.
+        In single-user desktop mode the dropdown should include real IP
+        directories under PROJECT_ROOT, so a newly generated IP is
+        selectable before any per-user session history exists. In
+        multi-user mode the authoritative source remains
+        `.session/<session_id>/<ip>/<workflow>/` to avoid cross-user IP
+        leakage.
         """
         skip = set(SKIP_DIRS) | {
             ".session", ".git", ".venv", ".sisyphus", ".omc", "logs",
             "node_modules", "workflow", "src", "core", "lib", "tests",
             "frontend", "docs", "scripts",
         }
-        items = []
+        ip_markers = {
+            "yaml", "rtl", "tb", "sim", "lint", "syn", "sta", "sta-post",
+            "pnr", "dft", "doc", "req", "list", "cov", "verify", "model",
+        }
+        by_name: dict[str, dict[str, Any]] = {}
+
+        def _ssot_exists(name: str) -> bool:
+            yaml_dir = PROJECT_ROOT / name / "yaml"
+            if not yaml_dir.is_dir():
+                return False
+            if (yaml_dir / f"{name}.ssot.yaml").is_file():
+                return True
+            try:
+                return any(yaml_dir.glob("*.ssot.yaml"))
+            except OSError:
+                return False
+
+        def _add_item(name: str, *, workflows=None, mtime: float = 0.0) -> None:
+            if not name or name.startswith(".") or name in skip:
+                return
+            row = by_name.setdefault(name, {
+                "name": name,
+                "has_ssot": _ssot_exists(name),
+                "workflows": [],
+                "mtime": mtime,
+            })
+            row["has_ssot"] = bool(row.get("has_ssot")) or _ssot_exists(name)
+            row["mtime"] = max(float(row.get("mtime") or 0.0), float(mtime or 0.0))
+            if workflows:
+                merged = set(row.get("workflows") or [])
+                merged.update(str(w) for w in workflows if str(w or "").strip())
+                row["workflows"] = sorted(merged)
+
+        def _looks_like_project_ip(entry: Path) -> bool:
+            if not entry.is_dir() or entry.name.startswith(".") or entry.name in skip:
+                return False
+            try:
+                return any((entry / marker).is_dir() for marker in ip_markers)
+            except OSError:
+                return False
+
         user = request.scope.get("user") or {}
         username = normalize_session_name(str(user.get("username") or ""))
         requested = normalize_session_name(str(session_id or ""))
@@ -2274,8 +2315,18 @@ def create_app():
             return JSONResponse({"error": "session owner mismatch", "items": []}, status_code=403)
         session_root = (PROJECT_ROOT / ".session" / owner).resolve() if owner else None
         try:
+            if not multi_user_on:
+                for entry in PROJECT_ROOT.iterdir():
+                    if _looks_like_project_ip(entry):
+                        _add_item(entry.name, mtime=entry.stat().st_mtime)
             if session_root is None or not session_root.is_dir():
-                return JSONResponse({"items": [], "count": 0, "session_id": owner or ""})
+                items = sorted(by_name.values(), key=lambda x: (-x["mtime"], x["name"]))
+                return JSONResponse({
+                    "project_root": str(PROJECT_ROOT),
+                    "session_id": owner or "",
+                    "items": items,
+                    "count": len(items),
+                })
             try:
                 session_root.relative_to((PROJECT_ROOT / ".session").resolve())
             except ValueError:
@@ -2290,16 +2341,10 @@ def create_app():
                     child.name for child in entry.iterdir()
                     if child.is_dir() and not child.name.startswith(".")
                 )
-                ssot = PROJECT_ROOT / name / "yaml" / f"{name}.ssot.yaml"
-                items.append({
-                    "name": name,
-                    "has_ssot": ssot.is_file(),
-                    "workflows": workflows,
-                    "mtime": entry.stat().st_mtime,
-                })
+                _add_item(name, workflows=workflows, mtime=entry.stat().st_mtime)
         except OSError as exc:
             return JSONResponse({"error": str(exc), "items": []}, status_code=500)
-        items.sort(key=lambda x: (-x["mtime"], x["name"]))
+        items = sorted(by_name.values(), key=lambda x: (-x["mtime"], x["name"]))
         return JSONResponse({
             "project_root": str(PROJECT_ROOT),
             "session_id": owner or "",

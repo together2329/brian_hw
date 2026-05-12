@@ -269,17 +269,21 @@ const App = () => {
           const currentOwner = (currentNs.split('/').filter(Boolean)[0] || '');
           localStorage.setItem('atlasUserSessionId', username);
           if (!currentNs || currentNs === 'default' || (currentOwner && currentOwner !== username)) {
-            const nextNs = `${username}/default/default`;
+            const url = new URL(window.location.href);
+            const requestedIp = normalizeSession(url.searchParams.get('ip') || url.searchParams.get('ip_id') || '');
+            const requestedWf = normalizeSession(url.searchParams.get('workflow') || url.searchParams.get('wf') || '');
+            const nextIp = requestedIp || WORKFLOW_DEFAULT;
+            const nextWf = requestedWf || WORKFLOW_DEFAULT;
+            const nextNs = `${username}/${nextIp}/${nextWf}`;
             window.ACTIVE_SESSION = nextNs;
             localStorage.setItem('atlasActiveSession', nextNs);
             setActiveSessionId(username);
             setActiveNamespace(nextNs);
-            setActiveIp(WORKFLOW_DEFAULT);
-            const url = new URL(window.location.href);
+            setActiveIp(nextIp);
             url.searchParams.set('session', nextNs);
             url.searchParams.set('session_id', username);
-            url.searchParams.set('ip', WORKFLOW_DEFAULT);
-            url.searchParams.set('workflow', WORKFLOW_DEFAULT);
+            url.searchParams.set('ip', nextIp);
+            url.searchParams.set('workflow', nextWf);
             url.searchParams.delete('ip_id');
             url.searchParams.delete('wf');
             window.history.replaceState(null, '', url);
