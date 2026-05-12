@@ -1223,6 +1223,634 @@ def create_app():
             "run": run_info,
         })
 
+    def _choose_coverage_ip_dir(ip: str) -> Optional[Path]:
+        candidates = _lint_ip_candidates(ip)
+        if not candidates:
+            return None
+        artifact_names = (
+            "coverage.json",
+            "coverage_ssot.json",
+            "coverage.info",
+            "toggle.json",
+            "merged.dat",
+        )
+        with_cov = [
+            p for p in candidates
+            if any((p / "cov" / name).is_file() for name in artifact_names)
+            or any((p / "sim").glob("*.vcd"))
+        ]
+        if with_cov:
+            def _latest_artifact(path: Path) -> float:
+                mtimes: list[float] = []
+                for name in artifact_names:
+                    target = path / "cov" / name
+                    if target.is_file():
+                        mtimes.append(target.stat().st_mtime)
+                mtimes.extend(p.stat().st_mtime for p in (path / "sim").glob("*.vcd") if p.is_file())
+                return max(mtimes or [0.0])
+            return max(with_cov, key=_latest_artifact)
+        with_filelist = [p for p in candidates if (p / "list" / f"{p.name}.f").is_file()]
+        if with_filelist:
+            return with_filelist[0]
+        return candidates[0]
+
+    def _read_json_artifact(path: Path) -> tuple[dict, str]:
+        if not path.is_file():
+            return {}, ""
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            return {}, f"invalid json: {exc}"
+        return data if isinstance(data, dict) else {}, ""
+
+    def _coverage_metric(hit: Any, total: Any, target: Any = None) -> dict[str, Any]:
+        try:
+            hit_i = int(hit or 0)
+        except (TypeError, ValueError):
+            hit_i = 0
+        try:
+            total_i = int(total or 0)
+        except (TypeError, ValueError):
+            total_i = 0
+        pct_val = round(100.0 * hit_i / total_i, 2) if total_i else None
+        out: dict[str, Any] = {"hit": hit_i, "total": total_i, "pct": pct_val}
+        if target is not None:
+            try:
+                out["target_pct"] = float(target)
+                out["meets_target"] = pct_val is not None and pct_val >= out["target_pct"]
+            except (TypeError, ValueError):
+                out["target_pct"] = target
+        return out
+
+    def _parse_lcov_summary(path: Path) -> dict[str, Any]:
+        empty = {
+            "available": False,
+            "path": path.relative_to(PROJECT_ROOT).as_posix() if path.exists() else "",
+            "lines": _coverage_metric(0, 0),
+            "branches": _coverage_metric(0, 0),
+            "functions": _coverage_metric(0, 0),
+            "files": [],
+            "error": "",
+        }
+        if not path.is_file():
+            return empty
+
+        def new_record() -> dict[str, Any]:
+            return {
+                "source": "",
+                "line_total": 0,
+                "line_hit": 0,
+                "line_seen": set(),
+                "branch_total": 0,
+                "branch_hit": 0,
+                "branch_seen": set(),
+                "function_total": 0,
+                "function_hit": 0,
+                "function_seen": set(),
+            }
+
+        records: list[dict[str, Any]] = []
+        current = new_record()
+
+        def finish_record() -> None:
+            nonlocal current
+            if not current["source"] and not current["line_seen"] and not current["branch_seen"] and not current["function_seen"]:
+                current = new_record()
+                return
+            if current["line_total"] == 0 and current["line_seen"]:
+                current["line_total"] = len(current["line_seen"])
+                current["line_hit"] = sum(1 for _, hits in current["line_seen"] if hits > 0)
+            if current["branch_total"] == 0 and current["branch_seen"]:
+                current["branch_total"] = len(current["branch_seen"])
+                current["branch_hit"] = sum(1 for _, taken in current["branch_seen"] if taken > 0)
+            if current["function_total"] == 0 and current["function_seen"]:
+                current["function_total"] = len(current["function_seen"])
+                current["function_hit"] = sum(1 for _, hits in current["function_seen"] if hits > 0)
+            records.append(current)
+            current = new_record()
+
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError as exc:
+            empty["error"] = str(exc)
+            return empty
+
+        for raw in lines:
+            line = raw.strip()
+            if not line:
+                continue
+            if line == "end_of_record":
+                finish_record()
+                continue
+            if line.startswith("SF:"):
+                current["source"] = line[3:]
+                continue
+            if line.startswith("DA:"):
+                parts = line[3:].split(",")
+                if len(parts) >= 2:
+                    try:
+                        current["line_seen"].add((int(parts[0]), int(parts[1])))
+                    except ValueError:
+                        pass
+                continue
+            if line.startswith("LF:"):
+                try:
+                    current["line_total"] = int(line[3:])
+                except ValueError:
+                    pass
+                continue
+            if line.startswith("LH:"):
+                try:
+                    current["line_hit"] = int(line[3:])
+                except ValueError:
+                    pass
+                continue
+            if line.startswith("BRDA:"):
+                parts = line[5:].split(",")
+                if len(parts) >= 4:
+                    try:
+                        current["branch_seen"].add((":".join(parts[:3]), 0 if parts[3] == "-" else int(parts[3])))
+                    except ValueError:
+                        pass
+                continue
+            if line.startswith("BRF:"):
+                try:
+                    current["branch_total"] = int(line[4:])
+                except ValueError:
+                    pass
+                continue
+            if line.startswith("BRH:"):
+                try:
+                    current["branch_hit"] = int(line[4:])
+                except ValueError:
+                    pass
+                continue
+            if line.startswith("FNDA:"):
+                parts = line[5:].split(",", 1)
+                if len(parts) == 2:
+                    try:
+                        current["function_seen"].add((parts[1], int(parts[0])))
+                    except ValueError:
+                        pass
+                continue
+            if line.startswith("FNF:"):
+                try:
+                    current["function_total"] = int(line[4:])
+                except ValueError:
+                    pass
+                continue
+            if line.startswith("FNH:"):
+                try:
+                    current["function_hit"] = int(line[4:])
+                except ValueError:
+                    pass
+        finish_record()
+
+        total_lines = sum(int(r["line_total"] or 0) for r in records)
+        hit_lines = sum(int(r["line_hit"] or 0) for r in records)
+        total_branches = sum(int(r["branch_total"] or 0) for r in records)
+        hit_branches = sum(int(r["branch_hit"] or 0) for r in records)
+        total_functions = sum(int(r["function_total"] or 0) for r in records)
+        hit_functions = sum(int(r["function_hit"] or 0) for r in records)
+
+        files = []
+        for record in records:
+            source = str(record["source"] or "")
+            try:
+                if os.path.isabs(source):
+                    source = Path(source).resolve().relative_to(PROJECT_ROOT).as_posix()
+            except (OSError, ValueError):
+                pass
+            files.append({
+                "path": source,
+                "lines": _coverage_metric(record["line_hit"], record["line_total"]),
+                "branches": _coverage_metric(record["branch_hit"], record["branch_total"]),
+                "functions": _coverage_metric(record["function_hit"], record["function_total"]),
+            })
+
+        return {
+            "available": True,
+            "path": path.relative_to(PROJECT_ROOT).as_posix(),
+            "lines": _coverage_metric(hit_lines, total_lines),
+            "branches": _coverage_metric(hit_branches, total_branches),
+            "functions": _coverage_metric(hit_functions, total_functions),
+            "files": files,
+            "error": "",
+        }
+
+    def _coverage_filelist_entries(ip_dir: Path) -> list[str]:
+        filelist = ip_dir / "list" / f"{ip_dir.name}.f"
+        entries: list[str] = []
+        if filelist.is_file():
+            for raw in filelist.read_text(encoding="utf-8", errors="replace").splitlines():
+                line = raw.split("//", 1)[0].strip()
+                if not line or line.startswith("+"):
+                    continue
+                if line.endswith((".v", ".sv", ".vh", ".svh")) and "/tb/" not in line and not line.startswith("tb/"):
+                    entries.append(line)
+        if entries:
+            return entries
+        return [
+            path.relative_to(ip_dir).as_posix()
+            for path in sorted((ip_dir / "rtl").glob("**/*"))
+            if path.is_file() and path.suffix.lower() in {".v", ".sv", ".vh", ".svh"}
+        ]
+
+    def _diagnostic_file_name(diag: Any, sm: Any) -> str:
+        loc = getattr(diag, "location", None)
+        if loc is None or sm is None:
+            return ""
+        for arg in (loc, getattr(loc, "buffer", None)):
+            if arg is None:
+                continue
+            try:
+                file_name = sm.getFileName(arg)
+                if file_name:
+                    return str(file_name)
+            except Exception:
+                pass
+        for attr in ("fileName", "filename", "file"):
+            value = getattr(loc, attr, None)
+            if value:
+                return str(value)
+        return ""
+
+    def _static_rtl_coverage(ip_dir: Path, rel_ip: str) -> dict[str, Any]:
+        entries = _coverage_filelist_entries(ip_dir)
+        paths = [ip_dir / rel for rel in entries if rel.endswith((".v", ".sv", ".vh", ".svh"))]
+        missing = [str(path.relative_to(ip_dir)) for path in paths if not path.is_file()]
+        existing = [path for path in paths if path.is_file()]
+
+        counts = {
+            "files": len(existing),
+            "listed_files": len(paths),
+            "missing_files": len(missing),
+            "lines": 0,
+            "nonempty_lines": 0,
+            "modules": 0,
+            "always_blocks": 0,
+            "assigns": 0,
+            "case_blocks": 0,
+            "assertions": 0,
+            "cover_statements": 0,
+        }
+        file_rows: list[dict[str, Any]] = []
+        for path in existing:
+            text = path.read_text(encoding="utf-8", errors="replace")
+            lines = text.splitlines()
+            row = {
+                "path": path.relative_to(PROJECT_ROOT).as_posix(),
+                "lines": len(lines),
+                "modules": len(re.findall(r"\bmodule\s+[A-Za-z_][A-Za-z0-9_$]*", text)),
+                "always_blocks": len(re.findall(r"\balways(?:_ff|_comb|_latch)?\b", text)),
+                "assigns": len(re.findall(r"\bassign\b", text)),
+                "case_blocks": len(re.findall(r"\bcase[zx]?\s*\(", text)),
+                "assertions": len(re.findall(r"\bassert(?:\s+property)?\b", text)),
+                "cover_statements": len(re.findall(r"\bcover(?:\s+property)?\b", text)),
+            }
+            file_rows.append(row)
+            counts["lines"] += row["lines"]
+            counts["nonempty_lines"] += sum(1 for line in lines if line.strip())
+            for key in ("modules", "always_blocks", "assigns", "case_blocks", "assertions", "cover_statements"):
+                counts[key] += int(row[key])
+
+        diagnostics: list[dict[str, Any]] = []
+        compile_error = ""
+        pyslang_available = False
+        try:
+            from core.pyslang_compat import compile_files as compile_pyslang_files
+            from core.pyslang_compat import diagnostic_is_error, diagnostic_line, diagnostic_message
+            compiled = compile_pyslang_files(existing)
+            pyslang_available = not str(compiled.error or "").startswith("pyslang import failed")
+            sm = compiled.source_manager
+            for diag in compiled.diagnostics or []:
+                is_error = diagnostic_is_error(diag)
+                diag_file = _diagnostic_file_name(diag, sm)
+                diagnostics.append({
+                    "severity": "error" if is_error else "warning",
+                    "file": diag_file,
+                    "path": _lint_diagnostic_path(rel_ip, diag_file),
+                    "line": diagnostic_line(diag, sm),
+                    "message": diagnostic_message(compiled.pyslang, diag, sm),
+                })
+            if compiled.error:
+                compile_error = compiled.error
+                if not diagnostics:
+                    diagnostics.append({
+                        "severity": "error",
+                        "file": "",
+                        "path": "",
+                        "line": 0,
+                        "message": compiled.error,
+                    })
+        except Exception as exc:
+            compile_error = f"pyslang static analysis failed: {exc}"
+            diagnostics.append({"severity": "error", "file": "", "path": "", "line": 0, "message": compile_error})
+
+        errors = sum(1 for d in diagnostics if str(d.get("severity", "")).lower() == "error")
+        warnings = len(diagnostics) - errors
+        return {
+            "tool": "pyslang",
+            "kind": "static_elab",
+            "available": pyslang_available,
+            "passed": bool(existing) and not missing and errors == 0,
+            "source": "list/{name}.f + pyslang compile + static RTL scan".format(name=ip_dir.name),
+            "filelist": (ip_dir / "list" / f"{ip_dir.name}.f").relative_to(PROJECT_ROOT).as_posix()
+                if (ip_dir / "list" / f"{ip_dir.name}.f").is_file() else "",
+            "rtl_files": [path.relative_to(PROJECT_ROOT).as_posix() for path in existing],
+            "missing": missing,
+            "metrics": counts,
+            "files": file_rows,
+            "diagnostics": diagnostics[:100],
+            "errors": errors,
+            "warnings": warnings,
+            "error": compile_error,
+        }
+
+    def _domain_matches(bin_id: str, item: Any, domain: str) -> bool:
+        text = str(bin_id).lower()
+        if isinstance(item, dict):
+            text += " " + " ".join(
+                str(item.get(key, "")).lower()
+                for key in ("coverage_domain", "domain", "class", "source", "description")
+            )
+            plan = item.get("plan")
+            if isinstance(plan, dict):
+                text += " " + " ".join(str(plan.get(key, "")).lower() for key in ("coverage_domain", "domain", "class", "source", "description"))
+        if domain == "function":
+            return any(token in text for token in ("function", "functional", "transaction", "scenario", "fl"))
+        return any(token in text for token in ("cycle", "protocol", "handshake", "latency", "fsm", "transition", "cl"))
+
+    def _domain_coverage_from_report(report: dict, domain: str) -> dict[str, Any]:
+        key = "function_coverage" if domain == "function" else "cycle_coverage"
+        raw = report.get(key) if isinstance(report.get(key), dict) else {}
+        out = {
+            "domain": domain,
+            "hit": int(raw.get("hit") or 0),
+            "total": int(raw.get("total") or 0),
+            "pct": raw.get("pct"),
+            "target_pct": raw.get("target_pct"),
+            "meets_target": raw.get("meets_target"),
+            "source": raw.get("source") or ("function_model" if domain == "function" else "cycle_model"),
+            "missing_bins": [],
+            "bins": [],
+        }
+        bins = report.get("functional_bins") if isinstance(report.get("functional_bins"), dict) else {}
+        for bin_id, item in bins.items():
+            if not _domain_matches(str(bin_id), item, domain):
+                continue
+            hit = bool(item.get("hit") or item.get("covered") or item.get("raw_hit")) if isinstance(item, dict) else bool(item)
+            row = {
+                "id": str(bin_id),
+                "hit": hit,
+                "source": item.get("source", "") if isinstance(item, dict) else "",
+                "description": item.get("description", "") if isinstance(item, dict) else "",
+            }
+            out["bins"].append(row)
+            if not hit:
+                out["missing_bins"].append(row)
+        return out
+
+    def _normalize_toggle_report(toggle: dict, path: Path) -> dict[str, Any]:
+        if not toggle:
+            return {
+                "available": False,
+                "path": path.relative_to(PROJECT_ROOT).as_posix() if path.exists() else "",
+                "vcd": "",
+                "metrics": _coverage_metric(0, 0),
+                "nets": 0,
+                "scopes": [],
+            }
+        total = int(toggle.get("total_bits") or 0)
+        hit = int(toggle.get("toggled_bits") or 0)
+        scopes = toggle.get("scopes") if isinstance(toggle.get("scopes"), list) else []
+        scopes = sorted(
+            [s for s in scopes if isinstance(s, dict)],
+            key=lambda s: (float(s.get("pct") or 0.0), str(s.get("scope") or "")),
+        )
+        return {
+            "available": True,
+            "path": path.relative_to(PROJECT_ROOT).as_posix(),
+            "vcd": str(toggle.get("vcd") or ""),
+            "metrics": {**_coverage_metric(hit, total), "pct": round(float(toggle.get("pct") or 0.0), 2) if total else None},
+            "nets": int(toggle.get("nets") or 0),
+            "scopes": scopes[:20],
+        }
+
+    def _coverage_card(id_: str, label: str, available: bool, status: str, metrics: list[dict[str, Any]], **extra: Any) -> dict[str, Any]:
+        payload = {
+            "id": id_,
+            "label": label,
+            "available": available,
+            "status": status,
+            "metrics": metrics,
+        }
+        payload.update(extra)
+        return payload
+
+    @app.get("/reports/cov")
+    @app.get("/api/reports/cov")
+    @app.get("/api/reports/coverage")
+    @app.get("/api/coverage/report")
+    async def api_coverage_report(ip: str, top: str = "", refresh: int = 0, vcd: int = 0):
+        """Return a consolidated coverage report for Atlas.
+
+        The endpoint intentionally aggregates existing workflow artifacts
+        instead of inventing a second coverage format:
+        Verilator LCOV, SSOT FL/CL coverage, VCD toggle coverage, and a
+        pyslang/static RTL source universe.
+        """
+        ip_dir = _choose_coverage_ip_dir(ip)
+        if ip_dir is None:
+            return JSONResponse({"error": "IP directory not found", "ip": ip}, status_code=404)
+
+        rel_ip = ip_dir.relative_to(PROJECT_ROOT).as_posix()
+        cov_dir = ip_dir / "cov"
+        sim_dir = ip_dir / "sim"
+        run_info: dict[str, Any] = {}
+
+        if refresh:
+            script = SOURCE_ROOT / "workflow" / "coverage" / "scripts" / "ssot_coverage_summary.py"
+            cmd = [sys.executable, str(script), rel_ip]
+
+            def _run_summary():
+                return subprocess.run(
+                    cmd,
+                    cwd=PROJECT_ROOT,
+                    text=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    timeout=180,
+                )
+
+            try:
+                proc = await asyncio.to_thread(_run_summary)
+                run_info["summary"] = {
+                    "command": shlex.join(cmd),
+                    "returncode": proc.returncode,
+                    "output": proc.stdout[-12000:] if proc.stdout else "",
+                }
+            except subprocess.TimeoutExpired as exc:
+                run_info["summary"] = {"command": shlex.join(cmd), "returncode": 124, "output": str(exc)}
+            except Exception as exc:
+                run_info["summary"] = {"command": shlex.join(cmd), "returncode": 1, "output": str(exc)}
+
+        if vcd:
+            script = SOURCE_ROOT / "workflow" / "coverage" / "scripts" / "coverage_vcd_toggle.sh"
+            cmd = ["bash", str(script), rel_ip, "--json"]
+            if top:
+                cmd.extend(["--top", top])
+
+            def _run_vcd_toggle():
+                return subprocess.run(
+                    cmd,
+                    cwd=PROJECT_ROOT,
+                    text=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    timeout=180,
+                )
+
+            try:
+                proc = await asyncio.to_thread(_run_vcd_toggle)
+                run_info["vcd"] = {
+                    "command": shlex.join(cmd),
+                    "returncode": proc.returncode,
+                    "output": proc.stdout[-12000:] if proc.stdout else "",
+                }
+            except subprocess.TimeoutExpired as exc:
+                run_info["vcd"] = {"command": shlex.join(cmd), "returncode": 124, "output": str(exc)}
+            except Exception as exc:
+                run_info["vcd"] = {"command": shlex.join(cmd), "returncode": 1, "output": str(exc)}
+
+        coverage_json_path = cov_dir / "coverage.json"
+        coverage_ssot_path = cov_dir / "coverage_ssot.json"
+        coverage_info_path = cov_dir / "coverage.info"
+        toggle_path = cov_dir / "toggle.json"
+        report_md_path = sim_dir / "coverage_report.md"
+
+        coverage_doc, coverage_error = _read_json_artifact(coverage_json_path)
+        ssot_doc, ssot_error = _read_json_artifact(coverage_ssot_path)
+        if not coverage_doc and ssot_doc:
+            coverage_doc = ssot_doc
+        lcov = _parse_lcov_summary(coverage_info_path)
+        toggle_doc, toggle_error = _read_json_artifact(toggle_path)
+        toggle_report = _normalize_toggle_report(toggle_doc, toggle_path)
+        static_report = _static_rtl_coverage(ip_dir, rel_ip)
+        function_cov = _domain_coverage_from_report(coverage_doc, "function")
+        cycle_cov = _domain_coverage_from_report(coverage_doc, "cycle")
+
+        ver_lines = coverage_doc.get("lines") if isinstance(coverage_doc.get("lines"), dict) else lcov["lines"]
+        ver_branches = coverage_doc.get("branches") if isinstance(coverage_doc.get("branches"), dict) else lcov["branches"]
+        ver_functions = coverage_doc.get("functions") if isinstance(coverage_doc.get("functions"), dict) else lcov["functions"]
+        verilator_available = lcov["available"] or bool(coverage_doc.get("lines") or coverage_doc.get("branches"))
+        static_metrics = static_report["metrics"]
+
+        tools = [
+            _coverage_card(
+                "verilator",
+                "Verilator code coverage",
+                verilator_available,
+                "available" if verilator_available else "missing",
+                [
+                    {"label": "line", **_coverage_metric(ver_lines.get("hit"), ver_lines.get("total"), ver_lines.get("target_pct"))},
+                    {"label": "branch", **_coverage_metric(ver_branches.get("hit"), ver_branches.get("total"), ver_branches.get("target_pct"))},
+                    {"label": "function", **_coverage_metric(ver_functions.get("hit"), ver_functions.get("total"))},
+                ],
+                path=lcov.get("path") or coverage_info_path.relative_to(PROJECT_ROOT).as_posix(),
+                files=lcov.get("files", []),
+                note="Runtime code coverage from Verilator LCOV / coverage.info.",
+            ),
+            _coverage_card(
+                "pyslang",
+                "pyslang static/elab coverage",
+                bool(static_report["rtl_files"]),
+                "pass" if static_report["passed"] else "blocked",
+                [
+                    {"label": "rtl files", "hit": static_metrics["files"], "total": static_metrics["listed_files"], "pct": round(100.0 * static_metrics["files"] / static_metrics["listed_files"], 2) if static_metrics["listed_files"] else None},
+                    {"label": "modules", "value": static_metrics["modules"]},
+                    {"label": "source lines", "value": static_metrics["lines"]},
+                    {"label": "always", "value": static_metrics["always_blocks"]},
+                ],
+                diagnostics=static_report["diagnostics"],
+                files=static_report["files"],
+                missing=static_report["missing"],
+                note="Static RTL universe plus pyslang parse/elaboration diagnostics. This is not runtime hit coverage.",
+            ),
+            _coverage_card(
+                "sim-vcd",
+                "Simulation VCD toggle coverage",
+                toggle_report["available"],
+                "available" if toggle_report["available"] else "missing",
+                [
+                    {"label": "toggle", **toggle_report["metrics"]},
+                    {"label": "nets", "value": toggle_report["nets"]},
+                ],
+                path=toggle_report["path"],
+                vcd=toggle_report["vcd"],
+                scopes=toggle_report["scopes"],
+                note="Bit is covered when it observed both a rise and a fall in the VCD.",
+            ),
+            _coverage_card(
+                "functional-fl",
+                "FL function coverage",
+                function_cov["total"] > 0,
+                "pass" if function_cov.get("meets_target") else "blocked",
+                [{"label": "function bins", **_coverage_metric(function_cov["hit"], function_cov["total"], function_cov.get("target_pct"))}],
+                bins=function_cov["bins"],
+                missing_bins=function_cov["missing_bins"],
+                note="Function-model / scenario coverage from SSOT functional bins.",
+            ),
+            _coverage_card(
+                "functional-cl",
+                "CL cycle coverage",
+                cycle_cov["total"] > 0,
+                "pass" if cycle_cov.get("meets_target") else "blocked",
+                [{"label": "cycle bins", **_coverage_metric(cycle_cov["hit"], cycle_cov["total"], cycle_cov.get("target_pct"))}],
+                bins=cycle_cov["bins"],
+                missing_bins=cycle_cov["missing_bins"],
+                note="Cycle-model / protocol coverage from SSOT functional bins.",
+            ),
+        ]
+
+        vcd_paths = [
+            p.relative_to(PROJECT_ROOT).as_posix()
+            for p in sorted(list(sim_dir.glob("**/*.vcd")) + list(cov_dir.glob("**/*.vcd")))
+            if p.is_file()
+        ]
+        artifact_paths = [
+            p.relative_to(PROJECT_ROOT).as_posix()
+            for p in (coverage_json_path, coverage_ssot_path, coverage_info_path, toggle_path, report_md_path)
+            if p.is_file()
+        ]
+
+        return JSONResponse({
+            "ip": ip,
+            "resolved_ip": rel_ip,
+            "top": top or ip_dir.name,
+            "exists": bool(coverage_doc or lcov["available"] or toggle_report["available"] or static_report["rtl_files"]),
+            "status": coverage_doc.get("status", "unknown") if coverage_doc else "unknown",
+            "errors": [e for e in (coverage_error, ssot_error, toggle_error, lcov.get("error")) if e],
+            "report_path": coverage_json_path.relative_to(PROJECT_ROOT).as_posix(),
+            "report_exists": coverage_json_path.is_file(),
+            "ssot_path": coverage_ssot_path.relative_to(PROJECT_ROOT).as_posix(),
+            "ssot_exists": coverage_ssot_path.is_file(),
+            "lcov_path": coverage_info_path.relative_to(PROJECT_ROOT).as_posix(),
+            "lcov_exists": coverage_info_path.is_file(),
+            "toggle_path": toggle_path.relative_to(PROJECT_ROOT).as_posix(),
+            "toggle_exists": toggle_path.is_file(),
+            "markdown_path": report_md_path.relative_to(PROJECT_ROOT).as_posix(),
+            "markdown_exists": report_md_path.is_file(),
+            "artifacts": artifact_paths,
+            "vcd_paths": vcd_paths,
+            "tools": tools,
+            "coverage": coverage_doc,
+            "lcov": lcov,
+            "toggle": toggle_report,
+            "static": static_report,
+            "run": run_info,
+        })
+
     # ── Foldable structure for PreviewPane (sv / yaml) ────────────
     # Returns line ranges the frontend wraps in <details>. Empty list
     # for unknown extensions — caller falls back to plain Prism.

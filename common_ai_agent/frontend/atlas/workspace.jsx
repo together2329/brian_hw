@@ -80,6 +80,26 @@ const WORKFLOW_REPORT_TABS = {
       `gpio/${ip}/lint/dut_lint.log`,
     ],
   },
+  coverage: {
+    label: 'coverage report',
+    title: 'Coverage Report',
+    folders: ['cov', 'sim'],
+    paths: (ip) => [
+      `${ip}/cov/coverage.json`,
+      `${ip}/cov/coverage_ssot.json`,
+      `${ip}/cov/coverage.info`,
+      `${ip}/cov/toggle.json`,
+      `${ip}/cov/merged.vcd`,
+      `${ip}/sim/coverage_report.md`,
+      `${ip}/sim/${ip}.vcd`,
+      `gpio/${ip}/cov/coverage.json`,
+      `gpio/${ip}/cov/coverage_ssot.json`,
+      `gpio/${ip}/cov/coverage.info`,
+      `gpio/${ip}/cov/toggle.json`,
+      `gpio/${ip}/sim/coverage_report.md`,
+      `gpio/${ip}/sim/${ip}.vcd`,
+    ],
+  },
   syn: {
     label: 'syn_report',
     title: 'Synthesis Report',
@@ -1772,7 +1792,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       return;
     }
     if (workflow === 'coverage') {
-      setMainTab('coverage');
+      setMainTab(WORKFLOW_REPORT_TABS[workflow] ? 'workflow_report' : 'coverage');
       return;
     }
     if (WORKFLOW_REPORT_TABS[workflow]) {
@@ -10607,9 +10627,283 @@ const LintReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }) => {
   );
 };
 
+const coverageMetricText = (metric) => {
+  if (!metric) return 'n/a';
+  if (metric.value != null) return String(metric.value);
+  const total = metric.total;
+  const hit = metric.hit;
+  if (total != null && Number(total) > 0) {
+    const pct = metric.pct == null ? '' : ` · ${Number(metric.pct).toFixed(1)}%`;
+    return `${hit ?? 0}/${total}${pct}`;
+  }
+  if (metric.pct != null) return `${Number(metric.pct).toFixed(1)}%`;
+  return String(hit ?? 'n/a');
+};
+
+const CoverageMetricCell = ({ metric }) => {
+  const pct = Number(metric?.pct);
+  const hasPct = Number.isFinite(pct);
+  const clamped = Math.max(0, Math.min(100, hasPct ? pct : 0));
+  const color = hasPct && pct >= Number(metric?.target_pct ?? 90) ? 'var(--ok)' : hasPct ? 'var(--warn)' : 'var(--fg-mute)';
+  return (
+    <div style={{ border: '1px solid var(--line)', background: 'var(--bg)', borderRadius: 3, padding: '6px 7px', minWidth: 0 }}>
+      <div style={{ color: 'var(--fg-mute)', fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{metric?.label || 'metric'}</div>
+      <div className="trunc" title={coverageMetricText(metric)} style={{ fontFamily: 'var(--mono)', fontWeight: 800, fontSize: 13 }}>
+        {coverageMetricText(metric)}
+      </div>
+      {hasPct && (
+        <div style={{ height: 4, background: 'var(--line)', marginTop: 5, borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ width: `${clamped}%`, height: '100%', background: color }} />
+        </div>
+      )}
+    </div>
+  );
+};
+
+const CoverageToolCard = ({ tool, onSelectPath, onOpenDiagnostic }) => {
+  const available = tool?.available === true;
+  const status = available ? (tool?.status || 'available') : 'missing';
+  const metrics = Array.isArray(tool?.metrics) ? tool.metrics : [];
+  const diagnostics = Array.isArray(tool?.diagnostics) ? tool.diagnostics : [];
+  const missingBins = Array.isArray(tool?.missing_bins) ? tool.missing_bins : [];
+  const scopes = Array.isArray(tool?.scopes) ? tool.scopes : [];
+  return (
+    <div style={{
+      border: '1px solid ' + (available ? 'var(--line)' : 'color-mix(in oklch, var(--warn) 35%, var(--line))'),
+      background: 'var(--panel)',
+      borderRadius: 4,
+      padding: 10,
+      minWidth: 0,
+      display: 'grid',
+      gap: 8,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span className="trunc" title={tool?.label || ''} style={{ fontFamily: 'var(--mono)', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          {tool?.label || 'coverage'}
+        </span>
+        <AtlasStatusBadge status={status === 'pass' ? 'approved' : status === 'missing' ? 'pending' : status} label={status} compact />
+      </div>
+      {metrics.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(108px, 1fr))', gap: 7 }}>
+          {metrics.map((metric, idx) => <CoverageMetricCell key={`${tool?.id || 'tool'}-${idx}`} metric={metric} />)}
+        </div>
+      )}
+      {tool?.note && (
+        <div style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, lineHeight: 1.35 }}>
+          {tool.note}
+        </div>
+      )}
+      {(tool?.path || tool?.vcd) && (
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', minWidth: 0 }}>
+          {tool.path && (
+            <button className="btn" onClick={() => onSelectPath?.(tool.path)} style={{ padding: '2px 8px', fontSize: 10 }}>
+              open source
+            </button>
+          )}
+          <span className="trunc" title={tool.path || tool.vcd || ''} style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+            {tool.path || tool.vcd}
+          </span>
+        </div>
+      )}
+      {diagnostics.length > 0 && (
+        <div style={{ display: 'grid', gap: 5 }}>
+          {diagnostics.slice(0, 4).map((d, idx) => (
+            <button key={idx} type="button" onClick={() => onOpenDiagnostic?.(d)} style={{
+              textAlign: 'left',
+              border: 0,
+              background: 'transparent',
+              borderLeft: '2px solid ' + (String(d.severity || '').toLowerCase() === 'error' ? 'var(--err)' : 'var(--warn)'),
+              padding: '0 0 0 7px',
+              color: 'var(--fg)',
+              fontFamily: 'var(--mono)',
+              fontSize: 10,
+              lineHeight: 1.35,
+              cursor: d.path || d.file ? 'pointer' : 'default',
+            }}>
+              <span style={{ color: 'var(--fg-mute)' }}>
+                {d.severity || 'diag'} {d.file || ''}{d.line ? `:${d.line}` : ''}
+              </span>
+              <div>{String(d.message || '').slice(0, 260)}</div>
+            </button>
+          ))}
+        </div>
+      )}
+      {missingBins.length > 0 && (
+        <div style={{ borderTop: '1px solid var(--line)', paddingTop: 7, display: 'grid', gap: 4 }}>
+          <div style={{ color: 'var(--fg-mute)', fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase' }}>missing bins</div>
+          {missingBins.slice(0, 5).map((bin, idx) => (
+            <div key={idx} className="trunc" title={bin?.description || bin?.id || ''} style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>
+              {bin?.id || String(bin)}
+            </div>
+          ))}
+        </div>
+      )}
+      {scopes.length > 0 && (
+        <div style={{ borderTop: '1px solid var(--line)', paddingTop: 7, display: 'grid', gap: 4 }}>
+          <div style={{ color: 'var(--fg-mute)', fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase' }}>lowest-toggle scopes</div>
+          {scopes.slice(0, 5).map((scope, idx) => (
+            <div key={idx} style={{ display: 'grid', gridTemplateColumns: '62px minmax(0, 1fr)', gap: 6, fontFamily: 'var(--mono)', fontSize: 10 }}>
+              <span style={{ color: 'var(--warn)' }}>{Number(scope?.pct || 0).toFixed(1)}%</span>
+              <span className="trunc" title={scope?.scope || ''}>{scope?.scope || '(scope)'}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const CoverageReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }) => {
+  const [data, setData] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+  const [err, setErr] = React.useState('');
+  const [running, setRunning] = React.useState('');
+  const [tick, setTick] = React.useState(0);
+
+  const load = React.useCallback((mode = '') => {
+    if (!ip) return Promise.resolve();
+    setLoading(true);
+    setErr('');
+    setRunning(mode);
+    const params = new URLSearchParams({ ip });
+    if (mode === 'summary' || mode === 'all') params.set('refresh', '1');
+    if (mode === 'vcd' || mode === 'all') params.set('vcd', '1');
+    const url = `/reports/cov?${params.toString()}`;
+    return fetch(url, { cache: 'no-store' })
+      .then(async r => {
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
+        setData(d);
+        const preferred = d.report_exists ? d.report_path
+          : d.ssot_exists ? d.ssot_path
+          : d.lcov_exists ? d.lcov_path
+          : d.toggle_exists ? d.toggle_path
+          : d.markdown_exists ? d.markdown_path
+          : '';
+        if (preferred) onSelectPath?.(preferred);
+      })
+      .catch(e => setErr(String(e.message || e)))
+      .finally(() => {
+        setLoading(false);
+        setRunning('');
+      });
+  }, [ip, onSelectPath]);
+
+  React.useEffect(() => { load(''); }, [load, tick]);
+
+  const tools = Array.isArray(data?.tools) ? data.tools : [];
+  const artifacts = Array.isArray(data?.artifacts) ? data.artifacts : [];
+  const vcdPaths = Array.isArray(data?.vcd_paths) ? data.vcd_paths : [];
+  const missingTools = tools.filter(t => !t.available).length;
+  const runEntries = Object.entries(data?.run || {}).filter(([, value]) => value && value.output);
+
+  return (
+    <div style={{
+      borderBottom: '1px solid var(--line)',
+      background: 'var(--bg-2)',
+      padding: 12,
+      display: 'grid',
+      gap: 10,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div>
+          <div style={{ fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 12 }}>
+            coverage report
+          </div>
+          <div style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, marginTop: 2 }}>
+            {data?.resolved_ip || ip} · Verilator + pyslang + VCD + FL/CL
+          </div>
+        </div>
+        <span style={{ flex: 1 }} />
+        {data?.status && data.status !== 'unknown' && <AtlasStatusBadge status={data.status} label={data.status} compact />}
+        <button className="btn" onClick={() => setTick(v => v + 1)} disabled={loading} style={{ padding: '2px 8px', fontSize: 10 }}>
+          refresh
+        </button>
+        <button className="btn" onClick={() => load('summary')} disabled={!!running || loading} style={{ padding: '2px 8px', fontSize: 10 }}>
+          run summary
+        </button>
+        <button className="btn" onClick={() => load('vcd')} disabled={!!running || loading} style={{ padding: '2px 8px', fontSize: 10 }}>
+          run vcd
+        </button>
+      </div>
+
+      {err && <div style={{ color: 'var(--err)', fontFamily: 'var(--mono)', fontSize: 11 }}>{err}</div>}
+      {loading && (
+        <div style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 11 }}>
+          {running === 'summary' ? 'Running SSOT coverage summary...' : running === 'vcd' ? 'Running VCD toggle coverage...' : 'Loading coverage report...'}
+        </div>
+      )}
+      {!err && data && !data.exists && !loading && (
+        <div style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 11 }}>
+          No coverage artifacts found yet. Static RTL scan still needs a DUT filelist or rtl/ sources.
+        </div>
+      )}
+
+      {data && (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
+            {[
+              ['tools', tools.length],
+              ['missing', missingTools],
+              ['artifacts', artifacts.length],
+              ['vcd files', vcdPaths.length],
+            ].map(([label, value]) => (
+              <div key={label} style={{ border: '1px solid var(--line)', background: 'var(--panel)', borderRadius: 3, padding: '6px 8px', minWidth: 0 }}>
+                <div style={{ color: 'var(--fg-mute)', fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</div>
+                <div className="trunc" title={String(value)} style={{ fontFamily: 'var(--mono)', fontWeight: 800, fontSize: 13 }}>{value}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: 10 }}>
+            {tools.map(tool => (
+              <CoverageToolCard key={tool.id || tool.label} tool={tool} onSelectPath={onSelectPath} onOpenDiagnostic={onOpenDiagnostic} />
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button className="btn" onClick={() => data.report_path && onSelectPath?.(data.report_path)} disabled={!data.report_exists} style={{ padding: '2px 8px', fontSize: 10 }}>
+              open json
+            </button>
+            <button className="btn" onClick={() => data.lcov_path && onSelectPath?.(data.lcov_path)} disabled={!data.lcov_exists} style={{ padding: '2px 8px', fontSize: 10 }}>
+              open lcov
+            </button>
+            <button className="btn" onClick={() => data.toggle_path && onSelectPath?.(data.toggle_path)} disabled={!data.toggle_exists} style={{ padding: '2px 8px', fontSize: 10 }}>
+              open toggle
+            </button>
+            <button className="btn" onClick={() => data.markdown_path && onSelectPath?.(data.markdown_path)} disabled={!data.markdown_exists} style={{ padding: '2px 8px', fontSize: 10 }}>
+              open md
+            </button>
+          </div>
+          {Array.isArray(data.errors) && data.errors.length > 0 && (
+            <div style={{ color: 'var(--warn)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+              {data.errors.join(' · ')}
+            </div>
+          )}
+          {runEntries.map(([name, info]) => (
+            <ToolOutputPre key={name} text={`${name}: rc ${info.returncode}\n${info.output || ''}`} tool="bash" />
+          ))}
+        </>
+      )}
+    </div>
+  );
+};
+
 const WorkflowReportPane = ({ workflow, activeIp }) => {
   const meta = WORKFLOW_REPORT_TABS[workflow] || null;
-  const ip = String(activeIp || '').trim();
+  const inferredIp = React.useMemo(() => {
+    const direct = String(activeIp || '').trim();
+    if (direct && direct !== 'default') return direct;
+    const ns = String(window.ACTIVE_SESSION || '').replace(/^\/+|\/+$/g, '');
+    const parts = ns.split('/').filter(Boolean);
+    if (parts.length >= 3 && parts[parts.length - 1] === workflow) {
+      const candidate = parts[parts.length - 2] || '';
+      if (candidate && candidate !== 'default') return candidate;
+    }
+    const scope = String(window.SCOPE_PATH || '').replace(/^\/+|\/+$/g, '');
+    const leaf = scope.split('/').filter(Boolean).pop() || '';
+    if (leaf && leaf !== 'default' && leaf !== workflow) return leaf;
+    return direct;
+  }, [activeIp, workflow]);
+  const ip = String(inferredIp || '').trim();
   const [dataTick, setDataTick] = React.useState(0);
   const [selected, setSelected] = React.useState('');
   const [focusLine, setFocusLine] = React.useState(0);
@@ -10739,6 +11033,9 @@ const WorkflowReportPane = ({ workflow, activeIp }) => {
       <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         {workflow === 'lint' && (
           <LintReportSummary ip={ip} onSelectPath={setSelected} onOpenDiagnostic={openLintDiagnostic} />
+        )}
+        {workflow === 'coverage' && (
+          <CoverageReportSummary ip={ip} onSelectPath={setSelected} onOpenDiagnostic={openLintDiagnostic} />
         )}
         <PreviewPane path={selected} onClose={() => {}} focusLine={focusLine} />
       </div>
