@@ -3023,7 +3023,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     return out;
   };
   const renderChatPane = (style = {}) => (
-    <div ref={feedRef} style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '14px 18px', ...style }}>
+    <div className="atlas-chat-feed" ref={feedRef} style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '14px 18px', ...style }}>
       {renderFeedEntries()}
       <LiveAgentPreview text={streamText} />
     </div>
@@ -3065,7 +3065,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   );
 
   return (
-    <div style={{
+    <div className="atlas-workspace-grid" style={{
       display: 'grid',
       gridTemplateColumns: `${leftW}px 4px 1fr 4px ${rightW}px`,
       gap: 12,
@@ -3074,7 +3074,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     }}>
       {/* LEFT — Mode/Workflow + Files (collapsed when leftW===0 OR sim_debug) */}
       {effLeftW > 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
+        <div className="atlas-left-rail" style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
         <div className="box">
           <div className="box-h">
             <span>▸ mode</span>
@@ -3089,8 +3089,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             <span className="mute" style={{ fontSize: 10, textTransform: 'none', letterSpacing: 0 }}>shift+tab</span>
           </div>
           {/* Intent toggle: Normal | Plan */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: '1px solid var(--line)' }}>
+          <div className="atlas-intent-toggle" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: '1px solid var(--line)' }}>
             <div
+              className={`atlas-intent-btn ${intent === 'normal' ? 'active normal' : ''}`}
               onClick={() => switchIntent('normal')}
               style={{
                 padding: '8px 10px', textAlign: 'center', cursor: 'pointer', fontSize: 11,
@@ -3101,6 +3102,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               }}
             >● Normal</div>
             <div
+              className={`atlas-intent-btn ${intent === 'plan' ? 'active plan' : ''}`}
               onClick={() => switchIntent('plan')}
               style={{
                 padding: '8px 10px', textAlign: 'center', cursor: 'pointer', fontSize: 11,
@@ -3119,6 +3121,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               const active = workflow === s.id;
               return (
                 <button key={s.id}
+                  className={`atlas-workflow-row ${active ? 'active' : ''}`}
                   type="button"
                   onClick={() => switchWorkflow(s.id)}
                   style={{
@@ -3150,7 +3153,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               {(window.SCOPE_PATH || '').split('/').pop() || 'project root'}
             </span>
           </div>
-          <div style={{
+          <div className="atlas-file-toolbar" style={{
             padding: '6px 10px', borderBottom: '1px solid var(--line)',
             display: 'flex', alignItems: 'center', gap: 6, fontSize: 12,
             background: 'var(--bg-2)',
@@ -3330,8 +3333,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             </button>
           </div>
         )}
-        <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          <div className="box-h">
+        <div className="box atlas-center-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <div className="box-h atlas-center-tabs">
             {/* Tab strip — order: chat · ssot · Q&A · split view · full view.
                 "full view" is the file-only pane (was "preview").
                 "split view" puts chat and the preview side by side. */}
@@ -3563,18 +3566,18 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               ? '0px 4px minmax(0, 1fr)'
               : `minmax(260px, 1fr) 4px minmax(300px, ${splitRightW}px)`;
             return (
-              <div style={{
+              <div className="atlas-split-shell" style={{
                 flex: 1, minHeight: 0, display: 'grid',
                 gridTemplateColumns: splitColumns,
                 transition: fullView ? 'grid-template-columns 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none',
                 overflow: 'hidden',
               }}>
-                <div style={{
+                <div className="atlas-split-chat" style={{
                   minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column',
                   overflow: 'hidden',
                   visibility: fullView ? 'hidden' : 'visible',
                 }}>
-                  <div style={{
+                  <div className="atlas-pane-kicker" style={{
                     padding: '4px 10px', borderBottom: '1px solid var(--line)',
                     color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10,
                     letterSpacing: '0.06em', textTransform: 'uppercase',
@@ -3594,7 +3597,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                     title="drag to resize chat / preview split"
                   />
                 </div>
-                <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                <div className="atlas-split-preview" style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
                   {gitShow ? (
                     <GitDiffPane
                       sha={gitShow.sha}
@@ -3934,10 +3937,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
 
       {/* RIGHT — ATLAS status + SSOT/Todo/Diff (hidden when sim_debug or collapsed) */}
       {effRightW > 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
+        <div className="atlas-right-rail" style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
         <AgentStatusPanel intent={intent} workflow={workflow}
                           onCollapse={toggleRight} />
-        <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="box atlas-right-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div className="box-h" style={{ padding: 0 }}>
             <RightTab id="todo" cur={rightTab} onTab={setRightTab}>Todo</RightTab>
             <RightTab id="progress" cur={rightTab} onTab={setRightTab}>Progress</RightTab>
@@ -3958,7 +3961,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
 };
 
 const RightTab = ({ id, cur, onTab, children }) => (
-  <span onClick={() => onTab(id)} style={{
+  <span className={`atlas-right-tab ${cur === id ? 'active' : ''}`} onClick={() => onTab(id)} style={{
     cursor: 'pointer', padding: '10px 14px', fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase',
     color: cur === id ? 'var(--fg)' : 'var(--fg-mute)',
     borderBottom: cur === id ? `2px solid var(--accent)` : '2px solid transparent',
@@ -8791,7 +8794,7 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
 
   if (!filePaths.length) {
     return (
-      <div style={{ flex: 1, minHeight: 0, padding: '16px 18px', overflow: 'auto' }}>
+      <div className="atlas-ssot-empty" style={{ flex: 1, minHeight: 0, padding: '16px 18px', overflow: 'auto' }}>
         <div className="code" style={{ padding: 16, color: 'var(--fg-mute)' }}>
           # {t.empty}<br />
           # /grill-me → /to-ssot writes the review source.
@@ -8801,17 +8804,17 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
   }
 
   return (
-    <div style={{
+    <div className="atlas-ssot-review" style={{
       flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
       overflow: 'hidden', background: 'var(--bg)',
     }}>
-      <div style={{
+      <div className="atlas-ssot-header" style={{
         padding: '10px 14px', borderBottom: '1px solid var(--line)',
         display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto',
         gap: 12, alignItems: 'center', background: 'var(--bg-2)',
       }}>
         <div style={{ minWidth: 0 }}>
-          <div style={{
+          <div className="atlas-ssot-title" style={{
             color: 'var(--magenta)', fontWeight: 800, fontSize: 12,
             letterSpacing: '0.08em', textTransform: 'uppercase',
           }}>{t.title}</div>
@@ -8819,7 +8822,7 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
             {selected || t.file} · {loading ? (ssotHasContent ? 'refreshing' : 'loading') : `${sections.length} ${t.sections}`} · {approvedCount} {t.approved} · {flagCount} {t.flags}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', minWidth: 0 }}>
+        <div className="atlas-ssot-actions" style={{ display: 'flex', gap: 6, alignItems: 'center', minWidth: 0 }}>
           {loading ? <AtlasStatusBadge status={ssotHasContent ? 'refreshing' : 'loading'} compact /> : null}
           <select
             value={selected}
@@ -8842,12 +8845,12 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
         </div>
       </div>
 
-      <div style={{
+      <div className="atlas-ssot-body" style={{
         flex: 1, minHeight: 0, display: 'grid',
         gridTemplateColumns: 'minmax(190px, 240px) minmax(0, 1fr)',
         overflow: 'hidden',
       }}>
-        <div style={{
+        <div className="atlas-ssot-nav" style={{
           minHeight: 0, overflow: 'auto', borderRight: '1px solid var(--line)',
           background: 'color-mix(in oklch, var(--bg-2) 72%, transparent)',
           padding: '10px 8px',
@@ -8865,6 +8868,7 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
             return (
               <button
                 key={view.id + ':' + idx}
+                className={`atlas-ssot-nav-row ${activeRow ? 'active' : ''} ${view.id === 'raw_yaml' ? 'raw' : ''}`}
                 type="button"
                 onClick={() => setActiveKey(view.id)}
                 title={`${sourceLabel} · ${status}`}
@@ -8892,7 +8896,7 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
                     {sourceLabel}
                   </span>
                 </span>
-                <span style={{
+                <span className="atlas-ssot-count" style={{
                   color, fontSize: 10, border: `1px solid ${color}`,
                   borderRadius: 2, padding: '0 4px', whiteSpace: 'nowrap',
                 }}>
@@ -8903,9 +8907,9 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
           })}
         </div>
 
-        <div style={{ minHeight: 0, overflow: 'auto', padding: '14px 18px' }}>
+        <div className="atlas-ssot-content" style={{ minHeight: 0, overflow: 'auto', padding: '14px 18px' }}>
           {ssotResource.err ? (
-            <div style={{
+            <div className="atlas-ssot-error" style={{
               marginBottom: 10, padding: '6px 10px',
               border: '1px solid var(--err)',
               background: 'color-mix(in oklch, var(--err) 12%, transparent)',
@@ -9691,7 +9695,7 @@ const TodoPanel = () => {
 
   // ── header tab strip
   const Tab = ({ id, label }) => (
-    <span onClick={() => setView(id)} style={{
+    <span className={`atlas-view-tab ${view === id ? 'active' : ''}`} onClick={() => setView(id)} style={{
       cursor: 'pointer', padding: '4px 10px', fontSize: 10, letterSpacing: '0.06em',
       textTransform: 'uppercase', fontFamily: 'var(--mono)',
       color: view === id ? 'var(--fg)' : 'var(--fg-mute)',
@@ -9702,8 +9706,8 @@ const TodoPanel = () => {
   );
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <div style={{
+    <div className="atlas-todo-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div className="atlas-todo-toolbar" style={{
         padding: '8px 12px', borderBottom: '1px solid var(--line)',
         display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, flexWrap: 'wrap',
       }}>
@@ -10464,6 +10468,9 @@ const _highlightYamlValue = (value) => {
   else if (/^(null|~)$/i.test(core)) cls = 'null';
   else if (/^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i.test(core)) cls = 'number';
   else if (/^[|>]$/.test(core)) cls = 'operator';
+  // SSOT YAML is mostly unquoted scalars. Treat them as value tokens so
+  // Raw YAML keeps visible syntax color instead of falling back to body text.
+  else if (core) cls = 'string';
   const coreHtml = core
     ? `<span class="token ${cls}">${_escHtml(core)}</span>`
     : '';
@@ -11883,11 +11890,11 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
     fontSize: 10,
   };
   return (
-    <div className="box" style={{ flexShrink: 0 }}>
+    <div className="box atlas-status-panel" style={{ flexShrink: 0 }}>
       <div className="box-h" style={{ padding: '6px 12px' }}>
         <span style={{ color: 'var(--accent)', fontWeight: 700 }}>ATLAS</span>
         <span style={{ flex: 1 }} />
-        <span style={{
+        <span className="atlas-status-badge" style={{
           fontSize: 9, padding: '1px 6px', borderRadius: 2,
           background: intent === 'plan' ? 'color-mix(in oklch, var(--warn) 25%, transparent)' : 'color-mix(in oklch, var(--cyan) 25%, transparent)',
           color: intent === 'plan' ? 'var(--warn)' : 'var(--cyan)',
@@ -11903,7 +11910,7 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
           >›</span>
         )}
       </div>
-      <div style={{ padding: '10px 14px', fontSize: 11, fontFamily: 'var(--mono)' }}>
+      <div className="atlas-status-body" style={{ padding: '10px 14px', fontSize: 11, fontFamily: 'var(--mono)' }}>
         {/* Mode line */}
         <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 8, marginBottom: 8 }}>
           <span className="mute">Mode</span>
