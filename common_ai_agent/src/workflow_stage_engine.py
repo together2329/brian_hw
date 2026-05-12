@@ -27,6 +27,14 @@ STAGE_ALIASES = {
     "ssot-fl-model": "ssot-fl-model",
     "fl-model": "ssot-fl-model",
     "fl-model-gen": "ssot-fl-model",
+    "scm": "ssot-cycle-model",
+    "cycle-model": "ssot-cycle-model",
+    "cl-model": "ssot-cycle-model",
+    "ssot-cycle-model": "ssot-cycle-model",
+    "sdf": "ssot-dual-fcov",
+    "dual-fcov": "ssot-dual-fcov",
+    "cl-fcov": "ssot-dual-fcov",
+    "ssot-dual-fcov": "ssot-dual-fcov",
     "seg": "ssot-equiv-goals",
     "equiv-goals": "ssot-equiv-goals",
     "ssot-equiv-goals": "ssot-equiv-goals",
@@ -58,6 +66,8 @@ STAGE_ALIASES = {
 
 STAGE_WORKFLOW = {
     "ssot-fl-model": "fl-model-gen",
+    "ssot-cycle-model": "fl-model-gen",
+    "ssot-dual-fcov": "fl-model-gen",
     "ssot-equiv-goals": "fl-model-gen",
     "ssot-protocol-assertions": "fl-model-gen",
     "ssot-rtl": "rtl-gen",
@@ -824,6 +834,8 @@ class WorkflowStageEngine:
 
         dispatch = {
             "ssot-fl-model": self._run_fl_model,
+            "ssot-cycle-model": self._run_cycle_model,
+            "ssot-dual-fcov": self._run_dual_fcov,
             "ssot-equiv-goals": self._run_equiv_goals,
             "ssot-protocol-assertions": self._run_protocol_assertions,
             "ssot-rtl": self._run_rtl,
@@ -877,6 +889,80 @@ class WorkflowStageEngine:
         ]
         self._append_expected(lines, artifacts)
         return self._result("ssot-fl-model", ip, status, lines[0], lines, runs=[run], artifacts=artifacts)
+
+    def _run_cycle_model(self, ip: str) -> StageEngineResult:
+        fl_script = self.workflow_root / "fl-model-gen" / "scripts" / "emit_fl_model.py"
+        cl_script = self.workflow_root / "fl-model-gen" / "scripts" / "emit_cycle_model.py"
+        runs = [
+            self._run_tool(
+                "emit_fl_model",
+                [sys.executable, str(fl_script), ip, "--root", str(self.project_root)],
+                timeout_s=90,
+            )
+        ]
+        if runs[-1].returncode == 0:
+            runs.append(
+                self._run_tool(
+                    "emit_cycle_model",
+                    [sys.executable, str(cl_script), ip, "--root", str(self.project_root)],
+                    timeout_s=90,
+                )
+            )
+        else:
+            runs.append(
+                ToolRun(
+                    "emit_cycle_model",
+                    [sys.executable, str(cl_script), ip, "--root", str(self.project_root)],
+                    999,
+                    stderr="skipped because emit_fl_model failed",
+                )
+            )
+
+        skipped = "CL not required" in (runs[-1].stdout or "")
+        status = "pass" if runs[-1].returncode == 0 else "fail"
+        headline = "[ssot-cycle-model] PASS"
+        if skipped:
+            headline = "[ssot-cycle-model] PASS - executable CL not required"
+        elif status != "pass":
+            headline = "[ssot-cycle-model] FAIL"
+        lines = [
+            headline,
+            f"script: {cl_script}",
+            f"module: {ip}",
+            f"source: {ip}/yaml/{ip}.ssot.yaml",
+        ]
+        self._append_runs(lines, runs)
+        artifacts = [
+            f"{ip}/model/functional_model.py",
+            f"{ip}/model/cycle_model.py when executable CL is required",
+            f"{ip}/model/cl_model_check.json when executable CL is required",
+        ]
+        self._append_expected(lines, artifacts)
+        return self._result("ssot-cycle-model", ip, status, headline, lines, runs=runs, artifacts=artifacts)
+
+    def _run_dual_fcov(self, ip: str) -> StageEngineResult:
+        script = self.workflow_root / "fl-model-gen" / "scripts" / "emit_dual_fcov.py"
+        run = self._run_tool(
+            "emit_dual_fcov",
+            [sys.executable, str(script), ip, "--root", str(self.project_root)],
+            timeout_s=90,
+        )
+        status = "pass" if run.returncode == 0 else "fail"
+        headline = "[ssot-dual-fcov] PASS" if status == "pass" else "[ssot-dual-fcov] FAIL"
+        lines = [
+            headline,
+            f"script: {script}",
+            f"module: {ip}",
+            f"source: {ip}/yaml/{ip}.ssot.yaml",
+        ]
+        self._append_runs(lines, [run])
+        artifacts = [
+            f"{ip}/cov/fl_fcov_plan.json",
+            f"{ip}/cov/cl_fcov_plan.json when cycle_model requires CL bins",
+            f"{ip}/cov/fcov_plan.json",
+        ]
+        self._append_expected(lines, artifacts)
+        return self._result("ssot-dual-fcov", ip, status, headline, lines, runs=[run], artifacts=artifacts)
 
     def _run_equiv_goals(self, ip: str) -> StageEngineResult:
         fl_script = self.workflow_root / "fl-model-gen" / "scripts" / "emit_fl_model.py"

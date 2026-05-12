@@ -184,6 +184,9 @@ def _write_coverage_ready_fixture(root: Path, ip: str) -> None:
 def test_stage_aliases_canonicalize_ui_and_headless_names():
     assert canonical_stage("sfm") == "ssot-fl-model"
     assert canonical_stage("fl-model-gen") == "ssot-fl-model"
+    assert canonical_stage("cl-model") == "ssot-cycle-model"
+    assert canonical_stage("scm") == "ssot-cycle-model"
+    assert canonical_stage("sdf") == "ssot-dual-fcov"
     assert canonical_stage("spa") == "ssot-protocol-assertions"
     assert canonical_stage("protocol-assertions") == "ssot-protocol-assertions"
     assert canonical_stage("tb") == "ssot-tb-cocotb"
@@ -237,6 +240,20 @@ def test_common_stage_engine_writes_disk_truth_log_for_fl_model(tmp_path: Path):
     assert log["stage"] == "ssot-fl-model"
     assert log["workflow"] == "fl-model-gen"
     assert log["ip"] == ip
+
+
+def test_common_stage_engine_runs_cycle_model_and_dual_fcov_stages(tmp_path: Path):
+    ip = "common_engine_cl_probe"
+    _write_ssot(tmp_path, ip)
+
+    cycle = WorkflowStageEngine(tmp_path).run_stage("ssot-cycle-model", ip)
+    dual = WorkflowStageEngine(tmp_path).run_stage("ssot-dual-fcov", ip)
+
+    assert cycle.status == "pass", cycle.message
+    assert dual.status == "pass", dual.message
+    assert (tmp_path / ip / "model" / "functional_model.py").is_file()
+    assert (tmp_path / ip / "cov" / "fl_fcov_plan.json").is_file()
+    assert (tmp_path / ip / "cov" / "fcov_plan.json").is_file()
 
 
 def test_rtl_manifest_progress_rejects_flattened_top_when_ssot_submodules_missing(tmp_path: Path):

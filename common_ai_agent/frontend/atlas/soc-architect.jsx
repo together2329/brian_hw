@@ -33,14 +33,15 @@
   padding: 10px 16px;
   border-bottom: 1px solid var(--line);
   background: var(--panel);
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: flex-start; gap: 10px;
 }
-.arch-screen .run-bar .grp { display: flex; gap: 1px; }
+.arch-screen .run-bar .grp { display: flex; flex-wrap: wrap; gap: 1px; min-width: 0; }
 .arch-screen .run-bar .rb-btn {
   background: var(--bg-2); border: 1px solid var(--line);
   color: var(--fg-dim); padding: 4px 10px;
   font-family: var(--mono); font-size: 11px;
   cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+  white-space: nowrap;
   transition: border-color .12s, color .12s, background .12s;
 }
 .arch-screen .run-bar .rb-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -813,23 +814,60 @@ const normalizeArchitectSession = (session) => {
 
 // Pipeline strip shared by V6 grid + V7 diagram. Same logic as the
 // upstream zip; lives here because soc-shared.jsx doesn't ship it.
-window.PIPELINE_STAGES = ['ssot', 'equivalence', 'rtl', 'tb', 'sim-debug', 'goal-audit'];
+window.PIPELINE_STAGES = [
+  'ssot', 'fl-model', 'cl-model', 'equivalence', 'rtl', 'lint', 'tb',
+  'sim', 'coverage', 'sim-debug', 'syn', 'sta', 'pnr', 'sta-post', 'goal-audit',
+];
 window.PIPELINE_LABEL = {
-  ssot: 'SSOT', equivalence: 'EQUIV', rtl: 'RTL', tb: 'TB', 'sim-debug': 'SIMDBG', 'goal-audit': 'AUDIT',
+  ssot: 'SSOT',
+  'fl-model': 'FL',
+  'cl-model': 'CL',
+  equivalence: 'EQUIV',
+  rtl: 'RTL',
+  lint: 'LINT',
+  tb: 'TB',
+  sim: 'SIM',
+  coverage: 'COV',
+  'sim-debug': 'DBG',
+  syn: 'SYN',
+  sta: 'STA',
+  pnr: 'PNR',
+  'sta-post': 'PSTA',
+  'goal-audit': 'AUDIT',
 };
 window.fullPipeline = function fullPipeline(status, modId) {
   const s = status || {};
   const full = {
     ssot: s.ssot || 'pending',
+    'fl-model': s.fl_model || s.functional_model || 'pending',
+    'cl-model': s.cl_model || s.cycle_model || 'pending',
     equivalence: s.equivalence_goals || 'pending',
     rtl: s.rtl || 'pending',
+    lint: s.lint || 'pending',
     tb: s.tb || 'pending',
+    sim: s.sim || 'pending',
+    coverage: s.coverage || 'pending',
     'sim-debug': s['sim-debug'] || s.sim_debug || (s.sim === 'ok' ? 'ok' : 'pending'),
+    syn: s.syn || 'pending',
+    sta: s.sta || 'pending',
+    pnr: s.pnr || 'pending',
+    'sta-post': s['sta-post'] || s.sta_post || s.signoff || 'pending',
     'goal-audit': s.goal_audit || 'pending',
   };
   const jobs = Array.isArray(window.ATLAS_JOBS) ? window.ATLAS_JOBS : [];
   const stageForWorkflow = {
-    'ssot-gen': 'ssot', 'fl-model-gen': 'equivalence', 'rtl-gen': 'rtl', 'tb-gen': 'tb', sim_debug: 'sim-debug',
+    'ssot-gen': 'ssot',
+    'fl-model-gen': 'fl-model',
+    'rtl-gen': 'rtl',
+    lint: 'lint',
+    'tb-gen': 'tb',
+    sim: 'sim',
+    coverage: 'coverage',
+    sim_debug: 'sim-debug',
+    syn: 'syn',
+    sta: 'sta',
+    pnr: 'pnr',
+    'sta-post': 'sta-post',
   };
   for (const j of jobs) {
     if (!j || j.ip !== modId) continue;
@@ -1262,9 +1300,10 @@ window.SocArchitect = function SocArchitect() {
   // Per-block dispatch menu state — anchored to the ⚡ button.
   // {ipRef, x, y} or null.
   const [dispatchMenu, setDispatchMenu] = React.useState(null);
-  const dispatchJob = React.useCallback(async (workflow, ip) => {
+  const dispatchJob = React.useCallback(async (workflow, ip, stageId = '') => {
     setDispatchMenu(null);
-    const session = normalizeArchitectSession(ip ? `${ip}/${workflow}` : workflow);
+    const stageName = stageId || workflow;
+    const session = normalizeArchitectSession(ip ? `${ip}/${stageName}` : stageName);
     try {
       const r = await fetch('/api/job/dispatch', {
         method: 'POST',
@@ -1272,6 +1311,7 @@ window.SocArchitect = function SocArchitect() {
         body: JSON.stringify({
           workflow,
           ip,
+          stage_id: stageId,
           session,
         }),
       });
@@ -2578,11 +2618,8 @@ window.SocArchitect = function SocArchitect() {
 
   return (
     <div className="arch-screen">
-      {/* Run bar (scope · stage triggers · totals).
-          Each pipeline button switches the agent into the matching
-          workflow via /workflow <name>. The user can then chat-prompt
-          to actually execute the stage. pnr has no workflow yet, so
-          its button is disabled. */}
+      {/* Run bar (scope · stage triggers · totals). Each stage button
+          dispatches the matching backend workflow immediately. */}
       <div className="run-bar">
         <div className="grp">
           <button className="rb-btn primary"
@@ -2592,15 +2629,30 @@ window.SocArchitect = function SocArchitect() {
             <span className="icn">▶</span> full pipeline
           </button>
           {window.PIPELINE_STAGES.map((s) => {
-            const wfMap = { architect: 'architect', ssot: 'ssot-gen', rtl: 'rtl-gen',
-                            lint: 'lint', tb: 'tb-gen', sim: 'sim', syn: 'syn',
-                            dft: 'dft', sta: 'sta', pnr: 'pnr', 'post-sta': 'sta-post' };
-            const wf = wfMap[s] || '';
+            const wfMap = {
+              ssot: { wf: 'ssot-gen' },
+              'fl-model': { wf: 'fl-model-gen', stage: 'fl-model' },
+              'cl-model': { wf: 'fl-model-gen', stage: 'cl-model' },
+              equivalence: { wf: 'fl-model-gen', stage: 'equivalence' },
+              rtl: { wf: 'rtl-gen' },
+              lint: { wf: 'lint' },
+              tb: { wf: 'tb-gen' },
+              sim: { wf: 'sim' },
+              coverage: { wf: 'coverage' },
+              'sim-debug': { wf: 'sim_debug' },
+              syn: { wf: 'syn' },
+              sta: { wf: 'sta' },
+              pnr: { wf: 'pnr' },
+              'sta-post': { wf: 'sta-post' },
+              'goal-audit': { wf: 'sim_debug', stage: 'goal-audit' },
+            };
+            const cfg = wfMap[s] || {};
+            const wf = cfg.wf || '';
             const onPipeClick = () => {
               if (!wf || !selModule) return;
               setRunning(s);
               setTimeout(() => setRunning(null), 1100);
-              dispatchJob(wf, selModule.id);
+              dispatchJob(wf, selModule.id, cfg.stage || s);
             };
             return (
               <button key={s}
@@ -3325,19 +3377,25 @@ memoryMap:
             {[
               { wf: 'architect', icon: '◇', label: 'architect — SoC contract' },
               { wf: 'ssot-gen', icon: '◐', label: 'ssot-gen — refresh SSOT' },
-              { wf: 'rtl-gen',  icon: '⚙', label: 'rtl-gen — generate RTL' },
-              { wf: 'lint',     icon: '✓', label: 'lint' },
-              { wf: 'tb-gen',   icon: '⌬', label: 'tb-gen — testbench' },
-              { wf: 'sim',      icon: '▶', label: 'sim' },
-              { wf: 'syn',      icon: '⊕', label: 'syn' },
-              { wf: 'dft',      icon: '⊗', label: 'dft' },
-              { wf: 'sta',      icon: '⊞', label: 'sta' },
-              { wf: 'pnr',      icon: '▣', label: 'pnr' },
-              { wf: 'sta-post', icon: '◆', label: 'post-sta' },
+              { wf: 'fl-model-gen', stage: 'fl-model', icon: 'ƒ', label: 'fl-model — functional model' },
+              { wf: 'fl-model-gen', stage: 'cl-model', icon: 'λ', label: 'cl-model — cycle model' },
+              { wf: 'fl-model-gen', stage: 'equivalence', icon: '≡', label: 'equivalence — FL vs RTL goals' },
+              { wf: 'rtl-gen',  stage: 'rtl', icon: '⚙', label: 'rtl-gen — generate RTL' },
+              { wf: 'lint',     stage: 'lint', icon: '✓', label: 'lint' },
+              { wf: 'tb-gen',   stage: 'tb', icon: '⌬', label: 'tb-gen — testbench' },
+              { wf: 'sim',      stage: 'sim', icon: '▶', label: 'sim' },
+              { wf: 'coverage', stage: 'coverage', icon: '▤', label: 'coverage — function/cycle' },
+              { wf: 'sim_debug', stage: 'sim-debug', icon: '◎', label: 'sim-debug' },
+              { wf: 'syn',      stage: 'syn', icon: '⊕', label: 'syn' },
+              { wf: 'dft',      stage: 'dft', icon: '⊗', label: 'dft' },
+              { wf: 'sta',      stage: 'sta', icon: '⊞', label: 'sta' },
+              { wf: 'pnr',      stage: 'pnr', icon: '▣', label: 'pnr' },
+              { wf: 'sta-post', stage: 'sta-post', icon: '◆', label: 'post-sta' },
+              { wf: 'sim_debug', stage: 'goal-audit', icon: '□', label: 'goal-audit' },
             ].map(o => (
-              <div key={o.wf}
+              <div key={`${o.wf}:${o.stage || ''}`}
                    className="bd-dispatch-item"
-                   onClick={() => dispatchJob(o.wf, dispatchMenu.ip)}>
+                   onClick={() => dispatchJob(o.wf, dispatchMenu.ip, o.stage || '')}>
                 <span style={{ width: 14, textAlign: 'center', color: 'var(--fg-mute)' }}>{o.icon}</span>
                 <span style={{ flex: 1 }}>{o.label}</span>
               </div>

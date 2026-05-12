@@ -33,17 +33,26 @@ _jobs_lock = threading.Lock()
 _jobs: dict[str, dict[str, Any]] = {}   # job_id (uuid hex) → job metadata
 
 _PIPELINE_STAGES = [
-    {"id": "ssot",        "workflow": "ssot-gen",    "label": "SSOT gen"},
+    {"id": "ssot",        "workflow": "ssot-gen",     "label": "SSOT gen"},
+    {"id": "fl-model",    "workflow": "fl-model-gen", "label": "FL model"},
+    {"id": "cl-model",    "workflow": "fl-model-gen", "label": "CL model"},
     {"id": "equivalence", "workflow": "fl-model-gen", "label": "Equiv goals"},
     {"id": "rtl",         "workflow": "rtl-gen",      "label": "RTL gen"},
-    {"id": "tb",          "workflow": "tb-gen",        "label": "TB gen"},
-    {"id": "sim",         "workflow": "sim",           "label": "Simulation"},
-    {"id": "sim-debug",   "workflow": "sim_debug",     "label": "Sim debug"},
-    {"id": "coverage",    "workflow": "coverage",      "label": "Coverage"},
-    {"id": "goal-audit",  "workflow": "sim_debug",     "label": "Goal audit"},
+    {"id": "lint",        "workflow": "lint",         "label": "Lint"},
+    {"id": "tb",          "workflow": "tb-gen",       "label": "TB gen"},
+    {"id": "sim",         "workflow": "sim",          "label": "Simulation"},
+    {"id": "coverage",    "workflow": "coverage",     "label": "Coverage"},
+    {"id": "sim-debug",   "workflow": "sim_debug",    "label": "Sim debug"},
+    {"id": "syn",         "workflow": "syn",          "label": "Synthesis"},
+    {"id": "sta",         "workflow": "sta",          "label": "Pre-route STA"},
+    {"id": "pnr",         "workflow": "pnr",          "label": "PnR"},
+    {"id": "sta-post",    "workflow": "sta-post",     "label": "Post-route STA"},
+    {"id": "goal-audit",  "workflow": "sim_debug",    "label": "Goal audit"},
 ]
 _PIPELINE_BY_ID       = {s["id"]: s       for s in _PIPELINE_STAGES}
-_PIPELINE_BY_WORKFLOW = {s["workflow"]: s for s in _PIPELINE_STAGES}
+_PIPELINE_BY_WORKFLOW: dict[str, dict[str, str]] = {}
+for _stage in _PIPELINE_STAGES:
+    _PIPELINE_BY_WORKFLOW.setdefault(_stage["workflow"], _stage)
 
 
 def get_jobs_state() -> tuple[dict[str, dict[str, Any]], threading.Lock]:
@@ -64,7 +73,43 @@ def _resolve_worker_url(workflow: str) -> str:
     return os.environ.get("WORKER_URL_DEFAULT", "http://localhost:8001")
 
 
-def _default_workflow_prompt(workflow: str, ip: str) -> str:
+def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
+    stage_prompt_for = {
+        "fl-model": (
+            f"run /ssot-fl-model {ip}; generate the SSOT-derived FunctionalModel, "
+            "decomposition manifest, FL self-check, and function coverage plan"
+        ),
+        "cl-model": (
+            f"run /ssot-cycle-model {ip} and /ssot-dual-fcov {ip}; generate the SSOT-derived "
+            "cycle model when cycle_model requires executable CL, and split FL/CL coverage bins"
+        ),
+        "equivalence": (
+            f"run /ssot-equiv-goals {ip}; derive SSOT-traced FL-vs-RTL goals for "
+            "scoreboards, sim_debug, and coverage closure"
+        ),
+        "rtl": (
+            f"run /ssot-rtl {ip}; regenerate RTL from {ip}/yaml/{ip}.ssot.yaml and close "
+            "dynamic RTL TODOs, compile, and lint gates"
+        ),
+        "lint": f"run /lint-ip {ip}; report and fix root-cause RTL lint errors and warnings",
+        "tb": (
+            f"run /ssot-tb-cocotb {ip}; generate or repair the goal-driven cocotb/pyuvm "
+            "testbench and scoreboard from SSOT, FL/CL model artifacts, and equivalence goals"
+        ),
+        "sim": f"run /ssot-sim {ip}; execute the generated TB and emit pass/fail plus scoreboard evidence",
+        "coverage": (
+            f"run /ssot-coverage {ip}; report function_model and cycle_model coverage separately "
+            "using SSOT coverage goals and fresh simulation evidence"
+        ),
+        "sim-debug": f"run /sim-debug {ip}; compare FL/CL expectations against RTL waveform/scoreboard evidence",
+        "syn": f"run /syn-auto {ip}; synthesize the RTL using SSOT timing/synthesis policy and the configured PDK",
+        "sta": f"run /sta-auto {ip}; generate SDC and run pre-route STA on the synthesized netlist",
+        "pnr": f"run /pnr-auto {ip}; run floorplan, place, CTS, route, and SPEF handoff generation",
+        "sta-post": f"run /sta-post-auto {ip}; run post-route STA using routed netlist plus SPEF",
+        "goal-audit": f"run /goal-audit {ip}; audit SSOT, model, RTL, TB, sim, coverage, and EDA handoff evidence",
+    }
+    if stage_id in stage_prompt_for:
+        return stage_prompt_for[stage_id]
     prompt_for = {
         "architect":  f"review and update the SoC architecture contract for {ip or 'the whole SoC'}; emit handoff notes for ssot-gen",
         "ssot-gen":   f"refresh SSOT for {ip} from the architect handoff and current SoC context",
@@ -82,8 +127,28 @@ def _default_workflow_prompt(workflow: str, ip: str) -> str:
 
 
 def _default_todo_template_for_job(workflow: str, stage_id: str, ip: str) -> str:
-    if ip and (workflow == "rtl-gen" or stage_id == "rtl"):
+    if not ip:
+        return ""
+    if stage_id in {"fl-model", "cl-model"}:
+        return "ssot-fl-model"
+    if stage_id == "equivalence":
+        return "ssot-equiv-goals"
+    if workflow == "rtl-gen" or stage_id == "rtl":
         return "ssot-rtl"
+    if stage_id == "lint":
+        return "lint-fix"
+    if workflow == "tb-gen" or stage_id == "tb":
+        return "ssot-tb-cocotb"
+    if stage_id == "coverage":
+        return "coverage_iter"
+    if stage_id == "syn":
+        return "syn-default"
+    if stage_id == "sta":
+        return "sta-default"
+    if stage_id == "pnr":
+        return "pnr-default"
+    if stage_id == "sta-post":
+        return "sta-post-default"
     return ""
 
 
@@ -177,14 +242,37 @@ def _job_artifact_recovery(
         return False, ""
     stage    = str(job.get("stage_id") or job.get("workflow") or "").strip()
     workflow = str(job.get("workflow") or "").strip()
+    def _any_file(*rel_paths: str) -> tuple[bool, str]:
+        for rel in rel_paths:
+            if (ip_dir / rel).is_file():
+                return True, f"recovered from artifact: {ip}/{rel}"
+        return False, ""
     if stage == "ssot" or workflow == "ssot-gen":
         ok = (ip_dir / "yaml" / f"{ip}.ssot.yaml").is_file()
         return ok, f"recovered from artifact: {ip}/yaml/{ip}.ssot.yaml"
+    if stage == "fl-model":
+        return _any_file(
+            "model/functional_model.py",
+            "model/fl_model_check.json",
+            "cov/fcov_plan.json",
+        )
+    if stage == "cl-model":
+        return _any_file(
+            "model/cycle_model.py",
+            "model/cl_model_check.json",
+            "cov/cl_fcov_plan.json",
+            "cov/fl_fcov_plan.json",
+            "cov/fcov_plan.json",
+        )
+    if stage == "equivalence":
+        return _any_file("verify/equivalence_goals.json")
     if stage == "rtl" or workflow == "rtl-gen":
         filelist  = ip_dir / "list" / f"{ip}.f"
         rtl_dir   = ip_dir / "rtl"
         rtl_files = list(rtl_dir.glob("*.sv")) + list(rtl_dir.glob("*.v")) if rtl_dir.is_dir() else []
         return bool(filelist.is_file() and rtl_files), f"recovered from artifact: {ip}/list/{ip}.f"
+    if stage == "lint" or workflow == "lint":
+        return _any_file("lint/dut_lint.json", "lint/lint_report.json")
     if stage == "tb" or workflow == "tb-gen":
         tb_dir = ip_dir / "tb"
         if not tb_dir.is_dir():
@@ -195,7 +283,23 @@ def _job_artifact_recovery(
             + list(tb_dir.rglob("*.v"))
         )
         return bool(artifacts), f"recovered from artifact: {ip}/tb"
-    if stage == "sim-debug" or workflow == "sim_debug":
+    if stage == "sim" or workflow == "sim":
+        return _any_file(
+            "sim/results.xml",
+            "tb/cocotb/results.xml",
+            "sim/scoreboard_events.jsonl",
+            "sim/sim_report.txt",
+        )
+    if stage == "coverage" or workflow == "coverage":
+        return _any_file(
+            "cov/coverage.json",
+            "cov/coverage_ssot.json",
+            "cov/coverage_functional.json",
+            "sim/coverage_report.md",
+        )
+    if stage == "goal-audit":
+        return _any_file("sim/fl_rtl_goal_audit.json")
+    if stage == "sim-debug" or (workflow == "sim_debug" and stage != "goal-audit"):
         sim_dir   = ip_dir / "sim"
         cov_dir   = ip_dir / "cov"
         artifacts: list = []
@@ -206,6 +310,14 @@ def _job_artifact_recovery(
             artifacts.extend(list(cov_dir.rglob("coverage.json")))
             artifacts.extend(list(cov_dir.rglob("toggle.json")))
         return bool(artifacts), f"recovered from artifact: {ip}/sim + {ip}/cov"
+    if stage == "syn" or workflow == "syn":
+        return _any_file("syn/out/synth.v", "syn/out/syn.report.md", "syn/out/area.json")
+    if stage == "sta" or workflow == "sta":
+        return _any_file("sta/out/wns.json", "sta/out/sta.report.md", f"sta/out/{ip}.sdc")
+    if stage == "pnr" or workflow == "pnr":
+        return _any_file("pnr/out/routed.spef", "pnr/out/routed.v", "pnr/out/pnr.report.md")
+    if stage == "sta-post" or workflow == "sta-post":
+        return _any_file("sta-post/out/wns.json", "sta-post/out/sta.report.md")
     return False, ""
 
 
@@ -276,7 +388,7 @@ def register_jobs_routes(
                 f"python src/main.py --serve --port {worker_url.rsplit(':', 1)[-1]}"
                 f" --worker-name {workflow} --session {session_name}"
             ),
-            "prompt":         boundary + (prompt or _default_workflow_prompt(workflow, ip)),
+            "prompt":         boundary + (prompt or _default_workflow_prompt(workflow, ip, stage_id)),
             "started_at":     time.time() if auto_start else 0.0,
             "status":         "pending" if auto_start else "queued",
             "iterations":     0,
@@ -320,6 +432,7 @@ def register_jobs_routes(
         prompt          = (body.get("prompt")   or "").strip()
         model           = (body.get("model")    or "").strip()
         template        = (body.get("template") or "").strip()
+        stage_raw       = (body.get("stage_id") or body.get("stage") or "").strip()
         session_raw     = (body.get("session")  or "").strip()
         session_name    = normalize_session_name(session_raw)
         worker_override = (body.get("worker")   or "").strip()
@@ -329,6 +442,8 @@ def register_jobs_routes(
             return JSONResponse({"error": f"invalid workflow {workflow!r}"}, status_code=400)
         if template and not re.match(r"^[A-Za-z][A-Za-z0-9_\-]*$", template):
             return JSONResponse({"error": f"invalid template {template!r}"}, status_code=400)
+        if stage_raw and not re.match(r"^[A-Za-z][A-Za-z0-9_\-]*$", stage_raw):
+            return JSONResponse({"error": f"invalid stage_id {stage_raw!r}"}, status_code=400)
         if ip and not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
             return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
         if model and not re.match(r"^[A-Za-z0-9_.:/@+\-]+$", model):
@@ -338,7 +453,7 @@ def register_jobs_routes(
         if worker_override and not re.match(r"^https?://[A-Za-z0-9_.:\-/]+$", worker_override):
             return JSONResponse({"error": f"invalid worker {worker_override!r}"}, status_code=400)
 
-        stage_id = (_PIPELINE_BY_WORKFLOW.get(workflow) or {}).get("id", workflow)
+        stage_id = stage_raw or (_PIPELINE_BY_WORKFLOW.get(workflow) or {}).get("id", workflow)
         job = _make_job_record(
             workflow=workflow, ip=ip, prompt=prompt, model=model,
             session_name=session_name, stage_id=stage_id,
@@ -354,6 +469,7 @@ def register_jobs_routes(
             "session":        job["session"],
             "session_dir":    job["session_dir"],
             "scope_path":     job["scope_path"],
+            "stage_id":       job["stage_id"],
             "model":          model,
             "worker_command": job["worker_command"],
             "status":         job["status"],
@@ -394,6 +510,7 @@ def register_jobs_routes(
             prompt          = (item.get("prompt")   or "").strip()
             model           = (item.get("model")    or "").strip()
             template        = (item.get("template") or "").strip()
+            stage_raw       = (item.get("stage_id") or item.get("stage") or "").strip()
             session_raw     = (item.get("session")  or "").strip()
             session_name    = normalize_session_name(session_raw)
             worker_override = (item.get("worker")   or "").strip()
@@ -403,6 +520,9 @@ def register_jobs_routes(
                 continue
             if template and not re.match(r"^[A-Za-z][A-Za-z0-9_\-]*$", template):
                 errors.append({"index": idx, "error": f"invalid template {template!r}"})
+                continue
+            if stage_raw and not re.match(r"^[A-Za-z][A-Za-z0-9_\-]*$", stage_raw):
+                errors.append({"index": idx, "error": f"invalid stage_id {stage_raw!r}"})
                 continue
             if ip and not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
                 errors.append({"index": idx, "error": f"invalid ip {ip!r}"})
@@ -417,7 +537,7 @@ def register_jobs_routes(
                 errors.append({"index": idx, "error": f"invalid worker {worker_override!r}"})
                 continue
 
-            stage_id = (_PIPELINE_BY_WORKFLOW.get(workflow) or {}).get("id", workflow)
+            stage_id = stage_raw or (_PIPELINE_BY_WORKFLOW.get(workflow) or {}).get("id", workflow)
             job = _make_job_record(
                 workflow=workflow, ip=ip, prompt=prompt, model=model,
                 session_name=session_name, stage_id=stage_id,
@@ -468,7 +588,7 @@ def register_jobs_routes(
         previous_job_id  = ""
         for idx, stage in enumerate(resolved):
             workflow     = stage["workflow"]
-            stage_prompt = _default_workflow_prompt(workflow, ip)
+            stage_prompt = _default_workflow_prompt(workflow, ip, stage["id"])
             if user_prompt:
                 stage_prompt += f"\n\n[User pipeline goal]\n{user_prompt}"
             session = f"{ip or 'soc'}/pipeline/{pipeline_id}/{idx + 1:02d}-{workflow}"

@@ -120,7 +120,7 @@ const App = () => {
   const TOP_WORKFLOWS = React.useMemo(() => new Set([
     'architect', 'coverage', 'fl-model-gen', 'goal-audit', 'lint',
     'mas-gen', 'pnr', 'rtl-gen', 'signoff', 'sim', 'sim_debug',
-    'ssot-gen', 'sta', 'syn', 'tb-gen',
+    'ssot-gen', 'sta', 'sta-post', 'syn', 'tb-gen',
   ]), []);
   const WORKFLOW_DEFAULT = 'default';
   const WORKFLOW_OPTIONS = React.useMemo(

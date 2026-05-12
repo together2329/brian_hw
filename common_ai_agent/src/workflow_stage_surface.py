@@ -21,6 +21,8 @@ except ModuleNotFoundError:  # pragma: no cover - direct script execution fallba
 
 COMMON_ENGINE_STAGES = {
     "ssot-fl-model",
+    "ssot-cycle-model",
+    "ssot-dual-fcov",
     "ssot-equiv-goals",
     "ssot-rtl",
     "lint",

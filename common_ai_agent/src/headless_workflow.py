@@ -86,6 +86,11 @@ HEADLESS_STAGE_ALIASES = {
     "fl-model": "fl-model-gen",
     "fl-model-gen": "fl-model-gen",
     "ssot-fl-model": "fl-model-gen",
+    "cl-model": "cl-model-gen",
+    "cycle-model": "cl-model-gen",
+    "ssot-cycle-model": "cl-model-gen",
+    "dual-fcov": "dual-fcov",
+    "ssot-dual-fcov": "dual-fcov",
     "equiv-goals": "equiv-goals",
     "ssot-equiv-goals": "equiv-goals",
     "rtl": "rtl-gen",
@@ -1589,6 +1594,15 @@ class HeadlessWorkflowRunner:
     def _stage_fl_model(self, ip: str) -> StageResult:
         return self._append_engine_result(self.stage_engine.run_stage("ssot-fl-model", ip), "fl-model-gen")
 
+    def _stage_cl_model(self, ip: str) -> StageResult:
+        cycle = self._append_engine_result(self.stage_engine.run_stage("ssot-cycle-model", ip), "cl-model-gen")
+        if cycle.status == "pass":
+            self._append_engine_result(self.stage_engine.run_stage("ssot-dual-fcov", ip), "dual-fcov")
+        return cycle
+
+    def _stage_dual_fcov(self, ip: str) -> StageResult:
+        return self._append_engine_result(self.stage_engine.run_stage("ssot-dual-fcov", ip), "dual-fcov")
+
     def _stage_equiv_goals(self, ip: str) -> StageResult:
         return self._append_engine_result(self.stage_engine.run_stage("ssot-equiv-goals", ip), "equiv-goals")
 
@@ -2139,6 +2153,10 @@ class HeadlessWorkflowRunner:
                 self._run_ssot_generation(ip, context)
             elif canonical == "fl-model-gen":
                 self._stage_fl_model(ip)
+            elif canonical == "cl-model-gen":
+                self._stage_cl_model(ip)
+            elif canonical == "dual-fcov":
+                self._stage_dual_fcov(ip)
             elif canonical == "equiv-goals":
                 self._stage_equiv_goals(ip)
             elif canonical == "rtl-gen":

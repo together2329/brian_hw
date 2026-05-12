@@ -1,0 +1,7 @@
+{
+  "name": "ssot-coverage",
+  "description": "Run the SSOT function/cycle coverage summary from fresh simulation evidence",
+  "aliases": ["scov"],
+  "handler": "stage:coverage",
+  "usage": "/ssot-coverage <ip_name>"
+}

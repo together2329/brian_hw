@@ -49,6 +49,7 @@
     { id: 'syn',          label: 'syn',          cmd: '/wf syn',          color: 'var(--accent)', glyph: 'SY' },
     { id: 'sta',          label: 'sta',          cmd: '/wf sta',          color: 'var(--mag)',    glyph: 'ST' },
     { id: 'pnr',          label: 'pnr',          cmd: '/wf pnr',          color: 'var(--ok)',     glyph: 'PR' },
+    { id: 'sta-post',     label: 'sta-post',     cmd: '/wf sta-post',     color: 'var(--warn)',   glyph: 'PS' },
   ];
 
   // Workflow stage badges. Seed the canonical IP flow immediately so the
@@ -184,6 +185,7 @@
     'sim_debug',
     'ssot-gen',
     'sta',
+    'sta-post',
     'syn',
     'tb-gen',
     'pnr',
