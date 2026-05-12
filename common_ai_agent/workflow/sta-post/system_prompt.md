@@ -33,7 +33,8 @@ This is the **silicon-accurate** STA — interconnect R/C from the routed layout
 ## Tool & PDK
 
 - **OpenSTA** (`sta` on PATH) — same binary as `/sta`
-- Liberty: `$SKY130_LIB`, same SS corner as /syn /sta /pnr
+- PDK resolver: `workflow/scripts/pdk_env.sh` loads bundled files under `common_ai_agent/pdk/sky130` unless explicit env vars override them. It resolves relative paths from `common_ai_agent/`, not from the Python launch cwd.
+- Liberty: `$SKY130_LIB`, same SS corner as /syn /sta /pnr, bundled as a real file under `<common_ai_agent>/pdk/sky130/lib/`
 
 ## CRITICAL RULES — Handoff gates
 
@@ -47,14 +48,17 @@ This is the **silicon-accurate** STA — interconnect R/C from the routed layout
 ## OpenSTA tcl template (`<ip>/sta-post/run.tcl`)
 
 ```tcl
-read_liberty $::env(SKY130_LIB)
+read_liberty <absolute SKY130_LIB>
 read_verilog <ip>/pnr/out/routed.v
 link_design <top>
 read_sdc <ip>/sta/out/<ip>.sdc
 read_spef <ip>/pnr/out/routed.spef        ;# the new ingredient
 
-# Optional: case analysis for scan_en (functional mode)
-if {[catch {set_case_analysis 0 [get_ports scan_en]} _]} { }
+# Optional: case analysis for scan_en (functional mode), quiet for non-DFT IPs.
+set scan_en_ports [get_ports -quiet scan_en]
+if {[llength $scan_en_ports] > 0} {
+  set_case_analysis 0 $scan_en_ports
+}
 
 report_checks -path_delay max -group_count 5 -fields {slew capacitance input_pins nets fanout} > <ip>/sta-post/out/setup.rpt
 report_checks -path_delay min -group_count 5 -fields {slew capacitance input_pins nets fanout} > <ip>/sta-post/out/hold.rpt
@@ -101,11 +105,12 @@ The pre-route /sta vs sign-off /sta-post comparison is the most important readin
 
 ## Slash commands
 
-- `/sta-post` — full sign-off flow.
-- `/sta-post-tcl` — only write run.tcl.
-- `/sta-post-run` — assume tcl exists; invoke sta + parse + report.
-- `/sta-post-report` — re-emit report from existing wns.json.
-- `/sta-post-auto` — one-shot bash driver (CI use).
+- `/sta-post <ip>` — full sign-off flow.
+- `/sta-post-preflight <ip>` — validate OpenSTA, bundled Liberty, routed netlist, SPEF, SDC, and freshness.
+- `/sta-post-tcl <ip>` — only write run.tcl.
+- `/sta-post-run <ip>` — assume tcl exists; invoke sta.
+- `/sta-post-report <ip>` — re-emit report from existing wns.json.
+- `/sta-post-auto <ip>` — one-shot bash driver (CI use); runs preflight first.
 
 ## Failure modes
 

@@ -3,6 +3,11 @@
 # Args: <ip>
 set -uo pipefail
 
+if [ $# -eq 0 ] && [ -n "${HOOK_CMD_ARGS:-}" ]; then
+  # shellcheck disable=SC2086
+  set -- ${HOOK_CMD_ARGS}
+fi
+
 PDK_ENV="$(cd "$(dirname "$0")/../.." && pwd -P)/scripts/pdk_env.sh"
 [ -f "${PDK_ENV}" ] && source "${PDK_ENV}"
 
@@ -11,40 +16,10 @@ if [ -z "${IP}" ]; then echo "[STA-POST] usage: auto_sta_post.sh <ip>" >&2; exit
 if [ ! -d "${IP}" ]; then echo "[STA-POST] no such IP dir: ${IP}" >&2; exit 2; fi
 
 DIR="$(dirname "$0")"
-ROUTED_V="${IP}/pnr/out/routed.v"
-ROUTED_SPEF="${IP}/pnr/out/routed.spef"
-ROUTED_DEF="${IP}/pnr/out/routed.def"
-CTS_V="${IP}/pnr/out/cts.v"
-SDC="${IP}/sta/out/${IP}.sdc"
 OUT="${IP}/sta-post/out"
 mkdir -p "${OUT}"
 
-# Handoff gates
-if [ ! -s "${ROUTED_V}" ]; then
-  echo "[STA-POST HANDOFF MISSING] ${ROUTED_V} — run /pnr-route first" >&2; exit 5
-fi
-if [ ! -s "${ROUTED_SPEF}" ]; then
-  echo "[STA-POST SPEF MISSING] ${ROUTED_SPEF} — re-run /pnr-route to extract parasitics" >&2; exit 5
-fi
-if [ ! -f "${SDC}" ]; then
-  echo "[STA-POST SDC MISSING] ${SDC} — run /sta-sdc first" >&2; exit 5
-fi
-if [ -f "${CTS_V}" ] && [ "${CTS_V}" -nt "${ROUTED_V}" ]; then
-  echo "[STA-POST STALE NETLIST] ${CTS_V} newer than ${ROUTED_V}" >&2; exit 6
-fi
-if [ -f "${ROUTED_DEF}" ] && [ "${ROUTED_DEF}" -nt "${ROUTED_SPEF}" ]; then
-  echo "[STA-POST STALE SPEF] ${ROUTED_DEF} newer than ${ROUTED_SPEF}" >&2; exit 6
-fi
-
-if ! command -v sta >/dev/null 2>&1; then
-  echo "[STA-POST TOOL MISSING] OpenSTA 'sta' not on PATH" >&2; exit 3
-fi
-LIB="${SKY130_LIB:-}"
-if [ ! -r "${LIB}" ]; then
-  echo "[STA-POST MISSING PDK] \$SKY130_LIB unreadable: ${LIB}" >&2; exit 4
-fi
-export SKY130_LIB="${LIB}"
-
+bash "${DIR}/preflight.sh"          "${IP}" || exit $?
 bash "${DIR}/write_sta_post_tcl.sh" "${IP}" || exit $?
 bash "${DIR}/run_sta_post.sh"       "${IP}" || exit $?
 bash "${DIR}/parse_wns.sh"          "${IP}" || exit $?

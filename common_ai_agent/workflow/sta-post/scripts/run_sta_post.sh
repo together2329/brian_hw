@@ -3,6 +3,11 @@
 # Args: <ip>
 set -uo pipefail
 
+if [ $# -eq 0 ] && [ -n "${HOOK_CMD_ARGS:-}" ]; then
+  # shellcheck disable=SC2086
+  set -- ${HOOK_CMD_ARGS}
+fi
+
 PDK_ENV="$(cd "$(dirname "$0")/../.." && pwd -P)/scripts/pdk_env.sh"
 [ -f "${PDK_ENV}" ] && source "${PDK_ENV}"
 

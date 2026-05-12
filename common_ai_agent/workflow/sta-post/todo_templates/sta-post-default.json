@@ -4,17 +4,17 @@
   "tasks": [
     {
       "content": "[STA-POST HANDOFF] Verify routed.v + routed.spef + SDC fresh",
-      "detail": "Refuse stale or missing inputs:\n- [ ] <ip>/pnr/out/routed.v exists, non-empty\n- [ ] <ip>/pnr/out/routed.spef exists, non-empty (0 bytes = silent extraction failure)\n- [ ] <ip>/sta/out/<ip>.sdc exists\n- [ ] mtime(routed.v) >= mtime(<ip>/pnr/out/cts.v)\n- [ ] mtime(routed.spef) >= mtime(<ip>/pnr/out/routed.def)\nFailure modes: `[STA-POST HANDOFF MISSING]` (rc=5), `[STA-POST SPEF MISSING]` (rc=5), `[STA-POST STALE NETLIST]` / `[STA-POST STALE SPEF]` (rc=6).\nGate: all four green.",
+      "detail": "Run scripts/preflight.sh <ip> first.\nRefuse stale or missing inputs:\n- [ ] <ip>/pnr/out/routed.v exists, non-empty\n- [ ] <ip>/pnr/out/routed.spef exists, non-empty (0 bytes = silent extraction failure)\n- [ ] <ip>/sta/out/<ip>.sdc exists\n- [ ] mtime(routed.v) >= mtime(<ip>/pnr/out/cts.v)\n- [ ] mtime(routed.spef) >= mtime(<ip>/pnr/out/routed.def)\nFailure modes: `[STA-POST HANDOFF MISSING]` (rc=5), `[STA-POST SPEF MISSING]` (rc=5), `[STA-POST STALE NETLIST]` / `[STA-POST STALE SPEF]` (rc=6).\nGate: all four green.",
       "priority": "high"
     },
     {
       "content": "[STA-POST] Verify $SKY130_LIB and OpenSTA `sta` binary",
-      "detail": "Same Liberty corner as /syn /sta /pnr — mismatch silently produces wrong WNS.\n- [ ] command -v sta\n- [ ] [ -r $SKY130_LIB ]\nGate: tool + PDK both green.",
+      "detail": "Same Liberty corner as /syn /sta /pnr — mismatch silently produces wrong WNS. Use workflow/scripts/pdk_env.sh so bundled common_ai_agent/pdk paths work from any launch cwd.\n- [ ] command -v sta\n- [ ] [ -r $SKY130_LIB ]\nGate: tool + PDK both green.",
       "priority": "high"
     },
     {
       "content": "[STA-POST] Write <ip>/sta-post/run.tcl with read_spef",
-      "detail": "Run scripts/write_sta_post_tcl.sh <ip>. tcl must contain:\n- [ ] read_liberty $SKY130_LIB\n- [ ] read_verilog routed.v\n- [ ] link_design <top>\n- [ ] read_sdc <ip>.sdc\n- [ ] **read_spef routed.spef** (the new ingredient vs /sta)\n- [ ] report_checks for setup/hold/min_max\n- [ ] report_clock_skew (post-CTS skew)\n- [ ] report_wns / report_tns\nGate: run.tcl exists and references all three input files correctly.",
+      "detail": "Run scripts/write_sta_post_tcl.sh <ip>. tcl must contain:\n- [ ] read_liberty <absolute SKY130_LIB>\n- [ ] read_verilog routed.v\n- [ ] link_design <top>\n- [ ] read_sdc <ip>.sdc\n- [ ] **read_spef routed.spef** (the new ingredient vs /sta)\n- [ ] quiet scan_en case analysis, only when the port exists\n- [ ] report_checks for setup/hold/min_max\n- [ ] report_clock_skew (post-CTS skew)\n- [ ] report_wns / report_tns\nGate: run.tcl exists and references all three input files correctly.",
       "priority": "high"
     },
     {

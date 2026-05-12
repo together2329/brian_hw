@@ -3,5 +3,5 @@
   "description": "Re-emit sta.report.md from existing wns.json (no re-analysis)",
   "aliases": ["sta-post-r"],
   "handler": "bash:write_report.sh",
-  "usage": "/sta-post-report"
+  "usage": "/sta-post-report <ip>"
 }
