@@ -151,7 +151,15 @@ io_list:
     - name: "apb_slave"
       type: "APB4"
       role: "slave"
+      clock_domain: "dmaclk"
+      reset_domain: "dmacresetn"
       description: "Register access interface"
+      protocol:
+        setup_phase: "psel=1, penable=0 captures address/control."
+        access_phase: "psel=1, penable=1 completes when pready=1."
+        read_rule: "prdata is valid in the completing access phase for reads."
+        write_rule: "pwdata/pstrb are sampled in the completing access phase for writes."
+        error_rule: "pslverr is asserted only with pready=1 for illegal or unsupported access."
       ports:
         - { name: "paddr",   width: 12, direction: "input",  description: "APB address" }
         - { name: "psel",    width: 1,  direction: "input",  description: "APB select" }
@@ -166,7 +174,14 @@ io_list:
     - name: "axi_rd_master"
       type: "AXI4"
       role: "master"
+      clock_domain: "dmaclk"
+      reset_domain: "dmacresetn"
       description: "Read data from memory"
+      protocol:
+        ar_rule: "Hold arvalid and AR payload stable until arvalid && arready."
+        r_rule: "Accept rdata only on rvalid && rready; rlast marks the final beat."
+        response_rule: "Any rresp other than OKAY maps to error_handling.ERR_AXI_RD."
+        outstanding_rule: "Outstanding read transactions must not exceed cycle_model.performance.outstanding.read_max."
       ports:
         - { name: "arid",    width: 6,  direction: "output", description: "Read ID" }
         - { name: "araddr",  width: 32, direction: "output", description: "Read address" }
@@ -187,7 +202,15 @@ io_list:
     - name: "axi_wr_master"
       type: "AXI4"
       role: "master"
+      clock_domain: "dmaclk"
+      reset_domain: "dmacresetn"
       description: "Write data to memory"
+      protocol:
+        aw_rule: "Hold awvalid and AW payload stable until awvalid && awready."
+        w_rule: "Hold wvalid and W payload stable until wvalid && wready; assert wlast on the final beat."
+        b_rule: "Assert bready while waiting for a write response."
+        response_rule: "Any bresp other than OKAY maps to error_handling.ERR_AXI_WR."
+        outstanding_rule: "Outstanding write transactions must not exceed cycle_model.performance.outstanding.write_max."
       ports:
         - { name: "awid",    width: 6,  direction: "output", description: "Write ID" }
         - { name: "awaddr",  width: 32, direction: "output", description: "Write address" }
@@ -210,13 +233,25 @@ io_list:
 
     - name: "peripheral_events"
       type: "custom"
+      clock_domain: "dmaclk"
+      reset_domain: "dmacresetn"
       description: "Peripheral event inputs"
+      protocol:
+        sampling: "Sample event bits on dmaclk when dmacresetn is deasserted."
+        stability: "Events consumed by WFP logic must be synchronized or held long enough for one dmaclk sample."
+        side_effect: "A selected event can release WAITING_FOR_PERIPHERAL state."
       ports:
         - { name: "peripheral_events", width: 32, direction: "input", description: "Event flags" }
 
     - name: "interrupt"
       type: "custom"
+      clock_domain: "dmaclk"
+      reset_domain: "dmacresetn"
       description: "Interrupt output"
+      protocol:
+        assertion: "dmac_irq reflects enabled pending interrupt status."
+        deassertion: "dmac_irq deasserts after the corresponding W1C status clear."
+        reset_value: 0
       ports:
         - { name: "dmac_irq", width: 1, direction: "output", description: "Combined interrupt" }
 
@@ -359,6 +394,12 @@ registers:
     channel_stride: 0x40
     channel_base: 0x100
     num_channels: 8
+  bit_order: "lsb0"
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: "ignore"
+    rtl_requirement: "Reserved fields read as zero and do not allocate storage."
 
   register_list:
     - name: "DBGCMD"
@@ -368,8 +409,11 @@ registers:
       reset: 0x00000000
       category: "debug"
       description: "Debug Command Register"
+      write_side_effects:
+        - "Writing dbgcmd=0 executes one debug command if preconditions are met."
       fields:
-        - { name: "dbgcmd", bits: [1, 0], access: "wo", reset: 0x0, description: "0=Execute" }
+        - { name: "dbgcmd", bits: [1, 0], access: "wo", reset: 0x0, write_effect: "0=Execute command pulse", description: "Debug command selector" }
+        - { name: "reserved_31_2", bits: [31, 2], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
 
     - name: "CSR"
       offset: 0x100
@@ -382,6 +426,7 @@ registers:
       description: "Channel Status Register"
       fields:
         - { name: "ch_status", bits: [3, 0], access: "ro", reset: 0x0, description: "0=Stopped, 1=Executing, 6=Completed, 8=Faulted" }
+        - { name: "reserved_31_4", bits: [31, 4], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
 
     - name: "SAR"
       offset: 0x108
@@ -392,8 +437,10 @@ registers:
       stride: 0x40
       category: "channel"
       description: "Source Address Register"
+      write_side_effects:
+        - "Software write updates source address only while channel status is STOPPED."
       fields:
-        - { name: "src_addr", bits: [31, 0], access: "rw", reset: 0x00000000, description: "Source address" }
+        - { name: "src_addr", bits: [31, 0], access: "rw", reset: 0x00000000, write_effect: "Update SAR when channel is STOPPED", description: "Source address" }
 
     - name: "DAR"
       offset: 0x10C
@@ -404,8 +451,10 @@ registers:
       stride: 0x40
       category: "channel"
       description: "Destination Address Register"
+      write_side_effects:
+        - "Software write updates destination address only while channel status is STOPPED."
       fields:
-        - { name: "dst_addr", bits: [31, 0], access: "rw", reset: 0x00000000, description: "Destination address" }
+        - { name: "dst_addr", bits: [31, 0], access: "rw", reset: 0x00000000, write_effect: "Update DAR when channel is STOPPED", description: "Destination address" }
 
     - name: "LOOP_CFG"
       offset: 0x110
@@ -414,8 +463,11 @@ registers:
       reset: 0x00000000
       category: "control"
       description: "Loop Configuration"
+      write_side_effects:
+        - "Software write updates loop count only while channel status is STOPPED."
       fields:
-        - { name: "loop_count", bits: [3, 0], access: "rw", reset: 0x0, description: "0=1 iter, 15=16 iters" }
+        - { name: "loop_count", bits: [3, 0], access: "rw", reset: 0x0, write_effect: "Set transfer loop count encoding", description: "0=1 iter, 15=16 iters" }
+        - { name: "reserved_31_4", bits: [31, 4], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
 
     - name: "CONTROL"
       offset: 0x114
@@ -424,10 +476,14 @@ registers:
       reset: 0x00000000
       category: "control"
       description: "Control Register"
+      write_side_effects:
+        - "wfp_event/wfp_enable configure wait-for-peripheral behavior."
+        - "fault_inject forces the error_handling fault path when enabled."
       fields:
-        - { name: "wfp_event",  bits: [3, 0], access: "rw", reset: 0x0, description: "Event to wait for" }
-        - { name: "wfp_enable", bits: [4, 4], access: "rw", reset: 0x0, description: "Enable WFP" }
-        - { name: "fault_inject", bits: [8, 8], access: "rw", reset: 0x0, description: "Inject fault" }
+        - { name: "wfp_event",  bits: [3, 0], access: "rw", reset: 0x0, write_effect: "Select peripheral event index", description: "Event to wait for" }
+        - { name: "wfp_enable", bits: [4, 4], access: "rw", reset: 0x0, write_effect: "Enable wait-for-peripheral gating", description: "Enable WFP" }
+        - { name: "fault_inject", bits: [8, 8], access: "rw", reset: 0x0, write_effect: "Force error path for verification", description: "Inject fault" }
+        - { name: "reserved_31_9", bits: [31, 9], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
 
 # =============================================================================
 # SECTION 12: Memory Requirements
@@ -482,7 +538,26 @@ fsm:
     note: "LLM-written FSM in <ip>_core.sv from SSOT behavior — not a fixed IP generator template"
 
 # =============================================================================
-# SECTION 15: Timing & Performance
+# SECTION 15: RTL Contract
+# =============================================================================
+rtl_contract:
+  transaction: "FM1"
+  sample_condition: "transaction completes on declared interface handshakes"
+  input_map:
+    command_start: "dmago_i or CONTROL.start"
+    source_data: "axi_rd_master.rdata"
+    write_response: "axi_wr_master.bresp"
+  output_map:
+    destination_write: "axi_wr_master.wdata"
+    status: "registers.CSR.ch_status"
+    interrupt: "dmac_irq"
+  state_updates:
+    - { name: "sar", reset: 0, expr: "increment after accepted read beat" }
+    - { name: "dar", reset: 0, expr: "increment after accepted write beat" }
+    - { name: "status", reset: "STOPPED", expr: "STOPPED/EXECUTING/COMPLETED/FAULTED per function_model" }
+
+# =============================================================================
+# SECTION 16: Timing & Performance
 # =============================================================================
 timing:
   target_clocks:
@@ -620,7 +695,7 @@ dft:
 # SECTION 22: Synthesis / Implementation Constraints
 # =============================================================================
 synthesis:
-  dialect: "verilog_2001"
+  dialect: "systemverilog_2012"
   top_module: "<ip_name>"
   technology:
     pdk: "sky130"
@@ -652,8 +727,8 @@ pnr:
   core_space_um: 2.0
   global_density: 0.65
   io_layers:
-    horizontal: "met2"
-    vertical: "met3"
+    horizontal: "met3"
+    vertical: "met2"
   placement:
     density_target: 0.65
     max_displacement_um: null
@@ -678,8 +753,8 @@ pnr:
 # SECTION 24: Coding Rules
 # =============================================================================
 coding_rules:
-  # Project policy: .sv filenames with Verilog-2001 syntax.
-  verilog_style: "verilog_2001"
+  # Project policy: .sv filenames with a portable SystemVerilog subset.
+  verilog_style: "systemverilog_2012"
   file_extension: ".sv"
   parameter_header: "rtl/<ip>_param.vh"
   conventions:
@@ -689,8 +764,9 @@ coding_rules:
     - "Active-low async reset: always @(posedge clk or negedge rst_n)  with  if (!rst_n)"
     - "Parameterize widths (no hardcoded numbers)"
     - "Use rtl/<ip>_param.vh for shared parameter declarations when needed; include it inside consuming modules"
-    - "BANNED: logic / typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
-    - "Use wire/reg and localparam state encoding"
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+    - "Use localparam state encoding with logic state/next_state signals"
   lint_waivers:
     - "UNUSEDSIGNAL: explicit approved tie-offs only"
     - "WIDTHEXPAND: peripheral_events indexing"

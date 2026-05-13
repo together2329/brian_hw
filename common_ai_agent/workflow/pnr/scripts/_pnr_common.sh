@@ -88,7 +88,8 @@ pnr_check_stale () {
     echo "[PNR STALE ${label}] upstream missing: ${upstream}" >&2; return 6
   fi
   if [ -f "${output}" ] && [ "${upstream}" -nt "${output}" ]; then
-    echo "[PNR STALE ${label}] ${upstream} newer than ${output} — re-run prior stage" >&2; return 6
+    echo "[PNR REBUILD ${label}] ${upstream} newer than ${output} — regenerating ${output}" >&2
+    rm -f "${output}"
   fi
   return 0
 }

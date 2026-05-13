@@ -14,17 +14,17 @@ elif __name__ == "src.config":
 
 def _apply_workspace_env_early():
     """
-    Parse -w/--workspace from sys.argv BEFORE load_env_file() runs,
+    Parse -w/--workflow/--workspace from sys.argv BEFORE load_env_file() runs,
     so workspace.json [env] overrides have priority over .env/.config files.
     Only sets env vars that are not already set in the shell environment.
     """
     workspace_name = None
     argv = sys.argv[1:]
     for i, arg in enumerate(argv):
-        if arg in ('-w', '--workspace') and i + 1 < len(argv):
+        if arg in ('-w', '-wf', '--workflow', '--workspace') and i + 1 < len(argv):
             workspace_name = argv[i + 1]
             break
-        if arg.startswith('--workspace='):
+        if arg.startswith('--workflow=') or arg.startswith('--workspace='):
             workspace_name = arg.split('=', 1)[1]
             break
     if not workspace_name:
@@ -879,10 +879,11 @@ UNLOCK_NORMAL_MODE_TOOLS = os.getenv("UNLOCK_NORMAL_MODE_TOOLS", "true").lower()
 # RTL dialect for the rtl-gen / ssot-gen workflows
 # ============================================================
 # RTL syntax policy for rtl-gen / ssot-gen workflows.
-# Filenames stay .sv for toolflow compatibility, but generated RTL uses the
-# Verilog-2001 subset: wire/reg, localparam state encoding, always @(...), and
-# no package/import/interface/modport/function/task/for/while constructs.
-RTL_DIALECT = "verilog_2001"
+# Filenames stay .sv for toolflow compatibility, and generated RTL uses the
+# project SystemVerilog subset: input logic/output logic ports, internal logic,
+# localparam state encoding, always @(...), and no
+# package/import/interface/modport/function/task/for/while constructs.
+RTL_DIALECT = "systemverilog_2012"
 _RTL_FILE_EXT_RAW = os.getenv("RTL_FILE_EXT", ".sv").strip().lower()
 RTL_FILE_EXT = _RTL_FILE_EXT_RAW if _RTL_FILE_EXT_RAW in (".v", ".sv") else ".sv"
 

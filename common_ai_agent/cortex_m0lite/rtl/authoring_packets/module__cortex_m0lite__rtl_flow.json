@@ -1,0 +1,1009 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 40,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 1,
+      "key": "rtl_flow",
+      "module_task_count": 58,
+      "rule": "Owner module cortex_m0lite is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "rtl_flow",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/cortex_m0lite.sv",
+      "name": "cortex_m0lite",
+      "refs": [
+        "cdc_requirements",
+        "clock_reset_domains",
+        "integration",
+        "integration.connections",
+        "internal_interfaces",
+        "io_list",
+        "io_list.interfaces"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/cortex_m0lite.sv",
+        "name": "cortex_m0lite",
+        "wiring_only": true
+      },
+      {
+        "file": "rtl/cortex_m0lite_core.sv",
+        "name": "cortex_m0lite_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_if_stage.sv",
+        "name": "if_stage",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_id_stage.sv",
+        "name": "id_stage",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_ex_stage.sv",
+        "name": "ex_stage",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_wb_stage.sv",
+        "name": "wb_stage",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_regfile.sv",
+        "name": "regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_bus_if.sv",
+        "name": "bus_if",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "rst_n",
+        "signal": "core_rst_n_sync",
+        "signal_terms": [
+          "core_rst_n_sync"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "hclk",
+        "signal": "hclk",
+        "signal_terms": [
+          "hclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "hresetn",
+        "signal": "bus_rst_n_sync",
+        "signal_terms": [
+          "bus_rst_n_sync"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "irq",
+        "signal": "irq",
+        "signal_terms": [
+          "irq"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "pc_dbg",
+        "signal": "pc_dbg",
+        "signal_terms": [
+          "pc_dbg"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "state_dbg",
+        "signal": "state_dbg",
+        "signal_terms": [
+          "state_dbg"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "retire",
+        "signal": "retire",
+        "signal_terms": [
+          "retire"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "trap",
+        "signal": "trap",
+        "signal_terms": [
+          "trap"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_if_stage",
+        "machine_readable": true,
+        "module": "if_stage",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "u_if_stage",
+        "machine_readable": true,
+        "module": "if_stage",
+        "port": "rst_n",
+        "signal": "core_rst_n_sync",
+        "signal_terms": [
+          "core_rst_n_sync"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "u_if_stage",
+        "machine_readable": true,
+        "module": "if_stage",
+        "port": "if_id_valid",
+        "signal": "if_id_valid",
+        "signal_terms": [
+          "if_id_valid"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "u_if_stage",
+        "machine_readable": true,
+        "module": "if_stage",
+        "port": "if_id_ready",
+        "signal": "if_id_ready",
+        "signal_terms": [
+          "if_id_ready"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "u_if_stage",
+        "machine_readable": true,
+        "module": "if_stage",
+        "port": "if_id_pc",
+        "signal": "if_id_pc",
+        "signal_terms": [
+          "if_id_pc"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "u_if_stage",
+        "machine_readable": true,
+        "module": "if_stage",
+        "port": "if_id_instr",
+        "signal": "if_id_instr",
+        "signal_terms": [
+          "if_id_instr"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "u_id_stage",
+        "machine_readable": true,
+        "module": "id_stage",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "u_id_stage",
+        "machine_readable": true,
+        "module": "id_stage",
+        "port": "rst_n",
+        "signal": "core_rst_n_sync",
+        "signal_terms": [
+          "core_rst_n_sync"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "u_id_stage",
+        "machine_readable": true,
+        "module": "id_stage",
+        "port": "if_id_valid",
+        "signal": "if_id_valid",
+        "signal_terms": [
+          "if_id_valid"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "u_id_stage",
+        "machine_readable": true,
+        "module": "id_stage",
+        "port": "id_ex_valid",
+        "signal": "id_ex_valid",
+        "signal_terms": [
+          "id_ex_valid"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "u_id_stage",
+        "machine_readable": true,
+        "module": "id_stage",
+        "port": "id_ex_ready",
+        "signal": "id_ex_ready",
+        "signal_terms": [
+          "id_ex_ready"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "u_ex_stage",
+        "machine_readable": true,
+        "module": "ex_stage",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "u_ex_stage",
+        "machine_readable": true,
+        "module": "ex_stage",
+        "port": "rst_n",
+        "signal": "core_rst_n_sync",
+        "signal_terms": [
+          "core_rst_n_sync"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "u_ex_stage",
+        "machine_readable": true,
+        "module": "ex_stage",
+        "port": "id_ex_valid",
+        "signal": "id_ex_valid",
+        "signal_terms": [
+          "id_ex_valid"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "u_ex_stage",
+        "machine_readable": true,
+        "module": "ex_stage",
+        "port": "ex_wb_valid",
+        "signal": "ex_wb_valid",
+        "signal_terms": [
+          "ex_wb_valid"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "u_ex_stage",
+        "machine_readable": true,
+        "module": "ex_stage",
+        "port": "ex_bus_req",
+        "signal": "ex_bus_req",
+        "signal_terms": [
+          "ex_bus_req"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "u_wb_stage",
+        "machine_readable": true,
+        "module": "wb_stage",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "u_wb_stage",
+        "machine_readable": true,
+        "module": "wb_stage",
+        "port": "rst_n",
+        "signal": "core_rst_n_sync",
+        "signal_terms": [
+          "core_rst_n_sync"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "u_wb_stage",
+        "machine_readable": true,
+        "module": "wb_stage",
+        "port": "ex_wb_valid",
+        "signal": "ex_wb_valid",
+        "signal_terms": [
+          "ex_wb_valid"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "u_wb_stage",
+        "machine_readable": true,
+        "module": "wb_stage",
+        "port": "wb_rf_we",
+        "signal": "wb_rf_we",
+        "signal_terms": [
+          "wb_rf_we"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "u_regfile",
+        "machine_readable": true,
+        "module": "regfile",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "u_regfile",
+        "machine_readable": true,
+        "module": "regfile",
+        "port": "rst_n",
+        "signal": "core_rst_n_sync",
+        "signal_terms": [
+          "core_rst_n_sync"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "u_regfile",
+        "machine_readable": true,
+        "module": "regfile",
+        "port": "wb_rf_we",
+        "signal": "wb_rf_we",
+        "signal_terms": [
+          "wb_rf_we"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "u_regfile",
+        "machine_readable": true,
+        "module": "regfile",
+        "port": "wb_rf_waddr",
+        "signal": "wb_rf_waddr",
+        "signal_terms": [
+          "wb_rf_waddr"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "u_regfile",
+        "machine_readable": true,
+        "module": "regfile",
+        "port": "wb_rf_wdata",
+        "signal": "wb_rf_wdata",
+        "signal_terms": [
+          "wb_rf_wdata"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "u_bus_if",
+        "machine_readable": true,
+        "module": "bus_if",
+        "port": "hclk",
+        "signal": "hclk",
+        "signal_terms": [
+          "hclk"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "u_bus_if",
+        "machine_readable": true,
+        "module": "bus_if",
+        "port": "hresetn",
+        "signal": "bus_rst_n_sync",
+        "signal_terms": [
+          "bus_rst_n_sync"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "u_bus_if",
+        "machine_readable": true,
+        "module": "bus_if",
+        "port": "if_bus_req",
+        "signal": "if_bus_req",
+        "signal_terms": [
+          "if_bus_req"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "u_bus_if",
+        "machine_readable": true,
+        "module": "bus_if",
+        "port": "ex_bus_req",
+        "signal": "ex_bus_req",
+        "signal_terms": [
+          "ex_bus_req"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "u_bus_if",
+        "machine_readable": true,
+        "module": "bus_if",
+        "port": "i_haddr",
+        "signal": "i_haddr",
+        "signal_terms": [
+          "i_haddr"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "u_bus_if",
+        "machine_readable": true,
+        "module": "bus_if",
+        "port": "d_haddr",
+        "signal": "d_haddr",
+        "signal_terms": [
+          "d_haddr"
+        ],
+        "source_ref": "integration.connections[6]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "hclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hclk",
+        "source_ref": "io_list.clock_domains[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "hresetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hresetn",
+        "source_ref": "io_list.resets[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "i_haddr",
+          "instr_ahb_m_i_haddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "i_haddr",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "AHB_ADDR_W"
+      },
+      {
+        "aliases": [
+          "i_htrans",
+          "instr_ahb_m_i_htrans"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "i_htrans",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "i_hwrite",
+          "instr_ahb_m_i_hwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "i_hwrite",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "i_hsize",
+          "instr_ahb_m_i_hsize"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "i_hsize",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "i_hburst",
+          "instr_ahb_m_i_hburst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "i_hburst",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "i_hwdata",
+          "instr_ahb_m_i_hwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "i_hwdata",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "AHB_DATA_W"
+      },
+      {
+        "aliases": [
+          "i_hrdata",
+          "instr_ahb_m_i_hrdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "i_hrdata",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "AHB_DATA_W"
+      },
+      {
+        "aliases": [
+          "i_hready",
+          "instr_ahb_m_i_hready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "i_hready",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "i_hresp",
+          "instr_ahb_m_i_hresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "i_hresp",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "d_haddr",
+          "data_ahb_m_d_haddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "d_haddr",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "AHB_ADDR_W"
+      },
+      {
+        "aliases": [
+          "d_htrans",
+          "data_ahb_m_d_htrans"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "d_htrans",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "d_hwrite",
+          "data_ahb_m_d_hwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "d_hwrite",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "d_hsize",
+          "data_ahb_m_d_hsize"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "d_hsize",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "d_hburst",
+          "data_ahb_m_d_hburst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "d_hburst",
+        "source_ref": "io_list.interfaces[1].ports[4]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "d_hwdata",
+          "data_ahb_m_d_hwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "d_hwdata",
+        "source_ref": "io_list.interfaces[1].ports[5]",
+        "width": "AHB_DATA_W"
+      },
+      {
+        "aliases": [
+          "d_hrdata",
+          "data_ahb_m_d_hrdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "d_hrdata",
+        "source_ref": "io_list.interfaces[1].ports[6]",
+        "width": "AHB_DATA_W"
+      },
+      {
+        "aliases": [
+          "d_hready",
+          "data_ahb_m_d_hready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "d_hready",
+        "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "d_hresp",
+          "data_ahb_m_d_hresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "d_hresp",
+        "source_ref": "io_list.interfaces[1].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "irq",
+          "irq_if_irq"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "irq",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "debug_status_pc_dbg",
+          "pc_dbg"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pc_dbg",
+        "source_ref": "io_list.interfaces[3].ports[0]",
+        "width": "XLEN"
+      },
+      {
+        "aliases": [
+          "debug_status_state_dbg",
+          "state_dbg"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "state_dbg",
+        "source_ref": "io_list.interfaces[3].ports[1]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "debug_status_retire",
+          "retire"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "retire",
+        "source_ref": "io_list.interfaces[3].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "debug_status_trap",
+          "trap"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "trap",
+        "source_ref": "io_list.interfaces[3].ports[3]",
+        "width": "1"
+      }
+    ],
+    "target_scale": {
+      "basis": "Human-authored Cortex-M0-lite architecture decomposition.",
+      "min_behavior_owner_logic_modules": 6,
+      "min_depth_score": 120,
+      "min_logic_modules": 7,
+      "min_modules": 8,
+      "min_procedural_blocks": 12,
+      "min_source_files": 8,
+      "min_state_updates": 10,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "cortex_m0lite",
+  "kind": "module",
+  "owner_file": "rtl/cortex_m0lite.sv",
+  "owner_module": "cortex_m0lite",
+  "packet_id": "module__cortex_m0lite__rtl_flow",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "rtl_flow.seed": 1,
+      "rtl_flow.top": 1
+    },
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 1,
+      "key": "rtl_flow",
+      "module_task_count": 58,
+      "rule": "Owner module cortex_m0lite is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "rtl_flow",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 2,
+    "source_refs": [
+      "top_module",
+      "io_list"
+    ],
+    "status_counts": {
+      "pass": 2
+    },
+    "task_count": 2
+  },
+  "tasks": [
+    {
+      "category": "rtl_flow.seed",
+      "content": "Read SSOT and build dynamic RTL implementation ledger",
+      "criteria": [
+        "rtl_todo_plan.json was regenerated from the current SSOT",
+        "Every required task in the plan is either implemented, evidenced, or escalated",
+        "No IP-specific fixed template is used as the source of truth",
+        "Traceability keeps source_ref top_module",
+        "Primary implementation evidence is in rtl/cortex_m0lite.sv"
+      ],
+      "detail": "Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.\nSSOT ref: top_module.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.",
+      "evidence_terms": [],
+      "id": "RTL-0001",
+      "owner_file": "rtl/cortex_m0lite.sv",
+      "owner_module": "cortex_m0lite",
+      "priority": "high",
+      "required": true,
+      "source_ref": "top_module",
+      "ssot_context": {},
+      "ssot_refs": [
+        "top_module"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_flow.top",
+      "content": "Implement top-level ports, reset, and filelist integration",
+      "criteria": [
+        "Top module name matches SSOT top_module",
+        "Every SSOT top-level port appears with matching direction and width",
+        "Filelist contains all LLM-authored RTL sources and no stale sources",
+        "Traceability keeps source_ref io_list",
+        "Primary implementation evidence is in rtl/cortex_m0lite.sv"
+      ],
+      "detail": "The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.\nSSOT ref: io_list.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.\nSSOT item context: value=cortex_m0lite.",
+      "evidence_terms": [
+        "cortex",
+        "cortex_m0lite",
+        "m0lite"
+      ],
+      "id": "RTL-0002",
+      "owner_file": "rtl/cortex_m0lite.sv",
+      "owner_module": "cortex_m0lite",
+      "priority": "high",
+      "required": true,
+      "source_ref": "io_list",
+      "ssot_context": {
+        "value": "cortex_m0lite"
+      },
+      "ssot_refs": [
+        "io_list"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "67adb8890410a2aeeee9a654b645018e5e9f79eb8ebcffab7e873d9d102687f9",
+  "top": "cortex_m0lite",
+  "type": "rtl_authoring_packet"
+}

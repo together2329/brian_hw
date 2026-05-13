@@ -11,6 +11,7 @@ checks that required implementation terms appear in the generated DUT sources.
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import json
 import re
@@ -2164,8 +2165,10 @@ def _add_register_tasks(tasks: list[dict[str, Any]], doc: dict[str, Any], module
                 title=f"Implement field {name}.{field_name}",
                 detail="Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.",
                 criteria=[
+                    "Field bit range, mask, and write strobe decode match SSOT",
                     "Field reset/access policy matches SSOT",
                     "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+                    "Reserved fields read as the SSOT value and ignore writes",
                     "Field side effects are connected to owning control/status logic",
                 ],
                 owner=_owner_for(field_ref, modules, top),
@@ -2666,51 +2669,119 @@ def _ui_todo_from_group(group: dict[str, Any]) -> dict[str, Any]:
     return {
         "content": content,
         "activeForm": _todo_active_form(content),
+        "status": "pending",
         "detail": "\n".join(detail_lines),
         "criteria": "\n".join(line for line in criteria_lines if line),
         "priority": _priority_label(group_tasks),
     }
 
 
-def _convert_to_template_format(plan: dict[str, Any]) -> dict[str, Any]:
-    grouped: dict[str, dict[str, Any]] = {}
-    for idx, task in enumerate(plan.get("tasks", [])):
-        if not isinstance(task, dict):
-            continue
-        order, key, title = _ui_group_for_task(task)
-        group = grouped.setdefault(
-            key,
-            {
-                "key": key,
-                "order": order,
-                "first_index": idx,
-                "title": title,
-                "tasks": [],
-            },
-        )
-        group["tasks"].append(task)
+def _tracker_status_for_ledger_task(task: dict[str, Any]) -> str:
+    # TodoTracker status is execution state, not audit state.  Even if a
+    # ledger row currently passes audit, a fresh workflow run must force the
+    # agent to review/close that row explicitly instead of inheriting PASS.
+    return "pending"
 
-    ordered_groups = sorted(
-        grouped.values(),
-        key=lambda item: (int(item["order"]), int(item["first_index"]), str(item["key"])),
-    )
-    tasks = [_ui_todo_from_group(group) for group in ordered_groups]
+
+def _tracker_content_for_ledger_task(task: dict[str, Any]) -> str:
+    task_id = str(task.get("id") or "").strip()
+    content = str(task.get("content") or "").strip()
+    category = str(task.get("category") or "").strip()
+    prefix = task_id or category or "RTL"
+    return f"{prefix}: {content}" if content else prefix
+
+
+def _tracker_detail_for_ledger_task(task: dict[str, Any]) -> str:
+    lines: list[str] = []
+    for label, key in (
+        ("Ledger id", "id"),
+        ("Category", "category"),
+        ("Source ref", "source_ref"),
+        ("Owner module", "owner_module"),
+        ("Owner file", "owner_file"),
+    ):
+        value = task.get(key)
+        if value not in (None, "", []):
+            lines.append(f"{label}: {value}")
+
+    detail = str(task.get("detail") or "").strip()
+    if detail:
+        lines.append("")
+        lines.append(detail)
+
+    completion = task.get("todo_completion") if isinstance(task.get("todo_completion"), dict) else {}
+    reason = str(completion.get("reason") or "").strip()
+    if reason:
+        lines.append("")
+        lines.append(f"Current audit reason: {reason}")
+    basis = completion.get("evidence_basis")
+    if isinstance(basis, list) and basis:
+        lines.append("")
+        lines.append("Evidence basis:")
+        lines.extend(f"- {item}" for item in basis if str(item).strip())
+    return "\n".join(lines)
+
+
+def _tracker_criteria_for_ledger_task(task: dict[str, Any]) -> str:
+    criteria = task.get("criteria")
+    lines: list[str] = []
+    if isinstance(criteria, list):
+        lines.extend(str(item).strip() for item in criteria if str(item).strip())
+    elif str(criteria or "").strip():
+        lines.extend(line.strip() for line in str(criteria).splitlines() if line.strip())
+
+    source_ref = str(task.get("source_ref") or "").strip()
+    owner_file = str(task.get("owner_file") or "").strip()
+    task_id = str(task.get("id") or "").strip()
+    if task_id:
+        lines.append(f"Ledger task {task_id} is closed in rtl/rtl_todo_plan.json")
+    if source_ref:
+        lines.append(f"Traceability preserves source_ref {source_ref}")
+    if owner_file:
+        lines.append(f"Primary implementation evidence is in {owner_file}")
+    lines.append("todo_completion.status is pass after derive_rtl_todos.py --audit-rtl")
+    return "\n".join(dict.fromkeys(lines))
+
+
+def _tracker_todo_from_ledger_task(task: dict[str, Any]) -> dict[str, Any]:
+    content = _tracker_content_for_ledger_task(task)
+    todo = {
+        "content": content,
+        "activeForm": _todo_active_form(content),
+        "status": _tracker_status_for_ledger_task(task),
+        "detail": _tracker_detail_for_ledger_task(task),
+        "criteria": _tracker_criteria_for_ledger_task(task),
+        "priority": str(task.get("priority") or "normal"),
+    }
+    completion = task.get("todo_completion") if isinstance(task.get("todo_completion"), dict) else {}
+    if todo["status"] == "approved":
+        reason = str(completion.get("reason") or "").strip()
+        todo["approved_reason"] = reason or "Ledger task already passes current RTL audit."
+    return todo
+
+
+def _convert_to_template_format(plan: dict[str, Any]) -> dict[str, Any]:
+    ledger_tasks = [task for task in plan.get("tasks", []) if isinstance(task, dict)]
+    tasks = [_tracker_todo_from_ledger_task(task) for task in ledger_tasks]
+    status_counts = dict(sorted(Counter(str(task.get("status") or "unknown") for task in tasks).items()))
 
     return {
         "name": f"{plan.get('ip', 'unknown')}-rtl",
         "description": (
-            f"Auto-generated UI TodoTracker groups from SSOT RTL plan for {plan.get('ip', '')}. "
-            "The full SSOT-derived ledger remains in rtl_todo_plan.json; UI TODOs group section/work-type "
-            "items and keep the detailed ledger entries as criteria."
+            f"Auto-generated flat TodoTracker list from SSOT RTL plan for {plan.get('ip', '')}. "
+            "Each TodoTracker item maps one-to-one to a task in rtl_todo_plan.json so the existing "
+            "flat TodoTracker can execute ledger items one at a time."
         ),
         "source_plan": "rtl/rtl_todo_plan.json",
-        "source_task_count": len([task for task in plan.get("tasks", []) if isinstance(task, dict)]),
+        "source_task_count": len(ledger_tasks),
+        "status_counts": status_counts,
         "ui_grouping": {
-            "strategy": "ssot_section_plus_rtl_work_type",
-            "target_min": UI_TODO_TARGET_MIN,
-            "target_max": UI_TODO_TARGET_MAX,
+            "strategy": "flat_ledger_one_todo_per_rtl_task",
+            "target_min": len(tasks),
+            "target_max": len(tasks),
             "actual_count": len(tasks),
-            "detail_policy": "Full ledger items are criteria in UI TODOs and authoritative records in rtl_todo_plan.json.",
+            "status_counts": status_counts,
+            "detail_policy": "Each TodoTracker item preserves one rtl_todo_plan.json ledger task with source_ref, owner, criteria, and current audit status.",
         },
         "lock_additions": False,
         "tasks": tasks,
@@ -4691,6 +4762,67 @@ def _sv_declared_port_details_from_module_body(body: str) -> dict[str, dict[str,
     }
 
 
+def _eval_int_expr(expr: Any, params: dict[str, int]) -> int | None:
+    text = str(expr or "").strip()
+    if not text:
+        return None
+
+    def visit(node: ast.AST) -> int:
+        if isinstance(node, ast.Expression):
+            return visit(node.body)
+        if isinstance(node, ast.Constant) and isinstance(node.value, int):
+            return int(node.value)
+        if isinstance(node, ast.Name) and node.id in params:
+            return int(params[node.id])
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
+            value = visit(node.operand)
+            return value if isinstance(node.op, ast.UAdd) else -value
+        if isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Add, ast.Sub, ast.Mult, ast.FloorDiv, ast.Div)):
+            left = visit(node.left)
+            right = visit(node.right)
+            if isinstance(node.op, ast.Add):
+                return left + right
+            if isinstance(node.op, ast.Sub):
+                return left - right
+            if isinstance(node.op, ast.Mult):
+                return left * right
+            if right == 0:
+                raise ValueError("division by zero")
+            return left // right
+        raise ValueError(f"unsupported width expression: {text}")
+
+    try:
+        return int(visit(ast.parse(text, mode="eval")))
+    except Exception:
+        return None
+
+
+def _sv_declared_parameter_defaults_from_module_body(body: str) -> dict[str, int]:
+    clean = _strip_sv_comments(body)
+    header_match = re.search(r"\((?P<header>.*?)\)\s*;", clean, flags=re.S)
+    header = clean[:header_match.end()] if header_match else clean
+    raw: dict[str, str] = {}
+    for match in re.finditer(
+        r"\bparameter\b(?:\s+(?:integer|logic|wire|reg|signed|unsigned))*\s+"
+        r"([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([^,\)\n;]+)",
+        header,
+    ):
+        raw[match.group(1)] = match.group(2).strip()
+    resolved: dict[str, int] = {}
+    for _ in range(max(1, len(raw))):
+        progressed = False
+        for name, expr in raw.items():
+            if name in resolved:
+                continue
+            value = _eval_int_expr(expr, resolved)
+            if value is not None:
+                resolved[name] = value
+                progressed = True
+        if not progressed:
+            break
+    return resolved
+
+
 def _sv_instance_named_port_maps(text: str) -> list[dict[str, Any]]:
     clean = _strip_sv_comments(text)
     keywords = {
@@ -5161,7 +5293,7 @@ def _collect_top_io_contracts(doc: dict[str, Any]) -> list[dict[str, Any]]:
     return contracts
 
 
-def _width_matches_contract(actual_range: str, expected_width: str) -> bool:
+def _width_matches_contract(actual_range: str, expected_width: str, params: dict[str, int] | None = None) -> bool:
     width = str(expected_width or "").strip()
     if not width:
         return True
@@ -5177,6 +5309,13 @@ def _width_matches_contract(actual_range: str, expected_width: str) -> bool:
         msb = int(simple_range.group(1))
         lsb = int(simple_range.group(2))
         return abs(msb - lsb) + 1 == int(expected)
+    param_values = params or {}
+    range_match = re.fullmatch(r"\[(.+):(.+)\]", actual)
+    if range_match and simple_width:
+        msb = _eval_int_expr(range_match.group(1), param_values)
+        lsb = _eval_int_expr(range_match.group(2), param_values)
+        if msb is not None and lsb is not None:
+            return abs(msb - lsb) + 1 == int(expected)
     return expected in actual
 
 
@@ -5758,10 +5897,12 @@ def _audit_top_io_contracts(ip_dir: Path, plan: dict[str, Any]) -> dict[str, Any
     sources = _read_rtl_sources(ip_dir)
     declarations: dict[str, str] = {}
     port_details_by_module: dict[str, dict[str, dict[str, str]]] = {}
+    params_by_module: dict[str, dict[str, int]] = {}
     for rel, text in sources.items():
         for module_name, body in _sv_module_bodies(text).items():
             declarations[module_name] = rel
             port_details_by_module[module_name] = _sv_declared_port_details_from_module_body(body)
+            params_by_module[module_name] = _sv_declared_parameter_defaults_from_module_body(body)
 
     top = str(plan.get("top") or ip_dir.name)
     roots = sorted(_top_aliases(top) & set(declarations))
@@ -5790,8 +5931,10 @@ def _audit_top_io_contracts(ip_dir: Path, plan: dict[str, Any]) -> dict[str, Any
         }
 
     top_ports: dict[str, dict[str, str]] = {}
+    top_params: dict[str, int] = {}
     for root in roots:
         top_ports.update(port_details_by_module.get(root, {}))
+        top_params.update(params_by_module.get(root, {}))
     lower_to_port = {name.lower(): name for name in top_ports}
     for contract in contracts:
         if not isinstance(contract, dict):
@@ -5823,7 +5966,7 @@ def _audit_top_io_contracts(ip_dir: Path, plan: dict[str, Any]) -> dict[str, Any
                 "actual_direction": actual_direction,
                 "issue": "RTL top port direction does not match SSOT",
             })
-        if not _width_matches_contract(str(actual.get("range") or ""), str(contract.get("width") or "")):
+        if not _width_matches_contract(str(actual.get("range") or ""), str(contract.get("width") or ""), top_params):
             issues.append({
                 "source_ref": contract.get("source_ref"),
                 "port": matched_name,
@@ -5836,6 +5979,7 @@ def _audit_top_io_contracts(ip_dir: Path, plan: dict[str, Any]) -> dict[str, Any
         "status": "pass" if not issues else "fail",
         "contracts": len(contracts),
         "roots": roots,
+        "top_parameters": top_params,
         "declared_top_ports": sorted(top_ports),
         "issues": issues[:128],
     }
@@ -7255,9 +7399,8 @@ def derive_plan(root: Path, ip: str, *, audit_rtl: bool = False) -> dict[str, An
             "rtl_target_scale_waiver": target_scale_waiver,
             "dynamic_task_rule": (
                 "Use every required task in this file as the authoritative RTL implementation/evidence ledger. "
-                "Expose Atlas/UI TodoTracker items as grouped section/work-type tasks, targeting roughly "
-                f"{UI_TODO_TARGET_MIN}-{UI_TODO_TARGET_MAX} active TODOs for complex IPs, with the detailed "
-                "ledger items preserved as criteria instead of one UI TODO per ledger row."
+                "Expose Atlas/UI TodoTracker items as a flat one-to-one projection of this ledger so the "
+                "existing flat TodoTracker executes one SSOT-derived RTL task at a time."
             ),
             "ssot_workflow_todo_rule": "workflow_todos.rtl-gen[] entries are first-class downstream tasks; content/detail/criteria must be preserved and satisfied by RTL evidence.",
             "rtl_gate_todo_rule": "RTL-gen quality gates are first-class rtl_gate.rtl_gen TODOs; compile/lint/static/ownership/owner-logic/placeholder-free/implementation-depth/top-io/top-output-drive/top-input-consumption/hierarchy/port-connection/signal-flow/connection-contract gates must close as TODOs before PASS.",

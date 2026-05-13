@@ -9,7 +9,14 @@ from pathlib import Path
 
 import pytest
 
-from src.headless_workflow import FakeLLMProvider, HeadlessWorkflowRunner, LLMResponse, RealLLMProvider, _stable_json_sha256
+from src.headless_workflow import (
+    FakeLLMProvider,
+    HeadlessWorkflowRunner,
+    LLMResponse,
+    RealLLMProvider,
+    _stable_json_sha256,
+    _structured_ssot_yaml,
+)
 from src.workflow_stage_engine import StageEngineResult
 
 
@@ -93,6 +100,18 @@ def test_rtl_packet_needs_llm_skips_locked_truth_only_packets(tmp_path: Path):
             },
         }
     ) is False
+    assert runner._rtl_packet_needs_llm(
+        {
+            "summary": {"open_required_count": 2},
+            "execution_policy": {
+                "llm_actionable_open_count": 0,
+                "tool_evidence_open_count": 2,
+                "blocked_by_tool_evidence": [
+                    {"gate_kind": "dut_lint", "reason": "DUT lint artifact is not clean."}
+                ],
+            },
+        }
+    ) is True
 
 
 def test_rtl_packet_work_batch_respects_max_per_pass(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -145,6 +164,61 @@ def test_rtl_packet_work_batch_defaults_to_small_ui_batch(tmp_path: Path, monkey
     assert batch["selected_packets"] == 4
     assert batch["deferred_work_packets"] == 2
     assert batch["packet_batch_limit"] == 4
+
+
+def test_rtl_packet_work_batch_defers_evidence_closure_until_module_work_is_audited(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="fake-contract-model",
+        llm_provider=FakeLLMProvider(),
+    )
+    monkeypatch.setenv("ATLAS_HEADLESS_RTL_PACKET_MAX_PER_PASS", "4")
+    plan = {
+        "packets": [
+            {
+                "packet_id": "module__demo__fsm",
+                "json": "rtl/authoring_packets/module__demo__fsm.json",
+                "execution_policy": {"llm_actionable_open_count": 1},
+            },
+            {
+                "packet_id": "rtl_gate_evidence_closure",
+                "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
+                "execution_policy": {"llm_actionable_open_count": 1},
+            },
+        ]
+    }
+
+    selected, batch = runner._rtl_packet_work_batch(plan)
+
+    assert [packet["packet_id"] for packet in selected] == ["module__demo__fsm"]
+    assert batch["work_packets"] == 2
+    assert batch["selected_packets"] == 1
+    assert batch["deferred_work_packets"] == 1
+
+
+def test_rtl_packet_work_batch_allows_evidence_closure_when_it_is_the_only_work(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="fake-contract-model",
+        llm_provider=FakeLLMProvider(),
+    )
+    monkeypatch.setenv("ATLAS_HEADLESS_RTL_PACKET_MAX_PER_PASS", "4")
+    plan = {
+        "packets": [
+            {
+                "packet_id": "rtl_gate_evidence_closure",
+                "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
+                "execution_policy": {"llm_actionable_open_count": 1},
+            }
+        ]
+    }
+
+    selected, batch = runner._rtl_packet_work_batch(plan)
+
+    assert [packet["packet_id"] for packet in selected] == ["rtl_gate_evidence_closure"]
+    assert batch["work_packets"] == 1
+    assert batch["selected_packets"] == 1
+    assert batch["deferred_work_packets"] == 0
 
 
 def test_rtl_packet_pass_budget_covers_large_deferred_queue(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -235,6 +309,195 @@ def test_rtl_packet_prompt_includes_reference_profile_digest(tmp_path: Path):
     assert '"do_not_copy_reference_rtl": true' in prompt
     assert "pending connection_contract_suggestions" in prompt
     assert "draft RTL wiring candidates" in prompt
+
+
+def test_rtl_packet_prompt_includes_observable_latency_contract(tmp_path: Path):
+    ip = "packet_latency_ip"
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="glm-5.1",
+        llm_provider=FakeLLMProvider(),
+    )
+    ip_dir = tmp_path / "work" / ip
+    packet_rel = "rtl/authoring_packets/module__core.json"
+    packet_md_rel = "rtl/authoring_packets/module__core.md"
+    (ip_dir / "yaml").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "rtl" / "authoring_packets").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        _structured_ssot_yaml(ip, "sample data and produce the result after one observable cycle"),
+        encoding="utf-8",
+    )
+    (ip_dir / packet_rel).write_text(
+        json.dumps({"packet_id": "module__core", "owner_file": f"rtl/{ip}.sv"}),
+        encoding="utf-8",
+    )
+    (ip_dir / packet_md_rel).write_text("# Packet\n", encoding="utf-8")
+    plan = {
+        "packets": [
+            {
+                "packet_id": "module__core",
+                "kind": "module",
+                "owner_module": ip,
+                "owner_file": f"rtl/{ip}.sv",
+                "json": packet_rel,
+                "markdown": packet_md_rel,
+                "summary": {"required_count": 1, "open_required_count": 1},
+                "execution_policy": {"llm_actionable_open_count": 1},
+            }
+        ],
+    }
+
+    _, prompt = runner._rtl_packet_prompt(ip, {}, plan, plan["packets"][0], attempt=0)
+
+    assert "SSOT observable latency contract" in prompt
+    assert '"cycle_model.latency": 1' in prompt
+    assert "latency=1 means" in prompt
+    assert "input-register stage followed by a result-register stage is latency=2" in prompt
+    assert "latency_1_required_rtl_shape" in prompt
+    assert "forbidden latency-2 implementation" in prompt
+    assert "Locked SSOT YAML excerpt" in prompt
+    assert "You cannot read files from the repo during this turn" in prompt
+    assert "do not return requires/missing-file JSON" in prompt
+    assert "function_model:" in prompt
+
+
+def test_rtl_packet_prompt_includes_tool_evidence_artifacts(tmp_path: Path):
+    ip = "packet_tool_evidence_ip"
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="glm-5.1",
+        llm_provider=FakeLLMProvider(),
+    )
+    ip_dir = tmp_path / "work" / ip
+    packet_rel = "rtl/authoring_packets/rtl_gate_tool_evidence.json"
+    packet_md_rel = "rtl/authoring_packets/rtl_gate_tool_evidence.md"
+    (ip_dir / "rtl" / "authoring_packets").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "lint").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(f"module {ip}; endmodule\n", encoding="utf-8")
+    (ip_dir / "lint" / "dut_lint.json").write_text(
+        json.dumps({"passed": False, "warnings": 1, "diagnostics": [{"rule": "UNUSEDPARAM"}]}),
+        encoding="utf-8",
+    )
+    packet_doc = {
+        "packet_id": "rtl_gate_tool_evidence",
+        "kind": "gate",
+        "owner_module": ip,
+        "owner_file": f"rtl/{ip}.sv",
+        "execution_policy": {
+            "tool_evidence_plan": [
+                {"artifacts": [f"{ip}/lint/dut_lint.json"], "gate_kind": "dut_lint"}
+            ]
+        },
+    }
+    (ip_dir / packet_rel).write_text(json.dumps(packet_doc), encoding="utf-8")
+    (ip_dir / packet_md_rel).write_text("# Tool Evidence\n", encoding="utf-8")
+    plan = {
+        "type": "rtl_authoring_plan",
+        "ip": ip,
+        "top": ip,
+        "packets": [
+            {
+                **packet_doc,
+                "json": packet_rel,
+                "markdown": packet_md_rel,
+                "summary": {"required_count": 2, "open_required_count": 2},
+                "execution_policy": {"llm_actionable_open_count": 1},
+            }
+        ],
+    }
+
+    _, prompt = runner._rtl_packet_prompt(ip, {}, plan, plan["packets"][0], attempt=1)
+
+    assert "Current tool evidence artifacts referenced by this packet" in prompt
+    assert f"### {ip}/lint/dut_lint.json" in prompt
+    assert "UNUSEDPARAM" in prompt
+
+
+def test_headless_runner_regenerates_generic_rtl_contract_from_ssot(tmp_path: Path):
+    ip = "contract_restore_ip"
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="fake-contract-model",
+        llm_provider=FakeLLMProvider(),
+    )
+    ip_dir = tmp_path / "work" / ip
+    (ip_dir / "yaml").mkdir(parents=True)
+    (ip_dir / "rtl").mkdir()
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        _structured_ssot_yaml(ip, "double a sampled input after one cycle"),
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / "rtl_contract.json").write_text(
+        json.dumps({"pipeline": {"stages": ["S0_SAMPLE", "S1_RESULT"]}}),
+        encoding="utf-8",
+    )
+
+    changed = runner._ensure_generic_rtl_contract(ip)
+    restored = json.loads((ip_dir / "rtl" / "rtl_contract.json").read_text(encoding="utf-8"))
+
+    assert changed is True
+    assert restored["type"] == "generic_ssot_rule_rtl_contract"
+    assert restored["contract"]["sample_condition"] == "valid && ready"
+    assert restored["contract"]["input_map"] == {"value": "data_in"}
+    assert restored["contract"]["outputs"][0]["port"] == "result"
+
+
+def test_rtl_packet_mode_uses_rtl_workflow_system_prompt(tmp_path: Path):
+    ip = "packet_workflow_prompt_ip"
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="glm-5.1",
+        llm_provider=FakeLLMProvider(),
+    )
+    ip_dir = tmp_path / "work" / ip
+    packet_rel = "rtl/authoring_packets/module__core.json"
+    packet_md_rel = "rtl/authoring_packets/module__core.md"
+    (ip_dir / "rtl" / "authoring_packets").mkdir(parents=True, exist_ok=True)
+    (ip_dir / packet_rel).write_text(
+        json.dumps({"packet_id": "module__core", "owner_file": f"rtl/{ip}.sv"}),
+        encoding="utf-8",
+    )
+    (ip_dir / packet_md_rel).write_text("# Packet\n", encoding="utf-8")
+    plan = {
+        "packets": [
+            {
+                "packet_id": "module__core",
+                "kind": "module",
+                "owner_module": f"{ip}_core",
+                "owner_file": f"rtl/{ip}.sv",
+                "json": packet_rel,
+                "markdown": packet_md_rel,
+                "summary": {"required_count": 1, "open_required_count": 1},
+                "execution_policy": {"llm_actionable_open_count": 1},
+            }
+        ],
+    }
+
+    system, prompt = runner._rtl_packet_prompt(ip, {}, plan, plan["packets"][0], attempt=0)
+
+    assert "# RTL Generation Agent Rules" in system
+    assert "For production ATLAS flows" in system
+    assert "RTL-GEN PACKET MODE" in prompt
+
+
+def test_headless_llm_stages_use_their_workflow_system_prompts(tmp_path: Path):
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="glm-5.1",
+        llm_provider=FakeLLMProvider(),
+    )
+
+    ssot_system, ssot_prompt = runner._stage_prompt("ssot-gen", "demo_ip", {"requirement_text": "demo"})
+    rtl_system, rtl_prompt = runner._stage_prompt("rtl-gen", "demo_ip", {})
+    tb_system, tb_prompt = runner._stage_prompt("tb-gen", "demo_ip", {})
+
+    assert "# SSOT Generator Agent" in ssot_system
+    assert "This workflow owns the SSOT contract only." in ssot_system
+    assert "Generate canonical SSOT YAML" in ssot_prompt
+    assert "# RTL Generation Agent Rules" in rtl_system
+    assert "Prepare rtl-gen" in rtl_prompt
+    assert "# TB Generation Agent Rules" in tb_system
+    assert "Prepare tb-gen" in tb_prompt
 
 
 def test_rtl_todo_stable_hash_ignores_generated_diagnostics(tmp_path: Path):
@@ -425,6 +688,41 @@ def test_rtl_packet_pass_without_artifacts_is_retryable_blocker(tmp_path: Path, 
     assert runner.stages[-1] == result
 
 
+def test_rtl_packet_empty_files_response_is_noop(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    ip = "packet_empty_files_ip"
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="fake-contract-model",
+        llm_provider=FakeLLMProvider(),
+    )
+    packet = {
+        "packet_id": "module__packet_empty_files_ip_core",
+        "kind": "module",
+        "json": "rtl/authoring_packets/module__packet_empty_files_ip_core.json",
+        "summary": {"open_required_count": 1},
+        "execution_policy": {"llm_actionable_open_count": 1},
+    }
+    monkeypatch.setattr(runner, "_rtl_authoring_plan", lambda _ip: {"packets": [packet]})
+    monkeypatch.setattr(runner, "_rtl_packet_prompt", lambda *_args, **_kwargs: ("system", "prompt"))
+    monkeypatch.setattr(
+        runner,
+        "_call_llm",
+        lambda *_args, **_kwargs: LLMResponse(
+            stage="rtl-gen",
+            model="fake-contract-model",
+            raw_response='{"files": []}',
+            parsed_artifacts=[],
+            error="model output did not contain expected JSON object with files[] rtl-gen artifact",
+            status="blocked",
+        ),
+    )
+
+    result = runner._run_rtl_packet_llm_pass(ip, {}, attempt=0)
+
+    assert result is None
+    assert runner.stages == []
+
+
 def test_real_llm_rtl_gen_without_artifacts_blocks(monkeypatch: pytest.MonkeyPatch):
     def fake_run(*_args, **_kwargs) -> subprocess.CompletedProcess[str]:
         return subprocess.CompletedProcess(
@@ -448,6 +746,21 @@ def test_real_llm_rtl_gen_without_artifacts_blocks(monkeypatch: pytest.MonkeyPat
 
     assert response.status == "blocked"
     assert "files[] rtl-gen artifact" in response.error
+
+
+def test_real_llm_provider_resolves_profile_model(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ATLAS_RUN_REAL_LLM_TDD", "1")
+    monkeypatch.setenv("PROFILE_deepseek_BASE_URL", "https://api.deepseek.com")
+    monkeypatch.setenv("PROFILE_deepseek_API_KEY", "test-key")
+    monkeypatch.setenv("PROFILE_deepseek_MODEL", "deepseek-v4-pro")
+    monkeypatch.delenv("LLM_API_KEY", raising=False)
+
+    provider = RealLLMProvider()
+    resolved_model, profile_name = provider._activate_requested_model("deepseek")
+
+    assert resolved_model == "deepseek-v4-pro"
+    assert profile_name == "deepseek"
+    assert provider.available_reason("deepseek") == ""
 
 
 def test_rtl_gen_initial_audit_failure_still_drives_llm_packets(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):

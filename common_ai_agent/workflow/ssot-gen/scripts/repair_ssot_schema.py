@@ -21,6 +21,7 @@ import yaml
 REQUIRED_ORDER = [
     "top_module",
     "sub_modules",
+    "decomposition",
     "parameters",
     "io_list",
     "features",
@@ -42,6 +43,7 @@ REQUIRED_ORDER = [
     "integration",
     "dft",
     "synthesis",
+    "pnr",
     "coding_rules",
     "reuse_modules",
     "custom",
@@ -249,6 +251,27 @@ def _ensure_sub_modules(doc: dict[str, Any], ip: str) -> list[dict[str, Any]]:
         }
         for name in names
     ]
+
+
+def _ensure_decomposition(doc: dict[str, Any], ip: str) -> dict[str, Any]:
+    existing = doc.get("decomposition") if isinstance(doc.get("decomposition"), dict) else {}
+    sub_modules = [item for item in doc.get("sub_modules") or [] if isinstance(item, dict)]
+    owners = []
+    for item in sub_modules:
+        name = str(item.get("name") or "").strip()
+        if not name:
+            continue
+        owners.append({
+            "module": name,
+            "file": item.get("file") or f"rtl/{name}.sv",
+            "responsibility": item.get("description") or "Implements the SSOT-owned behavior and interface contract assigned to this module.",
+            "source_sections": item.get("source_sections") or item.get("function_model_refs") or ["function_model", "cycle_model", "io_list"],
+        })
+    existing.setdefault("strategy", "manifest_owned_leaf_decomposition")
+    existing.setdefault("owners", owners)
+    existing.setdefault("integration_policy", "Top-level wiring must be backed by integration.connections or sub_modules[].connections before signoff.")
+    existing.setdefault("source_refs", ["sub_modules", "function_model", "cycle_model", "integration"])
+    return existing
 
 
 def _tokens_from(value: Any) -> set[str]:
@@ -956,11 +979,29 @@ def _ensure_dft(doc: dict[str, Any]) -> dict[str, Any]:
 
 def _ensure_synthesis(doc: dict[str, Any], ip: str) -> dict[str, Any]:
     syn = doc.get("synthesis") if isinstance(doc.get("synthesis"), dict) else {}
-    syn["dialect"] = "verilog_2001"
+    syn["dialect"] = "systemverilog_2012"
     syn.setdefault("top_module", doc.get("top_module", {}).get("name", ip) if isinstance(doc.get("top_module"), dict) else ip)
     syn.setdefault("constraints", ["No inferred latches", "No unresolved black boxes", "All sequential state reset or intentionally initialized"])
     syn.setdefault("required_outputs", ["syn/out/area.rpt", "syn/out/timing_summary.rpt", "sta/out/wns.json"])
     return syn
+
+
+def _ensure_pnr(doc: dict[str, Any]) -> dict[str, Any]:
+    pnr = doc.get("pnr") if isinstance(doc.get("pnr"), dict) else {}
+    pnr.setdefault("utilization_pct", 60)
+    pnr.setdefault("aspect_ratio", 1.0)
+    pnr.setdefault("core_space_um", 2.0)
+    pnr.setdefault("global_density", 0.65)
+    io_layers = pnr.get("io_layers") if isinstance(pnr.get("io_layers"), dict) else {}
+    io_layers.setdefault("horizontal", "met3")
+    io_layers.setdefault("vertical", "met2")
+    pnr["io_layers"] = io_layers
+    pnr.setdefault("cts_buf_list", ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"])
+    routing = pnr.get("routing") if isinstance(pnr.get("routing"), dict) else {}
+    routing.setdefault("signal_layers", {"min": "met1", "max": "met5"})
+    routing.setdefault("drc_waivers", [])
+    pnr["routing"] = routing
+    return pnr
 
 
 def _ensure_test_requirements(doc: dict[str, Any]) -> dict[str, Any]:
@@ -1716,6 +1757,7 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     out = dict(doc)
     out["top_module"] = _ensure_top_module(out, state, ip)
     out["sub_modules"] = _ensure_sub_modules(out, ip)
+    out["decomposition"] = _ensure_decomposition(out, ip)
     out["parameters"] = _ensure_parameters_section(out, state)
     out["io_list"] = _ensure_io_list(out)
     out["features"] = _ensure_features(out)
@@ -1738,15 +1780,16 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     out["integration"] = _ensure_integration(out)
     out["dft"] = _ensure_dft(out)
     out["synthesis"] = _ensure_synthesis(out, ip)
+    out["pnr"] = _ensure_pnr(out)
     out["coding_rules"] = out.get("coding_rules") if isinstance(out.get("coding_rules"), dict) else {
-        "verilog_style": "verilog_2001",
+        "verilog_style": "systemverilog_2012",
         "file_extension": ".sv",
         "parameter_header": f"rtl/{ip}_param.vh",
         "conventions": [
-            "Use .sv filenames with Verilog-2001 syntax",
-            "Use wire/reg and always @(...) in generated RTL",
+            "Use .sv filenames with the project SystemVerilog subset",
+            "Use input logic/output logic ANSI ports and internal single-driver logic",
             "Put shared parameter declarations in rtl/<ip>_param.vh when needed; include it inside consuming modules",
-            "Do not create *_pkg.sv or use logic/typedef/enum/always_ff/always_comb/package/import/interface/modport/function/task/for/while constructs",
+            "Do not create *_pkg.sv or use typedef/enum/always_ff/always_comb/package/import/interface/modport/function/task/for/while constructs",
             "No inferred latches; every combinational branch assigns all outputs",
             "No parameterized part-selects inside procedural blocks; use helper wires/continuous assigns",
             "No ad-hoc lint suppressions without SSOT waiver and DUT-only lint evidence",

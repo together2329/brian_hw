@@ -1,0 +1,901 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 40,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 1,
+      "key": "parameters",
+      "module_task_count": 98,
+      "rule": "Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "parameters",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/cortex_m0lite_core.sv",
+      "name": "cortex_m0lite_core",
+      "refs": [
+        "coverage_tap",
+        "cycle_model",
+        "cycle_model.pipeline",
+        "dataflow",
+        "dataflow.ordering",
+        "dataflow.sequence",
+        "dataflow.state_flow",
+        "decomposition",
+        "error_handling",
+        "fsm",
+        "fsm.control",
+        "function_model",
+        "function_model.transactions.FM_CPU_STEP",
+        "io_list",
+        "parameters",
+        "registers",
+        "registers.register_list",
+        "workflow_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/cortex_m0lite.sv",
+        "name": "cortex_m0lite",
+        "wiring_only": true
+      },
+      {
+        "file": "rtl/cortex_m0lite_core.sv",
+        "name": "cortex_m0lite_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_if_stage.sv",
+        "name": "if_stage",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_id_stage.sv",
+        "name": "id_stage",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_ex_stage.sv",
+        "name": "ex_stage",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_wb_stage.sv",
+        "name": "wb_stage",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_regfile.sv",
+        "name": "regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_bus_if.sv",
+        "name": "bus_if",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "rst_n",
+        "signal": "core_rst_n_sync",
+        "signal_terms": [
+          "core_rst_n_sync"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "hclk",
+        "signal": "hclk",
+        "signal_terms": [
+          "hclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "hresetn",
+        "signal": "bus_rst_n_sync",
+        "signal_terms": [
+          "bus_rst_n_sync"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "irq",
+        "signal": "irq",
+        "signal_terms": [
+          "irq"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "pc_dbg",
+        "signal": "pc_dbg",
+        "signal_terms": [
+          "pc_dbg"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "state_dbg",
+        "signal": "state_dbg",
+        "signal_terms": [
+          "state_dbg"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "retire",
+        "signal": "retire",
+        "signal_terms": [
+          "retire"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "trap",
+        "signal": "trap",
+        "signal_terms": [
+          "trap"
+        ],
+        "source_ref": "integration.connections[0]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "Human-authored Cortex-M0-lite architecture decomposition.",
+      "min_behavior_owner_logic_modules": 6,
+      "min_depth_score": 120,
+      "min_logic_modules": 7,
+      "min_modules": 8,
+      "min_procedural_blocks": 12,
+      "min_source_files": 8,
+      "min_state_updates": 10,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "cortex_m0lite",
+  "kind": "module",
+  "owner_file": "rtl/cortex_m0lite_core.sv",
+  "owner_module": "cortex_m0lite_core",
+  "packet_id": "module__cortex_m0lite_core__parameters",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "parameters.item": 15
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 1,
+      "key": "parameters",
+      "module_task_count": 98,
+      "rule": "Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "parameters",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 15,
+    "source_refs": [
+      "parameters.XLEN",
+      "parameters.RESET_PC",
+      "parameters.TRAP_VECTOR",
+      "parameters.STACK_RESET",
+      "parameters.REG_COUNT",
+      "parameters.AHB_ADDR_W",
+      "parameters.AHB_DATA_W",
+      "parameters.CORE_FREQ_MHZ",
+      "parameters.BUS_FREQ_MHZ",
+      "parameters.AHB_HTRANS_IDLE",
+      "parameters.AHB_HTRANS_BUSY",
+      "parameters.AHB_HTRANS_NONSEQ",
+      "parameters.AHB_HTRANS_SEQ",
+      "parameters.AHB_HSIZE_WORD",
+      "parameters.AHB_HBURST_SINGLE"
+    ],
+    "status_counts": {
+      "pass": 15
+    },
+    "task_count": 15
+  },
+  "tasks": [
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter XLEN",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.XLEN",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.XLEN.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via parameters.\nSSOT item context: name=XLEN.",
+      "evidence_terms": [],
+      "id": "RTL-0030",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.XLEN",
+      "ssot_context": {
+        "name": "XLEN"
+      },
+      "ssot_refs": [
+        "parameters.XLEN"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter RESET_PC",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.RESET_PC",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.RESET_PC.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via parameters.\nSSOT item context: name=RESET_PC.",
+      "evidence_terms": [],
+      "id": "RTL-0031",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.RESET_PC",
+      "ssot_context": {
+        "name": "RESET_PC"
+      },
+      "ssot_refs": [
+        "parameters.RESET_PC"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter TRAP_VECTOR",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.TRAP_VECTOR",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.TRAP_VECTOR.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via parameters.\nSSOT item context: name=TRAP_VECTOR.",
+      "evidence_terms": [],
+      "id": "RTL-0032",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.TRAP_VECTOR",
+      "ssot_context": {
+        "name": "TRAP_VECTOR"
+      },
+      "ssot_refs": [
+        "parameters.TRAP_VECTOR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter STACK_RESET",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.STACK_RESET",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.STACK_RESET.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via parameters.\nSSOT item context: name=STACK_RESET.",
+      "evidence_terms": [],
+      "id": "RTL-0033",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.STACK_RESET",
+      "ssot_context": {
+        "name": "STACK_RESET"
+      },
+      "ssot_refs": [
+        "parameters.STACK_RESET"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter REG_COUNT",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.REG_COUNT",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.REG_COUNT.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via parameters.\nSSOT item context: name=REG_COUNT.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.REG_COUNT",
+      "ssot_context": {
+        "name": "REG_COUNT"
+      },
+      "ssot_refs": [
+        "parameters.REG_COUNT"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter AHB_ADDR_W",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.AHB_ADDR_W",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.AHB_ADDR_W.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via parameters.\nSSOT item context: name=AHB_ADDR_W.",
+      "evidence_terms": [],
+      "id": "RTL-0035",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.AHB_ADDR_W",
+      "ssot_context": {
+        "name": "AHB_ADDR_W"
+      },
+      "ssot_refs": [
+        "parameters.AHB_ADDR_W"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter AHB_DATA_W",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.AHB_DATA_W",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.AHB_DATA_W.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via parameters.\nSSOT item context: name=AHB_DATA_W.",
+      "evidence_terms": [],
+      "id": "RTL-0036",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.AHB_DATA_W",
+      "ssot_context": {
+        "name": "AHB_DATA_W"
+      },
+      "ssot_refs": [
+        "parameters.AHB_DATA_W"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter CORE_FREQ_MHZ",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.CORE_FREQ_MHZ",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.CORE_FREQ_MHZ.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via parameters.\nSSOT item context: name=CORE_FREQ_MHZ.",
+      "evidence_terms": [],
+      "id": "RTL-0037",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.CORE_FREQ_MHZ",
+      "ssot_context": {
+        "name": "CORE_FREQ_MHZ"
+      },
+      "ssot_refs": [
+        "parameters.CORE_FREQ_MHZ"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter BUS_FREQ_MHZ",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.BUS_FREQ_MHZ",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.BUS_FREQ_MHZ.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via parameters.\nSSOT item context: name=BUS_FREQ_MHZ.",
+      "evidence_terms": [],
+      "id": "RTL-0038",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.BUS_FREQ_MHZ",
+      "ssot_context": {
+        "name": "BUS_FREQ_MHZ"
+      },
+      "ssot_refs": [
+        "parameters.BUS_FREQ_MHZ"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter AHB_HTRANS_IDLE",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.AHB_HTRANS_IDLE",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.AHB_HTRANS_IDLE.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via parameters.\nSSOT item context: name=AHB_HTRANS_IDLE.",
+      "evidence_terms": [],
+      "id": "RTL-0039",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.AHB_HTRANS_IDLE",
+      "ssot_context": {
+        "name": "AHB_HTRANS_IDLE"
+      },
+      "ssot_refs": [
+        "parameters.AHB_HTRANS_IDLE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter AHB_HTRANS_BUSY",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.AHB_HTRANS_BUSY",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.AHB_HTRANS_BUSY.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via parameters.\nSSOT item context: name=AHB_HTRANS_BUSY.",
+      "evidence_terms": [],
+      "id": "RTL-0040",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.AHB_HTRANS_BUSY",
+      "ssot_context": {
+        "name": "AHB_HTRANS_BUSY"
+      },
+      "ssot_refs": [
+        "parameters.AHB_HTRANS_BUSY"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter AHB_HTRANS_NONSEQ",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.AHB_HTRANS_NONSEQ",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.AHB_HTRANS_NONSEQ.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via parameters.\nSSOT item context: name=AHB_HTRANS_NONSEQ.",
+      "evidence_terms": [],
+      "id": "RTL-0041",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.AHB_HTRANS_NONSEQ",
+      "ssot_context": {
+        "name": "AHB_HTRANS_NONSEQ"
+      },
+      "ssot_refs": [
+        "parameters.AHB_HTRANS_NONSEQ"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter AHB_HTRANS_SEQ",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.AHB_HTRANS_SEQ",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.AHB_HTRANS_SEQ.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via parameters.\nSSOT item context: name=AHB_HTRANS_SEQ.",
+      "evidence_terms": [],
+      "id": "RTL-0042",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.AHB_HTRANS_SEQ",
+      "ssot_context": {
+        "name": "AHB_HTRANS_SEQ"
+      },
+      "ssot_refs": [
+        "parameters.AHB_HTRANS_SEQ"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter AHB_HSIZE_WORD",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.AHB_HSIZE_WORD",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.AHB_HSIZE_WORD.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via parameters.\nSSOT item context: name=AHB_HSIZE_WORD.",
+      "evidence_terms": [],
+      "id": "RTL-0043",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.AHB_HSIZE_WORD",
+      "ssot_context": {
+        "name": "AHB_HSIZE_WORD"
+      },
+      "ssot_refs": [
+        "parameters.AHB_HSIZE_WORD"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter AHB_HBURST_SINGLE",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.AHB_HBURST_SINGLE",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.AHB_HBURST_SINGLE.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via parameters.\nSSOT item context: name=AHB_HBURST_SINGLE.",
+      "evidence_terms": [],
+      "id": "RTL-0044",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.AHB_HBURST_SINGLE",
+      "ssot_context": {
+        "name": "AHB_HBURST_SINGLE"
+      },
+      "ssot_refs": [
+        "parameters.AHB_HBURST_SINGLE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "67adb8890410a2aeeee9a654b645018e5e9f79eb8ebcffab7e873d9d102687f9",
+  "top": "cortex_m0lite",
+  "type": "rtl_authoring_packet"
+}

@@ -288,6 +288,32 @@ class TodoTracker:
         self._last_completed_count: int = 0
         self._persist_path: Optional[Path] = persist_path or TODO_FILE
 
+    @staticmethod
+    def _format_index_ranges(indices: List[int], max_ranges: int = 12) -> str:
+        """Compact contiguous index runs without implying gaps are complete."""
+        if not indices:
+            return ""
+
+        ranges = []
+        start = prev = indices[0]
+        for idx in indices[1:]:
+            if idx == prev + 1:
+                prev = idx
+                continue
+            ranges.append((start, prev))
+            start = prev = idx
+        ranges.append((start, prev))
+
+        def _label(pair):
+            left, right = pair
+            return str(left) if left == right else f"{left}-{right}"
+
+        labels = [_label(pair) for pair in ranges]
+        if len(labels) <= max_ranges:
+            return ", ".join(labels)
+        visible = ", ".join(labels[:max_ranges])
+        return f"{visible}, +{len(labels) - max_ranges} ranges"
+
     def add_todos(self, todos: List[Dict]):
         """
         LLM이 생성한 todo list를 추가
@@ -1010,14 +1036,11 @@ class TodoTracker:
             return ""
         lines = ["", f"  {Color.BOLD}{Color.CYAN}── TODO ──{Color.RESET}"]
 
-        # Collapse approved tasks into a single summary line with index range
+        # Collapse approved tasks without hiding pending gaps.
         approved_indices = [i+1 for i, t in enumerate(self.todos) if t.status == "approved"]
         if approved_indices:
-            if len(approved_indices) == 1:
-                _range = str(approved_indices[0])
-            else:
-                _range = f"{approved_indices[0]}-{approved_indices[-1]}"
-            lines.append(f"  {Color.success('✅')} {Color.DIM}{_range} approved{Color.RESET}")
+            _range = self._format_index_ranges(approved_indices)
+            lines.append(f"  {Color.success('✅')} {Color.DIM}{len(approved_indices)} approved ({_range}){Color.RESET}")
 
         for i, todo in enumerate(self.todos):
             if todo.status == "approved":

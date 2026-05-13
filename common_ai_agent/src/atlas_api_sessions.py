@@ -85,6 +85,7 @@ def register_sessions_routes(
         multi_user_on = os.environ.get("ATLAS_MULTI_USER", "").strip().lower() in ("1", "true", "yes", "on")
         if multi_user_on and owner and sid != owner:
             return JSONResponse({"error": "session owner mismatch"}, status_code=403)
+        sid = _session_owner_with_model(sid)
         canonical = f"{sid}/{ip}/{wf}"
         def _emit_to_canonical(msg_type: str, **payload: Any) -> None:
             bridge.emit(msg_type, session_id=canonical, **payload)
@@ -131,7 +132,7 @@ def register_sessions_routes(
         # by main.py's `_setup_workspace`, which previously only ran when
         # the WS-bound `/wf <name>` slash command was processed by the
         # chat_loop. That introduced a race where the dropdown flip
-        # activated env but workspace stayed pinned to the previous
+        # activated env but workflow stayed pinned to the previous
         # workflow until the chat_loop got around to it — and if the
         # loop was busy on an LLM call, it never did. Calling
         # _setup_workspace from here decouples the FE flip from chat_loop
@@ -143,7 +144,7 @@ def register_sessions_routes(
             try:
                 _emit_to_canonical(
                     "token",
-                    text=f"🔄 Switching workspace '{prev_wf}' → '{wf}' (ip={ip})…\n",
+                    text=f"🔄 Switching workflow '{prev_wf}' → '{wf}' (ip={ip})…\n",
                 )
                 _emit_to_canonical("flush")
                 _emit_to_canonical("workspace_changing", workspace=wf, prev=prev_wf, ip=ip)
@@ -153,7 +154,7 @@ def register_sessions_routes(
                 setup_workspace(wf)
                 os.environ["ACTIVE_WORKSPACE"] = wf
                 print(
-                    f"[Workspace] {wf!r} loaded via /api/session/activate "
+                    f"[Workflow] {wf!r} loaded via /api/session/activate "
                     f"(prev={prev_wf!r}, ip={ip!r}, owner={sid!r})",
                     flush=True,
                 )
@@ -168,13 +169,13 @@ def register_sessions_routes(
                     )
                     _emit_to_canonical(
                         "token",
-                        text=f"✅ Workspace switched to '{wf}' (was '{prev_wf}') · ip={ip}\n",
+                        text=f"✅ Workflow switched to '{wf}' (was '{prev_wf}') · ip={ip}\n",
                     )
                     _emit_to_canonical("flush")
                 except Exception:
                     pass
             except Exception as exc:
-                print(f"[Workspace] activate→setup_workspace({wf!r}) failed: {exc}",
+                print(f"[Workflow] activate→setup_workspace({wf!r}) failed: {exc}",
                       flush=True)
         if triple_changed:
             try:
@@ -566,3 +567,22 @@ def register_sessions_routes(
         except Exception as e:
             print(f"api_activate_session error: {e}")
             return JSONResponse({"error": str(e)}, status_code=500)
+    def _session_owner_with_model(owner: str) -> str:
+        base = str(owner or "default").strip() or "default"
+        enabled = os.environ.get("ATLAS_SESSION_PER_MODEL", "1").strip().lower() in ("1", "true", "yes", "on")
+        if not enabled:
+            return base
+        raw_model = (
+            os.environ.get("LLM_ACTIVE_MODEL_NAME")
+            or os.environ.get("MODEL_NAME")
+            or os.environ.get("LLM_MODEL_NAME")
+            or ""
+        ).strip()
+        if not raw_model:
+            return base
+        model_slug = re.sub(r"[^A-Za-z0-9_-]+", "_", raw_model).strip("_")
+        if not model_slug:
+            return base
+        if base.endswith(f"__{model_slug}"):
+            return base
+        return f"{base}__{model_slug}"

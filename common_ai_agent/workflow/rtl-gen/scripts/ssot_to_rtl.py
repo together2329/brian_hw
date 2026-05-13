@@ -1391,7 +1391,15 @@ def _expand_relative_refs(refs: list[str]) -> list[str]:
 
 def _ref_is_covered(ref: str, owners: list[str]) -> bool:
     for owner in owners:
-        if ref == owner or ref.startswith(owner + ".") or _ref_leaf_strong_match(ref, owner):
+        ref_l = str(ref or "").lower()
+        owner_l = str(owner or "").lower()
+        if (
+            ref == owner
+            or ref.startswith(owner + ".")
+            or ref_l == owner_l
+            or ref_l.startswith(owner_l + ".")
+            or _ref_leaf_strong_match(ref, owner)
+        ):
             return True
     return False
 
@@ -1430,6 +1438,27 @@ def _module_owned_behavior_refs(doc: dict, top: str) -> dict[str, list[str]]:
         for ref in _module_declared_refs(sm):
             if ref == "function_model" or ref.startswith("function_model."):
                 owned["function_model_refs"].append(ref)
+            if ref in {"decomposition", "functional_decomposition"} or ref.startswith(("decomposition.", "functional_decomposition.")):
+                owned["decomposition_refs"].append(ref)
+    # Wiring-only top wrappers still own structural integration intent. They
+    # must not satisfy function_model ownership, but their decomposition_refs
+    # should close structural refs such as decomposition.units.top_integration.
+    for sm in _manifest_submodules(doc):
+        if not isinstance(sm, dict):
+            continue
+        name = _ident(sm.get("name") or "")
+        rel = str(sm.get("file") or "").strip()
+        path_stem = _ident(Path(rel).stem) if rel else ""
+        wiring_only = sm.get("wiring_only") is True or str(sm.get("kind") or "").lower() in {
+            "wrapper",
+            "adapter",
+            "tieoff",
+            "tie_off",
+        }
+        if not wiring_only and name not in {top, f"{top}_top", "top", "wrapper"} and path_stem not in {top, f"{top}_top", "top", "wrapper"}:
+            continue
+        owned["decomposition_refs"].extend(_contract_ref_values(sm.get("decomposition_refs")))
+        for ref in _module_declared_refs(sm):
             if ref in {"decomposition", "functional_decomposition"} or ref.startswith(("decomposition.", "functional_decomposition.")):
                 owned["decomposition_refs"].append(ref)
     return {

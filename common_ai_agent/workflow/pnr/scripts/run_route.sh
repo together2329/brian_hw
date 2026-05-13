@@ -18,6 +18,7 @@ TOP=$(pnr_top_from_ssot "${IP}")
 SDC="${IP}/sta/out/${IP}.sdc"
 CTS_DEF="${IP}/pnr/out/cts.def"
 CTS_NET="${IP}/pnr/out/cts.v"
+ROUTE_DEF="${IP}/pnr/out/cts_route.def"
 TCL="${IP}/pnr/tcl/route.tcl"
 DEF="${IP}/pnr/out/routed.def"
 NET="${IP}/pnr/out/routed.v"
@@ -29,11 +30,31 @@ mkdir -p "${IP}/pnr/tcl" "${IP}/pnr/out"
 pnr_check_stale "CTS"     "${CTS_DEF}" "${DEF}"  || exit $?
 pnr_check_stale "CTS-NET" "${CTS_NET}" "${NET}"  || exit $?
 
+python3 - "${CTS_DEF}" "${ROUTE_DEF}" <<'PY'
+import pathlib
+import re
+import sys
+
+src, dst = map(pathlib.Path, sys.argv[1:3])
+const_nets = {"zero_", "one_", "const0", "const1", "_zero_", "_one_"}
+changed = 0
+out = []
+for line in src.read_text(encoding="utf-8", errors="replace").splitlines():
+    match = re.match(r"^(\s*-\s+)(\S+)(\b.*\+\s+USE\s+)(GROUND|POWER)(\s*;.*)$", line)
+    if match and match.group(2).lower() in const_nets:
+        line = "".join([match.group(1), match.group(2), match.group(3), "SIGNAL", match.group(5)])
+        changed += 1
+    out.append(line)
+dst.write_text("\n".join(out) + "\n", encoding="utf-8")
+if changed:
+    print(f"[PNR-ROUTE] normalized {changed} constant tie net(s) to USE SIGNAL for detailed_route")
+PY
+
 cat > "${TCL}" <<EOF
 read_lef ${SKY130_TLEF}
 read_lef ${SKY130_LEF}
 read_liberty ${SKY130_LIB}
-read_def ${CTS_DEF}
+read_def ${ROUTE_DEF}
 read_sdc ${SDC}
 
 global_route -guide_file ${IP}/pnr/out/route.guide

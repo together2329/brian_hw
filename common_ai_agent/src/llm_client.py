@@ -606,15 +606,23 @@ def _persistent_post(url: str, headers: dict, body: bytes, timeout: int = 300):
         path = f"{path}?{parsed.query}"
 
     req_headers = dict(headers)
-    req_headers["Connection"] = "keep-alive"
+    host_l = host.lower()
+    # Some coding endpoints (notably Z.AI GLM / Kimi coding) are more stable
+    # with short-lived connections for large generation payloads.
+    force_close = os.getenv("LLM_FORCE_CONNECTION_CLOSE", "0") == "1"
+    if not force_close and os.getenv("LLM_FORCE_CONNECTION_CLOSE_FOR_ZAI_KIMI", "1") == "1":
+        if ("api.z.ai" in host_l) or ("api.kimi.com" in host_l):
+            force_close = True
+    req_headers["Connection"] = "close" if force_close else "keep-alive"
 
     global _last_post_reused
     for attempt in range(2):
-        conn = _http_conn_pool.get(host)
+        conn = None if force_close else _http_conn_pool.get(host)
         _was_alive = conn is not None and conn.sock is not None
         if conn is None:
             conn = _make_https_conn(host, timeout=timeout)
-            _http_conn_pool[host] = conn
+            if not force_close:
+                _http_conn_pool[host] = conn
         else:
             # Update socket timeout on reuse — pooled connections keep the timeout
             # from when they were first created (set at connect() time).  Without
@@ -632,7 +640,7 @@ def _persistent_post(url: str, headers: dict, body: bytes, timeout: int = 300):
             if resp.status >= 400:
                 body_bytes = resp.read()  # fully drain before raising
                 raise _PersistentHTTPError(url, resp.status, resp.reason, body_bytes)
-            _last_post_reused = _was_alive and attempt == 0
+            _last_post_reused = _was_alive and attempt == 0 and (not force_close)
             return resp
         except _PersistentHTTPError:
             raise

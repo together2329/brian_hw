@@ -58,6 +58,7 @@ SSOT_REQUIRED_KEYS = [
     "integration",
     "dft",
     "synthesis",
+    "pnr",
     "coding_rules",
     "reuse_modules",
     "custom",
@@ -183,6 +184,11 @@ def _write_json(path: Path, data: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
+def _append_jsonl(path: Path, data: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(data, sort_keys=True) + "\n")
+
 
 def _clip(text: str, limit: int = 12000) -> str:
     if len(text) <= limit:
@@ -246,12 +252,12 @@ def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
         "top_module": {"name": ip},
         "sub_modules": [
             {
-                "name": f"{ip}_core",
+                "name": ip,
                 "file": f"rtl/{ip}.sv",
                 "ownership": "manifest",
                 "implements": ["function_model.transactions", "cycle_model", "rtl_contract"],
                 "source_sections": ["io_list", "function_model", "cycle_model", "rtl_contract"],
-                "description": "Single small RTL block implementing the sampled transaction rule.",
+                "description": "Single top RTL block implementing the sampled transaction rule.",
             }
         ],
         "parameters": [
@@ -364,11 +370,11 @@ def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
         "interrupts": {"sources": [], "outputs": [], "rationale": "No interrupt behavior required for this rule IP."},
         "fsm": {
             "control": {
-                "states": ["IDLE", "RESULT"],
-                "reset_state": "IDLE",
+                "states": ["S0_SAMPLE", "S1_RESULT"],
+                "reset_state": "S0_SAMPLE",
                 "transitions": [
-                    {"from": "IDLE", "to": "RESULT", "condition": "valid", "action": "Latch input value."},
-                    {"from": "RESULT", "to": "IDLE", "condition": "next cycle", "action": "Emit result_valid."},
+                    {"from": "S0_SAMPLE", "to": "S1_RESULT", "condition": "valid", "action": "Latch input value."},
+                    {"from": "S1_RESULT", "to": "S0_SAMPLE", "condition": "next cycle", "action": "Emit result_valid."},
                 ],
             }
         },
@@ -419,7 +425,16 @@ def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
         "synthesis": {
             "dialect": "systemverilog_2012",
             "constraints": ["No inferred latches", "No unresolved black boxes"],
-            "required_outputs": ["rtl compile log", "dut lint report"],
+            "required_outputs": ["rtl compile log", "dut lint report", "syn/out/synth.v"],
+        },
+        "pnr": {
+            "utilization_pct": 60,
+            "aspect_ratio": 1.0,
+            "core_space_um": 2.0,
+            "global_density": 0.65,
+            "io_layers": {"horizontal": "met3", "vertical": "met2"},
+            "cts_buf_list": ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"],
+            "routing": {"signal_layers": {"min": "met1", "max": "met5"}, "drc_waivers": []},
         },
         "coding_rules": {
             "verilog_style": "systemverilog_2012",
@@ -522,7 +537,7 @@ def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
                         "DUT-only compile/lint and rtl_todo_plan audit pass after the final edit",
                     ],
                     "source_refs": ["function_model.transactions.RULE_DOUBLE", "cycle_model.pipeline"],
-                    "owner_module": f"{ip}_core",
+                    "owner_module": ip,
                     "owner_file": f"rtl/{ip}.sv",
                     "priority": "high",
                     "required": True,
@@ -604,9 +619,9 @@ module {ip} (
     wire function_model_transactions_FM_PRIMARY = dataflow_sequence;
     wire cycle_model_pipeline_S0_SAMPLE = function_model_transactions_FM_PRIMARY;
     wire cycle_model_pipeline_S1_RESULT = cycle_model_pipeline_S0_SAMPLE;
-    wire fsm_control_IDLE = cycle_model_pipeline_S1_RESULT;
-    wire fsm_control_RESULT = fsm_control_IDLE;
-    wire coverage_FCOV_RULE_DOUBLE = fsm_control_RESULT;
+    wire fsm_control_S0_SAMPLE = cycle_model_pipeline_S1_RESULT;
+    wire fsm_control_S1_RESULT = fsm_control_S0_SAMPLE;
+    wire coverage_FCOV_RULE_DOUBLE = fsm_control_S1_RESULT;
     wire quality_gates_rtl = coverage_FCOV_RULE_DOUBLE;
     wire workflow_todos_rtl_gen = quality_gates_rtl;
     wire ssot_evidence_keep = workflow_todos_rtl_gen;
@@ -787,13 +802,33 @@ class RealLLMProvider:
     def __init__(self, required_model: str = "", timeout_s: int | None = None) -> None:
         self.required_model = required_model
         self.timeout_s = int(timeout_s or os.getenv("ATLAS_HEADLESS_LLM_TIMEOUT", "180"))
+        self.retry_count = max(0, int(os.getenv("ATLAS_HEADLESS_LLM_RETRIES", "2")))
+        self.retry_backoff_s = max(0.0, float(os.getenv("ATLAS_HEADLESS_LLM_RETRY_BACKOFF_S", "2.0")))
+
+    def _activate_requested_model(self, model: str) -> tuple[str, str]:
+        """Resolve profile-style --model values before live provider calls."""
+
+        requested = str(model or "").strip()
+        if not requested:
+            return requested, ""
+        try:
+            try:
+                from src import config
+            except ModuleNotFoundError:
+                import config
+            if config.set_active_profile(requested):
+                return str(config.MODEL_NAME or requested), requested
+        except Exception:
+            return requested, ""
+        return requested, ""
 
     def available_reason(self, model: str) -> str:
         if self.required_model and model != self.required_model:
             return f"required model {self.required_model}, got {model}"
         if os.getenv("ATLAS_RUN_REAL_LLM_TDD") != "1":
             return "ATLAS_RUN_REAL_LLM_TDD=1 is not set"
-        model_l = (model or "").lower()
+        resolved_model, _profile = self._activate_requested_model(model)
+        model_l = (resolved_model or "").lower()
         if model_l.startswith("openai/"):
             model_l = model_l.split("/", 1)[1]
         if model_l.startswith("gpt-5") or ("gpt" in model_l and "codex" in model_l):
@@ -832,15 +867,19 @@ class RealLLMProvider:
         blocker = self.available_reason(model)
         if blocker:
             return LLMResponse(stage=stage, model=model, raw_response="", error=blocker, status="blocked")
+        resolved_model, profile_name = self._activate_requested_model(model)
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": prompt},
         ]
+        stage_max_tokens = int(os.getenv(f"ATLAS_HEADLESS_LLM_MAX_TOKENS_{stage.upper().replace('-', '_')}", "0") or 0)
+        default_max_tokens = int(os.getenv("ATLAS_HEADLESS_LLM_MAX_TOKENS", "12000"))
         request = {
             "messages": messages,
-            "model": model,
+            "model": resolved_model or model,
+            "profile": profile_name,
             "caller_tag": f"headless.{stage}",
-            "max_tokens": int(os.getenv("ATLAS_HEADLESS_LLM_MAX_TOKENS", "12000")),
+            "max_tokens": stage_max_tokens if stage_max_tokens > 0 else default_max_tokens,
         }
         if output_schema and os.getenv("ATLAS_HEADLESS_LLM_JSON_MODE", "1") != "0":
             request["extra_body"] = {"response_format": {"type": "json_object"}}
@@ -859,9 +898,19 @@ try:
         from src import config
     except ModuleNotFoundError:
         import config
-    if config.is_opencode_model(req["model"]):
+    profile = str(req.get("profile") or "").strip()
+    if profile:
+        config.set_active_profile(profile)
+        req["model"] = config.MODEL_NAME
+    elif config.set_active_profile(req["model"]):
+        req["model"] = config.MODEL_NAME
+    elif config.is_opencode_model(req["model"]):
         config.activate_opencode_oauth(req["model"])
-    from src.llm_client import call_llm_raw
+    from src.llm_client import call_llm_raw, get_last_usage
+    try:
+        from lib.model_pricing import get_active_pricing
+    except Exception:
+        get_active_pricing = None
     raw = call_llm_raw(
         messages=req["messages"],
         temperature=0.1,
@@ -870,60 +919,120 @@ try:
         max_tokens=req.get("max_tokens"),
         extra_body=req.get("extra_body"),
     )
-    print(json.dumps({"raw": raw, "error": ""}))
+    usage = get_last_usage() or {}
+    cost = {}
+    try:
+        if usage and get_active_pricing is not None:
+            price = get_active_pricing()
+            if price is not None:
+                in_tok = int(usage.get("input", 0) or 0)
+                out_tok = int(usage.get("output", 0) or 0)
+                cache_tok = int(usage.get("cache_read", 0) or 0)
+                billable_in = max(0, in_tok - cache_tok)
+                cost_usd = (
+                    billable_in * float(price.input)
+                    + cache_tok * float(price.cache)
+                    + out_tok * float(price.output)
+                ) / 1_000_000.0
+                cost = {
+                    "usd": cost_usd,
+                    "pricing_per_1m": {
+                        "input": float(price.input),
+                        "cache": float(price.cache),
+                        "output": float(price.output),
+                    },
+                }
+    except Exception:
+        cost = {}
+    print(json.dumps({"raw": raw, "usage": usage, "cost": cost, "error": ""}))
 except BaseException as exc:
-    print(json.dumps({"raw": "", "error": repr(exc)}))
+    print(json.dumps({"raw": "", "usage": {}, "cost": {}, "error": repr(exc)}))
     raise SystemExit(1)
 '''
-        with tempfile.TemporaryDirectory(prefix="atlas_headless_llm_") as tmp:
-            req_path = Path(tmp) / "request.json"
-            req_path.write_text(json.dumps(request), encoding="utf-8")
-            try:
-                proc = subprocess.run(
-                    [sys.executable, "-c", child_code, str(req_path)],
-                    cwd=str(SOURCE_ROOT),
-                    text=True,
-                    capture_output=True,
-                    timeout=self.timeout_s,
+        last_error = ""
+        last_raw = ""
+        last_usage: dict[str, Any] = {}
+        for attempt in range(self.retry_count + 1):
+            with tempfile.TemporaryDirectory(prefix="atlas_headless_llm_") as tmp:
+                req_path = Path(tmp) / "request.json"
+                req_path.write_text(json.dumps(request), encoding="utf-8")
+                try:
+                    proc = subprocess.run(
+                        [sys.executable, "-c", child_code, str(req_path)],
+                        cwd=str(SOURCE_ROOT),
+                        text=True,
+                        capture_output=True,
+                        timeout=self.timeout_s,
+                    )
+                except subprocess.TimeoutExpired:
+                    last_error = f"real provider timed out after {self.timeout_s}s"
+                    proc = None
+                stdout = (proc.stdout or "").strip() if proc is not None else ""
+                try:
+                    payload = json.loads(stdout.splitlines()[-1]) if stdout else {}
+                except Exception:
+                    payload = {}
+
+                payload_usage = payload.get("usage") if isinstance(payload.get("usage"), dict) else {}
+                payload_cost = payload.get("cost") if isinstance(payload.get("cost"), dict) else {}
+                combined_usage = dict(payload_usage)
+                if payload_cost:
+                    combined_usage["cost"] = payload_cost
+                last_usage = combined_usage
+
+                raw = str(payload.get("raw") or "")
+                last_raw = raw
+                if proc is not None and proc.returncode == 0 and str(raw or "").strip() and not str(raw).startswith("Error calling LLM:"):
+                    break
+
+                if proc is None:
+                    last_error = last_error or f"real provider timed out after {self.timeout_s}s"
+                elif proc.returncode != 0:
+                    last_error = str(payload.get("error") or proc.stderr or f"real provider child exited {proc.returncode}")
+                else:
+                    last_error = str(raw or "empty output")
+
+                should_retry = (
+                    "Remote end closed connection without response" in last_error
+                    or "timed out" in last_error.lower()
+                    or not str(raw or "").strip()
+                    or str(raw).startswith("Error calling LLM:")
                 )
-            except subprocess.TimeoutExpired:
+                if attempt < self.retry_count and should_retry:
+                    time.sleep(self.retry_backoff_s * (attempt + 1))
+                    continue
                 return LLMResponse(
                     stage=stage,
-                    model=model,
-                    raw_response="",
-                    error=f"real provider timed out after {self.timeout_s}s",
+                    model=resolved_model or model,
+                    raw_response=last_raw,
+                    usage=last_usage,
+                    error=last_error or "real provider failed",
                     status="blocked",
                 )
-        stdout = (proc.stdout or "").strip()
-        try:
-            payload = json.loads(stdout.splitlines()[-1]) if stdout else {}
-        except Exception:
-            payload = {}
-        if proc.returncode != 0:
-            return LLMResponse(
-                stage=stage,
-                model=model,
-                raw_response=str(payload.get("raw") or stdout),
-                error=str(payload.get("error") or proc.stderr or f"real provider child exited {proc.returncode}"),
-                status="blocked",
-            )
-        raw = str(payload.get("raw") or "")
-        if not str(raw or "").strip() or str(raw).startswith("Error calling LLM:"):
-            return LLMResponse(stage=stage, model=model, raw_response=str(raw or ""), error=str(raw or "empty output"), status="blocked")
+
+        combined_usage = last_usage
+        raw = last_raw
         ip = _safe_name(str(context.get("ip") or "headless_ip"), "headless_ip")
         artifacts = parse_llm_artifacts(stage, str(raw), ip=ip)
         data = _json_from_text(str(raw)) or {}
         if isinstance(data.get("human_gate"), dict):
-            return LLMResponse(stage=stage, model=model, raw_response=str(raw), error="model requested human_gate", status="human_gate")
+            return LLMResponse(stage=stage, model=resolved_model or model, raw_response=str(raw), error="model requested human_gate", status="human_gate")
         if stage in {"ssot-gen", "rtl-gen", "tb-gen"} and not artifacts:
             return LLMResponse(
                 stage=stage,
-                model=model,
+                model=resolved_model or model,
                 raw_response=str(raw),
+                usage=combined_usage,
                 error=f"model output did not contain expected JSON object with files[] {stage} artifact",
                 status="blocked",
             )
-        return LLMResponse(stage=stage, model=model, raw_response=str(raw), parsed_artifacts=artifacts)
+        return LLMResponse(
+            stage=stage,
+            model=resolved_model or model,
+            raw_response=str(raw),
+            parsed_artifacts=artifacts,
+            usage=combined_usage,
+        )
 
 
 def _json_from_text(text: str) -> dict[str, Any] | None:
@@ -954,6 +1063,12 @@ def _yaml_from_text(text: str) -> str:
     if "top_module:" in text and "function_model:" in text:
         return text.strip() + "\n"
     return ""
+
+
+def _response_declares_empty_files(response: LLMResponse) -> bool:
+    data = _json_from_text(response.raw_response) or {}
+    files = data.get("files")
+    return isinstance(files, list) and not files
 
 
 def parse_llm_artifacts(stage: str, raw_response: str, *, ip: str) -> list[dict[str, Any]]:
@@ -1025,6 +1140,34 @@ class HeadlessWorkflowRunner:
 
     def _log_dir(self, ip: str) -> Path:
         return self._ip_dir(ip) / "logs" / "llm"
+
+    def _progress_log_path(self, ip: str) -> Path:
+        return self._ip_dir(ip) / "logs" / "run_progress.jsonl"
+
+    def _llm_trace_path(self, ip: str) -> Path:
+        return self._ip_dir(ip) / "logs" / "llm_call_trace.jsonl"
+
+    def _heartbeat_path(self, ip: str) -> Path:
+        return self._ip_dir(ip) / "logs" / "heartbeat.json"
+
+    def _write_progress(self, ip: str, event: str, **fields: Any) -> None:
+        _append_jsonl(
+            self._progress_log_path(ip),
+            {
+                "ts": _utc(),
+                "event": event,
+                **fields,
+            },
+        )
+
+    def _write_heartbeat(self, ip: str, **fields: Any) -> None:
+        _write_json(
+            self._heartbeat_path(ip),
+            {
+                "ts": _utc(),
+                **fields,
+            },
+        )
 
     def _question_path(self, ip: str, stage: str, topic: str) -> Path:
         return self._ip_dir(ip) / "questions" / f"{_safe_name(stage)}_{_safe_name(topic, 'decision')}.json"
@@ -1245,6 +1388,22 @@ class HeadlessWorkflowRunner:
             if prompt is None:
                 prompt = default_prompt
         started = _utc()
+        llm_start = time.time()
+        self._write_progress(
+            ip,
+            "llm_call_start",
+            stage=stage,
+            log_stage=(log_stage or stage),
+            model=self.model,
+        )
+        self._write_heartbeat(
+            ip,
+            state="running",
+            phase="llm_call",
+            stage=stage,
+            log_stage=(log_stage or stage),
+            model=self.model,
+        )
         response = self.llm_provider.complete(
             stage=stage,
             model=self.model,
@@ -1253,8 +1412,32 @@ class HeadlessWorkflowRunner:
             context=context,
             output_schema={"type": "artifact_files_or_human_gate"},
         )
+        llm_elapsed = time.time() - llm_start
         finished = _utc()
         self._write_llm_log(ip, log_stage or stage, response, prompt=prompt, context=context, started_at=started, finished_at=finished)
+        _append_jsonl(
+            self._llm_trace_path(ip),
+            {
+                "ts": finished,
+                "stage": stage,
+                "log_stage": (log_stage or stage),
+                "model": self.model,
+                "status": response.status,
+                "error": response.error,
+                "elapsed_sec": round(llm_elapsed, 3),
+                "usage": response.usage if isinstance(response.usage, dict) else {},
+            },
+        )
+        self._write_progress(
+            ip,
+            "llm_call_end",
+            stage=stage,
+            log_stage=(log_stage or stage),
+            model=self.model,
+            status=response.status,
+            elapsed_sec=round(llm_elapsed, 3),
+            error=response.error,
+        )
         return response
 
     def _write_llm_log(
@@ -1350,6 +1533,83 @@ class HeadlessWorkflowRunner:
             target.write_text(str(item.get("content") or ""), encoding="utf-8")
             written.append(str(rel))
         return written
+
+    def _ensure_generic_rtl_contract(self, ip: str) -> bool:
+        ip_dir = self._ip_dir(ip)
+        contract_path = ip_dir / "rtl" / "rtl_contract.json"
+        existing = _read_json(contract_path)
+        if existing.get("type") == "generic_ssot_rule_rtl_contract":
+            return False
+        ssot_path = ip_dir / "yaml" / f"{ip}.ssot.yaml"
+        if not ssot_path.is_file():
+            return False
+        try:
+            doc = yaml.safe_load(ssot_path.read_text(encoding="utf-8")) or {}
+        except Exception:
+            return False
+        rtl_contract = doc.get("rtl_contract") if isinstance(doc.get("rtl_contract"), dict) else {}
+        if not rtl_contract:
+            return False
+        fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+        transactions = [item for item in fm.get("transactions") or [] if isinstance(item, dict)]
+        tx = transactions[0] if transactions else {}
+        outputs: list[dict[str, Any]] = []
+        for rule in tx.get("output_rules") or []:
+            if not isinstance(rule, dict):
+                continue
+            name = str(rule.get("name") or rule.get("port") or "result")
+            port = str(rule.get("port") or name)
+            outputs.append({
+                "name": name,
+                "port": port,
+                "expr": rule.get("expr") or "",
+                "width": rule.get("width") or 1,
+                "source": rule,
+            })
+        state_vars = {
+            str(item.get("name")): {"width": item.get("width") or 1, "reset": item.get("reset", 0)}
+            for item in fm.get("state_variables") or []
+            if isinstance(item, dict) and str(item.get("name") or "").strip()
+        }
+        state_updates = []
+        for item in tx.get("state_updates") or []:
+            if not isinstance(item, dict):
+                continue
+            state_updates.append({
+                "name": item.get("name"),
+                "expr": item.get("expr") or "",
+                "width": item.get("width") or state_vars.get(str(item.get("name")), {}).get("width", 1),
+                "source": item,
+            })
+        payload = {
+            "schema_version": 1,
+            "type": "generic_ssot_rule_rtl_contract",
+            "top": ip,
+            "contract": {
+                "top": ip,
+                "transaction": rtl_contract.get("transaction") or tx.get("id") or "FM_PRIMARY",
+                "clock": rtl_contract.get("clock") or "clk",
+                "reset": rtl_contract.get("reset") or "rst_n",
+                "reset_active": rtl_contract.get("reset_active") or "low",
+                "sample_condition": rtl_contract.get("sample_condition") or "1'b1",
+                "input_map": rtl_contract.get("input_map") if isinstance(rtl_contract.get("input_map"), dict) else {},
+                "outputs": outputs,
+                "state_vars": state_vars,
+                "state_updates": state_updates,
+                "special_outputs": {
+                    key: value
+                    for key, value in {
+                        "ready_output": rtl_contract.get("ready_output"),
+                        "output_valid": rtl_contract.get("output_valid"),
+                    }.items()
+                    if value
+                },
+                "source": "SSOT rtl_contract + function_model generated by common_ai_agent headless runner",
+            },
+        }
+        contract_path.parent.mkdir(parents=True, exist_ok=True)
+        _write_json(contract_path, payload)
+        return True
 
     def _check_ssot_contract(self, ip: str, *, emit_gate: bool = True) -> StageResult:
         path = self._ip_dir(ip) / "yaml" / f"{ip}.ssot.yaml"
@@ -1645,7 +1905,20 @@ class HeadlessWorkflowRunner:
         summary = packet.get("summary") if isinstance(packet.get("summary"), dict) else {}
         policy = packet.get("execution_policy") if isinstance(packet.get("execution_policy"), dict) else {}
         if "llm_actionable_open_count" in policy:
-            return int(policy.get("llm_actionable_open_count") or 0) > 0
+            if int(policy.get("llm_actionable_open_count") or 0) > 0:
+                return True
+            tool_blockers = policy.get("blocked_by_tool_evidence")
+            if isinstance(tool_blockers, list):
+                for item in tool_blockers:
+                    if not isinstance(item, dict):
+                        continue
+                    gate_kind = str(item.get("gate_kind") or "")
+                    reason = str(item.get("reason") or "").lower()
+                    if gate_kind in {"dut_compile", "dut_lint"} and any(
+                        term in reason for term in ("not clean", "fail", "warning", "error")
+                    ):
+                        return True
+            return False
         if "llm_actionable" in policy:
             return bool(policy.get("llm_actionable"))
         if "open_required_count" in summary:
@@ -1668,9 +1941,15 @@ class HeadlessWorkflowRunner:
     def _rtl_packet_batch_limit(self) -> int:
         raw = os.getenv("ATLAS_HEADLESS_RTL_PACKET_MAX_PER_PASS", str(DEFAULT_RTL_PACKET_MAX_PER_PASS)).strip()
         try:
-            return max(0, int(raw))
+            configured = max(0, int(raw))
         except ValueError:
-            return DEFAULT_RTL_PACKET_MAX_PER_PASS
+            configured = DEFAULT_RTL_PACKET_MAX_PER_PASS
+        model_l = str(self.model or "").lower()
+        if "glm" in model_l or "kimi" in model_l:
+            # GLM/Kimi coding endpoints are more fragile on large RTL packet batches.
+            # Use smaller default batches unless the user explicitly forces a lower value.
+            return min(configured, max(1, int(os.getenv("ATLAS_HEADLESS_RTL_PACKET_MAX_PER_PASS_GLM_KIMI", "1"))))
+        return configured
 
     def _rtl_packet_pass_budget(self, plan: dict[str, Any]) -> int:
         raw = os.getenv("ATLAS_HEADLESS_RTL_PACKET_MAX_PASSES", "").strip()
@@ -1691,8 +1970,17 @@ class HeadlessWorkflowRunner:
     def _rtl_packet_work_batch(self, plan: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, int]]:
         packets = self._rtl_packet_entries(plan)
         work_packets = [packet for packet in packets if self._rtl_packet_needs_llm(packet)]
+        primary_packets = [
+            packet
+            for packet in work_packets
+            if str(packet.get("packet_id") or Path(str(packet.get("json") or "")).stem) != "rtl_gate_evidence_closure"
+        ]
+        # Evidence-closure packets depend on fresh compile/lint/audit results from
+        # prior module edits. If module packets are still open, defer closure to
+        # the next pass so the stage engine can regenerate tool evidence first.
+        eligible_packets = primary_packets if primary_packets else work_packets
         limit = self._rtl_packet_batch_limit()
-        selected = work_packets[:limit] if limit else work_packets
+        selected = eligible_packets[:limit] if limit else eligible_packets
         return selected, {
             "total_packets": len(packets),
             "work_packets": len(work_packets),
@@ -1757,10 +2045,15 @@ class HeadlessWorkflowRunner:
         plan = self._rtl_authoring_plan(ip)
         provenance_path = ip_dir / "rtl" / "rtl_authoring_provenance.json"
         prior = _read_json(provenance_path)
+        valid_packet_ids = {
+            str(packet.get("packet_id") or "")
+            for packet in self._rtl_packet_entries(plan)
+            if str(packet.get("packet_id") or "").strip()
+        }
         authored_packets = [
             str(item)
             for item in (prior.get("authoring_packets") if isinstance(prior.get("authoring_packets"), list) else [])
-            if str(item).strip()
+            if str(item).strip() and (not valid_packet_ids or str(item) in valid_packet_ids)
         ]
         if packet_id and packet_id not in authored_packets:
             authored_packets.append(packet_id)
@@ -1775,6 +2068,8 @@ class HeadlessWorkflowRunner:
             "agent": "common_ai_agent",
             "workflow": "rtl-gen",
             "surface": "headless_common_engine",
+            "ip": ip,
+            "model": self.model,
             "todo_plan_sha256": _stable_json_sha256(ip_dir / "rtl" / "rtl_todo_plan.json")
             or plan.get("todo_plan_sha256"),
             "rtl_files": existing_rtl,
@@ -1803,6 +2098,7 @@ class HeadlessWorkflowRunner:
         packet_md_path = self._ip_dir(ip) / packet_md_rel
         packet_json = packet_path.read_text(encoding="utf-8", errors="replace") if packet_path.is_file() else "{}"
         packet_md = packet_md_path.read_text(encoding="utf-8", errors="replace") if packet_md_path.is_file() else ""
+        packet_doc = _read_json(packet_path) if packet_path.is_file() else {}
         owner_file_rel = str(packet.get("owner_file") or "").strip()
         owner_file_path = self._ip_dir(ip) / owner_file_rel if owner_file_rel else None
         owner_file_text = (
@@ -1810,6 +2106,26 @@ class HeadlessWorkflowRunner:
             if owner_file_path is not None and owner_file_path.is_file()
             else ""
         )
+        tool_artifact_sections: list[str] = []
+        packet_policy = packet_doc.get("execution_policy") if isinstance(packet_doc.get("execution_policy"), dict) else {}
+        tool_plans = packet_policy.get("tool_evidence_plan") if isinstance(packet_policy.get("tool_evidence_plan"), list) else []
+        seen_tool_artifacts: set[str] = set()
+        for tool_plan in tool_plans:
+            if not isinstance(tool_plan, dict):
+                continue
+            for rel in tool_plan.get("artifacts") or []:
+                rel_s = str(rel or "").strip()
+                if not rel_s or rel_s in seen_tool_artifacts:
+                    continue
+                seen_tool_artifacts.add(rel_s)
+                path = self.root / rel_s
+                if not path.is_file():
+                    tool_artifact_sections.append(f"### {rel_s}\n<missing>")
+                    continue
+                tool_artifact_sections.append(
+                    f"### {rel_s}\n{_clip(path.read_text(encoding='utf-8', errors='replace'), 16000)}"
+                )
+        tool_artifacts_text = "\n\n".join(tool_artifact_sections) if tool_artifact_sections else "<none>"
         packet_char_limit = max(8000, int(os.getenv("ATLAS_HEADLESS_RTL_PACKET_MAX_CHARS", "50000")))
         packet_digest = []
         for item in self._rtl_packet_entries(plan):
@@ -1847,6 +2163,37 @@ class HeadlessWorkflowRunner:
             "packets": packet_digest,
             "todo_plan_sha256": plan.get("todo_plan_sha256"),
         }
+        ssot_latency_contract: dict[str, Any] = {}
+        ssot_prompt_text = ""
+        ssot_path = self._ip_dir(ip) / "yaml" / f"{ip}.ssot.yaml"
+        if ssot_path.is_file():
+            ssot_prompt_text = ssot_path.read_text(encoding="utf-8", errors="replace")
+            try:
+                ssot_doc = yaml.safe_load(ssot_prompt_text) or {}
+            except Exception:
+                ssot_doc = {}
+            cm = ssot_doc.get("cycle_model") if isinstance(ssot_doc.get("cycle_model"), dict) else {}
+            rtl_contract = ssot_doc.get("rtl_contract") if isinstance(ssot_doc.get("rtl_contract"), dict) else {}
+            timing = ssot_doc.get("timing") if isinstance(ssot_doc.get("timing"), dict) else {}
+            ssot_latency_contract = {
+                "cycle_model.latency": cm.get("latency"),
+                "cycle_model.pipeline": cm.get("pipeline"),
+                "rtl_contract.sample_condition": rtl_contract.get("sample_condition"),
+                "rtl_contract.output_valid": rtl_contract.get("output_valid"),
+                "timing.latency_budget": timing.get("latency_budget"),
+                "observable_latency_rule": (
+                    "For valid/ready transactions, latency is counted from the accepting clock edge "
+                    "to the first ReadOnly observation of matching result/output_valid. latency=1 means "
+                    "registered outputs for the accepted transaction are visible after that one edge; "
+                    "an input-register stage followed by a result-register stage is latency=2."
+                ),
+                "latency_1_required_rtl_shape": (
+                    "When cycle_model.latency is 1, compute output_rules from the current accepted inputs "
+                    "inside the accept_txn/valid&&ready clocked branch and assign result_valid in that same "
+                    "branch. Do not first store inputs in S0_SAMPLE and then assign outputs in a later "
+                    "S1_RESULT clock edge; that is a forbidden latency-2 implementation."
+                ),
+            }
         schema = (
             "{\n"
             '  "files": [\n'
@@ -1866,6 +2213,7 @@ class HeadlessWorkflowRunner:
             "Packet execution rules:\n"
             "- Author only RTL-owned artifacts for the current packet, plus local notes/contract metadata when useful.\n"
             "- Do not edit SSOT YAML, FunctionalModel, coverage goals, protocol assertions, performance targets, or requirements.\n"
+            "- You cannot read files from the repo during this turn. The required locked SSOT facts are embedded below; do not return requires/missing-file JSON for those paths.\n"
             "- Do not emit placeholder, heartbeat-only, alive-only, or tie-off-only RTL to satisfy a manifest.\n"
             "- For production-profile packets, add real SSOT-scaled implementation depth: state/control/data movement, nonconstant logic, and child wiring must be proportional to the packet tasks.\n"
             "- For a module packet, focus on owner_file and every task content/detail/criteria/source_ref in the packet.\n"
@@ -1874,7 +2222,7 @@ class HeadlessWorkflowRunner:
             "- Return human_gate only when no LLM-actionable open work remains or the missing locked-truth decision blocks correct RTL authoring.\n"
             "- For rtl_gate_evidence_closure, repair only LLM-actionable evidence gaps revealed by compile/lint/audit output; do not claim PASS.\n"
             "- If rtl_gate_evidence_closure includes pending connection_contract_suggestions, you may use them as draft RTL wiring candidates to instantiate child modules and close hierarchy/signal-flow evidence, but they remain pending QA and must not be treated as SSOT authority.\n"
-            "- For rtl_gate_tool_evidence, do not fabricate compile/lint/sim/coverage artifacts; the runner should skip this packet until tools create evidence.\n"
+            "- For rtl_gate_tool_evidence, do not fabricate compile/lint/sim/coverage artifacts. If compile/lint evidence already exists and is not clean, repair the owner RTL that caused the diagnostics; the runner will rerun tools afterward.\n"
             "- For rtl_gate_contract_blocked, return human_gate only; missing SSOT connection contracts block correct top integration semantics.\n"
             "- For rtl_gate_human_closure, return human_gate only; do not invent or edit human-locked authority.\n"
             "- The headless runner will refresh filelist/provenance from LLM-authored artifacts after each packet.\n\n"
@@ -1885,9 +2233,12 @@ class HeadlessWorkflowRunner:
             f"batch limit: {context.get('rtl_packet_batch_limit', 0)}; deferred active packets after this batch: {context.get('rtl_packet_deferred_work_count', 0)}\n"
             f"owner_module: {packet.get('owner_module') or ''}\n"
             f"owner_file: {packet.get('owner_file') or ''}\n\n"
+            f"SSOT observable latency contract:\n{_clip(json.dumps(ssot_latency_contract, indent=2, sort_keys=True), 12000)}\n\n"
+            f"Locked SSOT YAML excerpt ({ip}/yaml/{ip}.ssot.yaml):\n{_clip(ssot_prompt_text, 40000) if ssot_prompt_text else '<missing>'}\n\n"
             f"Base rtl-gen contract:\n{base_prompt}\n\n"
             f"Authoring plan overview:\n{_clip(json.dumps(plan_overview, indent=2, sort_keys=True), 30000)}\n\n"
             f"Current owner RTL file ({owner_file_rel or '<none>'}):\n{_clip(owner_file_text, 30000) if owner_file_text else '<missing or not authored yet>'}\n\n"
+            f"Current tool evidence artifacts referenced by this packet:\n{tool_artifacts_text}\n\n"
             f"Current packet JSON ({packet_rel}):\n{_clip(packet_json, packet_char_limit)}\n\n"
             f"Current packet Markdown ({packet_md_rel}):\n{_clip(packet_md, 16000)}"
         )
@@ -1937,6 +2288,8 @@ class HeadlessWorkflowRunner:
                 prompt=prompt,
                 log_stage=log_stage,
             )
+            if _response_declares_empty_files(response):
+                continue
             if response.status in {"blocked", "human_gate"}:
                 return self._append_llm_gate(ip, "rtl-gen", response, topic=f"packet_{_safe_name(packet_id)}")
             if not response.parsed_artifacts:
@@ -1980,6 +2333,7 @@ class HeadlessWorkflowRunner:
         if prederive.returncode not in {0, 1} or not (self._ip_dir(ip) / "rtl" / "rtl_authoring_plan.json").is_file():
             result = self.stage_engine.run_stage("ssot-rtl", ip)
             if result.status == "pass":
+                self._ensure_generic_rtl_contract(ip)
                 self._write_deterministic_rtl_seed_log(ip, context)
             return self._append_engine_result(result, "rtl-gen", blocker=result.blocker)
 
@@ -1993,6 +2347,7 @@ class HeadlessWorkflowRunner:
             if prederive.returncode not in {0, 1}:
                 result = self.stage_engine.run_stage("ssot-rtl", ip)
                 if result.status == "pass":
+                    self._ensure_generic_rtl_contract(ip)
                     self._write_deterministic_rtl_seed_log(ip, rtl_context)
                 return self._append_engine_result(result, "rtl-gen", blocker=result.blocker)
             self._update_rtl_context_from_todos(ip, rtl_context)
@@ -2040,6 +2395,7 @@ class HeadlessWorkflowRunner:
                 self._refresh_rtl_filelist_and_provenance(ip)
             result = self.stage_engine.run_stage("ssot-rtl", ip)
             if result.status == "pass":
+                self._ensure_generic_rtl_contract(ip)
                 self._write_deterministic_rtl_seed_log(ip, rtl_context)
                 break
             if result.status in {"human_gate", "blocked"} and not self._rtl_result_repairable_by_llm(result):
@@ -2068,6 +2424,7 @@ class HeadlessWorkflowRunner:
             blocker = str(q.relative_to(self.root))
             extra.append(blocker)
         if result.status == "pass":
+            self._ensure_generic_rtl_contract(ip)
             self._write_deterministic_rtl_seed_log(ip, rtl_context)
         return self._append_engine_result(result, "rtl-gen", artifacts=extra, blocker=blocker)
 
@@ -2076,10 +2433,9 @@ class HeadlessWorkflowRunner:
 
     def _stage_tb_gen(self, ip: str, context: dict[str, Any]) -> StageResult:
         response = self._call_llm("tb-gen", ip, context)
-        if response.status == "blocked":
-            q = self._write_human_gate(ip, "tb-gen", "llm_unavailable", decision_needed=response.error or "TB LLM stage blocked")
-            return self._append("tb-gen", "human_gate", response.error, artifacts=[str(q.relative_to(self.root))], blocker=str(q.relative_to(self.root)))
-        self._apply_artifacts(ip, response.parsed_artifacts)
+        if response.status not in {"blocked", "human_gate"}:
+            self._apply_artifacts(ip, response.parsed_artifacts)
+        self._ensure_generic_rtl_contract(ip)
         result = self.stage_engine.run_stage("ssot-tb-cocotb", ip)
         extra: list[str] = []
         blocker = result.blocker
@@ -2130,6 +2486,8 @@ class HeadlessWorkflowRunner:
         ip = _safe_name(ip, "headless_ip")
         self.root.mkdir(parents=True, exist_ok=True)
         self._ip_dir(ip).mkdir(parents=True, exist_ok=True)
+        self._write_progress(ip, "run_start", target_ip=ip, root=str(self.root), model=self.model, stages=stages)
+        self._write_heartbeat(ip, state="running", phase="init", model=self.model, current_stage="")
         self.stages = []
         if requirement_path is not None:
             req_text = self._copy_requirement(ip, Path(requirement_path))
@@ -2149,6 +2507,8 @@ class HeadlessWorkflowRunner:
         }
         for stage in stages:
             canonical = _canonical_headless_stage(stage)
+            self._write_progress(ip, "stage_start", stage=canonical)
+            self._write_heartbeat(ip, state="running", phase="stage", current_stage=canonical, model=self.model)
             if canonical == "ssot-gen":
                 self._run_ssot_generation(ip, context)
             elif canonical == "fl-model-gen":
@@ -2177,7 +2537,22 @@ class HeadlessWorkflowRunner:
                 self._append(canonical, "fail", f"unknown stage {stage}", returncode=2)
 
             if self.stages and self.stages[-1].status in {"fail", "human_gate", "blocked"}:
+                self._write_progress(
+                    ip,
+                    "stage_end",
+                    stage=canonical,
+                    status=self.stages[-1].status,
+                    message=self.stages[-1].message[:400],
+                )
                 break
+            if self.stages:
+                self._write_progress(
+                    ip,
+                    "stage_end",
+                    stage=canonical,
+                    status=self.stages[-1].status,
+                    message=self.stages[-1].message[:400],
+                )
         return self._finish(ip)
 
     def _finish(self, ip: str) -> WorkflowResult:
@@ -2192,7 +2567,103 @@ class HeadlessWorkflowRunner:
         run_log = self._ip_dir(ip) / "logs" / "headless_run.json"
         result = WorkflowResult(ip=ip, status=status, stages=self.stages, root=str(self.root), run_log=str(run_log.relative_to(self.root)))
         _write_json(run_log, result.to_dict())
+        self._write_trace_summary(ip=ip, run_status=status)
+        self._write_progress(ip, "run_end", status=status, run_log=str(run_log))
+        self._write_heartbeat(ip, state="done", phase="finished", status=status, model=self.model)
         return result
+
+    def _write_trace_summary(self, *, ip: str, run_status: str) -> None:
+        llm_dir = self._log_dir(ip)
+        stage_engine_dir = self._ip_dir(ip) / "logs" / "stage_engine"
+        out_path = self._ip_dir(ip) / "logs" / "trace_summary.json"
+
+        by_stage: dict[str, dict[str, Any]] = {}
+        totals: dict[str, Any] = {
+            "calls": 0,
+            "repair_calls": 0,
+            "repair_rate": 0.0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cache_read_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0,
+        }
+
+        llm_files = sorted(llm_dir.glob("*.json"))
+        for path in llm_files:
+            data = _read_json(path)
+            stage_name = str(data.get("stage") or path.stem).strip() or "unknown"
+            usage = data.get("usage") if isinstance(data.get("usage"), dict) else {}
+            cost = usage.get("cost") if isinstance(usage.get("cost"), dict) else {}
+            is_repair = ("repair" in path.stem) or ("repair" in str(data.get("raw_response") or "").lower())
+
+            row = by_stage.setdefault(
+                stage_name,
+                {
+                    "calls": 0,
+                    "repair_calls": 0,
+                    "repair_rate": 0.0,
+                    "input_tokens": 0,
+                    "output_tokens": 0,
+                    "cache_read_tokens": 0,
+                    "total_tokens": 0,
+                    "cost_usd": 0.0,
+                    "models": [],
+                },
+            )
+            row["calls"] += 1
+            row["repair_calls"] += 1 if is_repair else 0
+            row["input_tokens"] += int(usage.get("input", 0) or 0)
+            row["output_tokens"] += int(usage.get("output", 0) or 0)
+            row["cache_read_tokens"] += int(usage.get("cache_read", 0) or 0)
+            row["total_tokens"] += int(usage.get("total", 0) or 0)
+            row["cost_usd"] += float(cost.get("usd", 0.0) or 0.0)
+            model_name = str(data.get("model") or "").strip()
+            if model_name and model_name not in row["models"]:
+                row["models"].append(model_name)
+
+            totals["calls"] += 1
+            totals["repair_calls"] += 1 if is_repair else 0
+            totals["input_tokens"] += int(usage.get("input", 0) or 0)
+            totals["output_tokens"] += int(usage.get("output", 0) or 0)
+            totals["cache_read_tokens"] += int(usage.get("cache_read", 0) or 0)
+            totals["total_tokens"] += int(usage.get("total", 0) or 0)
+            totals["cost_usd"] += float(cost.get("usd", 0.0) or 0.0)
+
+        for row in by_stage.values():
+            calls = int(row.get("calls", 0) or 0)
+            repairs = int(row.get("repair_calls", 0) or 0)
+            row["repair_rate"] = (float(repairs) / float(calls)) if calls else 0.0
+        totals["repair_rate"] = (float(totals["repair_calls"]) / float(totals["calls"])) if totals["calls"] else 0.0
+
+        stage_engine_order: list[dict[str, Any]] = []
+        for stage_file in sorted(stage_engine_dir.glob("*.json")):
+            info = _read_json(stage_file)
+            stage_engine_order.append(
+                {
+                    "stage_engine": stage_file.stem,
+                    "status": str(info.get("status") or "").strip(),
+                    "created_at": str(info.get("created_at") or "").strip(),
+                }
+            )
+
+        blocked_at = ""
+        if self.stages:
+            last = self.stages[-1]
+            if last.status in {"fail", "blocked", "human_gate"}:
+                blocked_at = last.stage
+
+        _write_json(
+            out_path,
+            {
+                "ip": ip,
+                "run_status": run_status,
+                "blocked_at_stage": blocked_at,
+                "llm_log_files": len(llm_files),
+                "llm": {"totals": totals, "by_stage": by_stage},
+                "stage_engine_order": stage_engine_order,
+            },
+        )
 
 
 def _make_provider(kind: str, fixture: str = "") -> LLMProvider:

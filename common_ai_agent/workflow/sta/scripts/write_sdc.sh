@@ -34,12 +34,74 @@ def _g(k, default=None):
     v = data.get(k)
     return v if v is not None else default
 
+def _period_ns(clock):
+    value = clock.get("period_ns") or clock.get("period")
+    if value not in (None, ""):
+        return float(value)
+    freq = clock.get("frequency_mhz") or clock.get("freq_mhz")
+    if freq not in (None, ""):
+        return 1000.0 / max(float(freq), 0.001)
+    return 10.0
+
+def _derive_clocks():
+    clocks = _g("clocks", []) or []
+    if isinstance(clocks, list) and clocks:
+        return clocks
+
+    # Canonical production SSOT keeps clocks under timing.target_clocks.
+    # Mirror them into the STA clock shape so /sta can run directly after /syn.
+    timing = _g("timing", {}) or {}
+    target_clocks = timing.get("target_clocks") if isinstance(timing, dict) else []
+    derived = []
+    for item in target_clocks or []:
+        if not isinstance(item, dict):
+            continue
+        name = item.get("name") or item.get("clock") or "clk"
+        derived.append({
+            **item,
+            "name": name,
+            "period_ns": _period_ns(item),
+            "source_port": item.get("source_port") or item.get("port") or name,
+        })
+    if derived:
+        return derived
+
+    io = _g("io_list", {}) or {}
+    for dom in (io.get("clock_domains") if isinstance(io, dict) else []) or []:
+        if not isinstance(dom, dict):
+            continue
+        name = dom.get("name") or "clk"
+        ports = dom.get("ports") if isinstance(dom.get("ports"), list) else []
+        if ports and isinstance(ports[0], dict) and ports[0].get("name"):
+            name = ports[0]["name"]
+        freq = dom.get("frequency_mhz") or 100
+        derived.append({"name": name, "source_port": name, "period_ns": 1000.0 / max(float(freq), 0.001)})
+    return derived
+
+def _derive_resets():
+    resets = _g("resets", []) or []
+    if isinstance(resets, list) and resets:
+        return resets
+
+    io = _g("io_list", {}) or {}
+    derived = []
+    for item in (io.get("resets") if isinstance(io, dict) else []) or []:
+        if not isinstance(item, dict):
+            continue
+        name = item.get("name") or "rst_n"
+        ports = item.get("ports") if isinstance(item.get("ports"), list) else []
+        if ports and isinstance(ports[0], dict) and ports[0].get("name"):
+            name = ports[0]["name"]
+        sync_async = item.get("sync_async") or item.get("type") or "async"
+        derived.append({**item, "name": name, "source_port": name, "sync_async": sync_async})
+    return derived
+
 # top_module may be a nested dict (20-section SSOT) or a string. Handle both.
 _t = _g("top_module")
 if isinstance(_t, dict): _t = _t.get("name")
 top = _t or _g("top") or ip
-clocks = _g("clocks", []) or []
-resets = _g("resets", []) or []
+clocks = _derive_clocks()
+resets = _derive_resets()
 fpaths = _g("false_paths", []) or []
 mcyc   = _g("multicycle_paths", []) or []
 io_dly = _g("io_delay", {}) or {}
@@ -58,7 +120,7 @@ lines = [
 ]
 for c in clocks:
     name = c.get("name") or "clk"
-    period = c.get("period_ns") or c.get("period") or 10.0
+    period = _period_ns(c)
     src    = c.get("source_port") or c.get("port") or name
     lines.append(f"create_clock -name {name} -period {float(period)} [get_ports {src}]")
 
@@ -67,7 +129,7 @@ lines += ["", "# ── I/O delays (conservative defaults) ───────
 # rejects set_input_delay on a port that already defines a clock.
 for c in clocks:
     name   = c.get("name") or "clk"
-    period = float(c.get("period_ns") or c.get("period") or 10.0)
+    period = _period_ns(c)
     in_d   = period * in_pct
     out_d  = period * out_pct
     lines.append(f"set_input_delay  -clock {name} {in_d:.3f} [all_inputs -no_clocks]")

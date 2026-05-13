@@ -216,9 +216,9 @@ def _setup_workspace(name: str) -> None:
                        and os.path.exists(os.path.join(c, d, "workspace.json"))
                 )
         _avail_str = ", ".join(_available) if _available else "(none found)"
-        print(f"[Workspace] ERROR: workspace '{name}' not found.")
-        print(f"[Workspace] Available workspaces: {_avail_str}")
-        print(f"[Workspace] Aborting. Use a valid workspace name from the list above.")
+        print(f"[Workflow] ERROR: workflow '{name}' not found.")
+        print(f"[Workflow] Available workflows: {_avail_str}")
+        print(f"[Workflow] Aborting. Use a valid workflow name from the list above.")
         sys.exit(1)
 
     # Import loader
@@ -230,12 +230,12 @@ def _setup_workspace(name: str) -> None:
             register_workspace_commands,
         )
     except ImportError as e:
-        print(f"[Workspace] Cannot import workflow.loader: {e}")
+        print(f"[Workflow] Cannot import workflow.loader: {e}")
         return
 
     ws = load_workspace(name, project_root=Path(workflow_root).parent)
     if ws is None:
-        print(f"[Workspace] Failed to load workspace '{name}'.")
+        print(f"[Workflow] Failed to load workflow '{name}'.")
         return
     _workspace_config = ws
 
@@ -411,13 +411,13 @@ def _setup_workspace(name: str) -> None:
         _new_names = register_workspace_commands(ws, _slash_reg)
         _workspace_command_names.extend(_new_names)
     except Exception as e:
-        print(f"[Workspace] Warning: could not register commands: {e}")
+        print(f"[Workflow] Warning: could not register commands: {e}")
 
     # Store description so prompt_builder can include it in the identity line
     if ws.description:
         os.environ["ACTIVE_WORKSPACE_DESC"] = ws.description
 
-    print(f"[Workspace] '{name}' loaded from {workflow_root}/{name}")
+    print(f"[Workflow] '{name}' loaded from {workflow_root}/{name}")
 
 
 # Legacy Sub-Agent System (deprecated - replaced by background agent system in v2)
@@ -2324,10 +2324,10 @@ def chat_loop():
                                     messages[0]["content"] = _new_sys
                                 else:
                                     messages.insert(0, {"role": "system", "content": _new_sys})
-                                _ws_emit(Color.success(f"\n✅ Workspace switched to '{ws_name}' (resumed existing context).\n"))
+                                _ws_emit(Color.success(f"\n✅ Workflow switched to '{ws_name}' (resumed existing context).\n"))
                             else:
                                 messages = [{"role": "system", "content": _new_sys}]
-                                _ws_emit(Color.success(f"\n✅ Workspace switched to '{ws_name}' (new context).\n"))
+                                _ws_emit(Color.success(f"\n✅ Workflow switched to '{ws_name}' (new context).\n"))
                             # Persist and refresh context tracker
                             save_conversation_history(messages)
                             if messages and messages[0].get("role") == "system":
@@ -2380,7 +2380,7 @@ def chat_loop():
                                             _textual_emit_todo_fn("")
                                     except Exception: pass
                         except Exception as _ws_err:
-                            _ws_emit(Color.error(f"\n❌ Failed to switch workspace: {_ws_err}\n"))
+                            _ws_emit(Color.error(f"\n❌ Failed to switch workflow: {_ws_err}\n"))
                         if _textual_emit_flush_fn is not None:
                             try: _textual_emit_flush_fn()
                             except Exception: pass
@@ -2704,8 +2704,8 @@ if __name__ == "__main__":
 
     _parser = _argparse.ArgumentParser(add_help=False)
     _parser.add_argument('-s', '--session', default=None)
-    _parser.add_argument('-w', '--workspace', '-wf', default=None,
-                         help='Workspace name (e.g. default, verilog, spec-review)')
+    _parser.add_argument('-w', '--workspace', '-wf', '--workflow', default=None,
+                         help='Workflow name (e.g. ssot-gen, rtl-gen, tb-gen)')
     _parser.add_argument('--effort', default='',
                          help='Responses API reasoning effort: none|low|medium|high|xhigh')
     _parser.add_argument('--serve', action='store_true',

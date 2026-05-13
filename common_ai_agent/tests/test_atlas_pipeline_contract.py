@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shlex
 from pathlib import Path
 
 import atlas_api_jobs as jobs
@@ -45,6 +46,25 @@ def test_fl_model_workflow_prompt_is_stage_specific() -> None:
 def test_pipeline_workflow_lookup_keeps_first_fl_model_stage() -> None:
     assert jobs._PIPELINE_BY_WORKFLOW["fl-model-gen"]["id"] == "fl-model"
     assert jobs._PIPELINE_BY_WORKFLOW["sim_debug"]["id"] == "sim-debug"
+
+
+def test_worker_launch_command_anchors_to_served_project_root(tmp_path: Path) -> None:
+    command = jobs._worker_launch_command(
+        "http://localhost:8001",
+        "fl-model-gen",
+        "demo_ip/pipeline/abc/01-fl-model-gen",
+        tmp_path,
+        "deepseek",
+    )
+
+    assert command.startswith(f"cd {shlex.quote(str(tmp_path))} && ")
+    assert f"ATLAS_PROJECT_ROOT={shlex.quote(str(tmp_path))}" in command
+    assert "PYTHONPATH=" in command
+    assert "src/main.py" in command
+    assert "--serve --port 8001" in command
+    assert "--workflow fl-model-gen" in command
+    assert "--worker-name fl-model-gen" in command
+    assert "--model deepseek" in command
 
 
 def test_artifact_recovery_recognizes_signoff_stage_outputs(tmp_path: Path) -> None:

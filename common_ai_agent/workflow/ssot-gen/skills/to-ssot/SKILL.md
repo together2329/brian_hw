@@ -67,6 +67,13 @@ enrichment instead of rewriting the whole SSOT:
      outputs, timing/power/security/error/integration/DFT/synthesis
      constraints, reset defaults, error behavior, test scenarios, expected
      results, scoreboard checks, coverage goals, quality gates, and traceability.
+   - For every interface, include machine-readable protocol/timing/handshake
+     rules in addition to ports. Port declarations alone are not enough.
+   - For every register field, include bit range, access, reset, description,
+     reserved behavior, and write/clear side effects where applicable.
+   - Split coverage into `coverage_goals.function` and
+     `coverage_goals.cycle`; each must have target, model, bins, source_refs,
+     classes, and descriptions.
    - Comments are optional; do not add `TODO` comments for behavior that
      rtl-gen needs. Ask/stop instead.
 

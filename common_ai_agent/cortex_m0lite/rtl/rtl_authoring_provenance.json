@@ -1,0 +1,23 @@
+{
+  "agent": "common_ai_agent",
+  "authoring_packets": [
+    "rtl_gate_tool_evidence",
+    "module__cortex_m0lite_core__function_model"
+  ],
+  "contract_files": [
+    "rtl/rtl_contract.json"
+  ],
+  "generation_note": "Headless common engine recorded LLM-authored RTL artifacts from rtl_authoring_plan packets.",
+  "ip": "cortex_m0lite",
+  "model": "gpt-5.3-codex",
+  "rtl_files": [
+    "rtl/cortex_m0lite.sv",
+    "rtl/cortex_m0lite_core.sv"
+  ],
+  "schema_version": 1,
+  "surface": "headless_common_engine",
+  "todo_plan_sha256": "145e32fadb52f8c746f5a8b5245fecfa1c910e209faff81af2c0fad99738e143",
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-05-13T20:53:12Z",
+  "workflow": "rtl-gen"
+}

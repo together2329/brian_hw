@@ -1,0 +1,34 @@
+{
+  "artifacts": [
+    "cortex_m0lite/verify/equivalence_goals.json",
+    "cortex_m0lite/model/functional_model.py",
+    "cortex_m0lite/model/decomposition.json",
+    "cortex_m0lite/cov/fcov_plan.json"
+  ],
+  "blocker": "",
+  "created_at": "2026-05-13T16:05:31Z",
+  "headline": "[ssot-equiv-goals] PASS",
+  "ip": "cortex_m0lite",
+  "message": "[ssot-equiv-goals] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_equivalence_goals.py\nmodule: cortex_m0lite\nsource: cortex_m0lite/yaml/cortex_m0lite.ssot.yaml\ngoals: total=27 required=27 blocked=0 module=1/1\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py cortex_m0lite --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/cortex_m0lite/model/functional_model.py\n[emit_fl_model] decomposition_units=6 fcov_bins=30 passed=True\n- emit_equivalence_goals: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_equivalence_goals.py cortex_m0lite --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[emit_equivalence_goals] wrote cortex_m0lite/verify/equivalence_goals.json\n[emit_equivalence_goals] total=27 required=27 blocked=0\n\nexpected artifacts:\n- cortex_m0lite/verify/equivalence_goals.json\n- cortex_m0lite/model/functional_model.py\n- cortex_m0lite/model/decomposition.json\n- cortex_m0lite/cov/fcov_plan.json",
+  "metadata": {},
+  "returncode": 0,
+  "runs": [
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py cortex_m0lite --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "emit_fl_model",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/cortex_m0lite/model/functional_model.py\n[emit_fl_model] decomposition_units=6 fcov_bins=30 passed=True"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_equivalence_goals.py cortex_m0lite --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "emit_equivalence_goals",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[emit_equivalence_goals] wrote cortex_m0lite/verify/equivalence_goals.json\n[emit_equivalence_goals] total=27 required=27 blocked=0"
+    }
+  ],
+  "stage": "ssot-equiv-goals",
+  "status": "pass",
+  "workflow": "fl-model-gen"
+}

@@ -1,0 +1,32 @@
+2026-05-13T23:15:46 sim=FAIL stage=cocotb rc=1
+2026-05-13T23:17:17 sim=FAIL errors=1 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:19:15 sim=FAIL stage=cocotb rc=1
+2026-05-13T23:19:15 sim=FAIL stage=cocotb rc=1
+2026-05-13T23:19:40 sim=FAIL errors=1 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:19:40 sim=FAIL errors=1 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:20:03 sim=FAIL errors=1 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:20:25 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:20:59 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:20:59 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:21:24 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:21:28 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:21:31 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:21:35 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:21:40 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:21:43 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:21:47 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:21:50 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:21:54 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:21:57 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:22:01 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:22:04 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:22:08 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:22:12 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:22:15 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:22:19 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:22:22 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:22:26 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:22:29 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-13T23:22:33 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=dma/tb/cocotb/test_runner.py
+2026-05-14T01:04:21 sim=PASS errors=0 warnings=0 pass=1 fail=0 tb=cortex_m0lite/tb/cocotb/test_runner.py
+2026-05-14T01:05:32 sim=PASS errors=0 warnings=0 pass=1 fail=0 tb=cortex_m0lite/tb/cocotb/test_runner.py

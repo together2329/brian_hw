@@ -1386,7 +1386,11 @@ class WorkflowStageEngine:
                     timeout_s=90,
                 )
             )
-        status = "pass" if all(run.returncode == 0 for run in runs) else "fail"
+        sim_core_pass = all(run.returncode == 0 for run in runs[:2])
+        cov_blocked = len(runs) >= 3 and runs[2].returncode == 3
+        cov_block_is_fail = os.getenv("ATLAS_COV_BLOCK_IS_FAIL", "1") == "1"
+        coverage_ok = len(runs) < 3 or runs[2].returncode == 0 or (cov_blocked and not cov_block_is_fail)
+        status = "pass" if (sim_core_pass and coverage_ok) else "fail"
         headline = "[sim] PASS" if status == "pass" else "[sim] FAIL"
         lines = [
             headline,
@@ -1397,6 +1401,11 @@ class WorkflowStageEngine:
             f"runner: {rel_runner}",
         ]
         self._append_runs(lines, runs)
+        if cov_blocked:
+            if cov_block_is_fail:
+                lines.append("coverage_note: ssot_coverage_summary returned BLOCKED (rc=3); sim stage treated as FAIL (ATLAS_COV_BLOCK_IS_FAIL=1).")
+            else:
+                lines.append("coverage_note: ssot_coverage_summary returned BLOCKED (rc=3); sim stage treated as PASS due to ATLAS_COV_BLOCK_IS_FAIL=0 override.")
         artifacts = [
             f"{ip}/sim/results.xml or {ip}/tb/cocotb/results.xml",
             f"{ip}/sim/scoreboard_events.jsonl",

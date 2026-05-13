@@ -36,7 +36,7 @@ SZ=$(wc -c < "$YAML" | tr -d ' ')
 [ "$SZ" -lt "$MIN_YAML" ] && { echo "[check_ssot_disk] FAIL: $YAML = ${SZ}B (need ≥${MIN_YAML})"; exit 1; }
 
 # Required canonical keys (spelling matches ssot-template.yaml).
-REQUIRED='top_module|sub_modules|decomposition|rtl_contract|parameters|io_list|features|dataflow|function_model|cycle_model|clock_reset_domains|cdc_requirements|rdc_requirements|registers|memory|interrupts|fsm|timing|power|security|error_handling|debug_observability|integration|dft|synthesis|coding_rules|reuse_modules|custom|dir_structure|filelist|test_requirements|quality_gates|traceability|workflow_todos|generation_flow'
+REQUIRED='top_module|sub_modules|decomposition|rtl_contract|parameters|io_list|features|dataflow|function_model|cycle_model|clock_reset_domains|cdc_requirements|rdc_requirements|registers|memory|interrupts|fsm|timing|power|security|error_handling|debug_observability|integration|dft|synthesis|pnr|coding_rules|reuse_modules|custom|dir_structure|filelist|test_requirements|quality_gates|traceability|workflow_todos|generation_flow'
 HITS=$(grep -cE "^($REQUIRED):" "$YAML" || echo 0)
 if [ "$HITS" -lt "$MIN_SECTIONS" ]; then
     echo "[check_ssot_disk] FAIL: $YAML only has $HITS top-level section keys (need ≥$MIN_SECTIONS)"
@@ -46,6 +46,7 @@ fi
 # YAML parseability via python.
 if command -v python3 >/dev/null 2>&1; then
     python3 - "$YAML" <<'PY' 2>/tmp/_ssot_yaml.err
+import re
 import sys
 from pathlib import Path
 import yaml
@@ -65,6 +66,15 @@ def ci_get(item, *keys):
         if actual is not None:
             return item[actual]
     return None
+
+def present(value):
+    if value is None or value is False:
+        return False
+    if isinstance(value, str):
+        return bool(value.strip()) and value.strip().lower() not in {"none", "n/a", "na", "tbd", "todo", "<tbd>"}
+    if isinstance(value, (list, tuple, set, dict)):
+        return bool(value)
+    return True
 
 def as_list(value):
     if isinstance(value, list):
@@ -145,7 +155,110 @@ def explicit_connection_contract_todo(items):
             return True
     return False
 
-required = "top_module sub_modules decomposition parameters io_list features dataflow function_model cycle_model clock_reset_domains cdc_requirements rdc_requirements registers memory interrupts fsm timing power security error_handling debug_observability integration dft synthesis coding_rules reuse_modules custom dir_structure filelist test_requirements quality_gates traceability workflow_todos generation_flow".split()
+def require_present(value, path):
+    if not present(value):
+        raise SystemExit(f"{path} is required")
+    return value
+
+def require_bit_range(field, path):
+    bits = ci_get(field, "bits", "bit_range", "range")
+    if isinstance(bits, list) and len(bits) == 2 and all(present(v) for v in bits):
+        return
+    if isinstance(bits, str) and re.search(r"\d+\s*[:,-]\s*\d+", bits):
+        return
+    if present(ci_get(field, "msb")) and present(ci_get(field, "lsb")):
+        return
+    if present(ci_get(field, "lsb")) and present(ci_get(field, "width", "bit_width")):
+        return
+    raise SystemExit(f"{path} requires bits [msb, lsb] or lsb+width")
+
+def require_register_contract(regs):
+    reg_list = as_list(regs.get("register_list"))
+    no_reg_policy = ci_get(regs, "no_registers", "no_csr", "no_register_map")
+    if not reg_list:
+        if no_reg_policy and present(ci_get(regs, "reason", "policy", "access_model", "description")):
+            return
+        raise SystemExit("registers.register_list must be non-empty, or registers.no_registers/no_csr must state the no-register policy")
+
+    for ridx, reg in enumerate(reg_list):
+        if not isinstance(reg, dict):
+            raise SystemExit(f"registers.register_list[{ridx}] must be a mapping")
+        rname = require_present(ci_get(reg, "name"), f"registers.register_list[{ridx}].name")
+        rpath = f"registers.register_list.{rname}"
+        for key in ("offset", "width", "access", "reset"):
+            require_present(ci_get(reg, key), f"{rpath}.{key}")
+        fields = as_list(reg.get("fields"))
+        if not fields:
+            raise SystemExit(f"{rpath}.fields must be a non-empty list with bit-level definitions")
+        for fidx, field in enumerate(fields):
+            if not isinstance(field, dict):
+                raise SystemExit(f"{rpath}.fields[{fidx}] must be a mapping")
+            fname = require_present(ci_get(field, "name"), f"{rpath}.fields[{fidx}].name")
+            fpath = f"{rpath}.fields.{fname}"
+            require_bit_range(field, fpath)
+            for key in ("access", "reset", "description"):
+                require_present(ci_get(field, key), f"{fpath}.{key}")
+            access = str(ci_get(field, "access") or "").lower()
+            if access == "reserved":
+                require_present(ci_get(field, "read_value"), f"{fpath}.read_value")
+                require_present(ci_get(field, "write_effect"), f"{fpath}.write_effect")
+            elif "w" in access:
+                write_semantics = (
+                    ci_get(field, "write_effect", "write_behavior", "write_side_effects", "side_effects")
+                    or ci_get(reg, "write_effect", "write_behavior", "write_side_effects", "side_effects")
+                )
+                require_present(write_semantics, f"{fpath}.write_effect or {rpath}.write_side_effects")
+
+def require_interface_contract(io):
+    for group_key in ("clock_domains", "resets", "interfaces"):
+        if not isinstance(io.get(group_key), list) or not io[group_key]:
+            raise SystemExit(f"io_list.{group_key} must be a non-empty list")
+
+    for idx, iface in enumerate(io.get("interfaces") or []):
+        if not isinstance(iface, dict):
+            raise SystemExit(f"io_list.interfaces[{idx}] must be a mapping")
+        name = require_present(ci_get(iface, "name"), f"io_list.interfaces[{idx}].name")
+        ipath = f"io_list.interfaces.{name}"
+        require_present(ci_get(iface, "type", "protocol_type"), f"{ipath}.type")
+        require_present(ci_get(iface, "clock_domain", "clock"), f"{ipath}.clock_domain")
+        ports = as_list(iface.get("ports"))
+        if not ports:
+            raise SystemExit(f"{ipath}.ports must be a non-empty list")
+        for pidx, port in enumerate(ports):
+            if not isinstance(port, dict):
+                raise SystemExit(f"{ipath}.ports[{pidx}] must be a mapping")
+            pname = require_present(ci_get(port, "name"), f"{ipath}.ports[{pidx}].name")
+            ppath = f"{ipath}.ports.{pname}"
+            for key in ("direction", "width"):
+                require_present(ci_get(port, key), f"{ppath}.{key}")
+        protocol = ci_get(iface, "protocol", "timing", "handshake", "transaction_rules", "transfer_rules")
+        if not present(protocol):
+            raise SystemExit(f"{ipath} requires protocol/timing/handshake rules; port declarations alone are not enough")
+
+def require_coverage_contract(tr):
+    goals = tr.get("coverage_goals")
+    if not isinstance(goals, dict):
+        raise SystemExit("test_requirements.coverage_goals must be a mapping")
+    for domain, model in (("function", "function_model"), ("cycle", "cycle_model")):
+        section = ci_get(goals, domain, f"{domain}_coverage")
+        if not isinstance(section, dict):
+            raise SystemExit(f"test_requirements.coverage_goals.{domain} must be a mapping")
+        require_present(ci_get(section, "target_pct", "target", "minimum_pct"), f"test_requirements.coverage_goals.{domain}.target_pct")
+        require_present(ci_get(section, "model"), f"test_requirements.coverage_goals.{domain}.model")
+        bins = as_list(section.get("bins") or section.get("planned_bins") or section.get("coverage_bins"))
+        if not bins:
+            raise SystemExit(f"test_requirements.coverage_goals.{domain}.bins must be a non-empty list")
+        for bidx, item in enumerate(bins):
+            if not isinstance(item, dict):
+                raise SystemExit(f"test_requirements.coverage_goals.{domain}.bins[{bidx}] must be a mapping")
+            bpath = f"test_requirements.coverage_goals.{domain}.bins[{bidx}]"
+            for key in ("id", "source_ref", "class", "description"):
+                require_present(ci_get(item, key), f"{bpath}.{key}")
+            source_ref = str(ci_get(item, "source_ref") or "")
+            if model not in source_ref and not (domain == "cycle" and source_ref.startswith("fsm.")):
+                raise SystemExit(f"{bpath}.source_ref must trace to {model} or a declared FSM for cycle coverage")
+
+required = "top_module sub_modules decomposition rtl_contract parameters io_list features dataflow function_model cycle_model clock_reset_domains cdc_requirements rdc_requirements registers memory interrupts fsm timing power security error_handling debug_observability integration dft synthesis pnr coding_rules reuse_modules custom dir_structure filelist test_requirements quality_gates traceability workflow_todos generation_flow".split()
 missing = [key for key in required if key not in doc]
 if "decomposition" in missing and "rtl_contract" in doc:
     missing.remove("decomposition")
@@ -176,6 +289,8 @@ for key in ("clock", "reset", "latency", "handshake_rules", "pipeline", "orderin
 for key in ("handshake_rules", "pipeline", "ordering"):
     if not isinstance(cm.get(key), list) or not cm.get(key):
         raise SystemExit(f"cycle_model.{key} must be a non-empty list")
+if not isinstance(cm.get("performance"), dict) or not cm["performance"]:
+    raise SystemExit("cycle_model.performance must be a non-empty mapping for cycle/performance coverage")
 
 def require_mapping(section: str, keys: tuple[str, ...] = ()) -> dict:
     value = doc.get(section)
@@ -186,6 +301,14 @@ def require_mapping(section: str, keys: tuple[str, ...] = ()) -> dict:
         if item is None or item == "" or item == [] or item == {}:
             raise SystemExit(f"{section}.{key} is required")
     return value
+
+io = require_mapping("io_list", ("clock_domains", "resets", "interfaces"))
+require_interface_contract(io)
+
+regs = require_mapping("registers")
+require_register_contract(regs)
+
+require_mapping("rtl_contract", ("transaction", "input_map", "output_map"))
 
 timing = require_mapping("timing", ("target_clocks", "latency_budget"))
 if not isinstance(timing.get("target_clocks"), list) or not timing["target_clocks"]:
@@ -216,6 +339,7 @@ require_mapping("synthesis", ("dialect", "constraints", "required_outputs"))
 tr = require_mapping("test_requirements", ("scenarios", "scoreboard_checks", "coverage_goals"))
 if not isinstance(tr.get("scenarios"), list) or not tr["scenarios"]:
     raise SystemExit("test_requirements.scenarios must be a non-empty list")
+require_coverage_contract(tr)
 for idx, sc in enumerate(tr.get("scenarios") or []):
     if not isinstance(sc, dict):
         raise SystemExit(f"test_requirements.scenarios[{idx}] must be a mapping")

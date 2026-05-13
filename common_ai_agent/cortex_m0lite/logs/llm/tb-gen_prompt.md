@@ -1,0 +1,1 @@
+Prepare tb-gen for cortex_m0lite using cortex_m0lite/verify/equivalence_goals.json, cortex_m0lite/model/functional_model.py, and cortex_m0lite/rtl/rtl_contract.json. Do not duplicate expected behavior by hand; scoreboard must call FunctionalModel.

@@ -507,5 +507,9 @@ def test_cocotb_template_normalizes_stimulus_to_port_width_before_scoreboard():
     assert 'low == "unsupported_width"' in tb.TEST_PY
     assert "stimulus[field] = _stimulus_value_for_field(manifest, field, idx, goal)" in tb.TEST_PY
     assert "stimulus.setdefault(field, _stimulus_value_for_field(manifest, field, idx, goal))" in tb.TEST_PY
+    assert '"ready is high after reset" in identity' in tb.TEST_PY
+    assert '"backpressure" in identity or "backpressure" in goal_text' in tb.TEST_PY
+    assert 'for port in manifest.get("sample_inputs") or []:' in tb.TEST_PY
+    assert "stimulus[str(port)] = value" in tb.TEST_PY
     assert '"broadcast"' in tb.TEST_PY
     assert '"accept"' in tb.TEST_PY

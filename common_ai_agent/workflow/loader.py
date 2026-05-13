@@ -219,7 +219,7 @@ def get_hook_message(key: str, default: str, **kwargs) -> str:
 
 def apply_workspace_env_early(project_root: Path) -> Optional[str]:
     """
-    Parse -w/--workspace from sys.argv and inject workspace.json [env]
+    Parse -w/--workflow/--workspace from sys.argv and inject workspace.json [env]
     into os.environ BEFORE load_env_file() runs, giving workspace vars
     the highest config priority (below shell env vars).
 
@@ -245,12 +245,12 @@ def apply_workspace_env_early(project_root: Path) -> Optional[str]:
 
 
 def _parse_workspace_arg() -> Optional[str]:
-    """Extract -w / --workspace value from sys.argv."""
+    """Extract -w / --workflow / --workspace value from sys.argv."""
     args = sys.argv[1:]
     for i, arg in enumerate(args):
-        if arg.startswith("--workspace="):
+        if arg.startswith("--workflow=") or arg.startswith("--workspace="):
             return arg.split("=", 1)[1]
-        if arg in ("-w", "--workspace") and i + 1 < len(args):
+        if arg in ("-w", "-wf", "--workflow", "--workspace") and i + 1 < len(args):
             return args[i + 1]
     return None
 
@@ -652,7 +652,7 @@ def _make_command_handler(spec: dict, ws: "WorkspaceConfig"):
             surface = run_common_stage_surface(project_root=Path.cwd(), source_root=None, alias=alias, ip=ip)
             if not surface.handled:
                 return f"[Error] Unknown stage: {alias}"
-            if alias == "ssot-rtl" and surface.status in {"blocked", "fail"}:
+            if alias == "ssot-rtl" and surface.status in {"blocked", "fail", "human_gate"}:
                 tasks, path, _ = load_dynamic_todo_template("ssot-rtl", ip, project_root=Path.cwd())
                 if tasks and path:
                     try:
@@ -667,7 +667,7 @@ def _make_command_handler(spec: dict, ws: "WorkspaceConfig"):
                             source_text = str(path)
                         return (
                             surface.message
-                            + f"\n\ntodo_tracker: loaded {len(tasks)} dynamic SSOT RTL UI TODO groups from "
+                            + f"\n\ntodo_tracker: loaded {len(tasks)} dynamic SSOT RTL TODOs from "
                             + source_text
                             + "\n"
                         )
@@ -774,6 +774,6 @@ def register_workspace_commands(ws: "WorkspaceConfig", slash_registry) -> list:
                 registered_names.extend(spec.get("aliases", []))
         except Exception as e:
             import sys as _sys
-            print(f"[Workspace] Failed to load command {f.name}: {e}", file=_sys.stderr)
+            print(f"[Workflow] Failed to load command {f.name}: {e}", file=_sys.stderr)
 
     return registered_names

@@ -1,0 +1,99 @@
+{"event": "run_start", "model": "gpt-5.3-codex", "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent", "stages": ["ssot-gen", "rtl-gen", "equiv-goals", "tb-gen", "sim", "lint"], "target_ip": "cortex_m0lite", "ts": "2026-05-13T15:45:11Z"}
+{"event": "stage_start", "stage": "ssot-gen", "ts": "2026-05-13T15:45:11Z"}
+{"event": "llm_call_start", "log_stage": "ssot-gen", "model": "gpt-5.3-codex", "stage": "ssot-gen", "ts": "2026-05-13T15:45:11Z"}
+{"elapsed_sec": 0.0, "error": "ATLAS_RUN_REAL_LLM_TDD=1 is not set", "event": "llm_call_end", "log_stage": "ssot-gen", "model": "gpt-5.3-codex", "stage": "ssot-gen", "status": "blocked", "ts": "2026-05-13T15:45:11Z"}
+{"event": "stage_end", "message": "ATLAS_RUN_REAL_LLM_TDD=1 is not set", "stage": "ssot-gen", "status": "blocked", "ts": "2026-05-13T15:45:11Z"}
+{"event": "run_end", "run_log": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/cortex_m0lite/logs/headless_run.json", "status": "blocked", "ts": "2026-05-13T15:45:11Z"}
+{"event": "run_start", "model": "gpt-5.3-codex", "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent", "stages": ["ssot-gen", "rtl-gen", "equiv-goals", "tb-gen", "sim", "lint"], "target_ip": "cortex_m0lite", "ts": "2026-05-13T15:45:21Z"}
+{"event": "stage_start", "stage": "ssot-gen", "ts": "2026-05-13T15:45:21Z"}
+{"event": "llm_call_start", "log_stage": "ssot-gen", "model": "gpt-5.3-codex", "stage": "ssot-gen", "ts": "2026-05-13T15:45:21Z"}
+{"elapsed_sec": 22.464, "error": "model requested human_gate", "event": "llm_call_end", "log_stage": "ssot-gen", "model": "gpt-5.3-codex", "stage": "ssot-gen", "status": "human_gate", "ts": "2026-05-13T15:45:44Z"}
+{"event": "stage_end", "message": "model requested human_gate", "stage": "ssot-gen", "status": "human_gate", "ts": "2026-05-13T15:45:44Z"}
+{"event": "run_end", "run_log": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/cortex_m0lite/logs/headless_run.json", "status": "blocked", "ts": "2026-05-13T15:45:44Z"}
+{"event": "run_start", "model": "gpt-5.3-codex", "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent", "stages": ["ssot-gen", "rtl-gen", "equiv-goals", "tb-gen", "sim", "lint"], "target_ip": "cortex_m0lite", "ts": "2026-05-13T15:46:02Z"}
+{"event": "stage_start", "stage": "ssot-gen", "ts": "2026-05-13T15:46:02Z"}
+{"event": "llm_call_start", "log_stage": "ssot-gen", "model": "gpt-5.3-codex", "stage": "ssot-gen", "ts": "2026-05-13T15:46:02Z"}
+{"event": "run_start", "model": "gpt-5.3-codex", "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent", "stages": ["ssot-gen"], "target_ip": "cortex_m0lite", "ts": "2026-05-13T15:49:37Z"}
+{"event": "stage_start", "stage": "ssot-gen", "ts": "2026-05-13T15:49:37Z"}
+{"event": "llm_call_start", "log_stage": "ssot-gen", "model": "gpt-5.3-codex", "stage": "ssot-gen", "ts": "2026-05-13T15:49:37Z"}
+{"event": "run_start", "model": "deepseek-v4-pro", "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent", "stages": ["ssot-gen"], "target_ip": "cortex_m0lite", "ts": "2026-05-13T15:52:07Z"}
+{"event": "stage_start", "stage": "ssot-gen", "ts": "2026-05-13T15:52:07Z"}
+{"event": "llm_call_start", "log_stage": "ssot-gen", "model": "deepseek-v4-pro", "stage": "ssot-gen", "ts": "2026-05-13T15:52:07Z"}
+{"elapsed_sec": 10.388, "error": "Error calling LLM: HTTP Error 400: Bad Request", "event": "llm_call_end", "log_stage": "ssot-gen", "model": "deepseek-v4-pro", "stage": "ssot-gen", "status": "blocked", "ts": "2026-05-13T15:52:17Z"}
+{"event": "stage_end", "message": "Error calling LLM: HTTP Error 400: Bad Request", "stage": "ssot-gen", "status": "blocked", "ts": "2026-05-13T15:52:17Z"}
+{"event": "run_end", "run_log": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/cortex_m0lite/logs/headless_run.json", "status": "blocked", "ts": "2026-05-13T15:52:17Z"}
+{"event": "run_start", "model": "gpt-5.3-codex", "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent", "stages": ["rtl-gen", "equiv-goals", "tb-gen", "sim", "lint"], "target_ip": "cortex_m0lite", "ts": "2026-05-13T15:53:30Z"}
+{"event": "stage_start", "stage": "rtl-gen", "ts": "2026-05-13T15:53:30Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-packet-00-module__timer_core__function_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "ts": "2026-05-13T15:53:31Z"}
+{"elapsed_sec": 0.001, "error": "ATLAS_RUN_REAL_LLM_TDD=1 is not set", "event": "llm_call_end", "log_stage": "rtl-gen-packet-00-module__timer_core__function_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "status": "blocked", "ts": "2026-05-13T15:53:31Z"}
+{"event": "stage_end", "message": "ATLAS_RUN_REAL_LLM_TDD=1 is not set", "stage": "rtl-gen", "status": "blocked", "ts": "2026-05-13T15:53:31Z"}
+{"event": "run_end", "run_log": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/cortex_m0lite/logs/headless_run.json", "status": "blocked", "ts": "2026-05-13T15:53:31Z"}
+{"event": "run_start", "model": "gpt-5.3-codex", "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent", "stages": ["rtl-gen", "equiv-goals", "tb-gen", "sim", "lint"], "target_ip": "cortex_m0lite", "ts": "2026-05-13T15:53:37Z"}
+{"event": "stage_start", "stage": "rtl-gen", "ts": "2026-05-13T15:53:37Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-packet-00-module__timer_core__function_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "ts": "2026-05-13T15:53:40Z"}
+{"elapsed_sec": 21.5, "error": "", "event": "llm_call_end", "log_stage": "rtl-gen-packet-00-module__timer_core__function_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "status": "pass", "ts": "2026-05-13T15:54:02Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-packet-01-module__timer_core__cycle_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "ts": "2026-05-13T15:54:02Z"}
+{"elapsed_sec": 25.385, "error": "", "event": "llm_call_end", "log_stage": "rtl-gen-packet-01-module__timer_core__cycle_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "status": "pass", "ts": "2026-05-13T15:54:27Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-packet-02-module__timer_core__io_list", "model": "gpt-5.3-codex", "stage": "rtl-gen", "ts": "2026-05-13T15:54:28Z"}
+{"elapsed_sec": 24.71, "error": "", "event": "llm_call_end", "log_stage": "rtl-gen-packet-02-module__timer_core__io_list", "model": "gpt-5.3-codex", "stage": "rtl-gen", "status": "pass", "ts": "2026-05-13T15:54:53Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-packet-03-module__timer_core__fsm", "model": "gpt-5.3-codex", "stage": "rtl-gen", "ts": "2026-05-13T15:54:53Z"}
+{"elapsed_sec": 40.137, "error": "", "event": "llm_call_end", "log_stage": "rtl-gen-packet-03-module__timer_core__fsm", "model": "gpt-5.3-codex", "stage": "rtl-gen", "status": "pass", "ts": "2026-05-13T15:55:33Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-repair-1-packet-00-module__timer_core__cycle_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "ts": "2026-05-13T15:55:46Z"}
+{"elapsed_sec": 31.941, "error": "", "event": "llm_call_end", "log_stage": "rtl-gen-repair-1-packet-00-module__timer_core__cycle_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "status": "pass", "ts": "2026-05-13T15:56:18Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-repair-2-packet-00-module__timer_core__cycle_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "ts": "2026-05-13T15:56:28Z"}
+{"elapsed_sec": 33.643, "error": "", "event": "llm_call_end", "log_stage": "rtl-gen-repair-2-packet-00-module__timer_core__cycle_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "status": "pass", "ts": "2026-05-13T15:57:01Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-repair-3-packet-00-rtl_gate_tool_evidence", "model": "gpt-5.3-codex", "stage": "rtl-gen", "ts": "2026-05-13T15:57:11Z"}
+{"event": "run_start", "model": "gpt-5.3-codex", "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent", "stages": ["rtl-gen"], "target_ip": "cortex_m0lite", "ts": "2026-05-13T15:58:08Z"}
+{"event": "stage_start", "stage": "rtl-gen", "ts": "2026-05-13T15:58:08Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-packet-00-module__timer_core__cycle_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "ts": "2026-05-13T15:58:12Z"}
+{"elapsed_sec": 28.845, "error": "", "event": "llm_call_end", "log_stage": "rtl-gen-packet-00-module__timer_core__cycle_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "status": "pass", "ts": "2026-05-13T15:58:41Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-repair-1-packet-00-module__timer_core__cycle_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "ts": "2026-05-13T15:58:50Z"}
+{"elapsed_sec": 33.486, "error": "", "event": "llm_call_end", "log_stage": "rtl-gen-repair-1-packet-00-module__timer_core__cycle_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "status": "pass", "ts": "2026-05-13T15:59:24Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-repair-2-packet-00-rtl_gate_tool_evidence", "model": "gpt-5.3-codex", "stage": "rtl-gen", "ts": "2026-05-13T15:59:33Z"}
+{"event": "run_start", "model": "glm-5.1", "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent", "stages": ["rtl-gen", "equiv-goals", "tb-gen", "sim", "lint"], "target_ip": "cortex_m0lite", "ts": "2026-05-13T16:00:03Z"}
+{"event": "stage_start", "stage": "rtl-gen", "ts": "2026-05-13T16:00:03Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-packet-00-rtl_gate_tool_evidence", "model": "glm-5.1", "stage": "rtl-gen", "ts": "2026-05-13T16:00:05Z"}
+{"elapsed_sec": 39.847, "error": "", "event": "llm_call_end", "log_stage": "rtl-gen-packet-00-rtl_gate_tool_evidence", "model": "glm-5.1", "stage": "rtl-gen", "status": "pass", "ts": "2026-05-13T16:00:45Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-repair-1-packet-00-module__timer_core__cycle_model", "model": "glm-5.1", "stage": "rtl-gen", "ts": "2026-05-13T16:00:55Z"}
+{"elapsed_sec": 145.842, "error": "", "event": "llm_call_end", "log_stage": "rtl-gen-repair-1-packet-00-module__timer_core__cycle_model", "model": "glm-5.1", "stage": "rtl-gen", "status": "pass", "ts": "2026-05-13T16:03:21Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-repair-2-packet-00-rtl_gate_tool_evidence", "model": "glm-5.1", "stage": "rtl-gen", "ts": "2026-05-13T16:03:31Z"}
+{"event": "run_start", "model": "glm-5.1", "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent", "stages": ["equiv-goals", "tb-gen", "sim", "lint"], "target_ip": "cortex_m0lite", "ts": "2026-05-13T16:04:17Z"}
+{"event": "stage_start", "stage": "equiv-goals", "ts": "2026-05-13T16:04:17Z"}
+{"event": "stage_end", "message": "[ssot-equiv-goals] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_equivalence_goals.py\nmodule: cortex_m0lite\nsource: cortex_m0lite/yaml/cortex_m0lite.ssot.yaml\ngoals: total=27 required=27 blocked=0 module=1/1\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_a", "stage": "equiv-goals", "status": "pass", "ts": "2026-05-13T16:04:18Z"}
+{"event": "stage_start", "stage": "tb-gen", "ts": "2026-05-13T16:04:18Z"}
+{"event": "llm_call_start", "log_stage": "tb-gen", "model": "glm-5.1", "stage": "tb-gen", "ts": "2026-05-13T16:04:18Z"}
+{"elapsed_sec": 0.001, "error": "ATLAS_RUN_REAL_LLM_TDD=1 is not set", "event": "llm_call_end", "log_stage": "tb-gen", "model": "glm-5.1", "stage": "tb-gen", "status": "blocked", "ts": "2026-05-13T16:04:18Z"}
+{"event": "stage_end", "message": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard\nmodule: cortex_m0lite\nsource: cortex_m0lite/yaml/cortex_m0lite.ssot.yaml\ngenerator: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py\nvalidator: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_pyuvm_structure.sh\n\nruns:\n- emit_goal_scor", "stage": "tb-gen", "status": "pass", "ts": "2026-05-13T16:04:21Z"}
+{"event": "stage_start", "stage": "sim", "ts": "2026-05-13T16:04:21Z"}
+{"event": "stage_end", "message": "[sim] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/sim.sh\nvalidator: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_tb_sim_evidence.sh\ncoverage: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/coverage/scripts/ssot_coverage_summary.py\nmodule: cortex_m0lite\nrunner: cortex_m0lite/tb/cocotb/test_runner.p", "stage": "sim", "status": "pass", "ts": "2026-05-13T16:04:27Z"}
+{"event": "stage_start", "stage": "lint", "ts": "2026-05-13T16:04:27Z"}
+{"event": "stage_end", "message": "[lint] FAIL\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py\nmodule: cortex_m0lite\ntop: cortex_m0lite\n\nruns:\n- dut_lint: exit 1\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py cortex_m0lite --top cortex_m0lite\n  stdout:\n[dut_lint_report] wr", "stage": "lint", "status": "fail", "ts": "2026-05-13T16:04:29Z"}
+{"event": "run_end", "run_log": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/cortex_m0lite/logs/headless_run.json", "status": "fail", "ts": "2026-05-13T16:04:29Z"}
+{"event": "run_start", "model": "glm-5.1", "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent", "stages": ["lint"], "target_ip": "cortex_m0lite", "ts": "2026-05-13T16:04:56Z"}
+{"event": "stage_start", "stage": "lint", "ts": "2026-05-13T16:04:56Z"}
+{"event": "stage_end", "message": "[lint] FAIL\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py\nmodule: cortex_m0lite\ntop: cortex_m0lite\n\nruns:\n- dut_lint: exit 1\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py cortex_m0lite --top cortex_m0lite\n  stdout:\n[dut_lint_report] wr", "stage": "lint", "status": "fail", "ts": "2026-05-13T16:04:58Z"}
+{"event": "run_end", "run_log": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/cortex_m0lite/logs/headless_run.json", "status": "fail", "ts": "2026-05-13T16:04:58Z"}
+{"event": "run_start", "model": "glm-5.1", "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent", "stages": ["equiv-goals", "tb-gen", "sim", "lint"], "target_ip": "cortex_m0lite", "ts": "2026-05-13T16:05:31Z"}
+{"event": "stage_start", "stage": "equiv-goals", "ts": "2026-05-13T16:05:31Z"}
+{"event": "stage_end", "message": "[ssot-equiv-goals] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_equivalence_goals.py\nmodule: cortex_m0lite\nsource: cortex_m0lite/yaml/cortex_m0lite.ssot.yaml\ngoals: total=27 required=27 blocked=0 module=1/1\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_a", "stage": "equiv-goals", "status": "pass", "ts": "2026-05-13T16:05:31Z"}
+{"event": "stage_start", "stage": "tb-gen", "ts": "2026-05-13T16:05:31Z"}
+{"event": "llm_call_start", "log_stage": "tb-gen", "model": "glm-5.1", "stage": "tb-gen", "ts": "2026-05-13T16:05:31Z"}
+{"elapsed_sec": 0.0, "error": "ATLAS_RUN_REAL_LLM_TDD=1 is not set", "event": "llm_call_end", "log_stage": "tb-gen", "model": "glm-5.1", "stage": "tb-gen", "status": "blocked", "ts": "2026-05-13T16:05:31Z"}
+{"event": "stage_end", "message": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard\nmodule: cortex_m0lite\nsource: cortex_m0lite/yaml/cortex_m0lite.ssot.yaml\ngenerator: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py\nvalidator: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_pyuvm_structure.sh\n\nruns:\n- emit_goal_scor", "stage": "tb-gen", "status": "pass", "ts": "2026-05-13T16:05:32Z"}
+{"event": "stage_start", "stage": "sim", "ts": "2026-05-13T16:05:32Z"}
+{"event": "stage_end", "message": "[sim] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/sim.sh\nvalidator: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_tb_sim_evidence.sh\ncoverage: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/coverage/scripts/ssot_coverage_summary.py\nmodule: cortex_m0lite\nrunner: cortex_m0lite/tb/cocotb/test_runner.p", "stage": "sim", "status": "pass", "ts": "2026-05-13T16:05:34Z"}
+{"event": "stage_start", "stage": "lint", "ts": "2026-05-13T16:05:34Z"}
+{"event": "stage_end", "message": "[lint] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py\nmodule: cortex_m0lite\ntop: cortex_m0lite\n\nruns:\n- dut_lint: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py cortex_m0lite --top cortex_m0lite\n  stdout:\n[dut_lint_report] wr", "stage": "lint", "status": "pass", "ts": "2026-05-13T16:05:35Z"}
+{"event": "run_end", "run_log": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/cortex_m0lite/logs/headless_run.json", "status": "pass", "ts": "2026-05-13T16:05:35Z"}
+{"event": "run_start", "model": "gpt-5.3-codex", "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent", "stages": ["rtl-gen"], "target_ip": "cortex_m0lite", "ts": "2026-05-13T20:47:10Z"}
+{"event": "stage_start", "stage": "rtl-gen", "ts": "2026-05-13T20:47:10Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-packet-00-module__cortex_m0lite_core__function_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "ts": "2026-05-13T20:47:18Z"}
+{"elapsed_sec": 0.002, "error": "ATLAS_RUN_REAL_LLM_TDD=1 is not set", "event": "llm_call_end", "log_stage": "rtl-gen-packet-00-module__cortex_m0lite_core__function_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "status": "blocked", "ts": "2026-05-13T20:47:18Z"}
+{"event": "stage_end", "message": "ATLAS_RUN_REAL_LLM_TDD=1 is not set", "stage": "rtl-gen", "status": "blocked", "ts": "2026-05-13T20:47:18Z"}
+{"event": "run_end", "run_log": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/cortex_m0lite/logs/headless_run.json", "status": "blocked", "ts": "2026-05-13T20:47:18Z"}
+{"event": "run_start", "model": "gpt-5.3-codex", "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent", "stages": ["rtl-gen"], "target_ip": "cortex_m0lite", "ts": "2026-05-13T20:47:29Z"}
+{"event": "stage_start", "stage": "rtl-gen", "ts": "2026-05-13T20:47:29Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-packet-00-module__cortex_m0lite_core__function_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "ts": "2026-05-13T20:47:36Z"}
+{"elapsed_sec": 149.273, "error": "", "event": "llm_call_end", "log_stage": "rtl-gen-packet-00-module__cortex_m0lite_core__function_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "status": "pass", "ts": "2026-05-13T20:50:05Z"}
+{"event": "stage_end", "message": "[SSOT QUESTION] rtl-gen BLOCKED\nmodule: cortex_m0lite\ntop: cortex_m0lite\nsource: cortex_m0lite/yaml/cortex_m0lite.ssot.yaml\npreflight: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/ssot_to_rtl.py\ndynamic_todos: cortex_m0lite/rtl/rtl_todo_plan.json\nblocker: SSOT behavior is not concrete enough for production RTL implementation.\nevidence: cortex_m0lite/rtl/rtl_blocke", "stage": "rtl-gen", "status": "human_gate", "ts": "2026-05-13T20:50:18Z"}
+{"event": "run_end", "run_log": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/cortex_m0lite/logs/headless_run.json", "status": "blocked", "ts": "2026-05-13T20:50:18Z"}

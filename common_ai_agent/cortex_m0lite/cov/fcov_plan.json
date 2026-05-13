@@ -1,0 +1,316 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "cortex_m0lite",
+  "source": "cortex_m0lite/yaml/cortex_m0lite.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "cortex_m0lite/req/",
+      "cortex_m0lite/yaml/cortex_m0lite.ssot.yaml",
+      "cortex_m0lite/model/functional_model.py",
+      "cortex_m0lite/cov/fcov_plan.json",
+      "cortex_m0lite/yaml/cortex_m0lite.ssot.yaml#io_list",
+      "cortex_m0lite/yaml/cortex_m0lite.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "cortex_m0lite/rtl/",
+      "cortex_m0lite/tb/",
+      "cortex_m0lite/sim/",
+      "cortex_m0lite/vectors/",
+      "cortex_m0lite/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "SC_RESET_CLEAR_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC_RESET_CLEAR",
+      "description": "reset and flush force idle"
+    },
+    {
+      "id": "SC_COUNTDOWN_DONE_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC_COUNTDOWN_DONE",
+      "description": "pcdown reaches retire"
+    },
+    {
+      "id": "SC_ENABLE_HOLD_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC_ENABLE_HOLD",
+      "description": "step_en low holds state"
+    },
+    {
+      "id": "fcov_fetch_en_load",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "test_requirements.coverage_goals.planned_bins[0]",
+      "source_ref": "function_model.transactions.FM_TICK",
+      "description": "fetch_en loads instr_data."
+    },
+    {
+      "id": "fcov_retire_pulse",
+      "class": "event",
+      "coverage_domain": "function",
+      "source": "test_requirements.coverage_goals.planned_bins[1]",
+      "source_ref": "function_model.transactions.FM_TICK.output_rules.retire_pulse",
+      "description": "retire pulse observed."
+    },
+    {
+      "id": "ccov_terminal_tick",
+      "class": "timing",
+      "coverage_domain": "cycle",
+      "source": "test_requirements.coverage_goals.planned_bins[2]",
+      "source_ref": "cycle_model.handshake_rules.step_end_tick",
+      "description": "terminal tick timing observed."
+    },
+    {
+      "id": "fcov_flush_priority",
+      "class": "state",
+      "coverage_domain": "function",
+      "source": "function_model.invariants.flush",
+      "source_ref": "function_model.invariants.flush",
+      "description": "flush returns all observable state to idle."
+    },
+    {
+      "id": "fcov_step_en_hold",
+      "class": "state",
+      "coverage_domain": "function",
+      "source": "function_model.invariants.step_en_hold",
+      "source_ref": "function_model.invariants.step_en_hold",
+      "description": "step_en low prevents pcdown progress."
+    },
+    {
+      "id": "ccov_fetch_en_visible_next_cycle",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.S1_STATE_VISIBLE",
+      "source_ref": "cycle_model.pipeline.S1_STATE_VISIBLE",
+      "description": "fetch_en result is visible on the next clock edge."
+    },
+    {
+      "id": "ccov_hold_cycle",
+      "class": "control",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure",
+      "source_ref": "cycle_model.backpressure",
+      "description": "step_en low hold is observed."
+    },
+    {
+      "id": "function_timer_control_tick",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm_tick",
+      "description": "timer_control_tick"
+    },
+    {
+      "id": "cycle_fetch_en_load",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "fetch_en samples instr_data on the active clock edge and makes the loaded pc visible after that edge."
+    },
+    {
+      "id": "cycle_step_end_tick",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "step_en advances pc only while busy is high."
+    },
+    {
+      "id": "cycle_flush_priority",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[2]",
+      "source_ref": "cycle_model.handshake_rules[2]",
+      "description": "flush returns the cortex_m0lite to idle regardless of step_en or busy."
+    },
+    {
+      "id": "cycle_pipeline_s0_control_sample",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "Sample fetch_en, step_en, flush, instr_data, pc, and busy."
+    },
+    {
+      "id": "cycle_pipeline_s1_state_visible",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "Present updated pc, busy, and retire."
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "flush has highest priority."
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[1]",
+      "source_ref": "cycle_model.ordering[1]",
+      "description": "fetch_en load is applied before step_end pcdown behavior for a new interval."
+    },
+    {
+      "id": "cycle_ordering_2",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[2]",
+      "source_ref": "cycle_model.ordering[2]",
+      "description": "retire is observed on the same state-visible cycle as the terminal decrement."
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "There is no ready/valid backpressure; step_en controls cortex_m0lite progress."
+    },
+    {
+      "id": "cycle_perf_outstanding",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.outstanding",
+      "source_ref": "cycle_model.performance.outstanding",
+      "description": "{'max': 1, 'description': 'One active pcdown interval at a time.'}"
+    },
+    {
+      "id": "cycle_perf_depth",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.depth",
+      "source_ref": "cycle_model.performance.depth",
+      "description": "{'pipeline_stages': 1, 'queue_depth': 0, 'description': 'Registered state update with no internal queue.'}"
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "100"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'sustained_ticks_per_cycle': 1, 'condition': 'step_en asserted while busy'}"
+    },
+    {
+      "id": "fsm_control_idle_to_run_0",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[0]",
+      "source_ref": "fsm.control.transitions[0]",
+      "description": "fetch_en and instr_data != 0"
+    },
+    {
+      "id": "fsm_control_run_to_run_1",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[1]",
+      "source_ref": "fsm.control.transitions[1]",
+      "description": "step_en and pc > 1"
+    },
+    {
+      "id": "fsm_control_run_to_done_pulse_2",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[2]",
+      "source_ref": "fsm.control.transitions[2]",
+      "description": "step_en and pc == 1"
+    },
+    {
+      "id": "fsm_control_done_pulse_to_idle_3",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[3]",
+      "source_ref": "fsm.control.transitions[3]",
+      "description": "next control cycle without fetch_en"
+    },
+    {
+      "id": "fsm_control_run_to_idle_4",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[4]",
+      "source_ref": "fsm.control.transitions[4]",
+      "description": "flush"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_NONE', 'condition': 'No malformed transaction class exists for this leaf IP.', 'architectural_effect': 'No error output is asserted.'}"
+    }
+  ],
+  "summary": {
+    "total_bins": 30,
+    "scenario_bins": 3,
+    "transaction_bins": 1,
+    "protocol_bins": 3,
+    "state_transition_bins": 5,
+    "error_bins": 1
+  }
+}

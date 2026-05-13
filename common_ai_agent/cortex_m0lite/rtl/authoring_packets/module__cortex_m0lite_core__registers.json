@@ -1,0 +1,1044 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 40,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 5,
+      "key": "registers",
+      "module_task_count": 98,
+      "rule": "Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "registers",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/cortex_m0lite_core.sv",
+      "name": "cortex_m0lite_core",
+      "refs": [
+        "coverage_tap",
+        "cycle_model",
+        "cycle_model.pipeline",
+        "dataflow",
+        "dataflow.ordering",
+        "dataflow.sequence",
+        "dataflow.state_flow",
+        "decomposition",
+        "error_handling",
+        "fsm",
+        "fsm.control",
+        "function_model",
+        "function_model.transactions.FM_CPU_STEP",
+        "io_list",
+        "parameters",
+        "registers",
+        "registers.register_list",
+        "workflow_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/cortex_m0lite.sv",
+        "name": "cortex_m0lite",
+        "wiring_only": true
+      },
+      {
+        "file": "rtl/cortex_m0lite_core.sv",
+        "name": "cortex_m0lite_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_if_stage.sv",
+        "name": "if_stage",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_id_stage.sv",
+        "name": "id_stage",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_ex_stage.sv",
+        "name": "ex_stage",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_wb_stage.sv",
+        "name": "wb_stage",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_regfile.sv",
+        "name": "regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_bus_if.sv",
+        "name": "bus_if",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "rst_n",
+        "signal": "core_rst_n_sync",
+        "signal_terms": [
+          "core_rst_n_sync"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "hclk",
+        "signal": "hclk",
+        "signal_terms": [
+          "hclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "hresetn",
+        "signal": "bus_rst_n_sync",
+        "signal_terms": [
+          "bus_rst_n_sync"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "irq",
+        "signal": "irq",
+        "signal_terms": [
+          "irq"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "pc_dbg",
+        "signal": "pc_dbg",
+        "signal_terms": [
+          "pc_dbg"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "state_dbg",
+        "signal": "state_dbg",
+        "signal_terms": [
+          "state_dbg"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "retire",
+        "signal": "retire",
+        "signal_terms": [
+          "retire"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "trap",
+        "signal": "trap",
+        "signal_terms": [
+          "trap"
+        ],
+        "source_ref": "integration.connections[0]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "Human-authored Cortex-M0-lite architecture decomposition.",
+      "min_behavior_owner_logic_modules": 6,
+      "min_depth_score": 120,
+      "min_logic_modules": 7,
+      "min_modules": 8,
+      "min_procedural_blocks": 12,
+      "min_source_files": 8,
+      "min_state_updates": 10,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "cortex_m0lite",
+  "kind": "module",
+  "owner_file": "rtl/cortex_m0lite_core.sv",
+  "owner_module": "cortex_m0lite_core",
+  "packet_id": "module__cortex_m0lite_core__registers",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "registers.field": 11,
+      "registers.register": 4
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 5,
+      "key": "registers",
+      "module_task_count": 98,
+      "rule": "Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "registers",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 15,
+    "source_refs": [
+      "registers.register_list.XPSR",
+      "registers.register_list.XPSR.fields.n",
+      "registers.register_list.XPSR.fields.z",
+      "registers.register_list.XPSR.fields.c",
+      "registers.register_list.XPSR.fields.v",
+      "registers.register_list.XPSR.fields.reserved_27_0",
+      "registers.register_list.PC",
+      "registers.register_list.PC.fields.pc",
+      "registers.register_list.EXC_CAUSE",
+      "registers.register_list.EXC_CAUSE.fields.trap_valid",
+      "registers.register_list.EXC_CAUSE.fields.trap_code",
+      "registers.register_list.EXC_CAUSE.fields.trap_stage",
+      "registers.register_list.EXC_CAUSE.fields.reserved_31_11",
+      "registers.register_list.EXC_EPC",
+      "registers.register_list.EXC_EPC.fields.epc"
+    ],
+    "status_counts": {
+      "pass": 15
+    },
+    "task_count": 15
+  },
+  "tasks": [
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register XPSR",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.XPSR",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "XPSR width matches SSOT value XLEN",
+        "XPSR reset behavior matches SSOT value 0",
+        "XPSR access policy ro is implemented without read/write shortcuts",
+        "XPSR decode uses SSOT address/offset 0"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.XPSR.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.\nSSOT item context: name=XPSR; width=XLEN; reset=0; access=ro; offset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0114",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.XPSR",
+      "ssot_context": {
+        "access": "ro",
+        "name": "XPSR",
+        "offset": "0",
+        "reset": "0",
+        "width": "XLEN"
+      },
+      "ssot_refs": [
+        "registers.register_list.XPSR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field XPSR.n",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.XPSR.fields.n",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "n width matches SSOT value 1",
+        "n reset behavior matches SSOT value 0",
+        "n access policy ro is implemented without read/write shortcuts",
+        "n readback returns implemented RTL state when readable",
+        "n write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.XPSR.fields.n.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.\nSSOT item context: name=n; width=1; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0115",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.XPSR.fields.n",
+      "ssot_context": {
+        "access": "ro",
+        "name": "n",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "registers.register_list.XPSR.fields.n"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field XPSR.z",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.XPSR.fields.z",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "z width matches SSOT value 1",
+        "z reset behavior matches SSOT value 0",
+        "z access policy ro is implemented without read/write shortcuts",
+        "z readback returns implemented RTL state when readable",
+        "z write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.XPSR.fields.z.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.\nSSOT item context: name=z; width=1; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0116",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.XPSR.fields.z",
+      "ssot_context": {
+        "access": "ro",
+        "name": "z",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "registers.register_list.XPSR.fields.z"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field XPSR.c",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.XPSR.fields.c",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "c width matches SSOT value 1",
+        "c reset behavior matches SSOT value 0",
+        "c access policy ro is implemented without read/write shortcuts",
+        "c readback returns implemented RTL state when readable",
+        "c write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.XPSR.fields.c.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.\nSSOT item context: name=c; width=1; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0117",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.XPSR.fields.c",
+      "ssot_context": {
+        "access": "ro",
+        "name": "c",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "registers.register_list.XPSR.fields.c"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field XPSR.v",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.XPSR.fields.v",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "v width matches SSOT value 1",
+        "v reset behavior matches SSOT value 0",
+        "v access policy ro is implemented without read/write shortcuts",
+        "v readback returns implemented RTL state when readable",
+        "v write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.XPSR.fields.v.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.\nSSOT item context: name=v; width=1; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0118",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.XPSR.fields.v",
+      "ssot_context": {
+        "access": "ro",
+        "name": "v",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "registers.register_list.XPSR.fields.v"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field XPSR.reserved_27_0",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.XPSR.fields.reserved_27_0",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "reserved_27_0 width matches SSOT value 28",
+        "reserved_27_0 reset behavior matches SSOT value 0",
+        "reserved_27_0 access policy reserved is implemented without read/write shortcuts",
+        "reserved_27_0 readback returns implemented RTL state when readable",
+        "reserved_27_0 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.XPSR.fields.reserved_27_0.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.\nSSOT item context: name=reserved_27_0; width=28; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0119",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.XPSR.fields.reserved_27_0",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_27_0",
+        "reset": "0",
+        "width": "28"
+      },
+      "ssot_refs": [
+        "registers.register_list.XPSR.fields.reserved_27_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register PC",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.PC",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "PC width matches SSOT value XLEN",
+        "PC reset behavior matches SSOT value RESET_PC",
+        "PC access policy ro is implemented without read/write shortcuts",
+        "PC decode uses SSOT address/offset 4"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.PC.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.\nSSOT item context: name=PC; width=XLEN; reset=RESET_PC; access=ro; offset=4.",
+      "evidence_terms": [],
+      "id": "RTL-0120",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.PC",
+      "ssot_context": {
+        "access": "ro",
+        "name": "PC",
+        "offset": "4",
+        "reset": "RESET_PC",
+        "width": "XLEN"
+      },
+      "ssot_refs": [
+        "registers.register_list.PC"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field PC.pc",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.PC.fields.pc",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "pc width matches SSOT value XLEN",
+        "pc reset behavior matches SSOT value RESET_PC",
+        "pc access policy ro is implemented without read/write shortcuts",
+        "pc readback returns implemented RTL state when readable",
+        "pc write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.PC.fields.pc.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.\nSSOT item context: name=pc; width=XLEN; reset=RESET_PC; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0121",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.PC.fields.pc",
+      "ssot_context": {
+        "access": "ro",
+        "name": "pc",
+        "reset": "RESET_PC",
+        "width": "XLEN"
+      },
+      "ssot_refs": [
+        "registers.register_list.PC.fields.pc"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register EXC_CAUSE",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.EXC_CAUSE",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "EXC_CAUSE width matches SSOT value XLEN",
+        "EXC_CAUSE reset behavior matches SSOT value 0",
+        "EXC_CAUSE access policy ro is implemented without read/write shortcuts",
+        "EXC_CAUSE decode uses SSOT address/offset 8"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.EXC_CAUSE.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.\nSSOT item context: name=EXC_CAUSE; width=XLEN; reset=0; access=ro; offset=8.",
+      "evidence_terms": [],
+      "id": "RTL-0122",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.EXC_CAUSE",
+      "ssot_context": {
+        "access": "ro",
+        "name": "EXC_CAUSE",
+        "offset": "8",
+        "reset": "0",
+        "width": "XLEN"
+      },
+      "ssot_refs": [
+        "registers.register_list.EXC_CAUSE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field EXC_CAUSE.trap_valid",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.EXC_CAUSE.fields.trap_valid",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "trap_valid width matches SSOT value 1",
+        "trap_valid reset behavior matches SSOT value 0",
+        "trap_valid access policy ro is implemented without read/write shortcuts",
+        "trap_valid readback returns implemented RTL state when readable",
+        "trap_valid write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.EXC_CAUSE.fields.trap_valid.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.\nSSOT item context: name=trap_valid; width=1; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0123",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.EXC_CAUSE.fields.trap_valid",
+      "ssot_context": {
+        "access": "ro",
+        "name": "trap_valid",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "registers.register_list.EXC_CAUSE.fields.trap_valid"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field EXC_CAUSE.trap_code",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.EXC_CAUSE.fields.trap_code",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "trap_code width matches SSOT value 7",
+        "trap_code reset behavior matches SSOT value 0",
+        "trap_code access policy ro is implemented without read/write shortcuts",
+        "trap_code readback returns implemented RTL state when readable",
+        "trap_code write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.EXC_CAUSE.fields.trap_code.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.\nSSOT item context: name=trap_code; width=7; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0124",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.EXC_CAUSE.fields.trap_code",
+      "ssot_context": {
+        "access": "ro",
+        "name": "trap_code",
+        "reset": "0",
+        "width": "7"
+      },
+      "ssot_refs": [
+        "registers.register_list.EXC_CAUSE.fields.trap_code"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field EXC_CAUSE.trap_stage",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.EXC_CAUSE.fields.trap_stage",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "trap_stage width matches SSOT value 3",
+        "trap_stage reset behavior matches SSOT value 0",
+        "trap_stage access policy ro is implemented without read/write shortcuts",
+        "trap_stage readback returns implemented RTL state when readable",
+        "trap_stage write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.EXC_CAUSE.fields.trap_stage.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.\nSSOT item context: name=trap_stage; width=3; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0125",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.EXC_CAUSE.fields.trap_stage",
+      "ssot_context": {
+        "access": "ro",
+        "name": "trap_stage",
+        "reset": "0",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "registers.register_list.EXC_CAUSE.fields.trap_stage"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field EXC_CAUSE.reserved_31_11",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.EXC_CAUSE.fields.reserved_31_11",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "reserved_31_11 width matches SSOT value 21",
+        "reserved_31_11 reset behavior matches SSOT value 0",
+        "reserved_31_11 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_11 readback returns implemented RTL state when readable",
+        "reserved_31_11 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.EXC_CAUSE.fields.reserved_31_11.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.\nSSOT item context: name=reserved_31_11; width=21; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0126",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.EXC_CAUSE.fields.reserved_31_11",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_11",
+        "reset": "0",
+        "width": "21"
+      },
+      "ssot_refs": [
+        "registers.register_list.EXC_CAUSE.fields.reserved_31_11"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register EXC_EPC",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.EXC_EPC",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "EXC_EPC width matches SSOT value XLEN",
+        "EXC_EPC reset behavior matches SSOT value RESET_PC",
+        "EXC_EPC access policy ro is implemented without read/write shortcuts",
+        "EXC_EPC decode uses SSOT address/offset 12"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.EXC_EPC.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.\nSSOT item context: name=EXC_EPC; width=XLEN; reset=RESET_PC; access=ro; offset=12.",
+      "evidence_terms": [],
+      "id": "RTL-0127",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.EXC_EPC",
+      "ssot_context": {
+        "access": "ro",
+        "name": "EXC_EPC",
+        "offset": "12",
+        "reset": "RESET_PC",
+        "width": "XLEN"
+      },
+      "ssot_refs": [
+        "registers.register_list.EXC_EPC"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field EXC_EPC.epc",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.EXC_EPC.fields.epc",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "epc width matches SSOT value XLEN",
+        "epc reset behavior matches SSOT value RESET_PC",
+        "epc access policy ro is implemented without read/write shortcuts",
+        "epc readback returns implemented RTL state when readable",
+        "epc write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.EXC_EPC.fields.epc.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.\nSSOT item context: name=epc; width=XLEN; reset=RESET_PC; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0128",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.EXC_EPC.fields.epc",
+      "ssot_context": {
+        "access": "ro",
+        "name": "epc",
+        "reset": "RESET_PC",
+        "width": "XLEN"
+      },
+      "ssot_refs": [
+        "registers.register_list.EXC_EPC.fields.epc"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "67adb8890410a2aeeee9a654b645018e5e9f79eb8ebcffab7e873d9d102687f9",
+  "top": "cortex_m0lite",
+  "type": "rtl_authoring_packet"
+}

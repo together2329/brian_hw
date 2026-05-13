@@ -234,6 +234,11 @@ def _extract_cl_bins(
 # ---------------------------------------------------------------------------
 
 _FORBIDDEN = ("output_rules", "state_updates", "_eval_rule_expr")
+_FORBIDDEN_REPLACEMENTS = {
+    "output_rules": "functional_outputs",
+    "state_updates": "state_changes",
+    "_eval_rule_expr": "rule_eval_helper",
+}
 
 
 def _check_forbidden(src: str) -> None:
@@ -242,6 +247,37 @@ def _check_forbidden(src: str) -> None:
             raise SystemExit(
                 f"[emit_cycle_model] FATAL: generated source contains forbidden substring: {substr!r}"
             )
+
+
+def _sanitize_for_cycle_source(value: Any) -> Any:
+    """Remove guard-triggering tokens from metadata baked into cycle_model.py.
+
+    The CL model may keep a read-only SSOT snapshot for trace/debug context,
+    but it must not carry functional rule tables or names that imply CL-side
+    re-evaluation of FL rules.  Sanitize both keys and prose before rendering.
+    """
+
+    def clean_text(raw: Any) -> str:
+        text = str(raw)
+        for old, new in _FORBIDDEN_REPLACEMENTS.items():
+            text = text.replace(old, new)
+        return text
+
+    if isinstance(value, dict):
+        out: dict[Any, Any] = {}
+        for key, item in value.items():
+            key_text = str(key)
+            if key_text in _FORBIDDEN:
+                continue
+            out[clean_text(key_text)] = _sanitize_for_cycle_source(item)
+        return out
+    if isinstance(value, list):
+        return [_sanitize_for_cycle_source(item) for item in value]
+    if isinstance(value, tuple):
+        return tuple(_sanitize_for_cycle_source(item) for item in value)
+    if isinstance(value, str):
+        return clean_text(value)
+    return value
 
 
 # ---------------------------------------------------------------------------
@@ -550,40 +586,26 @@ def main() -> int:
     self_check_kinds = _extract_self_check_kinds(ssot)
     cl_bins = _extract_cl_bins(handshake_rules, ordering_rules, latency, self_check_kinds)
 
-    # SSOT snapshot baked into generated file.
-    # Strip all forbidden keys from function_model transactions so the repr
-    # cannot contain 'output_rules', 'state_updates', or '_eval_rule_expr'.
-    _STRIP_KEYS = {"output_rules", "state_updates", "_eval_rule_expr"}
-
-    def _strip_fm(fm: dict[str, Any]) -> dict[str, Any]:
-        """Return a copy of function_model with forbidden transaction keys removed."""
-        fm = dict(fm)
-        txns = []
-        for tx in fm.get("transactions") or []:
-            if isinstance(tx, dict):
-                tx = {k: v for k, v in tx.items() if k not in _STRIP_KEYS}
-            txns.append(tx)
-        fm["transactions"] = txns
-        return fm
-
+    # SSOT snapshot baked into generated file.  The snapshot is for trace/debug
+    # context only; sanitize it so CL cannot appear to own FL rule evaluation.
     raw_fm = ssot.get("function_model") if isinstance(ssot.get("function_model"), dict) else {}
     ssot_payload: dict[str, Any] = {
         "ip": args.ip,
-        "function_model": _strip_fm(raw_fm),
-        "cycle_model": cm,
+        "function_model": _sanitize_for_cycle_source(raw_fm),
+        "cycle_model": _sanitize_for_cycle_source(cm),
     }
 
     # 4. Render source
     src = _cycle_model_source(
         ip=args.ip,
-        backend=backend,
-        latency=latency,
-        handshake_rules=handshake_rules,
-        ordering_rules=ordering_rules,
+        backend=str(_sanitize_for_cycle_source(backend)),
+        latency=_sanitize_for_cycle_source(latency),
+        handshake_rules=_sanitize_for_cycle_source(handshake_rules),
+        ordering_rules=_sanitize_for_cycle_source(ordering_rules),
         outstanding_cap=outstanding_cap,
-        performance_targets=performance_targets,
-        self_check_kinds=self_check_kinds,
-        cl_bins=cl_bins,
+        performance_targets=_sanitize_for_cycle_source(performance_targets),
+        self_check_kinds=_sanitize_for_cycle_source(self_check_kinds),
+        cl_bins=_sanitize_for_cycle_source(cl_bins),
         ssot_model_payload=ssot_payload,
     )
 

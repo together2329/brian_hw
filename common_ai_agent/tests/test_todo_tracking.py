@@ -16,6 +16,7 @@ Tests cover:
 
 import json
 import os
+import re
 import sys
 import tempfile
 import unittest
@@ -1398,6 +1399,23 @@ class TestEdgeCases(unittest.TestCase):
         output = tracker.format_simple()
         self.assertIn("Task A", output)
         self.assertIn("Task B", output)
+
+    def test_format_simple_approved_summary_preserves_gaps(self):
+        """Approved summary does not imply pending rows are approved."""
+        tracker = self._make_tracker()
+        tracker.add_todos([
+            {"content": "Task A", "status": "approved"},
+            {"content": "Task B", "status": "pending"},
+            {"content": "Task C", "status": "approved"},
+            {"content": "Task D", "status": "approved"},
+            {"content": "Task E", "status": "pending"},
+        ])
+        output = tracker.format_simple()
+        plain = re.sub(r"\x1b\[[0-9;]*m", "", output)
+        self.assertIn("3 approved (1, 3-4)", plain)
+        self.assertNotIn("1-4 approved", plain)
+        self.assertIn("2. Task B", plain)
+        self.assertIn("5. Task E", plain)
 
     def test_format_progress(self):
         """format_progress returns visualization."""

@@ -31,8 +31,11 @@ import sys, pathlib
 try:
     import yaml; d = yaml.safe_load(pathlib.Path(sys.argv[1]).read_text()) or {}
 except Exception: d = {}
-print((d.get("pnr") or {}).get("cts_buf_list",
-      "sky130_fd_sc_hd__clkbuf_4 sky130_fd_sc_hd__clkbuf_8"))
+bufs = (d.get("pnr") or {}).get("cts_buf_list") or "sky130_fd_sc_hd__clkbuf_4 sky130_fd_sc_hd__clkbuf_8"
+if isinstance(bufs, list):
+    print(" ".join(str(item).strip() for item in bufs if str(item).strip()))
+else:
+    print(" ".join(str(bufs).replace(",", " ").split()))
 PY
 )
 

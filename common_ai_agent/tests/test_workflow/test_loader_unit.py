@@ -569,6 +569,18 @@ class TestApplyWorkspaceEnvEarly(unittest.TestCase):
         result = apply_workspace_env_early(self.tmp)
         self.assertEqual(result, "myws")
 
+    def test_workflow_flag_returns_name(self):
+        self._make_ws("myws", {})
+        sys.argv = ["main.py", "--workflow", "myws"]
+        result = apply_workspace_env_early(self.tmp)
+        self.assertEqual(result, "myws")
+
+    def test_workflow_eq_flag_returns_name(self):
+        self._make_ws("myws", {})
+        sys.argv = ["main.py", "--workflow=myws"]
+        result = apply_workspace_env_early(self.tmp)
+        self.assertEqual(result, "myws")
+
     def test_env_vars_injected(self):
         key = "_TEST_WS_VAR_XYZ"
         self._injected_keys.append(key)

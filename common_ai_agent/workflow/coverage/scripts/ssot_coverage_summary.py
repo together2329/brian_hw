@@ -149,6 +149,44 @@ def _bin_id(item: Any, idx: int, prefix: str = "planned_bin") -> str:
     return str(item or f"{prefix}_{idx}").strip()
 
 
+def _norm_bin_key(value: Any) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", str(value or "").lower()).strip("_")
+
+
+def _norm_source_ref(item: dict[str, Any]) -> str:
+    for key in ("source_ref", "source", "ssot_ref"):
+        value = item.get(key)
+        if value:
+            return _norm_bin_key(value)
+    return ""
+
+
+def _planned_bin_matches(a_id: str, a: dict[str, Any], b_id: str, b: dict[str, Any]) -> bool:
+    if _norm_bin_key(a_id) and _norm_bin_key(a_id) == _norm_bin_key(b_id):
+        return True
+    a_ref = _norm_source_ref(a)
+    b_ref = _norm_source_ref(b)
+    return bool(a_ref and b_ref and a_ref == b_ref)
+
+
+def _add_planned_bin(out: dict[str, dict[str, Any]], bid: str, item: dict[str, Any]) -> None:
+    """Insert a planned bin while merging SSOT/fcov case variants.
+
+    SSOT bins often keep human-facing IDs such as ``FCOV_RULE_DOUBLE`` while
+    generated fcov/equivalence evidence normalizes them to
+    ``fcov_rule_double``. They are the same coverage bin when either the ID
+    matches case-insensitively or the SSOT source_ref matches.
+    """
+    for existing_id, existing in list(out.items()):
+        if _planned_bin_matches(existing_id, existing, bid, item):
+            merged = {**item, **existing, "id": existing_id}
+            if not merged.get("coverage_domain") and item.get("coverage_domain"):
+                merged["coverage_domain"] = item["coverage_domain"]
+            out[existing_id] = merged
+            return
+    out[bid] = {**item, "id": bid}
+
+
 def _goal_section_bins(section: Any, domain: str) -> list[dict[str, Any]]:
     """Return SSOT-declared bins from coverage_goals.function/cycle sections."""
     if not isinstance(section, dict):
@@ -198,14 +236,18 @@ def planned_bin_entries(fcov_plan: dict[str, Any], goals: dict[str, Any]) -> dic
             continue
         bid = _bin_id(item, idx)
         if bid:
-            out.setdefault(bid, {**item, "id": bid})
+            _add_planned_bin(out, bid, {**item, "id": bid})
     flat = goals.get("planned_bins") if isinstance(goals.get("planned_bins"), list) else []
     for idx, item in enumerate(flat):
         if not isinstance(item, dict):
             continue
         bid = _bin_id(item, idx)
         if bid:
-            out.setdefault(bid, {**item, "id": bid, "source": f"test_requirements.coverage_goals.planned_bins[{idx}]"})
+            _add_planned_bin(
+                out,
+                bid,
+                {**item, "id": bid, "source": f"test_requirements.coverage_goals.planned_bins[{idx}]"},
+            )
     for key, domain in (
         ("function", "function"),
         ("function_coverage", "function"),
@@ -216,8 +258,25 @@ def planned_bin_entries(fcov_plan: dict[str, Any], goals: dict[str, Any]) -> dic
     ):
         for item in _goal_section_bins(goals.get(key), domain):
             bid = str(item["id"])
-            out.setdefault(bid, item)
+            _add_planned_bin(out, bid, item)
     return out
+
+
+def canonical_bin_id(
+    bid: str,
+    *,
+    planned_meta: dict[str, dict[str, Any]],
+    raw_bins: dict[str, Any],
+    rtl_bins: dict[str, Any],
+    existing_ids: list[str],
+) -> str:
+    """Resolve case/punctuation variants to the first known coverage-bin ID."""
+    norm = _norm_bin_key(bid)
+    for source in (existing_ids, list(planned_meta), list(raw_bins), list(rtl_bins)):
+        for candidate in source:
+            if norm and norm == _norm_bin_key(candidate):
+                return str(candidate)
+    return bid
 
 
 def planned_bin_ids(fcov_plan: dict[str, Any], goals: dict[str, Any] | None = None) -> list[str]:
@@ -529,16 +588,36 @@ def main() -> int:
     all_bin_ids: list[str] = []
     for source in (planned_bins, list(raw_bins), list(rtl_bins), rtl_cov.get("goal_refs") or []):
         for bid in source:
-            text = str(bid)
+            text = canonical_bin_id(
+                str(bid),
+                planned_meta=planned_meta,
+                raw_bins=raw_bins,
+                rtl_bins=rtl_bins,
+                existing_ids=all_bin_ids,
+            )
             if text and text not in all_bin_ids:
                 all_bin_ids.append(text)
 
     functional_bins: dict[str, Any] = {}
     for bid in all_bin_ids:
         meta = planned_meta.get(bid, {})
-        if bid in rtl_bins:
-            item = dict(rtl_bins[bid])
-            item["raw_hit"] = bin_hit(raw_bins.get(bid)) if bid in raw_bins else None
+        rtl_key = canonical_bin_id(
+            bid,
+            planned_meta={},
+            raw_bins={},
+            rtl_bins=rtl_bins,
+            existing_ids=list(rtl_bins),
+        )
+        raw_key = canonical_bin_id(
+            bid,
+            planned_meta={},
+            raw_bins=raw_bins,
+            rtl_bins={},
+            existing_ids=list(raw_bins),
+        )
+        if rtl_key in rtl_bins:
+            item = dict(rtl_bins[rtl_key])
+            item["raw_hit"] = bin_hit(raw_bins.get(raw_key)) if raw_key in raw_bins else None
             if meta:
                 item.setdefault("plan", meta)
                 for key in ("class", "coverage_domain", "domain", "description", "source", "source_ref"):
@@ -547,7 +626,7 @@ def main() -> int:
             item["coverage_domain"] = infer_coverage_domain(bid, item, meta)
             functional_bins[bid] = item
             continue
-        raw_value = raw_bins.get(bid, {"hit": False, "source": "fcov_plan"})
+        raw_value = raw_bins.get(raw_key, {"hit": False, "source": "fcov_plan"})
         item = {
             "hit": False,
             "raw_hit": bin_hit(raw_value),

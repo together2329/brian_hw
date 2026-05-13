@@ -131,6 +131,14 @@ if [ -n "${SUMMARY}" ]; then
     FAIL_PART=${SUMMARY#*FAIL=}; FAIL_CNT=${FAIL_PART%% *}
 fi
 
+# Strict by default: do not zero-out error signals automatically.
+# If a team needs legacy permissive behavior for local debug only,
+# they can explicitly opt in via ATLAS_SIM_ALLOW_ERROR_MASK=1.
+ALLOW_ERROR_MASK="${ATLAS_SIM_ALLOW_ERROR_MASK:-0}"
+if [ "${PY_FLOW}" -eq 1 ] && [ "${FAIL_CNT}" -eq 0 ] && [ "${ALLOW_ERROR_MASK}" = "1" ]; then
+    ERRORS=0
+fi
+
 echo ""
 echo "Simulation: ${ERRORS} errors, ${WARNINGS} warnings"
 echo "Tests: ${PASS_CNT} passed, ${FAIL_CNT} failed"

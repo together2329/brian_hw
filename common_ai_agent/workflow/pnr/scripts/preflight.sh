@@ -59,6 +59,11 @@ if missing:
         print(f"  - {item}", file=sys.stderr)
     raise SystemExit(7)
 io = pnr.get("io_layers") or {}
+cts = pnr.get("cts_buf_list") or "sky130_fd_sc_hd__clkbuf_4 sky130_fd_sc_hd__clkbuf_8"
+if isinstance(cts, list):
+    cts = ",".join(str(item).strip() for item in cts if str(item).strip())
+else:
+    cts = ",".join(str(cts).replace(",", " ").split())
 print(
     pnr.get("utilization_pct"),
     pnr.get("aspect_ratio"),
@@ -66,7 +71,7 @@ print(
     pnr.get("global_density"),
     io.get("horizontal"),
     io.get("vertical"),
-    str(pnr.get("cts_buf_list") or "sky130_fd_sc_hd__clkbuf_4 sky130_fd_sc_hd__clkbuf_8").replace(" ", ","),
+    cts,
 )
 PY
 )" || exit $?

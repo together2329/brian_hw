@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "cortex_m0lite",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 2,
+    "failed": 0,
+    "transactions": 1,
+    "transaction_results": [
+      {
+        "id": "FM_TICK",
+        "name": "timer_control_tick",
+        "kind": "FM_TICK",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_TICK",
+          "transaction_name": "timer_control_tick",
+          "sample_accepted": 1,
+          "pc_next": 0,
+          "pc": 0,
+          "busy_next": 0,
+          "busy": 0,
+          "retire_pulse": 0,
+          "retire": 0,
+          "state_updates": {
+            "pc_q": 0,
+            "busy_q": 0,
+            "retire_q": 0
+          }
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 2,
+    "coverage_bins": 30,
+    "invariants_total": 4,
+    "invariants_evaluated": 0,
+    "invariants_failed": [],
+    "invariants_skipped": [
+      {
+        "name": "Reset or flush leaves pc=0, busy=0, and ",
+        "expr": "Reset or flush leaves pc=0, busy=0, and retire=0.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "retire is asserted only on a terminal st",
+        "expr": "retire is asserted only on a terminal step_end pcdown tick.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "pc never underflows below zero because t",
+        "expr": "pc never underflows below zero because the decrement rule is gated by pc > 0.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "When step_en is low and no fetch_en or f",
+        "expr": "When step_en is low and no fetch_en or flush is asserted, pc and busy hold their previous values.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      }
+    ],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 1,
+    "error_cases_planned": 0
+  },
+  "decomposition_units": 6,
+  "fcov_bins": 30,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "cortex_m0lite/req/",
+      "cortex_m0lite/yaml/cortex_m0lite.ssot.yaml",
+      "cortex_m0lite/model/functional_model.py",
+      "cortex_m0lite/cov/fcov_plan.json",
+      "cortex_m0lite/yaml/cortex_m0lite.ssot.yaml#io_list",
+      "cortex_m0lite/yaml/cortex_m0lite.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "cortex_m0lite/rtl/",
+      "cortex_m0lite/tb/",
+      "cortex_m0lite/sim/",
+      "cortex_m0lite/vectors/",
+      "cortex_m0lite/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

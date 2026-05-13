@@ -104,10 +104,9 @@ def _banned_syntax_patterns() -> list[tuple[str, re.Pattern[str], str]]:
         ("no_function", r"\b(?:function|endfunction|task|endtask)\b", "Do not use function/task blocks in generated RTL."),
         ("no_for_loop", r"\bfor\s*\(", "Do not use for loops in generated RTL."),
         ("no_while_loop", r"\bwhile\s*\(", "Do not use while loops in generated RTL."),
-        ("no_logic", r"\blogic\b", "Generated RTL uses Verilog-2001 syntax: use wire/reg, not logic."),
-        ("no_typedef_enum", r"\b(?:typedef|enum)\b", "Generated RTL uses Verilog-2001 syntax: use localparam state encoding, not typedef/enum."),
-        ("no_always_ff_comb", r"\balways_(?:ff|comb|latch)\b", "Generated RTL uses Verilog-2001 syntax: use always @(...) or always @(*)."),
-        ("no_sv_integer_types", r"\b(?:bit|byte|int|longint|shortint)\b", "Generated RTL uses Verilog-2001 syntax: avoid SystemVerilog scalar integer types."),
+        ("no_typedef_enum", r"\b(?:typedef|enum)\b", "Generated RTL uses the project SystemVerilog subset: use localparam state encoding, not typedef/enum."),
+        ("no_always_ff_comb", r"\balways_(?:ff|comb|latch)\b", "Generated RTL uses the project SystemVerilog subset: use always @(...) or always @(*)."),
+        ("no_sv_integer_types", r"\b(?:bit|byte|int|longint|shortint)\b", "Generated RTL uses logic/wire/reg only; avoid SystemVerilog scalar integer types."),
     ]
     return [(rule, re.compile(pattern), message) for rule, pattern, message in banned]
 
@@ -427,8 +426,9 @@ def main() -> int:
         "style_violations": style_violations,
         "policy": (
             "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, "
-            "and generated RTL must keep .sv filenames while defaulting to the Verilog-2001 subset: "
-            "no package/import/interface/modport/function/task/for/while and no logic/typedef/enum/always_ff/always_comb."
+            "and generated RTL must keep .sv filenames while using the project SystemVerilog subset: "
+            "input logic/output logic ports and internal logic are allowed; package/import/interface/modport/"
+            "function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden."
         ),
         "passed": (
             tool_passed

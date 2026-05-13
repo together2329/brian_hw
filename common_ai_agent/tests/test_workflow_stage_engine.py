@@ -22,6 +22,7 @@ PROFILE_RTL_REFERENCE = SOURCE_ROOT / "workflow" / "rtl-gen" / "scripts" / "prof
 PREPARE_RTL_HUMAN_REVIEW = SOURCE_ROOT / "workflow" / "rtl-gen" / "scripts" / "prepare_rtl_human_review.py"
 REFRESH_RTL_PROVENANCE = SOURCE_ROOT / "workflow" / "rtl-gen" / "scripts" / "refresh_rtl_provenance.py"
 REPAIR_SSOT = SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "repair_ssot_schema.py"
+WRITE_STA_SDC = SOURCE_ROOT / "workflow" / "sta" / "scripts" / "write_sdc.sh"
 EMIT_FL_MODEL = SOURCE_ROOT / "workflow" / "fl-model-gen" / "scripts" / "emit_fl_model.py"
 EMIT_AUTHORITY_MANIFEST = SOURCE_ROOT / "workflow" / "fl-model-gen" / "scripts" / "emit_authority_manifest.py"
 EMIT_MODEL_SIGNATURE = SOURCE_ROOT / "workflow" / "fl-model-gen" / "scripts" / "emit_model_signature.py"
@@ -474,6 +475,84 @@ def test_coverage_stage_reports_function_and_cycle_model_coverage_separately(tmp
     assert coverage["functional_bins"]["CCOV_LATENCY_ONE"]["coverage_domain"] == "cycle"
     assert coverage["coverage_model"]["function"]["source"] == "function_model"
     assert coverage["coverage_model"]["cycle"]["source"] == "cycle_model"
+
+
+def test_coverage_stage_merges_case_variant_ssot_and_fcov_bins(tmp_path: Path):
+    ip = "coverage_case_alias_probe"
+    _write_coverage_ready_fixture(tmp_path, ip)
+    ip_dir = tmp_path / ip
+    ssot_path = ip_dir / "yaml" / f"{ip}.ssot.yaml"
+    doc = yaml.safe_load(ssot_path.read_text(encoding="utf-8"))
+    doc["test_requirements"]["coverage_goals"] = {
+        "function": {
+            "target_pct": 100,
+            "model": "function_model",
+            "bins": [
+                {
+                    "id": "FCOV_DOUBLE",
+                    "source_ref": "function_model.transactions.FM_DOUBLE",
+                    "class": "transaction",
+                }
+            ],
+        },
+        "cycle": {
+            "target_pct": 100,
+            "model": "cycle_model",
+            "bins": [
+                {
+                    "id": "CCOV_LATENCY_ONE",
+                    "source_ref": "cycle_model.latency",
+                    "class": "latency",
+                }
+            ],
+        },
+    }
+    ssot_path.write_text(yaml.safe_dump(doc, sort_keys=False), encoding="utf-8")
+    (ip_dir / "cov" / "fcov_plan.json").write_text(
+        json.dumps(
+            {
+                "planned_before_rtl": True,
+                "bins": [
+                    {
+                        "id": "fcov_double",
+                        "class": "transaction",
+                        "coverage_domain": "function",
+                        "source_ref": "function_model.transactions.FM_DOUBLE",
+                    },
+                    {
+                        "id": "ccov_latency_one",
+                        "class": "latency",
+                        "coverage_domain": "cycle",
+                        "source_ref": "cycle_model.latency",
+                    },
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    functional = json.loads((ip_dir / "cov" / "coverage_functional.json").read_text(encoding="utf-8"))
+    functional["functional"]["bins"] = {
+        "fcov_double": {"hit": True, "goal_id": "EQ_DOUBLE", "scenario_id": "SC_DOUBLE"},
+        "ccov_latency_one": {"hit": True, "goal_id": "EQ_DOUBLE", "scenario_id": "SC_DOUBLE"},
+    }
+    (ip_dir / "cov" / "coverage_functional.json").write_text(json.dumps(functional, indent=2) + "\n", encoding="utf-8")
+    goals = json.loads((ip_dir / "verify" / "equivalence_goals.json").read_text(encoding="utf-8"))
+    goals["goals"][0]["coverage_refs"] = ["fcov_double", "ccov_latency_one"]
+    (ip_dir / "verify" / "equivalence_goals.json").write_text(json.dumps(goals, indent=2) + "\n", encoding="utf-8")
+    row = json.loads((ip_dir / "sim" / "scoreboard_events.jsonl").read_text(encoding="utf-8"))
+    row["coverage_refs"] = ["fcov_double", "ccov_latency_one"]
+    (ip_dir / "sim" / "scoreboard_events.jsonl").write_text(json.dumps(row, sort_keys=True) + "\n", encoding="utf-8")
+
+    result = WorkflowStageEngine(tmp_path).run_stage("coverage", ip)
+
+    assert result.status == "pass", result.message
+    coverage = json.loads((ip_dir / "cov" / "coverage.json").read_text(encoding="utf-8"))
+    assert coverage["planned_bins"] == ["fcov_double", "ccov_latency_one"]
+    assert coverage["function_coverage"]["total"] == 1
+    assert coverage["cycle_coverage"]["total"] == 1
+    assert coverage["limitations"] == {}
 
 
 def test_coverage_stage_rejects_raw_functional_bins_without_rtl_observed_scoreboard(tmp_path: Path):
@@ -1125,19 +1204,22 @@ def test_dynamic_rtl_todos_scale_from_ssot_complexity(tmp_path: Path):
     assert template_plan["name"] == f"{ip}-rtl"
     assert template_plan["source_plan"] == "rtl/rtl_todo_plan.json"
     assert template_plan["source_task_count"] == summary["total_tasks"]
-    assert template_plan["ui_grouping"]["strategy"] == "ssot_section_plus_rtl_work_type"
+    assert template_plan["ui_grouping"]["strategy"] == "flat_ledger_one_todo_per_rtl_task"
     assert template_plan["ui_grouping"]["actual_count"] == len(template_plan["tasks"])
     assert "tasks" in template_plan
-    assert 1 < len(template_plan["tasks"]) < summary["total_tasks"]
-    assert len(template_plan["tasks"]) <= template_plan["ui_grouping"]["target_max"]
+    assert len(template_plan["tasks"]) == summary["total_tasks"]
+    assert template_plan["ui_grouping"]["target_min"] == len(template_plan["tasks"])
+    assert len(template_plan["tasks"]) == template_plan["ui_grouping"]["target_max"]
+    assert template_plan["status_counts"] == {"pending": summary["total_tasks"]}
     first_task = template_plan["tasks"][0]
     assert "content" in first_task
     assert "activeForm" in first_task
+    assert first_task["status"] == "pending"
     assert "detail" in first_task
     assert "priority" in first_task
     assert "criteria" in first_task
-    assert "Close every ledger item represented by this UI TODO" in first_task["criteria"]
-    assert any("function_model" in task["criteria"] for task in template_plan["tasks"])
+    assert "todo_completion.status is pass after derive_rtl_todos.py --audit-rtl" in first_task["criteria"]
+    assert any("function_model" in task["detail"] or "function_model" in task["criteria"] for task in template_plan["tasks"])
     authoring_plan = json.loads((tmp_path / ip / "rtl" / "rtl_authoring_plan.json").read_text(encoding="utf-8"))
     assert authoring_plan["type"] == "rtl_authoring_plan"
     assert authoring_plan["source_plan"] == "rtl/rtl_todo_plan.json"
@@ -2359,6 +2441,81 @@ def test_dynamic_rtl_todos_gate_checks_top_io_contracts(tmp_path: Path):
     assert plan["top_io_contract_evidence"]["status"] == "pass"
 
 
+def test_dynamic_rtl_todos_gate_accepts_parameterized_width_for_numeric_ssot(tmp_path: Path):
+    ip = "dynamic_top_io_param_width_gate"
+    ip_dir = tmp_path / ip
+    for subdir in ("yaml", "rtl", "list"):
+        (ip_dir / subdir).mkdir(parents=True, exist_ok=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        "\n".join(
+            [
+                "top_module:",
+                f"  name: {ip}",
+                "clocks:",
+                "  - {name: clk}",
+                "resets:",
+                "  - {name: rst_n}",
+                "io_list:",
+                "  interfaces:",
+                "    - name: data_in",
+                "      type: input",
+                "      width: 8",
+                "    - name: result",
+                "      type: output",
+                "      width: 9",
+                "function_model:",
+                "  transactions:",
+                "    - id: FM_RUN",
+                "      inputs: [data_in]",
+                "      outputs: [result]",
+                "cycle_model:",
+                "  latency: 1",
+                "filelist:",
+                "  rtl:",
+                f"    - rtl/{ip}.sv",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(
+        "\n".join(
+            [
+                f"module {ip} #(",
+                "  parameter integer DATA_W = 8,",
+                "  parameter integer RESULT_W = DATA_W + 1",
+                ") (",
+                "  input wire clk,",
+                "  input wire rst_n,",
+                "  input wire [DATA_W-1:0] data_in,",
+                "  output wire [RESULT_W-1:0] result",
+                ");",
+                "  assign result = {1'b0, data_in};",
+                "endmodule",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "list" / f"{ip}.f").write_text(f"rtl/{ip}.sv\n", encoding="utf-8")
+
+    subprocess.run(
+        [sys.executable, str(DERIVE_RTL_TODOS), ip, "--root", str(tmp_path), "--audit-rtl"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    plan = json.loads((ip_dir / "rtl" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
+    top_task = next(
+        task
+        for task in plan["tasks"]
+        if (task.get("gate_todo") or {}).get("kind") == "top_io_contract_evidence"
+    )
+    assert top_task["todo_completion"]["status"] == "pass"
+    assert plan["top_io_contract_evidence"]["status"] == "pass"
+    assert plan["top_io_contract_evidence"]["top_parameters"] == {"DATA_W": 8, "RESULT_W": 9}
+
+
 def test_dynamic_rtl_todos_gate_rejects_constant_top_output_without_ssot_tieoff(tmp_path: Path):
     ip = "dynamic_top_output_drive_gate"
     ip_dir = tmp_path / ip
@@ -3033,6 +3190,8 @@ def test_repair_ssot_schema_preserves_general_ip_and_defers_connection_contracts
     repaired = yaml.safe_load(ssot_path.read_text(encoding="utf-8"))
     assert repaired["quality_gates"]["rtl_gen"]["profile"] == "production"
     assert repaired["quality_gates"]["rtl_gen"]["pass"]
+    assert repaired["pnr"]["utilization_pct"] == 60
+    assert repaired["pnr"]["io_layers"] == {"horizontal": "met3", "vertical": "met2"}
     assert repaired["integration"]["connections"] == []
     assert repaired["integration"]["connection_contract_status"].startswith("missing machine-readable")
     todo_ids = [item["id"] for item in repaired["workflow_todos"]["rtl-gen"]]
@@ -3073,6 +3232,40 @@ def test_repair_ssot_schema_preserves_general_ip_and_defers_connection_contracts
     assert policy["draft_allowed"] is True
     assert policy["pass_allowed"] is False
     assert policy["connection_contract_gap"]["status"] == "missing"
+
+
+def test_sta_sdc_uses_canonical_timing_target_clocks(tmp_path: Path):
+    ip = "sta_clock_from_timing"
+    ip_dir = tmp_path / ip
+    ssot_path = ip_dir / "yaml" / f"{ip}.ssot.yaml"
+    ssot_path.parent.mkdir(parents=True, exist_ok=True)
+    ssot_path.write_text(
+        yaml.safe_dump(
+            {
+                "top_module": {"name": ip},
+                "io_list": {
+                    "clock_domains": [{"name": "main", "ports": [{"name": "clk", "direction": "input", "width": 1}]}],
+                    "resets": [{"name": "rst_n", "ports": [{"name": "rst_n"}], "sync_async": "async"}],
+                },
+                "timing": {"target_clocks": [{"name": "clk", "frequency_mhz": 125}]},
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        ["bash", str(WRITE_STA_SDC), ip],
+        cwd=str(tmp_path),
+        text=True,
+        capture_output=True,
+        timeout=30,
+    )
+
+    assert result.returncode == 0, result.stderr or result.stdout
+    sdc = (ip_dir / "sta" / "out" / f"{ip}.sdc").read_text(encoding="utf-8")
+    assert "create_clock -name clk -period 8.0 [get_ports clk]" in sdc
+    assert "set_false_path -from [get_ports rst_n]" in sdc
 
 
 def test_static_rtl_evidence_is_scoped_to_owner_file(tmp_path: Path):

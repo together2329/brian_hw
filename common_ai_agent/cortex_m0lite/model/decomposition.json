@@ -1,0 +1,549 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_decomposition",
+  "ip": "cortex_m0lite",
+  "source": "cortex_m0lite/yaml/cortex_m0lite.ssot.yaml",
+  "units": [
+    {
+      "name": "timer_core",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "features",
+        "fsm",
+        "function_model",
+        "io_list",
+        "parameters",
+        "rtl_contract"
+      ],
+      "rtl_candidates": [
+        "timer_core"
+      ],
+      "rtl_file": "rtl/cortex_m0lite.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.fetch_en_load",
+        "cycle_model.handshake_rules.flush_priority",
+        "cycle_model.handshake_rules.step_end_tick",
+        "cycle_model.latency",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline.s0_control_sample",
+        "cycle_model.pipeline.s1_state_visible",
+        "cycle_model.reset",
+        "features.flush_priority",
+        "features.parameterized_pcdown",
+        "features.retire_pulse",
+        "fsm",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.state_variables.busy_q",
+        "function_model.state_variables.pc_q",
+        "function_model.state_variables.retire_q",
+        "function_model.transactions.FM_TICK",
+        "function_model.transactions.fm_tick",
+        "function_model.transactions.fm_tick.error_cases.error_case_0",
+        "function_model.transactions.fm_tick.output_rules.busy_next",
+        "function_model.transactions.fm_tick.output_rules.pc_next",
+        "function_model.transactions.fm_tick.output_rules.retire_pulse",
+        "function_model.transactions.fm_tick.outputs.output_0",
+        "function_model.transactions.fm_tick.outputs.output_1",
+        "function_model.transactions.fm_tick.outputs.output_2",
+        "function_model.transactions.fm_tick.preconditions.precondition_0",
+        "function_model.transactions.fm_tick.preconditions.precondition_1",
+        "function_model.transactions.fm_tick.side_effects.side_effect_0",
+        "function_model.transactions.fm_tick.side_effects.side_effect_1",
+        "function_model.transactions.fm_tick.side_effects.side_effect_2",
+        "function_model.transactions.fm_tick.state_updates.busy_q",
+        "function_model.transactions.fm_tick.state_updates.pc_q",
+        "function_model.transactions.fm_tick.state_updates.retire_q",
+        "io_list",
+        "parameters",
+        "parameters.xlen",
+        "rtl_contract"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.state_variables.busy_q",
+        "function_model.state_variables.pc_q",
+        "function_model.state_variables.retire_q",
+        "function_model.transactions.fm_tick",
+        "function_model.transactions.fm_tick.error_cases.error_case_0",
+        "function_model.transactions.fm_tick.output_rules.busy_next",
+        "function_model.transactions.fm_tick.output_rules.pc_next",
+        "function_model.transactions.fm_tick.output_rules.retire_pulse",
+        "function_model.transactions.fm_tick.outputs.output_0",
+        "function_model.transactions.fm_tick.outputs.output_1",
+        "function_model.transactions.fm_tick.outputs.output_2",
+        "function_model.transactions.fm_tick.preconditions.precondition_0",
+        "function_model.transactions.fm_tick.preconditions.precondition_1",
+        "function_model.transactions.fm_tick.side_effects.side_effect_0",
+        "function_model.transactions.fm_tick.side_effects.side_effect_1",
+        "function_model.transactions.fm_tick.side_effects.side_effect_2",
+        "function_model.transactions.fm_tick.state_updates.busy_q",
+        "function_model.transactions.fm_tick.state_updates.pc_q",
+        "function_model.transactions.fm_tick.state_updates.retire_q"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.fetch_en_load",
+        "cycle_model.handshake_rules.flush_priority",
+        "cycle_model.handshake_rules.step_end_tick",
+        "cycle_model.latency",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline.s0_control_sample",
+        "cycle_model.pipeline.s1_state_visible",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.flush_priority",
+        "features.parameterized_pcdown",
+        "features.retire_pulse",
+        "parameters.xlen"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "cortex_m0lite_protocol_model",
+      "kind": "protocol",
+      "source_sections": [
+        "io_list",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "cortex_m0lite_axi_slv",
+        "cortex_m0lite_protocol"
+      ],
+      "verification_impact": [
+        "driver",
+        "monitor",
+        "protocol coverage"
+      ]
+    },
+    {
+      "name": "cortex_m0lite_datapath_model",
+      "kind": "datapath",
+      "source_sections": [
+        "features",
+        "dataflow",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "cortex_m0lite_core",
+        "cortex_m0lite_datapath"
+      ],
+      "verification_impact": [
+        "functional scoreboard",
+        "transaction coverage"
+      ]
+    },
+    {
+      "name": "cortex_m0lite_fsm_model",
+      "kind": "fsm",
+      "source_sections": [
+        "fsm",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "cortex_m0lite_core"
+      ],
+      "verification_impact": [
+        "state transition coverage",
+        "waveform debug"
+      ]
+    },
+    {
+      "name": "cortex_m0lite_error_model",
+      "kind": "error",
+      "source_sections": [
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "cortex_m0lite_core",
+        "cortex_m0lite_error"
+      ],
+      "verification_impact": [
+        "negative tests",
+        "mismatch classification"
+      ]
+    },
+    {
+      "name": "cortex_m0lite_security_model",
+      "kind": "security",
+      "source_sections": [
+        "security",
+        "debug_observability"
+      ],
+      "rtl_candidates": [
+        "cortex_m0lite_security",
+        "cortex_m0lite_core"
+      ],
+      "verification_impact": [
+        "security bins",
+        "debug observability checks"
+      ]
+    }
+  ],
+  "module_contracts": [
+    {
+      "name": "timer_core",
+      "kind": "rtl_module",
+      "rtl_module": "timer_core",
+      "rtl_file": "rtl/cortex_m0lite.sv",
+      "source_sections": [
+        "cycle_model",
+        "features",
+        "fsm",
+        "function_model",
+        "io_list",
+        "parameters",
+        "rtl_contract"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.fetch_en_load",
+        "cycle_model.handshake_rules.flush_priority",
+        "cycle_model.handshake_rules.step_end_tick",
+        "cycle_model.latency",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline.s0_control_sample",
+        "cycle_model.pipeline.s1_state_visible",
+        "cycle_model.reset",
+        "features.flush_priority",
+        "features.parameterized_pcdown",
+        "features.retire_pulse",
+        "fsm",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.state_variables.busy_q",
+        "function_model.state_variables.pc_q",
+        "function_model.state_variables.retire_q",
+        "function_model.transactions.FM_TICK",
+        "function_model.transactions.fm_tick",
+        "function_model.transactions.fm_tick.error_cases.error_case_0",
+        "function_model.transactions.fm_tick.output_rules.busy_next",
+        "function_model.transactions.fm_tick.output_rules.pc_next",
+        "function_model.transactions.fm_tick.output_rules.retire_pulse",
+        "function_model.transactions.fm_tick.outputs.output_0",
+        "function_model.transactions.fm_tick.outputs.output_1",
+        "function_model.transactions.fm_tick.outputs.output_2",
+        "function_model.transactions.fm_tick.preconditions.precondition_0",
+        "function_model.transactions.fm_tick.preconditions.precondition_1",
+        "function_model.transactions.fm_tick.side_effects.side_effect_0",
+        "function_model.transactions.fm_tick.side_effects.side_effect_1",
+        "function_model.transactions.fm_tick.side_effects.side_effect_2",
+        "function_model.transactions.fm_tick.state_updates.busy_q",
+        "function_model.transactions.fm_tick.state_updates.pc_q",
+        "function_model.transactions.fm_tick.state_updates.retire_q",
+        "io_list",
+        "parameters",
+        "parameters.xlen",
+        "rtl_contract"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.state_variables.busy_q",
+        "function_model.state_variables.pc_q",
+        "function_model.state_variables.retire_q",
+        "function_model.transactions.fm_tick",
+        "function_model.transactions.fm_tick.error_cases.error_case_0",
+        "function_model.transactions.fm_tick.output_rules.busy_next",
+        "function_model.transactions.fm_tick.output_rules.pc_next",
+        "function_model.transactions.fm_tick.output_rules.retire_pulse",
+        "function_model.transactions.fm_tick.outputs.output_0",
+        "function_model.transactions.fm_tick.outputs.output_1",
+        "function_model.transactions.fm_tick.outputs.output_2",
+        "function_model.transactions.fm_tick.preconditions.precondition_0",
+        "function_model.transactions.fm_tick.preconditions.precondition_1",
+        "function_model.transactions.fm_tick.side_effects.side_effect_0",
+        "function_model.transactions.fm_tick.side_effects.side_effect_1",
+        "function_model.transactions.fm_tick.side_effects.side_effect_2",
+        "function_model.transactions.fm_tick.state_updates.busy_q",
+        "function_model.transactions.fm_tick.state_updates.pc_q",
+        "function_model.transactions.fm_tick.state_updates.retire_q"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.fetch_en_load",
+        "cycle_model.handshake_rules.flush_priority",
+        "cycle_model.handshake_rules.step_end_tick",
+        "cycle_model.latency",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline.s0_control_sample",
+        "cycle_model.pipeline.s1_state_visible",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.flush_priority",
+        "features.parameterized_pcdown",
+        "features.retire_pulse",
+        "parameters.xlen"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.pc_q",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.state_variables.busy_q",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.state_variables.retire_q",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick.preconditions.precondition_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick.preconditions.precondition_1",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick.outputs.output_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick.outputs.output_1",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick.outputs.output_2",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick.output_rules.pc_next",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick.output_rules.busy_next",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick.output_rules.retire_pulse",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick.state_updates.pc_q",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick.state_updates.busy_q",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick.state_updates.retire_q",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick.side_effects.side_effect_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick.side_effects.side_effect_1",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick.side_effects.side_effect_2",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick.error_cases.error_case_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.invariants.invariant_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.invariants.invariant_1",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.invariants.invariant_2",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.invariants.invariant_3",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.clock",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.reset",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.latency",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.fetch_en_load",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.step_end_tick",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.flush_priority",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.pipeline.s0_control_sample",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.pipeline.s1_state_visible",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_1",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_2",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.backpressure.backpressure_0",
+          "matched_ref": "single_owner"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "parameters.xlen",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "features.parameterized_pcdown",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "features.retire_pulse",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "features.flush_priority",
+          "matched_ref": "single_owner"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    }
+  ],
+  "orphan_function_cycle_refs": [],
+  "function_cycle_ref_count": 35,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "cortex_m0lite/req/",
+      "cortex_m0lite/yaml/cortex_m0lite.ssot.yaml",
+      "cortex_m0lite/model/functional_model.py",
+      "cortex_m0lite/cov/fcov_plan.json",
+      "cortex_m0lite/yaml/cortex_m0lite.ssot.yaml#io_list",
+      "cortex_m0lite/yaml/cortex_m0lite.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "cortex_m0lite/rtl/",
+      "cortex_m0lite/tb/",
+      "cortex_m0lite/sim/",
+      "cortex_m0lite/vectors/",
+      "cortex_m0lite/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "drives": [
+    "rtl_module_plan",
+    "tb_environment_plan",
+    "functional_coverage_plan"
+  ],
+  "complete": true
+}

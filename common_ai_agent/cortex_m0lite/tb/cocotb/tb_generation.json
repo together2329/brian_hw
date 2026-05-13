@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_generation",
+  "status": "pass",
+  "ip": "cortex_m0lite",
+  "generated_at": "2026-05-13T16:05:31Z",
+  "manifest": "cortex_m0lite/tb/cocotb/tb_manifest.json",
+  "test": "cortex_m0lite/tb/cocotb/test_cortex_m0lite.py",
+  "runner": "cortex_m0lite/tb/cocotb/test_runner.py",
+  "goals": 27,
+  "rtl_sources": 1
+}

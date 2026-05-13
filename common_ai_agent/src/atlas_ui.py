@@ -6558,6 +6558,32 @@ def create_app():
             return parts[0]
         return ""
 
+    def _session_owner_with_model(owner: str) -> str:
+        """Optionally isolate session namespace per model.
+
+        When enabled, the owner segment becomes:
+            <owner>__<model_slug>
+        so model runs cannot overwrite each other's .session trees.
+        """
+        base = str(owner or "default").strip() or "default"
+        enabled = os.environ.get("ATLAS_SESSION_PER_MODEL", "1").strip().lower() in ("1", "true", "yes", "on")
+        if not enabled:
+            return base
+        raw_model = (
+            os.environ.get("LLM_ACTIVE_MODEL_NAME")
+            or os.environ.get("MODEL_NAME")
+            or os.environ.get("LLM_MODEL_NAME")
+            or ""
+        ).strip()
+        if not raw_model:
+            return base
+        model_slug = re.sub(r"[^A-Za-z0-9_-]+", "_", raw_model).strip("_")
+        if not model_slug:
+            return base
+        if base.endswith(f"__{model_slug}"):
+            return base
+        return f"{base}__{model_slug}"
+
     def _canonical_session_string(ip: str | None = None,
                                    workflow: str | None = None) -> str:
         """Return canonical 3-part session path string for --ui atlas:
@@ -6569,6 +6595,7 @@ def create_app():
         ATLAS_ACTIVE_IP, ATLAS_DEFAULT_WORKFLOW).
         """
         owner = _resolve_session_owner() or os.environ.get("ATLAS_DEFAULT_SESSION_ID") or "default"
+        owner = _session_owner_with_model(owner)
         ip = ip or _active_ip_value() or "default"
         workflow = workflow or os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
         return f"{owner}/{ip}/{workflow}"

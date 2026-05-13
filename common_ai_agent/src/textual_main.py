@@ -237,8 +237,8 @@ if __name__ == "__main__":
         add_help=True,
     )
     _parser.add_argument('-s', '--session', default=None)
-    _parser.add_argument('-w', '--workspace', '-wf', default=None,
-                         help='Workspace name (e.g. ssot-gen, rtl-gen, sim, lint)')
+    _parser.add_argument('-w', '--workspace', '-wf', '--workflow', default=None,
+                         help='Workflow name (e.g. ssot-gen, rtl-gen, sim, lint)')
     _parser.add_argument('-u', '--ui', default=None,
                          choices=['textual', 'atlas', 'web'],
                          help='UI mode (overrides UI_MODE in .config). '
@@ -312,14 +312,14 @@ if __name__ == "__main__":
     _session_name = _args.session or _args.workspace or 'default'
     _agent._setup_session(_session_name)
 
-    # Apply workspace if specified (same as main.py -w)
+    # Apply workflow if specified (same as main.py -w/--workflow)
     if _args.workspace:
         try:
             _agent._setup_workspace(_args.workspace)
         except SystemExit:
             raise  # _setup_workspace calls sys.exit(1) on unknown workspace
         except Exception as _e:
-            print(f"[warn] Workspace '{_args.workspace}' failed to load: {_e}")
+            print(f"[warn] Workflow '{_args.workspace}' failed to load: {_e}")
 
     # ── UI Mode routing ────────────────────────────────────────────────────
     # Priority: --ui CLI flag > UI_MODE env/config > "textual" default.

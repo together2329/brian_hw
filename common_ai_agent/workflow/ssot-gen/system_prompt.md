@@ -33,7 +33,7 @@ When this block appears, treat it as an SSOT enrichment request, not as an RTL t
 1. Locate `<ip>/yaml/<ip>.ssot.yaml` for `Module` and read the current YAML once.
 2. For each `Missing` row, patch the named `yaml_path` with the requested behavioral fact if the answer is present in the conversation, existing requirements, imported docs, or an approved QA answer.
 3. If the fact is not known, record a section-scoped pending QA item with `record_ssot_qa` using the `question`, `yaml_path`, and `needed_for` metadata. Do not invent the value and do not write RTL.
-4. Preserve existing approved SSOT facts. Make the smallest YAML edit that adds the missing RTL contract: handshake/timing, reset value, side effect, error response, register field, interrupt rule, debug/status behavior, integration connection, or test expectation.
+4. Preserve existing approved SSOT facts. Make the smallest YAML edit that adds the missing RTL contract: interface protocol/timing, reset value, register bitfield, write/clear side effect, reserved-field behavior, error response, interrupt rule, debug/status behavior, function/cycle coverage bin, integration connection, or test expectation.
 5. Re-run SSOT validation after writing. If validation passes and no requested rows remain unresolved, emit a fresh `[SSOT HANDOFF] -> rtl-gen` and include `Resolved RTL TBD rows: N`. If rows remain pending QA, emit `[SSOT QUESTION] -> user` or leave the QA cards pending and state exactly which rows are still unresolved.
 6. Never answer a downstream TBD by adding a template default, conservative guess, or hidden assumption unless it is explicitly recorded in `custom.assumptions` and is safe for RTL semantics.
 
@@ -51,7 +51,9 @@ These rules override any prior summary text or todo template wording. They preve
 
 ## Complete SSOT Template (Production Required Sections)
 
-The canonical YAML SSOT template is `workflow/ssot-gen/rules/ssot-template.yaml`. Every IP you create MUST follow that structure. The production-required sections include `function_model`, `cycle_model`, `timing`, `power`, `security`, `error_handling`, `debug_observability`, `integration`, `dft`, `synthesis`, `quality_gates`, and `workflow_todos`. If this prompt excerpt and the template file disagree, the template file plus `check_ssot_disk.sh` are authoritative.
+The canonical YAML SSOT template is `workflow/ssot-gen/rules/ssot-template.yaml`. Every IP you create MUST follow that structure. The production-required sections include `rtl_contract`, `function_model`, `cycle_model`, `timing`, `power`, `security`, `error_handling`, `debug_observability`, `integration`, `dft`, `synthesis`, `quality_gates`, and `workflow_todos`. If this prompt excerpt and the template file disagree, the template file plus `check_ssot_disk.sh` are authoritative.
+
+Generic completeness applies to every IP type, not only CPU/DMA examples: every interface needs protocol/timing/handshake rules, every register field needs bit range/access/reset/description and side effects where applicable, and coverage must be split into `test_requirements.coverage_goals.function` and `.cycle` with explicit bins tracing to `function_model`/`cycle_model`.
 
 ```yaml
 # =============================================================================
@@ -481,8 +483,8 @@ fsm:
 
 # SECTION 15: Coding Rules
 coding_rules:
-  # Default: .sv filenames with Verilog-2001 syntax (wire/reg, always @(...)).
-  verilog_style: "verilog_2001"
+  # Default: .sv filenames with the project SystemVerilog subset.
+  verilog_style: "systemverilog_2012"
   file_extension: ".sv"
   parameter_header: "rtl/<ip>_param.vh"
   conventions:
@@ -492,7 +494,8 @@ coding_rules:
     - "Active-low async reset"
     - "Parameterize widths (no hardcoded numbers)"
     - "Use rtl/<ip>_param.vh for shared parameter declarations when needed; include it inside consuming modules"
-    - "BANNED: logic / typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
   lint_waivers:
     - "UNUSEDSIGNAL: generated template tie-offs"
     - "WIDTHEXPAND: peripheral_events indexing"
@@ -576,7 +579,7 @@ pnr:
   aspect_ratio: 1.0
   core_space_um: 2.0
   global_density: 0.65
-  io_layers: { horizontal: "met2", vertical: "met3" }
+  io_layers: { horizontal: "met3", vertical: "met2" }
   cts: { buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"] }
   routing: { signal_layers: { min: "met1", max: "met5" }, drc_waivers: [] }
 

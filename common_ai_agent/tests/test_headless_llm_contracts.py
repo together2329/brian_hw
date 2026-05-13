@@ -351,6 +351,18 @@ def test_headless_rtl_prompt_is_focused_to_rtl_artifact_and_todos(tmp_path: Path
 def test_headless_rtl_gen_can_drive_authoring_packets(tmp_path: Path, monkeypatch):
     ip = "rtl_packet_mode_ip"
     req = _write_req(tmp_path, ip)
+    stale_provenance_dir = tmp_path / "work" / ip / "rtl"
+    stale_provenance_dir.mkdir(parents=True, exist_ok=True)
+    (stale_provenance_dir / "rtl_authoring_provenance.json").write_text(
+        json.dumps(
+            {
+                "ip": "old_ip",
+                "model": "old-model",
+                "authoring_packets": ["module__timer_core__function_model"],
+            }
+        ),
+        encoding="utf-8",
+    )
     monkeypatch.setenv("ATLAS_HEADLESS_RTL_PACKET_MODE", "1")
     runner = HeadlessWorkflowRunner(
         root=tmp_path / "work",
@@ -378,7 +390,10 @@ def test_headless_rtl_gen_can_drive_authoring_packets(tmp_path: Path, monkeypatc
     assert any("ssot_context" in task for task in packet_json["tasks"])
     provenance = json.loads((tmp_path / "work" / ip / "rtl" / "rtl_authoring_provenance.json").read_text(encoding="utf-8"))
     assert provenance["surface"] == "headless_common_engine"
+    assert provenance["ip"] == ip
+    assert provenance["model"] == "glm-5.1"
     assert provenance["authoring_packets"]
+    assert "module__timer_core__function_model" not in provenance["authoring_packets"]
     assert f"rtl/{ip}.sv" in provenance["rtl_files"]
 
 

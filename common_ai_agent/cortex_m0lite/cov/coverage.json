@@ -1,0 +1,2691 @@
+{
+  "source": "ssot_coverage_summary",
+  "status": "blocked",
+  "ssot": "cortex_m0lite/yaml/cortex_m0lite.ssot.yaml",
+  "module": "cortex_m0lite",
+  "dv_plan": {
+    "scenarios": 6,
+    "scoreboard_checks": 6,
+    "coverage_goals": {
+      "function": {
+        "target_pct": 95,
+        "model": "function_model",
+        "description": "Cycle-independent architectural behavior coverage derived from function_model.",
+        "bins": [
+          {
+            "id": "alu_ops_all",
+            "source_ref": "function_model.transactions.FM_CPU_STEP.operand_rules",
+            "class": "instruction_class",
+            "description": "All ALU/MOV/CMP operation families execute and match architectural writeback/flag behavior."
+          },
+          {
+            "id": "alu_flag_update_matrix",
+            "source_ref": "function_model.transactions.FM_CPU_STEP.flag_formulas",
+            "class": "flag_behavior",
+            "description": "N/Z/C/V formulas are observed for arithmetic, compare, logical, and move cases."
+          },
+          {
+            "id": "branch_taken_not_taken",
+            "source_ref": "function_model.transactions.FM_CPU_STEP.branch_rules",
+            "class": "control_flow",
+            "description": "Taken and not-taken branch paths update PC and flush behavior as specified."
+          },
+          {
+            "id": "load_store_word",
+            "source_ref": "function_model.transactions.FM_CPU_STEP.memory_rules",
+            "class": "memory_behavior",
+            "description": "Aligned LDR/STR word behavior updates registers or memory side effects correctly."
+          },
+          {
+            "id": "trap_illegal_opcode",
+            "source_ref": "function_model.transactions.FM_CPU_STEP.error_cases",
+            "class": "trap",
+            "description": "Illegal decode raises trap_code=1 and suppresses retire."
+          },
+          {
+            "id": "trap_bus_error",
+            "source_ref": "function_model.transactions.FM_CPU_STEP.error_cases",
+            "class": "trap",
+            "description": "Instruction/data HRESP error raises trap_code=2 and suppresses retire."
+          },
+          {
+            "id": "trap_misaligned",
+            "source_ref": "function_model.transactions.FM_CPU_STEP.error_cases",
+            "class": "trap",
+            "description": "Misaligned word access raises trap_code=3 before data bus launch."
+          }
+        ]
+      },
+      "cycle": {
+        "target_pct": 90,
+        "model": "cycle_model",
+        "description": "Cycle/latency/handshake/performance coverage derived from cycle_model.",
+        "bins": [
+          {
+            "id": "pipeline_state_occupancy",
+            "source_ref": "cycle_model.pipeline",
+            "class": "pipeline",
+            "description": "IF, ID, and EX/WB pipeline stages all become active under directed tests."
+          },
+          {
+            "id": "if_wait_cycles",
+            "source_ref": "cycle_model.handshake_rules.if_wait",
+            "class": "handshake",
+            "description": "Instruction fetch wait-state hold behavior is observed."
+          },
+          {
+            "id": "dmem_wait_cycles",
+            "source_ref": "cycle_model.handshake_rules.dmem_wait",
+            "class": "handshake",
+            "description": "Data memory wait-state hold behavior is observed."
+          },
+          {
+            "id": "hazard_stall_cycles",
+            "source_ref": "cycle_model.handshake_rules.hazard_stall",
+            "class": "hazard",
+            "description": "Load-use one-bubble stall behavior is observed."
+          },
+          {
+            "id": "branch_flush_cycles",
+            "source_ref": "cycle_model.ordering",
+            "class": "flush",
+            "description": "Taken branch flush timing is observed."
+          },
+          {
+            "id": "trap_entry_cycles",
+            "source_ref": "fsm.control.transitions",
+            "class": "trap_timing",
+            "description": "Trap-entry FSM transition and flush timing are observed."
+          },
+          {
+            "id": "outstanding_instruction_depth",
+            "source_ref": "cycle_model.performance.outstanding_depth.instruction",
+            "class": "outstanding",
+            "description": "Instruction side single-outstanding request limit is exercised."
+          },
+          {
+            "id": "outstanding_data_depth",
+            "source_ref": "cycle_model.performance.outstanding_depth.data",
+            "class": "outstanding",
+            "description": "Data side single-outstanding request limit is exercised."
+          },
+          {
+            "id": "cpi_nominal_stream",
+            "source_ref": "cycle_model.performance.target_cpi_typical",
+            "class": "throughput",
+            "description": "Nominal instruction stream CPI target is measured or explicitly waived."
+          },
+          {
+            "id": "core_bus_frequency_ratio",
+            "source_ref": "cycle_model.performance.clock_ratio_core_to_bus",
+            "class": "frequency",
+            "description": "2:1 core_clk to bus_clk cycle relationship is represented in coverage evidence."
+          }
+        ]
+      },
+      "line": ">= 90% instrumented line coverage or explicit waiver",
+      "branch": ">= 85% instrumented branch coverage or explicit waiver",
+      "fsm": "100% declared FSM states and legal transitions covered",
+      "assertions": "All protocol/order/error assertions pass"
+    }
+  },
+  "functional": {
+    "hit": 30,
+    "total": 45,
+    "pct": 66.67
+  },
+  "function_coverage": {
+    "hit": 9,
+    "total": 14,
+    "pct": 64.29,
+    "target_pct": 95.0,
+    "meets_target": false,
+    "bins": {
+      "SC_RESET_CLEAR_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC_RESET_CLEAR_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[0]",
+          "scenario": "SC_RESET_CLEAR",
+          "description": "reset and flush force idle"
+        },
+        "class": "scenario",
+        "description": "reset and flush force idle",
+        "coverage_domain": "function"
+      },
+      "SC_COUNTDOWN_DONE_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC_COUNTDOWN_DONE",
+        "scenario_id": "SC_003_EQ_SCENARIO_SC_COUNTDOWN_DONE",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC_COUNTDOWN_DONE_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[1]",
+          "scenario": "SC_COUNTDOWN_DONE",
+          "description": "pcdown reaches retire"
+        },
+        "class": "scenario",
+        "description": "pcdown reaches retire",
+        "coverage_domain": "function"
+      },
+      "SC_ENABLE_HOLD_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC_ENABLE_HOLD",
+        "scenario_id": "SC_004_EQ_SCENARIO_SC_ENABLE_HOLD",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC_ENABLE_HOLD_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[2]",
+          "scenario": "SC_ENABLE_HOLD",
+          "description": "step_en low holds state"
+        },
+        "class": "scenario",
+        "description": "step_en low holds state",
+        "coverage_domain": "function"
+      },
+      "fcov_fetch_en_load": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_FETCH_EN_LOAD",
+        "scenario_id": "SC_005_EQ_PROTOCOL_FETCH_EN_LOAD",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fcov_fetch_en_load",
+          "class": "transaction",
+          "coverage_domain": "function",
+          "source": "test_requirements.coverage_goals.planned_bins[0]",
+          "source_ref": "function_model.transactions.FM_TICK",
+          "description": "fetch_en loads instr_data."
+        },
+        "class": "transaction",
+        "coverage_domain": "function",
+        "description": "fetch_en loads instr_data.",
+        "source_ref": "function_model.transactions.FM_TICK"
+      },
+      "fcov_retire_pulse": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_FCOV_RETIRE_PULSE",
+        "scenario_id": "SC_019_EQ_COVERAGE_FCOV_RETIRE_PULSE",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fcov_retire_pulse",
+          "class": "event",
+          "coverage_domain": "function",
+          "source": "test_requirements.coverage_goals.planned_bins[1]",
+          "source_ref": "function_model.transactions.FM_TICK.output_rules.retire_pulse",
+          "description": "retire pulse observed."
+        },
+        "class": "event",
+        "coverage_domain": "function",
+        "description": "retire pulse observed.",
+        "source_ref": "function_model.transactions.FM_TICK.output_rules.retire_pulse"
+      },
+      "fcov_flush_priority": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fcov_flush_priority",
+          "class": "state",
+          "coverage_domain": "function",
+          "source": "function_model.invariants.flush",
+          "source_ref": "function_model.invariants.flush",
+          "description": "flush returns all observable state to idle."
+        },
+        "class": "state",
+        "coverage_domain": "function",
+        "description": "flush returns all observable state to idle.",
+        "source_ref": "function_model.invariants.flush"
+      },
+      "fcov_step_en_hold": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_FCOV_STEP_EN_HOLD",
+        "scenario_id": "SC_021_EQ_COVERAGE_FCOV_STEP_EN_HOLD",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fcov_step_en_hold",
+          "class": "state",
+          "coverage_domain": "function",
+          "source": "function_model.invariants.step_en_hold",
+          "source_ref": "function_model.invariants.step_en_hold",
+          "description": "step_en low prevents pcdown progress."
+        },
+        "class": "state",
+        "coverage_domain": "function",
+        "description": "step_en low prevents pcdown progress.",
+        "source_ref": "function_model.invariants.step_en_hold"
+      },
+      "error_error_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_011_EQ_ERROR_NONE",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "error_error_0",
+          "class": "error",
+          "coverage_domain": "function",
+          "source": "error_handling.error_sources[0]",
+          "source_ref": "error_handling.error_sources[0]",
+          "description": "{'id': 'ERR_NONE', 'condition': 'No malformed transaction class exists for this leaf IP.', 'architectural_effect': 'No error output is asserted.'}"
+        },
+        "class": "error",
+        "coverage_domain": "function",
+        "description": "{'id': 'ERR_NONE', 'condition': 'No malformed transaction class exists for this leaf IP.', 'architectural_effect': 'No error output is asserted.'}",
+        "source_ref": "error_handling.error_sources[0]"
+      },
+      "alu_ops_all": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "alu_ops_all",
+          "source_ref": "function_model.transactions.FM_CPU_STEP.operand_rules",
+          "class": "instruction_class",
+          "description": "All ALU/MOV/CMP operation families execute and match architectural writeback/flag behavior.",
+          "coverage_domain": "function",
+          "source": "function_model.transactions.FM_CPU_STEP.operand_rules"
+        },
+        "class": "instruction_class",
+        "coverage_domain": "function",
+        "description": "All ALU/MOV/CMP operation families execute and match architectural writeback/flag behavior.",
+        "source_ref": "function_model.transactions.FM_CPU_STEP.operand_rules"
+      },
+      "alu_flag_update_matrix": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "alu_flag_update_matrix",
+          "source_ref": "function_model.transactions.FM_CPU_STEP.flag_formulas",
+          "class": "flag_behavior",
+          "description": "N/Z/C/V formulas are observed for arithmetic, compare, logical, and move cases.",
+          "coverage_domain": "function",
+          "source": "function_model.transactions.FM_CPU_STEP.flag_formulas"
+        },
+        "class": "flag_behavior",
+        "coverage_domain": "function",
+        "description": "N/Z/C/V formulas are observed for arithmetic, compare, logical, and move cases.",
+        "source_ref": "function_model.transactions.FM_CPU_STEP.flag_formulas"
+      },
+      "branch_taken_not_taken": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "branch_taken_not_taken",
+          "source_ref": "function_model.transactions.FM_CPU_STEP.branch_rules",
+          "class": "control_flow",
+          "description": "Taken and not-taken branch paths update PC and flush behavior as specified.",
+          "coverage_domain": "function",
+          "source": "function_model.transactions.FM_CPU_STEP.branch_rules"
+        },
+        "class": "control_flow",
+        "coverage_domain": "function",
+        "description": "Taken and not-taken branch paths update PC and flush behavior as specified.",
+        "source_ref": "function_model.transactions.FM_CPU_STEP.branch_rules"
+      },
+      "load_store_word": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "load_store_word",
+          "source_ref": "function_model.transactions.FM_CPU_STEP.memory_rules",
+          "class": "memory_behavior",
+          "description": "Aligned LDR/STR word behavior updates registers or memory side effects correctly.",
+          "coverage_domain": "function",
+          "source": "function_model.transactions.FM_CPU_STEP.memory_rules"
+        },
+        "class": "memory_behavior",
+        "coverage_domain": "function",
+        "description": "Aligned LDR/STR word behavior updates registers or memory side effects correctly.",
+        "source_ref": "function_model.transactions.FM_CPU_STEP.memory_rules"
+      },
+      "trap_illegal_opcode": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "trap_illegal_opcode",
+          "source_ref": "function_model.transactions.FM_CPU_STEP.error_cases",
+          "class": "trap",
+          "description": "Illegal decode raises trap_code=1 and suppresses retire.",
+          "coverage_domain": "function",
+          "source": "function_model.transactions.FM_CPU_STEP.error_cases"
+        },
+        "class": "trap",
+        "coverage_domain": "function",
+        "description": "Illegal decode raises trap_code=1 and suppresses retire.",
+        "source_ref": "function_model.transactions.FM_CPU_STEP.error_cases"
+      },
+      "function_timer_control_tick": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "coverage_domain": "function"
+      }
+    }
+  },
+  "cycle_coverage": {
+    "hit": 21,
+    "total": 31,
+    "pct": 67.74,
+    "target_pct": 90.0,
+    "meets_target": false,
+    "bins": {
+      "ccov_terminal_tick": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CCOV_TERMINAL_TICK",
+        "scenario_id": "SC_020_EQ_COVERAGE_CCOV_TERMINAL_TICK",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "ccov_terminal_tick",
+          "class": "timing",
+          "coverage_domain": "cycle",
+          "source": "test_requirements.coverage_goals.planned_bins[2]",
+          "source_ref": "cycle_model.handshake_rules.step_end_tick",
+          "description": "terminal tick timing observed."
+        },
+        "class": "timing",
+        "coverage_domain": "cycle",
+        "description": "terminal tick timing observed.",
+        "source_ref": "cycle_model.handshake_rules.step_end_tick"
+      },
+      "ccov_fetch_en_visible_next_cycle": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CCOV_FETCH_EN_VISIBLE_NEXT_CYCLE",
+        "scenario_id": "SC_022_EQ_COVERAGE_CCOV_FETCH_EN_VISIBLE_NEXT_CYCLE",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "ccov_fetch_en_visible_next_cycle",
+          "class": "latency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline.S1_STATE_VISIBLE",
+          "source_ref": "cycle_model.pipeline.S1_STATE_VISIBLE",
+          "description": "fetch_en result is visible on the next clock edge."
+        },
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "description": "fetch_en result is visible on the next clock edge.",
+        "source_ref": "cycle_model.pipeline.S1_STATE_VISIBLE"
+      },
+      "ccov_hold_cycle": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "ccov_hold_cycle",
+          "class": "control",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.backpressure",
+          "source_ref": "cycle_model.backpressure",
+          "description": "step_en low hold is observed."
+        },
+        "class": "control",
+        "coverage_domain": "cycle",
+        "description": "step_en low hold is observed.",
+        "source_ref": "cycle_model.backpressure"
+      },
+      "cycle_fetch_en_load": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_FLUSH_PRIORITY",
+        "scenario_id": "SC_007_EQ_PROTOCOL_FLUSH_PRIORITY",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_fetch_en_load",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[0]",
+          "source_ref": "cycle_model.handshake_rules[0]",
+          "description": "fetch_en samples instr_data on the active clock edge and makes the loaded pc visible after that edge."
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "fetch_en samples instr_data on the active clock edge and makes the loaded pc visible after that edge.",
+        "source_ref": "cycle_model.handshake_rules[0]"
+      },
+      "cycle_step_end_tick": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_FLUSH_PRIORITY",
+        "scenario_id": "SC_007_EQ_PROTOCOL_FLUSH_PRIORITY",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_step_end_tick",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[1]",
+          "source_ref": "cycle_model.handshake_rules[1]",
+          "description": "step_en advances pc only while busy is high."
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "step_en advances pc only while busy is high.",
+        "source_ref": "cycle_model.handshake_rules[1]"
+      },
+      "cycle_flush_priority": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_flush_priority",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[2]",
+          "source_ref": "cycle_model.handshake_rules[2]",
+          "description": "flush returns the cortex_m0lite to idle regardless of step_en or busy."
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "flush returns the cortex_m0lite to idle regardless of step_en or busy.",
+        "source_ref": "cycle_model.handshake_rules[2]"
+      },
+      "cycle_pipeline_s0_control_sample": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_s0_control_sample",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[0]",
+          "source_ref": "cycle_model.pipeline[0]",
+          "description": "Sample fetch_en, step_en, flush, instr_data, pc, and busy."
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "Sample fetch_en, step_en, flush, instr_data, pc, and busy.",
+        "source_ref": "cycle_model.pipeline[0]"
+      },
+      "cycle_pipeline_s1_state_visible": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_STATE_VISIBLE",
+        "scenario_id": "SC_023_EQ_COVERAGE_CYCLE_PIPELINE_S1_STATE_VISIBLE",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_s1_state_visible",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[1]",
+          "source_ref": "cycle_model.pipeline[1]",
+          "description": "Present updated pc, busy, and retire."
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "Present updated pc, busy, and retire.",
+        "source_ref": "cycle_model.pipeline[1]"
+      },
+      "cycle_ordering_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TIMING_ORDERING_2",
+        "scenario_id": "SC_010_EQ_TIMING_ORDERING_2",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ordering_0",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[0]",
+          "source_ref": "cycle_model.ordering[0]",
+          "description": "flush has highest priority."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "flush has highest priority.",
+        "source_ref": "cycle_model.ordering[0]"
+      },
+      "cycle_ordering_1": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TIMING_ORDERING_2",
+        "scenario_id": "SC_010_EQ_TIMING_ORDERING_2",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ordering_1",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[1]",
+          "source_ref": "cycle_model.ordering[1]",
+          "description": "fetch_en load is applied before step_end pcdown behavior for a new interval."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "fetch_en load is applied before step_end pcdown behavior for a new interval.",
+        "source_ref": "cycle_model.ordering[1]"
+      },
+      "cycle_ordering_2": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TIMING_ORDERING_2",
+        "scenario_id": "SC_010_EQ_TIMING_ORDERING_2",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ordering_2",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[2]",
+          "source_ref": "cycle_model.ordering[2]",
+          "description": "retire is observed on the same state-visible cycle as the terminal decrement."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "retire is observed on the same state-visible cycle as the terminal decrement.",
+        "source_ref": "cycle_model.ordering[2]"
+      },
+      "cycle_backpressure_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_backpressure_0",
+          "class": "backpressure",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.backpressure[0]",
+          "source_ref": "cycle_model.backpressure[0]",
+          "description": "There is no ready/valid backpressure; step_en controls cortex_m0lite progress."
+        },
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "description": "There is no ready/valid backpressure; step_en controls cortex_m0lite progress.",
+        "source_ref": "cycle_model.backpressure[0]"
+      },
+      "cycle_perf_outstanding": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+        "scenario_id": "SC_024_EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_outstanding",
+          "class": "performance",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.outstanding",
+          "source_ref": "cycle_model.performance.outstanding",
+          "description": "{'max': 1, 'description': 'One active pcdown interval at a time.'}"
+        },
+        "class": "performance",
+        "coverage_domain": "cycle",
+        "description": "{'max': 1, 'description': 'One active pcdown interval at a time.'}",
+        "source_ref": "cycle_model.performance.outstanding"
+      },
+      "cycle_perf_depth": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+        "scenario_id": "SC_025_EQ_COVERAGE_CYCLE_PERF_DEPTH",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_depth",
+          "class": "performance",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.depth",
+          "source_ref": "cycle_model.performance.depth",
+          "description": "{'pipeline_stages': 1, 'queue_depth': 0, 'description': 'Registered state update with no internal queue.'}"
+        },
+        "class": "performance",
+        "coverage_domain": "cycle",
+        "description": "{'pipeline_stages': 1, 'queue_depth': 0, 'description': 'Registered state update with no internal queue.'}",
+        "source_ref": "cycle_model.performance.depth"
+      },
+      "cycle_perf_frequency_mhz": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "scenario_id": "SC_026_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_frequency_mhz",
+          "class": "frequency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.frequency_mhz",
+          "source_ref": "cycle_model.performance.frequency_mhz",
+          "description": "100"
+        },
+        "class": "frequency",
+        "coverage_domain": "cycle",
+        "description": "100",
+        "source_ref": "cycle_model.performance.frequency_mhz"
+      },
+      "cycle_perf_throughput": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "scenario_id": "SC_027_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_throughput",
+          "class": "throughput",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.throughput",
+          "source_ref": "cycle_model.performance.throughput",
+          "description": "{'sustained_ticks_per_cycle': 1, 'condition': 'step_en asserted while busy'}"
+        },
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "description": "{'sustained_ticks_per_cycle': 1, 'condition': 'step_en asserted while busy'}",
+        "source_ref": "cycle_model.performance.throughput"
+      },
+      "fsm_control_idle_to_run_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_control_idle_to_run_0",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.control.transitions[0]",
+          "source_ref": "fsm.control.transitions[0]",
+          "description": "fetch_en and instr_data != 0"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "fetch_en and instr_data != 0",
+        "source_ref": "fsm.control.transitions[0]"
+      },
+      "fsm_control_run_to_run_1": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_control_run_to_run_1",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.control.transitions[1]",
+          "source_ref": "fsm.control.transitions[1]",
+          "description": "step_en and pc > 1"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "step_en and pc > 1",
+        "source_ref": "fsm.control.transitions[1]"
+      },
+      "fsm_control_run_to_done_pulse_2": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_control_run_to_done_pulse_2",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.control.transitions[2]",
+          "source_ref": "fsm.control.transitions[2]",
+          "description": "step_en and pc == 1"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "step_en and pc == 1",
+        "source_ref": "fsm.control.transitions[2]"
+      },
+      "fsm_control_done_pulse_to_idle_3": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_control_done_pulse_to_idle_3",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.control.transitions[3]",
+          "source_ref": "fsm.control.transitions[3]",
+          "description": "next control cycle without fetch_en"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "next control cycle without fetch_en",
+        "source_ref": "fsm.control.transitions[3]"
+      },
+      "fsm_control_run_to_idle_4": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+        "rtl_observed_keys": [
+          "busy",
+          "busy_next",
+          "pc",
+          "pc_next",
+          "retire",
+          "retire_pulse"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_control_run_to_idle_4",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.control.transitions[4]",
+          "source_ref": "fsm.control.transitions[4]",
+          "description": "flush"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "flush",
+        "source_ref": "fsm.control.transitions[4]"
+      },
+      "pipeline_state_occupancy": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "pipeline_state_occupancy",
+          "source_ref": "cycle_model.pipeline",
+          "class": "pipeline",
+          "description": "IF, ID, and EX/WB pipeline stages all become active under directed tests.",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline"
+        },
+        "class": "pipeline",
+        "coverage_domain": "cycle",
+        "description": "IF, ID, and EX/WB pipeline stages all become active under directed tests.",
+        "source_ref": "cycle_model.pipeline"
+      },
+      "if_wait_cycles": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "if_wait_cycles",
+          "source_ref": "cycle_model.handshake_rules.if_wait",
+          "class": "handshake",
+          "description": "Instruction fetch wait-state hold behavior is observed.",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules.if_wait"
+        },
+        "class": "handshake",
+        "coverage_domain": "cycle",
+        "description": "Instruction fetch wait-state hold behavior is observed.",
+        "source_ref": "cycle_model.handshake_rules.if_wait"
+      },
+      "dmem_wait_cycles": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "dmem_wait_cycles",
+          "source_ref": "cycle_model.handshake_rules.dmem_wait",
+          "class": "handshake",
+          "description": "Data memory wait-state hold behavior is observed.",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules.dmem_wait"
+        },
+        "class": "handshake",
+        "coverage_domain": "cycle",
+        "description": "Data memory wait-state hold behavior is observed.",
+        "source_ref": "cycle_model.handshake_rules.dmem_wait"
+      },
+      "hazard_stall_cycles": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "hazard_stall_cycles",
+          "source_ref": "cycle_model.handshake_rules.hazard_stall",
+          "class": "hazard",
+          "description": "Load-use one-bubble stall behavior is observed.",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules.hazard_stall"
+        },
+        "class": "hazard",
+        "coverage_domain": "cycle",
+        "description": "Load-use one-bubble stall behavior is observed.",
+        "source_ref": "cycle_model.handshake_rules.hazard_stall"
+      },
+      "branch_flush_cycles": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "branch_flush_cycles",
+          "source_ref": "cycle_model.ordering",
+          "class": "flush",
+          "description": "Taken branch flush timing is observed.",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering"
+        },
+        "class": "flush",
+        "coverage_domain": "cycle",
+        "description": "Taken branch flush timing is observed.",
+        "source_ref": "cycle_model.ordering"
+      },
+      "trap_entry_cycles": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "trap_entry_cycles",
+          "source_ref": "fsm.control.transitions",
+          "class": "trap_timing",
+          "description": "Trap-entry FSM transition and flush timing are observed.",
+          "coverage_domain": "cycle",
+          "source": "fsm.control.transitions"
+        },
+        "class": "trap_timing",
+        "coverage_domain": "cycle",
+        "description": "Trap-entry FSM transition and flush timing are observed.",
+        "source_ref": "fsm.control.transitions"
+      },
+      "outstanding_instruction_depth": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "outstanding_instruction_depth",
+          "source_ref": "cycle_model.performance.outstanding_depth.instruction",
+          "class": "outstanding",
+          "description": "Instruction side single-outstanding request limit is exercised.",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.outstanding_depth.instruction"
+        },
+        "class": "outstanding",
+        "coverage_domain": "cycle",
+        "description": "Instruction side single-outstanding request limit is exercised.",
+        "source_ref": "cycle_model.performance.outstanding_depth.instruction"
+      },
+      "outstanding_data_depth": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "outstanding_data_depth",
+          "source_ref": "cycle_model.performance.outstanding_depth.data",
+          "class": "outstanding",
+          "description": "Data side single-outstanding request limit is exercised.",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.outstanding_depth.data"
+        },
+        "class": "outstanding",
+        "coverage_domain": "cycle",
+        "description": "Data side single-outstanding request limit is exercised.",
+        "source_ref": "cycle_model.performance.outstanding_depth.data"
+      },
+      "cpi_nominal_stream": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cpi_nominal_stream",
+          "source_ref": "cycle_model.performance.target_cpi_typical",
+          "class": "throughput",
+          "description": "Nominal instruction stream CPI target is measured or explicitly waived.",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.target_cpi_typical"
+        },
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "description": "Nominal instruction stream CPI target is measured or explicitly waived.",
+        "source_ref": "cycle_model.performance.target_cpi_typical"
+      },
+      "core_bus_frequency_ratio": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "core_bus_frequency_ratio",
+          "source_ref": "cycle_model.performance.clock_ratio_core_to_bus",
+          "class": "frequency",
+          "description": "2:1 core_clk to bus_clk cycle relationship is represented in coverage evidence.",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.clock_ratio_core_to_bus"
+        },
+        "class": "frequency",
+        "coverage_domain": "cycle",
+        "description": "2:1 core_clk to bus_clk cycle relationship is represented in coverage evidence.",
+        "source_ref": "cycle_model.performance.clock_ratio_core_to_bus"
+      }
+    }
+  },
+  "coverage_model": {
+    "function": {
+      "source": "function_model",
+      "target_pct": 95.0,
+      "hit": 9,
+      "total": 14,
+      "pct": 64.29,
+      "meets_target": false
+    },
+    "cycle": {
+      "source": "cycle_model",
+      "target_pct": 90.0,
+      "hit": 21,
+      "total": 31,
+      "pct": 67.74,
+      "meets_target": false
+    }
+  },
+  "planned_bins": [
+    "SC_RESET_CLEAR_executed",
+    "SC_COUNTDOWN_DONE_executed",
+    "SC_ENABLE_HOLD_executed",
+    "fcov_fetch_en_load",
+    "fcov_retire_pulse",
+    "ccov_terminal_tick",
+    "fcov_flush_priority",
+    "fcov_step_en_hold",
+    "ccov_fetch_en_visible_next_cycle",
+    "ccov_hold_cycle",
+    "cycle_fetch_en_load",
+    "cycle_step_end_tick",
+    "cycle_flush_priority",
+    "cycle_pipeline_s0_control_sample",
+    "cycle_pipeline_s1_state_visible",
+    "cycle_ordering_0",
+    "cycle_ordering_1",
+    "cycle_ordering_2",
+    "cycle_backpressure_0",
+    "cycle_perf_outstanding",
+    "cycle_perf_depth",
+    "cycle_perf_frequency_mhz",
+    "cycle_perf_throughput",
+    "fsm_control_idle_to_run_0",
+    "fsm_control_run_to_run_1",
+    "fsm_control_run_to_done_pulse_2",
+    "fsm_control_done_pulse_to_idle_3",
+    "fsm_control_run_to_idle_4",
+    "error_error_0",
+    "alu_ops_all",
+    "alu_flag_update_matrix",
+    "branch_taken_not_taken",
+    "load_store_word",
+    "trap_illegal_opcode",
+    "pipeline_state_occupancy",
+    "if_wait_cycles",
+    "dmem_wait_cycles",
+    "hazard_stall_cycles",
+    "branch_flush_cycles",
+    "trap_entry_cycles",
+    "outstanding_instruction_depth",
+    "outstanding_data_depth",
+    "cpi_nominal_stream",
+    "core_bus_frequency_ratio"
+  ],
+  "functional_bins": {
+    "SC_RESET_CLEAR_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC_RESET_CLEAR_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[0]",
+        "scenario": "SC_RESET_CLEAR",
+        "description": "reset and flush force idle"
+      },
+      "class": "scenario",
+      "description": "reset and flush force idle",
+      "coverage_domain": "function"
+    },
+    "SC_COUNTDOWN_DONE_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC_COUNTDOWN_DONE",
+      "scenario_id": "SC_003_EQ_SCENARIO_SC_COUNTDOWN_DONE",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC_COUNTDOWN_DONE_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[1]",
+        "scenario": "SC_COUNTDOWN_DONE",
+        "description": "pcdown reaches retire"
+      },
+      "class": "scenario",
+      "description": "pcdown reaches retire",
+      "coverage_domain": "function"
+    },
+    "SC_ENABLE_HOLD_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC_ENABLE_HOLD",
+      "scenario_id": "SC_004_EQ_SCENARIO_SC_ENABLE_HOLD",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC_ENABLE_HOLD_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[2]",
+        "scenario": "SC_ENABLE_HOLD",
+        "description": "step_en low holds state"
+      },
+      "class": "scenario",
+      "description": "step_en low holds state",
+      "coverage_domain": "function"
+    },
+    "fcov_fetch_en_load": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_FETCH_EN_LOAD",
+      "scenario_id": "SC_005_EQ_PROTOCOL_FETCH_EN_LOAD",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fcov_fetch_en_load",
+        "class": "transaction",
+        "coverage_domain": "function",
+        "source": "test_requirements.coverage_goals.planned_bins[0]",
+        "source_ref": "function_model.transactions.FM_TICK",
+        "description": "fetch_en loads instr_data."
+      },
+      "class": "transaction",
+      "coverage_domain": "function",
+      "description": "fetch_en loads instr_data.",
+      "source_ref": "function_model.transactions.FM_TICK"
+    },
+    "fcov_retire_pulse": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_FCOV_RETIRE_PULSE",
+      "scenario_id": "SC_019_EQ_COVERAGE_FCOV_RETIRE_PULSE",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fcov_retire_pulse",
+        "class": "event",
+        "coverage_domain": "function",
+        "source": "test_requirements.coverage_goals.planned_bins[1]",
+        "source_ref": "function_model.transactions.FM_TICK.output_rules.retire_pulse",
+        "description": "retire pulse observed."
+      },
+      "class": "event",
+      "coverage_domain": "function",
+      "description": "retire pulse observed.",
+      "source_ref": "function_model.transactions.FM_TICK.output_rules.retire_pulse"
+    },
+    "ccov_terminal_tick": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CCOV_TERMINAL_TICK",
+      "scenario_id": "SC_020_EQ_COVERAGE_CCOV_TERMINAL_TICK",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "ccov_terminal_tick",
+        "class": "timing",
+        "coverage_domain": "cycle",
+        "source": "test_requirements.coverage_goals.planned_bins[2]",
+        "source_ref": "cycle_model.handshake_rules.step_end_tick",
+        "description": "terminal tick timing observed."
+      },
+      "class": "timing",
+      "coverage_domain": "cycle",
+      "description": "terminal tick timing observed.",
+      "source_ref": "cycle_model.handshake_rules.step_end_tick"
+    },
+    "fcov_flush_priority": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fcov_flush_priority",
+        "class": "state",
+        "coverage_domain": "function",
+        "source": "function_model.invariants.flush",
+        "source_ref": "function_model.invariants.flush",
+        "description": "flush returns all observable state to idle."
+      },
+      "class": "state",
+      "coverage_domain": "function",
+      "description": "flush returns all observable state to idle.",
+      "source_ref": "function_model.invariants.flush"
+    },
+    "fcov_step_en_hold": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_FCOV_STEP_EN_HOLD",
+      "scenario_id": "SC_021_EQ_COVERAGE_FCOV_STEP_EN_HOLD",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fcov_step_en_hold",
+        "class": "state",
+        "coverage_domain": "function",
+        "source": "function_model.invariants.step_en_hold",
+        "source_ref": "function_model.invariants.step_en_hold",
+        "description": "step_en low prevents pcdown progress."
+      },
+      "class": "state",
+      "coverage_domain": "function",
+      "description": "step_en low prevents pcdown progress.",
+      "source_ref": "function_model.invariants.step_en_hold"
+    },
+    "ccov_fetch_en_visible_next_cycle": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CCOV_FETCH_EN_VISIBLE_NEXT_CYCLE",
+      "scenario_id": "SC_022_EQ_COVERAGE_CCOV_FETCH_EN_VISIBLE_NEXT_CYCLE",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "ccov_fetch_en_visible_next_cycle",
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline.S1_STATE_VISIBLE",
+        "source_ref": "cycle_model.pipeline.S1_STATE_VISIBLE",
+        "description": "fetch_en result is visible on the next clock edge."
+      },
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "description": "fetch_en result is visible on the next clock edge.",
+      "source_ref": "cycle_model.pipeline.S1_STATE_VISIBLE"
+    },
+    "ccov_hold_cycle": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "ccov_hold_cycle",
+        "class": "control",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.backpressure",
+        "source_ref": "cycle_model.backpressure",
+        "description": "step_en low hold is observed."
+      },
+      "class": "control",
+      "coverage_domain": "cycle",
+      "description": "step_en low hold is observed.",
+      "source_ref": "cycle_model.backpressure"
+    },
+    "cycle_fetch_en_load": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_FLUSH_PRIORITY",
+      "scenario_id": "SC_007_EQ_PROTOCOL_FLUSH_PRIORITY",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_fetch_en_load",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[0]",
+        "source_ref": "cycle_model.handshake_rules[0]",
+        "description": "fetch_en samples instr_data on the active clock edge and makes the loaded pc visible after that edge."
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "fetch_en samples instr_data on the active clock edge and makes the loaded pc visible after that edge.",
+      "source_ref": "cycle_model.handshake_rules[0]"
+    },
+    "cycle_step_end_tick": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_FLUSH_PRIORITY",
+      "scenario_id": "SC_007_EQ_PROTOCOL_FLUSH_PRIORITY",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_step_end_tick",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[1]",
+        "source_ref": "cycle_model.handshake_rules[1]",
+        "description": "step_en advances pc only while busy is high."
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "step_en advances pc only while busy is high.",
+      "source_ref": "cycle_model.handshake_rules[1]"
+    },
+    "cycle_flush_priority": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_flush_priority",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[2]",
+        "source_ref": "cycle_model.handshake_rules[2]",
+        "description": "flush returns the cortex_m0lite to idle regardless of step_en or busy."
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "flush returns the cortex_m0lite to idle regardless of step_en or busy.",
+      "source_ref": "cycle_model.handshake_rules[2]"
+    },
+    "cycle_pipeline_s0_control_sample": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_s0_control_sample",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[0]",
+        "source_ref": "cycle_model.pipeline[0]",
+        "description": "Sample fetch_en, step_en, flush, instr_data, pc, and busy."
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "Sample fetch_en, step_en, flush, instr_data, pc, and busy.",
+      "source_ref": "cycle_model.pipeline[0]"
+    },
+    "cycle_pipeline_s1_state_visible": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_STATE_VISIBLE",
+      "scenario_id": "SC_023_EQ_COVERAGE_CYCLE_PIPELINE_S1_STATE_VISIBLE",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_s1_state_visible",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[1]",
+        "source_ref": "cycle_model.pipeline[1]",
+        "description": "Present updated pc, busy, and retire."
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "Present updated pc, busy, and retire.",
+      "source_ref": "cycle_model.pipeline[1]"
+    },
+    "cycle_ordering_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "scenario_id": "SC_010_EQ_TIMING_ORDERING_2",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ordering_0",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[0]",
+        "source_ref": "cycle_model.ordering[0]",
+        "description": "flush has highest priority."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "flush has highest priority.",
+      "source_ref": "cycle_model.ordering[0]"
+    },
+    "cycle_ordering_1": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "scenario_id": "SC_010_EQ_TIMING_ORDERING_2",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ordering_1",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[1]",
+        "source_ref": "cycle_model.ordering[1]",
+        "description": "fetch_en load is applied before step_end pcdown behavior for a new interval."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "fetch_en load is applied before step_end pcdown behavior for a new interval.",
+      "source_ref": "cycle_model.ordering[1]"
+    },
+    "cycle_ordering_2": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "scenario_id": "SC_010_EQ_TIMING_ORDERING_2",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ordering_2",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[2]",
+        "source_ref": "cycle_model.ordering[2]",
+        "description": "retire is observed on the same state-visible cycle as the terminal decrement."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "retire is observed on the same state-visible cycle as the terminal decrement.",
+      "source_ref": "cycle_model.ordering[2]"
+    },
+    "cycle_backpressure_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_backpressure_0",
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.backpressure[0]",
+        "source_ref": "cycle_model.backpressure[0]",
+        "description": "There is no ready/valid backpressure; step_en controls cortex_m0lite progress."
+      },
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "description": "There is no ready/valid backpressure; step_en controls cortex_m0lite progress.",
+      "source_ref": "cycle_model.backpressure[0]"
+    },
+    "cycle_perf_outstanding": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+      "scenario_id": "SC_024_EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_outstanding",
+        "class": "performance",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.outstanding",
+        "source_ref": "cycle_model.performance.outstanding",
+        "description": "{'max': 1, 'description': 'One active pcdown interval at a time.'}"
+      },
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "description": "{'max': 1, 'description': 'One active pcdown interval at a time.'}",
+      "source_ref": "cycle_model.performance.outstanding"
+    },
+    "cycle_perf_depth": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "scenario_id": "SC_025_EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_depth",
+        "class": "performance",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.depth",
+        "source_ref": "cycle_model.performance.depth",
+        "description": "{'pipeline_stages': 1, 'queue_depth': 0, 'description': 'Registered state update with no internal queue.'}"
+      },
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "description": "{'pipeline_stages': 1, 'queue_depth': 0, 'description': 'Registered state update with no internal queue.'}",
+      "source_ref": "cycle_model.performance.depth"
+    },
+    "cycle_perf_frequency_mhz": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "scenario_id": "SC_026_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_frequency_mhz",
+        "class": "frequency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.frequency_mhz",
+        "source_ref": "cycle_model.performance.frequency_mhz",
+        "description": "100"
+      },
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "description": "100",
+      "source_ref": "cycle_model.performance.frequency_mhz"
+    },
+    "cycle_perf_throughput": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "scenario_id": "SC_027_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_throughput",
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.throughput",
+        "source_ref": "cycle_model.performance.throughput",
+        "description": "{'sustained_ticks_per_cycle': 1, 'condition': 'step_en asserted while busy'}"
+      },
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "description": "{'sustained_ticks_per_cycle': 1, 'condition': 'step_en asserted while busy'}",
+      "source_ref": "cycle_model.performance.throughput"
+    },
+    "fsm_control_idle_to_run_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_control_idle_to_run_0",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.control.transitions[0]",
+        "source_ref": "fsm.control.transitions[0]",
+        "description": "fetch_en and instr_data != 0"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "fetch_en and instr_data != 0",
+      "source_ref": "fsm.control.transitions[0]"
+    },
+    "fsm_control_run_to_run_1": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_control_run_to_run_1",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.control.transitions[1]",
+        "source_ref": "fsm.control.transitions[1]",
+        "description": "step_en and pc > 1"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "step_en and pc > 1",
+      "source_ref": "fsm.control.transitions[1]"
+    },
+    "fsm_control_run_to_done_pulse_2": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_control_run_to_done_pulse_2",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.control.transitions[2]",
+        "source_ref": "fsm.control.transitions[2]",
+        "description": "step_en and pc == 1"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "step_en and pc == 1",
+      "source_ref": "fsm.control.transitions[2]"
+    },
+    "fsm_control_done_pulse_to_idle_3": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_control_done_pulse_to_idle_3",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.control.transitions[3]",
+        "source_ref": "fsm.control.transitions[3]",
+        "description": "next control cycle without fetch_en"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "next control cycle without fetch_en",
+      "source_ref": "fsm.control.transitions[3]"
+    },
+    "fsm_control_run_to_idle_4": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_control_run_to_idle_4",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.control.transitions[4]",
+        "source_ref": "fsm.control.transitions[4]",
+        "description": "flush"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "flush",
+      "source_ref": "fsm.control.transitions[4]"
+    },
+    "error_error_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_ERROR_NONE",
+      "scenario_id": "SC_011_EQ_ERROR_NONE",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "error_error_0",
+        "class": "error",
+        "coverage_domain": "function",
+        "source": "error_handling.error_sources[0]",
+        "source_ref": "error_handling.error_sources[0]",
+        "description": "{'id': 'ERR_NONE', 'condition': 'No malformed transaction class exists for this leaf IP.', 'architectural_effect': 'No error output is asserted.'}"
+      },
+      "class": "error",
+      "coverage_domain": "function",
+      "description": "{'id': 'ERR_NONE', 'condition': 'No malformed transaction class exists for this leaf IP.', 'architectural_effect': 'No error output is asserted.'}",
+      "source_ref": "error_handling.error_sources[0]"
+    },
+    "alu_ops_all": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "alu_ops_all",
+        "source_ref": "function_model.transactions.FM_CPU_STEP.operand_rules",
+        "class": "instruction_class",
+        "description": "All ALU/MOV/CMP operation families execute and match architectural writeback/flag behavior.",
+        "coverage_domain": "function",
+        "source": "function_model.transactions.FM_CPU_STEP.operand_rules"
+      },
+      "class": "instruction_class",
+      "coverage_domain": "function",
+      "description": "All ALU/MOV/CMP operation families execute and match architectural writeback/flag behavior.",
+      "source_ref": "function_model.transactions.FM_CPU_STEP.operand_rules"
+    },
+    "alu_flag_update_matrix": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "alu_flag_update_matrix",
+        "source_ref": "function_model.transactions.FM_CPU_STEP.flag_formulas",
+        "class": "flag_behavior",
+        "description": "N/Z/C/V formulas are observed for arithmetic, compare, logical, and move cases.",
+        "coverage_domain": "function",
+        "source": "function_model.transactions.FM_CPU_STEP.flag_formulas"
+      },
+      "class": "flag_behavior",
+      "coverage_domain": "function",
+      "description": "N/Z/C/V formulas are observed for arithmetic, compare, logical, and move cases.",
+      "source_ref": "function_model.transactions.FM_CPU_STEP.flag_formulas"
+    },
+    "branch_taken_not_taken": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "branch_taken_not_taken",
+        "source_ref": "function_model.transactions.FM_CPU_STEP.branch_rules",
+        "class": "control_flow",
+        "description": "Taken and not-taken branch paths update PC and flush behavior as specified.",
+        "coverage_domain": "function",
+        "source": "function_model.transactions.FM_CPU_STEP.branch_rules"
+      },
+      "class": "control_flow",
+      "coverage_domain": "function",
+      "description": "Taken and not-taken branch paths update PC and flush behavior as specified.",
+      "source_ref": "function_model.transactions.FM_CPU_STEP.branch_rules"
+    },
+    "load_store_word": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "load_store_word",
+        "source_ref": "function_model.transactions.FM_CPU_STEP.memory_rules",
+        "class": "memory_behavior",
+        "description": "Aligned LDR/STR word behavior updates registers or memory side effects correctly.",
+        "coverage_domain": "function",
+        "source": "function_model.transactions.FM_CPU_STEP.memory_rules"
+      },
+      "class": "memory_behavior",
+      "coverage_domain": "function",
+      "description": "Aligned LDR/STR word behavior updates registers or memory side effects correctly.",
+      "source_ref": "function_model.transactions.FM_CPU_STEP.memory_rules"
+    },
+    "trap_illegal_opcode": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "trap_illegal_opcode",
+        "source_ref": "function_model.transactions.FM_CPU_STEP.error_cases",
+        "class": "trap",
+        "description": "Illegal decode raises trap_code=1 and suppresses retire.",
+        "coverage_domain": "function",
+        "source": "function_model.transactions.FM_CPU_STEP.error_cases"
+      },
+      "class": "trap",
+      "coverage_domain": "function",
+      "description": "Illegal decode raises trap_code=1 and suppresses retire.",
+      "source_ref": "function_model.transactions.FM_CPU_STEP.error_cases"
+    },
+    "pipeline_state_occupancy": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "pipeline_state_occupancy",
+        "source_ref": "cycle_model.pipeline",
+        "class": "pipeline",
+        "description": "IF, ID, and EX/WB pipeline stages all become active under directed tests.",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline"
+      },
+      "class": "pipeline",
+      "coverage_domain": "cycle",
+      "description": "IF, ID, and EX/WB pipeline stages all become active under directed tests.",
+      "source_ref": "cycle_model.pipeline"
+    },
+    "if_wait_cycles": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "if_wait_cycles",
+        "source_ref": "cycle_model.handshake_rules.if_wait",
+        "class": "handshake",
+        "description": "Instruction fetch wait-state hold behavior is observed.",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules.if_wait"
+      },
+      "class": "handshake",
+      "coverage_domain": "cycle",
+      "description": "Instruction fetch wait-state hold behavior is observed.",
+      "source_ref": "cycle_model.handshake_rules.if_wait"
+    },
+    "dmem_wait_cycles": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "dmem_wait_cycles",
+        "source_ref": "cycle_model.handshake_rules.dmem_wait",
+        "class": "handshake",
+        "description": "Data memory wait-state hold behavior is observed.",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules.dmem_wait"
+      },
+      "class": "handshake",
+      "coverage_domain": "cycle",
+      "description": "Data memory wait-state hold behavior is observed.",
+      "source_ref": "cycle_model.handshake_rules.dmem_wait"
+    },
+    "hazard_stall_cycles": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "hazard_stall_cycles",
+        "source_ref": "cycle_model.handshake_rules.hazard_stall",
+        "class": "hazard",
+        "description": "Load-use one-bubble stall behavior is observed.",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules.hazard_stall"
+      },
+      "class": "hazard",
+      "coverage_domain": "cycle",
+      "description": "Load-use one-bubble stall behavior is observed.",
+      "source_ref": "cycle_model.handshake_rules.hazard_stall"
+    },
+    "branch_flush_cycles": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "branch_flush_cycles",
+        "source_ref": "cycle_model.ordering",
+        "class": "flush",
+        "description": "Taken branch flush timing is observed.",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering"
+      },
+      "class": "flush",
+      "coverage_domain": "cycle",
+      "description": "Taken branch flush timing is observed.",
+      "source_ref": "cycle_model.ordering"
+    },
+    "trap_entry_cycles": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "trap_entry_cycles",
+        "source_ref": "fsm.control.transitions",
+        "class": "trap_timing",
+        "description": "Trap-entry FSM transition and flush timing are observed.",
+        "coverage_domain": "cycle",
+        "source": "fsm.control.transitions"
+      },
+      "class": "trap_timing",
+      "coverage_domain": "cycle",
+      "description": "Trap-entry FSM transition and flush timing are observed.",
+      "source_ref": "fsm.control.transitions"
+    },
+    "outstanding_instruction_depth": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "outstanding_instruction_depth",
+        "source_ref": "cycle_model.performance.outstanding_depth.instruction",
+        "class": "outstanding",
+        "description": "Instruction side single-outstanding request limit is exercised.",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.outstanding_depth.instruction"
+      },
+      "class": "outstanding",
+      "coverage_domain": "cycle",
+      "description": "Instruction side single-outstanding request limit is exercised.",
+      "source_ref": "cycle_model.performance.outstanding_depth.instruction"
+    },
+    "outstanding_data_depth": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "outstanding_data_depth",
+        "source_ref": "cycle_model.performance.outstanding_depth.data",
+        "class": "outstanding",
+        "description": "Data side single-outstanding request limit is exercised.",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.outstanding_depth.data"
+      },
+      "class": "outstanding",
+      "coverage_domain": "cycle",
+      "description": "Data side single-outstanding request limit is exercised.",
+      "source_ref": "cycle_model.performance.outstanding_depth.data"
+    },
+    "cpi_nominal_stream": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cpi_nominal_stream",
+        "source_ref": "cycle_model.performance.target_cpi_typical",
+        "class": "throughput",
+        "description": "Nominal instruction stream CPI target is measured or explicitly waived.",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.target_cpi_typical"
+      },
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "description": "Nominal instruction stream CPI target is measured or explicitly waived.",
+      "source_ref": "cycle_model.performance.target_cpi_typical"
+    },
+    "core_bus_frequency_ratio": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "core_bus_frequency_ratio",
+        "source_ref": "cycle_model.performance.clock_ratio_core_to_bus",
+        "class": "frequency",
+        "description": "2:1 core_clk to bus_clk cycle relationship is represented in coverage evidence.",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.clock_ratio_core_to_bus"
+      },
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "description": "2:1 core_clk to bus_clk cycle relationship is represented in coverage evidence.",
+      "source_ref": "cycle_model.performance.clock_ratio_core_to_bus"
+    },
+    "function_timer_control_tick": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "rtl_observed_keys": [
+        "busy",
+        "busy_next",
+        "pc",
+        "pc_next",
+        "retire",
+        "retire_pulse"
+      ],
+      "raw_hit": true,
+      "coverage_domain": "function"
+    }
+  },
+  "raw_functional": {
+    "hit": 30,
+    "total": 30,
+    "pct": 100.0
+  },
+  "raw_functional_bins": {
+    "function_timer_control_tick": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "SC_RESET_CLEAR_executed": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "SC_COUNTDOWN_DONE_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC_COUNTDOWN_DONE",
+      "scenario_id": "SC_003_EQ_SCENARIO_SC_COUNTDOWN_DONE"
+    },
+    "SC_ENABLE_HOLD_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC_ENABLE_HOLD",
+      "scenario_id": "SC_004_EQ_SCENARIO_SC_ENABLE_HOLD"
+    },
+    "fcov_fetch_en_load": {
+      "hit": true,
+      "goal_id": "EQ_PROTOCOL_FETCH_EN_LOAD",
+      "scenario_id": "SC_005_EQ_PROTOCOL_FETCH_EN_LOAD"
+    },
+    "cycle_fetch_en_load": {
+      "hit": true,
+      "goal_id": "EQ_PROTOCOL_FLUSH_PRIORITY",
+      "scenario_id": "SC_007_EQ_PROTOCOL_FLUSH_PRIORITY"
+    },
+    "cycle_step_end_tick": {
+      "hit": true,
+      "goal_id": "EQ_PROTOCOL_FLUSH_PRIORITY",
+      "scenario_id": "SC_007_EQ_PROTOCOL_FLUSH_PRIORITY"
+    },
+    "cycle_flush_priority": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "fcov_flush_priority": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "cycle_ordering_0": {
+      "hit": true,
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "scenario_id": "SC_010_EQ_TIMING_ORDERING_2"
+    },
+    "cycle_ordering_1": {
+      "hit": true,
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "scenario_id": "SC_010_EQ_TIMING_ORDERING_2"
+    },
+    "cycle_ordering_2": {
+      "hit": true,
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "scenario_id": "SC_010_EQ_TIMING_ORDERING_2"
+    },
+    "error_error_0": {
+      "hit": true,
+      "goal_id": "EQ_ERROR_NONE",
+      "scenario_id": "SC_011_EQ_ERROR_NONE"
+    },
+    "ccov_hold_cycle": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "cycle_pipeline_s0_control_sample": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "cycle_backpressure_0": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "fsm_control_idle_to_run_0": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "fsm_control_run_to_run_1": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "fsm_control_run_to_done_pulse_2": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "fsm_control_done_pulse_to_idle_3": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "fsm_control_run_to_idle_4": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_RUN_TO_IDLE_4",
+      "scenario_id": "SC_016_EQ_STATE_CONTROL_RUN_TO_IDLE_4"
+    },
+    "fcov_retire_pulse": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_FCOV_RETIRE_PULSE",
+      "scenario_id": "SC_019_EQ_COVERAGE_FCOV_RETIRE_PULSE"
+    },
+    "ccov_terminal_tick": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CCOV_TERMINAL_TICK",
+      "scenario_id": "SC_020_EQ_COVERAGE_CCOV_TERMINAL_TICK"
+    },
+    "fcov_step_en_hold": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_FCOV_STEP_EN_HOLD",
+      "scenario_id": "SC_021_EQ_COVERAGE_FCOV_STEP_EN_HOLD"
+    },
+    "ccov_fetch_en_visible_next_cycle": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CCOV_FETCH_EN_VISIBLE_NEXT_CYCLE",
+      "scenario_id": "SC_022_EQ_COVERAGE_CCOV_FETCH_EN_VISIBLE_NEXT_CYCLE"
+    },
+    "cycle_pipeline_s1_state_visible": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_STATE_VISIBLE",
+      "scenario_id": "SC_023_EQ_COVERAGE_CYCLE_PIPELINE_S1_STATE_VISIBLE"
+    },
+    "cycle_perf_outstanding": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+      "scenario_id": "SC_024_EQ_COVERAGE_CYCLE_PERF_OUTSTANDING"
+    },
+    "cycle_perf_depth": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "scenario_id": "SC_025_EQ_COVERAGE_CYCLE_PERF_DEPTH"
+    },
+    "cycle_perf_frequency_mhz": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "scenario_id": "SC_026_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
+    },
+    "cycle_perf_throughput": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "scenario_id": "SC_027_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT"
+    }
+  },
+  "rtl_observed": {
+    "status": "blocked",
+    "scoreboard_events": 27,
+    "scoreboard_passed_events_with_refs": 25,
+    "goal_refs": [
+      "SC_COUNTDOWN_DONE_executed",
+      "SC_ENABLE_HOLD_executed",
+      "SC_RESET_CLEAR_executed",
+      "ccov_fetch_en_visible_next_cycle",
+      "ccov_hold_cycle",
+      "ccov_terminal_tick",
+      "cycle_backpressure_0",
+      "cycle_fetch_en_load",
+      "cycle_flush_priority",
+      "cycle_ordering_0",
+      "cycle_ordering_1",
+      "cycle_ordering_2",
+      "cycle_perf_depth",
+      "cycle_perf_frequency_mhz",
+      "cycle_perf_outstanding",
+      "cycle_perf_throughput",
+      "cycle_pipeline_s0_control_sample",
+      "cycle_pipeline_s1_state_visible",
+      "cycle_step_end_tick",
+      "error_error_0",
+      "fcov_fetch_en_load",
+      "fcov_flush_priority",
+      "fcov_retire_pulse",
+      "fcov_step_en_hold",
+      "fsm_control_done_pulse_to_idle_3",
+      "fsm_control_idle_to_run_0",
+      "fsm_control_run_to_done_pulse_2",
+      "fsm_control_run_to_idle_4",
+      "fsm_control_run_to_run_1",
+      "function_timer_control_tick"
+    ],
+    "missing_bins": [
+      "alu_flag_update_matrix",
+      "alu_ops_all",
+      "branch_flush_cycles",
+      "branch_taken_not_taken",
+      "core_bus_frequency_ratio",
+      "cpi_nominal_stream",
+      "dmem_wait_cycles",
+      "hazard_stall_cycles",
+      "if_wait_cycles",
+      "load_store_word",
+      "outstanding_data_depth",
+      "outstanding_instruction_depth",
+      "pipeline_state_occupancy",
+      "trap_entry_cycles",
+      "trap_illegal_opcode"
+    ],
+    "invalid_rows": []
+  },
+  "lines": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": 90.0,
+    "meets_target": false
+  },
+  "branches": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": 85.0,
+    "meets_target": false
+  },
+  "functions": {
+    "hit": 0,
+    "total": 0,
+    "pct": null
+  },
+  "fsm_state": {
+    "target_pct": 100.0,
+    "hit": 5,
+    "total": 5,
+    "pct": 100.0,
+    "meets_target": true,
+    "source": "SSOT functional coverage bins"
+  },
+  "files": {},
+  "limitations": {
+    "rtl_observed_coverage": "Functional bins are not covered until a passing scoreboard row with real rtl_observed signals hits them: alu_flag_update_matrix, alu_ops_all, branch_flush_cycles, branch_taken_not_taken, core_bus_frequency_ratio, cpi_nominal_stream, dmem_wait_cycles, hazard_stall_cycles, if_wait_cycles, load_store_word, outstanding_data_depth, outstanding_instruction_depth, ... +3",
+    "line": "SSOT requests line/code coverage, but coverage.info has no DA records.",
+    "branch": "SSOT requests branch coverage, but coverage.info has no BRDA/BRF records for this tool flow."
+  },
+  "static_universe_not_instrumented": {
+    "rtl_observed_coverage": "Functional bins are not covered until a passing scoreboard row with real rtl_observed signals hits them: alu_flag_update_matrix, alu_ops_all, branch_flush_cycles, branch_taken_not_taken, core_bus_frequency_ratio, cpi_nominal_stream, dmem_wait_cycles, hazard_stall_cycles, if_wait_cycles, load_store_word, outstanding_data_depth, outstanding_instruction_depth, ... +3",
+    "line": "SSOT requests line/code coverage, but coverage.info has no DA records.",
+    "branch": "SSOT requests branch coverage, but coverage.info has no BRDA/BRF records for this tool flow."
+  },
+  "total_checks": 0,
+  "passed": 0,
+  "failed": 0,
+  "escalations": []
+}

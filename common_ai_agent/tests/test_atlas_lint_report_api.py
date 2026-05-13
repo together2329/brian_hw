@@ -94,3 +94,59 @@ def test_verilator_lint_parser_maps_warning_to_source_location():
             "source": "  input  wire clk,",
         }
     ]
+
+
+def test_dut_lint_policy_allows_project_logic_subset(tmp_path):
+    from workflow.lint.scripts import dut_lint_report
+
+    ip_dir = tmp_path / "logic_subset_ip"
+    (ip_dir / "rtl").mkdir(parents=True)
+    (ip_dir / "list").mkdir()
+    (ip_dir / "rtl" / "logic_subset_ip.sv").write_text(
+        "\n".join(
+            [
+                "module logic_subset_ip(",
+                "    input logic clk,",
+                "    input logic rst_n,",
+                "    output logic done",
+                ");",
+                "  logic state_q;",
+                "  always @(posedge clk or negedge rst_n) begin",
+                "    if (!rst_n) state_q <= 1'b0;",
+                "    else state_q <= 1'b1;",
+                "  end",
+                "  assign done = state_q;",
+                "endmodule",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    entries = ["rtl/logic_subset_ip.sv"]
+
+    assert dut_lint_report._style_violations(ip_dir, entries) == []
+
+
+def test_dut_lint_policy_still_rejects_nonportable_sv_constructs(tmp_path):
+    from workflow.lint.scripts import dut_lint_report
+
+    ip_dir = tmp_path / "bad_sv_ip"
+    (ip_dir / "rtl").mkdir(parents=True)
+    (ip_dir / "rtl" / "bad_sv_ip.sv").write_text(
+        "\n".join(
+            [
+                "module bad_sv_ip(input logic clk, output logic done);",
+                "  typedef enum logic [0:0] {S0, S1} state_e;",
+                "  always_ff @(posedge clk) begin",
+                "  end",
+                "endmodule",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    rules = {item["rule"] for item in dut_lint_report._style_violations(ip_dir, ["rtl/bad_sv_ip.sv"])}
+
+    assert "no_typedef_enum" in rules
+    assert "no_always_ff_comb" in rules

@@ -48,6 +48,7 @@ fi
 
 python3 - "$IP" "$REPORT" "$COV_DIR" <<'PY'
 import json
+import os
 import pathlib
 import re
 import sys
@@ -172,6 +173,7 @@ for cov_path in sorted(cov_dir.glob("coverage*.json")) if cov_dir.is_dir() else 
     if isinstance(raw_escalations, list):
         escalations.extend(raw_escalations)
 has_escalation = bool(escalations) or "[SIM ESCALATE]" in report
+hard_fail_eq = os.getenv("ATLAS_TB_HARD_FAIL_EQ", "1") == "1"
 
 scoreboard_failed = 0
 scoreboard_path = ip_dir / "sim" / "scoreboard_events.jsonl"
@@ -188,7 +190,8 @@ if scoreboard_path.is_file():
         if isinstance(row, dict) and row.get("passed") is False:
             scoreboard_failed += 1
 
-total_fail = failures + errors + max(cov_failed, 0) + scoreboard_failed
+scoreboard_fail_for_gate = scoreboard_failed if hard_fail_eq else 0
+total_fail = failures + errors + max(cov_failed, 0) + scoreboard_fail_for_gate
 if tests <= 0 and not has_escalation:
     print("[check_tb_sim_evidence] FAIL: no parsed testcases in fresh result XML; PASS requires at least one executed test")
     raise SystemExit(1)
@@ -198,6 +201,9 @@ if total_fail == 0:
         print("[check_tb_sim_evidence] FAIL: latest result XML has zero failures but sim_report/coverage still contains FAIL or SIM ESCALATE text")
         print("  Rewrite the final sim_report/coverage artifacts from the latest passing run; do not leave stale failure evidence in final artifacts.")
         raise SystemExit(1)
+    if scoreboard_failed > 0 and not hard_fail_eq:
+        print(f"[check_tb_sim_evidence] PASS_SOFT_EQ: tests={tests} failures=0 errors=0 scoreboard_failed={scoreboard_failed} (ATLAS_TB_HARD_FAIL_EQ=0 override)")
+        raise SystemExit(0)
     print(f"[check_tb_sim_evidence] PASS: tests={tests} failures=0 errors=0")
     raise SystemExit(0)
 

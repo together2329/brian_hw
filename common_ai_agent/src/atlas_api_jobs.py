@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shlex
 import threading
 import time
 import uuid
@@ -31,6 +32,7 @@ from fastapi.responses import JSONResponse
 # ── Module-level state ──────────────────────────────────────────────
 _jobs_lock = threading.Lock()
 _jobs: dict[str, dict[str, Any]] = {}   # job_id (uuid hex) → job metadata
+_SOURCE_ROOT = Path(__file__).resolve().parents[1]
 
 _PIPELINE_STAGES = [
     {"id": "ssot",        "workflow": "ssot-gen",     "label": "SSOT gen"},
@@ -71,6 +73,35 @@ def _resolve_worker_url(workflow: str) -> str:
         if url:
             return url
     return os.environ.get("WORKER_URL_DEFAULT", "http://localhost:8001")
+
+
+def _worker_launch_command(
+    worker_url: str,
+    workflow: str,
+    session_name: str,
+    project_root: Path,
+    model: str = "",
+) -> str:
+    """Return the operator command that starts a worker on the same artifact root.
+
+    atlas_ui.py can serve an arbitrary --root, for example common_ai_agent/gpio.
+    The worker still needs imports from the common_ai_agent source tree, but
+    its cwd/ATLAS_PROJECT_ROOT must be the served project root so relative file
+    tools operate on the same IP directory the UI is showing.
+    """
+
+    port = worker_url.rsplit(":", 1)[-1].split("/", 1)[0]
+    py_path = str(_SOURCE_ROOT / "src" / "main.py")
+    model_arg = f" --model {shlex.quote(model)}" if model else ""
+    return (
+        f"cd {shlex.quote(str(project_root))} && "
+        f"ATLAS_PROJECT_ROOT={shlex.quote(str(project_root))} "
+        f"PYTHONPATH={shlex.quote(str(_SOURCE_ROOT))}:$PYTHONPATH "
+        f"python3 {shlex.quote(py_path)} --serve --port {shlex.quote(port)} "
+        f"--workflow {shlex.quote(workflow)} "
+        f"--worker-name {shlex.quote(workflow)} --session {shlex.quote(session_name)}"
+        f"{model_arg}"
+    )
 
 
 def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
@@ -161,6 +192,8 @@ def _dispatch_job_to_worker(job: dict[str, Any]) -> None:
             "session":  job.get("session", ""),
             "model":    job.get("model", ""),
             "context":  job["prompt"].split("\n\n", 1)[0],
+            "project_root": job.get("project_root", ""),
+            "source_root": job.get("source_root", ""),
             "sync":     False,
         }
         if job.get("template"):
@@ -366,6 +399,8 @@ def register_jobs_routes(
             f"- stage_id: {stage_id or workflow}\n"
             f"- pipeline_id: {pipeline_id or '(single-job)'}\n"
             f"- session_namespace: .session/{session_name}\n"
+            f"- project_root: {pr}\n"
+            f"- source_root: {_SOURCE_ROOT}\n"
             f"- scope_path: {rel_scope}\n"
             f"- write_boundary: only modify files under {rel_scope}/, "
             f"except workflow-owned status/session files under .session/{session_name}/. "
@@ -384,10 +419,9 @@ def register_jobs_routes(
             "session":        session_name,
             "session_dir":    session_dir.relative_to(pr).as_posix(),
             "scope_path":     rel_scope,
-            "worker_command": (
-                f"python src/main.py --serve --port {worker_url.rsplit(':', 1)[-1]}"
-                f" --worker-name {workflow} --session {session_name}"
-            ),
+            "project_root":    str(pr),
+            "source_root":     str(_SOURCE_ROOT),
+            "worker_command": _worker_launch_command(worker_url, workflow, session_name, pr, model),
             "prompt":         boundary + (prompt or _default_workflow_prompt(workflow, ip, stage_id)),
             "started_at":     time.time() if auto_start else 0.0,
             "status":         "pending" if auto_start else "queued",
