@@ -191,7 +191,11 @@ cycle_model:
     register_read: { min_cycles: 0, max_cycles: 1, description: "APB read data and PREADY timing per APB4 protocol" }
     register_write: { min_cycles: 0, max_cycles: 1, description: "APB write acceptance timing per APB4 protocol" }
     interrupt_assertion: { min_cycles: 0, max_cycles: 0, description: "edge_irq asserted same cycle as edge_outputs pulse when INT_EN set" }
-  handshake_rules: []
+  handshake_rules:
+    - { signal: "PSEL/PENABLE/PREADY", rule: "APB4-lite: PSEL=1,PENABLE=0 setup phase; PSEL=1,PENABLE=1 access phase completes when PREADY=1" }
+    - { signal: "PWRITE/PWDATA/PSTRB", rule: "Sampled in completing access phase when PREADY=1 and PWRITE=1" }
+    - { signal: "PRDATA", rule: "Driven valid in completing access phase when PREADY=1 and PWRITE=0" }
+    - { signal: "PSLVERR", rule: "Asserted with PREADY=1 for unsupported address decode" }
   pipeline:
     - { stage: "S0_SYNC", cycle: 0, action: "Register signal_inputs into prev_inputs on PCLK rising edge" }
     - { stage: "S1_EDGE_LOGIC", cycle: 0, action: "Combinational edge detection: compute edge_outputs from prev_inputs, signal_inputs, and EDGE_CTRL.mode fields" }
