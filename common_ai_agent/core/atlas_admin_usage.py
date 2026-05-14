@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import time
 from pathlib import Path
 from typing import Any
@@ -24,6 +25,20 @@ def _dir_name(value: Any) -> str:
         return Path(text).name or text
     except Exception:
         return text
+
+
+def _json_list(value: Any) -> list[Any]:
+    if value is None or value == "":
+        return []
+    if isinstance(value, list):
+        return value
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+        except (json.JSONDecodeError, TypeError):
+            return [value]
+        return parsed if isinstance(parsed, list) else [parsed]
+    return [value]
 
 
 def _cost_context(row: dict[str, Any]) -> dict[str, str]:
@@ -171,6 +186,84 @@ def build_admin_usage_payload(db) -> dict[str, Any]:
     tools_rows = [dict(r) for r in db._fetchall(tools_sql)]
     context_rows = [dict(r) for r in db._fetchall(context_sql)]
     date_rows = [dict(r) for r in db._fetchall(date_sql)]
+    todo_rows = [dict(r) for r in db._fetchall(
+        """
+        SELECT t.id AS todo_id, t.run_id, r.session_id, s.user_id, u.username,
+               r.workflow, w.name AS workspace_name, w.local_path AS workspace_path,
+               i.ip_name, t.title AS content, t.detail, t.criteria, t.notes,
+               t.status, t.owner_file, t.owner_module, t.source,
+               COALESCE(ev.event_count, 0) AS event_count,
+               COALESCE(ev.rejected_count, 0) AS rejected_count,
+               COALESCE(ev.approved_count, 0) AS approved_count,
+               COALESCE(llm.llm_calls, 0) AS llm_calls,
+               COALESCE(llm.tokens_input, 0) AS tokens_input,
+               COALESCE(llm.tokens_output, 0) AS tokens_output,
+               COALESCE(llm.tokens_reasoning, 0) AS tokens_reasoning,
+               COALESCE(llm.cost, 0) AS cost,
+               COALESCE(llm.latency_ms, 0) AS latency_ms,
+               (
+                   SELECT e.reason FROM todo_events e
+                    WHERE e.todo_id = t.id AND e.event_type = 'rejected'
+                    ORDER BY e.created_at DESC LIMIT 1
+               ) AS last_rejected_reason,
+               (
+                   SELECT e.event_type FROM todo_events e
+                    WHERE e.todo_id = t.id ORDER BY e.created_at DESC LIMIT 1
+               ) AS last_event_type,
+               (
+                   SELECT e.reason FROM todo_events e
+                    WHERE e.todo_id = t.id ORDER BY e.created_at DESC LIMIT 1
+               ) AS last_event_reason,
+               (
+                   SELECT e.created_at FROM todo_events e
+                    WHERE e.todo_id = t.id ORDER BY e.created_at DESC LIMIT 1
+               ) AS last_event_at
+          FROM workflow_todos t
+          JOIN workflow_runs r ON r.id = t.run_id
+          LEFT JOIN sessions s ON s.id = r.session_id
+          LEFT JOIN users u ON u.id = s.user_id
+          LEFT JOIN workspaces w ON w.id = r.workspace_id
+          LEFT JOIN ip_blocks i ON i.id = r.ip_id
+          LEFT JOIN (
+              SELECT todo_id,
+                     COUNT(*) AS event_count,
+                     SUM(CASE WHEN event_type = 'rejected' THEN 1 ELSE 0 END) AS rejected_count,
+                     SUM(CASE WHEN event_type = 'approved' THEN 1 ELSE 0 END) AS approved_count
+                FROM todo_events
+               GROUP BY todo_id
+          ) ev ON ev.todo_id = t.id
+          LEFT JOIN (
+              SELECT todo_id,
+                     COUNT(*) AS llm_calls,
+                     SUM(tokens_input) AS tokens_input,
+                     SUM(tokens_output) AS tokens_output,
+                     SUM(tokens_reasoning) AS tokens_reasoning,
+                     SUM(cost_usd) AS cost,
+                     SUM(COALESCE(latency_ms, 0)) AS latency_ms
+                FROM llm_calls
+               WHERE todo_id IS NOT NULL AND todo_id != ''
+               GROUP BY todo_id
+          ) llm ON llm.todo_id = t.id
+         ORDER BY cost DESC, rejected_count DESC, last_event_at DESC
+        """
+    )]
+    todo_flow_rows = [dict(r) for r in db._fetchall(
+        """
+        SELECT e.id AS event_id, e.todo_id, e.event_type, e.reason,
+               e.evidence, e.created_at, t.run_id, r.session_id, s.user_id,
+               u.username, r.workflow, w.name AS workspace_name,
+               w.local_path AS workspace_path, i.ip_name,
+               t.title AS content, t.detail, t.criteria, t.status
+          FROM todo_events e
+          JOIN workflow_todos t ON t.id = e.todo_id
+          JOIN workflow_runs r ON r.id = t.run_id
+          LEFT JOIN sessions s ON s.id = r.session_id
+          LEFT JOIN users u ON u.id = s.user_id
+          LEFT JOIN workspaces w ON w.id = r.workspace_id
+          LEFT JOIN ip_blocks i ON i.id = r.ip_id
+         ORDER BY e.created_at ASC
+        """
+    )]
 
     models_by_user: dict[str, list[dict[str, Any]]] = {}
     for row in models_rows:
@@ -214,9 +307,70 @@ def build_admin_usage_payload(db) -> dict[str, Any]:
         item["day"] = row.get("day") or "unknown"
         cost_by_date.append(item)
 
+    todo_usage = []
+    for row in todo_rows:
+        context = _cost_context(row)
+        tokens_input = int(row.get("tokens_input") or 0)
+        tokens_output = int(row.get("tokens_output") or 0)
+        todo_usage.append({
+            **context,
+            "todo_id": row.get("todo_id"),
+            "run_id": row.get("run_id"),
+            "session_id": row.get("session_id"),
+            "user_id": row.get("user_id"),
+            "username": row.get("username") or "unknown",
+            "workflow": row.get("workflow") or "",
+            "content": row.get("content") or "",
+            "detail": row.get("detail") or "",
+            "criteria": row.get("criteria") or "",
+            "notes": _json_list(row.get("notes")),
+            "status": row.get("status") or "",
+            "source": row.get("source") or "",
+            "owner_file": row.get("owner_file") or "",
+            "owner_module": row.get("owner_module") or "",
+            "event_count": row.get("event_count") or 0,
+            "rejected_count": row.get("rejected_count") or 0,
+            "approved_count": row.get("approved_count") or 0,
+            "last_rejected_reason": row.get("last_rejected_reason") or "",
+            "last_event_type": row.get("last_event_type") or "",
+            "last_event_reason": row.get("last_event_reason") or "",
+            "last_event_at": row.get("last_event_at"),
+            "llm_calls": row.get("llm_calls") or 0,
+            "tokens_input": tokens_input,
+            "tokens_output": tokens_output,
+            "tokens_reasoning": row.get("tokens_reasoning") or 0,
+            "tokens": tokens_input + tokens_output,
+            "cost": row.get("cost") or 0,
+            "latency_ms": row.get("latency_ms") or 0,
+        })
+
+    todo_flow = []
+    for row in todo_flow_rows:
+        context = _cost_context(row)
+        todo_flow.append({
+            **context,
+            "event_id": row.get("event_id"),
+            "todo_id": row.get("todo_id"),
+            "run_id": row.get("run_id"),
+            "session_id": row.get("session_id"),
+            "user_id": row.get("user_id"),
+            "username": row.get("username") or "unknown",
+            "workflow": row.get("workflow") or "",
+            "content": row.get("content") or "",
+            "detail": row.get("detail") or "",
+            "criteria": row.get("criteria") or "",
+            "status": row.get("status") or "",
+            "event_type": row.get("event_type") or "",
+            "reason": row.get("reason") or "",
+            "evidence": row.get("evidence") or "",
+            "created_at": row.get("created_at"),
+        })
+
     return {
         "users": totals,
         "cost_by_context": cost_by_context,
         "cost_by_date": cost_by_date,
+        "todo_usage": todo_usage,
+        "todo_flow": todo_flow,
         "generated_at": time.time(),
     }

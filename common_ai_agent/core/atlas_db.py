@@ -15,6 +15,13 @@ import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+_IP_PERMISSION_LEVELS = {
+    "view": 1,
+    "import": 2,
+    "write": 3,
+    "admin": 4,
+}
+
 
 # ============================================================
 # Schema
@@ -165,6 +172,20 @@ CREATE TABLE IF NOT EXISTS ip_blocks (
 );
 CREATE INDEX IF NOT EXISTS idx_ip_blocks_workspace ON ip_blocks(workspace_id, ip_name);
 
+-- ip_permissions (per-IP sharing/import ACL)
+CREATE TABLE IF NOT EXISTS ip_permissions (
+    id TEXT PRIMARY KEY,
+    ip_id TEXT NOT NULL,
+    grantee_user_id TEXT NOT NULL,
+    granted_by_user_id TEXT,
+    permission TEXT NOT NULL,
+    created_at REAL,
+    expires_at REAL,
+    UNIQUE(ip_id, grantee_user_id, permission)
+);
+CREATE INDEX IF NOT EXISTS idx_ip_permissions_user ON ip_permissions(grantee_user_id, permission);
+CREATE INDEX IF NOT EXISTS idx_ip_permissions_ip ON ip_permissions(ip_id, permission);
+
 -- workflow_runs (one executable workflow invocation)
 CREATE TABLE IF NOT EXISTS workflow_runs (
     id TEXT PRIMARY KEY,
@@ -223,6 +244,7 @@ CREATE TABLE IF NOT EXISTS workflow_todos (
     title TEXT NOT NULL,
     detail TEXT,
     criteria TEXT,
+    notes TEXT,
     status TEXT,
     owner_file TEXT,
     owner_module TEXT,
@@ -274,6 +296,7 @@ CREATE TABLE IF NOT EXISTS llm_calls (
 );
 CREATE INDEX IF NOT EXISTS idx_llm_calls_context ON llm_calls(workspace_id, ip_id, workflow, created_at);
 CREATE INDEX IF NOT EXISTS idx_llm_calls_session ON llm_calls(session_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_llm_calls_todo ON llm_calls(todo_id, created_at);
 
 -- artifacts (metadata/pointers only; content remains in filesystem/git/object storage)
 CREATE TABLE IF NOT EXISTS artifacts (
@@ -302,7 +325,7 @@ _JSON_COLUMNS = {
     "ws_connections": set(),
     "session_queue": {"payload"},
     "workflow_events": {"payload"},
-    "workflow_todos": {"source_refs", "evidence"},
+    "workflow_todos": {"source_refs", "evidence", "notes"},
     "todo_events": {"evidence"},
 }
 
@@ -405,7 +428,24 @@ class AtlasDB:
         with self._lock:
             conn = self._connect()
             conn.executescript(SCHEMA_SQL)
+            self._run_lightweight_migrations(conn)
             conn.commit()
+
+    def _run_lightweight_migrations(self, conn: sqlite3.Connection) -> None:
+        """Apply additive SQLite migrations for existing local databases."""
+        self._ensure_column(conn, "workflow_todos", "notes", "TEXT")
+
+    @staticmethod
+    def _ensure_column(
+        conn: sqlite3.Connection,
+        table: str,
+        column: str,
+        definition: str,
+    ) -> None:
+        rows = conn.execute(f"PRAGMA table_info({table})").fetchall()
+        if any(row["name"] == column for row in rows):
+            return
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
 
     def close(self):
         """Close the underlying connection."""
@@ -1276,6 +1316,204 @@ class AtlasDB:
         )
         return [dict(row) for row in rows]
 
+    @staticmethod
+    def _permission_rank(permission: str) -> int:
+        return _IP_PERMISSION_LEVELS.get(str(permission or "").strip().lower(), 0)
+
+    def grant_ip_permission(
+        self,
+        ip_id: str,
+        grantee_user_id: str,
+        permission: str,
+        granted_by_user_id: str = "",
+        expires_at: float = None,
+    ) -> Dict[str, Any]:
+        """Grant a user permission to view/import/write/admin an IP."""
+        normalized = str(permission or "").strip().lower()
+        if normalized not in _IP_PERMISSION_LEVELS:
+            raise ValueError(f"Invalid IP permission: {permission}")
+
+        now = self._now()
+        existing = self._fetchone(
+            """
+            SELECT id FROM ip_permissions
+             WHERE ip_id = ? AND grantee_user_id = ? AND permission = ?
+            """,
+            (ip_id, grantee_user_id, normalized),
+        )
+        if existing is None:
+            permission_id = self._new_id()
+            self._execute(
+                """
+                INSERT INTO ip_permissions
+                (id, ip_id, grantee_user_id, granted_by_user_id, permission, created_at, expires_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    permission_id,
+                    ip_id,
+                    grantee_user_id,
+                    granted_by_user_id,
+                    normalized,
+                    now,
+                    expires_at,
+                ),
+            )
+        else:
+            permission_id = existing["id"]
+            self._execute(
+                """
+                UPDATE ip_permissions
+                   SET granted_by_user_id = ?, created_at = ?, expires_at = ?
+                 WHERE id = ?
+                """,
+                (granted_by_user_id, now, expires_at, permission_id),
+            )
+        return self.get_ip_permission(permission_id)
+
+    def get_ip_permission(self, permission_id: str) -> Optional[Dict[str, Any]]:
+        row = self._fetchone("SELECT * FROM ip_permissions WHERE id = ?", (permission_id,))
+        return dict(row) if row is not None else None
+
+    def list_ip_permissions(
+        self,
+        ip_id: str = None,
+        grantee_user_id: str = None,
+    ) -> List[Dict[str, Any]]:
+        now = self._now()
+        if ip_id is not None:
+            rows = self._fetchall(
+                """
+                SELECT * FROM ip_permissions
+                 WHERE ip_id = ? AND (expires_at IS NULL OR expires_at > ?)
+                 ORDER BY created_at DESC
+                """,
+                (ip_id, now),
+            )
+        elif grantee_user_id is not None:
+            rows = self._fetchall(
+                """
+                SELECT * FROM ip_permissions
+                 WHERE grantee_user_id = ? AND (expires_at IS NULL OR expires_at > ?)
+                 ORDER BY created_at DESC
+                """,
+                (grantee_user_id, now),
+            )
+        else:
+            rows = self._fetchall(
+                """
+                SELECT * FROM ip_permissions
+                 WHERE expires_at IS NULL OR expires_at > ?
+                 ORDER BY created_at DESC
+                """,
+                (now,),
+            )
+        return [dict(row) for row in rows]
+
+    def revoke_ip_permission(
+        self,
+        ip_id: str,
+        grantee_user_id: str,
+        permission: str = None,
+    ) -> int:
+        """Revoke one permission, or all IP permissions for a user when omitted."""
+        if permission is None:
+            cursor = self._execute(
+                "DELETE FROM ip_permissions WHERE ip_id = ? AND grantee_user_id = ?",
+                (ip_id, grantee_user_id),
+            )
+        else:
+            cursor = self._execute(
+                """
+                DELETE FROM ip_permissions
+                 WHERE ip_id = ? AND grantee_user_id = ? AND permission = ?
+                """,
+                (ip_id, grantee_user_id, str(permission or "").strip().lower()),
+            )
+        return int(cursor.rowcount or 0)
+
+    def can_user_access_ip(
+        self,
+        ip_id: str,
+        user_id: str,
+        permission: str = "view",
+    ) -> bool:
+        """Return whether a user owns or has a sufficient grant for an IP."""
+        requested_rank = self._permission_rank(permission)
+        if requested_rank == 0:
+            return False
+
+        user = self.get_user(user_id)
+        if user and user.get("role") == "admin":
+            return True
+
+        ip = self.get_ip_block(ip_id)
+        if ip is None:
+            return False
+        workspace = self.get_workspace(ip["workspace_id"])
+        if workspace and workspace.get("owner_user_id") == user_id:
+            return True
+
+        now = self._now()
+        rows = self._fetchall(
+            """
+            SELECT permission FROM ip_permissions
+             WHERE ip_id = ? AND grantee_user_id = ?
+               AND (expires_at IS NULL OR expires_at > ?)
+            """,
+            (ip_id, user_id, now),
+        )
+        return any(self._permission_rank(row["permission"]) >= requested_rank for row in rows)
+
+    def list_accessible_ip_blocks(
+        self,
+        user_id: str,
+        permission: str = "view",
+    ) -> List[Dict[str, Any]]:
+        """List owned and shared IPs visible to a user at the requested level."""
+        requested_rank = self._permission_rank(permission)
+        if requested_rank == 0:
+            return []
+
+        rows = self._fetchall(
+            """
+            SELECT i.*, w.owner_user_id, w.name AS workspace_name, w.local_path AS workspace_path,
+                   'owner' AS permission, 4 AS permission_rank
+              FROM ip_blocks i
+              JOIN workspaces w ON w.id = i.workspace_id
+             WHERE w.owner_user_id = ?
+            UNION ALL
+            SELECT i.*, w.owner_user_id, w.name AS workspace_name, w.local_path AS workspace_path,
+                   p.permission AS permission,
+                   CASE p.permission
+                       WHEN 'view' THEN 1
+                       WHEN 'import' THEN 2
+                       WHEN 'write' THEN 3
+                       WHEN 'admin' THEN 4
+                       ELSE 0
+                   END AS permission_rank
+              FROM ip_permissions p
+              JOIN ip_blocks i ON i.id = p.ip_id
+              JOIN workspaces w ON w.id = i.workspace_id
+             WHERE p.grantee_user_id = ?
+               AND (p.expires_at IS NULL OR p.expires_at > ?)
+             ORDER BY ip_name
+            """,
+            (user_id, user_id, self._now()),
+        )
+        seen: set[str] = set()
+        result: List[Dict[str, Any]] = []
+        for row in rows:
+            item = dict(row)
+            if int(item.get("permission_rank") or 0) < requested_rank:
+                continue
+            ip_id = item.get("id")
+            if ip_id in seen:
+                continue
+            seen.add(ip_id)
+            result.append(item)
+        return result
+
     def start_workflow_run(
         self,
         session_id: str = "",
@@ -1443,6 +1681,7 @@ class AtlasDB:
         title: str,
         detail: str = "",
         criteria: str = "",
+        notes: Any = None,
         status: str = "pending",
         source: str = "",
         owner_file: str = "",
@@ -1456,7 +1695,7 @@ class AtlasDB:
             self._execute(
                 """
                 UPDATE workflow_todos
-                   SET source = ?, title = ?, detail = ?, criteria = ?, status = ?,
+                   SET source = ?, title = ?, detail = ?, criteria = ?, notes = ?, status = ?,
                        owner_file = ?, owner_module = ?, source_refs = ?, evidence = ?,
                        updated_at = ?
                  WHERE id = ?
@@ -1466,6 +1705,7 @@ class AtlasDB:
                     title,
                     detail,
                     criteria,
+                    self._dump_json(notes),
                     status,
                     owner_file,
                     owner_module,
@@ -1480,9 +1720,9 @@ class AtlasDB:
             self._execute(
                 """
                 INSERT INTO workflow_todos
-                (id, run_id, source, title, detail, criteria, status, owner_file,
+                (id, run_id, source, title, detail, criteria, notes, status, owner_file,
                  owner_module, source_refs, evidence, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     todo_id,
@@ -1491,6 +1731,7 @@ class AtlasDB:
                     title,
                     detail,
                     criteria,
+                    self._dump_json(notes),
                     status,
                     owner_file,
                     owner_module,
