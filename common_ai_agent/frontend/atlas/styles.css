@@ -2204,6 +2204,15 @@ code,
 .orchestrator-card { font-variant-numeric: tabular-nums; }
 .chat-bubble { transition: background 80ms linear; }
 .chat-bubble:hover { background: var(--bg-elevated, var(--bg)); }
+.chat-bubble-agent {
+  /* Bot reply — distinct from human posts so the thread reads as a real
+     conversation. The inline style on the component sets the borderLeft
+     accent; this class adds the extra hover lift and a subtle weight. */
+  font-feature-settings: "calt" on, "liga" on;
+}
+.chat-bubble-agent:hover {
+  background: var(--bg-elevated-2, var(--bg-elevated, var(--bg))) !important;
+}
 .chat-unread-badge {
   display: inline-block;
   min-width: 14px;

@@ -192,7 +192,14 @@ def _llm_completion(system_prompt: str,
 
     Uses the same llm_client module the main agent uses so that the
     --model alias, auth, cost recording, and trace_events all share
-    one path."""
+    one path.
+
+    chat_completion_stream emits a mixed stream — see llm_client docstring:
+      - bare str               → assistant content chunk (what we want)
+      - ('reasoning', text)    → thinking trace (drop — internal)
+      - ('native_tool_calls',) → tool calls (drop — bot doesn't call tools)
+      - ('finish_reason', ...) → end marker (drop)
+    We collect only the bare strings."""
     # Late import — llm_client transitively imports config and provider modules.
     from llm_client import chat_completion_stream  # type: ignore
     messages = [
@@ -200,14 +207,14 @@ def _llm_completion(system_prompt: str,
         {"role": "user",   "content": user_block},
     ]
     out_chunks: list[str] = []
+    char_budget = max_tokens * 6   # tokens ≤ chars/4 worst case; budget for early stop
     for chunk in chat_completion_stream(messages, stop=None,
                                           suppress_spinner=True):
         if isinstance(chunk, str):
             out_chunks.append(chunk)
-        elif isinstance(chunk, tuple) and chunk and isinstance(chunk[0], str):
-            out_chunks.append(chunk[0])
-        if sum(len(c) for c in out_chunks) >= max_tokens * 6:
-            break  # tokens ≤ chars/4 worst case; cut early
+        # tuples are reasoning / tool_calls / finish_reason — never content
+        if sum(len(c) for c in out_chunks) >= char_budget:
+            break
     text = "".join(out_chunks).strip()
     return text[: max_tokens * 8]  # safety cap on raw chars
 
@@ -412,6 +419,46 @@ def main(argv: Optional[list[str]] = None) -> int:
     signal.signal(signal.SIGTERM, r.stop)
     r.run_forever()
     return 0
+
+
+def autostart_all(db: Optional[AtlasDB] = None) -> list["Responder"]:
+    """Start daemon-threaded responders for every IP in the DB plus the
+    \_global room. Returns the list of Responder instances so callers can
+    inspect health.
+
+    Used by atlas_ui at boot when CHAT_RESPONDER_AUTOSTART=1 so launching
+    the UI is enough to bring up all per-room bots — no separate terminals,
+    no manual process management. Daemons die with the parent process.
+
+    Idempotent against repeated calls only in the sense that fresh threads
+    are spawned each time; callers should call this exactly once per
+    ATLAS UI boot."""
+    import threading
+    db = db or AtlasDB()
+    rooms: list[str] = ["_global"]
+    try:
+        for ws in db._fetchall("SELECT id FROM workspaces"):
+            for ip in db.list_ip_blocks(ws["id"]):
+                rooms.append(ip["ip_name"])
+    except Exception:  # pragma: no cover — empty DB at first boot is fine
+        pass
+
+    started: list[Responder] = []
+    for room in rooms:
+        try:
+            r = Responder(room=room, db=db)
+        except SystemExit:
+            continue   # unknown room name — skip gracefully
+        t = threading.Thread(
+            target=r.run_forever,
+            name=f"chat-responder-{room}",
+            daemon=True,
+        )
+        t.start()
+        started.append(r)
+    print(f"[chat-responder] autostart: spawned {len(started)} responder(s) "
+          f"({', '.join(r.room for r in started)})")
+    return started
 
 
 if __name__ == "__main__":

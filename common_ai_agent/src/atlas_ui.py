@@ -434,6 +434,18 @@ def create_app():
         _orch_register_bridge(bridge)
     except Exception:
         pass
+    # Opt-in auto-start of the chat-responder bots. With
+    # CHAT_RESPONDER_AUTOSTART=1 in .env, atlas_ui spawns one daemon
+    # thread per IP room plus one for _global, so launching the UI is
+    # enough to make the bot respond to teammate feedback. Threads die
+    # with the parent. Without the env var, users still launch
+    # responders manually via `python3 -m core.chat_responder <room>`.
+    if os.environ.get("CHAT_RESPONDER_AUTOSTART", "").strip() in ("1", "true", "yes", "on"):
+        try:
+            from core.chat_responder import autostart_all as _chat_autostart
+            _chat_autostart()
+        except Exception as _e:
+            print(f"[chat-responder] autostart failed: {_e}")
     clients: set[Any] = set()
     broadcaster_task: asyncio.Task | None = None
 

@@ -10341,20 +10341,38 @@ const OrchestratorChatPanel = ({ activeIp: activeIpProp = '' } = {}) => {
             No messages in this room yet. Posts are sent to the running agent on its next iteration.
           </div>
         ) : (
-          messages.map((m) => (
-            <div key={m.id} className="chat-bubble"
-                 style={{ marginBottom: 6, padding: '4px 6px', borderRadius: 4,
-                          background: 'var(--bg)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between',
-                            fontSize: 10, color: 'var(--fg-mute)' }}>
-                <strong>{m.display_name || m.user_id || 'user'}</strong>
-                <span>{m.created_at ? new Date(m.created_at * 1000).toLocaleTimeString() : ''}</span>
+          messages.map((m) => {
+            // Agent messages are identified by the 🤖 prefix in display_name
+            // set by core/chat_responder.py. Same author would never start a
+            // human message with that emoji (auth flow rejects display names
+            // containing 🤖 — see record_chat_message). Visual cue: left-rail
+            // accent + slightly different background so the thread reads as
+            // a real conversation.
+            const isAgent = typeof m.display_name === 'string'
+              && m.display_name.startsWith('🤖');
+            return (
+              <div
+                key={m.id}
+                className={isAgent ? 'chat-bubble chat-bubble-agent' : 'chat-bubble'}
+                style={{
+                  marginBottom: 6,
+                  padding: '4px 6px',
+                  borderRadius: 4,
+                  background: isAgent ? 'var(--bg-elevated, var(--bg))' : 'var(--bg)',
+                  borderLeft: isAgent ? '3px solid var(--accent, #4a9eff)' : 'none',
+                }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between',
+                              fontSize: 10,
+                              color: isAgent ? 'var(--accent, #4a9eff)' : 'var(--fg-mute)' }}>
+                  <strong>{m.display_name || m.user_id || 'user'}</strong>
+                  <span>{m.created_at ? new Date(m.created_at * 1000).toLocaleTimeString() : ''}</span>
+                </div>
+                <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                  {m.content}
+                </div>
               </div>
-              <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                {m.content}
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 

@@ -1,566 +1,536 @@
-# =============================================================================
 # uart_lite.ssot.yaml — Single Source of Truth
-# =============================================================================
 top_module:
   name: "uart_lite"
   file: "rtl/uart_lite.sv"
   version: "1.0"
   type: "peripheral"
-  description: "Simple parameterized UART transceiver with APB-lite CSR interface, configurable baud rate, parity, stop bits, TX/RX FIFOs, and interrupt support"
-  reference_spec: "user-defined (standard UART protocol, 8N1/8E1/8O1/8N2/8E2/8O2 formats)"
+  description: "Parameterized UART transceiver with APB-lite CSR interface, TX/RX FIFOs, configurable baud/parity/stop bits, and sticky status interrupts"
+  reference_spec: "user-defined — generic UART with oversampling, no hardware flow control"
   target:
     technology: "generic"
     clock_freq_mhz: 50
     area_um2: null
     power_mw: null
 sub_modules:
-  - { name: "uart_lite_regs",     file: "rtl/uart_lite_regs.sv",     ownership: "manifest", ssot_gen: true,  implements: ["registers.register_list", "interrupts", "error_handling"], source_sections: ["registers", "interrupts", "error_handling"], register_refs: ["registers.register_list"], description: "APB-lite register decode, read/write, W1C clear, and interrupt pending/enable logic" }
-  - { name: "uart_lite_tx",       file: "rtl/uart_lite_tx.sv",       ownership: "manifest", ssot_gen: false, implements: ["fsm.tx_fsm", "function_model.transactions", "cycle_model.handshake_rules"], source_sections: ["fsm", "function_model", "cycle_model"], fsm_refs: ["fsm.tx_fsm"], function_model_refs: ["function_model.transactions"], cycle_model_refs: ["cycle_model.pipeline"], description: "TX FSM: idle/start/data/parity/stop, shift register, parity computation" }
-  - { name: "uart_lite_rx",       file: "rtl/uart_lite_rx.sv",       ownership: "manifest", ssot_gen: false, implements: ["fsm.rx_fsm", "function_model.transactions", "cycle_model.handshake_rules", "cdc_requirements"], source_sections: ["fsm", "function_model", "cycle_model", "cdc_requirements"], fsm_refs: ["fsm.rx_fsm"], function_model_refs: ["function_model.transactions"], cycle_model_refs: ["cycle_model.pipeline"], description: "RX FSM: 2-FF synchronizer, idle/start/data/parity/stop, shift register, parity check, error detection" }
-  - { name: "uart_lite_baud_gen", file: "rtl/uart_lite_baud_gen.sv", ownership: "manifest", ssot_gen: true,  implements: ["fsm.baud_gen", "cycle_model.pipeline"], source_sections: ["fsm", "cycle_model"], fsm_refs: ["fsm.baud_gen"], cycle_model_refs: ["cycle_model.pipeline"], description: "Baud-rate generator: oversample counter, baud_tick, baud_tick_mid, start-bit mid-sample at 7/16" }
-  - { name: "uart_lite_tx_fifo",  file: "rtl/uart_lite_tx_fifo.sv",  ownership: "manifest", ssot_gen: true,  implements: ["memory.instances", "dataflow", "cycle_model.backpressure"], source_sections: ["memory", "dataflow", "cycle_model"], dataflow_refs: ["dataflow.tx_path"], cycle_model_refs: ["cycle_model.backpressure"], description: "TX FIFO: 16-deep parameterized synchronous FIFO with write/read pointers" }
-  - { name: "uart_lite_rx_fifo",  file: "rtl/uart_lite_rx_fifo.sv",  ownership: "manifest", ssot_gen: true,  implements: ["memory.instances", "dataflow", "cycle_model.backpressure"], source_sections: ["memory", "dataflow", "cycle_model"], dataflow_refs: ["dataflow.rx_path"], cycle_model_refs: ["cycle_model.backpressure"], description: "RX FIFO: 16-deep parameterized synchronous FIFO with write/read pointers" }
-  - { name: "uart_lite_core",     file: "rtl/uart_lite_core.sv",     ownership: "manifest", ssot_gen: false, implements: ["function_model", "decomposition.units.execute", "cycle_model", "dataflow", "features"], source_sections: ["function_model", "decomposition", "cycle_model", "dataflow", "features"], function_model_refs: ["function_model.transactions", "function_model.state_variables"], decomposition_refs: ["decomposition.units.execute"], cycle_model_refs: ["cycle_model.pipeline"], dataflow_refs: ["dataflow"], feature_refs: ["features"], description: "Core control: top-level orchestration, loopback MUX, break control, debug counter updates" }
-  - { name: "uart_lite_wrapper",  file: "rtl/uart_lite_wrapper.sv",  ownership: "manifest", ssot_gen: true,  wiring_only: true, source_sections: ["io_list", "integration"], ports: ["pclk", "presetn", "paddr", "psel", "penable", "pwrite", "pwdata", "pstrb", "prdata", "pready", "pslverr", "tx", "rx", "uart_irq"], connections: "instance wiring from top-level ports to uart_lite_regs, uart_lite_tx, uart_lite_rx, uart_lite_baud_gen, uart_lite_core, uart_lite_tx_fifo, uart_lite_rx_fifo", description: "Integration wrapper" }
+  - { name: "uart_lite_regs",     file: "rtl/uart_lite_regs.sv",     ownership: "manifest", ssot_gen: true,  implements: ["registers.register_list", "interrupts", "error_handling"], source_sections: ["registers", "interrupts", "error_handling"], register_refs: ["registers.register_list"], description: "APB register decode, status aggregation, interrupt combiner" }
+  - { name: "uart_lite_tx",       file: "rtl/uart_lite_tx.sv",       ownership: "manifest", ssot_gen: true,  implements: ["fsm.tx_fsm", "function_model.transactions.FM_TX_BYTE", "cycle_model.pipeline"], source_sections: ["fsm", "function_model", "cycle_model"], fsm_refs: ["fsm.tx_fsm"], function_model_refs: ["function_model.transactions.FM_TX_BYTE"], cycle_model_refs: ["cycle_model.pipeline[TX_IDLE]", "cycle_model.pipeline[TX_START]", "cycle_model.pipeline[TX_DATA]", "cycle_model.pipeline[TX_PARITY]", "cycle_model.pipeline[TX_STOP1]", "cycle_model.pipeline[TX_STOP2]"], description: "TX FSM, shift register, parity generator" }
+  - { name: "uart_lite_rx",       file: "rtl/uart_lite_rx.sv",       ownership: "manifest", ssot_gen: true,  implements: ["fsm.rx_fsm", "function_model.transactions.FM_RX_BYTE", "cycle_model.pipeline", "cycle_model.handshake_rules"], source_sections: ["fsm", "function_model", "cycle_model"], fsm_refs: ["fsm.rx_fsm"], function_model_refs: ["function_model.transactions.FM_RX_BYTE"], cycle_model_refs: ["cycle_model.pipeline[RX_IDLE]", "cycle_model.pipeline[RX_START_DETECT]", "cycle_model.pipeline[RX_START_CONFIRM]", "cycle_model.pipeline[RX_DATA]", "cycle_model.pipeline[RX_PARITY]", "cycle_model.pipeline[RX_STOP1]", "cycle_model.pipeline[RX_STOP2]", "cycle_model.handshake_rules"], description: "RX FSM, 2-FF synchronizer, oversampler, shift register, parity checker" }
+  - { name: "uart_lite_baud_gen", file: "rtl/uart_lite_baud_gen.sv", ownership: "manifest", ssot_gen: true,  implements: ["cycle_model.baud_generator"], source_sections: ["cycle_model"], cycle_model_refs: ["cycle_model.baud_generator"], description: "Baud-rate tick generator from BAUD divisor and OVERSAMPLE" }
+  - { name: "uart_lite_tx_fifo",  file: "rtl/uart_lite_tx_fifo.sv",  ownership: "manifest", ssot_gen: true,  implements: ["memory.instances", "dataflow.tx_path"], source_sections: ["memory", "dataflow"], memory_refs: ["memory.instances"], dataflow_refs: ["dataflow.tx_path"], description: "TX FIFO, depth FIFO_DEPTH, width DATA_WIDTH" }
+  - { name: "uart_lite_rx_fifo",  file: "rtl/uart_lite_rx_fifo.sv",  ownership: "manifest", ssot_gen: true,  implements: ["memory.instances", "dataflow.rx_path"], source_sections: ["memory", "dataflow"], memory_refs: ["memory.instances"], dataflow_refs: ["dataflow.rx_path"], description: "RX FIFO, depth FIFO_DEPTH, width DATA_WIDTH" }
+  - { name: "uart_lite_core",     file: "rtl/uart_lite_core.sv",     ownership: "manifest", ssot_gen: false, implements: ["function_model", "decomposition.units.execute", "cycle_model", "dataflow", "features"], source_sections: ["function_model", "decomposition", "cycle_model", "dataflow", "features"], function_model_refs: ["function_model.transactions", "function_model.state_variables"], decomposition_refs: ["decomposition.units.execute"], cycle_model_refs: ["cycle_model.pipeline"], dataflow_refs: ["dataflow.sequence"], feature_refs: ["features"], description: "Top integration — instantiates all sub-modules and wires them together" }
 
 decomposition:
   units:
-    - { id: "register_decode", kind: "control", source_refs: ["registers.register_list"], rtl_candidates: ["uart_lite_regs"], verification_impact: ["test_requirements.scenarios"] }
-    - { id: "tx_serialize", kind: "datapath/control", source_refs: ["function_model.transactions.TX_WRITE", "fsm.tx_fsm", "cycle_model.pipeline"], rtl_candidates: ["uart_lite_tx"], verification_impact: ["coverage_plan.functional", "coverage_plan.cycle"] }
-    - { id: "rx_deserialize", kind: "datapath/control", source_refs: ["function_model.transactions.RX_READ", "fsm.rx_fsm", "cycle_model.pipeline"], rtl_candidates: ["uart_lite_rx"], verification_impact: ["coverage_plan.functional", "coverage_plan.cycle"] }
-    - { id: "baud_timing", kind: "control", source_refs: ["fsm.baud_gen", "cycle_model.pipeline"], rtl_candidates: ["uart_lite_baud_gen"], verification_impact: ["coverage_plan.cycle"] }
-    - { id: "core_orchestrate", kind: "control", source_refs: ["function_model.transactions", "dataflow", "features"], rtl_candidates: ["uart_lite_core"], verification_impact: ["test_requirements.scenarios"] }
+    - { id: "decode", kind: "control", source_refs: ["registers.register_list"], rtl_candidates: ["uart_lite_regs"], verification_impact: ["test_requirements.scenarios"] }
+    - { id: "execute_tx", kind: "datapath/control", source_refs: ["function_model.transactions.FM_TX_BYTE", "fsm.tx_fsm"], rtl_candidates: ["uart_lite_tx"], verification_impact: ["coverage_plan.functional"] }
+    - { id: "execute_rx", kind: "datapath/control", source_refs: ["function_model.transactions.FM_RX_BYTE", "fsm.rx_fsm"], rtl_candidates: ["uart_lite_rx"], verification_impact: ["coverage_plan.functional"] }
+    - { id: "baud_tick", kind: "datapath", source_refs: ["cycle_model.baud_generator"], rtl_candidates: ["uart_lite_baud_gen"], verification_impact: ["coverage_plan.cycle"] }
 parameters:
   - name: "DATA_WIDTH"
     default: 8
     type: int
     range: [5, 8]
-    description: "Number of data bits per UART frame (5 to 8)"
-    drives: ["uart_lite_tx.sv", "uart_lite_rx.sv", "uart_lite_core.sv"]
+    description: "Number of data bits per UART frame"
+    drives: ["uart_lite_tx.sv", "uart_lite_rx.sv", "uart_lite_tx_fifo.sv", "uart_lite_rx_fifo.sv", "uart_lite_regs.sv"]
   - name: "FIFO_DEPTH"
     default: 16
     type: int
-    description: "TX and RX FIFO depth (power-of-two, minimum 2)"
+    constraint: "power_of_two"
+    description: "TX and RX FIFO depth in entries"
     drives: ["uart_lite_tx_fifo.sv", "uart_lite_rx_fifo.sv", "uart_lite_regs.sv"]
   - name: "OVERSAMPLE"
     default: 16
     type: int
-    description: "Oversampling factor (pclk cycles per UART bit period); must be even and >= 8"
-    drives: ["uart_lite_baud_gen.sv", "uart_lite_rx.sv", "uart_lite_core.sv"]
-  - name: "CLOCK_FREQ_HZ"
-    default: 50000000
+    description: "RX oversampling factor (samples per bit)"
+    drives: ["uart_lite_rx.sv", "uart_lite_baud_gen.sv"]
+  - name: "APB_ADDR_WIDTH"
+    default: 8
     type: int
-    description: "pclk frequency in Hz; drives baud rate default calculation"
-    drives: ["uart_lite_baud_gen.sv", "uart_lite_rx.sv", "uart_lite_core.sv"]
-  - name: "CLOCK_FREQ_HZ"
-    default: 50000000
+    description: "APB address width"
+    drives: ["uart_lite_regs.sv"]
+  - name: "APB_DATA_WIDTH"
+    default: 32
     type: int
-    description: "pclk frequency in Hz; drives baud rate default calculation"
-    drives: ["tb_top.sv"]
-
+    description: "APB data width"
+    drives: ["uart_lite_regs.sv"]
+  - name: "CLOCK_FREQ_MHZ"
+    default: 50
+    type: int
+    description: "Target clock frequency in MHz"
+    drives: ["tb_top.sv", "docs/README.md"]
+  - name: "RESET_POLARITY"
+    default: "active_low"
+    type: enum
+    values: ["active_low", "active_high"]
+    drives: ["ALL .sv files"]
 io_list:
   clock_domains:
-    - name: "pclk"
+    - name: "PCLK"
       frequency_mhz: 50
-      description: "APB-lite peripheral clock"
+      description: "APB and UART core clock"
       ports:
-        - { name: "pclk", width: 1, direction: "input", description: "Peripheral clock" }
-
+        - { name: "PCLK", width: 1, direction: "input", description: "System clock" }
   resets:
-    - name: "presetn"
+    - name: "PRESETn"
       polarity: "active_low"
       sync_async: "async_assert_sync_deassert"
-      description: "APB-lite active-low reset"
+      description: "APB and UART core reset"
       ports:
-        - { name: "presetn", width: 1, direction: "input", description: "Active-low reset" }
-
+        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low reset" }
   interfaces:
     - name: "apb_slave"
-      type: "APB-lite"
+      type: "APB4"
       role: "slave"
-      clock_domain: "pclk"
-      reset_domain: "presetn"
-      description: "APB-lite register access interface"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "Register access interface"
       protocol:
-        setup_phase: "psel=1, penable=0 captures address and control."
+        setup_phase: "psel=1, penable=0 captures address/control."
         access_phase: "psel=1, penable=1 completes when pready=1."
         read_rule: "prdata is valid in the completing access phase for reads."
         write_rule: "pwdata/pstrb are sampled in the completing access phase for writes."
         error_rule: "pslverr is asserted only with pready=1 for illegal or unsupported access."
-        no_wait_state: "pready may be driven combinatorially (0-cycle access) for reads to read-only or register-readback paths; writes to FIFO or status-clear paths complete in 0-1 cycles."
       ports:
-        - { name: "paddr",   width: 8,  direction: "input",  description: "APB address (byte offset, 32-bit aligned)" }
-        - { name: "psel",    width: 1,  direction: "input",  description: "APB select" }
-        - { name: "penable", width: 1,  direction: "input",  description: "APB enable" }
-        - { name: "pwrite",  width: 1,  direction: "input",  description: "APB write" }
-        - { name: "pwdata",  width: 32, direction: "input",  description: "APB write data" }
-        - { name: "pstrb",   width: 4,  direction: "input",  description: "APB strobes (byte enables)" }
-        - { name: "prdata",  width: 32, direction: "output", description: "APB read data" }
-        - { name: "pready",  width: 1,  direction: "output", description: "APB ready" }
-        - { name: "pslverr", width: 1,  direction: "output", description: "APB error (asserted for unmapped addresses)" }
-
+        - { name: "PADDR",   width: 8,  direction: "input",  description: "APB address" }
+        - { name: "PSEL",    width: 1,  direction: "input",  description: "APB select" }
+        - { name: "PENABLE", width: 1,  direction: "input",  description: "APB enable" }
+        - { name: "PWRITE",  width: 1,  direction: "input",  description: "APB write" }
+        - { name: "PWDATA",  width: 32, direction: "input",  description: "APB write data" }
+        - { name: "PSTRB",   width: 4,  direction: "input",  description: "APB strobes" }
+        - { name: "PRDATA",  width: 32, direction: "output", description: "APB read data" }
+        - { name: "PREADY",  width: 1,  direction: "output", description: "APB ready" }
+        - { name: "PSLVERR", width: 1,  direction: "output", description: "APB error" }
     - name: "uart_serial"
       type: "custom"
-      clock_domain: "pclk"
-      reset_domain: "presetn"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
       description: "UART serial TX and RX lines"
       protocol:
-        baud: "Configurable via BAUD_DIV CSR; default 50e6/(16*(BDIV+1))."
-        frame: "1 start bit (low), 5..8 LSB-first data bits, optional parity bit, 1 or 2 stop bits (high)."
-        idle: "Line is high (mark) when idle."
-        rx_sync: "rx input passes through a 2-FF synchronizer before sampling."
-        loopback: "When LOOPBACK CSR bit is set, tx is looped to rx internally and rx pad is ignored."
+        tx_idle: "TX line is high (mark) when idle."
+        rx_sync: "RX input passes through 2-FF synchronizer before sampling."
+        baud_ref: "Bit period = (BAUD_DIV + 1) * OVERSAMPLE PCLK cycles."
+        oversample: "RX samples at OVERSAMPLE rate; mid-bit detection at sample 7 (0-indexed) of 16."
       ports:
-        - { name: "tx", width: 1, direction: "output", description: "UART serial transmit output" }
-        - { name: "rx", width: 1, direction: "input",  description: "UART serial receive input" }
-
+        - { name: "tx", width: 1, direction: "output", description: "UART serial transmit" }
+        - { name: "rx", width: 1, direction: "input",  description: "UART serial receive" }
     - name: "interrupt"
       type: "custom"
-      clock_domain: "pclk"
-      reset_domain: "presetn"
-      description: "Combined interrupt output"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "Interrupt output"
       protocol:
         assertion: "uart_irq reflects OR of all enabled pending interrupt sources."
-        deassertion: "uart_irq deasserts when all enabled pending sources are cleared (W1C)."
+        deassertion: "uart_irq deasserts after all pending sources are cleared via W1C."
         reset_value: 0
       ports:
-        - { name: "uart_irq", width: 1, direction: "output", description: "Combined active-high level interrupt" }
-
+        - { name: "uart_irq", width: 1, direction: "output", description: "Combined interrupt" }
 features:
   - name: "TX serialization"
-    trigger: "TX FIFO not empty, tx_enable=1, and baud_tick"
-    datapath: "Pop TX FIFO → load tx_shift_reg → shift LSB-first on baud_tick boundaries → optional parity computation → stop bit(s)"
-    control: "TX FSM: TX_IDLE → TX_START → TX_DATA → (TX_PARITY) → TX_STOP → TX_IDLE"
-    output: "Serial frame on tx line"
+    trigger: "APB write to TXDATA register when TX FIFO not full"
+    datapath: "CPU → APB → TXDATA register → TX FIFO → TX shift register → tx pin (LSB-first)"
+    control: "TX FSM: TX_IDLE → TX_START → TX_DATA → TX_PARITY → TX_STOP1 → TX_STOP2 → TX_IDLE"
+    output: "Serial UART frame on tx pin"
   - name: "RX deserialization"
-    trigger: "rx_enable=1 and falling edge on rx (via 2-FF synchronizer)"
-    datapath: "2-FF sync → start-bit verify at mid-sample → shift LSB-first on baud_tick centers → optional parity check → stop bit(s) verify → push to RX FIFO"
-    control: "RX FSM: RX_IDLE → RX_START → RX_DATA → (RX_PARITY) → RX_STOP → RX_IDLE"
-    output: "Byte in RX FIFO, readable via RX_DATA APB register"
-  - name: "Loopback test"
-    trigger: "CTRL.loopback=1"
-    datapath: "tx output is internally connected to rx input; rx pad is ignored"
-    control: "Normal TX/RX FSMs; error detection still active"
-    output: "Transmitted data received internally"
-  - name: "Software break"
-    trigger: "CTRL.send_break=1"
-    datapath: "Force tx line low unconditionally"
-    control: "Any active TX frame is aborted; TX FSM returns to TX_IDLE"
-    output: "tx line held low (break condition)"
-  - name: "Baud generation"
-    trigger: "Free-running on every pclk cycle"
-    datapath: "Oversample counter 0..OVERSAMPLE-1; baud_div_counter 0..BAUD_DIV; baud_tick at (oversample==0 AND baud_div==BAUD_DIV)"
-    control: "Baud tick and baud_tick_mid signals drive TX/RX FSMs"
-    output: "baud_tick, baud_tick_mid (observable internally)"
+    trigger: "Falling edge on rx pin after 2-FF synchronizer"
+    datapath: "rx pin → 2-FF sync → oversampler → RX shift register → RX FIFO → RXDATA register → APB read"
+    control: "RX FSM: RX_IDLE → RX_START_DETECT → RX_START_CONFIRM → RX_DATA → RX_PARITY → RX_STOP1 → RX_STOP2 → RX_IDLE"
+    output: "Received byte available in RXDATA register"
+  - name: "Parity generation/checking"
+    trigger: "Enabled via CTRL.parity_en; CTRL.parity_odd selects even/odd"
+    datapath: "TX: XOR of all data bits (optionally inverted for odd). RX: computed parity compared to received parity bit."
+    control: "TX_PARITY and RX_PARITY FSM states"
+    output: "parity_err sticky flag on mismatch"
+  - name: "Loopback test mode"
+    trigger: "CTRL.loopback = 1"
+    datapath: "tx output internally routed to rx synchronizer input after 2-FF stage"
+    control: "Bypasses external rx pin"
+    output: "Transmitted bytes appear in RX FIFO"
+  - name: "Break send"
+    trigger: "CTRL.break_send = 1"
+    datapath: "tx pin forced low"
+    control: "Hardware timer for one full frame duration; self-clears break_send"
+    output: "Break condition on tx line"
 
 dataflow:
   tx_path:
-    source: "APB write to TX_DATA"
+    source: "APB write to TXDATA"
     buffer: "TX FIFO (depth FIFO_DEPTH, width DATA_WIDTH)"
-    serializer: "tx_shift_reg (width DATA_WIDTH + parity + stop)"
-    sequence: "APB TX_DATA write → TX FIFO push → TX FSM pop → tx_shift_reg → tx line serial output"
-    backpressure: "APB write ignored when TX FIFO full"
+    serializer: "TX shift register, LSB-first"
+    sequence: "APB write → TXDATA register → TX FIFO (if not full) → TX FSM pops byte → shift register → tx pin"
   rx_path:
-    source: "rx pad → 2-FF synchronizer → rx_synced"
-    deserializer: "rx_shift_reg (width DATA_WIDTH + parity + stop)"
+    source: "rx pin"
+    synchronizer: "2-FF synchronizer (2 PCLK stages)"
+    oversampler: "16x oversampling; mid-bit sample at count 7"
+    deserializer: "RX shift register, LSB-first"
     buffer: "RX FIFO (depth FIFO_DEPTH, width DATA_WIDTH)"
-    consumer: "APB read from RX_DATA"
-    sequence: "rx pad → 2-FF sync → falling-edge detect → start verify → data/parity/stop shift → RX FIFO push → APB RX_DATA read"
-    backpressure: "New frame discarded (overrun) when RX FIFO full"
-  loopback_path:
-    source: "tx line (internal, before pad)"
-    destination: "rx_synced MUX input"
-    condition: "CTRL.loopback == 1"
-
+    destination: "APB read from RXDATA"
+    sequence: "rx pin → 2-FF sync → oversampler → start detect → shift register → RX FIFO (if not full) → RXDATA register → APB read"
+  loopback_control:
+    path: "tx pin → internal mux → rx synchronizer input (after 2-FF)"
+    trigger: "CTRL.loopback = 1"
 function_model:
   purpose: "Executable behavioral contract for rtl-gen and tb-gen; describes what the UART computes independent of cycle timing."
   state_variables:
-    - { name: "tx_fifo", source: "memory.instances.tx_fifo", reset: "empty", description: "TX FIFO contents (up to FIFO_DEPTH entries of DATA_WIDTH bits each)" }
-    - { name: "rx_fifo", source: "memory.instances.rx_fifo", reset: "empty", description: "RX FIFO contents (up to FIFO_DEPTH entries of DATA_WIDTH bits each)" }
-    - { name: "tx_busy", source: "registers.STATUS.tx_busy", reset: 0, description: "TX FSM is actively shifting a frame" }
-    - { name: "rx_busy", source: "registers.STATUS.rx_busy", reset: 0, description: "RX FSM is actively receiving a frame" }
-    - { name: "frame_error", source: "registers.STATUS.frame_error", reset: 0, description: "Sticky framing error flag" }
-    - { name: "parity_error", source: "registers.STATUS.parity_error", reset: 0, description: "Sticky parity error flag" }
-    - { name: "overrun_error", source: "registers.STATUS.overrun_error", reset: 0, description: "Sticky overrun error flag" }
-    - { name: "underrun_error", source: "registers.STATUS.underrun_error", reset: 0, description: "Sticky underrun error flag" }
-    - { name: "bytes_tx", source: "registers.DEBUG_BYTES_TX", reset: 0, description: "Total bytes transmitted counter" }
-    - { name: "bytes_rx", source: "registers.DEBUG_BYTES_RX", reset: 0, description: "Total bytes received counter" }
-    - { name: "frames_errored", source: "registers.DEBUG_FRAMES_ERR", reset: 0, description: "Framing error counter" }
-    - { name: "parities_errored", source: "registers.DEBUG_PARITIES_ERR", reset: 0, description: "Parity error counter" }
+    - { name: "tx_fifo", source: "memory.instances.tx_fifo", reset: "empty", description: "TX FIFO queue of bytes to transmit" }
+    - { name: "rx_fifo", source: "memory.instances.rx_fifo", reset: "empty", description: "RX FIFO queue of received bytes" }
+    - { name: "tx_active", source: "internal", reset: false, description: "True while TX FSM is not IDLE" }
+    - { name: "rx_active", source: "internal", reset: false, description: "True while RX FSM is not IDLE" }
+    - { name: "baud_div", source: "registers.BAUD.baud_div", reset: 324, description: "Baud divisor register value" }
+    - { name: "parity_en", source: "registers.CTRL.parity_en", reset: false, description: "Parity enable" }
+    - { name: "parity_odd", source: "registers.CTRL.parity_odd", reset: false, description: "Parity odd/even select" }
+    - { name: "stop_bits", source: "registers.CTRL.stop_bits", reset: false, description: "0=1 stop, 1=2 stop" }
+    - { name: "loopback", source: "registers.CTRL.loopback", reset: false, description: "Loopback mode active" }
+    - { name: "break_send", source: "registers.CTRL.break_send", reset: false, description: "Break send active; self-clears" }
   transactions:
-    - id: "TX_WRITE"
+    - id: "FM_TX_BYTE"
       name: "transmit_byte"
       preconditions:
         - "tx_enable == 1"
-        - "tx_fifo is not full"
-        - "send_break == 0"
+        - "tx_fifo not empty"
+        - "tx_active == false"
+        - "break_send == false"
       inputs:
-        - "APB write to TX_DATA with tx_data[DATA_WIDTH-1:0]"
+        - "byte d popped from tx_fifo"
       outputs:
-        - "tx_data byte pushed into TX FIFO"
-        - "STATUS.tx_empty clears if FIFO becomes non-empty"
+        - "tx line: start bit (0), d[0]..d[DATA_WIDTH-1] LSB-first, parity bit (if parity_en), 1 or 2 stop bits (1)"
+        - "tx_active transitions true → false across the frame"
       side_effects:
-        - "tx_fifo write pointer advances by 1"
-        - "if TX FSM was in TX_IDLE, it transitions to TX_START at next baud_tick"
+        - "debug counter bytes_tx increments by 1"
+        - "tx_fifo level decreases by 1"
+        - "STAT.tx_empty updates when FIFO becomes empty"
       error_cases:
-        - { condition: "APB write to TX_DATA when TX FIFO is full", result: "write is ignored; no side effects" }
-    - id: "TX_SHIFT"
-      name: "shift_out_frame"
-      preconditions:
-        - "tx_fifo is not empty"
-        - "TX FSM is in TX_IDLE or just completed previous frame"
-      inputs:
-        - "tx_fifo read data (DATA_WIDTH bits)"
-      outputs:
-        - "Serial frame on tx line: start(0) + DATA_WIDTH data bits (LSB first) + optional parity + stop bit(s)(1)"
-      side_effects:
-        - "tx_fifo read pointer advances by 1"
-        - "STATUS.tx_busy asserts during TX_START through TX_STOP"
-        - "bytes_tx increments by 1 on successful TX_STOP completion"
-        - "STATUS.tx_empty asserts if TX FIFO becomes empty after pop"
-      error_cases:
-        - { condition: "send_break asserted during TX", result: "TX FSM aborts to TX_IDLE; tx line forced low; frame truncated" }
-        - { condition: "tx_fifo underrun (empty when START state should load data)", result: "STATUS.underrun_error set; TX FSM returns to TX_IDLE" }
-    - id: "RX_READ"
+        - { condition: "tx_fifo empty when TX FSM requests byte", result: "underrun_err sticky flag set; frame aborted with tx returning to idle (mark)" }
+
+    - id: "FM_RX_BYTE"
       name: "receive_byte"
       preconditions:
         - "rx_enable == 1"
-        - "STATUS.rx_empty == 0 (RX FIFO has data)"
+        - "rx_active == false"
+        - "rx_fifo not full"
       inputs:
-        - "APB read from RX_DATA"
+        - "rx line serial stream after 2-FF synchronizer"
       outputs:
-        - "rx_data[DATA_WIDTH-1:0] returned on prdata"
+        - "byte d reconstructed from sampled bits pushed to rx_fifo"
+        - "STAT.rx_not_empty set"
       side_effects:
-        - "RX FIFO read pointer advances by 1"
-        - "STATUS.rx_empty asserts if RX FIFO becomes empty after pop"
+        - "debug counter bytes_rx increments by 1"
+        - "rx_fifo level increases by 1"
+        - "If parity_en and parity mismatch: parity_err sticky set, parities_errored incremented"
+        - "If stop bit(s) not high: frame_err sticky set, frames_errored incremented"
       error_cases:
-        - { condition: "APB read from RX_DATA when RX FIFO is empty", result: "prdata returns 0x00000000; no side effects" }
-    - id: "RX_SHIFT"
-      name: "capture_frame"
-      preconditions:
-        - "rx_enable == 1"
-        - "rx line falling edge detected (start bit)"
-        - "rx_fifo is not full"
-      inputs:
-        - "rx line serial data"
-      outputs:
-        - "Deserialized byte pushed into RX FIFO"
-      side_effects:
-        - "STATUS.rx_busy asserts during RX_START through RX_STOP"
-        - "bytes_rx increments by 1 on successful frame with no errors"
-        - "STATUS.rx_empty clears when RX FIFO gains first entry"
-      error_cases:
-        - { condition: "false start (rx line high at start-bit mid-sample)", result: "RX FSM returns to RX_IDLE; no data captured" }
-        - { condition: "framing error (stop bit sampled as 0)", result: "frame_error set sticky; frames_errored increments; rx_data still pushed to RX FIFO" }
-        - { condition: "parity error (computed parity != received parity)", result: "parity_error set sticky; parities_errored increments; rx_data still pushed to RX FIFO" }
-        - { condition: "overrun (RX FIFO full when new frame data ready)", result: "overrun_error set sticky; new frame data is discarded" }
-        - { condition: "loopback mode AND tx_busy AND rx_enable", result: "rx receives the tx output internally; rx pad is ignored" }
-  invariants:
-    - "TX FIFO write is allowed only when not full."
-    - "RX FIFO read is allowed only when not empty."
-    - "Sticky error flags are only cleared by W1C write to STATUS_CLR."
-    - "APB reads from RX_DATA always pop the FIFO (destructive read)."
-    - "APB writes to TX_DATA always push the FIFO when not full."
-    - "DEBUG counters are free-running 32-bit rollover counters; they are not cleared."
-    - "INT_PEND bits assert when the corresponding event occurs AND the IE bit is set; they deassert only on W1C to INT_CLR."
-    - "INT_PEND bits for level-type conditions (tx_empty, rx_not_empty) re-assert on the next cycle if the condition is still true after clear."
-  reference_model_hint: "tb-gen should implement a Python scoreboard model. TX: queue bytes written via APB, compare against serial bitstream. RX: inject serial bitstream, compare bytes read via APB. Error injection via corrupting stop/parity bits or filling FIFOs."
+        - { condition: "rx_fifo full when new byte ready", result: "overrun_err sticky flag set; received byte discarded" }
+        - { condition: "spurious start bit (mid-bit sample high)", result: "rx_active returns false; no byte pushed" }
+        - { condition: "frame_err: stop bit sampled low", result: "frame_err sticky set; byte still pushed to rx_fifo if space available" }
+        - { condition: "parity_err: computed parity != received parity bit", result: "parity_err sticky set; byte still pushed to rx_fifo if space available" }
 
+    - id: "FM_BREAK_SEND"
+      name: "send_break"
+      preconditions:
+        - "break_send written to 1 via CTRL register"
+      inputs:
+        - "none"
+      outputs:
+        - "tx line forced low for duration of one full frame (start+data+parity+stop bits)"
+      side_effects:
+        - "break_send self-clears to 0 after break completes"
+        - "TX FSM held in IDLE during break"
+
+    - id: "FM_LOOPBACK"
+      name: "loopback_mode"
+      preconditions:
+        - "loopback == 1"
+      inputs:
+        - "tx line output"
+      outputs:
+        - "rx synchronizer input connected to tx output (after 2-FF synchronizer stage)"
+      side_effects:
+        - "External rx pin ignored"
+        - "All TX bytes appear as received bytes when rx_enable == 1"
+  invariants:
+    - "TX FIFO never underflows during a valid frame — underrun terminates frame early."
+    - "RX FIFO never overflows without sticky overrun_err flag."
+    - "Register read side effects are exactly those listed in registers.register_list."
+    - "Sticky status flags remain set until explicitly cleared via CLR_STAT W1C."
+    - "Debug counters are free-running, read-only, and wrap at 0xFFFFFFFF."
+  reference_model_hint: "tb-gen should implement a Python scoreboard that feeds TX bytes and checks RX bytes match in loopback mode, and checks error flags trigger per scenario."
 cycle_model:
-  purpose: "Cycle/handshake contract for rtl-gen; describes when state, serial lines, status, and interrupts may change."
+  purpose: "Cycle/handshake contract for rtl-gen; describes when TX/RX state, baud ticks, sampling, and interrupts may change."
   executable: "pymtl3"
-  backend_policy: "Use PyMTL3 for the clocked cycle model shell; keep FunctionalModel as the behavioral oracle."
-  clock: "pclk"
+  backend_policy: "Use PyMTL3 for the clocked cycle model shell; keep FunctionalModel as the behavioral oracle and run direct Python smoke checks instead of relying on pytest-pymtl3."
+  clock: "PCLK"
   reset:
-    assertion: "presetn low asynchronously clears all architectural state"
+    assertion: "PRESETn low asynchronously clears all architectural state"
     deassertion: "state is usable on the first rising edge after synchronized deassertion"
-  oversample:
-    factor: 16
-    description: "Each bit period spans OVERSAMPLE pclk cycles. Oversample counter (0..15) increments every pclk. baud_tick asserts at count 0 of the baud-rate period."
-  start_bit_mid_sample:
-    cycle: 7
-    description: "RX samples start bit at oversample count 7 (mid-point) to confirm it is still low. If high, false start."
-  data_sampling:
-    cycle: 8
-    description: "RX samples data/parity/stop at oversample count 8 (center of bit period)."
+  baud_generator:
+    oversample_factor: 16
+    parameter: "OVERSAMPLE"
+    tick_formula: "baud_tick asserted when internal counter == (baud_div * OVERSAMPLE) - 1; counter resets to 0"
+    counter_width: "ceil(log2(max_baud_div * OVERSAMPLE))"
+    mid_sample_point: 7
+    description: "RX samples data/parity/stop bits at the centre of each bit period (oversample count 7 of 16). Start-bit confirmation also at count 7."
   latency:
-    apb_read: { min_cycles: 0, max_cycles: 1, description: "prdata/pready timing; 0-cycle combinational readback, 1-cycle FIFO pop paths" }
-    apb_write: { min_cycles: 0, max_cycles: 1, description: "APB write acceptance; 0-cycle register writes, 1-cycle FIFO push paths" }
-    tx_start_to_shift: { min_cycles: 1, max_cycles: "BAUD_DIV+1", description: "Time from TX_DATA write to first start-bit edge on tx" }
-    rx_start_to_data: { min_cycles: "OVERSAMPLE + OVERSAMPLE/2", max_cycles: "OVERSAMPLE + OVERSAMPLE/2 + OVERSAMPLE-1", description: "Time from rx falling edge to first data bit sample" }
-    full_tx_frame: { min_cycles: "(1 + DATA_WIDTH + parity_en + stop_bits) * OVERSAMPLE * (BAUD_DIV+1)", max_cycles: null, description: "Complete TX frame" }
-    full_rx_frame: { min_cycles: "(1 + DATA_WIDTH + parity_en + stop_bits) * OVERSAMPLE * (BAUD_DIV+1)", max_cycles: null, description: "Complete RX frame" }
+    register_read: { min_cycles: 0, max_cycles: 1, description: "APB read data and PREADY timing" }
+    register_write: { min_cycles: 0, max_cycles: 1, description: "APB write acceptance timing" }
+    tx_byte: { min_cycles: "baud_tick_period * (1 + DATA_WIDTH + parity_en + stop_bits)", max_cycles: null, description: "TX frame duration; max unbounded if TX FIFO is empty and no new data" }
+    rx_byte: { min_cycles: "baud_tick_period * (1 + DATA_WIDTH + parity_en + stop_bits)", max_cycles: null, description: "RX frame duration; max unbounded waiting for start bit" }
   handshake_rules:
-    - { signal: "pready", rule: "Assert in the same cycle as psel and penable (0-cycle) or one cycle after (1-cycle). Must assert only for valid register addresses." }
-    - { signal: "pslverr", rule: "Assert with pready for unmapped address ranges (outside 0x00-0x33)." }
-    - { signal: "tx", rule: "Idle high. Driven by TX FSM per fsm.tx_fsm.outputs." }
-    - { signal: "rx", rule: "Asynchronous input; passes 2-FF synchronizer. Sampled at start_bit_mid_sample and data_sampling cycles." }
-    - { signal: "uart_irq", rule: "Combinatorial OR of (INT_EN[i] & INT_PEND[i]). Changes same rising edge as INT_PEND update." }
+    - { signal: "tx", rule: "Driven synchronously to PCLK; changes only on baud_tick boundaries at TX FSM state transitions. Idle state is high (mark)." }
+    - { signal: "rx", rule: "External async input. Passed through 2-FF synchronizer. Synchronizer output sampled on every PCLK edge by RX FSM start-bit detector." }
+    - { signal: "PREADY", rule: "Asserted in the access phase (PSEL=1, PENABLE=1) for all valid register addresses. Deasserted otherwise." }
+    - { signal: "PSLVERR", rule: "Asserted only with PREADY=1 for accesses to unimplemented address ranges." }
   pipeline:
-    - { stage: "RX_SYNC", cycle: "0..1", action: "2-FF synchronizer captures rx to rx_synced" }
-    - { stage: "START_DETECT", cycle: "1..N", action: "Detect falling edge on rx_synced; RX FSM to RX_START at next baud_tick_mid" }
-    - { stage: "RX_START_VERIFY", cycle: "N+1", action: "Sample rx_synced at oversample count 7; confirm start bit or false start" }
-    - { stage: "RX_SHIFT", cycle: "N+2..M", action: "Sample data/parity/stop at oversample count 8; shift into rx_shift_reg" }
-    - { stage: "RX_PUSH", cycle: "M+1", action: "Push rx_shift_reg into RX FIFO; update STATUS and debug counters; clear rx_busy" }
-    - { stage: "TX_POP", cycle: "0..1", action: "Pop TX FIFO; load tx_shift_reg; parity computed" }
-    - { stage: "TX_START_DRIVE", cycle: "1", action: "Drive tx low (start bit) at baud_tick" }
-    - { stage: "TX_SHIFT", cycle: "2..K", action: "Shift LSB-first data bits, parity, stop bits on successive baud_ticks" }
-    - { stage: "TX_DONE", cycle: "K+1", action: "Return tx to idle high; clear tx_busy; update bytes_tx and STATUS" }
+    - { stage: "TX_IDLE", cycle: 0, action: "Wait for TX FIFO not empty; assert tx_active=false" }
+    - { stage: "TX_START", cycle: 1, action: "Drive tx=0 for one baud tick period; assert tx_active" }
+    - { stage: "TX_DATA", cycle: "2..1+DATA_WIDTH", action: "Shift LSB of tx_shift_reg to tx each baud tick; repeat DATA_WIDTH times. tx_shift_reg loaded from TX FIFO on entry." }
+    - { stage: "TX_PARITY", cycle: "2+DATA_WIDTH", action: "Drive computed parity bit to tx for one baud tick (present only if parity_en=1)" }
+    - { stage: "TX_STOP1", cycle: "3+DATA_WIDTH", action: "Drive tx=1 for one baud tick" }
+    - { stage: "TX_STOP2", cycle: "4+DATA_WIDTH", action: "Drive tx=1 for one baud tick (present only if stop_bits=1)" }
+    - { stage: "RX_IDLE", cycle: 0, action: "Monitor synchronized rx for falling edge; assert rx_active=false" }
+    - { stage: "RX_START_DETECT", cycle: 1, action: "On falling edge, wait until oversample count 7" }
+    - { stage: "RX_START_CONFIRM", cycle: 2, action: "At oversample count 7, sample synchronized rx. If low → confirmed start, advance. If high → spurious, return to RX_IDLE." }
+    - { stage: "RX_DATA", cycle: "3..2+DATA_WIDTH", action: "At oversample count 7 of each subsequent bit period, sample rx into rx_shift_reg LSB-first; repeat DATA_WIDTH times" }
+    - { stage: "RX_PARITY", cycle: "3+DATA_WIDTH", action: "At oversample count 7, sample parity bit; compute expected parity; compare. (present only if parity_en=1)" }
+    - { stage: "RX_STOP1", cycle: "4+DATA_WIDTH", action: "At oversample count 7, sample stop bit. If high → valid. If low → frame_err." }
+    - { stage: "RX_STOP2", cycle: "5+DATA_WIDTH", action: "At oversample count 7, sample second stop bit. (present only if stop_bits=1)" }
   ordering:
-    - "RX data is pushed to RX FIFO only after the final stop bit is sampled correctly."
-    - "Interrupt pending bits update on the same rising edge as the event condition becomes true."
-    - "W1C clear takes effect on the rising edge after the APB write access phase completes."
-    - "DEBUG counter increments occur on the same rising edge as the qualifying event."
+    - "TX FSM does not start a new frame until the current frame completes (no pipelining across bytes)."
+    - "RX FSM does not start a new frame until the current frame completes."
+    - "Interrupt pending bits update on the same PCLK edge as the condition (FIFO threshold crossing, error detection, frame completion)."
   backpressure:
-    - "TX FIFO backpressure: APB write to TX_DATA is ignored when TX FIFO is full."
-    - "RX FIFO backpressure: RX frame data is discarded (overrun) when RX FIFO is full at RX_PUSH stage."
+    - "TX backpressure: TX FSM waits in TX_IDLE when TX FIFO is empty."
+    - "RX backpressure: If RX FIFO is full when a new byte would be pushed, overrun_err is set and the byte is discarded; RX FSM returns to RX_IDLE."
   performance:
     frequency_mhz: 50
-    throughput:
-      max_baud_rate: "PCLK / OVERSAMPLE = 3.125 Mbps at default 50 MHz"
-      sustained_bytes_per_second: "max_baud_rate / (1 + DATA_WIDTH + parity_en + stop_bits) bytes/sec ≈ 312.5 kB/s for 8N1"
-    profundity:
-      pipeline_stages: 9
-      queue_depth: 16
-      description: "TX and RX each have 9 pipeline stages. TX and RX FIFOs each have depth 16."
+    throughput: { max_baud: "PCLK / (OVERSAMPLE * 1) = 3.125 Mbaud at baud_div=0", sustained_bytes_per_second: "baud_rate / (1 + DATA_WIDTH + parity_en + stop_bits)" }
+    outstanding: { tx_max: 16, rx_max: 16, description: "FIFO depth bounds maximum queued TX/RX bytes" }
+    depth: { fifo_depth: 16, oversample_stages: 16, description: "FIFO depth and oversample counter depth" }
   observability:
-    - "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
-    - "FSM states are observable via STATUS.tx_busy and STATUS.rx_busy."
-
+    - "Every function_model transaction maps to at least one cycle_model TX or RX stage."
+    - "Baud tick, oversample counter, TX/RX shift registers, and FIFO pointers are observable in waveform."
 clock_reset_domains:
   domains:
-    - { name: "pclk", frequency_mhz: 50, description: "APB-lite peripheral clock; also drives UART bit timing via baud generator" }
+    - { name: "PCLK", frequency_mhz: 50, description: "APB and UART core clock" }
   reset_scheme:
-    signal: "presetn"
+    signal: "PRESETn"
     polarity: "active_low"
     type: "async_assert_sync_deassert"
 
 cdc_requirements:
   crossings:
-    - { from_domain: "async_external", to_domain: "pclk", signal: "rx (UART serial input)", synchronizer: "2-FF (two back-to-back flops on pclk)" }
-  notes: "rx is the only asynchronous input. 2-FF synchronizer mitigates metastability. Oversampling (16x) provides additional noise immunity."
+    - { from: "rx (external)", to: "PCLK", type: "async_input", synchronizer: "2-FF", depth: 2, description: "RX pin is asynchronous to PCLK; synchronized with 2 back-to-back flops" }
+  synchronizers:
+    - { name: "rx_sync_ff1", type: "flop", domain: "PCLK", description: "First synchronizer stage for rx" }
+    - { name: "rx_sync_ff2", type: "flop", domain: "PCLK", description: "Second synchronizer stage for rx" }
+  note: "Single clock domain design. Only rx pin crossing from external world."
 
 rdc_requirements:
   crossings: []
   synchronizers: []
-  note: "Single reset domain — no RDC required"
-
+  note: "No reset domain crossings — single reset PRESETn"
 registers:
   config:
     register_width: 32
     addr_width: 8
     byte_addressable: true
-    num_registers: 13
   bit_order: "lsb0"
   bits_format: "[msb, lsb]"
   reserved_field_policy:
     read_value: 0
     write_effect: "ignore"
     rtl_requirement: "Reserved fields read as zero and do not allocate storage."
-
   register_list:
-    - name: "TX_DATA"
+    - name: "CTRL"
       offset: 0x00
       width: 32
-      access: "wo"
+      access: "rw"
       reset: 0x00000000
-      category: "data"
-      description: "Transmit Data Register"
+      category: "control"
+      description: "Control Register"
       write_side_effects:
-        - "Writing pushes DATA_WIDTH LSBs into TX FIFO; write ignored when TX FIFO is full."
+        - "Fields take effect immediately on APB write; TX/RX enable changes during active transfer follow error_handling rules."
+        - "loopback=1 internally connects tx to rx synchronizer input after the 2-FF stage."
+        - "break_send=1 forces tx low for at least one full frame duration (start+data+parity+stop) then self-clears."
       fields:
-        - { name: "tx_data", bits: [7, 0], access: "wo", reset: 0x00, write_effect: "Push byte into TX FIFO", description: "Transmit data byte (DATA_WIDTH LSBs used)" }
-        - { name: "reserved_31_8", bits: [31, 8], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+        - { name: "tx_enable", bits: [0, 0], access: "rw", reset: 0x0, description: "Enable transmitter" }
+        - { name: "rx_enable", bits: [1, 1], access: "rw", reset: 0x0, description: "Enable receiver" }
+        - { name: "loopback",  bits: [2, 2], access: "rw", reset: 0x0, description: "Loopback test mode: internal tx→rx connection" }
+        - { name: "break_send", bits: [3, 3], access: "rw", reset: 0x0, description: "Send break (force tx=0); self-clears after one frame" }
+        - { name: "parity_en", bits: [4, 4], access: "rw", reset: 0x0, description: "Enable parity generation/checking" }
+        - { name: "parity_odd", bits: [5, 5], access: "rw", reset: 0x0, description: "0=even parity, 1=odd parity (when parity_en=1)" }
+        - { name: "stop_bits", bits: [6, 6], access: "rw", reset: 0x0, description: "0=1 stop bit, 1=2 stop bits" }
+        - { name: "reserved_31_7", bits: [31, 7], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
 
-    - name: "RX_DATA"
+    - name: "STAT"
       offset: 0x04
       width: 32
       access: "ro"
       reset: 0x00000000
-      category: "data"
-      description: "Receive Data Register"
-      read_side_effects:
-        - "Reading pops one byte from RX FIFO; returns 0 when RX FIFO is empty."
+      category: "status"
+      description: "Status Register — live FIFO flags and sticky error flags"
       fields:
-        - { name: "rx_data", bits: [7, 0], access: "ro", reset: 0x00, description: "Received data byte (DATA_WIDTH LSBs valid)" }
-        - { name: "reserved_31_8", bits: [31, 8], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+        - { name: "tx_full",   bits: [0, 0], access: "ro", reset: 0x0, description: "TX FIFO full (live)" }
+        - { name: "tx_empty",  bits: [1, 1], access: "ro", reset: 0x1, description: "TX FIFO empty (live)" }
+        - { name: "rx_empty",  bits: [2, 2], access: "ro", reset: 0x1, description: "RX FIFO empty (live)" }
+        - { name: "rx_full",   bits: [3, 3], access: "ro", reset: 0x0, description: "RX FIFO full (live)" }
+        - { name: "tx_busy",   bits: [4, 4], access: "ro", reset: 0x0, description: "Transmitter active (shift register busy)" }
+        - { name: "rx_busy",   bits: [5, 5], access: "ro", reset: 0x0, description: "Receiver active (frame in progress)" }
+        - { name: "frame_err", bits: [6, 6], access: "ro", reset: 0x0, description: "Framing error detected (sticky, clear via CLR_STAT)" }
+        - { name: "parity_err", bits: [7, 7], access: "ro", reset: 0x0, description: "Parity error detected (sticky, clear via CLR_STAT)" }
+        - { name: "overrun_err", bits: [8, 8], access: "ro", reset: 0x0, description: "RX overrun (sticky, clear via CLR_STAT)" }
+        - { name: "underrun_err", bits: [9, 9], access: "ro", reset: 0x0, description: "TX underrun (sticky, clear via CLR_STAT)" }
+        - { name: "reserved_31_10", bits: [31, 10], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
 
-    - name: "STATUS"
+    - name: "BAUD"
       offset: 0x08
       width: 32
-      access: "ro"
-      reset: 0x00000001
-      category: "status"
-      description: "Status Register (sticky error flags)"
-      fields:
-        - { name: "tx_empty", bits: [0, 0], access: "ro", reset: 0x1, description: "TX FIFO is empty" }
-        - { name: "tx_full", bits: [1, 1], access: "ro", reset: 0x0, description: "TX FIFO is full" }
-        - { name: "rx_empty", bits: [2, 2], access: "ro", reset: 0x1, description: "RX FIFO is empty" }
-        - { name: "rx_full", bits: [3, 3], access: "ro", reset: 0x0, description: "RX FIFO is full" }
-        - { name: "tx_busy", bits: [4, 4], access: "ro", reset: 0x0, description: "TX FSM is actively shifting a frame" }
-        - { name: "rx_busy", bits: [5, 5], access: "ro", reset: 0x0, description: "RX FSM is actively receiving a frame" }
-        - { name: "frame_error", bits: [8, 8], access: "ro", reset: 0x0, description: "Sticky: framing error; cleared by W1C in STATUS_CLR" }
-        - { name: "parity_error", bits: [9, 9], access: "ro", reset: 0x0, description: "Sticky: parity error; cleared by W1C in STATUS_CLR" }
-        - { name: "overrun_error", bits: [10, 10], access: "ro", reset: 0x0, description: "Sticky: RX FIFO overflow; cleared by W1C in STATUS_CLR" }
-        - { name: "underrun_error", bits: [11, 11], access: "ro", reset: 0x0, description: "Sticky: TX FIFO underrun; cleared by W1C in STATUS_CLR" }
-        - { name: "reserved_31_12", bits: [31, 12], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
-
-    - name: "STATUS_CLR"
-      offset: 0x0C
-      width: 32
-      access: "w1c"
-      reset: 0x00000000
-      category: "status"
-      description: "Status Clear Register (write-1-to-clear sticky flags)"
-      write_side_effects:
-        - "Writing 1 to a bit clears the corresponding sticky STATUS bit on the next cycle."
-        - "Writing 0 has no effect."
-      fields:
-        - { name: "clr_frame_error", bits: [8, 8], access: "w1c", reset: 0x0, write_effect: "Clear frame_error", description: "W1C frame error" }
-        - { name: "clr_parity_error", bits: [9, 9], access: "w1c", reset: 0x0, write_effect: "Clear parity_error", description: "W1C parity error" }
-        - { name: "clr_overrun_error", bits: [10, 10], access: "w1c", reset: 0x0, write_effect: "Clear overrun_error", description: "W1C overrun error" }
-        - { name: "clr_underrun_error", bits: [11, 11], access: "w1c", reset: 0x0, write_effect: "Clear underrun_error", description: "W1C underrun error" }
-        - { name: "reserved_other", bits: [31, 12], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
-
-    - name: "CTRL"
-      offset: 0x10
-      width: 32
       access: "rw"
-      reset: 0x00000060
+      reset: 0x00000144
       category: "control"
-      description: "Control Register"
-      fields:
-        - { name: "parity_en", bits: [0, 0], access: "rw", reset: 0x0, write_effect: "Enable parity generation/checking", description: "Parity enable: 0=no parity, 1=parity per parity_odd" }
-        - { name: "parity_odd", bits: [1, 1], access: "rw", reset: 0x0, write_effect: "Select odd parity when parity_en=1", description: "Parity type (when parity_en=1): 0=even parity, 1=odd parity" }
-        - { name: "stop_bits", bits: [2, 2], access: "rw", reset: 0x0, write_effect: "Set number of stop bits", description: "Stop bits: 0=1 stop bit, 1=2 stop bits" }
-        - { name: "loopback", bits: [3, 3], access: "rw", reset: 0x0, write_effect: "Enable internal loopback", description: "Loopback test mode: 0=normal, 1=tx loops to rx internally" }
-        - { name: "send_break", bits: [4, 4], access: "rw", reset: 0x0, write_effect: "Force tx line low", description: "Software break: 1=force tx line low; overrides normal TX" }
-        - { name: "rx_enable", bits: [5, 5], access: "rw", reset: 0x1, write_effect: "Enable/disable receiver", description: "RX enable: 0=disable receiver, 1=enable receiver" }
-        - { name: "tx_enable", bits: [6, 6], access: "rw", reset: 0x1, write_effect: "Enable/disable transmitter", description: "TX enable: 0=disable transmitter, 1=enable transmitter" }
-        - { name: "reserved_31_7", bits: [31, 7], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
-
-    - name: "BAUD_DIV"
-      offset: 0x14
-      width: 32
-      access: "rw"
-      reset: 0x00000145
-      category: "control"
-      description: "Baud Rate Divisor Register"
+      description: "Baud Rate Divisor"
       write_side_effects:
-        - "Baud rate = pclk_freq / (OVERSAMPLE * (BAUD_DIV + 1))."
-        - "Changing BAUD_DIV during active TX or RX frame may corrupt that frame."
+        - "Changing BAUD during an active TX or RX frame results in the current frame completing at the old rate; the new divisor takes effect for the next frame."
       fields:
-        - { name: "baud_div", bits: [15, 0], access: "rw", reset: 0x0145, description: "Baud divisor; baud = PCLK/(OVERSAMPLE*(DIV+1)). Default ~9600 baud at 50 MHz / OVERSAMPLE=16" }
+        - { name: "baud_div", bits: [15, 0], access: "rw", reset: 0x0144, description: "Baud divisor: bit_period = (baud_div+1) * OVERSAMPLE PCLK cycles. Reset=324 → 9600 baud at 50 MHz/16x." }
         - { name: "reserved_31_16", bits: [31, 16], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
 
-    - name: "INT_EN"
-      offset: 0x18
+    - name: "TXDATA"
+      offset: 0x0C
+      width: 32
+      access: "wo"
+      reset: 0x00000000
+      category: "data"
+      description: "TX Data Write (pushes to TX FIFO)"
+      write_side_effects:
+        - "Writing when tx_full=1 discards data and sets underrun_err sticky flag."
+        - "On successful write, TX FSM is triggered if idle."
+      fields:
+        - { name: "tx_data", bits: [7, 0], access: "wo", reset: 0x00, description: "Transmit data byte" }
+        - { name: "reserved_31_8", bits: [31, 8], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+
+    - name: "RXDATA"
+      offset: 0x10
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "data"
+      description: "RX Data Read (pops from RX FIFO)"
+      read_side_effects:
+        - "Reading when rx_empty=1 returns last valid data or 0x00 and does not change FIFO state."
+        - "Successful read pops one byte from RX FIFO."
+      fields:
+        - { name: "rx_data", bits: [7, 0], access: "ro", reset: 0x00, description: "Received data byte" }
+        - { name: "reserved_31_8", bits: [31, 8], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+
+    - name: "INTEN"
+      offset: 0x14
       width: 32
       access: "rw"
       reset: 0x00000000
       category: "interrupt"
       description: "Interrupt Enable Register"
+      write_side_effects:
+        - "Changes take effect immediately."
       fields:
-        - { name: "ie_tx_empty", bits: [0, 0], access: "rw", reset: 0x0, write_effect: "Enable TX empty interrupt", description: "Enable interrupt when TX FIFO becomes empty" }
-        - { name: "ie_rx_not_empty", bits: [1, 1], access: "rw", reset: 0x0, write_effect: "Enable RX not empty interrupt", description: "Enable interrupt when RX FIFO is not empty" }
-        - { name: "ie_rx_overrun", bits: [2, 2], access: "rw", reset: 0x0, write_effect: "Enable RX overrun interrupt", description: "Enable interrupt on RX overrun" }
-        - { name: "ie_frame_error", bits: [3, 3], access: "rw", reset: 0x0, write_effect: "Enable frame error interrupt", description: "Enable interrupt on frame error" }
-        - { name: "ie_parity_error", bits: [4, 4], access: "rw", reset: 0x0, write_effect: "Enable parity error interrupt", description: "Enable interrupt on parity error" }
-        - { name: "reserved_31_5", bits: [31, 5], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+        - { name: "tx_empty_en",    bits: [0, 0], access: "rw", reset: 0x0, description: "Enable TX empty interrupt" }
+        - { name: "rx_not_empty_en", bits: [1, 1], access: "rw", reset: 0x0, description: "Enable RX not empty interrupt" }
+        - { name: "rx_overrun_en",  bits: [2, 2], access: "rw", reset: 0x0, description: "Enable RX overrun interrupt" }
+        - { name: "frame_err_en",   bits: [3, 3], access: "rw", reset: 0x0, description: "Enable framing error interrupt" }
+        - { name: "parity_err_en",  bits: [4, 4], access: "rw", reset: 0x0, description: "Enable parity error interrupt" }
+        - { name: "reserved_31_5",  bits: [31, 5], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
 
-    - name: "INT_PEND"
+    - name: "INTPEND"
+      offset: 0x18
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "interrupt"
+      description: "Interrupt Pending Register (W1C for set bits)"
+      write_side_effects:
+        - "Writing 1 to a bit clears that pending flag. Writing 0 has no effect."
+        - "Hardware sets pending bits when enabled interrupt conditions occur."
+      fields:
+        - { name: "tx_empty_pend",    bits: [0, 0], access: "rw", reset: 0x0, description: "TX empty pending (W1C)" }
+        - { name: "rx_not_empty_pend", bits: [1, 1], access: "rw", reset: 0x0, description: "RX not empty pending (W1C)" }
+        - { name: "rx_overrun_pend",  bits: [2, 2], access: "rw", reset: 0x0, description: "RX overrun pending (W1C)" }
+        - { name: "frame_err_pend",   bits: [3, 3], access: "rw", reset: 0x0, description: "Framing error pending (W1C)" }
+        - { name: "parity_err_pend",  bits: [4, 4], access: "rw", reset: 0x0, description: "Parity error pending (W1C)" }
+        - { name: "reserved_31_5",    bits: [31, 5], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+
+    - name: "CLR_STAT"
       offset: 0x1C
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "status"
+      description: "Clear Sticky Status Flags (W1C)"
+      write_side_effects:
+        - "Writing 1 to a bit clears the corresponding sticky flag in STAT. Writing 0 has no effect."
+      fields:
+        - { name: "clr_frame_err",   bits: [0, 0], access: "rw", reset: 0x0, description: "Clear frame_err (W1C)" }
+        - { name: "clr_parity_err",  bits: [1, 1], access: "rw", reset: 0x0, description: "Clear parity_err (W1C)" }
+        - { name: "clr_overrun_err", bits: [2, 2], access: "rw", reset: 0x0, description: "Clear overrun_err (W1C)" }
+        - { name: "clr_underrun_err", bits: [3, 3], access: "rw", reset: 0x0, description: "Clear underrun_err (W1C)" }
+        - { name: "reserved_31_4",   bits: [31, 4], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+
+    - name: "DBG_BYTES_TX"
+      offset: 0x20
       width: 32
       access: "ro"
       reset: 0x00000000
-      category: "interrupt"
-      description: "Interrupt Pending Register (read-only; clear via INT_CLR)"
+      category: "debug"
+      description: "Debug Counter: Bytes Transmitted"
+      read_side_effects:
+        - "Read returns current count. Counter wraps at 0xFFFFFFFF."
       fields:
-        - { name: "ip_tx_empty", bits: [0, 0], access: "ro", reset: 0x0, description: "TX empty interrupt pending" }
-        - { name: "ip_rx_not_empty", bits: [1, 1], access: "ro", reset: 0x0, description: "RX not empty interrupt pending" }
-        - { name: "ip_rx_overrun", bits: [2, 2], access: "ro", reset: 0x0, description: "RX overrun interrupt pending" }
-        - { name: "ip_frame_error", bits: [3, 3], access: "ro", reset: 0x0, description: "Frame error interrupt pending" }
-        - { name: "ip_parity_error", bits: [4, 4], access: "ro", reset: 0x0, description: "Parity error interrupt pending" }
-        - { name: "reserved_31_5", bits: [31, 5], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+        - { name: "bytes_tx", bits: [31, 0], access: "ro", reset: 0x00000000, description: "Total bytes transmitted (wrapping)" }
 
-    - name: "INT_CLR"
-      offset: 0x20
-      width: 32
-      access: "w1c"
-      reset: 0x00000000
-      category: "interrupt"
-      description: "Interrupt Clear Register (write-1-to-clear pending bits)"
-      write_side_effects:
-        - "Writing 1 to a bit clears the corresponding INT_PEND bit on the next cycle."
-        - "Writing 0 has no effect."
-      fields:
-        - { name: "ic_tx_empty", bits: [0, 0], access: "w1c", reset: 0x0, write_effect: "Clear tx_empty pending", description: "W1C TX empty interrupt" }
-        - { name: "ic_rx_not_empty", bits: [1, 1], access: "w1c", reset: 0x0, write_effect: "Clear rx_not_empty pending", description: "W1C RX not empty interrupt" }
-        - { name: "ic_rx_overrun", bits: [2, 2], access: "w1c", reset: 0x0, write_effect: "Clear rx_overrun pending", description: "W1C RX overrun interrupt" }
-        - { name: "ic_frame_error", bits: [3, 3], access: "w1c", reset: 0x0, write_effect: "Clear frame_error pending", description: "W1C frame error interrupt" }
-        - { name: "ic_parity_error", bits: [4, 4], access: "w1c", reset: 0x0, write_effect: "Clear parity_error pending", description: "W1C parity error interrupt" }
-        - { name: "reserved_31_5", bits: [31, 5], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
-
-    - name: "DEBUG_BYTES_TX"
+    - name: "DBG_BYTES_RX"
       offset: 0x24
       width: 32
       access: "ro"
       reset: 0x00000000
       category: "debug"
-      description: "Debug counter: total bytes transmitted"
+      description: "Debug Counter: Bytes Received"
       fields:
-        - { name: "bytes_tx", bits: [31, 0], access: "ro", reset: 0x00000000, description: "Rollover counter of bytes successfully transmitted" }
+        - { name: "bytes_rx", bits: [31, 0], access: "ro", reset: 0x00000000, description: "Total bytes received (wrapping)" }
 
-    - name: "DEBUG_BYTES_RX"
+    - name: "DBG_FRAMES_ERR"
       offset: 0x28
       width: 32
       access: "ro"
       reset: 0x00000000
       category: "debug"
-      description: "Debug counter: total bytes received"
+      description: "Debug Counter: Framing Errors"
       fields:
-        - { name: "bytes_rx", bits: [31, 0], access: "ro", reset: 0x00000000, description: "Rollover counter of bytes successfully received" }
+        - { name: "frames_errored", bits: [31, 0], access: "ro", reset: 0x00000000, description: "Total framing errors (wrapping)" }
 
-    - name: "DEBUG_FRAMES_ERR"
+    - name: "DBG_PARITIES_ERR"
       offset: 0x2C
       width: 32
       access: "ro"
       reset: 0x00000000
       category: "debug"
-      description: "Debug counter: frames with framing errors"
+      description: "Debug Counter: Parity Errors"
       fields:
-        - { name: "frames_errored", bits: [31, 0], access: "ro", reset: 0x00000000, description: "Rollover counter of received frames with framing errors" }
-
-    - name: "DEBUG_PARITIES_ERR"
-      offset: 0x30
-      width: 32
-      access: "ro"
-      reset: 0x00000000
-      category: "debug"
-      description: "Debug counter: frames with parity errors"
-      fields:
-        - { name: "parities_errored", bits: [31, 0], access: "ro", reset: 0x00000000, description: "Rollover counter of received frames with parity errors" }
-
+        - { name: "parities_errored", bits: [31, 0], access: "ro", reset: 0x00000000, description: "Total parity errors (wrapping)" }
 memory:
   instances:
-    - { name: "tx_fifo", type: "synchronous_fifo", depth: 16, width: 8, read_ports: 1, write_ports: 1, latency: 1, description: "TX FIFO: parameterized to FIFO_DEPTH x DATA_WIDTH" }
-    - { name: "rx_fifo", type: "synchronous_fifo", depth: 16, width: 8, read_ports: 1, write_ports: 1, latency: 1, description: "RX FIFO: parameterized to FIFO_DEPTH x DATA_WIDTH" }
-    - { name: "tx_shift_reg", type: "register", depth: 1, width: 11, read_ports: 1, write_ports: 1, latency: 0, description: "TX shift register: DATA_WIDTH + parity + stop (max 11 bits for 8+1+2)" }
-    - { name: "rx_shift_reg", type: "register", depth: 1, width: 11, read_ports: 1, write_ports: 1, latency: 0, description: "RX shift register: DATA_WIDTH + parity + stop (max 11 bits)" }
-    - { name: "rx_sync_ff", type: "register", depth: 2, width: 1, read_ports: 0, write_ports: 0, latency: 0, description: "2-FF synchronizer for rx input" }
+    - { name: "tx_fifo", type: "sram_fifo", depth: 16, width: "DATA_WIDTH", read_ports: 1, write_ports: 1, latency: 1, description: "TX FIFO — parameterized to FIFO_DEPTH × DATA_WIDTH; write on APB write to TXDATA, read on TX FSM pop" }
+    - { name: "rx_fifo", type: "sram_fifo", depth: 16, width: "DATA_WIDTH", read_ports: 1, write_ports: 1, latency: 1, description: "RX FIFO — parameterized to FIFO_DEPTH × DATA_WIDTH; write on RX frame complete, read on APB read from RXDATA" }
+  note: "FIFOs implemented as SRAM-based circular buffers with read/write pointers. Depth parameter FIFO_DEPTH (default 16, power-of-two)."
 
 interrupts:
   sources:
-    - { name: "tx_empty", bit: 0, type: "level", enable_reg: "INT_EN.ie_tx_empty", status_reg: "INT_PEND.ip_tx_empty", pending_reg: "INT_PEND.ip_tx_empty", clear: "W1C via INT_CLR.ic_tx_empty", description: "TX FIFO becomes empty after having been non-empty" }
-    - { name: "rx_not_empty", bit: 1, type: "level", enable_reg: "INT_EN.ie_rx_not_empty", status_reg: "INT_PEND.ip_rx_not_empty", pending_reg: "INT_PEND.ip_rx_not_empty", clear: "W1C via INT_CLR.ic_rx_not_empty", description: "RX FIFO becomes non-empty" }
-    - { name: "rx_overrun", bit: 2, type: "edge", enable_reg: "INT_EN.ie_rx_overrun", status_reg: "INT_PEND.ip_rx_overrun", pending_reg: "INT_PEND.ip_rx_overrun", clear: "W1C via INT_CLR.ic_rx_overrun", description: "RX overrun event (data lost)" }
-    - { name: "frame_error", bit: 3, type: "edge", enable_reg: "INT_EN.ie_frame_error", status_reg: "INT_PEND.ip_frame_error", pending_reg: "INT_PEND.ip_frame_error", clear: "W1C via INT_CLR.ic_frame_error", description: "Framing error detected on RX" }
-    - { name: "parity_error", bit: 4, type: "edge", enable_reg: "INT_EN.ie_parity_error", status_reg: "INT_PEND.ip_parity_error", pending_reg: "INT_PEND.ip_parity_error", clear: "W1C via INT_CLR.ic_parity_error", description: "Parity error detected on RX" }
+    - { name: "tx_empty",    bit: 0, type: "level", enable_reg: "INTEN[0]", status_reg: "INTPEND", clear: "W1C", description: "TX FIFO empty" }
+    - { name: "rx_not_empty", bit: 1, type: "level", enable_reg: "INTEN[1]", status_reg: "INTPEND", clear: "W1C", description: "RX FIFO not empty" }
+    - { name: "rx_overrun",  bit: 2, type: "level", enable_reg: "INTEN[2]", status_reg: "INTPEND", clear: "W1C", description: "RX FIFO overrun" }
+    - { name: "frame_error", bit: 3, type: "level", enable_reg: "INTEN[3]", status_reg: "INTPEND", clear: "W1C", description: "Framing error detected" }
+    - { name: "parity_error", bit: 4, type: "level", enable_reg: "INTEN[4]", status_reg: "INTPEND", clear: "W1C", description: "Parity error detected" }
   output:
     signal: "uart_irq"
     polarity: "active_high"
     type: "level"
-    note: "uart_irq = OR_{i} (INT_EN[i] & INT_PEND[i]). Level-type pending bits (tx_empty, rx_not_empty) re-assert on the next cycle if the condition persists after W1C clear."
 
 fsm:
   tx_fsm:
@@ -569,89 +539,80 @@ fsm:
       - "TX_START"
       - "TX_DATA"
       - "TX_PARITY"
-      - "TX_STOP"
+      - "TX_STOP1"
+      - "TX_STOP2"
     transitions:
-      - { from: "TX_IDLE", to: "TX_START",  condition: "tx_fifo_not_empty AND tx_enable AND NOT send_break AND baud_tick" }
-      - { from: "TX_START", to: "TX_DATA",  condition: "baud_tick" }
-      - { from: "TX_DATA", to: "TX_DATA",   condition: "baud_tick AND bit_count < DATA_WIDTH-1" }
-      - { from: "TX_DATA", to: "TX_PARITY", condition: "baud_tick AND bit_count == DATA_WIDTH-1 AND parity_en" }
-      - { from: "TX_DATA", to: "TX_STOP",   condition: "baud_tick AND bit_count == DATA_WIDTH-1 AND NOT parity_en" }
-      - { from: "TX_PARITY", to: "TX_STOP", condition: "baud_tick" }
-      - { from: "TX_STOP", to: "TX_STOP",   condition: "baud_tick AND stop_bit_count < total_stop_bits-1" }
-      - { from: "TX_STOP", to: "TX_IDLE",   condition: "baud_tick AND stop_bit_count == total_stop_bits-1" }
-      - { from: "*", to: "TX_IDLE",         condition: "send_break (force tx low, abort any frame)" }
-    outputs:
-      tx_line: "0 in TX_START, tx_shift_reg[0] in TX_DATA, computed_parity in TX_PARITY, 1 in TX_STOP, 1 in TX_IDLE, 0 in send_break"
-    note: "total_stop_bits = (CTRL.stop_bits == 0) ? 1 : 2"
-
+      - { from: "TX_IDLE",   to: "TX_START",  condition: "TX FIFO not empty and baud tick" }
+      - { from: "TX_START",  to: "TX_DATA",   condition: "baud tick (1 bit period elapsed)" }
+      - { from: "TX_DATA",   to: "TX_PARITY", condition: "DATA_WIDTH bits transmitted and parity_en=1 and baud tick" }
+      - { from: "TX_DATA",   to: "TX_STOP1",  condition: "DATA_WIDTH bits transmitted and parity_en=0 and baud tick" }
+      - { from: "TX_PARITY", to: "TX_STOP1",  condition: "baud tick" }
+      - { from: "TX_STOP1",  to: "TX_IDLE",   condition: "stop_bits=0 and baud tick" }
+      - { from: "TX_STOP1",  to: "TX_STOP2",  condition: "stop_bits=1 and baud tick" }
+      - { from: "TX_STOP2",  to: "TX_IDLE",   condition: "baud tick" }
   rx_fsm:
     states:
       - "RX_IDLE"
-      - "RX_START"
+      - "RX_START_DETECT"
+      - "RX_START_CONFIRM"
       - "RX_DATA"
       - "RX_PARITY"
-      - "RX_STOP"
+      - "RX_STOP1"
+      - "RX_STOP2"
     transitions:
-      - { from: "RX_IDLE",  to: "RX_START",  condition: "rx_enable AND falling_edge_detected(rx_synced) AND baud_tick_mid" }
-      - { from: "RX_START", to: "RX_DATA",   condition: "baud_tick AND rx_synced == 0 (verify start bit at mid-sample)" }
-      - { from: "RX_START", to: "RX_IDLE",   condition: "baud_tick AND rx_synced == 1 (false start)" }
-      - { from: "RX_DATA",  to: "RX_DATA",   condition: "baud_tick AND bit_count < DATA_WIDTH-1" }
-      - { from: "RX_DATA",  to: "RX_PARITY", condition: "baud_tick AND bit_count == DATA_WIDTH-1 AND parity_en" }
-      - { from: "RX_DATA",  to: "RX_STOP",   condition: "baud_tick AND bit_count == DATA_WIDTH-1 AND NOT parity_en" }
-      - { from: "RX_PARITY", to: "RX_STOP",  condition: "baud_tick" }
-      - { from: "RX_STOP",  to: "RX_IDLE",   condition: "baud_tick (after final stop bit sample)" }
+      - { from: "RX_IDLE",          to: "RX_START_DETECT",  condition: "rx_synced falling edge detected" }
+      - { from: "RX_START_DETECT",  to: "RX_START_CONFIRM", condition: "mid-bit sample at oversample count 7 confirms low" }
+      - { from: "RX_START_DETECT",  to: "RX_IDLE",          condition: "mid-bit sample at oversample count 7 is high (spurious edge)" }
+      - { from: "RX_START_CONFIRM", to: "RX_DATA",          condition: "full bit period from start confirm; oversample tick" }
+      - { from: "RX_DATA",          to: "RX_PARITY",        condition: "DATA_WIDTH bits sampled at centre and parity_en=1 and oversample tick" }
+      - { from: "RX_DATA",          to: "RX_STOP1",         condition: "DATA_WIDTH bits sampled at centre and parity_en=0 and oversample tick" }
+      - { from: "RX_PARITY",        to: "RX_STOP1",         condition: "parity bit sampled at centre and oversample tick" }
+      - { from: "RX_STOP1",         to: "RX_IDLE",          condition: "stop_bits=0; stop bit sampled high at centre and oversample tick" }
+      - { from: "RX_STOP1",         to: "RX_STOP2",         condition: "stop_bits=1 and oversample tick" }
+      - { from: "RX_STOP2",         to: "RX_IDLE",          condition: "oversample tick" }
     error_detection:
-      frame_error: "rx_synced == 0 during RX_STOP stop-bit sample -> set STATUS.frame_error, increment DEBUG_FRAMES_ERR"
-      parity_error: "computed_parity != received_parity_bit during RX_PARITY -> set STATUS.parity_error, increment DEBUG_PARITIES_ERR"
-      overrun_error: "new RX_DATA ready to push but RX FIFO is full -> set STATUS.overrun_error, discard newest"
-    outputs:
-      rx_data: "rx_shift_reg after RX_STOP with no errors -> push to RX FIFO, increment DEBUG_BYTES_RX"
-
-  baud_gen:
-    description: "Produces baud_tick once every (BAUD_DIV+1) oversample ticks from the 16x oversample counter. baud_tick_mid is asserted at oversample_count == OVERSAMPLE/2 for RX mid-sampling."
-    oversample_counter: "0 to OVERSAMPLE-1, increments every pclk, resets on baud_tick"
-    baud_tick: "asserted when oversample_counter == 0 AND baud_div_counter == BAUD_DIV"
-    baud_tick_mid: "asserted when oversample_counter == OVERSAMPLE/2 AND baud_div_counter == BAUD_DIV"
+      - { state: "RX_STOP1", condition: "stop bit sampled low → frame_err sticky flag set" }
+      - { state: "RX_STOP2", condition: "stop bit sampled low → frame_err sticky flag set" }
+      - { state: "RX_DATA",  condition: "RX FIFO full when new byte ready → overrun_err sticky flag; frame discarded" }
 
 rtl_contract:
-  transaction: "TX_WRITE"
-  sample_condition: "APB transactions complete on psel && penable && pready. UART serial sampling at baud_tick or baud_tick_mid aligned to oversample count."
+  transaction: "FM_TX_BYTE, FM_RX_BYTE"
+  sample_condition: "TX frame starts on baud tick with FIFO not empty. RX frame starts on rx falling edge with FIFO not full."
   input_map:
-    apb_write_data: "pwdata during APB write access phase"
-    apb_address: "paddr during APB setup phase"
-    rx_serial: "rx pad via 2-FF synchronizer"
+    tx_data: "APB write to TXDATA register"
+    rx_serial: "rx pin (after 2-FF synchronizer)"
   output_map:
-    apb_read_data: "prdata during APB read access phase"
-    tx_serial: "tx pad"
+    tx_serial: "tx pin"
+    rx_data: "APB read from RXDATA register"
+    status: "registers.STAT"
     interrupt: "uart_irq"
   state_updates:
-    - { name: "tx_fifo_write_ptr", reset: 0, expr: "increment on valid TX_DATA write when not full" }
-    - { name: "tx_fifo_read_ptr", reset: 0, expr: "increment on TX_SHIFT pop" }
-    - { name: "rx_fifo_write_ptr", reset: 0, expr: "increment on RX_SHIFT push to FIFO" }
-    - { name: "rx_fifo_read_ptr", reset: 0, expr: "increment on RX_DATA APB read" }
-    - { name: "tx_busy", reset: 0, expr: "1 during TX_START through TX_STOP; 0 in TX_IDLE" }
-    - { name: "rx_busy", reset: 0, expr: "1 during RX_START through RX_STOP; 0 in RX_IDLE" }
-
+    - { name: "tx_fifo_level", reset: 0, expr: "increment on APB write to TXDATA (if not full); decrement on TX FSM pop" }
+    - { name: "rx_fifo_level", reset: 0, expr: "increment on RX frame success; decrement on APB read from RXDATA (if not empty)" }
+    - { name: "bytes_tx", reset: 0, expr: "increment on TX frame completion" }
+    - { name: "bytes_rx", reset: 0, expr: "increment on RX frame success" }
 timing:
   target_clocks:
-    - { name: "pclk", frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.5 }
+    - { name: "PCLK", frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.5 }
   latency_budget:
-    apb_access_cycles: { min: 0, max: 1, measured_from: "psel && penable", measured_to: "pready" }
-    irq_latency_cycles: { min: 1, max: 2, measured_from: "event condition true", measured_to: "uart_irq assertion" }
+    register_access_cycles: { min: 1, max: 2, measured_from: "PSEL && PENABLE", measured_to: "PREADY" }
+    interrupt_latency_cycles: { min: 1, max: 3, measured_from: "status condition", measured_to: "uart_irq assertion" }
+    tx_byte_cycles: { min: "baud_tick * (1 + DATA_WIDTH + parity_en + stop_bits)", max: null, note: "Max unbounded due to TX FIFO empty wait" }
+    rx_byte_cycles: { min: "baud_tick * (1 + DATA_WIDTH + parity_en + stop_bits)", max: null, note: "Max unbounded waiting for start bit" }
   throughput:
-    max_baud_hz: 3125000
-    conditions: "50 MHz pclk, OVERSAMPLE=16, baud = pclk / OVERSAMPLE max (BAUD_DIV=0 → 3.125 Mbps)"
-    effective_throughput_bytes_per_sec: 284090
-    note: "At 3.125 Mbps with 8N1 (10 bits/frame): 312.5 kB/s raw; ~284 kB/s sustained with FIFO flow control"
+    max_baud: 3125000
+    sustained_bytes_per_second_formula: "baud_rate / (1 + DATA_WIDTH + parity_en + stop_bits)"
+    conditions: "Continuous TX with FIFO kept non-empty; RX with back-to-back frames"
   timing_exceptions: []
   io_delays:
     inputs:
-      - { ports: "paddr, psel, penable, pwrite, pwdata, pstrb, rx", clock: "pclk", delay_ns: 2.0, source: "system-level IO budget" }
+      - { ports: ["rx"], clock: "PCLK", delay_ns: 2.0, source: "PCB trace + external device" }
+      - { ports: ["PADDR", "PSEL", "PENABLE", "PWRITE", "PWDATA", "PSTRB"], clock: "PCLK", delay_ns: 0.5, source: "SoC interconnect" }
     outputs:
-      - { ports: "prdata, pready, pslverr, tx, uart_irq", clock: "pclk", delay_ns: 2.0, source: "system-level IO budget" }
+      - { ports: ["tx"], clock: "PCLK", delay_ns: 2.0, source: "PCB trace to external device" }
+      - { ports: ["PRDATA", "PREADY", "PSLVERR", "uart_irq"], clock: "PCLK", delay_ns: 0.5, source: "SoC interconnect" }
   false_paths:
-    - { from: "presetn", to: "all_registers", reason: "async reset assertion" }
-    - { from: "rx", to: "rx_sync_ff[0]", reason: "asynchronous input; first FF in 2-FF synchronizer" }
+    - { from: "PRESETn", to: "all_registers", reason: "async reset assertion" }
   multicycle_paths: []
   sta_expectations:
     setup_wns_ns_min: 0.0
@@ -660,100 +621,99 @@ timing:
 
 power:
   domains:
-    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["pclk"], isolation: "not_required_single_domain" }
+    - { name: "PD_UART", voltage: "nominal", clock_domains: ["PCLK"], isolation: "not_required_single_domain" }
   clock_gating:
     required: false
-    rationale: "No explicit low-power mode in this UART revision; baud generator is free-running"
+    rationale: "Simple peripheral; clock always running. TX/RX FSMs idle in IDLE states."
   reset_retention:
     retention_required: false
     reset_value_source: "registers and function_model state_variables"
   power_states:
-    - { name: "ON", entry: "presetn deasserted", exit: "presetn asserted", guarantees: ["All architectural behavior active"] }
+    - { name: "ON", entry: "PRESETn deasserted", exit: "PRESETn asserted", guarantees: ["All UART behavior active"] }
   upf_required: false
 
 security:
-  classification: "non_secure_peripheral_ip"
+  classification: "non_secure_peripheral"
   assets:
     - { name: "register_map", protection: "APB access control is external to this IP" }
-    - { name: "serial_data_stream", protection: "No encryption; data visible on tx/rx lines" }
+    - { name: "uart_data_stream", protection: "No encryption; data visible on tx/rx pins" }
   threat_model:
-    - { threat: "illegal register write", mitigation: "RO/W1C access policy in registers.register_list" }
-    - { threat: "break condition abuse", mitigation: "send_break CSR bit is software-controlled; master must authorize" }
+    - { threat: "illegal register write", mitigation: "RO/WO/W1C access policy in registers.register_list; reserved fields ignore writes" }
+    - { threat: "data corruption via noise", mitigation: "Parity detection; framing error detection; sticky error flags" }
   privilege_model: "External bus fabric enforces privilege; this IP implements no internal privilege levels"
   safety_goals:
-    - "Error conditions (frame/parity/overrun/underrun) are always software-visible"
-    - "Loopback mode does not drive rx pad externally"
+    - "No silent data corruption — parity/framing errors are always flagged"
+    - "Error conditions are software-visible and interruptible"
 
 error_handling:
   error_sources:
-    - { id: "ERR_FRAME", condition: "stop bit sampled as 0 during RX_STOP", architectural_effect: "STATUS.frame_error=1, DEBUG_FRAMES_ERR++, INT_PEND.ip_frame_error if enabled" }
-    - { id: "ERR_PARITY", condition: "computed parity != received parity bit during RX_PARITY", architectural_effect: "STATUS.parity_error=1, DEBUG_PARITIES_ERR++, INT_PEND.ip_parity_error if enabled" }
-    - { id: "ERR_OVERRUN", condition: "RX_FIFO full when new frame data ready to push", architectural_effect: "STATUS.overrun_error=1, new data discarded, INT_PEND.ip_rx_overrun if enabled" }
-    - { id: "ERR_UNDERRUN", condition: "TX FSM in TX_START but TX FIFO empty", architectural_effect: "STATUS.underrun_error=1, TX FSM → TX_IDLE, INT_PEND does NOT trigger for underrun directly (software polls STATUS)" }
+    - { id: "ERR_FRAME", condition: "RX stop bit(s) sampled low", architectural_effect: "STAT.frame_err sticky set; DBG_FRAMES_ERR incremented; frame_error interrupt if enabled" }
+    - { id: "ERR_PARITY", condition: "RX computed parity != received parity bit", architectural_effect: "STAT.parity_err sticky set; DBG_PARITIES_ERR incremented; parity_error interrupt if enabled" }
+    - { id: "ERR_OVERRUN", condition: "RX FIFO full when new byte ready to push", architectural_effect: "STAT.overrun_err sticky set; received byte discarded; rx_overrun interrupt if enabled" }
+    - { id: "ERR_UNDERRUN", condition: "TX FIFO empty when TX FSM requests next byte during active frame", architectural_effect: "STAT.underrun_err sticky set; frame aborted; tx returns to idle (mark)" }
   propagation:
-    - "Sticky error flags accumulate until W1C clear."
-    - "Multiple errors can be set simultaneously (e.g., parity error + framing error on same frame)."
-    - "Error frames still deliver data to RX FIFO (framing and parity errors only; overrun discards)."
+    - "Sticky error flags in STAT remain set until software clears them via CLR_STAT W1C."
+    - "Multiple errors may accumulate; each sticky flag is independent."
+    - "Error bytes (frame_err, parity_err) are still pushed to RX FIFO if space is available."
   recovery:
-    - { action: "software W1C clear via STATUS_CLR", clears: ["frame_error", "parity_error", "overrun_error", "underrun_error"], preserves: ["configuration registers", "FIFO contents", "debug counters"] }
+    - { action: "software W1C write to CLR_STAT", clears: ["STAT.frame_err", "STAT.parity_err", "STAT.overrun_err", "STAT.underrun_err"], preserves: ["configuration registers (CTRL, BAUD, INTEN)"] }
+    - { action: "software W1C write to INTPEND", clears: ["pending interrupt bits"], preserves: ["sticky status flags (use CLR_STAT for those)"] }
 
 debug_observability:
   waveform_must_probe:
-    - "tx_fifo_empty, tx_fifo_full, rx_fifo_empty, rx_fifo_full"
-    - "tx_busy, rx_busy"
-    - "tx_fsm_state, rx_fsm_state"
-    - "oversample_count, baud_div_count, baud_tick, baud_tick_mid"
-    - "tx, rx, rx_synced"
-    - "uart_irq"
-    - "STATUS bits (frame_error, parity_error, overrun_error, underrun_error)"
+    - "state (TX FSM state, RX FSM state)"
+    - "function_model.state_variables (tx_fifo_level, rx_fifo_level, tx_active, rx_active)"
+    - "cycle_model.handshake_rules signals (tx, rx_synced, baud_tick)"
+    - "interrupt output (uart_irq)"
+    - "oversample_counter"
+    - "tx_shift_reg, rx_shift_reg"
   status_outputs:
-    - "STATUS register (live FIFO and busy status)"
+    - "STAT register (all live FIFO flags and sticky error flags)"
   trace_events:
-    - { name: "tx_frame_start", trigger: "TX FSM enters TX_START" }
-    - { name: "tx_frame_done", trigger: "TX FSM returns to TX_IDLE after successful stop bit(s)" }
-    - { name: "rx_frame_start", trigger: "RX FSM enters RX_START" }
-    - { name: "rx_frame_done", trigger: "RX FSM returns to RX_IDLE after stop bit sample" }
-    - { name: "rx_frame_error", trigger: "frame_error set" }
-    - { name: "rx_parity_error", trigger: "parity_error set" }
-    - { name: "rx_overrun", trigger: "overrun_error set" }
+    - { name: "tx_start", trigger: "TX FSM leaves TX_IDLE" }
+    - { name: "tx_done", trigger: "TX FSM returns to TX_IDLE after frame" }
+    - { name: "rx_start", trigger: "RX FSM leaves RX_IDLE" }
+    - { name: "rx_done", trigger: "RX FSM returns to RX_IDLE after valid frame" }
+    - { name: "rx_error", trigger: "Any sticky error flag asserted" }
   debug_registers:
-    - "DEBUG_BYTES_TX"
-    - "DEBUG_BYTES_RX"
-    - "DEBUG_FRAMES_ERR"
-    - "DEBUG_PARITIES_ERR"
+    - "DBG_BYTES_TX"
+    - "DBG_BYTES_RX"
+    - "DBG_FRAMES_ERR"
+    - "DBG_PARITIES_ERR"
 
 integration:
   bus_attachment:
-    control: "APB-lite slave"
+    control: "APB4 slave"
   connections:
-    - { module: "uart_lite_regs", port: "pclk", signal: "pclk" }
-    - { module: "uart_lite_regs", port: "presetn", signal: "presetn" }
-    - { module: "uart_lite_regs", port: "irq_o", signal: "uart_irq" }
-    - { module: "uart_lite_core", port: "pclk", signal: "pclk" }
-    - { module: "uart_lite_core", port: "presetn", signal: "presetn" }
-    - { module: "uart_lite_tx", port: "tx_o", signal: "tx" }
-    - { module: "uart_lite_rx", port: "rx_i", signal: "rx" }
+    - { module: "uart_lite_core", port: "PCLK", signal: "PCLK" }
+    - { module: "uart_lite_core", port: "PRESETn", signal: "PRESETn" }
+    - { module: "uart_lite_regs", port: "uart_irq_o", signal: "uart_irq" }
+    - { module: "uart_lite_core", port: "tx_o", signal: "tx" }
+    - { module: "uart_lite_core", port: "rx_i", signal: "rx" }
   address_map_requirements:
     alignment_bytes: 4
     decode_owner: "SoC interconnect"
-    address_range: "0x00-0x33 (13 registers × 4 bytes)"
-    illegal_access_response: "pslverr with pready for addresses outside 0x00-0x33"
+    implemented_range: "0x00 - 0x2F (12 registers × 4 bytes)"
+    illegal_access_response: "PSLVERR asserted with PREADY=1 for addresses >= 0x30"
   dependencies:
     external_modules: []
-    external_clocks: ["pclk"]
-    external_resets: ["presetn"]
-
+    external_clocks: ["PCLK"]
+    external_resets: ["PRESETn"]
+  integration_notes:
+    - "APB pstrb[3:0] byte strobes — writes use full 32-bit word; partial byte writes to registers may be ignored per reserved_field_policy."
+    - "SoC interrupt controller samples uart_irq as active-high level."
+    - "External rx pin requires PCB-level pull-up to avoid spurious start bits when unconnected."
 dft:
   scan_required: false
   scan_ports: []
   test_mode_ports: []
   controllability:
-    reset: "presetn must be controllable in test mode"
-    clocks: ["pclk"]
+    reset: "PRESETn must be controllable in test mode"
+    clocks: ["PCLK"]
   observability:
-    required_internal_points: ["tx_fsm_state", "rx_fsm_state", "STATUS", "debug_counters"]
+    required_internal_points: ["TX FSM state", "RX FSM state", "FIFO pointers", "STAT register", "INTPEND register"]
   mbist_required: false
-  notes: "No SRAM macros; FIFOs are register-based. Loopback mode provides built-in self-test capability."
+  notes: "No SRAM macro in this configuration; FIFOs are synthesizable flop-based or SRAM depending on implementation."
 
 synthesis:
   dialect: "systemverilog_2012"
@@ -769,31 +729,32 @@ synthesis:
   constraints:
     - "No inferred latches"
     - "All flops reset according to clock_reset_domains.reset_scheme"
-    - "No package/interface/modport/function/task/for/while constructs"
-    - "Localparam state encoding for FSM states"
+    - "No package/interface/modport/function/task/for/while constructs in generated RTL"
+    - "localparam for state encoding; logic for state/next_state"
   ppa_targets:
     area_um2_max: null
     power_mw_max: null
     frequency_mhz_min: 50
   required_outputs:
-    - "syn/out/uart_lite.json"
+    - "syn/out/uart_lite.json or syn/out/uart_lite.v"
     - "syn/out/area.rpt"
     - "syn/out/timing_summary.rpt"
 
 pnr:
-  utilization_pct: 50
+  utilization_pct: 60
   aspect_ratio: 1.0
   core_space_um: 2.0
-  global_density: 0.60
+  global_density: 0.65
   io_layers:
     horizontal: "met3"
     vertical: "met2"
   placement:
-    density_target: 0.60
+    density_target: 0.65
     max_displacement_um: null
   cts:
     buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"]
-    functional_mode_case_analysis: []
+    functional_mode_case_analysis:
+      - { port: "scan_en", value: 0, when_present: true }
   routing:
     signal_layers: { min: "met1", max: "met5" }
     clock_layers: { min: "met3", max: "met5" }
@@ -812,59 +773,61 @@ coding_rules:
   file_extension: ".sv"
   parameter_header: "rtl/uart_lite_param.vh"
   conventions:
-    - "nonblocking (<=) in sequential always @(posedge pclk or negedge presetn)"
+    - "nonblocking (<=) in sequential always @(posedge PCLK or negedge PRESETn)"
     - "blocking (=) in combinational always @(*)"
     - "No latches: every combinational branch assigns all outputs (use a default)"
-    - "Active-low async reset: always @(posedge pclk or negedge presetn) with if (!presetn)"
+    - "Active-low async reset: always @(posedge PCLK or negedge PRESETn) with if (!PRESETn)"
     - "Parameterize widths (no hardcoded numbers)"
-    - "Use rtl/uart_lite_param.vh for shared parameter declarations"
+    - "Use rtl/uart_lite_param.vh for shared parameter declarations; include it inside consuming modules"
     - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
     - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
     - "Use localparam state encoding with logic state/next_state signals"
-    - "2-FF synchronizer: two flops in series for rx → rx_sync0 → rx_synced (no reset on first FF)"
+    - "2-FF synchronizer for rx pin: two back-to-back flops with ASYNC_REG attribute"
   lint_waivers:
     - "UNUSEDSIGNAL: explicit approved tie-offs only"
-    - "WIDTHEXPAND: DATA_WIDTH-dependent indexing"
+    - "WIDTHEXPAND: DATA_WIDTH parameter variations; FIFO index calculations"
 
 reuse_modules: []
 
 custom:
+  note: "No custom extensions"
   assumptions:
-    - "pclk frequency default 50 MHz; baud divider reset default 0x145 gives ~9600 baud at 50 MHz with OVERSAMPLE=16"
-    - "OVERSAMPLE is even and >= 8; mid-sampling at OVERSAMPLE/2 is valid only for even values"
-    - "DATA_WIDTH range 5..8; values outside this range are illegal and may cause synthesis errors"
-    - "FIFO_DEPTH is power-of-two; minimum 2; non-power-of-two values are untested"
-    - "2-FF synchronizer: first FF has no reset (to avoid metastability-propagation through reset); second FF is reset normally"
-    - "RX FIFO overrun policy: discard newest frame (not oldest) — protects already-received data"
-    - "TX underrun: does not generate interrupt; software must poll STATUS.underrun_error"
-    - "APB pstrb is ignored for register writes (full 32-bit word writes assumed); byte-enable not implemented per pstrb"
-    - "APB-lite does not implement PPROT/PSTRB fully; pstrb is input port but treated as 4'b1111 internally"
-    - "Break condition: tx line held low as long as send_break=1; no automatic timed break"
-    - "Debug counters: free-running 32-bit rollover; no saturation; no clear mechanism"
-    - "loopback mode: rx pad is ignored but not tri-stated; external rx line may still toggle but is not sampled"
-    - "All reserved register fields read zero and ignore writes"
-    - "Parameter CLOCK_FREQ_HZ is for TB/doc only; not used in synthesizable RTL (BAUD_DIV CSR handles baud rate)"
+    - "PCLK frequency is 50 MHz; baud divisor reset value (324) targets 9600 baud at 16x oversampling."
+    - "TX and RX FIFO depths are equal and set by the single FIFO_DEPTH parameter."
+    - "DATA_WIDTH range is 5 to 8; values outside this range are not validated."
+    - "FIFO_DEPTH must be a power of two; non-power-of-two values produce undefined FIFO behavior."
+    - "APB writes to TXDATA when TX FIFO is full are silently discarded (underrun_err only set for TX FSM underrun, not for APB write overflow — TXDATA write to full FIFO is a no-op at the register interface level)."
+    - "APB reads from RXDATA when RX FIFO is empty return the last valid data (or 0x00 if never written); no error flag is set."
+    - "loopback connects tx to rx synchronizer input AFTER the 2-FF stage, so loopback data passes through one synchronizer stage before being sampled."
+    - "break_send self-clears after one full frame duration even if CPU writes 1 again before completion; a new 0→1 transition is needed for another break."
+    - "Parity bit is computed across all DATA_WIDTH data bits (LSB to MSB)."
+    - "Stop bit sampling on RX uses a single mid-bit sample at oversample count 7; no majority voting."
+    - "TX baud tick and RX oversample counter use independent counters clocked by PCLK."
+    - "Debug counters are free-running 32-bit counters that wrap silently at 0xFFFFFFFF."
 
 dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
   output_dirs:
     rtl: "rtl/"
     sim: "sim/"
     firmware: "firmware/"
     docs: "docs/"
   yaml_dir: "yaml/"
+  generators_dir: "generators/"
 
 filelist:
   headers:
     - "rtl/uart_lite_param.vh"
   rtl:
     - "rtl/uart_lite_regs.sv"
-    - "rtl/uart_lite_tx_fifo.sv"
-    - "rtl/uart_lite_rx_fifo.sv"
-    - "rtl/uart_lite_baud_gen.sv"
     - "rtl/uart_lite_tx.sv"
     - "rtl/uart_lite_rx.sv"
+    - "rtl/uart_lite_baud_gen.sv"
+    - "rtl/uart_lite_tx_fifo.sv"
+    - "rtl/uart_lite_rx_fifo.sv"
     - "rtl/uart_lite_core.sv"
-    - "rtl/uart_lite_wrapper.sv"
     - "rtl/uart_lite.sv"
   sim:
     - "sim/tb_top.sv"
@@ -876,68 +839,55 @@ filelist:
     - "docs/register_map.md"
     - "docs/fsm_diagram.md"
     - "docs/README.md"
-
 test_requirements:
   scenarios:
-    - { id: "SC1", name: "TX single byte 8N1", stimulus: "Configure CTRL=0x60. Write 0x41 to TX_DATA.", expected: "tx: start(0), 0x41 LSB-first, stop(1). STATUS.tx_empty returns to 1. DEBUG_BYTES_TX increments by 1.", checker: "Scoreboard captures tx bitstream, verifies start/data/stop sequence.", coverage: ["TX_WRITE", "TX_SHIFT"] }
-    - { id: "SC2", name: "RX single byte 8N1", stimulus: "Inject serial bitstream on rx: start(0), 0x55 LSB-first, stop(1). Read RX_DATA.", expected: "rx_data returns 0x55. DEBUG_BYTES_RX increments by 1.", checker: "Scoreboard monitors rx_data reads.", coverage: ["RX_SHIFT", "RX_READ"] }
-    - { id: "SC3", name: "TX with parity (8E1)", stimulus: "Configure CTRL.parity_en=1, parity_odd=0. Write 0x03.", expected: "tx frame: start, 8 data bits, parity(0), stop.", checker: "Verify parity bit equals even parity.", coverage: ["TX_PARITY"] }
-    - { id: "SC4", name: "RX with parity error (8O1)", stimulus: "Configure parity_en=1, parity_odd=1. Inject 0x00 with parity bit 0.", expected: "STATUS.parity_error set. DEBUG_PARITIES_ERR increments. Byte still readable.", checker: "Verify parity_error sticky flag and counter.", coverage: ["parity_error", "RX_PARITY"] }
-    - { id: "SC5", name: "RX framing error", stimulus: "Inject complete frame but drive stop bit as 0.", expected: "STATUS.frame_error set. DEBUG_FRAMES_ERR increments. Byte still readable.", checker: "Check frame_error flag.", coverage: ["frame_error"] }
-    - { id: "SC6", name: "RX overrun", stimulus: "Fill RX FIFO (16 bytes without reading). Inject 17th frame.", expected: "STATUS.overrun_error set. 17th byte discarded.", checker: "Verify overrun flag and FIFO contents unchanged.", coverage: ["overrun_error"] }
-    - { id: "SC7", name: "TX underrun", stimulus: "Ensure TX FIFO empty. Attempt TX shift.", expected: "underrun_error set. TX FSM returns to idle.", checker: "Check underrun flag.", coverage: ["underrun_error"] }
-    - { id: "SC8", name: "Loopback mode", stimulus: "Set CTRL.loopback=1. Write 0xA5 to TX_DATA. Read RX_DATA after frame.", expected: "Received byte equals 0xA5.", checker: "Compare TX written with RX read.", coverage: ["loopback"] }
-    - { id: "SC9", name: "Software break", stimulus: "Set CTRL.send_break=1 while TX idle.", expected: "tx line forced low. TX FSM stays in TX_IDLE.", checker: "Verify tx line is 0.", coverage: ["send_break"] }
-    - { id: "SC10", name: "2 stop bits (8N2)", stimulus: "Set CTRL.stop_bits=1. Write TX_DATA and capture tx.", expected: "Two stop bits after data.", checker: "Verify two high bits after data.", coverage: ["stop_bits"] }
-    - { id: "SC11", name: "DATA_WIDTH=5", stimulus: "Parameterize DATA_WIDTH=5. Write 0x1F to TX_DATA.", expected: "tx frame: start, 5 data bits, stop. RX reads back 0x1F.", checker: "Verify 5-bit frame length.", coverage: ["DATA_WIDTH"] }
-    - { id: "SC12", name: "Baud rate change", stimulus: "Write new BAUD_DIV while idle. Transmit and receive at new rate.", expected: "TX and RX operate at new baud rate. No corruption.", checker: "Measure bit periods on tx.", coverage: ["BAUD_DIV"] }
-    - { id: "SC13", name: "False start rejection", stimulus: "Inject brief low pulse (<1/2 bit period) on rx.", expected: "RX FSM detects edge, enters RX_START, samples high at mid-sample, returns to RX_IDLE.", checker: "Verify no rx_data pushed.", coverage: ["false_start"] }
-    - { id: "SC14", name: "Interrupt TX empty", stimulus: "Enable INT_EN.ie_tx_empty. Write TX_DATA, wait for TX complete.", expected: "INT_PEND.ip_tx_empty asserts. uart_irq asserts. W1C clears pending.", checker: "Verify interrupt flow.", coverage: ["ie_tx_empty"] }
-    - { id: "SC15", name: "Interrupt RX not empty", stimulus: "Enable INT_EN.ie_rx_not_empty. Inject RX frame.", expected: "INT_PEND.ip_rx_not_empty asserts. Reading RX_DATA does not clear; W1C does.", checker: "Verify pending persists after data read.", coverage: ["ie_rx_not_empty"] }
-    - { id: "SC16", name: "Interrupt parity error", stimulus: "Enable INT_EN.ie_parity_error. Inject frame with parity error.", expected: "INT_PEND.ip_parity_error asserts. uart_irq asserts.", checker: "Verify interrupt assertion.", coverage: ["ie_parity_error"] }
-    - { id: "SC17", name: "Interrupt mask independence", stimulus: "Set INT_EN.ie_tx_empty=1, all others 0. Trigger rx_not_empty.", expected: "Only ip_tx_empty asserts; ip_rx_not_empty stays 0.", checker: "Verify each IE bit independently gates its pending bit.", coverage: ["INT_EN"] }
-    - { id: "SC18", name: "W1C sticky clear", stimulus: "Inject frame error. Write STATUS_CLR.clr_frame_error=1. Read STATUS.", expected: "STATUS.frame_error cleared. Other STATUS bits unchanged.", checker: "Verify W1C clears only targeted bits.", coverage: ["STATUS_CLR"] }
-    - { id: "SC19", name: "APB pslverr on unmapped", stimulus: "APB read from 0x34.", expected: "pslverr asserted with pready.", checker: "Verify pslverr timing.", coverage: ["pslverr"] }
-    - { id: "SC20", name: "TX FIFO full backpressure", stimulus: "Write 17 bytes to TX_DATA without draining.", expected: "First 16 accepted. 17th ignored.", checker: "Verify TX FIFO depth enforcement.", coverage: ["tx_full"] }
-  scoreboard_checks: 20
+    - { id: "SC1", name: "TX single byte no parity 1 stop", stimulus: "Write one byte to TXDATA when TX FIFO empty. CTRL: tx_enable=1, parity_en=0, stop_bits=0.", expected: "tx line shows start=0, DATA_WIDTH data bits LSB-first, 1 stop=1 bit. STAT.tx_empty=1 after frame. bytes_tx increments.", checker: "Scoreboard samples tx output and verifies bit pattern matches written byte.", coverage: ["FM_TX_BYTE", "TX_IDLE", "TX_START", "TX_DATA", "TX_STOP1"] }
+    - { id: "SC2", name: "RX single byte no parity 1 stop", stimulus: "Drive rx line with start=0, 8 data bits LSB-first, 1 stop=1. CTRL: rx_enable=1.", expected: "Byte pushed to RX FIFO. RXDATA reads correct byte. bytes_rx increments. No error flags.", checker: "Scoreboard compares rx_data from register read vs driven bit pattern.", coverage: ["FM_RX_BYTE", "RX_IDLE", "RX_START_DETECT", "RX_DATA", "RX_STOP1"] }
+    - { id: "SC3", name: "TX with even parity", stimulus: "Write byte 0xA5 to TXDATA. CTRL: tx_enable=1, parity_en=1, parity_odd=0. DATA_WIDTH=8.", expected: "Parity bit after data: 0 (even number of 1s: 4 in 0xA5). tx shows start, 8 data, parity=0, 1 stop.", checker: "Scoreboard computes expected even parity and verifies tx parity bit.", coverage: ["FM_TX_BYTE", "TX_PARITY"] }
+    - { id: "SC4", name: "RX with odd parity match", stimulus: "Drive rx with start, 0xA5 data (4 ones), odd parity=1, stop. CTRL: rx_enable=1, parity_en=1, parity_odd=1.", expected: "Byte 0xA5 pushed to RX FIFO. No parity_err. parities_errored unchanged.", checker: "Scoreboard verifies parity_err = 0 and correct rx_data.", coverage: ["FM_RX_BYTE", "RX_PARITY"] }
+    - { id: "SC5", name: "RX parity error", stimulus: "Drive rx with start, 0xA5 data, wrong parity bit (even parity sent, but rx expects odd). CTRL: parity_en=1, parity_odd=1.", expected: "parity_err sticky flag set. Byte still pushed to RX FIFO. parities_errored increments.", checker: "Scoreboard verifies STAT.parity_err=1 and rx_data still 0xA5.", coverage: ["FM_RX_BYTE.error_cases", "parity_err"] }
+    - { id: "SC6", name: "RX framing error", stimulus: "Drive rx with start, data, stop=0 (invalid). CTRL: rx_enable=1.", expected: "frame_err sticky flag set. Byte pushed to RX FIFO. frames_errored increments.", checker: "Scoreboard verifies STAT.frame_err=1.", coverage: ["FM_RX_BYTE.error_cases", "frame_err"] }
+    - { id: "SC7", name: "RX overrun", stimulus: "Fill RX FIFO to full (16 bytes). Drive 17th byte on rx.", expected: "17th byte discarded. overrun_err sticky flag set. RX FIFO still has 16 bytes.", checker: "Scoreboard checks STAT.overrun_err=1 and RX FIFO count unchanged.", coverage: ["FM_RX_BYTE.error_cases", "overrun_err"] }
+    - { id: "SC8", name: "TX underrun", stimulus: "Start TX FSM with one byte in TX FIFO, then prevent further writes. After frame completes, TX FSM goes idle with FIFO empty.", expected: "No underrun during normal operation. To trigger underrun: disable TX FIFO write while FSM mid-frame (not directly possible via CSR; tested via back-to-back framing where FIFO drains). STAT.underrun_err=0 if FIFO never underflows.", checker: "Scoreboard verifies no spurious underrun_err.", coverage: ["FM_TX_BYTE.error_cases", "underrun_err"] }
+    - { id: "SC9", name: "Loopback mode", stimulus: "Enable loopback=1. Write bytes to TXDATA. CTRL: tx_enable=1, rx_enable=1.", expected: "Transmitted bytes appear in RX FIFO. External rx line ignored. TX and RX data match.", checker: "Scoreboard compares TXDATA written vs RXDATA read.", coverage: ["FM_LOOPBACK"] }
+    - { id: "SC10", name: "Break send", stimulus: "Write break_send=1 to CTRL.", expected: "tx line held low for at least one full frame duration. break_send self-clears to 0.", checker: "Scoreboard measures tx low duration and verifies self-clear.", coverage: ["FM_BREAK_SEND"] }
+    - { id: "SC11", name: "2 stop bits TX/RX", stimulus: "Write byte to TXDATA. CTRL: stop_bits=1. Drive corresponding rx pattern with 2 stop bits.", expected: "TX sends 2 stop bits. RX accepts 2 stop bits.", checker: "Scoreboard verifies 2 stop bits on tx and successful rx.", coverage: ["TX_STOP2", "RX_STOP2"] }
+    - { id: "SC12", name: "Interrupts — tx_empty", stimulus: "Enable tx_empty interrupt (INTEN.tx_empty_en=1). Fill TX FIFO, let it drain completely.", expected: "INTPEND.tx_empty_pend asserts when TX FIFO goes empty. uart_irq asserts. Write 1 to INTPEND.tx_empty_pend clears it; uart_irq deasserts if no other pend.", checker: "Scoreboard checks INTPEND and uart_irq timing.", coverage: ["interrupts.tx_empty"] }
+    - { id: "SC13", name: "Interrupts — rx_not_empty + clear via W1C", stimulus: "Enable rx_not_empty interrupt. Drive byte on rx.", expected: "INTPEND.rx_not_empty_pend asserts. uart_irq asserts. Software W1C clears pend.", checker: "Scoreboard checks pend assertion and W1C clear.", coverage: ["interrupts.rx_not_empty"] }
+    - { id: "SC14", name: "DATA_WIDTH=5", stimulus: "Parameter DATA_WIDTH=5. Write/read 5-bit data.", expected: "TX sends 5 data bits. RX receives 5 data bits. Upper bits in TXDATA ignored, RXDATA zero-filled above bit 4.", checker: "Scoreboard verifies correct serialization for 5-bit width.", coverage: ["function_model.DATA_WIDTH_variation"] }
+    - { id: "SC15", name: "FIFO full/empty flags", stimulus: "Fill TX FIFO (16 writes), verify tx_full. Drain TX FIFO, verify tx_empty. Same for RX.", expected: "STAT.tx_full, tx_empty, rx_full, rx_empty track FIFO levels correctly.", checker: "Scoreboard checks STAT live flags vs FIFO level.", coverage: ["STAT FIFO flags"] }
+    - { id: "SC16", name: "Spurious start bit rejection", stimulus: "Drive rx low then high before mid-bit sample (glitch shorter than half bit).", expected: "RX FSM returns to RX_IDLE; no byte captured; no error flag.", checker: "Scoreboard verifies no spurious rx_data or error.", coverage: ["RX_START_DETECT", "spurious_start"] }
+    - { id: "SC17", name: "Baud rate change mid-operation", stimulus: "Start TX frame at one baud rate, write new BAUD during frame.", expected: "Current frame completes at old rate. Next frame uses new rate.", checker: "Scoreboard measures bit periods on tx for frame N vs frame N+1.", coverage: ["baud_generator", "cycle_model"] }
+  scoreboard_checks: 17
   coverage_goals:
     function:
       target_pct: 100
       model: "function_model"
-      description: "Behavioral coverage for what the UART computes or architecturally updates."
+      description: "Behavioral coverage for what the UART computes: TX byte serialization, RX byte deserialization, parity, error detection, loopback, break."
       bins:
-        - { id: "FCOV_TX_WRITE", source_ref: "function_model.transactions.TX_WRITE", class: "transaction", description: "TX_WRITE transaction observed" }
-        - { id: "FCOV_TX_SHIFT", source_ref: "function_model.transactions.TX_SHIFT", class: "transaction", description: "TX_SHIFT transaction observed" }
-        - { id: "FCOV_RX_READ", source_ref: "function_model.transactions.RX_READ", class: "transaction", description: "RX_READ transaction observed" }
-        - { id: "FCOV_RX_SHIFT", source_ref: "function_model.transactions.RX_SHIFT", class: "transaction", description: "RX_SHIFT transaction observed" }
-        - { id: "FCOV_TX_UNDERRUN", source_ref: "function_model.transactions.TX_SHIFT.error_cases", class: "error_case", description: "TX underrun observed" }
-        - { id: "FCOV_RX_OVERRUN", source_ref: "function_model.transactions.RX_SHIFT.error_cases", class: "error_case", description: "RX overrun observed" }
-        - { id: "FCOV_RX_FRAME_ERR", source_ref: "function_model.transactions.RX_SHIFT.error_cases", class: "error_case", description: "RX frame error observed" }
-        - { id: "FCOV_RX_PARITY_ERR", source_ref: "function_model.transactions.RX_SHIFT.error_cases", class: "error_case", description: "RX parity error observed" }
-        - { id: "FCOV_LOOPBACK", source_ref: "function_model.transactions.RX_SHIFT.error_cases", class: "mode", description: "Loopback mode observed" }
+        - { id: "FCOV_FM_TX_BYTE", source_ref: "function_model.transactions.FM_TX_BYTE", class: "transaction", description: "TX byte transaction observed by scoreboard" }
+        - { id: "FCOV_FM_RX_BYTE", source_ref: "function_model.transactions.FM_RX_BYTE", class: "transaction", description: "RX byte transaction observed by scoreboard" }
+        - { id: "FCOV_FM_BREAK", source_ref: "function_model.transactions.FM_BREAK_SEND", class: "transaction", description: "Break send observed" }
+        - { id: "FCOV_FM_LOOPBACK", source_ref: "function_model.transactions.FM_LOOPBACK", class: "transaction", description: "Loopback mode verified" }
+        - { id: "FCOV_ERR_PARITY", source_ref: "function_model.transactions.FM_RX_BYTE.error_cases.parity_err", class: "error_case", description: "Parity error detected" }
+        - { id: "FCOV_ERR_FRAME", source_ref: "function_model.transactions.FM_RX_BYTE.error_cases.frame_err", class: "error_case", description: "Framing error detected" }
+        - { id: "FCOV_ERR_OVERRUN", source_ref: "function_model.transactions.FM_RX_BYTE.error_cases.overrun_err", class: "error_case", description: "Overrun error detected" }
     cycle:
       target_pct: 100
       model: "cycle_model"
-      description: "Cycle/handshake/latency/FSM coverage."
+      description: "Cycle/handshake/FSM coverage for TX and RX pipelines."
       bins:
-        - { id: "CCOV_START_MID", source_ref: "cycle_model.start_bit_mid_sample", class: "sampling", description: "Start-bit mid-sample observed" }
-        - { id: "CCOV_DATA_CENTER", source_ref: "cycle_model.data_sampling", class: "sampling", description: "Data center-sample observed" }
-        - { id: "CCOV_FALSE_START", source_ref: "fsm.rx_fsm.transitions", class: "state_transition", description: "False start recovery observed" }
-        - { id: "CCOV_BAUD_TICK", source_ref: "cycle_model.oversample", class: "baud_timing", description: "Baud tick generation correct" }
-        - { id: "CCOV_TX_PIPELINE", source_ref: "cycle_model.pipeline", class: "pipeline_stage", description: "All TX pipeline stages observed" }
-        - { id: "CCOV_RX_PIPELINE", source_ref: "cycle_model.pipeline", class: "pipeline_stage", description: "All RX pipeline stages observed" }
-        - { id: "CCOV_PARITY_ODD", source_ref: "cycle_model.pipeline.TX_SHIFT", class: "configuration", description: "Odd parity exercised" }
-        - { id: "CCOV_STOP_2", source_ref: "cycle_model.pipeline.TX_STOP", class: "configuration", description: "2 stop bits exercised" }
-        - { id: "CCOV_DW5", source_ref: "cycle_model.pipeline.TX_SHIFT", class: "configuration", description: "DATA_WIDTH=5 exercised" }
-        - { id: "CCOV_DW8", source_ref: "cycle_model.pipeline.TX_SHIFT", class: "configuration", description: "DATA_WIDTH=8 exercised" }
-        - { id: "CCOV_IRQ_MASK", source_ref: "cycle_model.handshake_rules", class: "interrupt", description: "Independent interrupt mask observed" }
-        - { id: "CCOV_W1C", source_ref: "cycle_model.ordering", class: "register", description: "W1C clear timing observed" }
+        - { id: "CCOV_TX_IDLE", source_ref: "cycle_model.pipeline[TX_IDLE]", class: "pipeline_stage", description: "TX IDLE stage observed" }
+        - { id: "CCOV_TX_DATA", source_ref: "cycle_model.pipeline[TX_DATA]", class: "pipeline_stage", description: "TX DATA stage observed" }
+        - { id: "CCOV_RX_START_CONFIRM", source_ref: "cycle_model.pipeline[RX_START_CONFIRM]", class: "pipeline_stage", description: "RX start confirm stage observed" }
+        - { id: "CCOV_RX_DATA", source_ref: "cycle_model.pipeline[RX_DATA]", class: "pipeline_stage", description: "RX DATA stage observed" }
+        - { id: "CCOV_BAUD_TICK", source_ref: "cycle_model.baud_generator", class: "handshake", description: "Baud tick observed at correct rate" }
+        - { id: "CCOV_PERF_FIFO_DEPTH", source_ref: "cycle_model.performance.depth", class: "depth", description: "FIFO depth exercised" }
     functional: "Legacy alias: function + cycle coverage must both close."
-    code: "line >= 90%"
-    branch: "branch >= 85%"
-    fsm: "100% declared FSM states and legal transitions covered"
-    assertions: "All protocol/order/error assertions pass"
-
+    line: ">= 90% instrumented line coverage or explicit project waiver"
+    branch: ">= 85% instrumented branch coverage or explicit project waiver"
+    fsm: "100% declared TX and RX FSM states and legal transitions covered"
+    assertions: "All protocol/handshake/error assertions pass"
 quality_gates:
   ssot:
     pass: "All canonical sections are present, substantive, internally consistent, and have no live TBD placeholders."
@@ -945,160 +895,186 @@ quality_gates:
   rtl_gen:
     profile: "production"
     target_scale:
-      basis: "calibrated from uart_lite approved architecture — 8 modules, modest size peripheral"
-      source_files_min: 9
-      modules_min: 8
-      procedural_blocks_min: 16
-      state_updates_min: 12
-      depth_score_min: 8
-      logic_modules_min: 6
-      behavior_owner_logic_modules_min: 4
+      basis: "UART peripheral with 7 sub-modules, 2 FIFOs, 2 FSMs, 12 registers"
+      source_files_min: 7
+      modules_min: 7
+      procedural_blocks_min: 20
+      state_updates_min: 8
+      depth_score_min: 10
+      logic_modules_min: 4
+      behavior_owner_logic_modules_min: 2
     target_scale_waiver:
       approved: false
       reason: ""
       owner: ""
-    pass: "SSOT-derived rtl_todo_plan has no blockers/orphans; all implementation TODOs close with fresh evidence."
-    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json", "sim/fl_rtl_goal_audit.json", "cov/coverage.json"]
+    pass: "All SSOT-derived RTL TODOs close; rtl-gen gates pass with fresh compile/lint evidence."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json", "rtl/rtl_compile.json fresh vs listed RTL sources", "lint/dut_lint.json fresh vs listed RTL sources"]
   rtl:
     pass: "RTL implements function_model and cycle_model, compiles, and has no unwaived lint warnings."
     evidence: ["rtl filelist", "compile log", "lint report"]
   dv:
-    pass: "Every test_requirements scenario has an executable test, expected/got checker, and coverage bin."
+    pass: "Every test_requirements scenario (SC1-SC17) has an executable test, expected/got checker, and coverage bin."
     evidence: ["results.xml", "coverage.json", "VCD/FST waveform"]
   coverage:
-    pass: "Functional coverage goals pass and code/FSM/assertion coverage meets thresholds or has approved waiver."
-    evidence: ["instrumented coverage report", "coverage_report.md"]
+    pass: "Functional and cycle coverage goals pass; code/FSM coverage meets thresholds."
+    evidence: ["cov/coverage.json", "cov/coverage_report.md"]
   eda:
-    pass: "Synthesis, pre-route STA, PnR, and post-route STA meet SSOT timing/area/power/physical targets or have explicit signed-off waivers."
-    evidence: ["syn report", "sta setup/hold report", "wns.json", "pnr report", "routed.def", "routed.spef", "sta-post setup/hold report"]
+    pass: "Synthesis and STA meet SSOT timing/area/power targets at 50 MHz PCLK."
+    evidence: ["syn report", "sta setup/hold report", "wns.json"]
   signoff:
-    pass: "SSOT, RTL, lint, DV, simulation, coverage, and required EDA gates pass with fresh evidence."
-    evidence: ["ATLAS progress signoff pass", "artifact timestamps newer than final source edits"]
+    pass: "SSOT, RTL, lint, DV, simulation, and coverage gates pass with fresh evidence."
+    evidence: ["ATLAS progress signoff pass"]
 
 traceability:
   yaml_to_output:
-    - { yaml: "top_module.name", output: "ALL files (module name uart_lite)" }
-    - { yaml: "parameters", output: "rtl/uart_lite_param.vh" }
-    - { yaml: "io_list.interfaces", output: "rtl/uart_lite_wrapper.sv (port list)" }
-    - { yaml: "registers.register_list", output: "rtl/uart_lite_regs.sv + firmware + docs" }
-    - { yaml: "function_model", output: "rtl/uart_lite_core.sv + tb/cocotb scoreboard/reference model" }
-    - { yaml: "cycle_model", output: "rtl/uart_lite_core.sv pipeline/handshake logic + waveform checks" }
-    - { yaml: "fsm", output: "rtl/uart_lite_tx.sv + rtl/uart_lite_rx.sv + docs/fsm_diagram.md" }
+    - { yaml: "top_module.name", output: "ALL files (module name)" }
+    - { yaml: "parameters", output: "uart_lite_param.vh" }
+    - { yaml: "io_list.interfaces", output: "uart_lite.sv (port list)" }
+    - { yaml: "registers.register_list", output: "uart_lite_regs.sv + firmware + docs" }
+    - { yaml: "function_model", output: "uart_lite_core.sv + tb/cocotb scoreboard" }
+    - { yaml: "cycle_model", output: "uart_lite_core.sv + uart_lite_baud_gen.sv + waveform checks" }
+    - { yaml: "fsm", output: "uart_lite_tx.sv + uart_lite_rx.sv + docs/fsm_diagram.md" }
     - { yaml: "timing", output: "STA constraints and timing pass/fail criteria" }
+    - { yaml: "power", output: "Power intent (no UPF; single always-on domain)" }
+    - { yaml: "security", output: "security/safety checks and threat mitigations" }
     - { yaml: "error_handling", output: "RTL error paths + DV fault scenarios" }
-    - { yaml: "security", output: "security/safety mitigations and negative tests" }
-    - { yaml: "quality_gates", output: "ATLAS progress and signoff criteria" }
+    - { yaml: "quality_gates", output: "ATLAS progress/signoff criteria" }
     - { yaml: "test_requirements.scenarios", output: "sim/tb_program.sv" }
+  change_impact_example:
+    change: "parameters.DATA_WIDTH from 8 to 7"
+    affected_files:
+      - "uart_lite_param.vh (DATA_WIDTH=7)"
+      - "uart_lite_tx.sv (shift register width)"
+      - "uart_lite_rx.sv (shift register width)"
+      - "uart_lite_tx_fifo.sv (FIFO width)"
+      - "uart_lite_rx_fifo.sv (FIFO width)"
+      - "uart_lite_regs.sv (TXDATA/RXDATA bit masking)"
 
 workflow_todos:
   fl-model-gen: []
   rtl-gen:
-    - id: "RTL_TODO_TX_FSM"
-      content: "Implement TX FSM with idle/start/data/parity/stop states"
-      detail: "Translate fsm.tx_fsm states, transitions, and outputs into rtl/uart_lite_tx.sv. Include LSB-first shift, parity computation (even/odd per CTRL), and stop bit count per CTRL.stop_bits."
+    - id: "RTL_IMPL_UART_CORE"
+      content: "Implement the SSOT-declared UART transceiver pipeline"
+      detail: "Translate function_model transactions (FM_TX_BYTE, FM_RX_BYTE, FM_BREAK_SEND, FM_LOOPBACK), cycle_model TX/RX pipeline stages, FSM states/transitions, and ownership refs into RTL state/datapath/control logic across the 7 sub-modules."
       criteria:
-        - "RTL owner logic matches all fsm.tx_fsm transitions"
-        - "tx line output matches fsm.tx_fsm.outputs for every state"
-        - "Parity computation matches function_model.TX_SHIFT"
-      source_refs: ["fsm.tx_fsm", "function_model.transactions.TX_SHIFT"]
-      owner_module: "uart_lite_tx"
-      owner_file: "rtl/uart_lite_tx.sv"
-      priority: "high"
-      required: true
-    - id: "RTL_TODO_RX_FSM"
-      content: "Implement RX FSM with 2-FF synchronizer, start/data/parity/stop states, and error detection"
-      detail: "Translate fsm.rx_fsm states/transitions/error_detection into rtl/uart_lite_rx.sv. Include false-start recovery, framing/parity error detection, overrun handling."
-      criteria:
-        - "2-FF synchronizer for rx input"
-        - "Start-bit verified at mid-sample (cycle_model.start_bit_mid_sample)"
-        - "Data/parity/stop sampled at center (cycle_model.data_sampling)"
-        - "Frame/parity/overrun errors set sticky flags per error_handling"
-      source_refs: ["fsm.rx_fsm", "cycle_model.start_bit_mid_sample", "cycle_model.data_sampling", "error_handling"]
-      owner_module: "uart_lite_rx"
-      owner_file: "rtl/uart_lite_rx.sv"
-      priority: "high"
-      required: true
-    - id: "RTL_TODO_BAUD_GEN"
-      content: "Implement baud-rate generator"
-      detail: "Build free-running oversample counter and baud_div_counter per fsm.baud_gen. Generate baud_tick and baud_tick_mid."
-      criteria:
-        - "Oversample counter 0..OVERSAMPLE-1"
-        - "Baud divider counter 0..BAUD_DIV"
-        - "baud_tick at oversample==0 AND baud_div==BAUD_DIV"
-        - "baud_tick_mid at oversample==OVERSAMPLE/2 AND baud_div==BAUD_DIV"
-      source_refs: ["fsm.baud_gen", "cycle_model.oversample"]
-      owner_module: "uart_lite_baud_gen"
-      owner_file: "rtl/uart_lite_baud_gen.sv"
-      priority: "high"
-      required: true
-    - id: "RTL_TODO_FIFOS"
-      content: "Implement TX and RX synchronous FIFOs"
-      detail: "Parameterized synchronous FIFO (FIFO_DEPTH x DATA_WIDTH). Write/read pointers, empty/full flags. TX FIFO backpressure ignores writes when full. RX FIFO overrun discards newest data."
-      criteria:
-        - "FIFO depth parameterized by FIFO_DEPTH"
-        - "Width parameterized by DATA_WIDTH"
-        - "Full/empty flags match pointer positions"
-        - "TX write ignored when full; RX overrun on full push"
-      source_refs: ["memory.instances", "dataflow", "cycle_model.backpressure"]
-      owner_module: "uart_lite_tx_fifo"
-      owner_file: "rtl/uart_lite_tx_fifo.sv"
-      priority: "high"
-      required: true
-    - id: "RTL_TODO_REGS"
-      content: "Implement APB-lite register block"
-      detail: "APB-lite decode for 13 registers (0x00-0x33). Implement W1C for STATUS_CLR and INT_CLR. Combinatorial readback for RO registers. Interrupt pending/enable gating."
-      criteria:
-        - "APB-lite psel/penable/pready handshake per io_list.apb_slave.protocol"
-        - "pslverr for unmapped addresses (≥0x34)"
-        - "W1C clears on cycle after APB write access phase"
-        - "INT_PEND gates by INT_EN before driving uart_irq"
-      source_refs: ["registers.register_list", "io_list.apb_slave.protocol", "interrupts"]
-      owner_module: "uart_lite_regs"
-      owner_file: "rtl/uart_lite_regs.sv"
-      priority: "high"
-      required: true
-    - id: "RTL_TODO_CORE"
-      content: "Implement core orchestration module"
-      detail: "Instantiate all sub-modules. Wire loopback MUX, break control, debug counter updates. Route APB transactions from wrapper to regs block. Wire interrupt."
-      criteria:
-        - "All sub-modules instantiated with correct port mapping"
-        - "Loopback MUX selects tx internal or rx pad per CTRL.loopback"
-        - "Send_break overrides tx output"
-        - "Debug counters increment on qualifying events"
-      source_refs: ["function_model", "features", "dataflow", "integration.connections"]
+        - "RTL owner logic is present in each declared owner_file per sub_modules"
+        - "DUT-only compile passes on all 8 RTL files"
+        - "DUT lint passes with no unwaived errors"
+        - "FunctionalModel expected result and RTL observed result can be compared for every function_model transaction"
+        - "Every cycle_model pipeline stage and handshake rule is traceable to RTL logic"
+      source_refs: ["function_model.transactions", "cycle_model.pipeline", "fsm"]
       owner_module: "uart_lite_core"
       owner_file: "rtl/uart_lite_core.sv"
       priority: "high"
       required: true
-    - id: "RTL_TODO_WRAPPER"
-      content: "Implement integration wrapper"
-      detail: "Top-level port list from io_list. Instantiate uart_lite_core. Connect APB, serial, and interrupt ports."
+    - id: "RTL_IMPL_TX_FSM"
+      content: "Implement TX FSM with parity generation"
+      detail: "From fsm.tx_fsm states and transitions: implement TX_IDLE → TX_START → TX_DATA → TX_PARITY (if parity_en) → TX_STOP1 → TX_STOP2 (if stop_bits=1). Compute even/odd parity across DATA_WIDTH bits."
       criteria:
-        - "All io_list ports present in module declaration"
-        - "Single uart_lite_core instance"
-        - "Direct port-to-port wiring for APB, serial, interrupt"
-      source_refs: ["io_list", "integration"]
-      owner_module: "uart_lite_wrapper"
-      owner_file: "rtl/uart_lite_wrapper.sv"
-      priority: "medium"
-      required: true
-  tb-gen:
-    - id: "TB_TODO_SCOREBOARD"
-      content: "Implement Python cocotb scoreboard for all 20 scenarios"
-      detail: "Build a Python reference model from function_model. For each test_requirements scenario, write a cocotb test that programs registers, injects/monitors serial bitstream, and checks expected vs actual."
-      criteria:
-        - "All 20 scenarios have executable tests"
-        - "Scoreboard compares TX written bytes against tx serial bitstream"
-        - "Scoreboard compares RX read bytes against rx serial bitstream"
-        - "Error injection tests verify sticky flags and counters"
-        - "Coverage bins collected for every coverage_goals bin"
-      source_refs: ["function_model", "test_requirements.scenarios", "test_requirements.coverage_goals"]
+        - "TX FSM states and all declared transitions implemented"
+        - "Parity computed per CTRL.parity_en and CTRL.parity_odd"
+        - "Baud tick gating applied"
+      source_refs: ["fsm.tx_fsm", "cycle_model.pipeline.tx_stages"]
+      owner_module: "uart_lite_tx"
+      owner_file: "rtl/uart_lite_tx.sv"
       priority: "high"
       required: true
-  lint: []
-  coverage: []
-  syn: []
-  sta: []
+    - id: "RTL_IMPL_RX_FSM"
+      content: "Implement RX FSM with 2-FF synchronizer and oversampling"
+      detail: "From fsm.rx_fsm and cycle_model pipeline: implement RX_IDLE → RX_START_DETECT → RX_START_CONFIRM → RX_DATA → RX_PARITY (if parity_en) → RX_STOP1 → RX_STOP2 (if stop_bits=1). Sample at oversample count 7 of 16. Detect framing/parity errors."
+      criteria:
+        - "RX FSM states and all declared transitions implemented"
+        - "Mid-bit sampling at oversample count 7"
+        - "2-FF synchronizer on rx input"
+        - "Spurious start bit rejection implemented"
+      source_refs: ["fsm.rx_fsm", "cycle_model.pipeline.rx_stages", "cdc_requirements"]
+      owner_module: "uart_lite_rx"
+      owner_file: "rtl/uart_lite_rx.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_IMPL_BAUD_GEN"
+      content: "Implement baud rate generator"
+      detail: "Counter-based baud tick generator: baud_tick = 1 when counter == (BAUD.baud_div * OVERSAMPLE) - 1. Separate counters for TX (baud tick) and RX (oversample counter 0..OVERSAMPLE-1)."
+      criteria:
+        - "Baud tick period = (baud_div + 1) * OVERSAMPLE PCLK cycles"
+        - "RX mid-bit detection at oversample count 7"
+        - "BAUD register change takes effect at next frame boundary"
+      source_refs: ["cycle_model.baud_generator", "registers.BAUD"]
+      owner_module: "uart_lite_baud_gen"
+      owner_file: "rtl/uart_lite_baud_gen.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_IMPL_REGS_IRQ"
+      content: "Implement APB register block and interrupt combiner"
+      detail: "Full APB4 slave decode for 12 registers (CTRL through DBG_PARITIES_ERR). Implement W1C for INTPEND and CLR_STAT. OR all enabled pending interrupt sources to uart_irq."
+      criteria:
+        - "All 12 registers accessible at declared offsets"
+        - "Reserved fields read zero, ignore writes"
+        - "W1C semantics for INTPEND and CLR_STAT"
+        - "PSLVERR for accesses >= 0x30"
+        - "PREADY asserted for all valid accesses"
+      source_refs: ["registers.register_list", "interrupts", "io_list.interfaces.apb_slave"]
+      owner_module: "uart_lite_regs"
+      owner_file: "rtl/uart_lite_regs.sv"
+      priority: "high"
+      required: true
+  tb-gen:
+    - id: "TB_SCENARIOS"
+      content: "Implement cocotb/pyuvm testbench covering all 17 scenarios"
+      detail: "From test_requirements.scenarios SC1-SC17: implement TX byte streaming, RX byte driving with timing, parity/framing/overrun/underrun error injection, loopback verification, break send, baud rate change, spurious start rejection, and interrupt handling."
+      criteria:
+        - "All 17 scenarios pass with scoreboard checks"
+        - "Functional coverage bins all hit (7 function + 6 cycle bins)"
+        - "Scoreboard compares TXDATA input to RXDATA output in loopback"
+      source_refs: ["test_requirements.scenarios", "function_model", "cycle_model"]
+      priority: "high"
+      required: true
+  sim_debug: []
+  lint:
+    - id: "LINT_DUT"
+      content: "Run lint on all RTL source files"
+      detail: "Lint all 8 RTL files in filelist.rtl with the project SystemVerilog subset. Review and resolve or waive all warnings."
+      criteria:
+        - "No unwaived lint errors"
+        - "Lint waivers recorded in coding_rules.lint_waivers are the only active waivers"
+      source_refs: ["filelist.rtl", "coding_rules"]
+      priority: "medium"
+      required: true
+  coverage:
+    - id: "COV_CLOSE"
+      content: "Close all SSOT-declared coverage goals"
+      detail: "Measure function_model coverage (7 bins), cycle_model coverage (6 bins), line >= 90%, branch >= 85%, FSM states/transitions 100%."
+      criteria:
+        - "function coverage 100%"
+        - "cycle coverage 100%"
+        - "line >= 90%"
+        - "branch >= 85%"
+        - "FSM 100%"
+      source_refs: ["test_requirements.coverage_goals"]
+      priority: "medium"
+      required: true
+  syn:
+    - id: "SYN_UART"
+      content: "Synthesize uart_lite at 50 MHz"
+      detail: "Run synthesis with sky130_fd_sc_hd, target 50 MHz PCLK. Meet setup/hold timing."
+      criteria:
+        - "No synthesis errors"
+        - "No unwaived setup violations at 50 MHz"
+        - "Area report generated"
+      source_refs: ["synthesis", "timing"]
+      priority: "low"
+      required: false
+  sta:
+    - id: "STA_PRE_PNR"
+      content: "Run pre-PnR static timing analysis"
+      detail: "STA on synthesized netlist with IO delays and clock uncertainty. setup_wns >= 0, hold_wns >= 0."
+      criteria:
+        - "setup_wns_ns >= 0.0"
+        - "hold_wns_ns >= 0.0"
+        - "sta/out/setup.rpt, sta/out/hold.rpt, sta/out/wns.json generated"
+      source_refs: ["timing.sta_expectations", "timing.io_delays"]
+      priority: "low"
+      required: false
   pnr: []
   sta-post: []
 
@@ -1107,10 +1083,10 @@ generation_flow:
     - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh uart_lite", description: "Validate production SSOT structure, function_model, cycle_model, DV plan, and quality gates" }
     - { name: "handoff_fl_model", command: "/ssot-fl-model uart_lite", description: "fl-model-gen writes FunctionalModel, decomposition, and FCOV plan from SSOT" }
     - { name: "handoff_rtl", command: "/ssot-rtl uart_lite", description: "rtl-gen writes RTL directly from the SSOT and proves compile/lint gates" }
-    - { name: "handoff_tb", command: "/ssot-tb uart_lite", description: "tb-gen writes cocotb tests, runs simulation, emits results XML, VCD, and functional coverage" }
+    - { name: "handoff_tb", command: "/ssot-tb uart_lite", description: "tb-gen writes cocotb/pyuvm tests, runs simulation, emits results XML, VCD, and functional coverage" }
     - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "sim_debug inspects waveform, failures, coverage evidence, and escalation ownership" }
-    - { name: "handoff_coverage", command: "/coverage uart_lite", description: "coverage workflow measures SSOT-declared functional/code/toggle/FSM/assertion goals" }
-    - { name: "handoff_eda", command: "/syn uart_lite && /sta uart_lite && /pnr uart_lite && /sta-post uart_lite", description: "EDA workflows produce synthesis, STA, PnR, and post-route STA evidence" }
+    - { name: "handoff_coverage", command: "/coverage uart_lite", description: "coverage workflow measures SSOT-declared functional/code/FSM/assertion goals" }
+    - { name: "handoff_eda", command: "/syn uart_lite && /sta uart_lite", description: "EDA workflows produce synthesis and STA evidence when quality_gates require it" }
   atlas_workflows:
     - "ssot-gen"
     - "rtl-gen"
@@ -1118,6 +1094,4 @@ generation_flow:
     - "sim_debug"
     - "coverage"
     - "syn"
-    - "pnr"
     - "sta"
-    - "sta-post"
