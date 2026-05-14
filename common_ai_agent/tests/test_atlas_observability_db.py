@@ -23,6 +23,7 @@ def test_observability_schema_is_additive(tmp_path: Path) -> None:
         "todo_events",
         "llm_calls",
         "artifacts",
+        "ip_permissions",
     }.issubset(tables)
 
 
@@ -203,3 +204,116 @@ def test_admin_usage_falls_back_to_messages_when_no_llm_calls_exist(tmp_path: Pa
     assert usage["users"][0]["total_cost_usd"] == 0.75
     assert usage["users"][0]["models"][0]["model_id"] == "legacy-model"
     assert usage["cost_by_context"][0]["ip"] == "timer"
+
+
+def test_admin_usage_reports_todo_flow_and_llm_usage(tmp_path: Path) -> None:
+    with AtlasDB(str(tmp_path / "atlas.db")) as db:
+        user = db.create_user("erin", "Erin")
+        session = db.create_session(user["id"], "DMA RTL", project_id="dma")
+        workspace = db.upsert_workspace(user["id"], "soc-workspace", local_path="/repo/soc")
+        ip = db.upsert_ip_block(workspace["id"], "dma", ip_type="controller")
+        run = db.start_workflow_run(
+            session_id=session["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="rtl-gen",
+        )
+        todo = db.upsert_workflow_todo(
+            run["id"],
+            title="Implement DMA descriptor decoder",
+            detail="Decode descriptor fields from SSOT register map.",
+            criteria="Descriptor decode RTL and tests cover legal and illegal descriptors.",
+            notes=["found descriptor endian rule in SSOT", "lint clean after mask fix"],
+            status="pending",
+        )
+        db.record_todo_event(todo["id"], "in_progress", reason="started descriptor decoder")
+        db.record_todo_event(todo["id"], "rejected", reason="missing illegal descriptor trap")
+        db.record_todo_event(todo["id"], "rejected", reason="trap path did not clear busy")
+        db.record_todo_event(todo["id"], "approved", reason="read RTL and ran descriptor tests")
+        db.record_llm_call(
+            session_id=session["id"],
+            run_id=run["id"],
+            todo_id=todo["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="rtl-gen",
+            model="gpt-5.3-codex",
+            provider="openai",
+            tokens_input=1000,
+            tokens_output=250,
+            tokens_reasoning=75,
+            cost_usd=0.9,
+            latency_ms=1200,
+        )
+        db.record_llm_call(
+            session_id=session["id"],
+            run_id=run["id"],
+            todo_id=todo["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="rtl-gen",
+            model="gpt-5.3-codex",
+            provider="openai",
+            tokens_input=800,
+            tokens_output=150,
+            tokens_reasoning=25,
+            cost_usd=0.6,
+            latency_ms=900,
+        )
+
+        usage = build_admin_usage_payload(db)
+
+    assert len(usage["todo_usage"]) == 1
+    item = usage["todo_usage"][0]
+    assert item["content"] == "Implement DMA descriptor decoder"
+    assert item["detail"] == "Decode descriptor fields from SSOT register map."
+    assert item["criteria"] == "Descriptor decode RTL and tests cover legal and illegal descriptors."
+    assert item["notes"] == ["found descriptor endian rule in SSOT", "lint clean after mask fix"]
+    assert item["status"] == "approved"
+    assert item["rejected_count"] == 2
+    assert item["approved_count"] == 1
+    assert item["last_rejected_reason"] == "trap path did not clear busy"
+    assert item["last_event_type"] == "approved"
+    assert item["last_event_reason"] == "read RTL and ran descriptor tests"
+    assert item["llm_calls"] == 2
+    assert item["tokens_input"] == 1800
+    assert item["tokens_output"] == 400
+    assert item["tokens_reasoning"] == 100
+    assert item["tokens"] == 2200
+    assert item["cost"] == 1.5
+    assert item["ip"] == "dma"
+    assert item["workspace"] == "soc-workspace"
+    assert item["workflow"] == "rtl-gen"
+
+    flow = usage["todo_flow"]
+    assert [event["event_type"] for event in flow] == [
+        "in_progress",
+        "rejected",
+        "rejected",
+        "approved",
+    ]
+    assert flow[-1]["content"] == "Implement DMA descriptor decoder"
+
+
+def test_ip_permissions_allow_view_and_import_by_user(tmp_path: Path) -> None:
+    with AtlasDB(str(tmp_path / "atlas.db")) as db:
+        owner = db.create_user("owner", "Owner")
+        reviewer = db.create_user("reviewer", "Reviewer")
+        workspace = db.upsert_workspace(owner["id"], "owner-ws", local_path="/repo/owner")
+        ip = db.upsert_ip_block(workspace["id"], "dma", ip_type="controller")
+
+        assert db.can_user_access_ip(ip["id"], owner["id"], "admin") is True
+        assert db.can_user_access_ip(ip["id"], reviewer["id"], "view") is False
+
+        grant = db.grant_ip_permission(
+            ip["id"],
+            reviewer["id"],
+            "import",
+            granted_by_user_id=owner["id"],
+        )
+        accessible = db.list_accessible_ip_blocks(reviewer["id"], permission="view")
+
+    assert grant["permission"] == "import"
+    assert grant["grantee_user_id"] == reviewer["id"]
+    assert accessible[0]["ip_name"] == "dma"
+    assert accessible[0]["permission"] == "import"
