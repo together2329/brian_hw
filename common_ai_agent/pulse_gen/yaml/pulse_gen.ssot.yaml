@@ -714,7 +714,7 @@ test_requirements:
       model: "function_model"
       description: "Functional coverage for trigger, pulse width, re-trigger blocking, interrupt, zero-width, back-to-back."
       bins:
-        - { id: "fcov_reset_idle", source_ref: "function_model.invariants.reset", class: "state", description: "Reset clears all state" }
+        - { id: "fcov_reset_idle", source_ref: "function_model.invariants.inv_reset", class: "state", description: "Reset clears all state" }
         - { id: "fcov_apb_trigger", source_ref: "function_model.transactions.FM_TICK.preconditions", class: "transaction", description: "APB CTRL.START trigger accepted" }
         - { id: "fcov_ext_trigger", source_ref: "function_model.transactions.FM_TICK.inputs.trigger", class: "transaction", description: "External trigger_in edge accepted" }
         - { id: "fcov_retrigger_blocked", source_ref: "function_model.transactions.FM_TICK.side_effects", class: "state", description: "Re-trigger while active blocked" }

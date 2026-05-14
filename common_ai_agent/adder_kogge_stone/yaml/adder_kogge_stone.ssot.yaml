@@ -672,7 +672,29 @@ test_requirements:
     branch: ">= 85% instrumented branch coverage or explicit project waiver"
     fsm: "100% declared FSM states and transitions covered"
     assertions: "All APB protocol and result-valid assertions pass"
-quality_gates: TBD
+quality_gates:
+  ssot:
+    pass: "All canonical sections are present, substantive, internally consistent, and have no live TBD placeholders."
+    evidence: ["check_ssot_disk.sh PASS", "traceability covers function_model/cycle_model/test_requirements"]
+  rtl_gen:
+    profile: "standard"
+    pass: "SSOT-derived rtl_todo_plan has no blockers; RTL compiles and lints; all SSOT-declared interfaces, registers, and function/cycle model requirements are implemented."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_compile.json", "lint/dut_lint.json"]
+  rtl:
+    pass: "RTL implements function_model and cycle_model, compiles, and has no unwaived lint warnings."
+    evidence: ["rtl filelist", "compile log", "lint report"]
+  dv:
+    pass: "Every test_requirements scenario has an executable test, expected/got checker, and coverage bin."
+    evidence: ["results.xml", "coverage.json", "VCD/FST waveform"]
+  coverage:
+    pass: "Functional coverage goals pass and code/FSM/assertion coverage meets thresholds or has approved waiver."
+    evidence: ["instrumented coverage report", "coverage_report.md"]
+  eda:
+    pass: "Synthesis and STA meet SSOT timing/area/power targets or have signed-off waivers."
+    evidence: ["syn report", "sta setup/hold report", "wns.json"]
+  signoff:
+    pass: "SSOT, RTL, lint, DV, simulation, coverage, and required EDA gates pass with fresh evidence."
+    evidence: ["ATLAS progress signoff pass", "artifact timestamps newer than final source edits"]
 traceability: TBD
 workflow_todos: TBD
 generation_flow: TBD

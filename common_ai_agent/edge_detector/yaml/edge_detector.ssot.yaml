@@ -648,5 +648,80 @@ traceability:
     - { yaml: "quality_gates", output: "ATLAS progress and signoff criteria" }
     - { yaml: "features", output: "edge_detector_core.sv edge detect logic" }
     - { yaml: "dataflow", output: "edge_detector_core.sv datapath" }
-workflow_todos: TBD
-generation_flow: TBD
+workflow_todos:
+  fl-model-gen: []
+  rtl-gen:
+    - id: "RTL_TODO_CORE_EDGE_LOGIC"
+      content: "Implement edge detection combinational logic per output_rules"
+      detail: "Translate function_model.transactions.EDGE_DETECT.output_rules into RTL: per-input edge detection using prev_inputs, signal_inputs, and edge_mode fields"
+      criteria:
+        - "edge_outputs[i] follows rising/falling/both/disabled rules for all NUM_INPUTS inputs"
+        - "edge_outputs[i] is exactly 1 cycle wide"
+        - "All output_rules conditions are covered in RTL"
+      source_refs: ["function_model.transactions.EDGE_DETECT.output_rules", "cycle_model.pipeline.S1_EDGE_LOGIC"]
+      owner_module: "edge_detector_core"
+      owner_file: "rtl/edge_detector_core.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_CORE_SYNC"
+      content: "Implement input synchronization register"
+      detail: "Register signal_inputs into prev_inputs on PCLK rising edge per cycle_model.pipeline.S0_SYNC"
+      criteria:
+        - "prev_inputs updated every PCLK cycle from signal_inputs"
+        - "prev_inputs reset to 0 when PRESETn asserted"
+      source_refs: ["function_model.state_updates.prev_inputs", "cycle_model.pipeline.S0_SYNC"]
+      owner_module: "edge_detector_core"
+      owner_file: "rtl/edge_detector_core.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_CORE_INT_STATUS"
+      content: "Implement interrupt status sticky bits with W1C clear"
+      detail: "INT_STATUS[i] set on edge_outputs[i] & INT_EN[i]; cleared on W1C write; concurrent set+clear uses or-last per custom.assumptions"
+      criteria:
+        - "INT_STATUS sticky behavior matches function_model.state_updates.int_status"
+        - "W1C clear works per bit"
+        - "Concurrent set+clear resolves per custom.assumptions.ASM_NO_STICKY_OVERRIDE"
+      source_refs: ["function_model.state_updates.int_status", "registers.INT_STATUS", "custom.assumptions.ASM_NO_STICKY_OVERRIDE"]
+      owner_module: "edge_detector_core"
+      owner_file: "rtl/edge_detector_core.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_REGS_APB_DECODE"
+      content: "Implement APB-lite register decode and readback"
+      detail: "Decode PADDR[7:0] to select EDGE_CTRL/INT_EN/INT_STATUS/EDGE_RAW; drive PRDATA/PREADY/PSLVERR per APB4-lite protocol"
+      criteria:
+        - "All 4 registers accessible at correct offsets"
+        - "PREADY=1 on all accesses; PSLVERR=1 for unsupported addresses"
+        - "Reserved fields read zero per registers.reserved_field_policy"
+      source_refs: ["registers.register_list", "error_handling.ERR_APB_DECODE"]
+      owner_module: "edge_detector_regs"
+      owner_file: "rtl/edge_detector_regs.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_TOP_WIRING"
+      content: "Wire top-level edge_detector port connections between sub-modules and IO"
+      detail: "Instantiate edge_detector_core and edge_detector_regs; connect per integration.connections"
+      criteria:
+        - "All integration.connections entries realized as named port maps"
+        - "Top-level ports match io_list exactly"
+      source_refs: ["integration.connections", "io_list"]
+      owner_module: "edge_detector"
+      owner_file: "rtl/edge_detector.sv"
+      priority: "high"
+      required: true
+  tb-gen: []
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh edge_detector", description: "Validate production SSOT structure and quality gates" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model edge_detector", description: "FunctionalModel, decomposition, coverage plan, and equivalence goals from validated SSOT" }
+    - { name: "handoff_rtl", command: "/ssot-rtl edge_detector", description: "Downstream RTL generation from validated SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb edge_detector", description: "Downstream pyuvm/cocotb verification from validated SSOT" }
+    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Downstream waveform, failure, and coverage inspection" }
+    - { name: "handoff_coverage", command: "/coverage edge_detector", description: "Measure SSOT-declared coverage goals" }
+    - { name: "handoff_eda", command: "/syn edge_detector && /sta edge_detector", description: "Synthesis and STA evidence from SSOT constraints" }

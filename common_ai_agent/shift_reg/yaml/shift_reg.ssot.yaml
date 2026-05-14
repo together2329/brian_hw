@@ -374,6 +374,7 @@ fsm:
       - { from: "SERIAL_SHIFT",   to: "DONE",          condition: "shift_count == 0" }
       - { from: "DONE",           to: "IDLE",          condition: "1 cycle automatic" }
 rtl_contract:
+  transaction: "FM1"
   transactions: ["FM1", "FM2", "FM3"]
   sample_condition: "transaction starts on PCLK rising edge when CTRL.go=1 sampled high with busy=0"
   input_map:

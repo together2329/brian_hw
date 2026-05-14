@@ -116,6 +116,47 @@ io_list:
         sampling: "parity_in_i is sampled when data_valid_i=1 in check mode."
       ports:
         - { name: "parity_in_i", width: "PARITY_WIDTH", direction: "input", description: "Expected parity for check mode" }
+
+registers:
+  config:
+    register_width: 32
+    addr_width: 12
+    byte_addressable: true
+  bit_order: "lsb0"
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: "ignore"
+    rtl_requirement: "Reserved fields read as zero and do not allocate storage."
+  register_list:
+    - name: "CTRL"
+      offset: 0x000
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "control"
+      description: "Control Register"
+      write_side_effects:
+        - "enable=0 gates data_valid_i propagation; parity_valid_o and error_o hold 0."
+        - "parity_type and mode changes take effect on the next data_valid_i assertion."
+      fields:
+        - { name: "enable",       bits: [0, 0], access: "rw", reset: 0x0, description: "0=Disabled, 1=Enabled" }
+        - { name: "parity_type",  bits: [1, 1], access: "rw", reset: 0x0, description: "0=Even parity, 1=Odd parity" }
+        - { name: "mode",         bits: [2, 2], access: "rw", reset: 0x0, description: "0=Generate, 1=Check" }
+        - { name: "reserved_31_3", bits: [31, 3], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+    - name: "STATUS"
+      offset: 0x004
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "status"
+      description: "Status Register"
+      fields:
+        - { name: "error_flag",     bits: [0, 0], access: "ro", reset: 0x0, description: "Sticky check error; cleared on read or reset" }
+        - { name: "reserved_31_1",  bits: [31, 1], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+      read_side_effects:
+        - "Reading STATUS clears error_flag to 0."
+
 features:
   - name: "Parity Generate"
     trigger: "data_valid_i=1 with CTRL.mode=0 and CTRL.enable=1"

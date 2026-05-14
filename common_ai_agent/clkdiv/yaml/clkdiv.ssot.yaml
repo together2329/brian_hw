@@ -314,6 +314,11 @@ io_list:
     clock: PCLK
     reset: PRESETn
     description: "Divided clock output with near-50% duty cycle"
+    protocol:
+      output_rule: "clkdiv_o toggles on PCLK rising edge based on counter_q vs half_period_q when enable_q=1. Held low when enable_q=0."
+      duty_cycle: "Even effective divisor: 50% duty cycle. Odd effective divisor: high phase one PCLK cycle longer than low phase."
+      passthrough: "DIVISOR=0 (effective divisor=1): clkdiv_o = PCLK."
+      frequency: "f_clkdiv_o = f_PCLK / (DIVISOR + 1)"
     ports:
     - name: clkdiv_o
       width: 1

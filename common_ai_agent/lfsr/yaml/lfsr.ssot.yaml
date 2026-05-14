@@ -693,5 +693,60 @@ traceability:
     - { yaml: "timing", output: "STA constraints" }
     - { yaml: "test_requirements.scenarios", output: "sim/tb_program.sv" }
     - { yaml: "quality_gates", output: "ATLAS progress and signoff criteria" }
-workflow_todos: TBD
+workflow_todos:
+  fl-model-gen: []
+  rtl-gen:
+    - id: "RTL_LFSR_CORE"
+      content: "Implement LFSR shift engine with Fibonacci feedback"
+      detail: "Translate function_model.state_updates into RTL: XOR-reduce feedback tree, shift-right logic, seed load mux with priority. Use cycle_model.pipeline for register staging. Implement FSM states IDLE/SHIFT/LOAD_SEED per fsm.lfsr_core_fsm."
+      criteria:
+        - "RTL owner logic is present in rtl/lfsr_core.sv"
+        - "FunctionalModel expected lfsr_out matches RTL observed lfsr_out for all scenarios"
+        - "All FSM states and transitions implemented"
+      source_refs: ["function_model.state_updates", "cycle_model.pipeline", "fsm.lfsr_core_fsm"]
+      owner_module: "lfsr_core"
+      owner_file: "rtl/lfsr_core.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_LFSR_REGS"
+      content: "Implement APB-lite register block with CSR map"
+      detail: "Translate registers.register_list into APB-lite decode/read/write logic. Implement zero-wait-state PREADY. Handle RO register write-ignore. Implement CTRL.load_seed self-clearing pulse."
+      criteria:
+        - "RTL owner logic is present in rtl/lfsr_regs.sv"
+        - "All register fields read/write per access policy"
+        - "APB-lite protocol timing matches cycle_model.handshake_rules"
+      source_refs: ["registers.register_list", "io_list.interfaces.apb_slave", "cycle_model.handshake_rules"]
+      owner_module: "lfsr_regs"
+      owner_file: "rtl/lfsr_regs.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_LFSR_TOP"
+      content: "Wire top-level lfsr.sv connecting lfsr_regs and lfsr_core"
+      detail: "Instantiate lfsr_regs and lfsr_core. Connect per integration.connections. Route lfsr_out from lfsr_core state to top-level output and DATA register readback."
+      criteria:
+        - "All integration.connections wired with named port maps"
+        - "Top IO contract matches io_list"
+        - "No undriven outputs or unconnected inputs"
+      source_refs: ["integration.connections", "io_list"]
+      owner_module: "lfsr"
+      owner_file: "rtl/lfsr.sv"
+      priority: "medium"
+      required: true
+  tb-gen:
+    - id: "TB_LFSR_SCOREBOARD"
+      content: "Create cocotb scoreboard from function_model"
+      detail: "Implement Python reference model applying function_model.state_updates algebraically. Compare expected lfsr_out against RTL observed value per-PCLK-cycle for all test_requirements.scenarios."
+      criteria:
+        - "All 7 scoreboard checks pass"
+        - "All coverage_goals bins hit"
+      source_refs: ["function_model", "test_requirements"]
+      owner_file: "sim/tb_program.sv"
+      priority: "high"
+      required: true
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
 generation_flow: TBD
