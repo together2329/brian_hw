@@ -1,0 +1,40 @@
+===== pyslang =====
+command: pyslang rtl/todo_counter_pipe.sv rtl/todo_counter_pipe_regs.sv rtl/todo_counter_pipe_core.sv rtl/todo_counter_pipe_cdc.sv
+returncode: 0
+errors: 0 warnings: 0
+pyslang files: 4
+errors=0 warnings=0
+
+===== verilator =====
+command: verilator --lint-only -Wall -Irtl -f list/todo_counter_pipe.f --top-module todo_counter_pipe
+returncode: 1
+errors: 0 warnings: 6
+%Warning-UNUSEDPARAM: rtl/todo_counter_pipe.sv:3:23: Parameter is not used: 'BUS_CLK_FREQ_MHZ'
+                                                   : ... note: In instance 'todo_counter_pipe'
+    3 |     parameter integer BUS_CLK_FREQ_MHZ = 150,
+      |                       ^~~~~~~~~~~~~~~~
+                      ... For warning description see https://verilator.org/warn/UNUSEDPARAM?v=5.046
+                      ... Use "/* verilator lint_off UNUSEDPARAM */" and lint_on around source to disable this message.
+%Warning-UNUSEDPARAM: rtl/todo_counter_pipe.sv:4:23: Parameter is not used: 'CORE_CLK_FREQ_MHZ'
+                                                   : ... note: In instance 'todo_counter_pipe'
+    4 |     parameter integer CORE_CLK_FREQ_MHZ = 300
+      |                       ^~~~~~~~~~~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/todo_counter_pipe.sv:37:11: Signal is not used: 'status_core_to_bus'
+                                                     : ... note: In instance 'todo_counter_pipe'
+   37 |     logic status_core_to_bus;
+      |           ^~~~~~~~~~~~~~~~~~
+                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
+                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
+%Warning-UNUSEDSIGNAL: rtl/todo_counter_pipe_regs.sv:47:11: Signal is not driven, nor used: 'counter_irq'
+                                                          : ... note: In instance 'todo_counter_pipe.u_regs'
+   47 |     logic counter_irq;
+      |           ^~~~~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/todo_counter_pipe_regs.sv:48:11: Signal is not used: 'S0_APB_ACCESS'
+                                                          : ... note: In instance 'todo_counter_pipe.u_regs'
+   48 |     logic S0_APB_ACCESS;
+      |           ^~~~~~~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/todo_counter_pipe_regs.sv:49:11: Signal is not used: 'S4_STATUS_UPDATE'
+                                                          : ... note: In instance 'todo_counter_pipe.u_regs'
+   49 |     logic S4_STATUS_UPDATE;
+      |           ^~~~~~~~~~~~~~~~
+%Error: Exiting due to 6 warning(s)

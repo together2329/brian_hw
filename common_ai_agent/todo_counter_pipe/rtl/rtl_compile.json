@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "type": "rtl_compile",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "iverilog",
+  "command": "iverilog -g2012 -Irtl -f list/todo_counter_pipe.f -s todo_counter_pipe -o /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/todo_counter_pipe_rtl_check.vvp",
+  "cwd": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/todo_counter_pipe",
+  "top": "todo_counter_pipe",
+  "filelist": "list/todo_counter_pipe.f",
+  "rtl_files": [
+    "rtl/todo_counter_pipe.sv",
+    "rtl/todo_counter_pipe_regs.sv",
+    "rtl/todo_counter_pipe_core.sv",
+    "rtl/todo_counter_pipe_cdc.sv"
+  ],
+  "timestamp": "2026-05-14T03:23:36Z",
+  "returncode": 0,
+  "errors": 0,
+  "diagnostics": 0,
+  "style_violations": 0,
+  "style_violation_details": [],
+  "passed": true,
+  "policy": "returncode==0, no error/fatal/warning/sorry diagnostics, no procedural parameterized part-select style violations, and no generated-RTL policy violations: .sv filenames with SystemVerilog logic-port syntax, rtl/<ip>_param.vh for shared parameters, no package/import/interface/modport/function/task/for/while, and no typedef/enum/always_ff/always_comb"
+}

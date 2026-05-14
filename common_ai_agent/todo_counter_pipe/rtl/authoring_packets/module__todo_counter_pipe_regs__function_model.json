@@ -1,0 +1,560 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 16,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model",
+      "module_task_count": 65,
+      "rule": "Owner module todo_counter_pipe_regs is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/todo_counter_pipe_regs.sv",
+      "name": "todo_counter_pipe_regs",
+      "refs": [
+        "cycle_model.handshake_rules.counter_irq",
+        "cycle_model.handshake_rules.prdata",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.pipeline.S0_APB_ACCESS",
+        "cycle_model.pipeline.S4_STATUS_UPDATE",
+        "decomposition.units.apb_decode",
+        "function_model.transactions.FM10",
+        "interrupts",
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "registers",
+        "registers.register_list",
+        "registers.register_list.CNT",
+        "registers.register_list.CTRL",
+        "registers.register_list.DBGCNT",
+        "registers.register_list.INTCLR",
+        "registers.register_list.INTEN",
+        "registers.register_list.INTSTAT",
+        "registers.register_list.LOAD",
+        "registers.register_list.STATUS",
+        "registers.register_list.TERM"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/todo_counter_pipe_regs.sv",
+        "name": "todo_counter_pipe_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/todo_counter_pipe_core.sv",
+        "name": "todo_counter_pipe_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/todo_counter_pipe_cdc.sv",
+        "name": "todo_counter_pipe_cdc",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/todo_counter_pipe.sv",
+        "name": "todo_counter_pipe",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_regs",
+        "port": "bus_clk",
+        "signal": "bus_clk",
+        "signal_terms": [
+          "bus_clk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_regs",
+        "port": "bus_rst_n",
+        "signal": "bus_rst_n",
+        "signal_terms": [
+          "bus_rst_n"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_regs",
+        "port": "irq_o",
+        "signal": "counter_irq",
+        "signal_terms": [
+          "counter_irq"
+        ],
+        "source_ref": "integration.connections[2]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "todo_counter_pipe",
+  "kind": "module",
+  "owner_file": "rtl/todo_counter_pipe_regs.sv",
+  "owner_module": "todo_counter_pipe_regs",
+  "packet_id": "module__todo_counter_pipe_regs__function_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.input": 1,
+      "function_model.output": 3,
+      "function_model.precondition": 1,
+      "function_model.side_effect": 1,
+      "function_model.transaction": 1
+    },
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model",
+      "module_task_count": 65,
+      "rule": "Owner module todo_counter_pipe_regs is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 7,
+    "source_refs": [
+      "function_model.transactions.FM10",
+      "function_model.transactions.FM10.preconditions.precondition_0",
+      "function_model.transactions.FM10.inputs.input_0",
+      "function_model.transactions.FM10.outputs.output_0",
+      "function_model.transactions.FM10.outputs.output_1",
+      "function_model.transactions.FM10.outputs.output_2",
+      "function_model.transactions.FM10.side_effects.side_effect_0"
+    ],
+    "status_counts": {
+      "pass": 7
+    },
+    "task_count": 7
+  },
+  "tasks": [
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM10",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM10",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM10.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via function_model.transactions.FM10.\nSSOT item context: id=FM10; name=interrupt_clear.",
+      "evidence_terms": [],
+      "id": "RTL-0145",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM10",
+      "ssot_context": {
+        "id": "FM10",
+        "name": "interrupt_clear"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM10"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM10: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM10.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM10.preconditions.precondition_0.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via function_model.transactions.FM10.\nSSOT item context: value=INTCLR.tc_clr, .ovf_clr, or .unf_clr written 1.",
+      "evidence_terms": [
+        "clr",
+        "ovf",
+        "ovf_clr",
+        "tc",
+        "tc_clr",
+        "unf",
+        "unf_clr"
+      ],
+      "id": "RTL-0146",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM10.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "INTCLR.tc_clr, .ovf_clr, or .unf_clr written 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM10.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "clr",
+          "ovf",
+          "ovf_clr",
+          "tc",
+          "tc_clr",
+          "unf",
+          "unf_clr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "clr",
+          "ovf",
+          "ovf_clr",
+          "tc",
+          "tc_clr",
+          "unf",
+          "unf_clr"
+        ],
+        "source_scope": "rtl/todo_counter_pipe_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM10: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM10.inputs.input_0",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM10.inputs.input_0.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via function_model.transactions.FM10.\nSSOT item context: value=W1C write.",
+      "evidence_terms": [],
+      "id": "RTL-0147",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM10.inputs.input_0",
+      "ssot_context": {
+        "value": "W1C write"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM10.inputs.input_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM10: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM10.outputs.output_0",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM10.outputs.output_0.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via function_model.transactions.FM10.\nSSOT item context: value=Corresponding INTSTAT bit cleared.",
+      "evidence_terms": [],
+      "id": "RTL-0148",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM10.outputs.output_0",
+      "ssot_context": {
+        "value": "Corresponding INTSTAT bit cleared"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM10.outputs.output_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM10: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM10.outputs.output_1",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM10.outputs.output_1.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via function_model.transactions.FM10.\nSSOT item context: value=For ovf_clr: STATUS.overflow cleared.",
+      "evidence_terms": [
+        "clr",
+        "ovf",
+        "ovf_clr"
+      ],
+      "id": "RTL-0149",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM10.outputs.output_1",
+      "ssot_context": {
+        "value": "For ovf_clr: STATUS.overflow cleared"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM10.outputs.output_1"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "clr",
+          "ovf",
+          "ovf_clr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "clr",
+          "ovf",
+          "ovf_clr"
+        ],
+        "source_scope": "rtl/todo_counter_pipe_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM10: output_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM10.outputs.output_2",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM10.outputs.output_2.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via function_model.transactions.FM10.\nSSOT item context: value=For unf_clr: STATUS.underflow cleared.",
+      "evidence_terms": [
+        "clr",
+        "unf",
+        "unf_clr"
+      ],
+      "id": "RTL-0150",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM10.outputs.output_2",
+      "ssot_context": {
+        "value": "For unf_clr: STATUS.underflow cleared"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM10.outputs.output_2"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "clr",
+          "unf",
+          "unf_clr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "clr",
+          "unf",
+          "unf_clr"
+        ],
+        "source_scope": "rtl/todo_counter_pipe_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM10: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM10.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM10.side_effects.side_effect_0.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via function_model.transactions.FM10.\nSSOT item context: value=counter_irq deasserts if no other enabled pending sources remain.",
+      "evidence_terms": [
+        "counter_irq",
+        "irq"
+      ],
+      "id": "RTL-0151",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM10.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "counter_irq deasserts if no other enabled pending sources remain"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM10.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "counter_irq",
+          "irq"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_irq",
+          "irq"
+        ],
+        "source_scope": "rtl/todo_counter_pipe_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "b329388dc9f0734e5afc3107218760f4ee5baf3a53ad32d151a73aac2ea551a4",
+  "top": "todo_counter_pipe",
+  "type": "rtl_authoring_packet"
+}

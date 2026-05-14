@@ -105,7 +105,15 @@ _plan_mode_cv = contextvars.ContextVar("plan_mode", default="false")
 
 
 def _active_session_value() -> str:
-    return _atlas_active_session_cv.get() or os.environ.get("ATLAS_ACTIVE_SESSION", "")
+    current = (_atlas_active_session_cv.get() or "").strip()
+    env_value = (os.environ.get("ATLAS_ACTIVE_SESSION", "") or "").strip()
+    # FastAPI request tasks can inherit the startup contextvar value
+    # ("default/default/default"). /api/session/activate mirrors the real
+    # active namespace into os.environ for cross-task visibility, so do not
+    # let that placeholder shadow a newer backend activation.
+    if current and (current not in {"default", "default/default", "default/default/default"} or not env_value):
+        return current
+    return env_value or current
 
 
 def _normalize_reasoning_effort(raw: Any) -> str:
@@ -268,7 +276,11 @@ def _apply_selected_model_from_env() -> str:
 
 
 def _active_ip_value() -> str:
-    return _atlas_active_ip_cv.get() or os.environ.get("ATLAS_ACTIVE_IP", "")
+    current = (_atlas_active_ip_cv.get() or "").strip()
+    env_value = (os.environ.get("ATLAS_ACTIVE_IP", "") or "").strip()
+    if current and (current != "default" or not env_value):
+        return current
+    return env_value or current
 
 
 def _ui_lang_value() -> str:
@@ -281,8 +293,23 @@ def _plan_mode_value() -> str:
 
 def _sync_env_to_context() -> None:
     """Copy contextvars back to os.environ for legacy main.py reads."""
-    os.environ["ATLAS_ACTIVE_SESSION"] = _atlas_active_session_cv.get()
-    os.environ["ATLAS_ACTIVE_IP"] = _atlas_active_ip_cv.get()
+    session_value = (_atlas_active_session_cv.get() or "").strip()
+    session_env = (os.environ.get("ATLAS_ACTIVE_SESSION", "") or "").strip()
+    if session_value and (
+        session_value not in {"default", "default/default", "default/default/default"}
+        or not session_env
+    ):
+        os.environ["ATLAS_ACTIVE_SESSION"] = session_value
+    elif not session_env:
+        os.environ["ATLAS_ACTIVE_SESSION"] = session_value
+
+    ip_value = (_atlas_active_ip_cv.get() or "").strip()
+    ip_env = (os.environ.get("ATLAS_ACTIVE_IP", "") or "").strip()
+    if ip_value and (ip_value != "default" or not ip_env):
+        os.environ["ATLAS_ACTIVE_IP"] = ip_value
+    elif not ip_env:
+        os.environ["ATLAS_ACTIVE_IP"] = ip_value
+
     os.environ["ATLAS_UI_LANG"] = _atlas_ui_lang_cv.get()
     os.environ["AGENT_MODE_OVERRIDE"] = _agent_mode_override_cv.get()
     os.environ["PLAN_MODE"] = _plan_mode_cv.get()
@@ -11197,9 +11224,13 @@ def create_app():
                         if is_plan:
                             _agent_mode_override_cv.set("plan_q")
                             _plan_mode_cv.set("true")
+                            os.environ["AGENT_MODE_OVERRIDE"] = "plan_q"
+                            os.environ["PLAN_MODE"] = "true"
                         else:
                             _agent_mode_override_cv.set("normal")
                             _plan_mode_cv.set("false")
+                            os.environ["AGENT_MODE_OVERRIDE"] = "normal"
+                            os.environ["PLAN_MODE"] = "false"
                             _os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
                         # Immediate UI feedback so the chat reflects the
                         # mode flip the moment the user clicks the

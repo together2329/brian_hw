@@ -1,0 +1,770 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 16,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "owner": {
+      "file": "rtl/todo_counter_pipe.sv",
+      "name": "todo_counter_pipe",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/todo_counter_pipe_regs.sv",
+        "name": "todo_counter_pipe_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/todo_counter_pipe_core.sv",
+        "name": "todo_counter_pipe_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/todo_counter_pipe_cdc.sv",
+        "name": "todo_counter_pipe_cdc",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/todo_counter_pipe.sv",
+        "name": "todo_counter_pipe",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "bus_clk",
+        "signal": "integration.connections.todo_counter_pipe_cdc.bus_clk",
+        "signal_terms": [
+          "bus_clk",
+          "connections",
+          "integration",
+          "todo_counter_pipe_cdc"
+        ],
+        "source_ref": "sub_modules[2].connections"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "core_clk",
+        "signal": "integration.connections.todo_counter_pipe_cdc.core_clk",
+        "signal_terms": [
+          "connections",
+          "core_clk",
+          "integration",
+          "todo_counter_pipe_cdc"
+        ],
+        "source_ref": "sub_modules[2].connections"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "bus_rst_n",
+        "signal": "integration.connections.todo_counter_pipe_cdc.bus_rst_n",
+        "signal_terms": [
+          "bus_rst_n",
+          "connections",
+          "integration",
+          "todo_counter_pipe_cdc"
+        ],
+        "source_ref": "sub_modules[2].connections"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "core_rst_n",
+        "signal": "integration.connections.todo_counter_pipe_cdc.core_rst_n",
+        "signal_terms": [
+          "connections",
+          "core_rst_n",
+          "integration",
+          "todo_counter_pipe_cdc"
+        ],
+        "source_ref": "sub_modules[2].connections"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "control_bus_to_core",
+        "signal": "cdc_requirements.crossings.control_bus_to_core.signals",
+        "signal_terms": [
+          "cdc_requirements",
+          "control_bus_to_core",
+          "crossings",
+          "signals"
+        ],
+        "source_ref": "sub_modules[2].connections"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "status_core_to_bus",
+        "signal": "cdc_requirements.crossings.status_core_to_bus.signals",
+        "signal_terms": [
+          "cdc_requirements",
+          "crossings",
+          "signals",
+          "status_core_to_bus"
+        ],
+        "source_ref": "sub_modules[2].connections"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_regs",
+        "port": "bus_clk",
+        "signal": "bus_clk",
+        "signal_terms": [
+          "bus_clk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_regs",
+        "port": "bus_rst_n",
+        "signal": "bus_rst_n",
+        "signal_terms": [
+          "bus_rst_n"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_regs",
+        "port": "irq_o",
+        "signal": "counter_irq",
+        "signal_terms": [
+          "counter_irq"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_core",
+        "port": "core_clk",
+        "signal": "core_clk",
+        "signal_terms": [
+          "core_clk"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_core",
+        "port": "core_rst_n",
+        "signal": "core_rst_n",
+        "signal_terms": [
+          "core_rst_n"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_core",
+        "port": "event_i",
+        "signal": "event_i",
+        "signal_terms": [
+          "event_i"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "bus_clk",
+        "signal": "bus_clk",
+        "signal_terms": [
+          "bus_clk"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "core_clk",
+        "signal": "core_clk",
+        "signal_terms": [
+          "core_clk"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "bus_rst_n",
+        "signal": "bus_rst_n",
+        "signal_terms": [
+          "bus_rst_n"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "core_rst_n",
+        "signal": "core_rst_n",
+        "signal_terms": [
+          "core_rst_n"
+        ],
+        "source_ref": "integration.connections[9]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "bus_clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "bus_clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "core_clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "core_clk",
+        "source_ref": "io_list.clock_domains[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "bus_rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "bus_rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "core_rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "core_rst_n",
+        "source_ref": "io_list.resets[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_paddr",
+          "paddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "paddr",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "apb_slave_psel",
+          "psel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "psel",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_penable",
+          "penable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "penable",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwrite",
+          "pwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwrite",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwdata",
+          "pwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwdata",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pstrb",
+          "pstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pstrb",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "apb_slave_prdata",
+          "prdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prdata",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pready",
+          "pready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pready",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "event_i",
+          "event_input_event_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "event_i",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "counter_irq",
+          "interrupt_counter_irq"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "counter_irq",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [
+      {
+        "gate_kind": "common_ai_agent_authoring",
+        "owner_module": "todo_counter_pipe",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
+        "gate_kind": "dut_lint",
+        "owner_module": "todo_counter_pipe",
+        "reason": "DUT lint artifact is not clean.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "status": "open",
+        "task_id": "RTL-0018"
+      },
+      {
+        "gate_kind": "dynamic_todo_closure",
+        "owner_module": "todo_counter_pipe",
+        "reason": "8 required non-closure TODO(s) remain open.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "status": "open",
+        "task_id": "RTL-0019"
+      }
+    ],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": false,
+    "evidence_closure_allowed": true,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 3,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 3,
+    "tool_evidence_plan": [
+      {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "artifacts": [
+          "todo_counter_pipe/rtl/rtl_authoring_provenance.json",
+          "todo_counter_pipe/rtl/rtl_todo_plan.json"
+        ],
+        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+        "commands": [
+          "python3 src/headless_workflow.py --root . --ip todo_counter_pipe --stages rtl-gen",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py todo_counter_pipe --root . --audit-rtl"
+        ],
+        "gate_kind": "common_ai_agent_authoring",
+        "prerequisites": [
+          "An LLM authoring pass emitted or repaired DUT RTL files."
+        ],
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "stage_sequence": [
+          "ssot-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
+        "artifact": "lint/dut_lint.json",
+        "artifacts": [
+          "todo_counter_pipe/lint/dut_lint.json"
+        ],
+        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+        "commands": [
+          "python3 workflow/lint/scripts/dut_lint_report.py todo_counter_pipe --top todo_counter_pipe",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py todo_counter_pipe --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_lint",
+        "prerequisites": [
+          "todo_counter_pipe/list/todo_counter_pipe.f covers the current DUT RTL/header sources."
+        ],
+        "reason": "DUT lint artifact is not clean.",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "stage_sequence": [
+          "lint",
+          "dut_lint"
+        ],
+        "status": "open",
+        "task_id": "RTL-0018"
+      },
+      {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "artifacts": [
+          "todo_counter_pipe/rtl/rtl_todo_plan.json",
+          "todo_counter_pipe/rtl/rtl_authoring_status.md"
+        ],
+        "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py todo_counter_pipe --root . --audit-rtl"
+        ],
+        "gate_kind": "dynamic_todo_closure",
+        "prerequisites": [
+          "All non-closure required TODOs have pass status."
+        ],
+        "reason": "8 required non-closure TODO(s) remain open.",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "stage_sequence": [
+          "audit-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0019"
+      }
+    ],
+    "work_allowed": true
+  },
+  "ip": "todo_counter_pipe",
+  "kind": "gate",
+  "owner_file": "rtl/todo_counter_pipe.sv",
+  "owner_module": "todo_counter_pipe",
+  "packet_id": "rtl_gate_tool_evidence",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "rtl_gate.rtl_gen": 4
+    },
+    "module_slice": {},
+    "open_required_count": 3,
+    "required_count": 4,
+    "source_refs": [
+      "quality_gates.rtl_gen.common_ai_agent_authoring",
+      "quality_gates.rtl_gen.dut_compile",
+      "quality_gates.rtl_gen.dut_lint",
+      "quality_gates.rtl_gen.dynamic_todo_closure"
+    ],
+    "status_counts": {
+      "open": 3,
+      "pass": 1
+    },
+    "task_count": 4
+  },
+  "tasks": [
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: RTL is authored by common_ai_agent rtl-gen, not by direct operator edits",
+      "criteria": [
+        "rtl/rtl_authoring_provenance.json exists",
+        "provenance agent is common_ai_agent",
+        "provenance workflow is rtl-gen",
+        "provenance surface is atlas_ui, textual_ui, or headless_common_engine",
+        "provenance todo_plan_sha256 matches the current rtl_todo_plan.json",
+        "provenance rtl_files lists every SSOT manifest RTL file",
+        "provenance rtl_files covers the current DUT filelist sources",
+        "Traceability keeps source_ref quality_gates.rtl_gen.common_ai_agent_authoring",
+        "Primary implementation evidence is in rtl/todo_counter_pipe.sv"
+      ],
+      "detail": "RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.\nSSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.\nOwner: todo_counter_pipe in rtl/todo_counter_pipe.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "kind": "common_ai_agent_authoring",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0006",
+      "owner_file": "rtl/todo_counter_pipe.sv",
+      "owner_module": "todo_counter_pipe",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.common_ai_agent_authoring"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_authoring_provenance.json"
+        ],
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: DUT-only RTL compile report passes after the final RTL edit",
+      "criteria": [
+        "rtl/rtl_compile.json exists",
+        "rtl_compile.json reports dut_only=true",
+        "rtl_compile.json passed=true with zero errors, diagnostics, and style violations",
+        "rtl_compile.json is newer than or equal to every listed DUT RTL source",
+        "rtl_compile.json rtl_files covers the current DUT filelist Verilog/SystemVerilog sources",
+        "Traceability keeps source_ref quality_gates.rtl_gen.dut_compile",
+        "Primary implementation evidence is in rtl/todo_counter_pipe.sv"
+      ],
+      "detail": "Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.\nSSOT ref: quality_gates.rtl_gen.dut_compile.\nOwner: todo_counter_pipe in rtl/todo_counter_pipe.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_compile.json",
+        "kind": "dut_compile",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0017",
+      "owner_file": "rtl/todo_counter_pipe.sv",
+      "owner_module": "todo_counter_pipe",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.dut_compile",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.dut_compile"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_compile.json"
+        ],
+        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: DUT-only lint report passes after the final RTL edit",
+      "criteria": [
+        "lint/dut_lint.json exists",
+        "dut_lint.json reports dut_only=true",
+        "dut_lint.json passed=true with zero errors and zero warnings",
+        "dut_lint.json is newer than or equal to every listed DUT RTL source",
+        "dut_lint.json rtl_files covers the current DUT filelist RTL/header sources",
+        "No ad-hoc lint suppression violation remains unless represented by an exact SSOT waiver",
+        "Traceability keeps source_ref quality_gates.rtl_gen.dut_lint",
+        "Primary implementation evidence is in rtl/todo_counter_pipe.sv"
+      ],
+      "detail": "Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.\nSSOT ref: quality_gates.rtl_gen.dut_lint.\nOwner: todo_counter_pipe in rtl/todo_counter_pipe.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "lint/dut_lint.json",
+        "kind": "dut_lint",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0018",
+      "owner_file": "rtl/todo_counter_pipe.sv",
+      "owner_module": "todo_counter_pipe",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.dut_lint",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.dut_lint"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "lint/dut_lint.json"
+        ],
+        "reason": "DUT lint artifact is not clean.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS",
+      "criteria": [
+        "Every required non-closure task has todo_completion.status=pass",
+        "open_required_todos is zero",
+        "all_required_todos_pass is true",
+        "Traceability keeps source_ref quality_gates.rtl_gen.dynamic_todo_closure",
+        "Primary implementation evidence is in rtl/todo_counter_pipe.sv"
+      ],
+      "detail": "rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.\nSSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.\nOwner: todo_counter_pipe in rtl/todo_counter_pipe.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "dynamic_todo_closure",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0019",
+      "owner_file": "rtl/todo_counter_pipe.sv",
+      "owner_module": "todo_counter_pipe",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.dynamic_todo_closure"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "8 required non-closure TODO(s) remain open.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "b329388dc9f0734e5afc3107218760f4ee5baf3a53ad32d151a73aac2ea551a4",
+  "top": "todo_counter_pipe",
+  "type": "rtl_authoring_packet"
+}

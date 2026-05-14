@@ -1221,12 +1221,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     }
   };
   const switchWorkflow = async (w) => {
-    // Click a workflow chip → fire `/wf <name>` to actually swap the
-    // agent's workspace on the server. The slash command is processed
-    // locally by the dispatcher (no LLM call) and re-registers the
-    // workspace's slash commands. Clicking the active chip exits back
-    // to default on both the UI and backend; otherwise CONTEXT refresh
-    // can re-enter the old workflow after local React state cleared.
+    // Click a workflow chip → activate the backend workspace through the
+    // canonical session API. The API path performs the workspace setup
+    // synchronously; stale queued `/wf` prompts are avoided because they
+    // can land late during fast workflow sweeps.
     const next = workflow === w ? null : w;
     const runningNow = streamingRef.current || window.ATLAS_AGENT_RUNNING === true;
     if (runningNow) {
@@ -1251,8 +1249,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     const parts = (activeSession || window.ACTIVE_SESSION || '').split('/');
     const owner = parts[0] || 'default';
     const ip = window.SCOPE_PATH || parts[1] || 'default';
+    let activated = false;
     try {
-      await fetch('/api/session/activate', {
+      const res = await fetch('/api/session/activate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1261,11 +1260,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
           workflow: next || 'default',
         }),
       });
+      activated = !!(res && res.ok);
     } catch (_) {}
     if (window.backend) {
       if (window.backend.disconnect) window.backend.disconnect();
       if (window.backend.connect) window.backend.connect(sid);
-      sendPrompt(next ? `/wf ${next}` : '/workflow default', sid);
+      if (!activated) sendPrompt(next ? `/wf ${next}` : '/workflow default', sid);
     }
   };
   const [input, setInput] = React.useState('');

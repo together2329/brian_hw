@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "type": "dut_lint",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "pyslang+verilator",
+  "command": "pyslang rtl/todo_counter_pipe.sv rtl/todo_counter_pipe_regs.sv rtl/todo_counter_pipe_core.sv rtl/todo_counter_pipe_cdc.sv && verilator --lint-only -Wall -Irtl -f list/todo_counter_pipe.f --top-module todo_counter_pipe",
+  "cwd": "todo_counter_pipe",
+  "top": "todo_counter_pipe",
+  "filelist": "todo_counter_pipe/list/todo_counter_pipe.f",
+  "rtl_files": [
+    "rtl/todo_counter_pipe.sv",
+    "rtl/todo_counter_pipe_regs.sv",
+    "rtl/todo_counter_pipe_core.sv",
+    "rtl/todo_counter_pipe_cdc.sv"
+  ],
+  "timestamp": "2026-05-14T03:23:36.541920+00:00",
+  "returncode": 1,
+  "errors": 0,
+  "warnings": 6,
+  "waived_warnings": 0,
+  "tool_results": [
+    {
+      "tool": "pyslang",
+      "available": true,
+      "command": "pyslang rtl/todo_counter_pipe.sv rtl/todo_counter_pipe_regs.sv rtl/todo_counter_pipe_core.sv rtl/todo_counter_pipe_cdc.sv",
+      "returncode": 0,
+      "errors": 0,
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "tool": "verilator",
+      "available": true,
+      "command": "verilator --lint-only -Wall -Irtl -f list/todo_counter_pipe.f --top-module todo_counter_pipe",
+      "returncode": 1,
+      "errors": 0,
+      "warnings": 6,
+      "diagnostics": [
+        {
+          "severity": "warning",
+          "rule": "UNUSEDPARAM",
+          "file": "rtl/todo_counter_pipe.sv",
+          "line": 3,
+          "column": 23,
+          "message": "Parameter is not used: 'BUS_CLK_FREQ_MHZ'",
+          "source": "    parameter integer BUS_CLK_FREQ_MHZ = 150,"
+        },
+        {
+          "severity": "warning",
+          "rule": "UNUSEDPARAM",
+          "file": "rtl/todo_counter_pipe.sv",
+          "line": 4,
+          "column": 23,
+          "message": "Parameter is not used: 'CORE_CLK_FREQ_MHZ'",
+          "source": "    parameter integer CORE_CLK_FREQ_MHZ = 300"
+        },
+        {
+          "severity": "warning",
+          "rule": "UNUSEDSIGNAL",
+          "file": "rtl/todo_counter_pipe.sv",
+          "line": 37,
+          "column": 11,
+          "message": "Signal is not used: 'status_core_to_bus'",
+          "source": "    logic status_core_to_bus;"
+        },
+        {
+          "severity": "warning",
+          "rule": "UNUSEDSIGNAL",
+          "file": "rtl/todo_counter_pipe_regs.sv",
+          "line": 47,
+          "column": 11,
+          "message": "Signal is not driven, nor used: 'counter_irq'",
+          "source": "    logic counter_irq;"
+        },
+        {
+          "severity": "warning",
+          "rule": "UNUSEDSIGNAL",
+          "file": "rtl/todo_counter_pipe_regs.sv",
+          "line": 48,
+          "column": 11,
+          "message": "Signal is not used: 'S0_APB_ACCESS'",
+          "source": "    logic S0_APB_ACCESS;"
+        },
+        {
+          "severity": "warning",
+          "rule": "UNUSEDSIGNAL",
+          "file": "rtl/todo_counter_pipe_regs.sv",
+          "line": 49,
+          "column": 11,
+          "message": "Signal is not used: 'S4_STATUS_UPDATE'",
+          "source": "    logic S4_STATUS_UPDATE;"
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "suppression_violation_count": 0,
+  "suppression_violations": [],
+  "style_violation_count": 0,
+  "style_violations": [],
+  "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
+  "passed": false
+}

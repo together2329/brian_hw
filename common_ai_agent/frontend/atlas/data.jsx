@@ -332,9 +332,14 @@
     if (scope === 'default') scope = '';
     const scopeParts = scope.split('/').filter(Boolean);
     const joinSessionParts = (parts) => parts.filter(Boolean).join('/');
-    const scopeHasOwner = /^u-[A-Za-z0-9_-]+$/.test(scopeParts[0] || '');
     const scopeEndsWithWorkflow = sessionPartsEndWithWorkflow(scopeParts);
     const scopeIsCompleteNamespace = scopeParts.length >= 3 && scopeEndsWithWorkflow;
+    const firstScopePart = scopeParts[0] || '';
+    const scopeHasOwner = !!firstScopePart && (
+      firstScopePart === userSession
+      || /^u-[A-Za-z0-9_-]+$/.test(firstScopePart)
+      || scopeIsCompleteNamespace
+    );
     if (scopeHasOwner) {
       if (wf) {
         if (scopeIsCompleteNamespace || scopeParts[scopeParts.length - 1] === 'user') {

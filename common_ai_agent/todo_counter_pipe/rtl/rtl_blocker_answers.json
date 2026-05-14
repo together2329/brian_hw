@@ -1,0 +1,117 @@
+{
+  "rtl_blocker_answers": [
+    {
+      "id": "RTL_MODULE_CONTRACTS",
+      "module_contracts": [
+        {
+          "name": "todo_counter_pipe_cdc",
+          "file": "rtl/todo_counter_pipe_cdc.sv",
+          "wiring_only": false,
+          "responsibility": "Own all clock-domain crossing logic between bus_clk and core_clk: reset deassertion synchronization, bus-to-core control synchronization, clear/load pulse toggle synchronization, and core-to-bus status synchronization. This module must not implement counter arithmetic or APB decoding.",
+          "implements": [
+            "cdc_requirements.crossings.control_bus_to_core",
+            "cdc_requirements.crossings.status_core_to_bus",
+            "cdc_requirements.synchronizers.sync_ctrl",
+            "cdc_requirements.synchronizers.sync_status",
+            "cdc_requirements.synchronizers.sync_pulse_clear",
+            "clock_reset_domains.reset_scheme",
+            "cycle_model.pipeline.S1_CDC_CTRL",
+            "cycle_model.pipeline.S3_CDC_STATUS",
+            "cycle_model.latency.control_cdc_bus_to_core",
+            "cycle_model.latency.status_cdc_core_to_bus"
+          ],
+          "source_sections": [
+            "cdc_requirements",
+            "clock_reset_domains",
+            "cycle_model",
+            "integration",
+            "parameters",
+            "registers"
+          ],
+          "ssot_refs": [
+            "cdc_requirements.crossings.control_bus_to_core",
+            "cdc_requirements.crossings.status_core_to_bus",
+            "cdc_requirements.synchronizers.sync_ctrl",
+            "cdc_requirements.synchronizers.sync_status",
+            "cdc_requirements.synchronizers.sync_pulse_clear",
+            "clock_reset_domains.domains.bus_clk",
+            "clock_reset_domains.domains.core_clk",
+            "clock_reset_domains.reset_scheme.bus_domain",
+            "clock_reset_domains.reset_scheme.core_domain",
+            "integration.connections"
+          ],
+          "decomposition_refs": [
+            "decomposition.units.cdc_sync"
+          ],
+          "cycle_model_refs": [
+            "cycle_model.pipeline.S1_CDC_CTRL",
+            "cycle_model.pipeline.S3_CDC_STATUS",
+            "cycle_model.latency.control_cdc_bus_to_core",
+            "cycle_model.latency.status_cdc_core_to_bus",
+            "cycle_model.clock",
+            "cycle_model.reset"
+          ],
+          "feature_refs": [
+            "features.Clear_Load_Control",
+            "features.Debug_Cycle_Counter"
+          ],
+          "dataflow_refs": [
+            "cycle_model.pipeline.S1_CDC_CTRL",
+            "cycle_model.pipeline.S3_CDC_STATUS"
+          ],
+          "register_refs": [
+            "registers.register_list.CTRL",
+            "registers.register_list.LOAD",
+            "registers.register_list.CNT",
+            "registers.register_list.STATUS",
+            "registers.register_list.INTSTAT",
+            "registers.register_list.DBGCNT"
+          ],
+          "fsm_refs": [
+            "fsm.core_fsm"
+          ],
+          "ports": [
+            "bus_clk",
+            "core_clk",
+            "bus_rst_n",
+            "core_rst_n",
+            "enable_bus_i",
+            "up_down_bus_i",
+            "mode_bus_i",
+            "clear_pulse_bus_i",
+            "load_pulse_bus_i",
+            "load_value_bus_i[WIDTH-1:0]",
+            "enable_core_o",
+            "up_down_core_o",
+            "mode_core_o",
+            "clear_pulse_core_o",
+            "load_pulse_core_o",
+            "load_value_core_o[WIDTH-1:0]",
+            "cnt_core_i[WIDTH-1:0]",
+            "overflow_core_i",
+            "underflow_core_i",
+            "tc_pending_core_i",
+            "ovf_pending_core_i",
+            "unf_pending_core_i",
+            "dbg_cycle_count_core_i[WIDTH-1:0]",
+            "cnt_bus_o[WIDTH-1:0]",
+            "overflow_bus_o",
+            "underflow_bus_o",
+            "tc_pending_bus_o",
+            "ovf_pending_bus_o",
+            "unf_pending_bus_o",
+            "dbg_cycle_count_bus_o[WIDTH-1:0]"
+          ],
+          "connections": {
+            "bus_clk": "integration.connections.todo_counter_pipe_cdc.bus_clk",
+            "core_clk": "integration.connections.todo_counter_pipe_cdc.core_clk",
+            "bus_rst_n": "integration.connections.todo_counter_pipe_cdc.bus_rst_n",
+            "core_rst_n": "integration.connections.todo_counter_pipe_cdc.core_rst_n",
+            "control_bus_to_core": "cdc_requirements.crossings.control_bus_to_core.signals",
+            "status_core_to_bus": "cdc_requirements.crossings.status_core_to_bus.signals"
+          }
+        }
+      ]
+    }
+  ]
+}

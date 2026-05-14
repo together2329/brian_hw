@@ -1,1007 +1,2243 @@
-# todo_counter_pipe.ssot.yaml — Single Source of Truth
 top_module:
-  name: "todo_counter_pipe"
-  file: "rtl/todo_counter_pipe.sv"
-  version: "1.0"
-  type: "peripheral"
-  description: "Parameterized synchronous up/down event counter with APB-lite CSR, dual-clock CDC, saturating/wrap modes, terminal-count interrupt, and sticky overflow/underflow status"
-  reference_spec: "user-defined"
+  name: todo_counter_pipe
+  file: rtl/todo_counter_pipe.sv
+  version: '1.0'
+  type: peripheral
+  description: Parameterized synchronous up/down event counter with APB-lite CSR, dual-clock CDC, saturating/wrap modes, terminal-count
+    interrupt, and sticky overflow/underflow status
+  reference_spec: user-defined
   target:
-    technology: "generic"
+    technology: generic
     clock_freq_mhz: 300
     area_um2: null
     power_mw: null
 sub_modules:
-  - { name: "todo_counter_pipe_regs", file: "rtl/todo_counter_pipe_regs.sv", ownership: "manifest", ssot_gen: true, implements: ["registers.register_list", "interrupts", "io_list.interfaces.apb_slave"], source_sections: ["registers", "interrupts", "io_list"], register_refs: ["registers.register_list"], description: "APB-lite register file, interrupt generation, bus-domain logic" }
-  - { name: "todo_counter_pipe_core", file: "rtl/todo_counter_pipe_core.sv", ownership: "manifest", ssot_gen: false, implements: ["function_model", "cycle_model", "fsm", "features"], source_sections: ["function_model", "cycle_model", "fsm", "features"], function_model_refs: ["function_model.transactions", "function_model.state_variables"], cycle_model_refs: ["cycle_model.pipeline"], fsm_refs: ["fsm.core_fsm"], feature_refs: ["features"], description: "Counter core: datapath, saturate/wrap logic, terminal-count detection, debug cycle counter" }
-  - { name: "todo_counter_pipe_cdc", file: "rtl/todo_counter_pipe_cdc.sv", ownership: "manifest", ssot_gen: true, implements: ["cdc_requirements", "clock_reset_domains"], source_sections: ["cdc_requirements", "clock_reset_domains"], description: "CDC 2-stage synchronizers: control (bus→core) and status (core→bus) crossing" }
-
+- name: todo_counter_pipe_regs
+  file: rtl/todo_counter_pipe_regs.sv
+  ownership: manifest
+  ssot_gen: true
+  implements:
+  - registers.register_list
+  - interrupts
+  - io_list.interfaces.apb_slave
+  source_sections:
+  - registers
+  - interrupts
+  - io_list
+  register_refs:
+  - registers.register_list.CTRL
+  - registers.register_list.CNT
+  - registers.register_list.LOAD
+  - registers.register_list.TERM
+  - registers.register_list.STATUS
+  - registers.register_list.INTEN
+  - registers.register_list.INTSTAT
+  - registers.register_list.INTCLR
+  - registers.register_list.DBGCNT
+  description: APB-lite register file, interrupt generation, bus-domain logic
+  decomposition_refs:
+  - decomposition.units.apb_decode
+  cycle_model_refs:
+  - cycle_model.pipeline.S0_APB_ACCESS
+  - cycle_model.pipeline.S4_STATUS_UPDATE
+  - cycle_model.handshake_rules.pready
+  - cycle_model.handshake_rules.prdata
+  - cycle_model.handshake_rules.counter_irq
+  function_model_refs:
+  - function_model.transactions.FM10
+  contract_status: approved_by_rtl_blocker_answer
+  contract_source: Engineer selected the recommended option; see rtl_blocker_resolutions.
+  contract_updated_at: '2026-05-14T02:44:50Z'
+- name: todo_counter_pipe_core
+  file: rtl/todo_counter_pipe_core.sv
+  ownership: manifest
+  ssot_gen: false
+  implements:
+  - function_model
+  - cycle_model
+  - fsm
+  - features
+  - memory
+  source_sections:
+  - function_model
+  - cycle_model
+  - fsm
+  - features
+  - memory
+  function_model_refs:
+  - function_model.transactions
+  - function_model.state_variables
+  memory_refs:
+  - memory.instances.cnt_reg
+  - memory.instances.dbg_cycle_reg
+  cycle_model_refs:
+  - cycle_model.pipeline.S2_COUNT_EVAL
+  - cycle_model.handshake_rules.event_i
+  - cycle_model.clock
+  - cycle_model.reset
+  fsm_refs:
+  - fsm.core_fsm
+  - fsm.internal_control
+  feature_refs:
+  - features.Up_Down_Counting
+  - features.Saturating_Mode
+  - features.Wrap_Mode
+  - features.Clear_Load_Control
+  - features.Terminal_Count_Interrupt
+  - features.Debug_Cycle_Counter
+  description: 'Counter core: datapath, saturate/wrap logic, terminal-count detection, debug cycle counter'
+  decomposition_refs:
+  - decomposition.units.counter_datapath
+  contract_status: approved_by_rtl_blocker_answer
+  contract_source: Engineer selected the recommended option; see rtl_blocker_resolutions.
+  contract_updated_at: '2026-05-14T02:44:50Z'
+- name: todo_counter_pipe_cdc
+  file: rtl/todo_counter_pipe_cdc.sv
+  ownership: manifest
+  ssot_gen: true
+  implements:
+  - cdc_requirements.crossings.control_bus_to_core
+  - cdc_requirements.crossings.status_core_to_bus
+  - cdc_requirements.synchronizers.sync_ctrl
+  - cdc_requirements.synchronizers.sync_status
+  - cdc_requirements.synchronizers.sync_pulse_clear
+  - clock_reset_domains.reset_scheme
+  - cycle_model.pipeline.S1_CDC_CTRL
+  - cycle_model.pipeline.S3_CDC_STATUS
+  - cycle_model.latency.control_cdc_bus_to_core
+  - cycle_model.latency.status_cdc_core_to_bus
+  source_sections:
+  - cdc_requirements
+  - clock_reset_domains
+  - cycle_model
+  - integration
+  - parameters
+  - registers
+  description: "CDC 2-stage synchronizers: control (bus\u2192core) and status (core\u2192bus) crossing"
+  responsibility:
+  - 'Own all clock-domain crossing logic between bus_clk and core_clk: reset deassertion synchronization'
+  - bus-to-core control synchronization
+  - clear/load pulse toggle synchronization
+  - and core-to-bus status synchronization. This module must not implement counter arithmetic or APB decoding.
+  ssot_refs:
+  - cdc_requirements.crossings.control_bus_to_core
+  - cdc_requirements.crossings.status_core_to_bus
+  - cdc_requirements.synchronizers.sync_ctrl
+  - cdc_requirements.synchronizers.sync_status
+  - cdc_requirements.synchronizers.sync_pulse_clear
+  - clock_reset_domains.domains.bus_clk
+  - clock_reset_domains.domains.core_clk
+  - clock_reset_domains.reset_scheme.bus_domain
+  - clock_reset_domains.reset_scheme.core_domain
+  - integration.connections
+  decomposition_refs:
+  - decomposition.units.cdc_sync
+  cycle_model_refs:
+  - cycle_model.pipeline.S1_CDC_CTRL
+  - cycle_model.pipeline.S3_CDC_STATUS
+  - cycle_model.latency.control_cdc_bus_to_core
+  - cycle_model.latency.status_cdc_core_to_bus
+  - cycle_model.clock
+  - cycle_model.reset
+  feature_refs:
+  - features.Clear_Load_Control
+  - features.Debug_Cycle_Counter
+  dataflow_refs:
+  - cycle_model.pipeline.S1_CDC_CTRL
+  - cycle_model.pipeline.S3_CDC_STATUS
+  register_refs:
+  - registers.register_list.CTRL
+  - registers.register_list.LOAD
+  - registers.register_list.CNT
+  - registers.register_list.STATUS
+  - registers.register_list.INTSTAT
+  - registers.register_list.DBGCNT
+  fsm_refs:
+  - fsm.core_fsm
+  ports:
+  - bus_clk
+  - core_clk
+  - bus_rst_n
+  - core_rst_n
+  - enable_bus_i
+  - up_down_bus_i
+  - mode_bus_i
+  - clear_pulse_bus_i
+  - load_pulse_bus_i
+  - load_value_bus_i[WIDTH-1:0]
+  - enable_core_o
+  - up_down_core_o
+  - mode_core_o
+  - clear_pulse_core_o
+  - load_pulse_core_o
+  - load_value_core_o[WIDTH-1:0]
+  - cnt_core_i[WIDTH-1:0]
+  - overflow_core_i
+  - underflow_core_i
+  - tc_pending_core_i
+  - ovf_pending_core_i
+  - unf_pending_core_i
+  - dbg_cycle_count_core_i[WIDTH-1:0]
+  - cnt_bus_o[WIDTH-1:0]
+  - overflow_bus_o
+  - underflow_bus_o
+  - tc_pending_bus_o
+  - ovf_pending_bus_o
+  - unf_pending_bus_o
+  - dbg_cycle_count_bus_o[WIDTH-1:0]
+  connections:
+    bus_clk: integration.connections.todo_counter_pipe_cdc.bus_clk
+    core_clk: integration.connections.todo_counter_pipe_cdc.core_clk
+    bus_rst_n: integration.connections.todo_counter_pipe_cdc.bus_rst_n
+    core_rst_n: integration.connections.todo_counter_pipe_cdc.core_rst_n
+    control_bus_to_core: cdc_requirements.crossings.control_bus_to_core.signals
+    status_core_to_bus: cdc_requirements.crossings.status_core_to_bus.signals
+  wiring_only: false
+  contract_status: approved_by_rtl_blocker_answer
+  contract_source: Engineer selected the recommended option; see rtl_blocker_resolutions.
+  contract_updated_at: '2026-05-14T02:43:53Z'
 decomposition:
   units:
-    - { id: "apb_decode", kind: "control", source_refs: ["registers.register_list", "io_list.interfaces.apb_slave"], rtl_candidates: ["todo_counter_pipe_regs"], verification_impact: ["test_requirements.scenarios"] }
-    - { id: "counter_datapath", kind: "datapath", source_refs: ["function_model.transactions", "cycle_model.pipeline"], rtl_candidates: ["todo_counter_pipe_core"], verification_impact: ["coverage_goals.function"] }
-    - { id: "cdc_sync", kind: "structural", source_refs: ["cdc_requirements", "clock_reset_domains"], rtl_candidates: ["todo_counter_pipe_cdc"], verification_impact: [] }
+  - id: apb_decode
+    kind: control
+    source_refs:
+    - registers.register_list
+    - io_list.interfaces.apb_slave
+    rtl_candidates:
+    - todo_counter_pipe_regs
+    verification_impact:
+    - test_requirements.scenarios
+  - id: counter_datapath
+    kind: datapath
+    source_refs:
+    - function_model.transactions
+    - cycle_model.pipeline
+    rtl_candidates:
+    - todo_counter_pipe_core
+    verification_impact:
+    - coverage_goals.function
+  - id: cdc_sync
+    kind: structural
+    source_refs:
+    - cdc_requirements
+    - clock_reset_domains
+    rtl_candidates:
+    - todo_counter_pipe_cdc
+    verification_impact: []
 rtl_contract:
-  transaction: "FM1-FM10"
-  sample_condition: "event_i rising edge on core_clk when enable=1, or APB write to CTRL.clear/load, or APB write to INTCLR"
+  transaction: FM1
+  clock: core_clk
+  reset: core_rst_n
+  reset_active: low
+  sample_condition: event_i and enable
   input_map:
-    event_trigger: "event_i (core_clk domain)"
-    clear_command: "CTRL.clear CDC pulse (bus→core)"
-    load_command: "CTRL.load CDC pulse + LOAD.load_value (bus→core)"
-    control_fields: "CTRL.enable, CTRL.up_down, CTRL.mode (CDC bus→core)"
-    terminal_threshold: "TERM.term_value (CDC bus→core)"
-    interrupt_clear: "INTCLR.tc_clr, INTCLR.ovf_clr, INTCLR.unf_clr (bus domain W1C)"
+    event_i: event_i
+    clear_command: "CTRL.clear CDC pulse (bus\u2192core)"
+    load_command: "CTRL.load CDC pulse + LOAD.load_value (bus\u2192core)"
+    control_fields: "CTRL.enable, CTRL.up_down, CTRL.mode (CDC bus\u2192core)"
+    terminal_threshold: "TERM.term_value (CDC bus\u2192core)"
+    interrupt_clear: INTCLR.tc_clr, INTCLR.ovf_clr, INTCLR.unf_clr (bus domain W1C)
   output_map:
-    counter_value: "CNT.cnt_value (CDC core→bus)"
-    status_flags: "STATUS.overflow, STATUS.underflow (CDC core→bus)"
-    pending_flags: "INTSTAT.tc_pending, INTSTAT.ovf_pending, INTSTAT.unf_pending (CDC core→bus)"
-    interrupt: "counter_irq (bus domain, combinational from masked pending)"
-    debug_counter: "DBGCNT.dbg_cycle_count (CDC core→bus)"
+    counter_value: "CNT.cnt_value (CDC core\u2192bus)"
+    status_flags: "STATUS.overflow, STATUS.underflow (CDC core\u2192bus)"
+    pending_flags: "INTSTAT.tc_pending, INTSTAT.ovf_pending, INTSTAT.unf_pending (CDC core\u2192bus)"
+    interrupt: counter_irq
+    debug_counter: "DBGCNT.dbg_cycle_count (CDC core\u2192bus)"
+  output_rules:
+  - name: interrupt
+    port: counter_irq
+    width: 1
+    expr: (tc_pending and inten_tc) or (ovf_pending and inten_ovf) or (unf_pending and inten_unf)
+    description: Combined interrupt output is the OR of enabled pending interrupt sources.
   state_updates:
-    - { name: "cnt", reset: 0, expr: "clear ? 0 : load ? load_value : enable && event_edge ? (up_down ? cnt-1 : cnt+1) : cnt, with saturate/wrap limit logic" }
-    - { name: "overflow", reset: 0, expr: "set when cnt transitions through MAX while up; cleared by INTCLR.ovf_clr W1C" }
-    - { name: "underflow", reset: 0, expr: "set when cnt transitions through 0 while down; cleared by INTCLR.unf_clr W1C" }
-    - { name: "tc_pending", reset: 0, expr: "set when cnt==term (up) or cnt==0 (down) on count event; cleared by INTCLR.tc_clr W1C" }
-    - { name: "dbg_cycle_count", reset: 0, expr: "dbg_cycle_count + 1 every core_clk" }
+  - name: cnt
+    reset: 0
+    width: 32
+    expr: "((0 if mode == 1 else term) if ((not up_down) and cnt >= term) else (cnt + 1)) if (event_i and enable and (not up_down)) else (((((1 << WIDTH) - 1) if mode == 1 else 0) if (up_down and cnt == 0) else (cnt - 1)) if (event_i and enable and up_down) else cnt)"
+  - name: overflow
+    reset: 0
+    width: 1
+    expr: "1 if (event_i and enable and (not up_down) and cnt == ((1 << WIDTH) - 1)) else overflow"
+  - name: underflow
+    reset: 0
+    width: 1
+    expr: "1 if (event_i and enable and up_down and cnt == 0) else underflow"
+  - name: tc_pending
+    reset: 0
+    width: 1
+    expr: "1 if (event_i and enable and (((not up_down) and cnt >= term) or (up_down and cnt == 0))) else tc_pending"
+  - name: ovf_pending
+    reset: 0
+    width: 1
+    expr: "1 if (event_i and enable and (not up_down) and cnt == ((1 << WIDTH) - 1)) else ovf_pending"
+  - name: unf_pending
+    reset: 0
+    width: 1
+    expr: "1 if (event_i and enable and up_down and cnt == 0) else unf_pending"
+  - name: dbg_cycle_count
+    reset: 0
+    width: 32
+    expr: dbg_cycle_count + 1
 parameters:
-  - { name: "WIDTH", default: 32, type: "int", description: "Counter width in bits; determines MAX = 2^WIDTH - 1", drives: ["rtl/todo_counter_pipe_core.sv", "rtl/todo_counter_pipe_regs.sv", "rtl/todo_counter_pipe_cdc.sv"] }
-  - { name: "BUS_CLK_FREQ_MHZ", default: 150, type: "int", description: "Bus clock frequency in MHz", drives: ["rtl/todo_counter_pipe.sv", "sdc/todo_counter_pipe.sdc"] }
-  - { name: "CORE_CLK_FREQ_MHZ", default: 300, type: "int", description: "Core clock frequency in MHz", drives: ["rtl/todo_counter_pipe.sv", "sdc/todo_counter_pipe.sdc"] }
-  - { name: "CDC_SYNC_STAGES", default: 2, type: "int", description: "Number of CDC synchronizer stages", drives: ["rtl/todo_counter_pipe_cdc.sv"] }
-  - { name: "RESET_POLARITY", default: "active_low", type: "enum", values: ["active_low", "active_high"], drives: ["ALL .sv files"] }
+- name: WIDTH
+  default: 32
+  type: int
+  description: Counter width in bits; determines MAX = 2^WIDTH - 1
+  drives:
+  - rtl/todo_counter_pipe_core.sv
+  - rtl/todo_counter_pipe_regs.sv
+  - rtl/todo_counter_pipe_cdc.sv
+- name: BUS_CLK_FREQ_MHZ
+  default: 150
+  type: int
+  description: Bus clock frequency in MHz
+  drives:
+  - rtl/todo_counter_pipe.sv
+  - sdc/todo_counter_pipe.sdc
+- name: CORE_CLK_FREQ_MHZ
+  default: 300
+  type: int
+  description: Core clock frequency in MHz
+  drives:
+  - rtl/todo_counter_pipe.sv
+  - sdc/todo_counter_pipe.sdc
+- name: CDC_SYNC_STAGES
+  default: 2
+  type: int
+  description: Number of CDC synchronizer stages
+  drives:
+  - rtl/todo_counter_pipe_cdc.sv
+- name: RESET_POLARITY
+  default: active_low
+  type: enum
+  values:
+  - active_low
+  - active_high
+  drives:
+  - ALL .sv files
 io_list:
   clock_domains:
-    - name: "bus_clk"
-      frequency_mhz: 150
-      description: "APB register access clock"
-      ports:
-        - { name: "bus_clk", width: 1, direction: "input", description: "Bus-domain clock (150 MHz)" }
-    - name: "core_clk"
-      frequency_mhz: 300
-      description: "Counter core clock"
-      ports:
-        - { name: "core_clk", width: 1, direction: "input", description: "Core-domain clock (300 MHz)" }
+  - name: bus_clk
+    frequency_mhz: 150
+    description: APB register access clock
+    ports:
+    - name: bus_clk
+      width: 1
+      direction: input
+      description: Bus-domain clock (150 MHz)
+  - name: core_clk
+    frequency_mhz: 300
+    description: Counter core clock
+    ports:
+    - name: core_clk
+      width: 1
+      direction: input
+      description: Core-domain clock (300 MHz)
   resets:
-    - name: "bus_rst_n"
-      polarity: "active_low"
-      sync_async: "async_assert_sync_deassert"
-      description: "Bus-domain reset"
-      ports:
-        - { name: "bus_rst_n", width: 1, direction: "input", description: "Active-low bus-domain reset" }
-    - name: "core_rst_n"
-      polarity: "active_low"
-      sync_async: "async_assert_sync_deassert"
-      description: "Core-domain reset"
-      ports:
-        - { name: "core_rst_n", width: 1, direction: "input", description: "Active-low core-domain reset" }
+  - name: bus_rst_n
+    polarity: active_low
+    sync_async: async_assert_sync_deassert
+    description: Bus-domain reset
+    ports:
+    - name: bus_rst_n
+      width: 1
+      direction: input
+      description: Active-low bus-domain reset
+  - name: core_rst_n
+    polarity: active_low
+    sync_async: async_assert_sync_deassert
+    description: Core-domain reset
+    ports:
+    - name: core_rst_n
+      width: 1
+      direction: input
+      description: Active-low core-domain reset
   interfaces:
-    - name: "apb_slave"
-      type: "APB-lite"
-      role: "slave"
-      clock_domain: "bus_clk"
-      reset_domain: "bus_rst_n"
-      description: "Register access interface (no pslverr)"
-      protocol:
-        setup_phase: "psel=1, penable=0 captures paddr, pwrite, pwdata, pstrb."
-        access_phase: "psel=1, penable=1 completes when pready=1."
-        read_rule: "prdata is valid in the completing access phase for reads; zero-wait-state response (pready=1 combinational from psel && penable)."
-        write_rule: "pwdata/pstrb are sampled in the completing access phase for writes; zero-wait-state response."
-        error_rule: "No pslverr; unsupported addresses are ignored (read returns 0, writes discarded)."
-      ports:
-        - { name: "paddr",   width: 8,  direction: "input",  description: "APB address" }
-        - { name: "psel",    width: 1,  direction: "input",  description: "APB select" }
-        - { name: "penable", width: 1,  direction: "input",  description: "APB enable" }
-        - { name: "pwrite",  width: 1,  direction: "input",  description: "APB write" }
-        - { name: "pwdata",  width: 32, direction: "input",  description: "APB write data" }
-        - { name: "pstrb",   width: 4,  direction: "input",  description: "APB strobes" }
-        - { name: "prdata",  width: 32, direction: "output", description: "APB read data" }
-        - { name: "pready",  width: 1,  direction: "output", description: "APB ready" }
-    - name: "event_input"
-      type: "custom"
-      clock_domain: "core_clk"
-      reset_domain: "core_rst_n"
-      description: "External event trigger for counter increment/decrement"
-      protocol:
-        sampling: "event_i is sampled on core_clk rising edge."
-        edge_sense: "Each assertion (level=1) on a core_clk edge counts as one event when counter is enabled."
-        minimum_pulse: "event_i must be stable for at least one core_clk period to be reliably sampled."
-      ports:
-        - { name: "event_i", width: 1, direction: "input", description: "Event trigger input" }
-    - name: "interrupt"
-      type: "custom"
-      clock_domain: "bus_clk"
-      reset_domain: "bus_rst_n"
-      description: "Interrupt output"
-      protocol:
-        assertion: "counter_irq reflects enabled pending interrupt status (tc, overflow, underflow)."
-        deassertion: "counter_irq deasserts after all pending sources are cleared via W1C."
-        reset_value: 0
-      ports:
-        - { name: "counter_irq", width: 1, direction: "output", description: "Combined interrupt (active-high, level)" }
+  - name: apb_slave
+    type: APB-lite
+    role: slave
+    clock_domain: bus_clk
+    reset_domain: bus_rst_n
+    description: Register access interface (no pslverr)
+    protocol:
+      setup_phase: psel=1, penable=0 captures paddr, pwrite, pwdata, pstrb.
+      access_phase: psel=1, penable=1 completes when pready=1.
+      read_rule: prdata is valid in the completing access phase for reads; zero-wait-state response (pready=1 combinational
+        from psel && penable).
+      write_rule: pwdata/pstrb are sampled in the completing access phase for writes; zero-wait-state response.
+      error_rule: No pslverr; unsupported addresses are ignored (read returns 0, writes discarded).
+    ports:
+    - name: paddr
+      width: 8
+      direction: input
+      description: APB address
+    - name: psel
+      width: 1
+      direction: input
+      description: APB select
+    - name: penable
+      width: 1
+      direction: input
+      description: APB enable
+    - name: pwrite
+      width: 1
+      direction: input
+      description: APB write
+    - name: pwdata
+      width: 32
+      direction: input
+      description: APB write data
+    - name: pstrb
+      width: 4
+      direction: input
+      description: APB strobes
+    - name: prdata
+      width: 32
+      direction: output
+      description: APB read data
+    - name: pready
+      width: 1
+      direction: output
+      description: APB ready
+  - name: event_input
+    type: custom
+    clock_domain: core_clk
+    reset_domain: core_rst_n
+    description: External event trigger for counter increment/decrement
+    protocol:
+      sampling: event_i is sampled on core_clk rising edge.
+      edge_sense: Each assertion (level=1) on a core_clk edge counts as one event when counter is enabled.
+      minimum_pulse: event_i must be stable for at least one core_clk period to be reliably sampled.
+    ports:
+    - name: event_i
+      width: 1
+      direction: input
+      description: Event trigger input
+  - name: interrupt
+    type: custom
+    clock_domain: bus_clk
+    reset_domain: bus_rst_n
+    description: Interrupt output
+    protocol:
+      assertion: counter_irq reflects enabled pending interrupt status (tc, overflow, underflow).
+      deassertion: counter_irq deasserts after all pending sources are cleared via W1C.
+      reset_value: 0
+    ports:
+    - name: counter_irq
+      width: 1
+      direction: output
+      description: Combined interrupt (active-high, level)
 features:
-  - { name: "Up/Down Counting", trigger: "event_i rising edge while CTRL.enable=1", datapath: "cnt ← cnt+1 (up) or cnt←cnt-1 (down) per event", control: "CTRL.up_down selects direction; core FSM transitions IDLE↔COUNT", output: "Updated cnt value reflected in CNT register" }
-  - { name: "Saturating Mode", trigger: "cnt reaches limit: MAX when counting up, 0 when counting down", datapath: "cnt clamps at limit; overflow/underflow sticky flags set", control: "CTRL.mode=0 enables saturate; core FSM evaluates after arithmetic", output: "cnt held at limit; STATUS.overflow/underflow asserted" }
-  - { name: "Wrap Mode", trigger: "cnt reaches limit: MAX when counting up, 0 when counting down", datapath: "cnt wraps: MAX→0 (up), 0→MAX (down); overflow/underflow flags set", control: "CTRL.mode=1 enables wrap; core FSM evaluates after arithmetic", output: "cnt wraps to opposite extreme; STATUS flags asserted" }
-  - { name: "Clear/Load Control", trigger: "Software write to CTRL.clear=1 or CTRL.load=1", datapath: "clear: cnt→0; load: cnt→LOAD.load_value", control: "CDC-synced pulse; priority clear>load>count", output: "cnt updated on next core_clk edge after CDC convergence" }
-  - { name: "Terminal Count Interrupt", trigger: "cnt==TERM.term_value when counting up, or cnt==0 when counting down", datapath: "tc_pending set sticky; counter_irq asserted if INTEN.tc_en=1", control: "FSM evaluates terminal condition after each count operation", output: "INTSTAT.tc_pending; counter_irq" }
-  - { name: "Debug Cycle Counter", trigger: "Every core_clk rising edge", datapath: "dbg_cycle_count ← dbg_cycle_count + 1 free-running", control: "Independent of CTRL.enable or event_i", output: "DBGCNT.dbg_cycle_count readable via APB after CDC" }
+- name: Up/Down Counting
+  trigger: event_i rising edge while CTRL.enable=1
+  datapath: "cnt \u2190 cnt+1 (up) or cnt\u2190cnt-1 (down) per event"
+  control: "CTRL.up_down selects direction; core FSM transitions IDLE\u2194COUNT"
+  output: Updated cnt value reflected in CNT register
+- name: Saturating Mode
+  trigger: 'cnt reaches limit: MAX when counting up, 0 when counting down'
+  datapath: cnt clamps at limit; overflow/underflow sticky flags set
+  control: CTRL.mode=0 enables saturate; core FSM evaluates after arithmetic
+  output: cnt held at limit; STATUS.overflow/underflow asserted
+- name: Wrap Mode
+  trigger: 'cnt reaches limit: MAX when counting up, 0 when counting down'
+  datapath: "cnt wraps: MAX\u21920 (up), 0\u2192MAX (down); overflow/underflow flags set"
+  control: CTRL.mode=1 enables wrap; core FSM evaluates after arithmetic
+  output: cnt wraps to opposite extreme; STATUS flags asserted
+- name: Clear/Load Control
+  trigger: Software write to CTRL.clear=1 or CTRL.load=1
+  datapath: "clear: cnt\u21920; load: cnt\u2192LOAD.load_value"
+  control: CDC-synced pulse; priority clear>load>count
+  output: cnt updated on next core_clk edge after CDC convergence
+- name: Terminal Count Interrupt
+  trigger: cnt==TERM.term_value when counting up, or cnt==0 when counting down
+  datapath: tc_pending set sticky; counter_irq asserted if INTEN.tc_en=1
+  control: FSM evaluates terminal condition after each count operation
+  output: INTSTAT.tc_pending; counter_irq
+- name: Debug Cycle Counter
+  trigger: Every core_clk rising edge
+  datapath: "dbg_cycle_count \u2190 dbg_cycle_count + 1 free-running"
+  control: Independent of CTRL.enable or event_i
+  output: DBGCNT.dbg_cycle_count readable via APB after CDC
 dataflow:
   control_path:
-    source: "APB write to CTRL/LOAD/TERM registers (bus_clk domain)"
-    cdc: "2-stage synchronizer bus→core (enable, up_down, mode, clear_pulse, load_pulse, load_value)"
-    destination: "Core-domain control signals consumed by counter FSM"
-    sequence: "APB write → bus-domain register → CDC sync stages → core-domain register → FSM eval"
+    source: APB write to CTRL/LOAD/TERM registers (bus_clk domain)
+    cdc: "2-stage synchronizer bus\u2192core (enable, up_down, mode, clear_pulse, load_pulse, load_value)"
+    destination: Core-domain control signals consumed by counter FSM
+    sequence: "APB write \u2192 bus-domain register \u2192 CDC sync stages \u2192 core-domain register \u2192 FSM eval"
   count_path:
-    source: "event_i input pin (core_clk domain)"
-    trigger: "0→1 transition on core_clk rising edge"
-    arithmetic: "cnt ← cnt ± 1 (direction per up_down)"
-    limit_logic: "Saturate or wrap per CTRL.mode after arithmetic"
-    update: "cnt updated in core-domain register"
+    source: event_i input pin (core_clk domain)
+    trigger: "0\u21921 transition on core_clk rising edge"
+    arithmetic: "cnt \u2190 cnt \xB1 1 (direction per up_down)"
+    limit_logic: Saturate or wrap per CTRL.mode after arithmetic
+    update: cnt updated in core-domain register
   status_path:
-    source: "cnt, overflow, underflow, tc_pending, ovf_pending, unf_pending (core_clk domain)"
-    cdc: "2-stage synchronizer core→bus (all status and counter value)"
-    destination: "CNT, STATUS, INTSTAT registers visible on APB (bus_clk domain)"
-    sequence: "core-domain flops → CDC sync stages → bus-domain shadow registers → APB read mux"
+    source: cnt, overflow, underflow, tc_pending, ovf_pending, unf_pending (core_clk domain)
+    cdc: "2-stage synchronizer core\u2192bus (all status and counter value)"
+    destination: CNT, STATUS, INTSTAT registers visible on APB (bus_clk domain)
+    sequence: "core-domain flops \u2192 CDC sync stages \u2192 bus-domain shadow registers \u2192 APB read mux"
   interrupt_path:
-    source: "INTSTAT pending bits (bus_clk domain)"
-    mask: "INTEN enable bits"
-    output: "counter_irq = (tc_pending & tc_en) | (ovf_pending & ovf_en) | (unf_pending & unf_en)"
-    clear: "W1C via INTCLR clears pending bits and associated sticky STATUS flags"
+    source: INTSTAT pending bits (bus_clk domain)
+    mask: INTEN enable bits
+    output: counter_irq = (tc_pending & tc_en) | (ovf_pending & ovf_en) | (unf_pending & unf_en)
+    clear: W1C via INTCLR clears pending bits and associated sticky STATUS flags
   debug_path:
-    source: "Free-running cycle counter on core_clk"
-    cdc: "2-stage synchronizer core→bus"
-    destination: "DBGCNT register on APB"
+    source: Free-running cycle counter on core_clk
+    cdc: "2-stage synchronizer core\u2192bus"
+    destination: DBGCNT register on APB
 function_model:
-  purpose: "Executable behavioral contract for rtl-gen and tb-gen: describes what the counter computes independent of cycle timing and CDC delays."
+  purpose: 'Executable behavioral contract for rtl-gen and tb-gen: describes what the counter computes independent of cycle
+    timing and CDC delays.'
   state_variables:
-    - { name: "cnt", source: "registers.CNT.cnt_value", reset: 0, description: "Current counter value" }
-    - { name: "enable", source: "registers.CTRL.enable", reset: 0, description: "Count enable flag (CDC-synced to core)" }
-    - { name: "up_down", source: "registers.CTRL.up_down", reset: 0, description: "0=up, 1=down (CDC-synced to core)" }
-    - { name: "mode", source: "registers.CTRL.mode", reset: 0, description: "0=saturate, 1=wrap (CDC-synced to core)" }
-    - { name: "load_value", source: "registers.LOAD.load_value", reset: 0, description: "Load value (CDC-synced to core)" }
-    - { name: "term", source: "registers.TERM.term_value", reset: "all-ones (2^WIDTH-1)", description: "Terminal count threshold" }
-    - { name: "overflow", source: "registers.STATUS.overflow", reset: 0, description: "Sticky overflow flag" }
-    - { name: "underflow", source: "registers.STATUS.underflow", reset: 0, description: "Sticky underflow flag" }
-    - { name: "tc_pending", source: "registers.INTSTAT.tc_pending", reset: 0, description: "Terminal count pending" }
-    - { name: "ovf_pending", source: "registers.INTSTAT.ovf_pending", reset: 0, description: "Overflow pending" }
-    - { name: "unf_pending", source: "registers.INTSTAT.unf_pending", reset: 0, description: "Underflow pending" }
-    - { name: "dbg_cycle_count", source: "registers.DBGCNT.dbg_cycle_count", reset: 0, description: "Free-running core_clk cycle counter" }
+  - name: cnt
+    source: registers.CNT.cnt_value
+    reset: 0
+    description: Current counter value
+  - name: enable
+    source: registers.CTRL.enable
+    reset: 0
+    description: Count enable flag (CDC-synced to core)
+  - name: up_down
+    source: registers.CTRL.up_down
+    reset: 0
+    description: 0=up, 1=down (CDC-synced to core)
+  - name: mode
+    source: registers.CTRL.mode
+    reset: 0
+    description: 0=saturate, 1=wrap (CDC-synced to core)
+  - name: load_value
+    source: registers.LOAD.load_value
+    reset: 0
+    description: Load value (CDC-synced to core)
+  - name: term
+    source: registers.TERM.term_value
+    reset: all-ones (2^WIDTH-1)
+    description: Terminal count threshold
+  - name: overflow
+    source: registers.STATUS.overflow
+    reset: 0
+    description: Sticky overflow flag
+  - name: underflow
+    source: registers.STATUS.underflow
+    reset: 0
+    description: Sticky underflow flag
+  - name: tc_pending
+    source: registers.INTSTAT.tc_pending
+    reset: 0
+    description: Terminal count pending
+  - name: ovf_pending
+    source: registers.INTSTAT.ovf_pending
+    reset: 0
+    description: Overflow pending
+  - name: unf_pending
+    source: registers.INTSTAT.unf_pending
+    reset: 0
+    description: Underflow pending
+  - name: inten_tc
+    source: registers.INTEN.tc_en
+    reset: 0
+    width: 1
+    description: Terminal-count interrupt enable mask bit
+  - name: inten_ovf
+    source: registers.INTEN.ovf_en
+    reset: 0
+    width: 1
+    description: Overflow interrupt enable mask bit
+  - name: inten_unf
+    source: registers.INTEN.unf_en
+    reset: 0
+    width: 1
+    description: Underflow interrupt enable mask bit
+  - name: dbg_cycle_count
+    source: registers.DBGCNT.dbg_cycle_count
+    reset: 0
+    description: Free-running core_clk cycle counter
   transactions:
-    - id: "FM1"
-      name: "count_up_normal"
-      preconditions:
-        - "enable == 1"
-        - "up_down == 0"
-        - "0 <= cnt < term"
-        - "event_i asserted (rising edge)"
-      inputs:
-        - "event_i rising edge"
-      outputs:
-        - "cnt_new = cnt + 1"
-      side_effects:
-        - "cnt ← cnt + 1"
-        - "dbg_cycle_count ← dbg_cycle_count + 1 (on every core_clk, not per event)"
-      error_cases: []
-    - id: "FM2"
-      name: "count_up_terminal"
-      preconditions:
-        - "enable == 1"
-        - "up_down == 0"
-        - "cnt == term"
-        - "event_i asserted"
-      inputs:
-        - "event_i rising edge"
-      outputs:
-        - "tc_pending ← 1"
-        - "If mode==0 (saturate): cnt stays at term"
-        - "If mode==1 (wrap): cnt ← 0"
-      side_effects:
-        - "tc_pending set to 1 (sticky until W1C clear)"
-        - "cnt updated per mode: saturate → term, wrap → 0"
-        - "If wrap: any further up-count from 0 proceeds normally"
-      error_cases: []
-    - id: "FM3"
-      name: "count_down_normal"
-      preconditions:
-        - "enable == 1"
-        - "up_down == 1"
-        - "0 < cnt <= 2^WIDTH - 1"
-        - "event_i asserted"
-      inputs:
-        - "event_i rising edge"
-      outputs:
-        - "cnt_new = cnt - 1"
-      side_effects:
-        - "cnt ← cnt - 1"
-      error_cases: []
-    - id: "FM4"
-      name: "count_down_terminal"
-      preconditions:
-        - "enable == 1"
-        - "up_down == 1"
-        - "cnt == 0"
-        - "event_i asserted"
-      inputs:
-        - "event_i rising edge"
-      outputs:
-        - "tc_pending ← 1"
-        - "If mode==0 (saturate): cnt stays at 0"
-        - "If mode==1 (wrap): cnt ← 2^WIDTH - 1"
-      side_effects:
-        - "tc_pending set to 1"
-        - "cnt updated per mode"
-        - "If wrap: further down-count from MAX proceeds normally"
-      error_cases: []
-    - id: "FM5"
-      name: "overflow_up"
-      preconditions:
-        - "enable == 1"
-        - "up_down == 0"
-        - "cnt == 2^WIDTH - 1"
-        - "event_i asserted"
-      inputs:
-        - "event_i rising edge"
-      outputs:
-        - "ovf_pending ← 1, overflow ← 1"
-        - "If mode==0 (saturate): cnt stays at MAX"
-        - "If mode==1 (wrap): cnt ← 0"
-      side_effects:
-        - "overflow sticky flag set"
-        - "ovf_pending set"
-        - "cnt updated per mode"
-      error_cases: []
-    - id: "FM6"
-      name: "underflow_down"
-      preconditions:
-        - "enable == 1"
-        - "up_down == 1"
-        - "cnt == 0"
-        - "event_i asserted"
-      inputs:
-        - "event_i rising edge"
-      outputs:
-        - "unf_pending ← 1, underflow ← 1"
-        - "If mode==0 (saturate): cnt stays at 0"
-        - "If mode==1 (wrap): cnt ← 2^WIDTH - 1"
-      side_effects:
-        - "underflow sticky flag set"
-        - "unf_pending set"
-        - "cnt updated per mode"
-      error_cases: []
-    - id: "FM7"
-      name: "clear_counter"
-      preconditions:
-        - "CTRL.clear written 1 (CDC-synced pulse to core)"
-      inputs:
-        - "clear pulse"
-      outputs:
-        - "cnt ← 0"
-      side_effects:
-        - "cnt is set to 0 regardless of enable/mode/direction"
-        - "Does not affect overflow/underflow sticky flags"
-        - "Does not affect tc_pending status"
-      error_cases: []
-    - id: "FM8"
-      name: "load_counter"
-      preconditions:
-        - "CTRL.load written 1 (CDC-synced pulse to core)"
-      inputs:
-        - "load pulse, load_value from LOAD register"
-      outputs:
-        - "cnt ← load_value"
-      side_effects:
-        - "cnt is set to load_value regardless of enable/mode/direction"
-        - "Does not affect overflow/underflow sticky flags"
-        - "Does not affect tc_pending status"
-        - "If new cnt exceeds term while up-counting, terminal count comparison uses new value"
-      error_cases: []
-    - id: "FM9"
-      name: "no_count_disabled"
-      preconditions:
-        - "enable == 0"
-      inputs:
-        - "event_i may toggle"
-      outputs:
-        - "cnt unchanged"
-      side_effects:
-        - "cnt is preserved"
-        - "dbg_cycle_count continues incrementing"
-      error_cases: []
-    - id: "FM10"
-      name: "interrupt_clear"
-      preconditions:
-        - "INTCLR.tc_clr, .ovf_clr, or .unf_clr written 1"
-      inputs:
-        - "W1C write"
-      outputs:
-        - "Corresponding INTSTAT bit cleared"
-        - "For ovf_clr: STATUS.overflow cleared"
-        - "For unf_clr: STATUS.underflow cleared"
-      side_effects:
-        - "counter_irq deasserts if no other enabled pending sources remain"
-      error_cases: []
+  - id: FM1
+    name: count_up_normal
+    preconditions:
+    - enable == 1
+    - up_down == 0
+    - 0 <= cnt < term
+    - event_i asserted (rising edge)
+    inputs:
+    - event_i rising edge
+    outputs:
+    - cnt_new = cnt + 1
+    output_rules:
+    - name: interrupt
+      port: counter_irq
+      width: 1
+      expr: (tc_pending and inten_tc) or (ovf_pending and inten_ovf) or (unf_pending and inten_unf)
+      description: Counter IRQ reflects enabled pending interrupt sources.
+    side_effects:
+    - "cnt \u2190 cnt + 1"
+    - "dbg_cycle_count \u2190 dbg_cycle_count + 1 (on every core_clk, not per event)"
+    error_cases: []
+  - id: FM2
+    name: count_up_terminal
+    preconditions:
+    - enable == 1
+    - up_down == 0
+    - cnt == term
+    - event_i asserted
+    inputs:
+    - event_i rising edge
+    outputs:
+    - "tc_pending \u2190 1"
+    - 'If mode==0 (saturate): cnt stays at term'
+    - "If mode==1 (wrap): cnt \u2190 0"
+    side_effects:
+    - tc_pending set to 1 (sticky until W1C clear)
+    - "cnt updated per mode: saturate \u2192 term, wrap \u2192 0"
+    - 'If wrap: any further up-count from 0 proceeds normally'
+    error_cases: []
+  - id: FM3
+    name: count_down_normal
+    preconditions:
+    - enable == 1
+    - up_down == 1
+    - 0 < cnt <= 2^WIDTH - 1
+    - event_i asserted
+    inputs:
+    - event_i rising edge
+    outputs:
+    - cnt_new = cnt - 1
+    side_effects:
+    - "cnt \u2190 cnt - 1"
+    error_cases: []
+  - id: FM4
+    name: count_down_terminal
+    preconditions:
+    - enable == 1
+    - up_down == 1
+    - cnt == 0
+    - event_i asserted
+    inputs:
+    - event_i rising edge
+    outputs:
+    - "tc_pending \u2190 1"
+    - 'If mode==0 (saturate): cnt stays at 0'
+    - "If mode==1 (wrap): cnt \u2190 2^WIDTH - 1"
+    side_effects:
+    - tc_pending set to 1
+    - cnt updated per mode
+    - 'If wrap: further down-count from MAX proceeds normally'
+    error_cases: []
+  - id: FM5
+    name: overflow_up
+    preconditions:
+    - enable == 1
+    - up_down == 0
+    - cnt == 2^WIDTH - 1
+    - event_i asserted
+    inputs:
+    - event_i rising edge
+    outputs:
+    - "ovf_pending \u2190 1, overflow \u2190 1"
+    - 'If mode==0 (saturate): cnt stays at MAX'
+    - "If mode==1 (wrap): cnt \u2190 0"
+    side_effects:
+    - overflow sticky flag set
+    - ovf_pending set
+    - cnt updated per mode
+    error_cases: []
+  - id: FM6
+    name: underflow_down
+    preconditions:
+    - enable == 1
+    - up_down == 1
+    - cnt == 0
+    - event_i asserted
+    inputs:
+    - event_i rising edge
+    outputs:
+    - "unf_pending \u2190 1, underflow \u2190 1"
+    - 'If mode==0 (saturate): cnt stays at 0'
+    - "If mode==1 (wrap): cnt \u2190 2^WIDTH - 1"
+    side_effects:
+    - underflow sticky flag set
+    - unf_pending set
+    - cnt updated per mode
+    error_cases: []
+  - id: FM7
+    name: clear_counter
+    preconditions:
+    - CTRL.clear written 1 (CDC-synced pulse to core)
+    inputs:
+    - clear pulse
+    outputs:
+    - "cnt \u2190 0"
+    side_effects:
+    - cnt is set to 0 regardless of enable/mode/direction
+    - Does not affect overflow/underflow sticky flags
+    - Does not affect tc_pending status
+    error_cases: []
+  - id: FM8
+    name: load_counter
+    preconditions:
+    - CTRL.load written 1 (CDC-synced pulse to core)
+    inputs:
+    - load pulse, load_value from LOAD register
+    outputs:
+    - "cnt \u2190 load_value"
+    side_effects:
+    - cnt is set to load_value regardless of enable/mode/direction
+    - Does not affect overflow/underflow sticky flags
+    - Does not affect tc_pending status
+    - If new cnt exceeds term while up-counting, terminal count comparison uses new value
+    error_cases: []
+  - id: FM9
+    name: no_count_disabled
+    preconditions:
+    - enable == 0
+    inputs:
+    - event_i may toggle
+    outputs:
+    - cnt unchanged
+    side_effects:
+    - cnt is preserved
+    - dbg_cycle_count continues incrementing
+    error_cases: []
+  - id: FM10
+    name: interrupt_clear
+    preconditions:
+    - INTCLR.tc_clr, .ovf_clr, or .unf_clr written 1
+    inputs:
+    - W1C write
+    outputs:
+    - Corresponding INTSTAT bit cleared
+    - 'For ovf_clr: STATUS.overflow cleared'
+    - 'For unf_clr: STATUS.underflow cleared'
+    side_effects:
+    - counter_irq deasserts if no other enabled pending sources remain
+    error_cases: []
   invariants:
-    - "cnt never exceeds 2^WIDTH - 1 in saturate mode."
-    - "cnt never goes below 0 in saturate mode."
-    - "overflow is set only when cnt transitions through MAX while counting up."
-    - "underflow is set only when cnt transitions through 0 while counting down."
-    - "tc_pending is set when cnt reaches term (up) or 0 (down) on a count event."
-    - "clear and load take priority over normal count/terminal/overflow/underflow logic."
-    - "Register read side effects are exactly those listed in registers.register_list."
-    - "dbg_cycle_count increments on every core_clk edge, independent of enable or event_i."
-  reference_model_hint: "tb-gen should implement a Python FunctionalModel from this section as the scoreboard oracle, comparing expected vs observed counter value, status flags, and interrupt state for every scenario."
+  - cnt never exceeds 2^WIDTH - 1 in saturate mode.
+  - cnt never goes below 0 in saturate mode.
+  - overflow is set only when cnt transitions through MAX while counting up.
+  - underflow is set only when cnt transitions through 0 while counting down.
+  - tc_pending is set when cnt reaches term (up) or 0 (down) on a count event.
+  - clear and load take priority over normal count/terminal/overflow/underflow logic.
+  - Register read side effects are exactly those listed in registers.register_list.
+  - dbg_cycle_count increments on every core_clk edge, independent of enable or event_i.
+  reference_model_hint: tb-gen should implement a Python FunctionalModel from this section as the scoreboard oracle, comparing
+    expected vs observed counter value, status flags, and interrupt state for every scenario.
 cycle_model:
-  purpose: "Cycle/handshake contract for rtl-gen describing when counter state, status, and interrupts change across the dual-clock CDC pipeline."
-  executable: "pymtl3"
-  backend_policy: "Use PyMTL3 for clocked cycle model; FunctionalModel is the behavioral oracle. Run direct Python smoke checks instead of relying on pytest-pymtl3."
-  clock: "core_clk (primary behavioral clock)"
+  purpose: Cycle/handshake contract for rtl-gen describing when counter state, status, and interrupts change across the dual-clock
+    CDC pipeline.
+  executable: pymtl3
+  backend_policy: Use PyMTL3 for clocked cycle model; FunctionalModel is the behavioral oracle. Run direct Python smoke checks
+    instead of relying on pytest-pymtl3.
+  clock: core_clk (primary behavioral clock)
   clocks:
-    - { name: "bus_clk", frequency_mhz: 150, role: "register access and interrupt output" }
-    - { name: "core_clk", frequency_mhz: 300, role: "counter evaluation and event sampling" }
-  clock_relationship: "core_clk = 2 × bus_clk (integer ratio, synchronous or mesochronous)"
+  - name: bus_clk
+    frequency_mhz: 150
+    role: register access and interrupt output
+  - name: core_clk
+    frequency_mhz: 300
+    role: counter evaluation and event sampling
+  clock_relationship: "core_clk = 2 \xD7 bus_clk (integer ratio, synchronous or mesochronous)"
   reset:
     bus_domain:
-      signal: "bus_rst_n"
-      assertion: "bus_rst_n low asynchronously clears all bus-domain registers"
-      deassertion: "bus-domain registers are usable on the first bus_clk rising edge after synchronized deassertion"
+      signal: bus_rst_n
+      assertion: bus_rst_n low asynchronously clears all bus-domain registers
+      deassertion: bus-domain registers are usable on the first bus_clk rising edge after synchronized deassertion
     core_domain:
-      signal: "core_rst_n"
-      assertion: "core_rst_n low asynchronously clears all core-domain registers (cnt, dbg_cycle_count, and control CDC output flops)"
-      deassertion: "core-domain registers are usable on the first core_clk rising edge after synchronized deassertion"
+      signal: core_rst_n
+      assertion: core_rst_n low asynchronously clears all core-domain registers (cnt, dbg_cycle_count, and control CDC output
+        flops)
+      deassertion: core-domain registers are usable on the first core_clk rising edge after synchronized deassertion
   latency:
-    register_read: { min_cycles: 1, max_cycles: 1, description: "APB read completes in one bus_clk cycle (combinational pready)" }
-    register_write: { min_cycles: 1, max_cycles: 1, description: "APB write completes in one bus_clk cycle (combinational pready)" }
-    control_cdc_bus_to_core: { min_cycles: 2, max_cycles: 4, description: "2-stage synchronizer latency from bus_clk write to core_clk visibility; max 4 core_clk cycles due to phase uncertainty" }
-    status_cdc_core_to_bus: { min_cycles: 2, max_cycles: 5, description: "2-stage synchronizer latency from core_clk update to bus_clk visibility; max 5 bus_clk cycles due to phase uncertainty and integer ratio" }
-    interrupt_latency: { min_cycles: 3, max_cycles: 8, description: "From core-domain event to counter_irq assertion on bus_clk; includes CDC core→bus + INTEN mask + output register" }
+    register_read:
+      min_cycles: 1
+      max_cycles: 1
+      description: APB read completes in one bus_clk cycle (combinational pready)
+    register_write:
+      min_cycles: 1
+      max_cycles: 1
+      description: APB write completes in one bus_clk cycle (combinational pready)
+    control_cdc_bus_to_core:
+      min_cycles: 2
+      max_cycles: 4
+      description: 2-stage synchronizer latency from bus_clk write to core_clk visibility; max 4 core_clk cycles due to phase
+        uncertainty
+    status_cdc_core_to_bus:
+      min_cycles: 2
+      max_cycles: 5
+      description: 2-stage synchronizer latency from core_clk update to bus_clk visibility; max 5 bus_clk cycles due to phase
+        uncertainty and integer ratio
+    interrupt_latency:
+      min_cycles: 3
+      max_cycles: 8
+      description: "From core-domain event to counter_irq assertion on bus_clk; includes CDC core\u2192bus + INTEN mask +\
+        \ output register"
   handshake_rules:
-    - { signal: "pready", domain: "bus_clk", rule: "Asserted combinationally when psel && penable; no wait states." }
-    - { signal: "prdata", domain: "bus_clk", rule: "Valid in the same bus_clk cycle as pready=1 for reads; driven to 0 for unused address space." }
-    - { signal: "event_i", domain: "core_clk", rule: "Sampled on core_clk rising edge; a 0→1 transition triggers one count. Must be stable for ≥1 core_clk period." }
-    - { signal: "counter_irq", domain: "bus_clk", rule: "Asserted when any enabled INTSTAT bit is 1. Deasserted when all enabled INTSTAT bits are 0." }
+  - signal: pready
+    domain: bus_clk
+    rule: Asserted combinationally when psel && penable; no wait states.
+  - signal: prdata
+    domain: bus_clk
+    rule: Valid in the same bus_clk cycle as pready=1 for reads; driven to 0 for unused address space.
+  - signal: event_i
+    domain: core_clk
+    rule: "Sampled on core_clk rising edge; a 0\u21921 transition triggers one count. Must be stable for \u22651 core_clk\
+      \ period."
+  - signal: counter_irq
+    domain: bus_clk
+    rule: Asserted when any enabled INTSTAT bit is 1. Deasserted when all enabled INTSTAT bits are 0.
   pipeline:
-    - { stage: "S0_APB_ACCESS", clock: "bus_clk", cycle: 0, action: "APB decode: paddr→register select, pwrite→read/write, pwdata→write data captured on psel&&penable" }
-    - { stage: "S1_CDC_CTRL", clock: "core_clk", cycle: "0..4", action: "2-stage synchronizer: CTRL fields (enable, up_down, mode, clear pulse, load pulse), LOAD value cross bus→core" }
-    - { stage: "S2_COUNT_EVAL", clock: "core_clk", cycle: "0..N", action: "Sample event_i; if enable && event_i rising edge, evaluate prio (clear>load>count), arithmetic, saturate/wrap, terminal/overflow/underflow detection; update cnt, dbg_cycle_count increments every core_clk" }
-    - { stage: "S3_CDC_STATUS", clock: "bus_clk", cycle: "0..5", action: "2-stage synchronizer: cnt_value, overflow, underflow, tc_pending, ovf_pending, unf_pending, dbg_cycle_count cross core→bus" }
-    - { stage: "S4_STATUS_UPDATE", clock: "bus_clk", cycle: "0..1", action: "Latched status reflected in CNT/STATUS/INTSTAT registers; W1C clear logic evaluated; counter_irq updated" }
+  - stage: S0_APB_ACCESS
+    clock: bus_clk
+    cycle: 0
+    action: "APB decode: paddr\u2192register select, pwrite\u2192read/write, pwdata\u2192write data captured on psel&&penable"
+  - stage: S1_CDC_CTRL
+    clock: core_clk
+    cycle: 0..4
+    action: "2-stage synchronizer: CTRL fields (enable, up_down, mode, clear pulse, load pulse), LOAD value cross bus\u2192\
+      core"
+  - stage: S2_COUNT_EVAL
+    clock: core_clk
+    cycle: 0..N
+    action: Sample event_i; if enable && event_i rising edge, evaluate prio (clear>load>count), arithmetic, saturate/wrap,
+      terminal/overflow/underflow detection; update cnt, dbg_cycle_count increments every core_clk
+  - stage: S3_CDC_STATUS
+    clock: bus_clk
+    cycle: 0..5
+    action: "2-stage synchronizer: cnt_value, overflow, underflow, tc_pending, ovf_pending, unf_pending, dbg_cycle_count cross\
+      \ core\u2192bus"
+  - stage: S4_STATUS_UPDATE
+    clock: bus_clk
+    cycle: 0..1
+    action: Latched status reflected in CNT/STATUS/INTSTAT registers; W1C clear logic evaluated; counter_irq updated
   ordering:
-    - "clear and load CDC pulses must be edge-detected in core domain (single-cycle pulse after synchronization)."
-    - "A write to CTRL.clear or CTRL.load followed by a write to CTRL.enable in the same or subsequent bus_clk cycle must guarantee that clear/load takes effect before the first count event after enable."
-    - "Interrupt status updates (INTSTAT, STATUS) occur in bus_clk domain after CDC convergence; counter_irq follows in the same bus_clk cycle."
-    - "dbg_cycle_count is free-running on core_clk and visible through CDC on bus_clk; no synchronization to event_i."
+  - clear and load CDC pulses must be edge-detected in core domain (single-cycle pulse after synchronization).
+  - A write to CTRL.clear or CTRL.load followed by a write to CTRL.enable in the same or subsequent bus_clk cycle must guarantee
+    that clear/load takes effect before the first count event after enable.
+  - Interrupt status updates (INTSTAT, STATUS) occur in bus_clk domain after CDC convergence; counter_irq follows in the same
+    bus_clk cycle.
+  - dbg_cycle_count is free-running on core_clk and visible through CDC on bus_clk; no synchronization to event_i.
   backpressure:
-    - "No backpressure on APB: zero-wait-state response always."
-    - "No backpressure on event_i: every rising edge while enable=1 produces a count; no flow control."
-    - "CDC pipeline is fixed-depth; no credit-based or ready/valid flow control between domains."
+  - 'No backpressure on APB: zero-wait-state response always.'
+  - 'No backpressure on event_i: every rising edge while enable=1 produces a count; no flow control.'
+  - CDC pipeline is fixed-depth; no credit-based or ready/valid flow control between domains.
   performance:
     frequency_mhz: 300
-    throughput: { max_events_per_sec: 300_000_000, condition: "event_i toggles every core_clk cycle; cnt increments at 300 MHz" }
-    outstanding: { read_max: 1, write_max: 1, description: "Single APB transaction per bus_clk cycle" }
-    depth: { pipeline_stages: 5, queue_depth: 0, description: "CDC pipeline depth; no internal queuing" }
+    throughput:
+      max_events_per_sec: 300000000
+      condition: event_i toggles every core_clk cycle; cnt increments at 300 MHz
+    outstanding:
+      read_max: 1
+      write_max: 1
+      description: Single APB transaction per bus_clk cycle
+    depth:
+      pipeline_stages: 5
+      queue_depth: 0
+      description: CDC pipeline depth; no internal queuing
   observability:
-    - "Every function_model transaction maps to at least one cycle_model stage."
-    - "S2_COUNT_EVAL covers FM1-FM9 count/clear/load/terminal/overflow/underflow logic."
-    - "S4_STATUS_UPDATE covers FM10 interrupt clear logic."
-    - "dbg_cycle_count provides cycle-level observability independent of event activity."
+  - Every function_model transaction maps to at least one cycle_model stage.
+  - S2_COUNT_EVAL covers FM1-FM9 count/clear/load/terminal/overflow/underflow logic.
+  - S4_STATUS_UPDATE covers FM10 interrupt clear logic.
+  - dbg_cycle_count provides cycle-level observability independent of event activity.
 clock_reset_domains:
   domains:
-    - { name: "bus_clk", frequency_mhz: 150, description: "APB register access and interrupt output domain" }
-    - { name: "core_clk", frequency_mhz: 300, description: "Counter core and event sampling domain" }
-  clock_relationship: "core_clk = 2 × bus_clk (integer ratio; synchronous or mesochronous with bounded phase drift)"
+  - name: bus_clk
+    frequency_mhz: 150
+    description: APB register access and interrupt output domain
+  - name: core_clk
+    frequency_mhz: 300
+    description: Counter core and event sampling domain
+  clock_relationship: "core_clk = 2 \xD7 bus_clk (integer ratio; synchronous or mesochronous with bounded phase drift)"
   reset_scheme:
     bus_domain:
-      signal: "bus_rst_n"
-      polarity: "active_low"
-      type: "async_assert_sync_deassert"
-      description: "Bus-domain reset; internal synchronizer on deassertion"
+      signal: bus_rst_n
+      polarity: active_low
+      type: async_assert_sync_deassert
+      description: Bus-domain reset; internal synchronizer on deassertion
     core_domain:
-      signal: "core_rst_n"
-      polarity: "active_low"
-      type: "async_assert_sync_deassert"
-      description: "Core-domain reset; internal synchronizer on deassertion"
+      signal: core_rst_n
+      polarity: active_low
+      type: async_assert_sync_deassert
+      description: Core-domain reset; internal synchronizer on deassertion
 cdc_requirements:
   crossings:
-    - { name: "control_bus_to_core", from_domain: "bus_clk", to_domain: "core_clk", signals: ["enable", "up_down", "mode", "clear_pulse", "load_pulse", "load_value[WIDTH-1:0]"], width: "WIDTH + 5 bits", description: "Control signals from APB register writes to counter core" }
-    - { name: "status_core_to_bus", from_domain: "core_clk", to_domain: "bus_clk", signals: ["cnt_value[WIDTH-1:0]", "overflow", "underflow", "tc_pending", "ovf_pending", "unf_pending", "dbg_cycle_count[WIDTH-1:0]"], width: "2*WIDTH + 5 bits", description: "Counter value, status flags, interrupt pending, and debug counter to APB read registers" }
+  - name: control_bus_to_core
+    from_domain: bus_clk
+    to_domain: core_clk
+    signals:
+    - enable
+    - up_down
+    - mode
+    - clear_pulse
+    - load_pulse
+    - load_value[WIDTH-1:0]
+    width: WIDTH + 5 bits
+    description: Control signals from APB register writes to counter core
+  - name: status_core_to_bus
+    from_domain: core_clk
+    to_domain: bus_clk
+    signals:
+    - cnt_value[WIDTH-1:0]
+    - overflow
+    - underflow
+    - tc_pending
+    - ovf_pending
+    - unf_pending
+    - dbg_cycle_count[WIDTH-1:0]
+    width: 2*WIDTH + 5 bits
+    description: Counter value, status flags, interrupt pending, and debug counter to APB read registers
   synchronizers:
-    - { name: "sync_ctrl", type: "2-stage FF", stages: "CDC_SYNC_STAGES (default 2)", signals: "all control_bus_to_core", constraint: "Launch on bus_clk, capture on core_clk; metastability resolved in 2 stages" }
-    - { name: "sync_status", type: "2-stage FF", stages: "CDC_SYNC_STAGES (default 2)", signals: "all status_core_to_bus", constraint: "Launch on core_clk, capture on bus_clk; metastability resolved in 2 stages" }
-    - { name: "sync_pulse_clear", type: "2-stage + edge detect", stages: "CDC_SYNC_STAGES + toggle or pulse-extend", signals: ["clear_pulse", "load_pulse"], constraint: "Single-cycle bus-domain pulse must be reliably captured in core domain; use toggle synchronizer or pulse-extend to guarantee detection at 2:1 frequency ratio" }
+  - name: sync_ctrl
+    type: 2-stage FF
+    stages: CDC_SYNC_STAGES (default 2)
+    signals: all control_bus_to_core
+    constraint: Launch on bus_clk, capture on core_clk; metastability resolved in 2 stages
+  - name: sync_status
+    type: 2-stage FF
+    stages: CDC_SYNC_STAGES (default 2)
+    signals: all status_core_to_bus
+    constraint: Launch on core_clk, capture on bus_clk; metastability resolved in 2 stages
+  - name: sync_pulse_clear
+    type: 2-stage + edge detect
+    stages: CDC_SYNC_STAGES + toggle or pulse-extend
+    signals:
+    - clear_pulse
+    - load_pulse
+    constraint: Single-cycle bus-domain pulse must be reliably captured in core domain; use toggle synchronizer or pulse-extend
+      to guarantee detection at 2:1 frequency ratio
   constraints:
-    - "All CDC paths must be timed with set_max_delay -datapath_only in SDC between launch and capture clock domains."
-    - "CDC synchronizer cells must not be optimized away or retimed by synthesis."
-    - "MTBF target: > 1e9 hours at 300 MHz for all synchronizer chains."
+  - All CDC paths must be timed with set_max_delay -datapath_only in SDC between launch and capture clock domains.
+  - CDC synchronizer cells must not be optimized away or retimed by synthesis.
+  - 'MTBF target: > 1e9 hours at 300 MHz for all synchronizer chains.'
 rdc_requirements:
   crossings:
-    - { name: "bus_to_core_reset", from_reset: "bus_rst_n", to_reset: "core_rst_n", signals: "CDC synchronizer internal flops", description: "Reset domain boundary at CDC synchronizers; each domain's flops reset by their own reset signal" }
+  - name: bus_to_core_reset
+    from_reset: bus_rst_n
+    to_reset: core_rst_n
+    signals: CDC synchronizer internal flops
+    description: Reset domain boundary at CDC synchronizers; each domain's flops reset by their own reset signal
   synchronizers: []
-  constraint: "bus_rst_n and core_rst_n may assert asynchronously to each other. CDC synchronizer flops in the bus→core direction are reset by core_rst_n (capture domain). CDC synchronizer flops in the core→bus direction are reset by bus_rst_n (capture domain)."
+  constraint: "bus_rst_n and core_rst_n may assert asynchronously to each other. CDC synchronizer flops in the bus\u2192core\
+    \ direction are reset by core_rst_n (capture domain). CDC synchronizer flops in the core\u2192bus direction are reset\
+    \ by bus_rst_n (capture domain)."
 registers:
   config:
     register_width: 32
     addr_width: 8
     byte_addressable: true
-  bit_order: "lsb0"
-  bits_format: "[msb, lsb]"
+  bit_order: lsb0
+  bits_format: '[msb, lsb]'
   reserved_field_policy:
     read_value: 0
-    write_effect: "ignore"
-    rtl_requirement: "Reserved fields read as zero and do not allocate storage."
+    write_effect: ignore
+    rtl_requirement: Reserved fields read as zero and do not allocate storage.
   register_list:
-    - name: "CTRL"
-      offset: 0x00
-      width: 32
-      access: "rw"
-      reset: 0x00000000
-      category: "control"
-      description: "Control Register"
-      write_side_effects:
-        - "Writing enable=1 starts the counter; enable=0 holds count value."
-        - "Writing clear=1 resets cnt to 0 (self-clearing, reads 0)."
-        - "Writing load=1 loads cnt from LOAD register (self-clearing, reads 0)."
-        - "Writing up_down/mode takes effect on next count event."
-      fields:
-        - { name: "enable", bits: [0, 0], access: "rw", reset: 0x0, write_effect: "Enable counting on event_i", description: "Counter enable" }
-        - { name: "up_down", bits: [1, 1], access: "rw", reset: 0x0, write_effect: "0=up count, 1=down count", description: "Count direction" }
-        - { name: "mode", bits: [2, 2], access: "rw", reset: 0x0, write_effect: "0=saturate at limits, 1=wrap at limits", description: "Overflow/underflow mode" }
-        - { name: "clear", bits: [3, 3], access: "wo", reset: 0x0, write_effect: "Write 1 to clear counter to 0; self-clearing, always reads 0", description: "Clear counter" }
-        - { name: "load", bits: [4, 4], access: "wo", reset: 0x0, write_effect: "Write 1 to load cnt from LOAD register; self-clearing, always reads 0", description: "Load counter" }
-        - { name: "reserved_31_5", bits: [31, 5], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
-    - name: "CNT"
-      offset: 0x04
-      width: 32
-      access: "ro"
-      reset: 0x00000000
-      category: "status"
-      description: "Counter Value Register (CDC-synced from core domain)"
-      fields:
-        - { name: "cnt_value", bits: [31, 0], access: "ro", reset: 0x00000000, write_effect: "N/A (read-only)", description: "Current counter value (synchronized to bus_clk)" }
-    - name: "LOAD"
-      offset: 0x08
-      width: 32
-      access: "rw"
-      reset: 0x00000000
-      category: "control"
-      description: "Load Value Register"
-      write_side_effects:
-        - "Software may write any time; used when CTRL.load=1."
-      fields:
-        - { name: "load_value", bits: [31, 0], access: "rw", reset: 0x00000000, write_effect: "Value loaded into cnt on CTRL.load pulse", description: "Counter load value" }
-    - name: "TERM"
-      offset: 0x0C
-      width: 32
-      access: "rw"
-      reset: 0xFFFFFFFF
-      category: "control"
-      description: "Terminal Count Register"
-      write_side_effects:
-        - "Writing TERM changes the terminal-count comparison threshold immediately."
-        - "If cnt already matches new TERM while enabled and counting up, tc_pending asserts on next core_clk edge."
-      fields:
-        - { name: "term_value", bits: [31, 0], access: "rw", reset: 0xFFFFFFFF, write_effect: "Terminal count threshold for up-count comparison", description: "Terminal count value" }
-    - name: "STATUS"
-      offset: 0x10
-      width: 32
-      access: "ro"
-      reset: 0x00000000
-      category: "status"
-      description: "Status Register (sticky overflow/underflow flags, CDC-synced)"
-      fields:
-        - { name: "overflow", bits: [0, 0], access: "ro", reset: 0x0, write_effect: "N/A (cleared via INTCLR)", description: "Sticky overflow flag (set when cnt saturates/wraps at MAX while counting up)" }
-        - { name: "underflow", bits: [1, 1], access: "ro", reset: 0x0, write_effect: "N/A (cleared via INTCLR)", description: "Sticky underflow flag (set when cnt saturates/wraps at 0 while counting down)" }
-        - { name: "reserved_31_2", bits: [31, 2], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
-    - name: "INTEN"
-      offset: 0x14
-      width: 32
-      access: "rw"
-      reset: 0x00000000
-      category: "interrupt"
-      description: "Interrupt Enable Register"
-      write_side_effects:
-        - "Setting a bit enables the corresponding interrupt source to assert counter_irq."
-        - "Clearing a bit masks the source; pending status is preserved in INTSTAT."
-      fields:
-        - { name: "tc_en", bits: [0, 0], access: "rw", reset: 0x0, write_effect: "Enable terminal-count interrupt", description: "Terminal count interrupt enable" }
-        - { name: "ovf_en", bits: [1, 1], access: "rw", reset: 0x0, write_effect: "Enable overflow interrupt", description: "Overflow interrupt enable" }
-        - { name: "unf_en", bits: [2, 2], access: "rw", reset: 0x0, write_effect: "Enable underflow interrupt", description: "Underflow interrupt enable" }
-        - { name: "reserved_31_3", bits: [31, 3], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
-    - name: "INTSTAT"
-      offset: 0x18
-      width: 32
-      access: "ro"
-      reset: 0x00000000
-      category: "interrupt"
-      description: "Interrupt Status Register (pending sources before masking)"
-      fields:
-        - { name: "tc_pending", bits: [0, 0], access: "ro", reset: 0x0, write_effect: "N/A (cleared via INTCLR)", description: "Terminal count pending" }
-        - { name: "ovf_pending", bits: [1, 1], access: "ro", reset: 0x0, write_effect: "N/A (cleared via INTCLR)", description: "Overflow pending" }
-        - { name: "unf_pending", bits: [2, 2], access: "ro", reset: 0x0, write_effect: "N/A (cleared via INTCLR)", description: "Underflow pending" }
-        - { name: "reserved_31_3", bits: [31, 3], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
-    - name: "INTCLR"
-      offset: 0x1C
-      width: 32
-      access: "rw"
-      reset: 0x00000000
-      category: "interrupt"
-      description: "Interrupt Clear Register (W1C)"
-      write_side_effects:
-        - "Writing 1 to a bit clears the corresponding pending status in INTSTAT and sticky flag in STATUS."
-        - "Writing 0 has no effect."
-        - "Read returns current INTSTAT value."
-      fields:
-        - { name: "tc_clr", bits: [0, 0], access: "rw", reset: 0x0, write_effect: "Write 1 to clear tc_pending", description: "Clear terminal-count pending" }
-        - { name: "ovf_clr", bits: [1, 1], access: "rw", reset: 0x0, write_effect: "Write 1 to clear ovf_pending and STATUS.overflow", description: "Clear overflow pending and sticky flag" }
-        - { name: "unf_clr", bits: [2, 2], access: "rw", reset: 0x0, write_effect: "Write 1 to clear unf_pending and STATUS.underflow", description: "Clear underflow pending and sticky flag" }
-        - { name: "reserved_31_3", bits: [31, 3], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
-    - name: "DBGCNT"
-      offset: 0x20
-      width: 32
-      access: "ro"
-      reset: 0x00000000
-      category: "debug"
-      description: "Debug Cycle Counter Register (CDC-synced from core domain)"
-      fields:
-        - { name: "dbg_cycle_count", bits: [31, 0], access: "ro", reset: 0x00000000, write_effect: "N/A (read-only)", description: "Free-running cycle counter on core_clk for debug observability" }
+  - name: CTRL
+    offset: 0
+    width: 32
+    access: rw
+    reset: 0
+    category: control
+    description: Control Register
+    write_side_effects:
+    - Writing enable=1 starts the counter; enable=0 holds count value.
+    - Writing clear=1 resets cnt to 0 (self-clearing, reads 0).
+    - Writing load=1 loads cnt from LOAD register (self-clearing, reads 0).
+    - Writing up_down/mode takes effect on next count event.
+    fields:
+    - name: enable
+      bits:
+      - 0
+      - 0
+      access: rw
+      reset: 0
+      write_effect: Enable counting on event_i
+      description: Counter enable
+    - name: up_down
+      bits:
+      - 1
+      - 1
+      access: rw
+      reset: 0
+      write_effect: 0=up count, 1=down count
+      description: Count direction
+    - name: mode
+      bits:
+      - 2
+      - 2
+      access: rw
+      reset: 0
+      write_effect: 0=saturate at limits, 1=wrap at limits
+      description: Overflow/underflow mode
+    - name: clear
+      bits:
+      - 3
+      - 3
+      access: wo
+      reset: 0
+      write_effect: Write 1 to clear counter to 0; self-clearing, always reads 0
+      description: Clear counter
+    - name: load
+      bits:
+      - 4
+      - 4
+      access: wo
+      reset: 0
+      write_effect: Write 1 to load cnt from LOAD register; self-clearing, always reads 0
+      description: Load counter
+    - name: reserved_31_5
+      bits:
+      - 31
+      - 5
+      access: reserved
+      reset: 0
+      read_value: 0
+      write_effect: ignore
+      description: Reserved; reads zero
+  - name: CNT
+    offset: 4
+    width: 32
+    access: ro
+    reset: 0
+    category: status
+    description: Counter Value Register (CDC-synced from core domain)
+    fields:
+    - name: cnt_value
+      bits:
+      - 31
+      - 0
+      access: ro
+      reset: 0
+      write_effect: N/A (read-only)
+      description: Current counter value (synchronized to bus_clk)
+  - name: LOAD
+    offset: 8
+    width: 32
+    access: rw
+    reset: 0
+    category: control
+    description: Load Value Register
+    write_side_effects:
+    - Software may write any time; used when CTRL.load=1.
+    fields:
+    - name: load_value
+      bits:
+      - 31
+      - 0
+      access: rw
+      reset: 0
+      write_effect: Value loaded into cnt on CTRL.load pulse
+      description: Counter load value
+  - name: TERM
+    offset: 12
+    width: 32
+    access: rw
+    reset: 4294967295
+    category: control
+    description: Terminal Count Register
+    write_side_effects:
+    - Writing TERM changes the terminal-count comparison threshold immediately.
+    - If cnt already matches new TERM while enabled and counting up, tc_pending asserts on next core_clk edge.
+    fields:
+    - name: term_value
+      bits:
+      - 31
+      - 0
+      access: rw
+      reset: 4294967295
+      write_effect: Terminal count threshold for up-count comparison
+      description: Terminal count value
+  - name: STATUS
+    offset: 16
+    width: 32
+    access: ro
+    reset: 0
+    category: status
+    description: Status Register (sticky overflow/underflow flags, CDC-synced)
+    fields:
+    - name: overflow
+      bits:
+      - 0
+      - 0
+      access: ro
+      reset: 0
+      write_effect: N/A (cleared via INTCLR)
+      description: Sticky overflow flag (set when cnt saturates/wraps at MAX while counting up)
+    - name: underflow
+      bits:
+      - 1
+      - 1
+      access: ro
+      reset: 0
+      write_effect: N/A (cleared via INTCLR)
+      description: Sticky underflow flag (set when cnt saturates/wraps at 0 while counting down)
+    - name: reserved_31_2
+      bits:
+      - 31
+      - 2
+      access: reserved
+      reset: 0
+      read_value: 0
+      write_effect: ignore
+      description: Reserved; reads zero
+  - name: INTEN
+    offset: 20
+    width: 32
+    access: rw
+    reset: 0
+    category: interrupt
+    description: Interrupt Enable Register
+    write_side_effects:
+    - Setting a bit enables the corresponding interrupt source to assert counter_irq.
+    - Clearing a bit masks the source; pending status is preserved in INTSTAT.
+    fields:
+    - name: tc_en
+      bits:
+      - 0
+      - 0
+      access: rw
+      reset: 0
+      write_effect: Enable terminal-count interrupt
+      description: Terminal count interrupt enable
+    - name: ovf_en
+      bits:
+      - 1
+      - 1
+      access: rw
+      reset: 0
+      write_effect: Enable overflow interrupt
+      description: Overflow interrupt enable
+    - name: unf_en
+      bits:
+      - 2
+      - 2
+      access: rw
+      reset: 0
+      write_effect: Enable underflow interrupt
+      description: Underflow interrupt enable
+    - name: reserved_31_3
+      bits:
+      - 31
+      - 3
+      access: reserved
+      reset: 0
+      read_value: 0
+      write_effect: ignore
+      description: Reserved; reads zero
+  - name: INTSTAT
+    offset: 24
+    width: 32
+    access: ro
+    reset: 0
+    category: interrupt
+    description: Interrupt Status Register (pending sources before masking)
+    fields:
+    - name: tc_pending
+      bits:
+      - 0
+      - 0
+      access: ro
+      reset: 0
+      write_effect: N/A (cleared via INTCLR)
+      description: Terminal count pending
+    - name: ovf_pending
+      bits:
+      - 1
+      - 1
+      access: ro
+      reset: 0
+      write_effect: N/A (cleared via INTCLR)
+      description: Overflow pending
+    - name: unf_pending
+      bits:
+      - 2
+      - 2
+      access: ro
+      reset: 0
+      write_effect: N/A (cleared via INTCLR)
+      description: Underflow pending
+    - name: reserved_31_3
+      bits:
+      - 31
+      - 3
+      access: reserved
+      reset: 0
+      read_value: 0
+      write_effect: ignore
+      description: Reserved; reads zero
+  - name: INTCLR
+    offset: 28
+    width: 32
+    access: rw
+    reset: 0
+    category: interrupt
+    description: Interrupt Clear Register (W1C)
+    write_side_effects:
+    - Writing 1 to a bit clears the corresponding pending status in INTSTAT and sticky flag in STATUS.
+    - Writing 0 has no effect.
+    - Read returns current INTSTAT value.
+    fields:
+    - name: tc_clr
+      bits:
+      - 0
+      - 0
+      access: rw
+      reset: 0
+      write_effect: Write 1 to clear tc_pending
+      description: Clear terminal-count pending
+    - name: ovf_clr
+      bits:
+      - 1
+      - 1
+      access: rw
+      reset: 0
+      write_effect: Write 1 to clear ovf_pending and STATUS.overflow
+      description: Clear overflow pending and sticky flag
+    - name: unf_clr
+      bits:
+      - 2
+      - 2
+      access: rw
+      reset: 0
+      write_effect: Write 1 to clear unf_pending and STATUS.underflow
+      description: Clear underflow pending and sticky flag
+    - name: reserved_31_3
+      bits:
+      - 31
+      - 3
+      access: reserved
+      reset: 0
+      read_value: 0
+      write_effect: ignore
+      description: Reserved; reads zero
+  - name: DBGCNT
+    offset: 32
+    width: 32
+    access: ro
+    reset: 0
+    category: debug
+    description: Debug Cycle Counter Register (CDC-synced from core domain)
+    fields:
+    - name: dbg_cycle_count
+      bits:
+      - 31
+      - 0
+      access: ro
+      reset: 0
+      write_effect: N/A (read-only)
+      description: Free-running cycle counter on core_clk for debug observability
 memory:
   instances:
-    - { name: "cnt_reg", type: "register", depth: 1, width: "WIDTH", read_ports: 1, write_ports: 1, latency: 0, description: "Counter value register (core domain)" }
-    - { name: "dbg_cycle_reg", type: "register", depth: 1, width: "WIDTH", read_ports: 1, write_ports: 1, latency: 0, description: "Debug cycle counter register (core domain, free-running)" }
-  note: "All storage is register-based; no SRAM or FIFO instances. CDC shadow registers in bus domain for read-back are implementation detail."
+  - name: cnt_reg
+    type: register
+    depth: 1
+    width: WIDTH
+    read_ports: 1
+    write_ports: 1
+    latency: 0
+    description: Counter value register (core domain)
+  - name: dbg_cycle_reg
+    type: register
+    depth: 1
+    width: WIDTH
+    read_ports: 1
+    write_ports: 1
+    latency: 0
+    description: Debug cycle counter register (core domain, free-running)
+  note: All storage is register-based; no SRAM or FIFO instances. CDC shadow registers in bus domain for read-back are implementation
+    detail.
 interrupts:
   sources:
-    - { name: "TC", bit: 0, type: "level", enable_reg: "INTEN.tc_en (bit 0)", status_reg: "INTSTAT.tc_pending (bit 0)", clear: "W1C via INTCLR.tc_clr (bit 0)", description: "Terminal count reached (cnt==TERM when up, cnt==0 when down)" }
-    - { name: "OVF", bit: 1, type: "level", enable_reg: "INTEN.ovf_en (bit 1)", status_reg: "INTSTAT.ovf_pending (bit 1)", clear: "W1C via INTCLR.ovf_clr (bit 1); also clears STATUS.overflow", description: "Overflow (cnt wrapped or saturated at MAX while counting up)" }
-    - { name: "UNF", bit: 2, type: "level", enable_reg: "INTEN.unf_en (bit 2)", status_reg: "INTSTAT.unf_pending (bit 2)", clear: "W1C via INTCLR.unf_clr (bit 2); also clears STATUS.underflow", description: "Underflow (cnt wrapped or saturated at 0 while counting down)" }
+  - name: TC
+    bit: 0
+    type: level
+    enable_reg: INTEN.tc_en (bit 0)
+    status_reg: INTSTAT.tc_pending (bit 0)
+    clear: W1C via INTCLR.tc_clr (bit 0)
+    description: Terminal count reached (cnt==TERM when up, cnt==0 when down)
+  - name: OVF
+    bit: 1
+    type: level
+    enable_reg: INTEN.ovf_en (bit 1)
+    status_reg: INTSTAT.ovf_pending (bit 1)
+    clear: W1C via INTCLR.ovf_clr (bit 1); also clears STATUS.overflow
+    description: Overflow (cnt wrapped or saturated at MAX while counting up)
+  - name: UNF
+    bit: 2
+    type: level
+    enable_reg: INTEN.unf_en (bit 2)
+    status_reg: INTSTAT.unf_pending (bit 2)
+    clear: W1C via INTCLR.unf_clr (bit 2); also clears STATUS.underflow
+    description: Underflow (cnt wrapped or saturated at 0 while counting down)
   output:
-    signal: "counter_irq"
-    polarity: "active_high"
-    type: "level"
-    formula: "counter_irq = (tc_pending & tc_en) | (ovf_pending & ovf_en) | (unf_pending & unf_en)"
+    signal: counter_irq
+    polarity: active_high
+    type: level
+    formula: counter_irq = (tc_pending & tc_en) | (ovf_pending & ovf_en) | (unf_pending & unf_en)
 fsm:
   core_fsm:
     states:
-      - "IDLE"
-      - "COUNT"
+    - IDLE
+    - COUNT
     transitions:
-      - { from: "IDLE",  to: "COUNT", condition: "enable=1 and event_i=1" }
-      - { from: "COUNT", to: "IDLE",  condition: "enable=0" }
-      - { from: "COUNT", to: "COUNT", condition: "enable=1 and event_i=1 (next count)" }
-    note: "clear and load are decoded combinatorially and take priority over normal counting. clear: cnt→0; load: cnt→load_value. Both are single-cycle pulses synchronized from bus domain."
+    - from: IDLE
+      to: COUNT
+      condition: enable=1 and event_i=1
+    - from: COUNT
+      to: IDLE
+      condition: enable=0
+    - from: COUNT
+      to: COUNT
+      condition: enable=1 and event_i=1 (next count)
+    note: "clear and load are decoded combinatorially and take priority over normal counting. clear: cnt\u21920; load: cnt\u2192\
+      load_value. Both are single-cycle pulses synchronized from bus domain."
   internal_control:
     priority:
-      - "clear > load > normal_count"
-      - "Saturate/wrap logic is evaluated after the arithmetic operation"
+    - clear > load > normal_count
+    - Saturate/wrap logic is evaluated after the arithmetic operation
     event_gating:
-      - "Event is edge-sensitive per core_clk: a 0→1 transition on event_i while enable=1 triggers one count operation."
-      - "If event_i is high for multiple core_clk cycles, only the first rising edge counts; subsequent edges require event_i to return to 0 first."
+    - "Event is edge-sensitive per core_clk: a 0\u21921 transition on event_i while enable=1 triggers one count operation."
+    - If event_i is high for multiple core_clk cycles, only the first rising edge counts; subsequent edges require event_i
+      to return to 0 first.
 timing:
   target_clocks:
-    - { name: "bus_clk", frequency_mhz: 150, duty_cycle: 0.5, uncertainty_ns: 0.2 }
-    - { name: "core_clk", frequency_mhz: 300, duty_cycle: 0.5, uncertainty_ns: 0.15 }
+  - name: bus_clk
+    frequency_mhz: 150
+    duty_cycle: 0.5
+    uncertainty_ns: 0.2
+  - name: core_clk
+    frequency_mhz: 300
+    duty_cycle: 0.5
+    uncertainty_ns: 0.15
   latency_budget:
-    register_access_cycles: { min: 1, max: 1, measured_from: "psel && penable", measured_to: "pready && prdata valid" }
-    interrupt_latency_cycles: { min: 3, max: 8, measured_from: "core-domain count event", measured_to: "counter_irq assertion on bus_clk" }
-    cdc_control_latency_core_cycles: { min: 2, max: 4, measured_from: "bus_clk register write", measured_to: "control visible in core domain" }
-    cdc_status_latency_bus_cycles: { min: 2, max: 5, measured_from: "core-domain status update", measured_to: "status readable on APB" }
+    register_access_cycles:
+      min: 1
+      max: 1
+      measured_from: psel && penable
+      measured_to: pready && prdata valid
+    interrupt_latency_cycles:
+      min: 3
+      max: 8
+      measured_from: core-domain count event
+      measured_to: counter_irq assertion on bus_clk
+    cdc_control_latency_core_cycles:
+      min: 2
+      max: 4
+      measured_from: bus_clk register write
+      measured_to: control visible in core domain
+    cdc_status_latency_bus_cycles:
+      min: 2
+      max: 5
+      measured_from: core-domain status update
+      measured_to: status readable on APB
   throughput:
-    max_events_per_sec: 300_000_000
-    conditions: "event_i can toggle every core_clk cycle; no backpressure"
+    max_events_per_sec: 300000000
+    conditions: event_i can toggle every core_clk cycle; no backpressure
   io_delays:
     inputs:
-      - { ports: "event_i", clock: "core_clk", delay_ns: 0.3, source: "external pin budget" }
-      - { ports: "paddr, psel, penable, pwrite, pwdata, pstrb", clock: "bus_clk", delay_ns: 0.3, source: "APB interconnect budget" }
+    - ports: event_i
+      clock: core_clk
+      delay_ns: 0.3
+      source: external pin budget
+    - ports: paddr, psel, penable, pwrite, pwdata, pstrb
+      clock: bus_clk
+      delay_ns: 0.3
+      source: APB interconnect budget
     outputs:
-      - { ports: "prdata, pready", clock: "bus_clk", delay_ns: 0.3, source: "APB interconnect budget" }
-      - { ports: "counter_irq", clock: "bus_clk", delay_ns: 0.3, source: "interrupt controller budget" }
+    - ports: prdata, pready
+      clock: bus_clk
+      delay_ns: 0.3
+      source: APB interconnect budget
+    - ports: counter_irq
+      clock: bus_clk
+      delay_ns: 0.3
+      source: interrupt controller budget
   false_paths:
-    - { from: "bus_rst_n", to: "all_bus_domain_registers", reason: "async reset assertion" }
-    - { from: "core_rst_n", to: "all_core_domain_registers", reason: "async reset assertion" }
+  - from: bus_rst_n
+    to: all_bus_domain_registers
+    reason: async reset assertion
+  - from: core_rst_n
+    to: all_core_domain_registers
+    reason: async reset assertion
   multicycle_paths: []
   cdc_constraints:
-    - { from: "bus_clk", to: "core_clk", type: "set_max_delay -datapath_only", value_ns: 5.0, signals: "all control_bus_to_core" }
-    - { from: "core_clk", to: "bus_clk", type: "set_max_delay -datapath_only", value_ns: 5.0, signals: "all status_core_to_bus" }
+  - from: bus_clk
+    to: core_clk
+    type: set_max_delay -datapath_only
+    value_ns: 5.0
+    signals: all control_bus_to_core
+  - from: core_clk
+    to: bus_clk
+    type: set_max_delay -datapath_only
+    value_ns: 5.0
+    signals: all status_core_to_bus
   sta_expectations:
     setup_wns_ns_min: 0.0
     hold_wns_ns_min: 0.0
-    required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt", "sta/out/wns.json"]
+    required_reports:
+    - sta/out/setup.rpt
+    - sta/out/hold.rpt
+    - sta/out/wns.json
 power:
   domains:
-    - { name: "PD_BUS", voltage: "nominal", clock_domains: ["bus_clk"], isolation: "not_required" }
-    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["core_clk"], isolation: "not_required" }
+  - name: PD_BUS
+    voltage: nominal
+    clock_domains:
+    - bus_clk
+    isolation: not_required
+  - name: PD_CORE
+    voltage: nominal
+    clock_domains:
+    - core_clk
+    isolation: not_required
   clock_gating:
     required: false
-    rationale: "No low-power mode in this IP revision; counter is always active when core_clk is present"
+    rationale: No low-power mode in this IP revision; counter is always active when core_clk is present
   reset_retention:
     retention_required: false
-    reset_value_source: "registers and function_model state_variables"
+    reset_value_source: registers and function_model state_variables
   power_states:
-    - { name: "ON", entry: "both resets deasserted", exit: "either reset asserted", guarantees: ["All architectural behavior active", "Both clock domains running"] }
+  - name: 'ON'
+    entry: both resets deasserted
+    exit: either reset asserted
+    guarantees:
+    - All architectural behavior active
+    - Both clock domains running
   upf_required: false
 security:
-  classification: "non_secure_peripheral_ip"
+  classification: non_secure_peripheral_ip
   assets:
-    - { name: "counter_value", protection: "Read-only via CNT register; writeable only via clear/load CDC path" }
-    - { name: "control_registers", protection: "APB access control is external to this IP (SoC interconnect determines privilege)" }
+  - name: counter_value
+    protection: Read-only via CNT register; writeable only via clear/load CDC path
+  - name: control_registers
+    protection: APB access control is external to this IP (SoC interconnect determines privilege)
   threat_model:
-    - { threat: "unexpected counter reset via glitch on clear/load CDC", mitigation: "CDC pulse synchronizer rejects glitches shorter than bus_clk period; requires sustained bus-domain write" }
-    - { threat: "stale counter value due to CDC convergence delay", mitigation: "Bounded CDC latency documented in cycle_model; software must poll STATUS or wait for interrupt" }
-  privilege_model: "External bus fabric enforces privilege; this IP implements no internal privilege levels or secure/non-secure partitioning"
+  - threat: unexpected counter reset via glitch on clear/load CDC
+    mitigation: CDC pulse synchronizer rejects glitches shorter than bus_clk period; requires sustained bus-domain write
+  - threat: stale counter value due to CDC convergence delay
+    mitigation: Bounded CDC latency documented in cycle_model; software must poll STATUS or wait for interrupt
+  privilege_model: External bus fabric enforces privilege; this IP implements no internal privilege levels or secure/non-secure
+    partitioning
   safety_goals:
-    - "No silent counter corruption across CDC boundaries"
-    - "Sticky overflow/underflow flags are preserved until explicit W1C clear"
+  - No silent counter corruption across CDC boundaries
+  - Sticky overflow/underflow flags are preserved until explicit W1C clear
 error_handling:
   error_sources:
-    - { id: "ERR_OVERFLOW", condition: "cnt transitions through MAX (2^WIDTH-1) while counting up", architectural_effect: "STATUS.overflow=1, INTSTAT.ovf_pending=1; counter_irq if INTEN.ovf_en=1", severity: "info" }
-    - { id: "ERR_UNDERFLOW", condition: "cnt transitions through 0 while counting down", architectural_effect: "STATUS.underflow=1, INTSTAT.unf_pending=1; counter_irq if INTEN.unf_en=1", severity: "info" }
+  - id: ERR_OVERFLOW
+    condition: cnt transitions through MAX (2^WIDTH-1) while counting up
+    architectural_effect: STATUS.overflow=1, INTSTAT.ovf_pending=1; counter_irq if INTEN.ovf_en=1
+    severity: info
+  - id: ERR_UNDERFLOW
+    condition: cnt transitions through 0 while counting down
+    architectural_effect: STATUS.underflow=1, INTSTAT.unf_pending=1; counter_irq if INTEN.unf_en=1
+    severity: info
   propagation:
-    - "Overflow and underflow are sticky until explicit W1C clear via INTCLR."
-    - "Multiple overflow events between clears do not toggle the sticky flag (already set)."
-    - "Counter continues normal operation after overflow/underflow (saturate holds; wrap continues)."
+  - Overflow and underflow are sticky until explicit W1C clear via INTCLR.
+  - Multiple overflow events between clears do not toggle the sticky flag (already set).
+  - Counter continues normal operation after overflow/underflow (saturate holds; wrap continues).
   recovery:
-    - { action: "software W1C write to INTCLR.ovf_clr", clears: ["INTSTAT.ovf_pending", "STATUS.overflow"], preserves: ["cnt", "all control registers"] }
-    - { action: "software W1C write to INTCLR.unf_clr", clears: ["INTSTAT.unf_pending", "STATUS.underflow"], preserves: ["cnt", "all control registers"] }
-    - { action: "software W1C write to INTCLR.tc_clr", clears: ["INTSTAT.tc_pending"], preserves: ["cnt", "all control registers"] }
-  note: "Overflow/underflow are expected operational conditions, not hardware faults. They signal counter limit events to software."
+  - action: software W1C write to INTCLR.ovf_clr
+    clears:
+    - INTSTAT.ovf_pending
+    - STATUS.overflow
+    preserves:
+    - cnt
+    - all control registers
+  - action: software W1C write to INTCLR.unf_clr
+    clears:
+    - INTSTAT.unf_pending
+    - STATUS.underflow
+    preserves:
+    - cnt
+    - all control registers
+  - action: software W1C write to INTCLR.tc_clr
+    clears:
+    - INTSTAT.tc_pending
+    preserves:
+    - cnt
+    - all control registers
+  note: Overflow/underflow are expected operational conditions, not hardware faults. They signal counter limit events to software.
 debug_observability:
   waveform_must_probe:
-    - "cnt_value (core domain)"
-    - "event_i"
-    - "core FSM state (IDLE/COUNT)"
-    - "clear_pulse, load_pulse (core domain, post-CDC)"
-    - "overflow, underflow (core domain)"
-    - "tc_pending, ovf_pending, unf_pending (core domain)"
-    - "counter_irq (bus domain)"
-    - "dbg_cycle_count (core domain)"
-  status_outputs: ["CNT.cnt_value", "STATUS.overflow", "STATUS.underflow", "INTSTAT.*", "DBGCNT.dbg_cycle_count"]
+  - cnt_value (core domain)
+  - event_i
+  - core FSM state (IDLE/COUNT)
+  - clear_pulse, load_pulse (core domain, post-CDC)
+  - overflow, underflow (core domain)
+  - tc_pending, ovf_pending, unf_pending (core domain)
+  - counter_irq (bus domain)
+  - dbg_cycle_count (core domain)
+  status_outputs:
+  - CNT.cnt_value
+  - STATUS.overflow
+  - STATUS.underflow
+  - INTSTAT.*
+  - DBGCNT.dbg_cycle_count
   trace_events:
-    - { name: "count_event", trigger: "event_i rising edge while enable=1" }
-    - { name: "clear_event", trigger: "clear pulse detected in core domain" }
-    - { name: "load_event", trigger: "load pulse detected in core domain" }
-    - { name: "terminal_count", trigger: "tc_pending set" }
-    - { name: "overflow_event", trigger: "overflow set" }
-    - { name: "underflow_event", trigger: "underflow set" }
+  - name: count_event
+    trigger: event_i rising edge while enable=1
+  - name: clear_event
+    trigger: clear pulse detected in core domain
+  - name: load_event
+    trigger: load pulse detected in core domain
+  - name: terminal_count
+    trigger: tc_pending set
+  - name: overflow_event
+    trigger: overflow set
+  - name: underflow_event
+    trigger: underflow set
   debug_registers:
-    - "DBGCNT: free-running core_clk cycle counter for timing/performance debug"
+  - 'DBGCNT: free-running core_clk cycle counter for timing/performance debug'
 integration:
   bus_attachment:
-    control: "APB-lite slave on bus_clk domain"
+    control: APB-lite slave on bus_clk domain
   clock_attachment:
-    - { clock: "bus_clk", frequency_mhz: 150, domain: "bus" }
-    - { clock: "core_clk", frequency_mhz: 300, domain: "core" }
+  - clock: bus_clk
+    frequency_mhz: 150
+    domain: bus
+  - clock: core_clk
+    frequency_mhz: 300
+    domain: core
   connections:
-    - { module: "todo_counter_pipe_regs", port: "bus_clk", signal: "bus_clk" }
-    - { module: "todo_counter_pipe_regs", port: "bus_rst_n", signal: "bus_rst_n" }
-    - { module: "todo_counter_pipe_regs", port: "irq_o", signal: "counter_irq" }
-    - { module: "todo_counter_pipe_core", port: "core_clk", signal: "core_clk" }
-    - { module: "todo_counter_pipe_core", port: "core_rst_n", signal: "core_rst_n" }
-    - { module: "todo_counter_pipe_core", port: "event_i", signal: "event_i" }
-    - { module: "todo_counter_pipe_cdc", port: "bus_clk", signal: "bus_clk" }
-    - { module: "todo_counter_pipe_cdc", port: "core_clk", signal: "core_clk" }
-    - { module: "todo_counter_pipe_cdc", port: "bus_rst_n", signal: "bus_rst_n" }
-    - { module: "todo_counter_pipe_cdc", port: "core_rst_n", signal: "core_rst_n" }
+  - module: todo_counter_pipe_regs
+    port: bus_clk
+    signal: bus_clk
+  - module: todo_counter_pipe_regs
+    port: bus_rst_n
+    signal: bus_rst_n
+  - module: todo_counter_pipe_regs
+    port: irq_o
+    signal: counter_irq
+  - module: todo_counter_pipe_core
+    port: core_clk
+    signal: core_clk
+  - module: todo_counter_pipe_core
+    port: core_rst_n
+    signal: core_rst_n
+  - module: todo_counter_pipe_core
+    port: event_i
+    signal: event_i
+  - module: todo_counter_pipe_cdc
+    port: bus_clk
+    signal: bus_clk
+  - module: todo_counter_pipe_cdc
+    port: core_clk
+    signal: core_clk
+  - module: todo_counter_pipe_cdc
+    port: bus_rst_n
+    signal: bus_rst_n
+  - module: todo_counter_pipe_cdc
+    port: core_rst_n
+    signal: core_rst_n
   address_map_requirements:
     alignment_bytes: 4
-    decode_owner: "SoC interconnect"
-    illegal_access_response: "Read returns 0, write discarded for unimplemented address space"
+    decode_owner: SoC interconnect
+    illegal_access_response: Read returns 0, write discarded for unimplemented address space
   dependencies:
     external_modules: []
-    external_clocks: ["bus_clk", "core_clk"]
-    external_resets: ["bus_rst_n", "core_rst_n"]
+    external_clocks:
+    - bus_clk
+    - core_clk
+    external_resets:
+    - bus_rst_n
+    - core_rst_n
   integration_notes:
-    - "SoC must provide APB-compliant psel/penable timing."
-    - "SoC interrupt controller samples counter_irq as active-high level."
-    - "event_i must be driven from core_clk-synchronous logic or double-synchronized externally."
-    - "bus_clk and core_clk should be derived from same PLL with known phase relationship for bounded CDC latency."
+  - SoC must provide APB-compliant psel/penable timing.
+  - SoC interrupt controller samples counter_irq as active-high level.
+  - event_i must be driven from core_clk-synchronous logic or double-synchronized externally.
+  - bus_clk and core_clk should be derived from same PLL with known phase relationship for bounded CDC latency.
 dft:
   scan_required: false
   scan_ports: []
   test_mode_ports: []
   controllability:
-    reset: "bus_rst_n and core_rst_n must be independently controllable in test mode"
-    clocks: ["bus_clk", "core_clk"]
+    reset: bus_rst_n and core_rst_n must be independently controllable in test mode
+    clocks:
+    - bus_clk
+    - core_clk
   observability:
-    required_internal_points: ["cnt_value", "overflow", "underflow", "FSM state", "counter_irq"]
+    required_internal_points:
+    - cnt_value
+    - overflow
+    - underflow
+    - FSM state
+    - counter_irq
   mbist_required: false
-  notes: "No SRAM macro; register-based storage. CDC synchronizers may require bypass in scan mode (TBD: scan mux policy for CDC paths)."
+  notes: 'No SRAM macro; register-based storage. CDC synchronizers may require bypass in scan mode (TBD: scan mux policy for
+    CDC paths).'
 synthesis:
-  dialect: "systemverilog_2012"
-  top_module: "todo_counter_pipe"
+  dialect: systemverilog_2012
+  top_module: todo_counter_pipe
   technology:
-    pdk: "sky130"
-    standard_cell_library: "sky130_fd_sc_hd"
-    liberty_corner: "ss_100C_1v40"
-    liberty_env: "SKY130_LIB"
-    lef_env: "SKY130_LEF"
-    tech_lef_env: "SKY130_TLEF"
-    rcx_rules_env: "SKY130_RCX_RULES"
+    pdk: sky130
+    standard_cell_library: sky130_fd_sc_hd
+    liberty_corner: ss_100C_1v40
+    liberty_env: SKY130_LIB
+    lef_env: SKY130_LEF
+    tech_lef_env: SKY130_TLEF
+    rcx_rules_env: SKY130_RCX_RULES
   constraints:
-    - "No inferred latches"
-    - "All flops reset according to clock_reset_domains.reset_scheme"
-    - "No package/interface/modport/function/task/for/while constructs in generated RTL"
-    - "CDC synchronizer chains must be preserved (set_dont_touch on sync FFs)"
-    - "Dual-clock design: bus_clk and core_clk are independent clock roots"
+  - No inferred latches
+  - All flops reset according to clock_reset_domains.reset_scheme
+  - No package/interface/modport/function/task/for/while constructs in generated RTL
+  - CDC synchronizer chains must be preserved (set_dont_touch on sync FFs)
+  - 'Dual-clock design: bus_clk and core_clk are independent clock roots'
   ppa_targets:
     area_um2_max: null
     power_mw_max: null
     frequency_mhz_min: 300
   required_outputs:
-    - "syn/out/todo_counter_pipe.v or syn/out/todo_counter_pipe.json"
-    - "syn/out/area.rpt"
-    - "syn/out/timing_summary.rpt"
+  - syn/out/todo_counter_pipe.v or syn/out/todo_counter_pipe.json
+  - syn/out/area.rpt
+  - syn/out/timing_summary.rpt
 pnr:
   utilization_pct: 60
   aspect_ratio: 1.0
   core_space_um: 2.0
   global_density: 0.65
-  io_layers: { horizontal: "met3", vertical: "met2" }
+  io_layers:
+    horizontal: met3
+    vertical: met2
   placement:
     density_target: 0.65
     max_displacement_um: null
   cts:
-    buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"]
+    buf_list:
+    - sky130_fd_sc_hd__clkbuf_4
+    - sky130_fd_sc_hd__clkbuf_8
     functional_mode_case_analysis:
-      - { port: "scan_en", value: 0, when_present: true }
+    - port: scan_en
+      value: 0
+      when_present: true
   routing:
-    signal_layers: { min: "met1", max: "met5" }
-    clock_layers: { min: "met3", max: "met5" }
+    signal_layers:
+      min: met1
+      max: met5
+    clock_layers:
+      min: met3
+      max: met5
     drc_waivers: []
   required_outputs:
-    - "pnr/out/floorplan.def"
-    - "pnr/out/placed.def"
-    - "pnr/out/cts.def"
-    - "pnr/out/routed.def"
-    - "pnr/out/routed.v"
-    - "pnr/out/routed.spef"
-    - "pnr/out/pnr.report.md"
+  - pnr/out/floorplan.def
+  - pnr/out/placed.def
+  - pnr/out/cts.def
+  - pnr/out/routed.def
+  - pnr/out/routed.v
+  - pnr/out/routed.spef
+  - pnr/out/pnr.report.md
 coding_rules:
-  verilog_style: "systemverilog_2012"
-  file_extension: ".sv"
-  parameter_header: "rtl/todo_counter_pipe_param.vh"
+  verilog_style: systemverilog_2012
+  file_extension: .sv
+  parameter_header: rtl/todo_counter_pipe_param.vh
   conventions:
-    - "nonblocking (<=) in sequential always @(posedge clk …)"
-    - "blocking (=) in combinational always @(*)"
-    - "No latches: every combinational branch assigns all outputs (use a default)"
-    - "Active-low async reset: always @(posedge clk or negedge rst_n) with if (!rst_n)"
-    - "Parameterize widths using WIDTH parameter (no hardcoded numbers)"
-    - "Use rtl/todo_counter_pipe_param.vh for shared parameter declarations when needed; include it inside consuming modules"
-    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
-    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
-    - "Use localparam for state encoding with logic state/next_state signals"
-    - "CDC synchronizers: use explicit 2-stage FF chains with ASYNC_REG attribute/P&R constraint"
+  - "nonblocking (<=) in sequential always @(posedge clk \u2026)"
+  - blocking (=) in combinational always @(*)
+  - 'No latches: every combinational branch assigns all outputs (use a default)'
+  - 'Active-low async reset: always @(posedge clk or negedge rst_n) with if (!rst_n)'
+  - Parameterize widths using WIDTH parameter (no hardcoded numbers)
+  - Use rtl/todo_counter_pipe_param.vh for shared parameter declarations when needed; include it inside consuming modules
+  - 'ALLOW: input logic / output logic ANSI ports and internal single-driver logic'
+  - 'BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport
+    / function / endfunction / task / endtask / for / while / *_pkg.sv'
+  - Use localparam for state encoding with logic state/next_state signals
+  - 'CDC synchronizers: use explicit 2-stage FF chains with ASYNC_REG attribute/P&R constraint'
   lint_waivers:
-    - "UNUSEDSIGNAL: reserved register bitfields"
-    - "WIDTHEXPAND: WIDTH-parameterized counter arithmetic"
-    - "CDC_META: synchronizer flops (intentional metastability resolvers)"
+  - 'UNUSEDSIGNAL: reserved register bitfields'
+  - 'WIDTHEXPAND: WIDTH-parameterized counter arithmetic'
+  - 'CDC_META: synchronizer flops (intentional metastability resolvers)'
 reuse_modules: []
 custom:
   assumptions:
-    - { id: "ASM1", text: "APB-lite zero-wait-state: pready is combinational (psel & penable). No pslverr output.", rationale: "Simplifies integration; most counter IPs use zero-wait-state APB. If backpressure is needed, upgrade to full APB4 with pslverr.", impact: "rtl-gen must implement combinational pready; testbench must not inject APB wait states." }
-    - { id: "ASM2", text: "bus_clk and core_clk are integer-ratio related (2:1) and derived from same PLL source. Phase relationship is bounded but not necessarily aligned.", rationale: "Conservative assumption for CDC latency bounds. If clocks are fully asynchronous, latency bounds become unbounded.", impact: "CDC latency bounds assume synchronous/mesochronous relationship. rtl-gen CDC must still be robust to phase drift." }
-    - { id: "ASM3", text: "clear and load CDC pulses use toggle synchronizer (not pulse-extend) for reliable crossing at 2:1 ratio.", rationale: "At 2:1 frequency ratio with integer relationship, a toggle synchronizer reliably captures every bus-domain pulse in core domain without missing events.", impact: "rtl-gen must implement toggle synchronizer for clear_pulse and load_pulse CDC paths." }
-    - { id: "ASM4", text: "event_i is synchronous to core_clk or externally synchronized before entering this IP. No internal synchronizer on event_i.", rationale: "Counter IP is a leaf module; the system integrator must manage event_i timing. Adding internal sync would add latency and mask edge events.", impact: "Testbench must drive event_i with core_clk-synchronous timing. STA must treat event_i as a core_clk-synchronous input." }
-    - { id: "ASM5", text: "Counter width WIDTH defaults to 32; all register fields (CNT, LOAD, TERM, DBGCNT) share the same WIDTH parameter.", rationale: "Uniform parameter simplifies RTL and verification. If variable-width fields are needed, the SSOT can be patched.", impact: "rtl-gen uses single WIDTH parameter; all counter-related registers are WIDTH bits wide." }
-    - { id: "ASM6", text: "Terminal count for down-counting fires when cnt==0 (not configurable to TERM value). TERM register only affects up-counting.", rationale: "Simplifies function model; terminal at zero for down-count is the most common use case.", impact: "function_model FM4 uses cnt==0 as the down-count terminal condition. If symmetric TERM is needed, this assumption should be revisited." }
-  note: "All assumptions recorded above are conservative engineering defaults. Revise via ask_user or change_request if the target application requires different behavior."
+  - id: ASM1
+    text: 'APB-lite zero-wait-state: pready is combinational (psel & penable). No pslverr output.'
+    rationale: Simplifies integration; most counter IPs use zero-wait-state APB. If backpressure is needed, upgrade to full
+      APB4 with pslverr.
+    impact: rtl-gen must implement combinational pready; testbench must not inject APB wait states.
+  - id: ASM2
+    text: bus_clk and core_clk are integer-ratio related (2:1) and derived from same PLL source. Phase relationship is bounded
+      but not necessarily aligned.
+    rationale: Conservative assumption for CDC latency bounds. If clocks are fully asynchronous, latency bounds become unbounded.
+    impact: CDC latency bounds assume synchronous/mesochronous relationship. rtl-gen CDC must still be robust to phase drift.
+  - id: ASM3
+    text: clear and load CDC pulses use toggle synchronizer (not pulse-extend) for reliable crossing at 2:1 ratio.
+    rationale: At 2:1 frequency ratio with integer relationship, a toggle synchronizer reliably captures every bus-domain
+      pulse in core domain without missing events.
+    impact: rtl-gen must implement toggle synchronizer for clear_pulse and load_pulse CDC paths.
+  - id: ASM4
+    text: event_i is synchronous to core_clk or externally synchronized before entering this IP. No internal synchronizer
+      on event_i.
+    rationale: Counter IP is a leaf module; the system integrator must manage event_i timing. Adding internal sync would add
+      latency and mask edge events.
+    impact: Testbench must drive event_i with core_clk-synchronous timing. STA must treat event_i as a core_clk-synchronous
+      input.
+  - id: ASM5
+    text: Counter width WIDTH defaults to 32; all register fields (CNT, LOAD, TERM, DBGCNT) share the same WIDTH parameter.
+    rationale: Uniform parameter simplifies RTL and verification. If variable-width fields are needed, the SSOT can be patched.
+    impact: rtl-gen uses single WIDTH parameter; all counter-related registers are WIDTH bits wide.
+  - id: ASM6
+    text: Terminal count for down-counting fires when cnt==0 (not configurable to TERM value). TERM register only affects
+      up-counting.
+    rationale: Simplifies function model; terminal at zero for down-count is the most common use case.
+    impact: function_model FM4 uses cnt==0 as the down-count terminal condition. If symmetric TERM is needed, this assumption
+      should be revisited.
+  note: All assumptions recorded above are conservative engineering defaults. Revise via ask_user or change_request if the
+    target application requires different behavior.
+  rtl_blocker_resolutions:
+  - id: RTL_MODULE_CONTRACTS
+    decision_needed: Define per-module implementation contracts for manifest-owned RTL files.
+    answer: Engineer selected the recommended option; see rtl_blocker_resolutions.
+    evidence: 'These manifest modules have only names/descriptions, so rtl-gen cannot know which function_model, cycle_model,
+      dataflow, register, FSM, error, or debug behavior each file owns: todo_counter_pipe_cdc:rtl/todo_counter_pipe_cdc.sv'
+    source: rtl_blocked.json -> ATLAS ask_user
+    resolved_at: '2026-05-14T02:43:53Z'
+  - id: SSOT_BEHAVIOR_OWNERSHIP
+    decision_needed: Assign every SSOT function/decomposition behavior to an RTL module contract.
+    answer: Engineer selected the recommended option; see rtl_blocker_resolutions.
+    evidence: 'These SSOT refs have no owning RTL module contract: decomposition.units.apb_decode, decomposition.units.counter_datapath'
+    source: rtl_blocked.json -> ATLAS ask_user
+    resolved_at: '2026-05-14T02:44:50Z'
+  rtl_module_contract_resolution_history:
+  - source: rtl_blocked.json -> ATLAS ask_user
+    blocker_id: RTL_MODULE_CONTRACTS
+    applied:
+    - name: todo_counter_pipe_cdc
+      file: rtl/todo_counter_pipe_cdc.sv
+      fields:
+      - implements
+      - responsibility
+      - source_sections
+      - ssot_refs
+      - decomposition_refs
+      - cycle_model_refs
+      - feature_refs
+      - dataflow_refs
+      - register_refs
+      - fsm_refs
+      - ports
+      - connections
+      - wiring_only
+    unresolved: []
+    required_fields:
+    - implements
+    - source_sections
+    - function_model_refs
+    - decomposition_refs
+    - cycle_model_refs
+    - feature_refs
+    - dataflow_refs
+    - register_refs
+    - fsm_refs
+    - ports
+    - connections
+    - wiring_only
+    timestamp: '2026-05-14T02:43:53Z'
+  - source: rtl_blocked.json -> ATLAS ask_user
+    blocker_id: SSOT_BEHAVIOR_OWNERSHIP
+    applied:
+    - name: todo_counter_pipe_regs
+      file: rtl/todo_counter_pipe_regs.sv
+      fields:
+      - decomposition_refs
+      - cycle_model_refs
+      - register_refs
+    - name: todo_counter_pipe_core
+      file: rtl/todo_counter_pipe_core.sv
+      fields:
+      - decomposition_refs
+      - cycle_model_refs
+      - feature_refs
+      - fsm_refs
+    unresolved: []
+    required_fields:
+    - sub_modules[].function_model_refs
+    - sub_modules[].decomposition_refs
+    timestamp: '2026-05-14T02:44:50Z'
 dir_structure:
   template_dirs:
-    rtl: "templates/rtl/"
-    sim: "templates/sim/"
+    rtl: templates/rtl/
+    sim: templates/sim/
   output_dirs:
-    rtl: "rtl/"
-    sim: "sim/"
-    firmware: "firmware/"
-    docs: "docs/"
-  yaml_dir: "yaml/"
-  generators_dir: "generators/"
+    rtl: rtl/
+    sim: sim/
+    firmware: firmware/
+    docs: docs/
+  yaml_dir: yaml/
+  generators_dir: generators/
 filelist:
   headers:
-    - "rtl/todo_counter_pipe_param.vh"
+  - rtl/todo_counter_pipe_param.vh
   rtl:
-    - "rtl/todo_counter_pipe_regs.sv"
-    - "rtl/todo_counter_pipe_core.sv"
-    - "rtl/todo_counter_pipe_cdc.sv"
-    - "rtl/todo_counter_pipe.sv"
+  - rtl/todo_counter_pipe_regs.sv
+  - rtl/todo_counter_pipe_core.sv
+  - rtl/todo_counter_pipe_cdc.sv
+  - rtl/todo_counter_pipe.sv
   sim:
-    - "sim/tb_top.sv"
-    - "sim/tb_program.sv"
+  - sim/tb_top.sv
+  - sim/tb_program.sv
   firmware:
-    - "firmware/todo_counter_pipe_regs.h"
+  - firmware/todo_counter_pipe_regs.h
   docs:
-    - "docs/register_map.md"
-    - "docs/README.md"
+  - docs/register_map.md
+  - docs/README.md
 test_requirements:
   scenarios:
-    - { id: "SC1", name: "Basic up-count", stimulus: "Reset, program CTRL.enable=1/up_down=0/mode=0, LOAD=0, TERM=0xFF, pulse event_i 5 times", expected: "cnt increments 0→1→2→3→4→5; STATUS=0; no interrupts", checker: "Scoreboard expected/got assertion per event", coverage: ["FM1", "S2_COUNT_EVAL"] }
-    - { id: "SC2", name: "Basic down-count", stimulus: "Reset, set cnt=10 via load, CTRL.enable=1/up_down=1/mode=0, pulse event_i 4 times", expected: "cnt decrements 10→9→8→7→6", checker: "Scoreboard checks each decrement", coverage: ["FM3"] }
-    - { id: "SC3", name: "Terminal count up", stimulus: "Set TERM=4, cnt=3 via load, enable up-count, pulse event_i", expected: "cnt=4, tc_pending=1, counter_irq asserted (if INTEN.tc_en=1)", checker: "Check INTSTAT.tc_pending and irq assertion", coverage: ["FM2", "S4_STATUS_UPDATE"] }
-    - { id: "SC4", name: "Terminal count down", stimulus: "Set cnt=1 via load, enable down-count, pulse event_i", expected: "cnt=0, tc_pending=1, counter_irq asserted (if enabled)", checker: "Check INTSTAT and irq", coverage: ["FM4"] }
-    - { id: "SC5", name: "Overflow saturate up", stimulus: "Set cnt=MAX via load, enable up-count saturate mode, pulse event_i", expected: "cnt stays at MAX, overflow=1, ovf_pending=1", checker: "Check STATUS.overflow and INTSTAT.ovf_pending", coverage: ["FM5"] }
-    - { id: "SC6", name: "Overflow wrap up", stimulus: "Set cnt=MAX, enable up-count wrap mode, pulse event_i", expected: "cnt=0, overflow=1, ovf_pending=1", checker: "Check wrap-around value and sticky flags", coverage: ["FM5"] }
-    - { id: "SC7", name: "Underflow saturate down", stimulus: "Set cnt=0, enable down-count saturate mode, pulse event_i", expected: "cnt stays at 0, underflow=1, unf_pending=1", checker: "Check STATUS.underflow and INTSTAT.unf_pending", coverage: ["FM6"] }
-    - { id: "SC8", name: "Underflow wrap down", stimulus: "Set cnt=0, enable down-count wrap mode, pulse event_i", expected: "cnt=MAX, underflow=1, unf_pending=1", checker: "Check wrap-around and sticky flags", coverage: ["FM6"] }
-    - { id: "SC9", name: "Clear counter", stimulus: "Set cnt=42, write CTRL.clear=1", expected: "cnt→0 after CDC; STATUS/int flags unchanged", checker: "Check cnt reads 0; sticky flags preserved", coverage: ["FM7"] }
-    - { id: "SC10", name: "Load counter", stimulus: "Set LOAD=0xDEAD, write CTRL.load=1", expected: "cnt→0xDEAD after CDC convergence", checker: "Check cnt equals 0xDEAD", coverage: ["FM8"] }
-    - { id: "SC11", name: "Disabled no-count", stimulus: "Set enable=0, cnt=5, pulse event_i many times", expected: "cnt stays 5 regardless of event_i", checker: "Scoreboard checks cnt unchanged", coverage: ["FM9"] }
-    - { id: "SC12", name: "Interrupt clear W1C", stimulus: "Assert terminal count, then write INTCLR.tc_clr=1", expected: "tc_pending→0, counter_irq deasserts", checker: "Check INTSTAT and irq after W1C", coverage: ["FM10"] }
-    - { id: "SC13", name: "Interrupt masking", stimulus: "Enable tc interrupt, assert terminal count, then clear INTEN.tc_en", expected: "counter_irq deasserts; INTSTAT.tc_pending remains 1", checker: "Check irq follows enable mask", coverage: ["FM10"] }
-    - { id: "SC14", name: "Clear priority over count", stimulus: "enable=1, event_i=1 continuously, write CTRL.clear=1", expected: "cnt→0 on clear pulse edge; subsequent edges count from 0", checker: "Scoreboard checks clear takes priority", coverage: ["FM7", "S2_COUNT_EVAL"] }
-    - { id: "SC15", name: "Load priority over count", stimulus: "enable=1, event_i=1 continuously, write CTRL.load=1 with LOAD=0x55", expected: "cnt→0x55; subsequent counts from 0x55", checker: "Check load priority over ongoing count", coverage: ["FM8"] }
-    - { id: "SC16", name: "CDC convergence", stimulus: "Write CTRL.enable=1 on bus_clk, observe core-domain behavior after CDC delay", expected: "Counter starts incrementing 2-4 core_clk cycles after bus write; cnt reads back on bus 2-5 bus_clk cycles after core update", checker: "Latency monitor verifies CDC delay bounds", coverage: ["S1_CDC_CTRL", "S3_CDC_STATUS"] }
-    - { id: "SC17", name: "Debug cycle counter", stimulus: "Let core_clk run for N cycles, read DBGCNT", expected: "dbg_cycle_count increments on every core_clk regardless of enable/event_i", checker: "Check DBGCNT advances monotonically", coverage: ["FM9"] }
+  - id: SC1
+    name: Basic up-count
+    stimulus: Reset, program CTRL.enable=1/up_down=0/mode=0, LOAD=0, TERM=0xFF, pulse event_i 5 times
+    expected: "cnt increments 0\u21921\u21922\u21923\u21924\u21925; STATUS=0; no interrupts"
+    checker: Scoreboard expected/got assertion per event
+    coverage:
+    - FM1
+    - S2_COUNT_EVAL
+  - id: SC2
+    name: Basic down-count
+    stimulus: Reset, set cnt=10 via load, CTRL.enable=1/up_down=1/mode=0, pulse event_i 4 times
+    expected: "cnt decrements 10\u21929\u21928\u21927\u21926"
+    checker: Scoreboard checks each decrement
+    coverage:
+    - FM3
+  - id: SC3
+    name: Terminal count up
+    stimulus: Set TERM=4, cnt=3 via load, enable up-count, pulse event_i
+    expected: cnt=4, tc_pending=1, counter_irq asserted (if INTEN.tc_en=1)
+    checker: Check INTSTAT.tc_pending and irq assertion
+    coverage:
+    - FM2
+    - S4_STATUS_UPDATE
+  - id: SC4
+    name: Terminal count down
+    stimulus: Set cnt=1 via load, enable down-count, pulse event_i
+    expected: cnt=0, tc_pending=1, counter_irq asserted (if enabled)
+    checker: Check INTSTAT and irq
+    coverage:
+    - FM4
+  - id: SC5
+    name: Overflow saturate up
+    stimulus: Set cnt=MAX via load, enable up-count saturate mode, pulse event_i
+    expected: cnt stays at MAX, overflow=1, ovf_pending=1
+    checker: Check STATUS.overflow and INTSTAT.ovf_pending
+    coverage:
+    - FM5
+  - id: SC6
+    name: Overflow wrap up
+    stimulus: Set cnt=MAX, enable up-count wrap mode, pulse event_i
+    expected: cnt=0, overflow=1, ovf_pending=1
+    checker: Check wrap-around value and sticky flags
+    coverage:
+    - FM5
+  - id: SC7
+    name: Underflow saturate down
+    stimulus: Set cnt=0, enable down-count saturate mode, pulse event_i
+    expected: cnt stays at 0, underflow=1, unf_pending=1
+    checker: Check STATUS.underflow and INTSTAT.unf_pending
+    coverage:
+    - FM6
+  - id: SC8
+    name: Underflow wrap down
+    stimulus: Set cnt=0, enable down-count wrap mode, pulse event_i
+    expected: cnt=MAX, underflow=1, unf_pending=1
+    checker: Check wrap-around and sticky flags
+    coverage:
+    - FM6
+  - id: SC9
+    name: Clear counter
+    stimulus: Set cnt=42, write CTRL.clear=1
+    expected: "cnt\u21920 after CDC; STATUS/int flags unchanged"
+    checker: Check cnt reads 0; sticky flags preserved
+    coverage:
+    - FM7
+  - id: SC10
+    name: Load counter
+    stimulus: Set LOAD=0xDEAD, write CTRL.load=1
+    expected: "cnt\u21920xDEAD after CDC convergence"
+    checker: Check cnt equals 0xDEAD
+    coverage:
+    - FM8
+  - id: SC11
+    name: Disabled no-count
+    stimulus: Set enable=0, cnt=5, pulse event_i many times
+    expected: cnt stays 5 regardless of event_i
+    checker: Scoreboard checks cnt unchanged
+    coverage:
+    - FM9
+  - id: SC12
+    name: Interrupt clear W1C
+    stimulus: Assert terminal count, then write INTCLR.tc_clr=1
+    expected: "tc_pending\u21920, counter_irq deasserts"
+    checker: Check INTSTAT and irq after W1C
+    coverage:
+    - FM10
+  - id: SC13
+    name: Interrupt masking
+    stimulus: Enable tc interrupt, assert terminal count, then clear INTEN.tc_en
+    expected: counter_irq deasserts; INTSTAT.tc_pending remains 1
+    checker: Check irq follows enable mask
+    coverage:
+    - FM10
+  - id: SC14
+    name: Clear priority over count
+    stimulus: enable=1, event_i=1 continuously, write CTRL.clear=1
+    expected: "cnt\u21920 on clear pulse edge; subsequent edges count from 0"
+    checker: Scoreboard checks clear takes priority
+    coverage:
+    - FM7
+    - S2_COUNT_EVAL
+  - id: SC15
+    name: Load priority over count
+    stimulus: enable=1, event_i=1 continuously, write CTRL.load=1 with LOAD=0x55
+    expected: "cnt\u21920x55; subsequent counts from 0x55"
+    checker: Check load priority over ongoing count
+    coverage:
+    - FM8
+  - id: SC16
+    name: CDC convergence
+    stimulus: Write CTRL.enable=1 on bus_clk, observe core-domain behavior after CDC delay
+    expected: Counter starts incrementing 2-4 core_clk cycles after bus write; cnt reads back on bus 2-5 bus_clk cycles after
+      core update
+    checker: Latency monitor verifies CDC delay bounds
+    coverage:
+    - S1_CDC_CTRL
+    - S3_CDC_STATUS
+  - id: SC17
+    name: Debug cycle counter
+    stimulus: Let core_clk run for N cycles, read DBGCNT
+    expected: dbg_cycle_count increments on every core_clk regardless of enable/event_i
+    checker: Check DBGCNT advances monotonically
+    coverage:
+    - FM9
   scoreboard_checks: 17
   coverage_goals:
     function:
       target_pct: 100
-      model: "function_model"
-      description: "Cycle-independent behavioral intent coverage for counter operations."
+      model: function_model
+      description: Cycle-independent behavioral intent coverage for counter operations.
       bins:
-        - { id: "FCOV_COUNT_UP_NORMAL", source_ref: "function_model.transactions.FM1", class: "transaction", description: "Normal up-count observed by scoreboard" }
-        - { id: "FCOV_COUNT_UP_TERM", source_ref: "function_model.transactions.FM2", class: "transaction", description: "Terminal count up observed" }
-        - { id: "FCOV_COUNT_DOWN_NORMAL", source_ref: "function_model.transactions.FM3", class: "transaction", description: "Normal down-count observed" }
-        - { id: "FCOV_COUNT_DOWN_TERM", source_ref: "function_model.transactions.FM4", class: "transaction", description: "Terminal count down observed" }
-        - { id: "FCOV_OVERFLOW", source_ref: "function_model.transactions.FM5", class: "transaction", description: "Overflow (both saturate and wrap) observed" }
-        - { id: "FCOV_UNDERFLOW", source_ref: "function_model.transactions.FM6", class: "transaction", description: "Underflow (both saturate and wrap) observed" }
-        - { id: "FCOV_CLEAR", source_ref: "function_model.transactions.FM7", class: "transaction", description: "Clear operation observed" }
-        - { id: "FCOV_LOAD", source_ref: "function_model.transactions.FM8", class: "transaction", description: "Load operation observed" }
-        - { id: "FCOV_DISABLED", source_ref: "function_model.transactions.FM9", class: "transaction", description: "Disabled counter preserves value" }
-        - { id: "FCOV_INT_CLEAR", source_ref: "function_model.transactions.FM10", class: "transaction", description: "Interrupt clear via W1C observed" }
+      - id: FCOV_COUNT_UP_NORMAL
+        source_ref: function_model.transactions.FM1
+        class: transaction
+        description: Normal up-count observed by scoreboard
+      - id: FCOV_COUNT_UP_TERM
+        source_ref: function_model.transactions.FM2
+        class: transaction
+        description: Terminal count up observed
+      - id: FCOV_COUNT_DOWN_NORMAL
+        source_ref: function_model.transactions.FM3
+        class: transaction
+        description: Normal down-count observed
+      - id: FCOV_COUNT_DOWN_TERM
+        source_ref: function_model.transactions.FM4
+        class: transaction
+        description: Terminal count down observed
+      - id: FCOV_OVERFLOW
+        source_ref: function_model.transactions.FM5
+        class: transaction
+        description: Overflow (both saturate and wrap) observed
+      - id: FCOV_UNDERFLOW
+        source_ref: function_model.transactions.FM6
+        class: transaction
+        description: Underflow (both saturate and wrap) observed
+      - id: FCOV_CLEAR
+        source_ref: function_model.transactions.FM7
+        class: transaction
+        description: Clear operation observed
+      - id: FCOV_LOAD
+        source_ref: function_model.transactions.FM8
+        class: transaction
+        description: Load operation observed
+      - id: FCOV_DISABLED
+        source_ref: function_model.transactions.FM9
+        class: transaction
+        description: Disabled counter preserves value
+      - id: FCOV_INT_CLEAR
+        source_ref: function_model.transactions.FM10
+        class: transaction
+        description: Interrupt clear via W1C observed
     cycle:
       target_pct: 100
-      model: "cycle_model"
-      description: "Cycle/handshake/latency/FSM coverage for dual-clock CDC pipeline."
+      model: cycle_model
+      description: Cycle/handshake/latency/FSM coverage for dual-clock CDC pipeline.
       bins:
-        - { id: "CCOV_APB_ACCESS", source_ref: "cycle_model.pipeline.S0_APB_ACCESS", class: "pipeline_stage", description: "APB access stage observed" }
-        - { id: "CCOV_CDC_CTRL", source_ref: "cycle_model.pipeline.S1_CDC_CTRL", class: "pipeline_stage", description: "Control CDC crossing observed within latency bounds" }
-        - { id: "CCOV_COUNT_EVAL", source_ref: "cycle_model.pipeline.S2_COUNT_EVAL", class: "pipeline_stage", description: "Count evaluation stage observed" }
-        - { id: "CCOV_CDC_STATUS", source_ref: "cycle_model.pipeline.S3_CDC_STATUS", class: "pipeline_stage", description: "Status CDC crossing observed within latency bounds" }
-        - { id: "CCOV_STATUS_UPDATE", source_ref: "cycle_model.pipeline.S4_STATUS_UPDATE", class: "pipeline_stage", description: "Status update and interrupt stage observed" }
-        - { id: "CCOV_READY_HANDSHAKE", source_ref: "cycle_model.handshake_rules.pready", class: "handshake", description: "APB pready zero-wait-state handshake observed" }
-        - { id: "CCOV_PERF_FREQUENCY", source_ref: "cycle_model.performance.frequency_mhz", class: "frequency", description: "Declared frequency recorded in coverage evidence" }
-    functional: "Legacy alias: function + cycle coverage must both close."
-    line: ">= 90% instrumented line coverage or explicit project waiver"
-    branch: ">= 85% instrumented branch coverage or explicit project waiver"
-    fsm: "100% declared FSM states (IDLE, COUNT) and legal transitions covered"
-    assertions: "All CDC latency-bound assertions pass"
+      - id: CCOV_APB_ACCESS
+        source_ref: cycle_model.pipeline.S0_APB_ACCESS
+        class: pipeline_stage
+        description: APB access stage observed
+      - id: CCOV_CDC_CTRL
+        source_ref: cycle_model.pipeline.S1_CDC_CTRL
+        class: pipeline_stage
+        description: Control CDC crossing observed within latency bounds
+      - id: CCOV_COUNT_EVAL
+        source_ref: cycle_model.pipeline.S2_COUNT_EVAL
+        class: pipeline_stage
+        description: Count evaluation stage observed
+      - id: CCOV_CDC_STATUS
+        source_ref: cycle_model.pipeline.S3_CDC_STATUS
+        class: pipeline_stage
+        description: Status CDC crossing observed within latency bounds
+      - id: CCOV_STATUS_UPDATE
+        source_ref: cycle_model.pipeline.S4_STATUS_UPDATE
+        class: pipeline_stage
+        description: Status update and interrupt stage observed
+      - id: CCOV_READY_HANDSHAKE
+        source_ref: cycle_model.handshake_rules.pready
+        class: handshake
+        description: APB pready zero-wait-state handshake observed
+      - id: CCOV_PERF_FREQUENCY
+        source_ref: cycle_model.performance.frequency_mhz
+        class: frequency
+        description: Declared frequency recorded in coverage evidence
+    functional: 'Legacy alias: function + cycle coverage must both close.'
+    line: '>= 90% instrumented line coverage or explicit project waiver'
+    branch: '>= 85% instrumented branch coverage or explicit project waiver'
+    fsm: 100% declared FSM states (IDLE, COUNT) and legal transitions covered
+    assertions: All CDC latency-bound assertions pass
 quality_gates:
   ssot:
-    pass: "All canonical sections present, substantive, internally consistent; no live TBD placeholders; validated by check_ssot_disk.sh"
-    evidence: ["check_ssot_disk.sh PASS", "traceability covers function_model/cycle_model/test_requirements"]
+    pass: All canonical sections present, substantive, internally consistent; no live TBD placeholders; validated by check_ssot_disk.sh
+    evidence:
+    - check_ssot_disk.sh PASS
+    - traceability covers function_model/cycle_model/test_requirements
   rtl_gen:
-    profile: "standard"
-    pass: "RTL implements function_model and cycle_model, compiles, lints, and matches SSOT behavioral contract"
-    evidence: ["rtl compile report", "dut lint report", "FL-vs-RTL scoreboard/audit"]
+    profile: standard
+    pass: RTL implements function_model and cycle_model, compiles, lints, and matches SSOT behavioral contract
+    evidence:
+    - rtl compile report
+    - dut lint report
+    - FL-vs-RTL scoreboard/audit
   rtl:
-    pass: "RTL implements function_model and cycle_model, compiles, lints, and matches locked FL/CL authority"
-    evidence: ["rtl compile report", "dut lint report", "FL-vs-RTL scoreboard/audit"]
+    pass: RTL implements function_model and cycle_model, compiles, lints, and matches locked FL/CL authority
+    evidence:
+    - rtl compile report
+    - dut lint report
+    - FL-vs-RTL scoreboard/audit
   dv:
-    pass: "All 17 test scenarios pass with scoreboard expected/got match; coverage goals met"
-    evidence: ["sim/sim_report.md", "sim/scoreboard_report.json", "cov/coverage.json"]
+    pass: All 17 test scenarios pass with scoreboard expected/got match; coverage goals met
+    evidence:
+    - sim/sim_report.md
+    - sim/scoreboard_report.json
+    - cov/coverage.json
   coverage:
-    pass: "SSOT-declared functional/code/FSM coverage goals pass or have approved SSOT waivers"
-    evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+    pass: SSOT-declared functional/code/FSM coverage goals pass or have approved SSOT waivers
+    evidence:
+    - cov/coverage.json
+    - sim/coverage_report.md
   eda:
-    pass: "Synthesis, STA, PnR, and post-route STA meet SSOT timing/area/power targets or have approved SSOT waivers"
-    evidence: ["syn report", "sta reports", "pnr report", "routed.spef", "sta-post reports"]
+    pass: Synthesis, STA, PnR, and post-route STA meet SSOT timing/area/power targets or have approved SSOT waivers
+    evidence:
+    - syn report
+    - sta reports
+    - pnr report
+    - routed.spef
+    - sta-post reports
   signoff:
-    pass: "All quality gates pass, SSOT assumptions validated, no unresolved QA items"
-    evidence: ["quality_gates.json", "signoff_checklist.md"]
+    pass: All quality gates pass, SSOT assumptions validated, no unresolved QA items
+    evidence:
+    - quality_gates.json
+    - signoff_checklist.md
 traceability:
   yaml_to_output:
-    - { yaml: "top_module.name", output: "ALL files (module name)" }
-    - { yaml: "parameters", output: "rtl/todo_counter_pipe_param.vh (shared parameter include)" }
-    - { yaml: "io_list.interfaces", output: "rtl/todo_counter_pipe.sv (top port list)" }
-    - { yaml: "registers.register_list", output: "rtl/todo_counter_pipe_regs.sv + firmware + docs" }
-    - { yaml: "function_model", output: "rtl/todo_counter_pipe_core.sv + tb/cocotb scoreboard/reference model" }
-    - { yaml: "cycle_model", output: "rtl/todo_counter_pipe_core.sv pipeline + rtl/todo_counter_pipe_cdc.sv CDC + waveform checks" }
-    - { yaml: "fsm", output: "rtl/todo_counter_pipe_core.sv (core FSM)" }
-    - { yaml: "cdc_requirements", output: "rtl/todo_counter_pipe_cdc.sv (synchronizer chains)" }
-    - { yaml: "timing", output: "sdc/todo_counter_pipe.sdc (STA constraints + CDC max-delay)" }
-    - { yaml: "pnr", output: "floorplan/place/CTS/route TCL and routed DEF/Verilog/SPEF" }
-    - { yaml: "security", output: "security review and negative tests" }
-    - { yaml: "error_handling", output: "RTL sticky flag paths and DV overflow/underflow scenarios" }
-    - { yaml: "test_requirements.scenarios", output: "sim/tb_program.sv + tc/todo_counter_pipe_scenarios.py" }
-    - { yaml: "quality_gates", output: "ATLAS progress and signoff criteria" }
+  - yaml: top_module.name
+    output: ALL files (module name)
+  - yaml: parameters
+    output: rtl/todo_counter_pipe_param.vh (shared parameter include)
+  - yaml: io_list.interfaces
+    output: rtl/todo_counter_pipe.sv (top port list)
+  - yaml: registers.register_list
+    output: rtl/todo_counter_pipe_regs.sv + firmware + docs
+  - yaml: function_model
+    output: rtl/todo_counter_pipe_core.sv + tb/cocotb scoreboard/reference model
+  - yaml: cycle_model
+    output: rtl/todo_counter_pipe_core.sv pipeline + rtl/todo_counter_pipe_cdc.sv CDC + waveform checks
+  - yaml: fsm
+    output: rtl/todo_counter_pipe_core.sv (core FSM)
+  - yaml: cdc_requirements
+    output: rtl/todo_counter_pipe_cdc.sv (synchronizer chains)
+  - yaml: timing
+    output: sdc/todo_counter_pipe.sdc (STA constraints + CDC max-delay)
+  - yaml: pnr
+    output: floorplan/place/CTS/route TCL and routed DEF/Verilog/SPEF
+  - yaml: security
+    output: security review and negative tests
+  - yaml: error_handling
+    output: RTL sticky flag paths and DV overflow/underflow scenarios
+  - yaml: test_requirements.scenarios
+    output: sim/tb_program.sv + tc/todo_counter_pipe_scenarios.py
+  - yaml: quality_gates
+    output: ATLAS progress and signoff criteria
+  rtl_blocker_to_ssot:
+  - blocker_id: RTL_MODULE_CONTRACTS
+    answer: Engineer selected the recommended option; see rtl_blocker_resolutions.
+    ssot_fields:
+    - custom.rtl_blocker_resolutions
+    - function_model
+    - cycle_model
+    - registers
+    - error_handling
+    - test_requirements
+    - sub_modules
+    - integration.connections
+    - quality_gates
+  - blocker_id: SSOT_BEHAVIOR_OWNERSHIP
+    answer: Engineer selected the recommended option; see rtl_blocker_resolutions.
+    ssot_fields:
+    - custom.rtl_blocker_resolutions
+    - function_model
+    - cycle_model
+    - registers
+    - error_handling
+    - test_requirements
+    - sub_modules
+    - integration.connections
+    - quality_gates
 workflow_todos:
   fl-model-gen: []
   rtl-gen:
-    - id: "RTL_TODO_CORE_COUNTER"
-      content: "Implement counter core datapath and FSM"
-      detail: "Translate function_model transactions FM1-FM9 into core_clk-domain RTL: event edge detection, clear/load priority, up/down arithmetic, saturate/wrap limit logic, terminal count detection, overflow/underflow sticky flags, and dbg_cycle_count free-running counter."
-      criteria:
-        - "Core FSM implements IDLE/COUNT states with legal transitions"
-        - "cnt register updates match function_model state_variables per transaction"
-        - "Saturate mode clamps cnt at limits; wrap mode wraps"
-        - "Clear(→0) and load(→load_value) take priority over normal count"
-        - "overflow/underflow sticky flags behave per error_handling"
-      source_refs: ["function_model.transactions", "cycle_model.pipeline.S2_COUNT_EVAL", "fsm.core_fsm"]
-      owner_module: "todo_counter_pipe_core"
-      owner_file: "rtl/todo_counter_pipe_core.sv"
-      priority: "high"
-      required: true
-    - id: "RTL_TODO_APB_REGS"
-      content: "Implement APB-lite register file and interrupt logic"
-      detail: "Implement APB-lite slave with zero-wait-state pready, register decode for CTRL/CNT/LOAD/TERM/STATUS/INTEN/INTSTAT/INTCLR/DBGCNT, W1C interrupt clear, and counter_irq combinatorial output."
-      criteria:
-        - "APB zero-wait-state: pready = psel & penable (combinational)"
-        - "All register fields match registers.register_list bit ranges, access, and reset values"
-        - "W1C INTCLR clears corresponding INTSTAT and STATUS bits"
-        - "counter_irq = (tc_pending & tc_en) | (ovf_pending & ovf_en) | (unf_pending & unf_en)"
-        - "Readback of CNT/STATUS/INTSTAT/DBGCNT from CDC-synchronized bus-domain shadow registers"
-      source_refs: ["registers.register_list", "interrupts", "io_list.interfaces.apb_slave"]
-      owner_module: "todo_counter_pipe_regs"
-      owner_file: "rtl/todo_counter_pipe_regs.sv"
-      priority: "high"
-      required: true
-    - id: "RTL_TODO_CDC_SYNC"
-      content: "Implement CDC synchronizers for bus↔core crossings"
-      detail: "Implement 2-stage FF synchronizers for all control (bus→core) and status (core→bus) crossings per cdc_requirements. Use toggle synchronizer for clear/load single-cycle pulses."
-      criteria:
-        - "Control CDC: enable, up_down, mode, load_value use 2-stage FF sync"
-        - "Pulse CDC: clear_pulse, load_pulse use toggle synchronizer with edge detect"
-        - "Status CDC: cnt_value, overflow, underflow, tc_pending, ovf_pending, unf_pending, dbg_cycle_count use 2-stage FF sync"
-        - "Synchronizer FFs have ASYNC_REG attribute and set_dont_touch for synthesis"
-      source_refs: ["cdc_requirements.crossings", "cdc_requirements.synchronizers"]
-      owner_module: "todo_counter_pipe_cdc"
-      owner_file: "rtl/todo_counter_pipe_cdc.sv"
-      priority: "high"
-      required: true
-    - id: "RTL_TODO_TOP_INTEGRATION"
-      content: "Implement top-level integration module"
-      detail: "Instantiate todo_counter_pipe_regs, todo_counter_pipe_core, and todo_counter_pipe_cdc. Wire APB ports to regs, event_i to core, CDC between regs↔core, counter_irq output from regs."
-      criteria:
-        - "All external ports match io_list"
-        - "Submodule instantiations use named port connections matching integration.connections"
-        - "bus_rst_n and core_rst_n internal synchronizers for deassertion"
-        - "No logic in top module except reset sync and wiring"
-      source_refs: ["io_list", "integration.connections"]
-      owner_module: "todo_counter_pipe"
-      owner_file: "rtl/todo_counter_pipe.sv"
-      priority: "high"
-      required: true
+  - id: RTL_TODO_CORE_COUNTER
+    content: Implement counter core datapath and FSM
+    detail: 'Translate function_model transactions FM1-FM9 into core_clk-domain RTL: event edge detection, clear/load priority,
+      up/down arithmetic, saturate/wrap limit logic, terminal count detection, overflow/underflow sticky flags, and dbg_cycle_count
+      free-running counter.'
+    criteria:
+    - Core FSM implements IDLE/COUNT states with legal transitions
+    - cnt register updates match function_model state_variables per transaction
+    - Saturate mode clamps cnt at limits; wrap mode wraps
+    - "Clear(\u21920) and load(\u2192load_value) take priority over normal count"
+    - overflow/underflow sticky flags behave per error_handling
+    source_refs:
+    - function_model.transactions
+    - cycle_model.pipeline.S2_COUNT_EVAL
+    - fsm.core_fsm
+    owner_module: todo_counter_pipe_core
+    owner_file: rtl/todo_counter_pipe_core.sv
+    priority: high
+    required: true
+  - id: RTL_TODO_APB_REGS
+    content: Implement APB-lite register file and interrupt logic
+    detail: Implement APB-lite slave with zero-wait-state pready, register decode for CTRL/CNT/LOAD/TERM/STATUS/INTEN/INTSTAT/INTCLR/DBGCNT,
+      W1C interrupt clear, and counter_irq combinatorial output.
+    criteria:
+    - 'APB zero-wait-state: pready = psel & penable (combinational)'
+    - All register fields match registers.register_list bit ranges, access, and reset values
+    - W1C INTCLR clears corresponding INTSTAT and STATUS bits
+    - counter_irq = (tc_pending & tc_en) | (ovf_pending & ovf_en) | (unf_pending & unf_en)
+    - Readback of CNT/STATUS/INTSTAT/DBGCNT from CDC-synchronized bus-domain shadow registers
+    source_refs:
+    - registers.register_list
+    - interrupts
+    - io_list.interfaces.apb_slave
+    owner_module: todo_counter_pipe_regs
+    owner_file: rtl/todo_counter_pipe_regs.sv
+    priority: high
+    required: true
+  - id: RTL_TODO_CDC_SYNC
+    content: "Implement CDC synchronizers for bus\u2194core crossings"
+    detail: "Implement 2-stage FF synchronizers for all control (bus\u2192core) and status (core\u2192bus) crossings per cdc_requirements.\
+      \ Use toggle synchronizer for clear/load single-cycle pulses."
+    criteria:
+    - 'Control CDC: enable, up_down, mode, load_value use 2-stage FF sync'
+    - 'Pulse CDC: clear_pulse, load_pulse use toggle synchronizer with edge detect'
+    - 'Status CDC: cnt_value, overflow, underflow, tc_pending, ovf_pending, unf_pending, dbg_cycle_count use 2-stage FF sync'
+    - Synchronizer FFs have ASYNC_REG attribute and set_dont_touch for synthesis
+    source_refs:
+    - cdc_requirements.crossings
+    - cdc_requirements.synchronizers
+    owner_module: todo_counter_pipe_cdc
+    owner_file: rtl/todo_counter_pipe_cdc.sv
+    priority: high
+    required: true
+  - id: RTL_TODO_TOP_INTEGRATION
+    content: Implement top-level integration module
+    detail: "Instantiate todo_counter_pipe_regs, todo_counter_pipe_core, and todo_counter_pipe_cdc. Wire APB ports to regs,\
+      \ event_i to core, CDC between regs\u2194core, counter_irq output from regs."
+    criteria:
+    - All external ports match io_list
+    - Submodule instantiations use named port connections matching integration.connections
+    - bus_rst_n and core_rst_n internal synchronizers for deassertion
+    - No logic in top module except reset sync and wiring
+    source_refs:
+    - io_list
+    - integration.connections
+    owner_module: todo_counter_pipe
+    owner_file: rtl/todo_counter_pipe.sv
+    priority: high
+    required: true
   tb-gen:
-    - id: "TB_TODO_SCOREBOARD"
-      content: "Implement cocotb scoreboard for all 17 test scenarios"
-      detail: "Build Python FunctionalModel from function_model section. For each test_requirements scenario, drive APB writes, pulse event_i, wait CDC convergence, read back registers, and compare scoreboard expected vs observed."
-      criteria:
-        - "All 17 scenarios pass with scoreboard expected/got match"
-        - "CDC latency monitor verifies bounded convergence"
-        - "Coverage bins collected per test_requirements.coverage_goals"
-      source_refs: ["function_model", "test_requirements.scenarios", "cycle_model.latency"]
-      priority: "high"
-      required: true
+  - id: TB_TODO_SCOREBOARD
+    content: Implement cocotb scoreboard for all 17 test scenarios
+    detail: Build Python FunctionalModel from function_model section. For each test_requirements scenario, drive APB writes,
+      pulse event_i, wait CDC convergence, read back registers, and compare scoreboard expected vs observed.
+    criteria:
+    - All 17 scenarios pass with scoreboard expected/got match
+    - CDC latency monitor verifies bounded convergence
+    - Coverage bins collected per test_requirements.coverage_goals
+    source_refs:
+    - function_model
+    - test_requirements.scenarios
+    - cycle_model.latency
+    priority: high
+    required: true
   lint: []
   coverage: []
   syn:
-    - id: "SYN_TODO_DUAL_CLOCK"
-      content: "Synthesize dual-clock design with CDC constraints"
-      detail: "Run synthesis with bus_clk and core_clk as independent clock roots. Apply set_dont_touch on CDC synchronizer chains. Verify no CDC flops are optimized away."
-      criteria:
-        - "Synthesis completes without CDC-related warnings"
-        - "Timing meets 300 MHz core_clk and 150 MHz bus_clk targets"
-        - "CDC synchronizer chains preserved in netlist"
-      source_refs: ["synthesis.constraints", "cdc_requirements.constraints"]
-      priority: "medium"
-      required: false
+  - id: SYN_TODO_DUAL_CLOCK
+    content: Synthesize dual-clock design with CDC constraints
+    detail: Run synthesis with bus_clk and core_clk as independent clock roots. Apply set_dont_touch on CDC synchronizer chains.
+      Verify no CDC flops are optimized away.
+    criteria:
+    - Synthesis completes without CDC-related warnings
+    - Timing meets 300 MHz core_clk and 150 MHz bus_clk targets
+    - CDC synchronizer chains preserved in netlist
+    source_refs:
+    - synthesis.constraints
+    - cdc_requirements.constraints
+    priority: medium
+    required: false
   sta:
-    - id: "STA_TODO_CDC_TIMING"
-      content: "Verify CDC paths meet set_max_delay constraints"
-      detail: "Run STA with CDC max-delay constraints from timing.cdc_constraints. Verify all CDC paths have bounded delay."
-      criteria:
-        - "All CDC set_max_delay constraints pass"
-        - "Setup/hold pass on both bus_clk and core_clk domains"
-        - "No unconstrained CDC paths"
-      source_refs: ["timing.cdc_constraints", "timing.sta_expectations"]
-      priority: "medium"
-      required: false
+  - id: STA_TODO_CDC_TIMING
+    content: Verify CDC paths meet set_max_delay constraints
+    detail: Run STA with CDC max-delay constraints from timing.cdc_constraints. Verify all CDC paths have bounded delay.
+    criteria:
+    - All CDC set_max_delay constraints pass
+    - Setup/hold pass on both bus_clk and core_clk domains
+    - No unconstrained CDC paths
+    source_refs:
+    - timing.cdc_constraints
+    - timing.sta_expectations
+    priority: medium
+    required: false
   pnr: []
   sta-post: []
 generation_flow:
   steps:
-    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh todo_counter_pipe", description: "Validate production SSOT structure and quality gates" }
-    - { name: "handoff_fl_model", command: "/ssot-fl-model todo_counter_pipe", description: "FunctionalModel, decomposition, coverage plan, and equivalence goals from validated SSOT" }
-    - { name: "handoff_rtl", command: "/ssot-rtl todo_counter_pipe", description: "Downstream RTL generation from validated SSOT" }
-    - { name: "handoff_tb", command: "/ssot-tb todo_counter_pipe", description: "Downstream cocotb verification from validated SSOT" }
-    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Downstream waveform, failure, and coverage inspection after sim exists" }
-    - { name: "handoff_coverage", command: "/coverage todo_counter_pipe", description: "Measure SSOT-declared coverage goals" }
-    - { name: "handoff_eda", command: "/syn todo_counter_pipe && /sta todo_counter_pipe && /pnr todo_counter_pipe && /sta-post todo_counter_pipe", description: "Produce SSOT-declared synthesis, STA, PnR, and post-route STA evidence" }
+  - name: validate_ssot
+    command: bash workflow/ssot-gen/scripts/check_ssot_disk.sh todo_counter_pipe
+    description: Validate production SSOT structure and quality gates
+  - name: handoff_fl_model
+    command: /ssot-fl-model todo_counter_pipe
+    description: FunctionalModel, decomposition, coverage plan, and equivalence goals from validated SSOT
+  - name: handoff_rtl
+    command: /ssot-rtl todo_counter_pipe
+    description: Downstream RTL generation from validated SSOT
+  - name: handoff_tb
+    command: /ssot-tb todo_counter_pipe
+    description: Downstream cocotb verification from validated SSOT
+  - name: handoff_sim_debug
+    command: /wf sim_debug
+    description: Downstream waveform, failure, and coverage inspection after sim exists
+  - name: handoff_coverage
+    command: /coverage todo_counter_pipe
+    description: Measure SSOT-declared coverage goals
+  - name: handoff_eda
+    command: /syn todo_counter_pipe && /sta todo_counter_pipe && /pnr todo_counter_pipe && /sta-post todo_counter_pipe
+    description: Produce SSOT-declared synthesis, STA, PnR, and post-route STA evidence
+  blocker_resolution_history:
+  - source: rtl-gen
+    artifact: rtl/rtl_blocked.json
+    answers:
+    - RTL_MODULE_CONTRACTS
+    next: rerun fl-model-gen/fcov and rtl-gen preflight before RTL implementation
+    timestamp: '2026-05-14T02:43:53Z'
+  - source: rtl-gen
+    artifact: rtl/rtl_blocked.json
+    answers:
+    - SSOT_BEHAVIOR_OWNERSHIP
+    next: rerun fl-model-gen/fcov and rtl-gen preflight before RTL implementation
+    timestamp: '2026-05-14T02:44:50Z'

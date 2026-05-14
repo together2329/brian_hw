@@ -1,0 +1,1871 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 16,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 4,
+      "key": "registers",
+      "module_task_count": 65,
+      "rule": "Owner module todo_counter_pipe_regs is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "registers",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/todo_counter_pipe_regs.sv",
+      "name": "todo_counter_pipe_regs",
+      "refs": [
+        "cycle_model.handshake_rules.counter_irq",
+        "cycle_model.handshake_rules.prdata",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.pipeline.S0_APB_ACCESS",
+        "cycle_model.pipeline.S4_STATUS_UPDATE",
+        "decomposition.units.apb_decode",
+        "function_model.transactions.FM10",
+        "interrupts",
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "registers",
+        "registers.register_list",
+        "registers.register_list.CNT",
+        "registers.register_list.CTRL",
+        "registers.register_list.DBGCNT",
+        "registers.register_list.INTCLR",
+        "registers.register_list.INTEN",
+        "registers.register_list.INTSTAT",
+        "registers.register_list.LOAD",
+        "registers.register_list.STATUS",
+        "registers.register_list.TERM"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/todo_counter_pipe_regs.sv",
+        "name": "todo_counter_pipe_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/todo_counter_pipe_core.sv",
+        "name": "todo_counter_pipe_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/todo_counter_pipe_cdc.sv",
+        "name": "todo_counter_pipe_cdc",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/todo_counter_pipe.sv",
+        "name": "todo_counter_pipe",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_regs",
+        "port": "bus_clk",
+        "signal": "bus_clk",
+        "signal_terms": [
+          "bus_clk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_regs",
+        "port": "bus_rst_n",
+        "signal": "bus_rst_n",
+        "signal_terms": [
+          "bus_rst_n"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_regs",
+        "port": "irq_o",
+        "signal": "counter_irq",
+        "signal_terms": [
+          "counter_irq"
+        ],
+        "source_ref": "integration.connections[2]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "todo_counter_pipe",
+  "kind": "module",
+  "owner_file": "rtl/todo_counter_pipe_regs.sv",
+  "owner_module": "todo_counter_pipe_regs",
+  "packet_id": "module__todo_counter_pipe_regs__registers",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "registers.field": 25,
+      "registers.register": 9
+    },
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 4,
+      "key": "registers",
+      "module_task_count": 65,
+      "rule": "Owner module todo_counter_pipe_regs is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "registers",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 34,
+    "source_refs": [
+      "registers.register_list.CTRL",
+      "registers.register_list.CTRL.fields.enable",
+      "registers.register_list.CTRL.fields.up_down",
+      "registers.register_list.CTRL.fields.mode",
+      "registers.register_list.CTRL.fields.clear",
+      "registers.register_list.CTRL.fields.load",
+      "registers.register_list.CTRL.fields.reserved_31_5",
+      "registers.register_list.CNT",
+      "registers.register_list.CNT.fields.cnt_value",
+      "registers.register_list.LOAD",
+      "registers.register_list.LOAD.fields.load_value",
+      "registers.register_list.TERM",
+      "registers.register_list.TERM.fields.term_value",
+      "registers.register_list.STATUS",
+      "registers.register_list.STATUS.fields.overflow",
+      "registers.register_list.STATUS.fields.underflow",
+      "registers.register_list.STATUS.fields.reserved_31_2",
+      "registers.register_list.INTEN",
+      "registers.register_list.INTEN.fields.tc_en",
+      "registers.register_list.INTEN.fields.ovf_en",
+      "registers.register_list.INTEN.fields.unf_en",
+      "registers.register_list.INTEN.fields.reserved_31_3",
+      "registers.register_list.INTSTAT",
+      "registers.register_list.INTSTAT.fields.tc_pending"
+    ],
+    "status_counts": {
+      "pass": 34
+    },
+    "task_count": 34
+  },
+  "tasks": [
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register CTRL",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.CTRL",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "CTRL width matches SSOT value 32",
+        "CTRL reset behavior matches SSOT value 0",
+        "CTRL access policy rw is implemented without read/write shortcuts",
+        "CTRL decode uses SSOT address/offset 0"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CTRL.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0183",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL",
+      "ssot_context": {
+        "access": "rw",
+        "name": "CTRL",
+        "offset": "0",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CTRL.enable",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CTRL.fields.enable",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "enable reset behavior matches SSOT value 0",
+        "enable access policy rw is implemented without read/write shortcuts",
+        "enable readback returns implemented RTL state when readable",
+        "enable write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.enable.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=enable; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0184",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL.fields.enable",
+      "ssot_context": {
+        "access": "rw",
+        "name": "enable",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL.fields.enable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CTRL.up_down",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CTRL.fields.up_down",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "up_down reset behavior matches SSOT value 0",
+        "up_down access policy rw is implemented without read/write shortcuts",
+        "up_down readback returns implemented RTL state when readable",
+        "up_down write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.up_down.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=up_down; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0185",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL.fields.up_down",
+      "ssot_context": {
+        "access": "rw",
+        "name": "up_down",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL.fields.up_down"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CTRL.mode",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CTRL.fields.mode",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "mode reset behavior matches SSOT value 0",
+        "mode access policy rw is implemented without read/write shortcuts",
+        "mode readback returns implemented RTL state when readable",
+        "mode write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.mode.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=mode; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0186",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL.fields.mode",
+      "ssot_context": {
+        "access": "rw",
+        "name": "mode",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL.fields.mode"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CTRL.clear",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CTRL.fields.clear",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "clear reset behavior matches SSOT value 0",
+        "clear access policy wo is implemented without read/write shortcuts",
+        "clear readback returns implemented RTL state when readable",
+        "clear write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.clear.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=clear; reset=0; access=wo.",
+      "evidence_terms": [],
+      "id": "RTL-0187",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL.fields.clear",
+      "ssot_context": {
+        "access": "wo",
+        "name": "clear",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL.fields.clear"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CTRL.load",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CTRL.fields.load",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "load reset behavior matches SSOT value 0",
+        "load access policy wo is implemented without read/write shortcuts",
+        "load readback returns implemented RTL state when readable",
+        "load write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.load.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=load; reset=0; access=wo.",
+      "evidence_terms": [],
+      "id": "RTL-0188",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL.fields.load",
+      "ssot_context": {
+        "access": "wo",
+        "name": "load",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL.fields.load"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CTRL.reserved_31_5",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CTRL.fields.reserved_31_5",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "reserved_31_5 reset behavior matches SSOT value 0",
+        "reserved_31_5 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_5 readback returns implemented RTL state when readable",
+        "reserved_31_5 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.reserved_31_5.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=reserved_31_5; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0189",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL.fields.reserved_31_5",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_5",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL.fields.reserved_31_5"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register CNT",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.CNT",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "CNT width matches SSOT value 32",
+        "CNT reset behavior matches SSOT value 0",
+        "CNT access policy ro is implemented without read/write shortcuts",
+        "CNT decode uses SSOT address/offset 4"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CNT.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=CNT; width=32; reset=0; access=ro; offset=4.",
+      "evidence_terms": [],
+      "id": "RTL-0190",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CNT",
+      "ssot_context": {
+        "access": "ro",
+        "name": "CNT",
+        "offset": "4",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CNT"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CNT.cnt_value",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CNT.fields.cnt_value",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "cnt_value reset behavior matches SSOT value 0",
+        "cnt_value access policy ro is implemented without read/write shortcuts",
+        "cnt_value readback returns implemented RTL state when readable",
+        "cnt_value write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CNT.fields.cnt_value.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=cnt_value; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0191",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CNT.fields.cnt_value",
+      "ssot_context": {
+        "access": "ro",
+        "name": "cnt_value",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CNT.fields.cnt_value"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register LOAD",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.LOAD",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "LOAD width matches SSOT value 32",
+        "LOAD reset behavior matches SSOT value 0",
+        "LOAD access policy rw is implemented without read/write shortcuts",
+        "LOAD decode uses SSOT address/offset 8"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.LOAD.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=LOAD; width=32; reset=0; access=rw; offset=8.",
+      "evidence_terms": [],
+      "id": "RTL-0192",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.LOAD",
+      "ssot_context": {
+        "access": "rw",
+        "name": "LOAD",
+        "offset": "8",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.LOAD"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field LOAD.load_value",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.LOAD.fields.load_value",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "load_value reset behavior matches SSOT value 0",
+        "load_value access policy rw is implemented without read/write shortcuts",
+        "load_value readback returns implemented RTL state when readable",
+        "load_value write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.LOAD.fields.load_value.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=load_value; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0193",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.LOAD.fields.load_value",
+      "ssot_context": {
+        "access": "rw",
+        "name": "load_value",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.LOAD.fields.load_value"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register TERM",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.TERM",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "TERM width matches SSOT value 32",
+        "TERM reset behavior matches SSOT value 4294967295",
+        "TERM access policy rw is implemented without read/write shortcuts",
+        "TERM decode uses SSOT address/offset 12"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.TERM.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=TERM; width=32; reset=4294967295; access=rw; offset=12.",
+      "evidence_terms": [],
+      "id": "RTL-0194",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.TERM",
+      "ssot_context": {
+        "access": "rw",
+        "name": "TERM",
+        "offset": "12",
+        "reset": "4294967295",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.TERM"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field TERM.term_value",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.TERM.fields.term_value",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "term_value reset behavior matches SSOT value 4294967295",
+        "term_value access policy rw is implemented without read/write shortcuts",
+        "term_value readback returns implemented RTL state when readable",
+        "term_value write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.TERM.fields.term_value.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=term_value; reset=4294967295; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0195",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.TERM.fields.term_value",
+      "ssot_context": {
+        "access": "rw",
+        "name": "term_value",
+        "reset": "4294967295"
+      },
+      "ssot_refs": [
+        "registers.register_list.TERM.fields.term_value"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register STATUS",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.STATUS",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "STATUS width matches SSOT value 32",
+        "STATUS reset behavior matches SSOT value 0",
+        "STATUS access policy ro is implemented without read/write shortcuts",
+        "STATUS decode uses SSOT address/offset 16"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.STATUS.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=16.",
+      "evidence_terms": [],
+      "id": "RTL-0196",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS",
+      "ssot_context": {
+        "access": "ro",
+        "name": "STATUS",
+        "offset": "16",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.overflow",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.overflow",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "overflow reset behavior matches SSOT value 0",
+        "overflow access policy ro is implemented without read/write shortcuts",
+        "overflow readback returns implemented RTL state when readable",
+        "overflow write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.overflow.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=overflow; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0197",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.overflow",
+      "ssot_context": {
+        "access": "ro",
+        "name": "overflow",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.overflow"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.underflow",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.underflow",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "underflow reset behavior matches SSOT value 0",
+        "underflow access policy ro is implemented without read/write shortcuts",
+        "underflow readback returns implemented RTL state when readable",
+        "underflow write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.underflow.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=underflow; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0198",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.underflow",
+      "ssot_context": {
+        "access": "ro",
+        "name": "underflow",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.underflow"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.reserved_31_2",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.reserved_31_2",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "reserved_31_2 reset behavior matches SSOT value 0",
+        "reserved_31_2 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_2 readback returns implemented RTL state when readable",
+        "reserved_31_2 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.reserved_31_2.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=reserved_31_2; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0199",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.reserved_31_2",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_2",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.reserved_31_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register INTEN",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.INTEN",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "INTEN width matches SSOT value 32",
+        "INTEN reset behavior matches SSOT value 0",
+        "INTEN access policy rw is implemented without read/write shortcuts",
+        "INTEN decode uses SSOT address/offset 20"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INTEN.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=INTEN; width=32; reset=0; access=rw; offset=20.",
+      "evidence_terms": [],
+      "id": "RTL-0200",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTEN",
+      "ssot_context": {
+        "access": "rw",
+        "name": "INTEN",
+        "offset": "20",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTEN"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTEN.tc_en",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTEN.fields.tc_en",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "tc_en reset behavior matches SSOT value 0",
+        "tc_en access policy rw is implemented without read/write shortcuts",
+        "tc_en readback returns implemented RTL state when readable",
+        "tc_en write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTEN.fields.tc_en.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=tc_en; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0201",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTEN.fields.tc_en",
+      "ssot_context": {
+        "access": "rw",
+        "name": "tc_en",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTEN.fields.tc_en"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTEN.ovf_en",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTEN.fields.ovf_en",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "ovf_en reset behavior matches SSOT value 0",
+        "ovf_en access policy rw is implemented without read/write shortcuts",
+        "ovf_en readback returns implemented RTL state when readable",
+        "ovf_en write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTEN.fields.ovf_en.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=ovf_en; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0202",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTEN.fields.ovf_en",
+      "ssot_context": {
+        "access": "rw",
+        "name": "ovf_en",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTEN.fields.ovf_en"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTEN.unf_en",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTEN.fields.unf_en",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "unf_en reset behavior matches SSOT value 0",
+        "unf_en access policy rw is implemented without read/write shortcuts",
+        "unf_en readback returns implemented RTL state when readable",
+        "unf_en write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTEN.fields.unf_en.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=unf_en; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0203",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTEN.fields.unf_en",
+      "ssot_context": {
+        "access": "rw",
+        "name": "unf_en",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTEN.fields.unf_en"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTEN.reserved_31_3",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTEN.fields.reserved_31_3",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "reserved_31_3 reset behavior matches SSOT value 0",
+        "reserved_31_3 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_3 readback returns implemented RTL state when readable",
+        "reserved_31_3 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTEN.fields.reserved_31_3.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=reserved_31_3; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0204",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTEN.fields.reserved_31_3",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_3",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTEN.fields.reserved_31_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register INTSTAT",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.INTSTAT",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "INTSTAT width matches SSOT value 32",
+        "INTSTAT reset behavior matches SSOT value 0",
+        "INTSTAT access policy ro is implemented without read/write shortcuts",
+        "INTSTAT decode uses SSOT address/offset 24"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INTSTAT.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=INTSTAT; width=32; reset=0; access=ro; offset=24.",
+      "evidence_terms": [],
+      "id": "RTL-0205",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTSTAT",
+      "ssot_context": {
+        "access": "ro",
+        "name": "INTSTAT",
+        "offset": "24",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTSTAT"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTSTAT.tc_pending",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTSTAT.fields.tc_pending",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "tc_pending reset behavior matches SSOT value 0",
+        "tc_pending access policy ro is implemented without read/write shortcuts",
+        "tc_pending readback returns implemented RTL state when readable",
+        "tc_pending write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTSTAT.fields.tc_pending.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=tc_pending; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0206",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTSTAT.fields.tc_pending",
+      "ssot_context": {
+        "access": "ro",
+        "name": "tc_pending",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTSTAT.fields.tc_pending"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTSTAT.ovf_pending",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTSTAT.fields.ovf_pending",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "ovf_pending reset behavior matches SSOT value 0",
+        "ovf_pending access policy ro is implemented without read/write shortcuts",
+        "ovf_pending readback returns implemented RTL state when readable",
+        "ovf_pending write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTSTAT.fields.ovf_pending.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=ovf_pending; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0207",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTSTAT.fields.ovf_pending",
+      "ssot_context": {
+        "access": "ro",
+        "name": "ovf_pending",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTSTAT.fields.ovf_pending"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTSTAT.unf_pending",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTSTAT.fields.unf_pending",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "unf_pending reset behavior matches SSOT value 0",
+        "unf_pending access policy ro is implemented without read/write shortcuts",
+        "unf_pending readback returns implemented RTL state when readable",
+        "unf_pending write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTSTAT.fields.unf_pending.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=unf_pending; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0208",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTSTAT.fields.unf_pending",
+      "ssot_context": {
+        "access": "ro",
+        "name": "unf_pending",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTSTAT.fields.unf_pending"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTSTAT.reserved_31_3",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTSTAT.fields.reserved_31_3",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "reserved_31_3 reset behavior matches SSOT value 0",
+        "reserved_31_3 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_3 readback returns implemented RTL state when readable",
+        "reserved_31_3 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTSTAT.fields.reserved_31_3.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=reserved_31_3; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0209",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTSTAT.fields.reserved_31_3",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_3",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTSTAT.fields.reserved_31_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register INTCLR",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.INTCLR",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "INTCLR width matches SSOT value 32",
+        "INTCLR reset behavior matches SSOT value 0",
+        "INTCLR access policy rw is implemented without read/write shortcuts",
+        "INTCLR decode uses SSOT address/offset 28"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INTCLR.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=INTCLR; width=32; reset=0; access=rw; offset=28.",
+      "evidence_terms": [],
+      "id": "RTL-0210",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTCLR",
+      "ssot_context": {
+        "access": "rw",
+        "name": "INTCLR",
+        "offset": "28",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTCLR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTCLR.tc_clr",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTCLR.fields.tc_clr",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "tc_clr reset behavior matches SSOT value 0",
+        "tc_clr access policy rw is implemented without read/write shortcuts",
+        "tc_clr readback returns implemented RTL state when readable",
+        "tc_clr write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTCLR.fields.tc_clr.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=tc_clr; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0211",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTCLR.fields.tc_clr",
+      "ssot_context": {
+        "access": "rw",
+        "name": "tc_clr",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTCLR.fields.tc_clr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTCLR.ovf_clr",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTCLR.fields.ovf_clr",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "ovf_clr reset behavior matches SSOT value 0",
+        "ovf_clr access policy rw is implemented without read/write shortcuts",
+        "ovf_clr readback returns implemented RTL state when readable",
+        "ovf_clr write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTCLR.fields.ovf_clr.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=ovf_clr; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0212",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTCLR.fields.ovf_clr",
+      "ssot_context": {
+        "access": "rw",
+        "name": "ovf_clr",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTCLR.fields.ovf_clr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTCLR.unf_clr",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTCLR.fields.unf_clr",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "unf_clr reset behavior matches SSOT value 0",
+        "unf_clr access policy rw is implemented without read/write shortcuts",
+        "unf_clr readback returns implemented RTL state when readable",
+        "unf_clr write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTCLR.fields.unf_clr.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=unf_clr; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0213",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTCLR.fields.unf_clr",
+      "ssot_context": {
+        "access": "rw",
+        "name": "unf_clr",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTCLR.fields.unf_clr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTCLR.reserved_31_3",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTCLR.fields.reserved_31_3",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "reserved_31_3 reset behavior matches SSOT value 0",
+        "reserved_31_3 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_3 readback returns implemented RTL state when readable",
+        "reserved_31_3 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTCLR.fields.reserved_31_3.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=reserved_31_3; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0214",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTCLR.fields.reserved_31_3",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_3",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTCLR.fields.reserved_31_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register DBGCNT",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.DBGCNT",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "DBGCNT width matches SSOT value 32",
+        "DBGCNT reset behavior matches SSOT value 0",
+        "DBGCNT access policy ro is implemented without read/write shortcuts",
+        "DBGCNT decode uses SSOT address/offset 32"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.DBGCNT.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=DBGCNT; width=32; reset=0; access=ro; offset=32.",
+      "evidence_terms": [],
+      "id": "RTL-0215",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DBGCNT",
+      "ssot_context": {
+        "access": "ro",
+        "name": "DBGCNT",
+        "offset": "32",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.DBGCNT"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DBGCNT.dbg_cycle_count",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DBGCNT.fields.dbg_cycle_count",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "dbg_cycle_count reset behavior matches SSOT value 0",
+        "dbg_cycle_count access policy ro is implemented without read/write shortcuts",
+        "dbg_cycle_count readback returns implemented RTL state when readable",
+        "dbg_cycle_count write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DBGCNT.fields.dbg_cycle_count.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=dbg_cycle_count; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0216",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DBGCNT.fields.dbg_cycle_count",
+      "ssot_context": {
+        "access": "ro",
+        "name": "dbg_cycle_count",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DBGCNT.fields.dbg_cycle_count"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "b329388dc9f0734e5afc3107218760f4ee5baf3a53ad32d151a73aac2ea551a4",
+  "top": "todo_counter_pipe",
+  "type": "rtl_authoring_packet"
+}

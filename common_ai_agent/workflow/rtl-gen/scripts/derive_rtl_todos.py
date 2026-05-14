@@ -115,6 +115,7 @@ EVIDENCE_STOPWORDS = {
     "error",
     "event",
     "events",
+    "every",
     "exactly",
     "externally",
     "feature",
@@ -129,6 +130,9 @@ EVIDENCE_STOPWORDS = {
     "input",
     "is",
     "listed",
+    "map",
+    "mapped",
+    "maps",
     "model",
     "module",
     "non",
@@ -141,10 +145,12 @@ EVIDENCE_STOPWORDS = {
     "rtl",
     "rule",
     "side",
+    "stage",
     "state",
     "the",
     "to",
     "transaction",
+    "transactions",
     "with",
 }
 
@@ -1173,7 +1179,13 @@ def _owner_for(ref: str, modules: list[dict[str, Any]], top: str, value: Any = N
                 matches.append((module, owner_ref))
                 break
     if matches:
-        module, matched_ref = matches[0]
+        module, matched_ref = max(
+            matches,
+            key=lambda item: (
+                len(str(item[1]).split(".")),
+                len(str(item[1])),
+            ),
+        )
         return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": matched_ref}
     semantic_owner = _semantic_owner_match(ref, value, modules, top)
     if semantic_owner is not None:
@@ -1225,6 +1237,17 @@ def _split_design_token(token: str) -> set[str]:
     }
 
 
+def _direct_string_token_is_evidence(category: str, token: str) -> bool:
+    lower = str(token or "").lower()
+    if lower in EVIDENCE_STOPWORDS or lower in REFERENCE_STOPWORDS:
+        return False
+    if category == "cycle_model.observability":
+        # Observability entries are often prose such as "Every transaction maps..."
+        # Plain English words must not become RTL evidence requirements.
+        return _looks_like_design_token(token)
+    return True
+
+
 DIRECT_STRING_EVIDENCE_CATEGORIES = {
     "cycle_model.observability",
     "registers.field",
@@ -1272,8 +1295,10 @@ def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
             identity_keys = ("field", "signal", "port", "state", "output", "event", "stage", "register", "from", "to")
             if category in NAME_EVIDENCE_CATEGORIES:
                 identity_keys = ("id", *identity_keys)
+            if category == "cycle_model.pipeline":
+                identity_keys = ("clock", "action", "signal", "port", "event", "condition", "expr", "expression")
             if category == "workflow_todo.rtl_gen":
-                identity_keys = ("id", "content", "detail", "criteria", "source_refs", "owner_module", "owner_file", *identity_keys)
+                identity_keys = ("id", "source_refs", "owner_module", "owner_file", *identity_keys)
             for key in identity_keys:
                 if _present(value.get(key)):
                     visit(value.get(key))
@@ -1292,8 +1317,17 @@ def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
         for quoted in re.findall(r"`([A-Za-z_][A-Za-z0-9_]*)`", text):
             if _looks_like_design_token(quoted):
                 terms.update(_split_design_token(quoted))
+        if category in {"cycle_model.observability", "cycle_model.ordering"}:
+            # Free-form cycle-model prose is guidance for model/coverage
+            # alignment, not a request to mint RTL identifiers from words in
+            # the sentence. A single structured/standalone signal name still
+            # becomes evidence; prose should be covered by more specific tasks.
+            raw_tokens = re.findall(r"[A-Za-z_][A-Za-z0-9_]*", text)
+            if len(raw_tokens) == 1 and _looks_like_design_token(raw_tokens[0]):
+                terms.update(_split_design_token(raw_tokens[0]))
+            return
         for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", text):
-            if category in DIRECT_STRING_EVIDENCE_CATEGORIES and token.lower() not in EVIDENCE_STOPWORDS | REFERENCE_STOPWORDS:
+            if category in DIRECT_STRING_EVIDENCE_CATEGORIES and _direct_string_token_is_evidence(category, token):
                 terms.add(token)
             elif "_" in token and _looks_like_design_token(token):
                 terms.update(_split_design_token(token))
@@ -1334,6 +1368,7 @@ def _ssot_context(value: Any) -> dict[str, str]:
         "from",
         "to",
         "condition",
+        "action",
         "expr",
         "expression",
         "value",
@@ -4114,6 +4149,8 @@ def _write_authoring_packets(ip_dir: Path, plan: dict[str, Any], *, todo_plan_sh
                 "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
                 "Every task must satisfy content, detail, and criteria before the packet is closed.",
                 "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+                "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+                "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
                 "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.",
             ],
             "summary": {
@@ -4314,6 +4351,8 @@ def _write_authoring_packets(ip_dir: Path, plan: dict[str, Any], *, todo_plan_sh
             "Use rtl_todo_plan.json as the complete ledger and rtl_authoring_plan.json as the LLM work queue.",
             "Process one authoring packet at a time: module packets first, then unowned tasks if any, then rtl_gate_evidence_closure; leave rtl_gate_tool_evidence to tools and rtl_gate_contract_blocked/rtl_gate_human_closure to human-locked authority gaps.",
             "Generate real RTL; do not instantiate a fixed IP template or copy boilerplate as the implementation.",
+            "Do not close static RTL evidence with comments: derive_rtl_todos.py strips comments before matching, so evidence_terms must be preserved in live lint-clean RTL identifiers/logic.",
+            "Do not close static RTL evidence with evidence-only alias/dummy wires; the matched identifiers must participate in real RTL behavior.",
             "If reference_profile is present, use it only to understand implementation scale and decomposition gaps; never copy or clone reference RTL.",
             "After the top RTL exists, prioritize missing manifest child RTL packets before residual top-module slices.",
             "Keep locked authority artifacts unchanged unless a human approves a change request.",

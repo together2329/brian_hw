@@ -1,0 +1,1634 @@
+{
+  "execution_policy": {
+    "allowed_draft_work": [
+      "Author module RTL from SSOT-derived TODO packets.",
+      "Add tests, vectors, assertions, reports, and repair RTL under LLM-editable surfaces.",
+      "Leave unresolved locked-truth decisions as human_gate/change-request records instead of changing SSOT authority."
+    ],
+    "blocked_by_llm_work": [
+      {
+        "gate_kind": "static_rtl_evidence",
+        "owner_module": "todo_counter_pipe",
+        "reason": "4 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
+        "status": "open",
+        "task_id": "RTL-0007"
+      },
+      {
+        "gate_kind": "manifest_signal_flow_evidence",
+        "owner_module": "todo_counter_pipe",
+        "reason": "1 manifest signal-flow issue(s) remain. todo_counter_pipe_cdc: status_core_to_bus: Manifest child output does not feed a top output, parent RTL logic, or another child input/inout",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
+        "status": "open",
+        "task_id": "RTL-0015"
+      }
+    ],
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [
+      {
+        "gate_kind": "common_ai_agent_authoring",
+        "owner_module": "todo_counter_pipe",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
+        "gate_kind": "dut_lint",
+        "owner_module": "todo_counter_pipe",
+        "reason": "DUT lint artifact is not clean.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "status": "open",
+        "task_id": "RTL-0018"
+      },
+      {
+        "gate_kind": "dynamic_todo_closure",
+        "owner_module": "todo_counter_pipe",
+        "reason": "8 required non-closure TODO(s) remain open.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "status": "open",
+        "task_id": "RTL-0019"
+      }
+    ],
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 16,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {
+      "path": "rtl/connection_contract_suggestions.json",
+      "rule": "Suggestions are emitted only when production connection contracts are missing.",
+      "sample_rows": [],
+      "summary": {
+        "applied_to_ssot": false,
+        "pending_review": 0,
+        "status": "not_required",
+        "suggested_rows": 0
+      }
+    },
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "gate_status": "fail",
+    "hard_blockers": [],
+    "open_required_todos": 9,
+    "pass_allowed": false,
+    "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
+    "stop_conditions": [
+      "Do not edit SSOT/FL/coverage/interface/performance authority artifacts without human approval.",
+      "Do not claim rtl-gen PASS while pass_allowed is false.",
+      "Do not sign off top integration while required connection contracts are missing."
+    ],
+    "tool_evidence_plan": [
+      {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "artifacts": [
+          "todo_counter_pipe/rtl/rtl_authoring_provenance.json",
+          "todo_counter_pipe/rtl/rtl_todo_plan.json"
+        ],
+        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+        "commands": [
+          "python3 src/headless_workflow.py --root . --ip todo_counter_pipe --stages rtl-gen",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py todo_counter_pipe --root . --audit-rtl"
+        ],
+        "gate_kind": "common_ai_agent_authoring",
+        "prerequisites": [
+          "An LLM authoring pass emitted or repaired DUT RTL files."
+        ],
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "stage_sequence": [
+          "ssot-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
+        "artifact": "lint/dut_lint.json",
+        "artifacts": [
+          "todo_counter_pipe/lint/dut_lint.json"
+        ],
+        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+        "commands": [
+          "python3 workflow/lint/scripts/dut_lint_report.py todo_counter_pipe --top todo_counter_pipe",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py todo_counter_pipe --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_lint",
+        "prerequisites": [
+          "todo_counter_pipe/list/todo_counter_pipe.f covers the current DUT RTL/header sources."
+        ],
+        "reason": "DUT lint artifact is not clean.",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "stage_sequence": [
+          "lint",
+          "dut_lint"
+        ],
+        "status": "open",
+        "task_id": "RTL-0018"
+      },
+      {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "artifacts": [
+          "todo_counter_pipe/rtl/rtl_todo_plan.json",
+          "todo_counter_pipe/rtl/rtl_authoring_status.md"
+        ],
+        "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py todo_counter_pipe --root . --audit-rtl"
+        ],
+        "gate_kind": "dynamic_todo_closure",
+        "prerequisites": [
+          "All non-closure required TODOs have pass status."
+        ],
+        "reason": "8 required non-closure TODO(s) remain open.",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "stage_sequence": [
+          "audit-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0019"
+      }
+    ]
+  },
+  "ip": "todo_counter_pipe",
+  "packet_dir": "rtl/authoring_packets",
+  "packets": [
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 4,
+        "open_required_count": 4,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__todo_counter_pipe_cdc.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__todo_counter_pipe_cdc.md",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "packet_id": "module__todo_counter_pipe_cdc",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "features.item": 2,
+          "fsm.state": 2,
+          "fsm.transition": 3,
+          "integration.connections": 10,
+          "integration.dependencies": 3,
+          "parameters.item": 5,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 27,
+          "task_limit": 48
+        },
+        "open_required_count": 4,
+        "required_count": 27,
+        "source_refs": [
+          "workflow_todos.rtl-gen[2]",
+          "fsm.core_fsm.states.state_0",
+          "fsm.core_fsm.states.state_1",
+          "fsm.core_fsm.transitions.transition_0",
+          "fsm.core_fsm.transitions.transition_1",
+          "fsm.core_fsm.transitions.transition_2",
+          "features.Clear_Load_Control",
+          "features.Debug_Cycle_Counter",
+          "integration.dependencies.external_modules",
+          "integration.dependencies.external_clocks",
+          "integration.dependencies.external_resets",
+          "integration.connections.bus_clk",
+          "integration.connections.bus_rst_n",
+          "integration.connections.counter_irq",
+          "integration.connections.core_clk",
+          "integration.connections.core_rst_n",
+          "integration.connections.event_i",
+          "integration.connections.bus_clk",
+          "integration.connections.core_clk",
+          "integration.connections.bus_rst_n",
+          "integration.connections.core_rst_n",
+          "sub_modules.todo_counter_pipe_cdc.module_equivalence",
+          "parameters.WIDTH",
+          "parameters.BUS_CLK_FREQ_MHZ"
+        ],
+        "status_counts": {
+          "open": 4,
+          "pass": 23
+        },
+        "task_count": 27
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 2,
+        "open_required_count": 2,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_evidence_closure.md",
+      "owner_file": "rtl/todo_counter_pipe.sv",
+      "owner_module": "todo_counter_pipe",
+      "packet_id": "rtl_gate_evidence_closure",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 9
+        },
+        "module_slice": {},
+        "open_required_count": 2,
+        "required_count": 9,
+        "source_refs": [
+          "quality_gates.rtl_gen.static_rtl_evidence",
+          "quality_gates.rtl_gen.owner_logic_structure_evidence",
+          "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+          "quality_gates.rtl_gen.top_io_contract_evidence",
+          "quality_gates.rtl_gen.top_output_drive_evidence",
+          "quality_gates.rtl_gen.top_input_consumption_evidence",
+          "quality_gates.rtl_gen.manifest_hierarchy_integration",
+          "quality_gates.rtl_gen.manifest_port_connection_evidence",
+          "quality_gates.rtl_gen.manifest_signal_flow_evidence"
+        ],
+        "status_counts": {
+          "open": 2,
+          "pass": 7
+        },
+        "task_count": 9
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [
+          {
+            "gate_kind": "common_ai_agent_authoring",
+            "owner_module": "todo_counter_pipe",
+            "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+            "status": "open",
+            "task_id": "RTL-0006"
+          },
+          {
+            "gate_kind": "dut_lint",
+            "owner_module": "todo_counter_pipe",
+            "reason": "DUT lint artifact is not clean.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.dut_lint",
+            "status": "open",
+            "task_id": "RTL-0018"
+          },
+          {
+            "gate_kind": "dynamic_todo_closure",
+            "owner_module": "todo_counter_pipe",
+            "reason": "8 required non-closure TODO(s) remain open.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+            "status": "open",
+            "task_id": "RTL-0019"
+          }
+        ],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 3,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 3,
+        "tool_evidence_plan": [
+          {
+            "artifact": "rtl/rtl_authoring_provenance.json",
+            "artifacts": [
+              "todo_counter_pipe/rtl/rtl_authoring_provenance.json",
+              "todo_counter_pipe/rtl/rtl_todo_plan.json"
+            ],
+            "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+            "commands": [
+              "python3 src/headless_workflow.py --root . --ip todo_counter_pipe --stages rtl-gen",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py todo_counter_pipe --root . --audit-rtl"
+            ],
+            "gate_kind": "common_ai_agent_authoring",
+            "prerequisites": [
+              "An LLM authoring pass emitted or repaired DUT RTL files."
+            ],
+            "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+            "stage_sequence": [
+              "ssot-rtl"
+            ],
+            "status": "open",
+            "task_id": "RTL-0006"
+          },
+          {
+            "artifact": "lint/dut_lint.json",
+            "artifacts": [
+              "todo_counter_pipe/lint/dut_lint.json"
+            ],
+            "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+            "commands": [
+              "python3 workflow/lint/scripts/dut_lint_report.py todo_counter_pipe --top todo_counter_pipe",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py todo_counter_pipe --root . --audit-rtl"
+            ],
+            "gate_kind": "dut_lint",
+            "prerequisites": [
+              "todo_counter_pipe/list/todo_counter_pipe.f covers the current DUT RTL/header sources."
+            ],
+            "reason": "DUT lint artifact is not clean.",
+            "source_ref": "quality_gates.rtl_gen.dut_lint",
+            "stage_sequence": [
+              "lint",
+              "dut_lint"
+            ],
+            "status": "open",
+            "task_id": "RTL-0018"
+          },
+          {
+            "artifact": "rtl/rtl_todo_plan.json",
+            "artifacts": [
+              "todo_counter_pipe/rtl/rtl_todo_plan.json",
+              "todo_counter_pipe/rtl/rtl_authoring_status.md"
+            ],
+            "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+            "commands": [
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py todo_counter_pipe --root . --audit-rtl"
+            ],
+            "gate_kind": "dynamic_todo_closure",
+            "prerequisites": [
+              "All non-closure required TODOs have pass status."
+            ],
+            "reason": "8 required non-closure TODO(s) remain open.",
+            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+            "stage_sequence": [
+              "audit-rtl"
+            ],
+            "status": "open",
+            "task_id": "RTL-0019"
+          }
+        ],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_tool_evidence.md",
+      "owner_file": "rtl/todo_counter_pipe.sv",
+      "owner_module": "todo_counter_pipe",
+      "packet_id": "rtl_gate_tool_evidence",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 4
+        },
+        "module_slice": {},
+        "open_required_count": 3,
+        "required_count": 4,
+        "source_refs": [
+          "quality_gates.rtl_gen.common_ai_agent_authoring",
+          "quality_gates.rtl_gen.dut_compile",
+          "quality_gates.rtl_gen.dut_lint",
+          "quality_gates.rtl_gen.dynamic_todo_closure"
+        ],
+        "status_counts": {
+          "open": 3,
+          "pass": 1
+        },
+        "task_count": 4
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__todo_counter_pipe_regs__cycle_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__todo_counter_pipe_regs__cycle_model.md",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "packet_id": "module__todo_counter_pipe_regs__cycle_model",
+      "summary": {
+        "categories": {
+          "cycle_model.handshake_rules": 3,
+          "cycle_model.pipeline": 2
+        },
+        "module_slice": {
+          "count": 7,
+          "enabled": true,
+          "index": 3,
+          "key": "cycle_model",
+          "module_task_count": 65,
+          "rule": "Owner module todo_counter_pipe_regs is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "cycle_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 5,
+        "source_refs": [
+          "cycle_model.handshake_rules.pready",
+          "cycle_model.handshake_rules.prdata",
+          "cycle_model.handshake_rules.counter_irq",
+          "cycle_model.pipeline.S0_APB_ACCESS",
+          "cycle_model.pipeline.S4_STATUS_UPDATE"
+        ],
+        "status_counts": {
+          "pass": 5
+        },
+        "task_count": 5
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__todo_counter_pipe_regs__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__todo_counter_pipe_regs__equivalence.md",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "packet_id": "module__todo_counter_pipe_regs__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 7,
+          "enabled": true,
+          "index": 6,
+          "key": "equivalence",
+          "module_task_count": 65,
+          "rule": "Owner module todo_counter_pipe_regs is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.todo_counter_pipe_regs.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__todo_counter_pipe_regs__function_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__todo_counter_pipe_regs__function_model.md",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "packet_id": "module__todo_counter_pipe_regs__function_model",
+      "summary": {
+        "categories": {
+          "function_model.input": 1,
+          "function_model.output": 3,
+          "function_model.precondition": 1,
+          "function_model.side_effect": 1,
+          "function_model.transaction": 1
+        },
+        "module_slice": {
+          "count": 7,
+          "enabled": true,
+          "index": 2,
+          "key": "function_model",
+          "module_task_count": 65,
+          "rule": "Owner module todo_counter_pipe_regs is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 7,
+        "source_refs": [
+          "function_model.transactions.FM10",
+          "function_model.transactions.FM10.preconditions.precondition_0",
+          "function_model.transactions.FM10.inputs.input_0",
+          "function_model.transactions.FM10.outputs.output_0",
+          "function_model.transactions.FM10.outputs.output_1",
+          "function_model.transactions.FM10.outputs.output_2",
+          "function_model.transactions.FM10.side_effects.side_effect_0"
+        ],
+        "status_counts": {
+          "pass": 7
+        },
+        "task_count": 7
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__todo_counter_pipe_regs__interrupts.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__todo_counter_pipe_regs__interrupts.md",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "packet_id": "module__todo_counter_pipe_regs__interrupts",
+      "summary": {
+        "categories": {
+          "interrupts.sources": 3
+        },
+        "module_slice": {
+          "count": 7,
+          "enabled": true,
+          "index": 5,
+          "key": "interrupts",
+          "module_task_count": 65,
+          "rule": "Owner module todo_counter_pipe_regs is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "interrupts",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 3,
+        "source_refs": [
+          "interrupts.sources.TC",
+          "interrupts.sources.OVF",
+          "interrupts.sources.UNF"
+        ],
+        "status_counts": {
+          "pass": 3
+        },
+        "task_count": 3
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__todo_counter_pipe_regs__io_list.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__todo_counter_pipe_regs__io_list.md",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "packet_id": "module__todo_counter_pipe_regs__io_list",
+      "summary": {
+        "categories": {
+          "io_list.port": 14
+        },
+        "module_slice": {
+          "count": 7,
+          "enabled": true,
+          "index": 1,
+          "key": "io_list",
+          "module_task_count": 65,
+          "rule": "Owner module todo_counter_pipe_regs is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "io_list",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 14,
+        "source_refs": [
+          "io_list.clock_domains.bus_clk.ports.bus_clk",
+          "io_list.clock_domains.core_clk.ports.core_clk",
+          "io_list.resets.bus_rst_n.ports.bus_rst_n",
+          "io_list.resets.core_rst_n.ports.core_rst_n",
+          "io_list.interfaces.apb_slave.ports.paddr",
+          "io_list.interfaces.apb_slave.ports.psel",
+          "io_list.interfaces.apb_slave.ports.penable",
+          "io_list.interfaces.apb_slave.ports.pwrite",
+          "io_list.interfaces.apb_slave.ports.pwdata",
+          "io_list.interfaces.apb_slave.ports.pstrb",
+          "io_list.interfaces.apb_slave.ports.prdata",
+          "io_list.interfaces.apb_slave.ports.pready",
+          "io_list.interfaces.event_input.ports.event_i",
+          "io_list.interfaces.interrupt.ports.counter_irq"
+        ],
+        "status_counts": {
+          "pass": 14
+        },
+        "task_count": 14
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__todo_counter_pipe_regs__registers.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__todo_counter_pipe_regs__registers.md",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "packet_id": "module__todo_counter_pipe_regs__registers",
+      "summary": {
+        "categories": {
+          "registers.field": 25,
+          "registers.register": 9
+        },
+        "module_slice": {
+          "count": 7,
+          "enabled": true,
+          "index": 4,
+          "key": "registers",
+          "module_task_count": 65,
+          "rule": "Owner module todo_counter_pipe_regs is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "registers",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 34,
+        "source_refs": [
+          "registers.register_list.CTRL",
+          "registers.register_list.CTRL.fields.enable",
+          "registers.register_list.CTRL.fields.up_down",
+          "registers.register_list.CTRL.fields.mode",
+          "registers.register_list.CTRL.fields.clear",
+          "registers.register_list.CTRL.fields.load",
+          "registers.register_list.CTRL.fields.reserved_31_5",
+          "registers.register_list.CNT",
+          "registers.register_list.CNT.fields.cnt_value",
+          "registers.register_list.LOAD",
+          "registers.register_list.LOAD.fields.load_value",
+          "registers.register_list.TERM",
+          "registers.register_list.TERM.fields.term_value",
+          "registers.register_list.STATUS",
+          "registers.register_list.STATUS.fields.overflow",
+          "registers.register_list.STATUS.fields.underflow",
+          "registers.register_list.STATUS.fields.reserved_31_2",
+          "registers.register_list.INTEN",
+          "registers.register_list.INTEN.fields.tc_en",
+          "registers.register_list.INTEN.fields.ovf_en",
+          "registers.register_list.INTEN.fields.unf_en",
+          "registers.register_list.INTEN.fields.reserved_31_3",
+          "registers.register_list.INTSTAT",
+          "registers.register_list.INTSTAT.fields.tc_pending"
+        ],
+        "status_counts": {
+          "pass": 34
+        },
+        "task_count": 34
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__todo_counter_pipe_regs__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__todo_counter_pipe_regs__workflow_todo.md",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "packet_id": "module__todo_counter_pipe_regs__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 7,
+          "enabled": true,
+          "index": 7,
+          "key": "workflow_todo",
+          "module_task_count": 65,
+          "rule": "Owner module todo_counter_pipe_regs is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[1]"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__todo_counter_pipe_core__cycle_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__todo_counter_pipe_core__cycle_model.md",
+      "owner_file": "rtl/todo_counter_pipe_core.sv",
+      "owner_module": "todo_counter_pipe_core",
+      "packet_id": "module__todo_counter_pipe_core__cycle_model",
+      "summary": {
+        "categories": {
+          "cycle_model.backpressure": 3,
+          "cycle_model.clock": 1,
+          "cycle_model.handshake_rules": 1,
+          "cycle_model.latency": 1,
+          "cycle_model.observability": 4,
+          "cycle_model.ordering": 4,
+          "cycle_model.pipeline": 3,
+          "cycle_model.reset": 1
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 4,
+          "key": "cycle_model",
+          "module_task_count": 136,
+          "rule": "Owner module todo_counter_pipe_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "cycle_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 18,
+        "source_refs": [
+          "cycle_model.clock",
+          "cycle_model.reset",
+          "cycle_model.latency",
+          "cycle_model.handshake_rules.event_i",
+          "cycle_model.pipeline.S1_CDC_CTRL",
+          "cycle_model.pipeline.S2_COUNT_EVAL",
+          "cycle_model.pipeline.S3_CDC_STATUS",
+          "cycle_model.ordering.ordering_rule_0",
+          "cycle_model.ordering.ordering_rule_1",
+          "cycle_model.ordering.ordering_rule_2",
+          "cycle_model.ordering.ordering_rule_3",
+          "cycle_model.backpressure.backpressure_rule_0",
+          "cycle_model.backpressure.backpressure_rule_1",
+          "cycle_model.backpressure.backpressure_rule_2",
+          "cycle_model.observability.observability_signal_0",
+          "cycle_model.observability.observability_signal_1",
+          "cycle_model.observability.observability_signal_2",
+          "cycle_model.observability.observability_signal_3"
+        ],
+        "status_counts": {
+          "pass": 18
+        },
+        "task_count": 18
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__todo_counter_pipe_core__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__todo_counter_pipe_core__equivalence.md",
+      "owner_file": "rtl/todo_counter_pipe_core.sv",
+      "owner_module": "todo_counter_pipe_core",
+      "packet_id": "module__todo_counter_pipe_core__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 7,
+          "key": "equivalence",
+          "module_task_count": 136,
+          "rule": "Owner module todo_counter_pipe_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.todo_counter_pipe_core.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__todo_counter_pipe_core__features.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__todo_counter_pipe_core__features.md",
+      "owner_file": "rtl/todo_counter_pipe_core.sv",
+      "owner_module": "todo_counter_pipe_core",
+      "packet_id": "module__todo_counter_pipe_core__features",
+      "summary": {
+        "categories": {
+          "features.item": 4
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 6,
+          "key": "features",
+          "module_task_count": 136,
+          "rule": "Owner module todo_counter_pipe_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "features",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 4,
+        "source_refs": [
+          "features.Up_Down_Counting",
+          "features.Saturating_Mode",
+          "features.Wrap_Mode",
+          "features.Terminal_Count_Interrupt"
+        ],
+        "status_counts": {
+          "pass": 4
+        },
+        "task_count": 4
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__todo_counter_pipe_core__function_model_01.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__todo_counter_pipe_core__function_model_01.md",
+      "owner_file": "rtl/todo_counter_pipe_core.sv",
+      "owner_module": "todo_counter_pipe_core",
+      "packet_id": "module__todo_counter_pipe_core__function_model_01",
+      "summary": {
+        "categories": {
+          "function_model.input": 3,
+          "function_model.output": 5,
+          "function_model.output_rule": 1,
+          "function_model.precondition": 14,
+          "function_model.side_effect": 6,
+          "function_model.state_variable": 15,
+          "function_model.transaction": 4
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 1,
+          "key": "function_model_01",
+          "module_task_count": 136,
+          "rule": "Owner module todo_counter_pipe_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 3,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 48,
+        "source_refs": [
+          "function_model.state_variables.cnt",
+          "function_model.state_variables.enable",
+          "function_model.state_variables.up_down",
+          "function_model.state_variables.mode",
+          "function_model.state_variables.load_value",
+          "function_model.state_variables.term",
+          "function_model.state_variables.overflow",
+          "function_model.state_variables.underflow",
+          "function_model.state_variables.tc_pending",
+          "function_model.state_variables.ovf_pending",
+          "function_model.state_variables.unf_pending",
+          "function_model.state_variables.inten_tc",
+          "function_model.state_variables.inten_ovf",
+          "function_model.state_variables.inten_unf",
+          "function_model.state_variables.dbg_cycle_count",
+          "function_model.transactions.FM1",
+          "function_model.transactions.FM1.preconditions.precondition_0",
+          "function_model.transactions.FM1.preconditions.precondition_1",
+          "function_model.transactions.FM1.preconditions.precondition_2",
+          "function_model.transactions.FM1.preconditions.precondition_3",
+          "function_model.transactions.FM1.inputs.input_0",
+          "function_model.transactions.FM1.outputs.output_0",
+          "function_model.transactions.FM1.output_rules.interrupt",
+          "function_model.transactions.FM1.side_effects.side_effect_0"
+        ],
+        "status_counts": {
+          "pass": 48
+        },
+        "task_count": 48
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__todo_counter_pipe_core__function_model_02.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__todo_counter_pipe_core__function_model_02.md",
+      "owner_file": "rtl/todo_counter_pipe_core.sv",
+      "owner_module": "todo_counter_pipe_core",
+      "packet_id": "module__todo_counter_pipe_core__function_model_02",
+      "summary": {
+        "categories": {
+          "function_model.input": 5,
+          "function_model.output": 11,
+          "function_model.precondition": 12,
+          "function_model.side_effect": 16,
+          "function_model.transaction": 4
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 2,
+          "key": "function_model_02",
+          "module_task_count": 136,
+          "rule": "Owner module todo_counter_pipe_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 3,
+          "section_chunk_index": 2,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 48,
+        "source_refs": [
+          "function_model.transactions.FM4.preconditions.precondition_2",
+          "function_model.transactions.FM4.preconditions.precondition_3",
+          "function_model.transactions.FM4.inputs.input_0",
+          "function_model.transactions.FM4.outputs.output_0",
+          "function_model.transactions.FM4.outputs.output_1",
+          "function_model.transactions.FM4.outputs.output_2",
+          "function_model.transactions.FM4.side_effects.side_effect_0",
+          "function_model.transactions.FM4.side_effects.side_effect_1",
+          "function_model.transactions.FM4.side_effects.side_effect_2",
+          "function_model.transactions.FM5",
+          "function_model.transactions.FM5.preconditions.precondition_0",
+          "function_model.transactions.FM5.preconditions.precondition_1",
+          "function_model.transactions.FM5.preconditions.precondition_2",
+          "function_model.transactions.FM5.preconditions.precondition_3",
+          "function_model.transactions.FM5.inputs.input_0",
+          "function_model.transactions.FM5.outputs.output_0",
+          "function_model.transactions.FM5.outputs.output_1",
+          "function_model.transactions.FM5.outputs.output_2",
+          "function_model.transactions.FM5.side_effects.side_effect_0",
+          "function_model.transactions.FM5.side_effects.side_effect_1",
+          "function_model.transactions.FM5.side_effects.side_effect_2",
+          "function_model.transactions.FM6",
+          "function_model.transactions.FM6.preconditions.precondition_0",
+          "function_model.transactions.FM6.preconditions.precondition_1"
+        ],
+        "status_counts": {
+          "pass": 48
+        },
+        "task_count": 48
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__todo_counter_pipe_core__function_model_03.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__todo_counter_pipe_core__function_model_03.md",
+      "owner_file": "rtl/todo_counter_pipe_core.sv",
+      "owner_module": "todo_counter_pipe_core",
+      "packet_id": "module__todo_counter_pipe_core__function_model_03",
+      "summary": {
+        "categories": {
+          "function_model.input": 1,
+          "function_model.invariant": 8,
+          "function_model.output": 1,
+          "function_model.precondition": 1,
+          "function_model.side_effect": 2,
+          "function_model.transaction": 1
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 3,
+          "key": "function_model_03",
+          "module_task_count": 136,
+          "rule": "Owner module todo_counter_pipe_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 3,
+          "section_chunk_index": 3,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 14,
+        "source_refs": [
+          "function_model.transactions.FM9",
+          "function_model.transactions.FM9.preconditions.precondition_0",
+          "function_model.transactions.FM9.inputs.input_0",
+          "function_model.transactions.FM9.outputs.output_0",
+          "function_model.transactions.FM9.side_effects.side_effect_0",
+          "function_model.transactions.FM9.side_effects.side_effect_1",
+          "function_model.invariants.invariant_0",
+          "function_model.invariants.invariant_1",
+          "function_model.invariants.invariant_2",
+          "function_model.invariants.invariant_3",
+          "function_model.invariants.invariant_4",
+          "function_model.invariants.invariant_5",
+          "function_model.invariants.invariant_6",
+          "function_model.invariants.invariant_7"
+        ],
+        "status_counts": {
+          "pass": 14
+        },
+        "task_count": 14
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__todo_counter_pipe_core__memory.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__todo_counter_pipe_core__memory.md",
+      "owner_file": "rtl/todo_counter_pipe_core.sv",
+      "owner_module": "todo_counter_pipe_core",
+      "packet_id": "module__todo_counter_pipe_core__memory",
+      "summary": {
+        "categories": {
+          "memory.instances": 2
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 5,
+          "key": "memory",
+          "module_task_count": 136,
+          "rule": "Owner module todo_counter_pipe_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "memory",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 2,
+        "source_refs": [
+          "memory.instances.cnt_reg",
+          "memory.instances.dbg_cycle_reg"
+        ],
+        "status_counts": {
+          "pass": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__todo_counter_pipe_core__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__todo_counter_pipe_core__workflow_todo.md",
+      "owner_file": "rtl/todo_counter_pipe_core.sv",
+      "owner_module": "todo_counter_pipe_core",
+      "packet_id": "module__todo_counter_pipe_core__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 8,
+          "key": "workflow_todo",
+          "module_task_count": 136,
+          "rule": "Owner module todo_counter_pipe_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[0]"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__todo_counter_pipe.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__todo_counter_pipe.md",
+      "owner_file": "rtl/todo_counter_pipe.sv",
+      "owner_module": "todo_counter_pipe",
+      "packet_id": "module__todo_counter_pipe",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "error_handling.recovery": 3,
+          "rtl_flow.seed": 1,
+          "rtl_flow.top": 1,
+          "security.assets": 2,
+          "synthesis.constraints": 5,
+          "synthesis.ppa_targets": 3,
+          "test_requirements.scenario": 17,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 34,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 34,
+        "source_refs": [
+          "top_module",
+          "io_list",
+          "workflow_todos.rtl-gen[3]",
+          "error_handling.recovery.recovery_0",
+          "error_handling.recovery.recovery_1",
+          "error_handling.recovery.recovery_2",
+          "security.assets.counter_value",
+          "security.assets.control_registers",
+          "synthesis.constraints.constraint_0",
+          "synthesis.constraints.constraint_1",
+          "synthesis.constraints.constraint_2",
+          "synthesis.constraints.constraint_3",
+          "synthesis.constraints.constraint_4",
+          "synthesis.ppa_targets.area_um2_max",
+          "synthesis.ppa_targets.power_mw_max",
+          "synthesis.ppa_targets.frequency_mhz_min",
+          "sub_modules.todo_counter_pipe.module_equivalence",
+          "test_requirements.scenarios.SC1",
+          "test_requirements.scenarios.SC2",
+          "test_requirements.scenarios.SC3",
+          "test_requirements.scenarios.SC4",
+          "test_requirements.scenarios.SC5",
+          "test_requirements.scenarios.SC6",
+          "test_requirements.scenarios.SC7"
+        ],
+        "status_counts": {
+          "pass": 34
+        },
+        "task_count": 34
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_human_closure.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_human_closure.md",
+      "owner_file": "rtl/todo_counter_pipe.sv",
+      "owner_module": "todo_counter_pipe",
+      "packet_id": "rtl_gate_human_closure",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 4
+        },
+        "module_slice": {},
+        "open_required_count": 0,
+        "required_count": 4,
+        "source_refs": [
+          "quality_gates.rtl_gen.ssot_required_sections",
+          "quality_gates.rtl_gen.workflow_todo_contract",
+          "quality_gates.rtl_gen.owner_traceability",
+          "quality_gates.rtl_gen.manifest_connection_contract_evidence"
+        ],
+        "status_counts": {
+          "pass": 4
+        },
+        "task_count": 4
+      }
+    }
+  ],
+  "policy": {
+    "dynamic_task_rule": "Use every required task in this file as the authoritative RTL implementation/evidence ledger. Expose Atlas/UI TodoTracker items as a flat one-to-one projection of this ledger so the existing flat TodoTracker executes one SSOT-derived RTL task at a time.",
+    "fixed_template_role": "seed_only",
+    "no_orphan_function_level": true,
+    "reference_profile_rule": "Optional rtl_reference_profile artifacts are calibration-only scale reports; they must not be copied, transformed, or used as fixed RTL templates.",
+    "rtl_gate_todo_rule": "RTL-gen quality gates are first-class rtl_gate.rtl_gen TODOs; compile/lint/static/ownership/owner-logic/placeholder-free/implementation-depth/top-io/top-output-drive/top-input-consumption/hierarchy/port-connection/signal-flow/connection-contract gates must close as TODOs before PASS.",
+    "rtl_quality_profile": "standard",
+    "rtl_target_scale": {},
+    "rtl_target_scale_waiver": {},
+    "single_source_of_truth": "SSOT YAML is the only authority for function_model, cycle_model, RTL ownership, DV plan, and coverage.",
+    "ssot_workflow_todo_rule": "workflow_todos.rtl-gen[] entries are first-class downstream tasks; content/detail/criteria must be preserved and satisfied by RTL evidence.",
+    "target_scale_rule": "Optional quality_gates.rtl_gen.target_scale is SSOT-locked human policy. It can be calibrated from a reference profile, but it is enforced as generic structural depth evidence, not as copied reference RTL."
+  },
+  "reference_profile": null,
+  "reference_scale_gap": {},
+  "rules": [
+    "Use rtl_todo_plan.json as the complete ledger and rtl_authoring_plan.json as the LLM work queue.",
+    "Process one authoring packet at a time: module packets first, then unowned tasks if any, then rtl_gate_evidence_closure; leave rtl_gate_tool_evidence to tools and rtl_gate_contract_blocked/rtl_gate_human_closure to human-locked authority gaps.",
+    "Generate real RTL; do not instantiate a fixed IP template or copy boilerplate as the implementation.",
+    "Do not close static RTL evidence with comments: derive_rtl_todos.py strips comments before matching, so evidence_terms must be preserved in live lint-clean RTL identifiers/logic.",
+    "Do not close static RTL evidence with evidence-only alias/dummy wires; the matched identifiers must participate in real RTL behavior.",
+    "If reference_profile is present, use it only to understand implementation scale and decomposition gaps; never copy or clone reference RTL.",
+    "After the top RTL exists, prioritize missing manifest child RTL packets before residual top-module slices.",
+    "Keep locked authority artifacts unchanged unless a human approves a change request.",
+    "Rerun rtl_todo_plan audit, compile, lint, sim, and coverage evidence until required TODOs pass."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "status_markdown": "rtl/rtl_authoring_status.md",
+  "summary": {
+    "connection_contract_suggestions_present": false,
+    "deferred_human_qa_allowed": true,
+    "gate_packets": 3,
+    "human_locked_packets": 0,
+    "human_locked_tasks": 0,
+    "llm_actionable_packets": 2,
+    "llm_actionable_tasks": 6,
+    "max_packet_required_tasks": 48,
+    "module_packets": 17,
+    "next_llm_packets": [
+      "module__todo_counter_pipe_cdc",
+      "rtl_gate_evidence_closure"
+    ],
+    "packet_task_limit": 48,
+    "packets": 20,
+    "pass_allowed": false,
+    "pending_connection_contract_suggestions": 0,
+    "recommended_packet_batch_limit": 4,
+    "reference_profile_present": false,
+    "reference_scale_gap_present": false,
+    "required_tasks": 279,
+    "sliced_module_packets": 15,
+    "target_scale_present": false,
+    "tool_evidence_packets": 1,
+    "tool_evidence_tasks": 3,
+    "total_tasks": 279,
+    "unowned_packets": 0
+  },
+  "target_scale": {},
+  "todo_plan_sha256": "b329388dc9f0734e5afc3107218760f4ee5baf3a53ad32d151a73aac2ea551a4",
+  "top": "todo_counter_pipe",
+  "type": "rtl_authoring_plan"
+}

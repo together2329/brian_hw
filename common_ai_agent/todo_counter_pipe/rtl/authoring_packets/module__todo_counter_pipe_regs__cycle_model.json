@@ -1,0 +1,459 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 16,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 3,
+      "key": "cycle_model",
+      "module_task_count": 65,
+      "rule": "Owner module todo_counter_pipe_regs is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/todo_counter_pipe_regs.sv",
+      "name": "todo_counter_pipe_regs",
+      "refs": [
+        "cycle_model.handshake_rules.counter_irq",
+        "cycle_model.handshake_rules.prdata",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.pipeline.S0_APB_ACCESS",
+        "cycle_model.pipeline.S4_STATUS_UPDATE",
+        "decomposition.units.apb_decode",
+        "function_model.transactions.FM10",
+        "interrupts",
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "registers",
+        "registers.register_list",
+        "registers.register_list.CNT",
+        "registers.register_list.CTRL",
+        "registers.register_list.DBGCNT",
+        "registers.register_list.INTCLR",
+        "registers.register_list.INTEN",
+        "registers.register_list.INTSTAT",
+        "registers.register_list.LOAD",
+        "registers.register_list.STATUS",
+        "registers.register_list.TERM"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/todo_counter_pipe_regs.sv",
+        "name": "todo_counter_pipe_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/todo_counter_pipe_core.sv",
+        "name": "todo_counter_pipe_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/todo_counter_pipe_cdc.sv",
+        "name": "todo_counter_pipe_cdc",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/todo_counter_pipe.sv",
+        "name": "todo_counter_pipe",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_regs",
+        "port": "bus_clk",
+        "signal": "bus_clk",
+        "signal_terms": [
+          "bus_clk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_regs",
+        "port": "bus_rst_n",
+        "signal": "bus_rst_n",
+        "signal_terms": [
+          "bus_rst_n"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_regs",
+        "port": "irq_o",
+        "signal": "counter_irq",
+        "signal_terms": [
+          "counter_irq"
+        ],
+        "source_ref": "integration.connections[2]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "todo_counter_pipe",
+  "kind": "module",
+  "owner_file": "rtl/todo_counter_pipe_regs.sv",
+  "owner_module": "todo_counter_pipe_regs",
+  "packet_id": "module__todo_counter_pipe_regs__cycle_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.handshake_rules": 3,
+      "cycle_model.pipeline": 2
+    },
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 3,
+      "key": "cycle_model",
+      "module_task_count": 65,
+      "rule": "Owner module todo_counter_pipe_regs is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 5,
+    "source_refs": [
+      "cycle_model.handshake_rules.pready",
+      "cycle_model.handshake_rules.prdata",
+      "cycle_model.handshake_rules.counter_irq",
+      "cycle_model.pipeline.S0_APB_ACCESS",
+      "cycle_model.pipeline.S4_STATUS_UPDATE"
+    ],
+    "status_counts": {
+      "pass": 5
+    },
+    "task_count": 5
+  },
+  "tasks": [
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: pready",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.pready",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "cycle_model.handshake_rules.pready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.pready.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via cycle_model.handshake_rules.pready.\nSSOT item context: signal=pready.",
+      "evidence_terms": [],
+      "id": "RTL-0163",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.pready",
+      "ssot_context": {
+        "signal": "pready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.pready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: prdata",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.prdata",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "cycle_model.handshake_rules.prdata appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.prdata.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via cycle_model.handshake_rules.prdata.\nSSOT item context: signal=prdata.",
+      "evidence_terms": [],
+      "id": "RTL-0164",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.prdata",
+      "ssot_context": {
+        "signal": "prdata"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.prdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: counter_irq",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.counter_irq",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "cycle_model.handshake_rules.counter_irq appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.counter_irq.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via cycle_model.handshake_rules.counter_irq.\nSSOT item context: signal=counter_irq.",
+      "evidence_terms": [
+        "counter_irq",
+        "irq"
+      ],
+      "id": "RTL-0166",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.counter_irq",
+      "ssot_context": {
+        "signal": "counter_irq"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.counter_irq"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "counter_irq",
+          "irq"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_irq",
+          "irq"
+        ],
+        "source_scope": "rtl/todo_counter_pipe_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S0_APB_ACCESS",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S0_APB_ACCESS",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "cycle_model.pipeline.S0_APB_ACCESS timing uses SSOT cycle/latency 0",
+        "cycle_model.pipeline.S0_APB_ACCESS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S0_APB_ACCESS.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via cycle_model.pipeline.S0_APB_ACCESS.\nSSOT item context: stage=S0_APB_ACCESS; action=APB decode: paddr→register select, pwrite→read/write, pwdata→write data captured on psel&&penable; cycle=0.",
+      "evidence_terms": [
+        "bus",
+        "bus_clk",
+        "clk"
+      ],
+      "id": "RTL-0167",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S0_APB_ACCESS",
+      "ssot_context": {
+        "action": "APB decode: paddr→register select, pwrite→read/write, pwdata→write data captured on psel&&penable",
+        "cycle": "0",
+        "stage": "S0_APB_ACCESS"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S0_APB_ACCESS"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "bus",
+          "bus_clk",
+          "clk"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "bus",
+          "bus_clk",
+          "clk"
+        ],
+        "source_scope": "rtl/todo_counter_pipe_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S4_STATUS_UPDATE",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S4_STATUS_UPDATE",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv",
+        "cycle_model.pipeline.S4_STATUS_UPDATE timing uses SSOT cycle/latency 0..1",
+        "cycle_model.pipeline.S4_STATUS_UPDATE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S4_STATUS_UPDATE.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via cycle_model.pipeline.S4_STATUS_UPDATE.\nSSOT item context: stage=S4_STATUS_UPDATE; action=Latched status reflected in CNT/STATUS/INTSTAT registers; W1C clear logic evaluated; counter_irq updated; cycle=0..1.",
+      "evidence_terms": [
+        "bus",
+        "bus_clk",
+        "clk",
+        "counter_irq",
+        "irq"
+      ],
+      "id": "RTL-0171",
+      "owner_file": "rtl/todo_counter_pipe_regs.sv",
+      "owner_module": "todo_counter_pipe_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S4_STATUS_UPDATE",
+      "ssot_context": {
+        "action": "Latched status reflected in CNT/STATUS/INTSTAT registers; W1C clear logic evaluated; counter_irq updated",
+        "cycle": "0..1",
+        "stage": "S4_STATUS_UPDATE"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S4_STATUS_UPDATE"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "bus",
+          "bus_clk",
+          "clk",
+          "counter_irq",
+          "irq"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "bus",
+          "bus_clk",
+          "clk",
+          "counter_irq",
+          "irq"
+        ],
+        "source_scope": "rtl/todo_counter_pipe_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "b329388dc9f0734e5afc3107218760f4ee5baf3a53ad32d151a73aac2ea551a4",
+  "top": "todo_counter_pipe",
+  "type": "rtl_authoring_packet"
+}

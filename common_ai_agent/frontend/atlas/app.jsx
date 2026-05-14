@@ -484,18 +484,15 @@ const App = () => {
     }
     // Push the canonical triple to the backend so its env vars
     // (ATLAS_ACTIVE_SESSION / ATLAS_ACTIVE_IP / ATLAS_DEFAULT_*) match
-    // what the frontend is showing. Without this round-trip, a fresh
-    // restart would inherit only the CLI defaults and the chat / QA /
-    // preview panes would silently target the wrong IP.
-    // Awaiting the activate POST before firing /wf eliminates the race
-    // that previously let an in-flight react_loop keep reading the OLD
-    // IP's files (the activate handler halts the agent + drains the
-    // inbox on a triple change, so by the time /wf lands the bridge
-    // is quiescent and the env vars already point at the new IP).
+    // what the frontend is showing. /api/session/activate also loads the
+    // workflow synchronously now; the older `/wf` WebSocket dispatch is a
+    // fallback only because stale queued slash prompts can land late during
+    // fast dropdown sweeps and split active_workflow from ACTIVE_WORKSPACE.
     const _activateAndDispatch = async () => {
       const loadStartedAt = Date.now();
+      let activated = false;
       try {
-        await fetch('/api/session/activate', {
+        const res = await fetch('/api/session/activate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -504,11 +501,9 @@ const App = () => {
             workflow: wf || 'default',
           }),
         });
+        activated = !!(res && res.ok);
       } catch (_) {}
-      // No `&& wf` guard — default is a real workflow and must still
-      // dispatch /wf default so the backend cannot stay pinned to the
-      // previous workspace.
-      if (syncWorkflow) activateBackendWorkflow(wf, namespace);
+      if (syncWorkflow && !activated) activateBackendWorkflow(wf, namespace);
       if (workflowChanged) {
         setAgentRunningState(false);
         const delay = Math.max(0, 450 - (Date.now() - loadStartedAt));
@@ -735,8 +730,8 @@ const App = () => {
   };
 
   // Switch workflow segment of the active namespace. default is an
-  // explicit workflow segment and still dispatches /wf default so the
-  // backend prompt, TODO file and workspace config all follow the UI.
+  // explicit workflow segment; /api/session/activate loads the matching
+  // backend prompt, TODO file and workspace config.
   const selectWorkflow = (rawWf) => {
     const wf = normalizeSession(rawWf) || WORKFLOW_DEFAULT;
     if (wf === (currentWorkflow() || WORKFLOW_DEFAULT)) return;
@@ -821,12 +816,9 @@ const App = () => {
     if (window.atlasData && typeof window.atlasData.setScopePath === 'function') {
       window.atlasData.setScopePath(ip);
     }
-    // Explicit await chain so /wf lands before /new-ip on the backend.
-    // The previous code relied on activateNamespace which fires /wf
-    // AFTER an awaited /api/session/activate POST, but /new-ip ran
-    // immediately after that call returned and so reached the WS
-    // ~700 ms before /wf — backend processed /new-ip in the wrong
-    // workflow.
+    // /api/session/activate synchronously loads ssot-gen now, so /new-ip
+    // can be queued directly without a redundant `/wf ssot-gen` racing
+    // behind it.
     try {
       await fetch('/api/session/activate', {
         method: 'POST',
@@ -836,10 +828,6 @@ const App = () => {
     } catch (_) {}
     if (window.backend && typeof window.backend.send === 'function') {
       try {
-        window.backend.send({
-          type: 'prompt', text: '/wf ssot-gen', session: namespace,
-          ui_lang: window.ATLAS_UI_LANG || uiLang,
-        });
         window.backend.send({
           type: 'prompt', text: `/new-ip ${ip}`, session: namespace,
           ui_lang: window.ATLAS_UI_LANG || uiLang,
@@ -1153,7 +1141,7 @@ const App = () => {
         <button className="dir-btn"
                 title="Create a new IP under the current session and switch to it (ssot-gen workflow)"
                 onClick={createIp}>+ IP</button>
-        <label className="dir-select-wrap" title="Active workflow segment of the session namespace. Picking one fires /wf and re-pins config.TODO_FILE accordingly.">
+        <label className="dir-select-wrap" title="Active workflow segment of the session namespace. Picking one activates the backend workspace and re-pins config.TODO_FILE accordingly.">
           <span>workflow</span>
           <select
             className="dir-select"

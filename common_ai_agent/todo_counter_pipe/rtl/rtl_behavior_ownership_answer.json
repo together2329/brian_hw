@@ -1,0 +1,63 @@
+{
+  "rtl_blocker_answers": [
+    {
+      "id": "SSOT_BEHAVIOR_OWNERSHIP",
+      "module_contracts": [
+        {
+          "name": "todo_counter_pipe_regs",
+          "file": "rtl/todo_counter_pipe_regs.sv",
+          "decomposition_refs": [
+            "decomposition.units.apb_decode"
+          ],
+          "cycle_model_refs": [
+            "cycle_model.pipeline.S0_APB_ACCESS",
+            "cycle_model.pipeline.S4_STATUS_UPDATE",
+            "cycle_model.handshake_rules.pready",
+            "cycle_model.handshake_rules.prdata",
+            "cycle_model.handshake_rules.counter_irq"
+          ],
+          "register_refs": [
+            "registers.register_list.CTRL",
+            "registers.register_list.CNT",
+            "registers.register_list.LOAD",
+            "registers.register_list.TERM",
+            "registers.register_list.STATUS",
+            "registers.register_list.INTEN",
+            "registers.register_list.INTSTAT",
+            "registers.register_list.INTCLR",
+            "registers.register_list.DBGCNT"
+          ]
+        },
+        {
+          "name": "todo_counter_pipe_core",
+          "file": "rtl/todo_counter_pipe_core.sv",
+          "decomposition_refs": [
+            "decomposition.units.counter_datapath"
+          ],
+          "function_model_refs": [
+            "function_model.transactions",
+            "function_model.state_variables"
+          ],
+          "cycle_model_refs": [
+            "cycle_model.pipeline.S2_COUNT_EVAL",
+            "cycle_model.handshake_rules.event_i",
+            "cycle_model.clock",
+            "cycle_model.reset"
+          ],
+          "feature_refs": [
+            "features.Up_Down_Counting",
+            "features.Saturating_Mode",
+            "features.Wrap_Mode",
+            "features.Clear_Load_Control",
+            "features.Terminal_Count_Interrupt",
+            "features.Debug_Cycle_Counter"
+          ],
+          "fsm_refs": [
+            "fsm.core_fsm",
+            "fsm.internal_control"
+          ]
+        }
+      ]
+    }
+  ]
+}

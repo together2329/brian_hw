@@ -1,0 +1,1645 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 16,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 27,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/todo_counter_pipe_cdc.sv",
+      "name": "todo_counter_pipe_cdc",
+      "refs": [
+        "cdc_requirements",
+        "cdc_requirements.crossings.control_bus_to_core",
+        "cdc_requirements.crossings.status_core_to_bus",
+        "cdc_requirements.synchronizers.sync_ctrl",
+        "cdc_requirements.synchronizers.sync_pulse_clear",
+        "cdc_requirements.synchronizers.sync_status",
+        "clock_reset_domains",
+        "clock_reset_domains.domains.bus_clk",
+        "clock_reset_domains.domains.core_clk",
+        "clock_reset_domains.reset_scheme",
+        "clock_reset_domains.reset_scheme.bus_domain",
+        "clock_reset_domains.reset_scheme.core_domain",
+        "cycle_model",
+        "cycle_model.clock",
+        "cycle_model.latency.control_cdc_bus_to_core",
+        "cycle_model.latency.status_cdc_core_to_bus",
+        "cycle_model.pipeline.S1_CDC_CTRL",
+        "cycle_model.pipeline.S3_CDC_STATUS",
+        "cycle_model.reset",
+        "decomposition.units.cdc_sync",
+        "features.Clear_Load_Control",
+        "features.Debug_Cycle_Counter",
+        "fsm.core_fsm",
+        "integration",
+        "integration.connections",
+        "parameters",
+        "registers",
+        "registers.register_list.CNT",
+        "registers.register_list.CTRL",
+        "registers.register_list.DBGCNT",
+        "registers.register_list.INTSTAT",
+        "registers.register_list.LOAD"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/todo_counter_pipe_regs.sv",
+        "name": "todo_counter_pipe_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/todo_counter_pipe_core.sv",
+        "name": "todo_counter_pipe_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/todo_counter_pipe_cdc.sv",
+        "name": "todo_counter_pipe_cdc",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/todo_counter_pipe.sv",
+        "name": "todo_counter_pipe",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "bus_clk",
+        "signal": "integration.connections.todo_counter_pipe_cdc.bus_clk",
+        "signal_terms": [
+          "bus_clk",
+          "connections",
+          "integration",
+          "todo_counter_pipe_cdc"
+        ],
+        "source_ref": "sub_modules[2].connections"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "core_clk",
+        "signal": "integration.connections.todo_counter_pipe_cdc.core_clk",
+        "signal_terms": [
+          "connections",
+          "core_clk",
+          "integration",
+          "todo_counter_pipe_cdc"
+        ],
+        "source_ref": "sub_modules[2].connections"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "bus_rst_n",
+        "signal": "integration.connections.todo_counter_pipe_cdc.bus_rst_n",
+        "signal_terms": [
+          "bus_rst_n",
+          "connections",
+          "integration",
+          "todo_counter_pipe_cdc"
+        ],
+        "source_ref": "sub_modules[2].connections"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "core_rst_n",
+        "signal": "integration.connections.todo_counter_pipe_cdc.core_rst_n",
+        "signal_terms": [
+          "connections",
+          "core_rst_n",
+          "integration",
+          "todo_counter_pipe_cdc"
+        ],
+        "source_ref": "sub_modules[2].connections"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "control_bus_to_core",
+        "signal": "cdc_requirements.crossings.control_bus_to_core.signals",
+        "signal_terms": [
+          "cdc_requirements",
+          "control_bus_to_core",
+          "crossings",
+          "signals"
+        ],
+        "source_ref": "sub_modules[2].connections"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "status_core_to_bus",
+        "signal": "cdc_requirements.crossings.status_core_to_bus.signals",
+        "signal_terms": [
+          "cdc_requirements",
+          "crossings",
+          "signals",
+          "status_core_to_bus"
+        ],
+        "source_ref": "sub_modules[2].connections"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "bus_clk",
+        "signal": "bus_clk",
+        "signal_terms": [
+          "bus_clk"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "core_clk",
+        "signal": "core_clk",
+        "signal_terms": [
+          "core_clk"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "bus_rst_n",
+        "signal": "bus_rst_n",
+        "signal_terms": [
+          "bus_rst_n"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "todo_counter_pipe_cdc",
+        "port": "core_rst_n",
+        "signal": "core_rst_n",
+        "signal_terms": [
+          "core_rst_n"
+        ],
+        "source_ref": "integration.connections[9]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 4,
+    "open_required_count": 4,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "todo_counter_pipe",
+  "kind": "module",
+  "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+  "owner_module": "todo_counter_pipe_cdc",
+  "packet_id": "module__todo_counter_pipe_cdc",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "features.item": 2,
+      "fsm.state": 2,
+      "fsm.transition": 3,
+      "integration.connections": 10,
+      "integration.dependencies": 3,
+      "parameters.item": 5,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 27,
+      "task_limit": 48
+    },
+    "open_required_count": 4,
+    "required_count": 27,
+    "source_refs": [
+      "workflow_todos.rtl-gen[2]",
+      "fsm.core_fsm.states.state_0",
+      "fsm.core_fsm.states.state_1",
+      "fsm.core_fsm.transitions.transition_0",
+      "fsm.core_fsm.transitions.transition_1",
+      "fsm.core_fsm.transitions.transition_2",
+      "features.Clear_Load_Control",
+      "features.Debug_Cycle_Counter",
+      "integration.dependencies.external_modules",
+      "integration.dependencies.external_clocks",
+      "integration.dependencies.external_resets",
+      "integration.connections.bus_clk",
+      "integration.connections.bus_rst_n",
+      "integration.connections.counter_irq",
+      "integration.connections.core_clk",
+      "integration.connections.core_rst_n",
+      "integration.connections.event_i",
+      "integration.connections.bus_clk",
+      "integration.connections.core_clk",
+      "integration.connections.bus_rst_n",
+      "integration.connections.core_rst_n",
+      "sub_modules.todo_counter_pipe_cdc.module_equivalence",
+      "parameters.WIDTH",
+      "parameters.BUS_CLK_FREQ_MHZ"
+    ],
+    "status_counts": {
+      "open": 4,
+      "pass": 23
+    },
+    "task_count": 27
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement CDC synchronizers for bus↔core crossings",
+      "criteria": [
+        "Control CDC: enable, up_down, mode, load_value use 2-stage FF sync",
+        "Pulse CDC: clear_pulse, load_pulse use toggle synchronizer with edge detect",
+        "Status CDC: cnt_value, overflow, underflow, tc_pending, ovf_pending, unf_pending, dbg_cycle_count use 2-stage FF sync",
+        "Synchronizer FFs have ASYNC_REG attribute and set_dont_touch for synthesis",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[2]",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv",
+        "Semantic source_refs covered: cdc_requirements.crossings, cdc_requirements.synchronizers"
+      ],
+      "detail": "Implement 2-stage FF synchronizers for all control (bus→core) and status (core→bus) crossings per cdc_requirements. Use toggle synchronizer for clear/load single-cycle pulses.\nSSOT ref: workflow_todos.rtl-gen[2].\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_CDC_SYNC.",
+      "evidence_terms": [
+        "CDC",
+        "RTL_TODO_CDC_SYNC",
+        "SYNC",
+        "TODO",
+        "cdc",
+        "cdc_requirements",
+        "pipe",
+        "requirements",
+        "todo",
+        "todo_counter_pipe_cdc"
+      ],
+      "id": "RTL-0022",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[2]",
+      "ssot_context": {
+        "id": "RTL_TODO_CDC_SYNC"
+      },
+      "ssot_refs": [
+        "cdc_requirements.crossings",
+        "cdc_requirements.synchronizers",
+        "workflow_todos.rtl-gen[2]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "CDC",
+          "TODO",
+          "cdc",
+          "pipe",
+          "todo",
+          "todo_counter_pipe_cdc"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "CDC",
+          "RTL_TODO_CDC_SYNC",
+          "SYNC",
+          "TODO",
+          "cdc",
+          "cdc_requirements",
+          "pipe",
+          "requirements",
+          "todo",
+          "todo_counter_pipe_cdc"
+        ],
+        "source_scope": "rtl/todo_counter_pipe_cdc.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_CDC_SYNC",
+        "source_refs": [
+          "cdc_requirements.crossings",
+          "cdc_requirements.synchronizers"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state core_fsm.state_0",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.core_fsm.states.state_0",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core_fsm.states.state_0.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via fsm.core_fsm.\nSSOT item context: value=IDLE.",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "id": "RTL-0222",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.core_fsm.states.state_0",
+      "ssot_context": {
+        "value": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.core_fsm.states.state_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IDLE"
+        ],
+        "source_scope": "rtl/todo_counter_pipe_cdc.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state core_fsm.state_1",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.core_fsm.states.state_1",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core_fsm.states.state_1.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via fsm.core_fsm.\nSSOT item context: value=COUNT.",
+      "evidence_terms": [
+        "COUNT"
+      ],
+      "id": "RTL-0223",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.core_fsm.states.state_1",
+      "ssot_context": {
+        "value": "COUNT"
+      },
+      "ssot_refs": [
+        "fsm.core_fsm.states.state_1"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "COUNT"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "COUNT"
+        ],
+        "source_scope": "rtl/todo_counter_pipe_cdc.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition core_fsm.transition_0",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.core_fsm.transitions.transition_0",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv",
+        "fsm.core_fsm.transitions.transition_0 condition is implemented as RTL control logic: enable=1 and event_i=1",
+        "fsm.core_fsm.transitions.transition_0 transition path IDLE -> COUNT is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core_fsm.transitions.transition_0.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via fsm.core_fsm.\nSSOT item context: from=IDLE; to=COUNT; condition=enable=1 and event_i=1.",
+      "evidence_terms": [
+        "COUNT",
+        "IDLE",
+        "event_i"
+      ],
+      "id": "RTL-0224",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.core_fsm.transitions.transition_0",
+      "ssot_context": {
+        "condition": "enable=1 and event_i=1",
+        "from": "IDLE",
+        "to": "COUNT"
+      },
+      "ssot_refs": [
+        "fsm.core_fsm.transitions.transition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "COUNT"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "COUNT",
+          "IDLE",
+          "event_i"
+        ],
+        "source_scope": "rtl/todo_counter_pipe_cdc.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition core_fsm.transition_1",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.core_fsm.transitions.transition_1",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv",
+        "fsm.core_fsm.transitions.transition_1 condition is implemented as RTL control logic: enable=0",
+        "fsm.core_fsm.transitions.transition_1 transition path COUNT -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core_fsm.transitions.transition_1.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via fsm.core_fsm.\nSSOT item context: from=COUNT; to=IDLE; condition=enable=0.",
+      "evidence_terms": [
+        "COUNT",
+        "IDLE"
+      ],
+      "id": "RTL-0225",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.core_fsm.transitions.transition_1",
+      "ssot_context": {
+        "condition": "enable=0",
+        "from": "COUNT",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.core_fsm.transitions.transition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "COUNT"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "COUNT",
+          "IDLE"
+        ],
+        "source_scope": "rtl/todo_counter_pipe_cdc.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition core_fsm.transition_2",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.core_fsm.transitions.transition_2",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv",
+        "fsm.core_fsm.transitions.transition_2 condition is implemented as RTL control logic: enable=1 and event_i=1 (next count)",
+        "fsm.core_fsm.transitions.transition_2 transition path COUNT -> COUNT is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core_fsm.transitions.transition_2.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via fsm.core_fsm.\nSSOT item context: from=COUNT; to=COUNT; condition=enable=1 and event_i=1 (next count).",
+      "evidence_terms": [
+        "COUNT",
+        "event_i"
+      ],
+      "id": "RTL-0226",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.core_fsm.transitions.transition_2",
+      "ssot_context": {
+        "condition": "enable=1 and event_i=1 (next count)",
+        "from": "COUNT",
+        "to": "COUNT"
+      },
+      "ssot_refs": [
+        "fsm.core_fsm.transitions.transition_2"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "COUNT"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "COUNT",
+          "event_i"
+        ],
+        "source_scope": "rtl/todo_counter_pipe_cdc.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Clear/Load Control",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Clear_Load_Control",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Clear_Load_Control.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via features.Clear_Load_Control.\nSSOT item context: name=Clear/Load Control; output=cnt updated on next core_clk edge after CDC convergence.",
+      "evidence_terms": [
+        "clk",
+        "core",
+        "core_clk"
+      ],
+      "id": "RTL-0230",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Clear_Load_Control",
+      "ssot_context": {
+        "name": "Clear/Load Control",
+        "output": "cnt updated on next core_clk edge after CDC convergence"
+      },
+      "ssot_refs": [
+        "features.Clear_Load_Control"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "clk",
+          "core",
+          "core_clk"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "clk",
+          "core",
+          "core_clk"
+        ],
+        "source_scope": "rtl/todo_counter_pipe_cdc.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Debug Cycle Counter",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Debug_Cycle_Counter",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Debug_Cycle_Counter.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via features.Debug_Cycle_Counter.\nSSOT item context: name=Debug Cycle Counter; output=DBGCNT.dbg_cycle_count readable via APB after CDC.",
+      "evidence_terms": [
+        "count",
+        "dbg",
+        "dbg_cycle_count"
+      ],
+      "id": "RTL-0232",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Debug_Cycle_Counter",
+      "ssot_context": {
+        "name": "Debug Cycle Counter",
+        "output": "DBGCNT.dbg_cycle_count readable via APB after CDC"
+      },
+      "ssot_refs": [
+        "features.Debug_Cycle_Counter"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "count",
+          "dbg",
+          "dbg_cycle_count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "count",
+          "dbg",
+          "dbg_cycle_count"
+        ],
+        "source_scope": "rtl/todo_counter_pipe_cdc.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_modules",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_modules",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_modules.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.\nSSOT item context: name=external_modules.",
+      "evidence_terms": [],
+      "id": "RTL-0238",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_modules",
+      "ssot_context": {
+        "name": "external_modules"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_modules"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_clocks",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_clocks",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_clocks.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.\nSSOT item context: name=external_clocks; value=[\"bus_clk\", \"core_clk\"].",
+      "evidence_terms": [],
+      "id": "RTL-0239",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_clocks",
+      "ssot_context": {
+        "name": "external_clocks",
+        "value": "[\"bus_clk\", \"core_clk\"]"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_clocks"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_resets",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_resets",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_resets.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.\nSSOT item context: name=external_resets; value=[\"bus_rst_n\", \"core_rst_n\"].",
+      "evidence_terms": [],
+      "id": "RTL-0240",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_resets",
+      "ssot_context": {
+        "name": "external_resets",
+        "value": "[\"bus_rst_n\", \"core_rst_n\"]"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_resets"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item bus_clk",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.bus_clk",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv",
+        "DUT port bus_clk is the implementation/observation point for bus_clk"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.bus_clk.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.\nSSOT item context: port=bus_clk; signal=bus_clk.",
+      "evidence_terms": [
+        "bus",
+        "bus_clk",
+        "clk"
+      ],
+      "id": "RTL-0241",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.bus_clk",
+      "ssot_context": {
+        "port": "bus_clk",
+        "signal": "bus_clk"
+      },
+      "ssot_refs": [
+        "integration.connections.bus_clk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item bus_rst_n",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.bus_rst_n",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv",
+        "DUT port bus_rst_n is the implementation/observation point for bus_rst_n"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.bus_rst_n.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.\nSSOT item context: port=bus_rst_n; signal=bus_rst_n.",
+      "evidence_terms": [
+        "bus",
+        "bus_rst_n",
+        "rst"
+      ],
+      "id": "RTL-0242",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.bus_rst_n",
+      "ssot_context": {
+        "port": "bus_rst_n",
+        "signal": "bus_rst_n"
+      },
+      "ssot_refs": [
+        "integration.connections.bus_rst_n"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item counter_irq",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.counter_irq",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv",
+        "DUT port irq_o is the implementation/observation point for irq_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.counter_irq.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.\nSSOT item context: port=irq_o; signal=counter_irq.",
+      "evidence_terms": [
+        "counter_irq",
+        "irq",
+        "irq_o"
+      ],
+      "id": "RTL-0243",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.counter_irq",
+      "ssot_context": {
+        "port": "irq_o",
+        "signal": "counter_irq"
+      },
+      "ssot_refs": [
+        "integration.connections.counter_irq"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item core_clk",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.core_clk",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv",
+        "DUT port core_clk is the implementation/observation point for core_clk"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.core_clk.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.\nSSOT item context: port=core_clk; signal=core_clk.",
+      "evidence_terms": [
+        "clk",
+        "core",
+        "core_clk"
+      ],
+      "id": "RTL-0244",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.core_clk",
+      "ssot_context": {
+        "port": "core_clk",
+        "signal": "core_clk"
+      },
+      "ssot_refs": [
+        "integration.connections.core_clk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item core_rst_n",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.core_rst_n",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv",
+        "DUT port core_rst_n is the implementation/observation point for core_rst_n"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.core_rst_n.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.\nSSOT item context: port=core_rst_n; signal=core_rst_n.",
+      "evidence_terms": [
+        "core",
+        "core_rst_n",
+        "rst"
+      ],
+      "id": "RTL-0245",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.core_rst_n",
+      "ssot_context": {
+        "port": "core_rst_n",
+        "signal": "core_rst_n"
+      },
+      "ssot_refs": [
+        "integration.connections.core_rst_n"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item event_i",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.event_i",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv",
+        "DUT port event_i is the implementation/observation point for event_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.event_i.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.\nSSOT item context: port=event_i; signal=event_i.",
+      "evidence_terms": [
+        "event_i"
+      ],
+      "id": "RTL-0246",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.event_i",
+      "ssot_context": {
+        "port": "event_i",
+        "signal": "event_i"
+      },
+      "ssot_refs": [
+        "integration.connections.event_i"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item bus_clk",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.bus_clk",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv",
+        "DUT port bus_clk is the implementation/observation point for bus_clk"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.bus_clk.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.\nSSOT item context: port=bus_clk; signal=bus_clk.",
+      "evidence_terms": [
+        "bus",
+        "bus_clk",
+        "clk"
+      ],
+      "id": "RTL-0247",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.bus_clk",
+      "ssot_context": {
+        "port": "bus_clk",
+        "signal": "bus_clk"
+      },
+      "ssot_refs": [
+        "integration.connections.bus_clk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item core_clk",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.core_clk",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv",
+        "DUT port core_clk is the implementation/observation point for core_clk"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.core_clk.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.\nSSOT item context: port=core_clk; signal=core_clk.",
+      "evidence_terms": [
+        "clk",
+        "core",
+        "core_clk"
+      ],
+      "id": "RTL-0248",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.core_clk",
+      "ssot_context": {
+        "port": "core_clk",
+        "signal": "core_clk"
+      },
+      "ssot_refs": [
+        "integration.connections.core_clk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item bus_rst_n",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.bus_rst_n",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv",
+        "DUT port bus_rst_n is the implementation/observation point for bus_rst_n"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.bus_rst_n.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.\nSSOT item context: port=bus_rst_n; signal=bus_rst_n.",
+      "evidence_terms": [
+        "bus",
+        "bus_rst_n",
+        "rst"
+      ],
+      "id": "RTL-0249",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.bus_rst_n",
+      "ssot_context": {
+        "port": "bus_rst_n",
+        "signal": "bus_rst_n"
+      },
+      "ssot_refs": [
+        "integration.connections.bus_rst_n"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item core_rst_n",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.core_rst_n",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv",
+        "DUT port core_rst_n is the implementation/observation point for core_rst_n"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.core_rst_n.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.\nSSOT item context: port=core_rst_n; signal=core_rst_n.",
+      "evidence_terms": [
+        "core",
+        "core_rst_n",
+        "rst"
+      ],
+      "id": "RTL-0250",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.core_rst_n",
+      "ssot_context": {
+        "port": "core_rst_n",
+        "signal": "core_rst_n"
+      },
+      "ssot_refs": [
+        "integration.connections.core_rst_n"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module todo_counter_pipe_cdc is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.todo_counter_pipe_cdc.module_equivalence",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.todo_counter_pipe_cdc.module_equivalence.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0261",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.todo_counter_pipe_cdc.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.todo_counter_pipe_cdc.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.WIDTH",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.WIDTH.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via parameters.\nSSOT item context: name=WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0024",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.WIDTH",
+      "ssot_context": {
+        "name": "WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter BUS_CLK_FREQ_MHZ",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.BUS_CLK_FREQ_MHZ",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.BUS_CLK_FREQ_MHZ.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via parameters.\nSSOT item context: name=BUS_CLK_FREQ_MHZ.",
+      "evidence_terms": [],
+      "id": "RTL-0025",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.BUS_CLK_FREQ_MHZ",
+      "ssot_context": {
+        "name": "BUS_CLK_FREQ_MHZ"
+      },
+      "ssot_refs": [
+        "parameters.BUS_CLK_FREQ_MHZ"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter CORE_CLK_FREQ_MHZ",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.CORE_CLK_FREQ_MHZ",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.CORE_CLK_FREQ_MHZ.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via parameters.\nSSOT item context: name=CORE_CLK_FREQ_MHZ.",
+      "evidence_terms": [],
+      "id": "RTL-0026",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.CORE_CLK_FREQ_MHZ",
+      "ssot_context": {
+        "name": "CORE_CLK_FREQ_MHZ"
+      },
+      "ssot_refs": [
+        "parameters.CORE_CLK_FREQ_MHZ"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter CDC_SYNC_STAGES",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.CDC_SYNC_STAGES",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.CDC_SYNC_STAGES.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via parameters.\nSSOT item context: name=CDC_SYNC_STAGES.",
+      "evidence_terms": [],
+      "id": "RTL-0027",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.CDC_SYNC_STAGES",
+      "ssot_context": {
+        "name": "CDC_SYNC_STAGES"
+      },
+      "ssot_refs": [
+        "parameters.CDC_SYNC_STAGES"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter RESET_POLARITY",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.RESET_POLARITY",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.RESET_POLARITY.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via parameters.\nSSOT item context: name=RESET_POLARITY.",
+      "evidence_terms": [],
+      "id": "RTL-0028",
+      "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+      "owner_module": "todo_counter_pipe_cdc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.RESET_POLARITY",
+      "ssot_context": {
+        "name": "RESET_POLARITY"
+      },
+      "ssot_refs": [
+        "parameters.RESET_POLARITY"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "b329388dc9f0734e5afc3107218760f4ee5baf3a53ad32d151a73aac2ea551a4",
+  "top": "todo_counter_pipe",
+  "type": "rtl_authoring_packet"
+}

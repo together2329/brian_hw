@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "type": "rtl_authoring_provenance",
+  "agent": "common_ai_agent",
+  "workflow": "rtl-gen",
+  "surface": "headless_common_engine",
+  "todo_plan_sha256": "d9ffae16f60eb7459aa21bebaad7944a75de5366531513e76a23bfd7579b55b3",
+  "rtl_files": [
+    "rtl/todo_counter_pipe.sv",
+    "rtl/todo_counter_pipe_regs.sv",
+    "rtl/todo_counter_pipe_core.sv",
+    "rtl/todo_counter_pipe_cdc.sv"
+  ],
+  "updated_at": "2026-05-14T00:00:00Z"
+}
