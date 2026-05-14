@@ -35,12 +35,12 @@
       "Gate: DUT-only lint report passes after the final RTL edit",
       "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
     ],
-    "open_required_todos": 9,
+    "open_required_todos": 8,
     "orphan_tasks": 0,
     "static_missing": 4,
     "status": "fail"
   },
-  "generated_at": "2026-05-14T03:25:36Z",
+  "generated_at": "2026-05-14T04:26:35Z",
   "ip": "todo_counter_pipe",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 16,
@@ -85,16 +85,7 @@
   "manifest_signal_flow_evidence": {
     "checked_inputs": 50,
     "checked_outputs": 38,
-    "issues": [
-      {
-        "expr": "status_core_to_bus",
-        "instance": "u_cdc",
-        "issue": "Manifest child output does not feed a top output, parent RTL logic, or another child input/inout",
-        "module": "todo_counter_pipe_cdc",
-        "parent": "todo_counter_pipe",
-        "port": "status_core_to_bus"
-      }
-    ],
+    "issues": [],
     "reachable_modules": [
       "todo_counter_pipe",
       "todo_counter_pipe_cdc",
@@ -104,7 +95,7 @@
     "roots": [
       "todo_counter_pipe"
     ],
-    "status": "fail"
+    "status": "pass"
   },
   "orphans": [],
   "owner_logic_evidence": {
@@ -130,17 +121,17 @@
   "rtl_implementation_depth_evidence": {
     "aggregate": {
       "behavior_owner_logic_modules": 4,
-      "control_flow": 40,
-      "depth_score": 411,
+      "control_flow": 41,
+      "depth_score": 420,
       "instances": 3,
-      "lines": 497,
+      "lines": 508,
       "logic_modules": 4,
       "modules": 4,
       "nonconstant_assigns": 15,
-      "procedural_blocks": 5,
+      "procedural_blocks": 6,
       "source_files": 4,
-      "state_updates": 148,
-      "storage_decls": 39
+      "state_updates": 150,
+      "storage_decls": 40
     },
     "issues": [],
     "modules": [
@@ -187,16 +178,16 @@
         "module": "todo_counter_pipe_regs"
       },
       {
-        "depth_score": 22,
+        "depth_score": 31,
         "file": "rtl/todo_counter_pipe.sv",
         "metrics": {
-          "control_flow": 0,
+          "control_flow": 1,
           "instances": 3,
           "nonconstant_assigns": 1,
           "placeholder_tokens": false,
-          "procedural_blocks": 0,
-          "state_updates": 0,
-          "storage_decls": 15
+          "procedural_blocks": 1,
+          "state_updates": 2,
+          "storage_decls": 16
         },
         "module": "todo_counter_pipe"
       }
@@ -1586,9 +1577,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 manifest signal-flow issue(s) remain. todo_counter_pipe_cdc: status_core_to_bus: Manifest child output does not feed a top output, parent RTL logic, or another child input/inout",
+        "reason": "Manifest child port maps carry live non-placeholder RTL signal flow.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1779,7 +1770,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "8 required non-closure TODO(s) remain open.",
+        "reason": "7 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -14814,7 +14805,7 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 9,
+    "open_required_tasks": 8,
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
@@ -14830,19 +14821,13 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "1 manifest signal-flow issue(s) remain. todo_counter_pipe_cdc: status_core_to_bus: Manifest child output does not feed a top output, parent RTL logic, or another child input/inout",
-        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
-        "task_id": "RTL-0015"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
         "reason": "DUT lint artifact is not clean.",
         "source_ref": "quality_gates.rtl_gen.dut_lint",
         "task_id": "RTL-0018"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "8 required non-closure TODO(s) remain open.",
+        "reason": "7 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -14871,7 +14856,7 @@
         "task_id": "RTL-0226"
       }
     ],
-    "required_passed": 270,
+    "required_passed": 271,
     "required_total": 279,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

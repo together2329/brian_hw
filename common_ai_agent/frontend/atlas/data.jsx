@@ -245,7 +245,18 @@
     const direct = normalizeSessionName(
       params.get('session') || params.get('sid') || params.get('namespace') || ''
     );
-    if (direct && direct.includes('/')) return direct;
+    if (direct && direct.includes('/')) {
+      const directParts = direct.split('/').filter(Boolean);
+      if (directParts.length >= 3) return direct;
+      if (directParts.length === 2) {
+        const owner = directParts[0] || 'default';
+        const second = directParts[1] || DEFAULT_WORKFLOW;
+        if (KNOWN_WORKFLOWS.has(String(second).toLowerCase())) {
+          return `${owner}/${DEFAULT_WORKFLOW}/${second}`;
+        }
+        return `${owner}/${second}/${DEFAULT_WORKFLOW}`;
+      }
+    }
     const owner = normalizeSessionName(
       params.get('session_id') || params.get('user_session') || params.get('owner') || direct || ''
     );

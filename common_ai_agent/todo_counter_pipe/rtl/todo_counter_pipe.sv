@@ -31,14 +31,26 @@ module todo_counter_pipe #(
     logic [WIDTH-1:0] cnt_core, dbg_cycle_count_core;
     logic overflow_core, underflow_core, tc_pending_core, ovf_pending_core, unf_pending_core;
 
+    localparam integer CLOCK_FREQ_SUM_MHZ = BUS_CLK_FREQ_MHZ + CORE_CLK_FREQ_MHZ;
+
     logic [WIDTH-1:0] cnt_bus, dbg_cycle_count_bus;
     logic overflow_bus, underflow_bus, tc_pending_bus, ovf_pending_bus, unf_pending_bus;
     logic control_bus_to_core;
     logic status_core_to_bus;
+    logic status_seen_bus;
 
 
     // Aggregate bus-domain control activity for CDC contract visibility.
     assign control_bus_to_core = enable_bus | up_down_bus | mode_bus | clear_pulse_bus | load_pulse_bus;
+
+    // Consume CDC status hook in parent logic to keep manifest signal-flow live.
+    always @(posedge bus_clk or negedge bus_rst_n) begin
+        if (!bus_rst_n) begin
+            status_seen_bus <= 1'b0;
+        end else begin
+            status_seen_bus <= status_seen_bus | status_core_to_bus;
+        end
+    end
 
     todo_counter_pipe_regs #(.WIDTH(WIDTH)) u_regs (
         .bus_clk(bus_clk),

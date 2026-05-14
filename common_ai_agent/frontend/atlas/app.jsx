@@ -466,6 +466,11 @@ const App = () => {
     setActiveNamespace(namespace);
     window.ACTIVE_SESSION = namespace;
     try { localStorage.setItem('atlasActiveSession', namespace); } catch (_) {}
+    try {
+      window.dispatchEvent(new CustomEvent('atlas-session-switched', {
+        detail: { sessionId: owner, namespace, ip, workflow: wf },
+      }));
+    } catch (_) {}
     if (prev !== namespace && window.backend && typeof window.backend.disconnect === 'function' && typeof window.backend.connect === 'function') {
       window.backend.disconnect();
       setTimeout(() => window.backend.connect(namespace), 0);
@@ -614,7 +619,7 @@ const App = () => {
     let timer = null;
     const syncCurrent = (ev) => {
       const ctx = window.CONTEXT || {};
-      const ctxSession = normalizeSession(ctx.active_session || '');
+      const ctxSession = normalizeSession(ctx.active_session || ctx.activeSession || '');
       // refreshHealth periodic poll → backend is the ground truth.
       // Snap UI dropdowns to whatever the backend reports as the active
       // (sid, ip, wf), except when backend is still at the boot
@@ -636,19 +641,24 @@ const App = () => {
         namespace = requestedSession || ctxSession;
       }
       const parsed = splitSessionNamespace(namespace);
-      setActiveNamespace(namespace || namespaceFor(activeSessionId, activeIp, currentWorkflow()));
-      setActiveSessionId(parsed.sessionId || activeSessionId);
-      setActiveIp(parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsed.ipId || activeIp || WORKFLOW_DEFAULT));
+      const owner = parsed.sessionId || activeSessionId || 'default';
+      const ipSeg = parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsed.ipId || activeIp || WORKFLOW_DEFAULT);
+      const wfSeg = parsed.workflow || WORKFLOW_DEFAULT;
+      const canonicalNamespace = namespaceFor(owner, ipSeg, wfSeg);
+      if (canonicalNamespace && canonicalNamespace !== window.ACTIVE_SESSION) {
+        window.ACTIVE_SESSION = canonicalNamespace;
+        try { localStorage.setItem('atlasActiveSession', canonicalNamespace); } catch (_) {}
+      }
+      setActiveNamespace(canonicalNamespace);
+      setActiveSessionId(owner);
+      setActiveIp(ipSeg);
       // Push the canonical triple into the URL so the address bar
       // never silently disagrees with what the server reports.
       // Without this, reloading after a triple flip kept the OLD
       // ?ip=…&workflow=… params visible even though dropdowns / file
       // tree had pivoted to the new triple.
       try {
-        const owner = parsed.sessionId || activeSessionId || 'default';
-        const ipSeg = parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsed.ipId || WORKFLOW_DEFAULT);
-        const wfSeg = parsed.workflow || WORKFLOW_DEFAULT;
-        if (namespace) syncNamespaceUrl(namespace, owner, ipSeg, wfSeg);
+        if (canonicalNamespace) syncNamespaceUrl(canonicalNamespace, owner, ipSeg, wfSeg);
       } catch (_) {}
       clearTimeout(timer);
       timer = setTimeout(refreshTopTargets, 150);

@@ -1,76 +1,122 @@
 # IP Workflow Guide
 
-This guide records the verified authoring flow for creating an IP SSOT with
-`common_ai_agent`, using the `todo_counter_pipe` cold run as the reference.
+This guide records the intended `common_ai_agent` flow for generating and
+validating IP artifacts from a canonical SSOT. The `todo_counter_pipe` cold run
+is the reference example, but the flow is meant to apply to any IP.
 
-The key principle is:
+## Core Rule
 
-- The human/operator provides an IP requirement seed.
-- `common_ai_agent` runs the workflow.
-- `ssot-gen` writes only the canonical SSOT.
-- Downstream workflows own RTL, TB, simulation, lint, coverage, synthesis, STA,
-  PnR, and post-route STA.
+The parent operator/Codex should not directly implement downstream artifacts.
 
-## Reference Run
+- Parent/operator owns requirement seed, SSOT review, workflow prompt/rule
+  repair, and monitoring.
+- `ssot-gen` owns the canonical SSOT only.
+- `rtl-gen` owns RTL, filelist, compile, lint, and RTL TODO closure.
+- `tb-gen`, `sim`, `sim_debug`, `coverage`, `syn`, `sta`, `pnr`, and
+  `sta-post` own their own downstream artifacts.
 
-Working directory:
+If downstream generation fails because the SSOT is incomplete, the correct
+repair is to update the SSOT through `ssot-gen` or a human-approved SSOT edit,
+then rerun the downstream workflow. Do not make RTL pass by adding dummy wires,
+comment-only evidence, heartbeat-only logic, or pass-shaped identifiers.
+
+## Repository Root
+
+Run commands from the `common_ai_agent` home:
 
 ```bash
 cd /Users/brian/Desktop/Project/brian_hw/common_ai_agent
 ```
 
-Launch the agent with an isolated session, IP, and workflow path:
+Use isolated session names so model/workflow runs do not overwrite each other:
 
-```bash
-python3 src/main.py -s todo_pipeline/todo_counter_pipe/ssot-gen -w ssot-gen --model deepseek --effort medium
+```text
+<campaign>/<ip>/<workflow>[-<model-or-purpose>]
 ```
 
-Inside the interactive agent:
+Examples:
+
+```text
+todo_pipeline/todo_counter_pipe/ssot-gen
+todo_pipeline/todo_counter_pipe/rtl-gen-clean3
+dma_bench/dma_axi/rtl-gen-gpt53
+dma_bench/dma_axi/rtl-gen-deepseek
+```
+
+## Mode Selection
+
+Use pipeline mode for exploratory end-to-end flow:
+
+```text
+/mode pipeline
+```
+
+Pipeline mode should keep moving, avoid `ask_user`, and record conservative
+assumptions in the SSOT when a gap is not blocking.
+
+Use CI mode for strict regression:
+
+```text
+/mode ci
+```
+
+CI mode should stop on missing required truth. It is better for automated
+quality gates after the happy path is stable.
+
+## SSOT Authoring Flow
+
+Launch `ssot-gen`:
+
+```bash
+python3 src/main.py -s todo_pipeline/todo_counter_pipe/ssot-gen -w ssot-gen --model gpt-5.3-codex --effort medium
+```
+
+Inside the agent:
 
 ```text
 /mode pipeline
 /new-ip todo_counter_pipe counter
 ```
 
-Then provide the requirement seed prompt:
+Then provide a requirement seed. The seed is not the YAML body; it is the input
+for `ssot-gen` to create the canonical SSOT through its workflow rules.
+
+Reference seed:
 
 ```text
-Use the loaded /new-ip todo list and create only the canonical SSOT for IP todo_counter_pipe. IP intent: parameterized synchronous up/down event counter with APB-lite style CSR interface, separate bus_clk 150MHz and core_clk 300MHz, internal reset synchronizers, 2:1 core:bus clock relationship, configurable WIDTH default 32, saturating and wrap modes, enable/clear/load controls, terminal-count interrupt, sticky overflow/underflow status, debug observability counters, clean function_model and cycle_model, and workflow_todos for rtl-gen/tb-gen/lint/coverage/syn/sta/pnr. Pipeline mode: do not block on ask_user; make conservative assumptions and record them in custom.assumptions. Do not generate RTL/TB/sim/lint/syn artifacts in ssot-gen.
+Use the loaded /new-ip todo list and create only the canonical SSOT for IP todo_counter_pipe.
+IP intent: parameterized synchronous up/down event counter with APB-lite style CSR interface,
+separate bus_clk 150MHz and core_clk 300MHz, internal reset synchronizers, 2:1 core:bus clock
+relationship, configurable WIDTH default 32, saturating and wrap modes, enable/clear/load
+controls, terminal-count interrupt, sticky overflow/underflow status, debug observability
+counters, clean function_model and cycle_model, and workflow_todos for rtl-gen/tb-gen/lint/
+coverage/syn/sta/pnr.
+Pipeline mode: do not block on ask_user; make conservative assumptions and record them in
+custom.assumptions. Do not generate RTL/TB/sim/lint/syn artifacts in ssot-gen.
 ```
 
-The prompt above is not the YAML body. It is only the requirement seed. The
-actual SSOT authoring is done by `common_ai_agent` through the `ssot-gen`
-workflow rules, template, tools, and TODO tracker.
-
-## What Actually Writes The SSOT
-
-The SSOT writing flow is:
-
-1. `src/main.py` starts the selected workflow.
-2. `-w ssot-gen` loads the SSOT generator workflow.
-3. `/mode pipeline` selects non-blocking pipeline behavior for questions.
-4. `/new-ip <ip_name> <kind>` loads the SSOT new-IP TODO template.
-5. The operator gives a requirement seed prompt.
-6. `ssot-gen` reads `workflow/ssot-gen/rules/ssot-template.yaml`.
-7. `ssot-gen` calls `scaffold_ip` to create the standard IP layout.
-8. `ssot-gen` writes the canonical file:
+Expected SSOT output:
 
 ```text
 <ip>/yaml/<ip>.ssot.yaml
 ```
 
-9. `ssot-gen` validates the SSOT on disk.
-10. `ssot-gen` emits `[SSOT HANDOFF] -> rtl-gen`.
-
-For the reference run, the generated SSOT is:
+For the reference run:
 
 ```text
 todo_counter_pipe/yaml/todo_counter_pipe.ssot.yaml
 ```
 
-## `/new-ip` Phase Contract
+## `/new-ip` Contract
 
-`/new-ip` currently drives a 5-phase SSOT flow:
+`/new-ip <ip> <kind>` should load the SSOT new-IP TODO template and drive the
+SSOT phases. The phase tracker should move with evidence:
+
+```text
+pending -> in_progress -> completed -> approved
+```
+
+The expected phases are:
 
 1. Build requirements ledger and leaf boundary.
 2. Scaffold only the leaf SSOT directory.
@@ -78,89 +124,45 @@ todo_counter_pipe/yaml/todo_counter_pipe.ssot.yaml
 4. Validate SSOT on disk.
 5. Emit downstream handoff contract.
 
-Each phase must move through:
-
-```text
-pending -> in_progress -> completed -> approved
-```
-
-The tracker expects evidence between state transitions. A phase should be
-started before the evidence command/tool is run, then completed and approved
-after the evidence is available.
-
-## What `ssot-gen` May Create
-
-Allowed outputs in `ssot-gen`:
-
-- Canonical SSOT YAML under `<ip>/yaml/<ip>.ssot.yaml`.
-- Standard workflow directories needed by the scaffold.
-- Placeholder scaffold stubs only when required by the existing scaffold
-  contract.
-
-Not allowed to claim in `ssot-gen`:
-
-- RTL complete.
-- TB complete.
-- Simulation pass.
-- Lint clean.
-- Waveform correct.
-- Coverage closed.
-- Synthesis complete.
-- STA signed off.
-- PnR complete.
-- DFT inserted.
-
-In the reference run, `ssot-gen` created only a scaffold RTL stub:
-
-```text
-todo_counter_pipe/rtl/todo_counter_pipe.sv
-```
-
-That file was only a 216-byte placeholder containing a module skeleton and
-`// TBD`. It was not production RTL.
+`/new-ip` is needed for a fresh IP because it creates the expected directory
+shape and loads the SSOT authoring checklist. For an existing IP with a valid
+SSOT, start from the downstream workflow command instead.
 
 ## Required SSOT Depth
 
-The canonical SSOT should contain enough structured information for downstream
-workflows to implement the IP without re-asking basic architecture questions.
+The SSOT must contain enough structured truth for downstream workflows to
+generate artifacts without re-asking basic architecture questions.
 
-At minimum, the SSOT should define:
+Minimum sections expected for a production-like IP:
 
 - `top_module`: name, file, version, type, target.
 - `sub_modules`: manifest blocks, ownership, file intent, source sections.
-- `parameters`: defaults, types, constraints, and what each parameter drives.
+- `parameters`: defaults, constraints, and what each parameter controls.
 - `io_list`: every port, direction, width, clock/reset domain, protocol role.
-- `features`: trigger, datapath behavior, control behavior, output behavior.
+- `features`: trigger, datapath, control, output, and edge behavior.
 - `dataflow`: concrete operational sequences.
 - `function_model`: state variables, transactions, preconditions, outputs,
   side effects, error cases, invariants, and reference-model guidance.
 - `cycle_model`: clocks, reset timing, latency, handshakes, pipeline stages,
-  ordering, CDC latency, and observability.
-- `clock_reset_domains`: all clocks, resets, frequencies, polarity, sync rules.
+  ordering, backpressure, CDC latency, and observability.
+- `clock_reset_domains`: clocks, resets, frequencies, polarity, sync rules.
 - `cdc_requirements` and `rdc_requirements`.
 - `registers`: CSR map, offsets, fields, access type, reset value, side effects.
-- `memory`: memory instances or an explicit no-memory note.
+- `memory`: memory instances or explicit no-memory note.
 - `interrupts`: sources, masks, pending bits, clear policy, output behavior.
 - `fsm`: states, transitions, guards, outputs, illegal-state behavior.
 - `timing_performance`: frequency, throughput, latency, outstanding/depth rules.
-- `power_intent`: clock gating, idle behavior, retention assumptions.
-- `security_safety`: access assumptions, error containment, safety behavior.
-- `error_handling`: overflow, underflow, protocol errors, illegal config.
-- `debug_observability`: counters, status, trace points.
-- `integration_contract`: parent SoC expectations and ownership boundaries.
-- `dft_dfd`: scan, CDC sync handling, test assumptions.
-- `synthesis_ppa`: synthesis, STA, constraints, PPA targets.
-- `coding_rules`: RTL style, reset style, arithmetic guidance.
-- `custom.assumptions`: conservative assumptions made in pipeline mode.
-- `test_requirements`: scenarios with stimulus, expected result, checker, and
-  coverage intent.
+- `power_intent`, `security_safety`, `error_handling`, `debug_observability`.
+- `integration_contract`, `dft_dfd`, `synthesis_ppa`, `coding_rules`.
+- `test_requirements`: scenarios, stimulus, expected results, checker, coverage.
 - `coverage_goals`: function coverage and cycle/performance coverage.
 - `workflow_todos`: downstream TODOs with `content`, `detail`, `criteria`,
   `source_refs`, and owner file/module when inferable.
 - `quality_gates`: pass criteria and evidence requirements.
-- `generation_flow`: the downstream handoff commands.
+- `generation_flow`: downstream handoff commands.
+- `custom.assumptions`: assumptions made in pipeline mode.
 
-## Validation Commands
+## SSOT Validation
 
 Run the canonical SSOT validator:
 
@@ -174,11 +176,12 @@ Reference result:
 [check_ssot_disk] PASS: todo_counter_pipe/yaml/todo_counter_pipe.ssot.yaml = 68776B, 36 sections, 0 TBDs
 ```
 
-Run an independent parse and summary check:
+Run an independent summary check:
 
 ```bash
 python3 - <<'PY'
-import yaml, pathlib
+import pathlib
+import yaml
 
 p = pathlib.Path("todo_counter_pipe/yaml/todo_counter_pipe.ssot.yaml")
 data = yaml.safe_load(p.read_text())
@@ -197,150 +200,202 @@ print("decomposition_type", type(data.get("decomposition")).__name__)
 PY
 ```
 
-Reference result:
-
-```text
-file_bytes 68776
-top_keys 36
-top_module todo_counter_pipe peripheral
-sub_modules 3
-registers 9
-fm_state_variables 12
-fm_transactions 10
-cycle_stages 5
-rtl_todos 4
-assumptions 6
-decomposition_type dict
-```
-
-## Literal TBD Scan
-
-The validator checks for live placeholders, but a literal text scan is still
-useful:
+Literal placeholder scan:
 
 ```bash
 rg -n 'TBD|<TBD>' todo_counter_pipe/yaml/todo_counter_pipe.ssot.yaml
 ```
 
-In the reference run, the validator reported `0 TBDs`, but a literal scan still
-found two descriptive uses of `TBD` inside normal prose:
+If the policy is literal zero `TBD` strings, tighten the validator to reject
+prose occurrences too.
 
-- One DFT note mentioning a future scan mux policy.
-- One quality-gate phrase saying no live TBD placeholders are allowed.
+## RTL Handoff
 
-If the desired policy is literal zero `TBD` strings, the validator and SSOT
-rules should be tightened to reject any occurrence, including prose.
+After SSOT validation, switch to `rtl-gen` and run `/ssot-rtl`.
 
-## Downstream Handoff
-
-After SSOT validation, the next workflow should be `rtl-gen`.
-
-Expected next command inside the appropriate workflow/session:
-
-```text
-/ssot-rtl todo_counter_pipe
-```
-
-Downstream ownership should be kept separate:
-
-- `rtl-gen`: RTL source files, parameter/header intent, filelist, compile, lint
-  readiness.
-- `tb-gen`: cocotb TB, scoreboard, scenarios, functional/cycle coverage
-  collection hooks.
-- `sim`: simulation execution and waveform output.
-- `sim_debug`: VCD/waveform/source/hierarchy/coverage inspection after sim
-  outputs exist.
-- `coverage`: report coverage against SSOT-declared function and cycle goals.
-- `syn`: synthesis report.
-- `sta`: pre-route STA report.
-- `pnr`: place and route report.
-- `sta-post`: post-route STA report.
-
-`ssot-gen` should hand off requirements and ownership. It should not claim that
-any downstream artifact has passed.
-
-## Pipeline Mode Versus CI Mode
-
-Use `pipeline` mode when the goal is to keep moving with conservative
-assumptions:
-
-- Non-blocking question behavior.
-- Record assumptions in `custom.assumptions`.
-- Continue to downstream-ready SSOT when gaps are not blocking.
-
-Use `ci` mode when the goal is strict failure-on-gap behavior:
-
-- Stop on missing required inputs.
-- Do not silently assume.
-- Better for regression testing workflow correctness.
-
-For cold-run pipeline validation, `pipeline` mode is useful first. For production
-workflow regression, use `ci` mode after the happy path is stable.
-
-## Known Issues Observed
-
-The reference run found two important workflow issues:
-
-1. The TODO tracker initially stayed on phase 1 `pending` even while SSOT work
-   was already happening. The operator had to explicitly move phases through
-   `in_progress`, `completed`, and `approved` after evidence existed.
-
-2. Incremental YAML replacement briefly left a duplicate top-level key:
-
-```yaml
-decomposition: TBD
-```
-
-This was caused by replacing one adjacent section with a block that also
-contained the next section. The agent caught it during self-review, removed the
-duplicate line, and revalidated the SSOT.
-
-Recommended hardening:
-
-- Start the current `/new-ip` TODO before tool work begins.
-- Add duplicate top-level YAML key detection.
-- Add stricter literal placeholder policy if desired.
-- Ensure `check_ssot_disk.sh` validates section type, not only section presence.
-
-## Session Logs
-
-The reference run saved history here:
-
-```text
-.session/todo_pipeline/todo_counter_pipe/ssot-gen/input_history.txt
-.session/todo_pipeline/todo_counter_pipe/ssot-gen/conversation.json
-.session/todo_pipeline/todo_counter_pipe/ssot-gen/full_conversation.json
-.session/todo_pipeline/todo_counter_pipe/ssot-gen/todo.json
-```
-
-The input history proves the user/operator provided only:
-
-1. `/mode pipeline`
-2. `/new-ip todo_counter_pipe counter`
-3. The IP requirement seed prompt
-
-The SSOT body itself was authored by `common_ai_agent` through the workflow.
-
-## Minimal Reproduction Template
-
-For a new IP:
+Launch:
 
 ```bash
-cd /Users/brian/Desktop/Project/brian_hw/common_ai_agent
-python3 src/main.py -s <session_group>/<ip_name>/ssot-gen -w ssot-gen --model gpt-5.3-codex --effort medium
+python3 src/main.py -s todo_pipeline/todo_counter_pipe/rtl-gen-clean -w rtl-gen --model gpt-5.3-codex --effort medium
 ```
 
 Inside the agent:
 
 ```text
 /mode pipeline
-/new-ip <ip_name> <ip_kind>
+/ssot-rtl todo_counter_pipe
 ```
 
-Then provide a concise but specific seed:
+## `/ssot-rtl` Internal Contract
+
+`/ssot-rtl <ip>` is a common_ai_agent workflow command. It is not a shell
+command and not a plain prompt.
+
+Internal order:
+
+1. `workflow/rtl-gen/commands/ssot-rtl.json` maps `/ssot-rtl` to
+   `handler: stage:ssot-rtl`.
+2. `src/workflow_stage_engine.py` runs the `ssot-rtl` stage.
+3. The stage runs:
+
+```bash
+python3 workflow/rtl-gen/scripts/derive_rtl_todos.py <ip> --root <project-root>
+```
+
+4. The derive script writes or refreshes:
 
 ```text
-Use the loaded /new-ip todo list and create only the canonical SSOT for IP <ip_name>.
+<ip>/rtl/rtl_todo_plan.json
+<ip>/rtl/rtl_todo_tracker.json
+<ip>/todo/rtl_todo_tracker.json
+```
+
+5. `workflow/loader.py` loads the dynamic tracker into the existing TodoTracker.
+6. `rtl-gen` implements and repairs RTL from the loaded flat TODO ledger.
+7. After RTL edits, the stage runs compile, DUT-only lint, and audit:
+
+```bash
+python3 workflow/rtl-gen/scripts/rtl_compile_report.py <ip> --project-root .
+python3 workflow/lint/scripts/dut_lint_report.py <ip>
+python3 workflow/rtl-gen/scripts/derive_rtl_todos.py <ip> --root . --audit-rtl
+```
+
+The fixed seed file `workflow/rtl-gen/todo_templates/ssot-rtl.json` is only a
+bootstrap surface. The authoritative work breakdown is the derived dynamic
+tracker. Fresh dynamic tracker tasks start as `pending`; current audit status
+is preserved in task detail/criteria, not pre-approved.
+
+For shell validation, do not type `/ssot-rtl`. Use the script form:
+
+```bash
+python3 workflow/rtl-gen/scripts/derive_rtl_todos.py todo_counter_pipe --root . --audit-rtl
+```
+
+## RTL TODO Driving
+
+TODO derivation is deterministic script work:
+
+```text
+SSOT -> derive_rtl_todos.py -> rtl_todo_plan.json -> rtl_todo_tracker.json
+```
+
+TODO execution is agent/runtime work:
+
+```text
+dynamic TodoTracker -> rtl-gen LLM edits RTL -> compile/lint/audit -> close TODOs
+```
+
+The agent should close TODOs one at a time or in a small coherent batch, but the
+closure evidence must come from real RTL and fresh reports. Static evidence is
+not valid when it appears only in comments or dummy aliases.
+
+## Downstream Workflow Ownership
+
+Each downstream stage must use its own workflow command and evidence files.
+
+- `rtl-gen`: `/ssot-rtl <ip>` for RTL, filelist, compile, lint, RTL TODO audit.
+- `tb-gen`: `/ssot-tb <ip>` or `/ssot-tb-cocotb <ip>` for TB and scoreboard.
+- `sim`: `/sim <ip>` for simulation execution and result artifacts.
+- `sim_debug`: debug UI from sim artifacts, waveform, source, hierarchy.
+- `coverage`: coverage report against SSOT function and cycle goals.
+- `syn`: synthesis report.
+- `sta`: pre-route STA report.
+- `pnr`: place and route report.
+- `sta-post`: post-route STA report.
+
+Do not let one workflow claim another workflow's artifact is complete unless it
+has run the owning workflow or produced the exact owning evidence.
+
+## Monitoring Checklist
+
+During a run, watch these files:
+
+```text
+.session/<session>/conversation.json
+.session/<session>/todo.json
+<ip>/yaml/<ip>.ssot.yaml
+<ip>/rtl/rtl_todo_plan.json
+<ip>/rtl/rtl_todo_tracker.json
+<ip>/todo/rtl_todo_tracker.json
+<ip>/rtl/rtl_compile.json
+<ip>/lint/dut_lint.json
+<ip>/logs/stage_engine/ssot-rtl.json
+```
+
+Useful status command:
+
+```bash
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+p = Path("todo_counter_pipe/rtl/rtl_todo_plan.json")
+obj = json.loads(p.read_text())
+gate = obj.get("gate", {})
+print("tasks", len(obj.get("tasks", [])))
+print("gate", gate.get("status"))
+print("open_required", gate.get("open_required_todos"))
+print("static_missing", gate.get("static_missing"))
+for t in obj.get("tasks", []):
+    tc = t.get("todo_completion") or {}
+    if t.get("required") and tc.get("status") != "pass":
+        print(t.get("id"), t.get("category"), t.get("source_ref"), "-", tc.get("reason"))
+PY
+```
+
+## Reference `todo_counter_pipe` Status
+
+Verified behavior:
+
+- `/ssot-rtl todo_counter_pipe` runs `derive_rtl_todos.py`.
+- Dynamic TODO tracker is generated and loaded.
+- Current reference ledger size: `279` RTL TODOs.
+- Fresh dynamic tasks start `pending`.
+
+Recent open gates observed during the reference run:
+
+- RTL authoring provenance stale or incomplete.
+- Static RTL evidence missing for CDC/FSM terms.
+- Manifest signal-flow issue for `status_core_to_bus`.
+- DUT-only lint not clean.
+- Dynamic TODO closure not complete.
+
+This means the flow is working as a gate, but the IP is not production-pass
+until those gates close with real RTL and fresh evidence.
+
+## Common Failure Modes
+
+- Running `/ssot-rtl` in the shell. It must be typed inside common_ai_agent; use
+  `derive_rtl_todos.py --audit-rtl` for shell checks.
+- Reusing the same session name for different models or workflows. Use separate
+  session names to avoid `.session` confusion.
+- Marking TODOs approved before evidence exists. Fresh dynamic tracker tasks
+  should start pending.
+- Adding identifiers only to satisfy evidence matching. Evidence must be live
+  synthesizable behavior.
+- Treating `ssot-gen` scaffold RTL as implementation. It is only a placeholder
+  unless `rtl-gen` authored and proved it.
+- Letting sim, lint, coverage, synthesis, STA, or PnR be claimed by the wrong
+  workflow.
+
+## Minimal New-IP Template
+
+```bash
+cd /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+python3 src/main.py -s <campaign>/<ip>/ssot-gen -w ssot-gen --model gpt-5.3-codex --effort medium
+```
+
+Inside the agent:
+
+```text
+/mode pipeline
+/new-ip <ip> <kind>
+```
+
+Seed:
+
+```text
+Use the loaded /new-ip todo list and create only the canonical SSOT for IP <ip>.
 IP intent: <purpose, clocks, resets, interfaces, parameters, registers, interrupts,
 function behavior, cycle behavior, coverage goals, and downstream workflow todos>.
 Pipeline mode: do not block on ask_user; make conservative assumptions and record
@@ -350,11 +405,27 @@ them in custom.assumptions. Do not generate RTL/TB/sim/lint/syn artifacts in sso
 Validate:
 
 ```bash
-bash workflow/ssot-gen/scripts/check_ssot_disk.sh <ip_name>
+bash workflow/ssot-gen/scripts/check_ssot_disk.sh <ip>
 ```
 
-Then hand off:
+Then hand off to RTL:
+
+```bash
+python3 src/main.py -s <campaign>/<ip>/rtl-gen -w rtl-gen --model gpt-5.3-codex --effort medium
+```
+
+Inside the `rtl-gen` agent:
 
 ```text
-/ssot-rtl <ip_name>
+/mode pipeline
+/ssot-rtl <ip>
+```
+
+Stop condition for RTL:
+
+```text
+derive_rtl_todos.py --audit-rtl reports gate=pass
+rtl_compile.json reports errors=0
+dut_lint.json reports errors=0 warnings=0 or approved waivers
+all required rtl_todo_plan items have todo_completion.status=pass
 ```

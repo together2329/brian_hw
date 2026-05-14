@@ -14,7 +14,7 @@
     "rtl/todo_counter_pipe_core.sv",
     "rtl/todo_counter_pipe_cdc.sv"
   ],
-  "timestamp": "2026-05-14T03:23:36.541920+00:00",
+  "timestamp": "2026-05-14T04:26:12.756527+00:00",
   "returncode": 1,
   "errors": 0,
   "warnings": 6,
@@ -59,15 +59,6 @@
         {
           "severity": "warning",
           "rule": "UNUSEDSIGNAL",
-          "file": "rtl/todo_counter_pipe.sv",
-          "line": 37,
-          "column": 11,
-          "message": "Signal is not used: 'status_core_to_bus'",
-          "source": "    logic status_core_to_bus;"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
           "file": "rtl/todo_counter_pipe_regs.sv",
           "line": 47,
           "column": 11,
@@ -91,6 +82,15 @@
           "column": 11,
           "message": "Signal is not used: 'S4_STATUS_UPDATE'",
           "source": "    logic S4_STATUS_UPDATE;"
+        },
+        {
+          "severity": "warning",
+          "rule": "UNUSEDSIGNAL",
+          "file": "rtl/todo_counter_pipe_cdc.sv",
+          "line": 18,
+          "column": 34,
+          "message": "Signal is not used: 'control_bus_to_core'",
+          "source": "    input  logic                 control_bus_to_core,"
         }
       ],
       "passed": false

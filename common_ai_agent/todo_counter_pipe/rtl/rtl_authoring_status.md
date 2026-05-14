@@ -4,7 +4,7 @@
 
 - Top: todo_counter_pipe
 - Packets: 20
-- LLM-actionable tasks: 6
+- LLM-actionable tasks: 5
 - Human-locked tasks: 0
 - Tool-evidence tasks: 3
 - Deferred human QA allowed: True
@@ -16,7 +16,7 @@
 ## Next LLM Packets
 
 - module__todo_counter_pipe_cdc: rtl/authoring_packets/module__todo_counter_pipe_cdc.json (llm_open=4, human_locked=0)
-- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=2, human_locked=0)
+- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=1, human_locked=0)
 
 ## Tool Evidence Queue
 

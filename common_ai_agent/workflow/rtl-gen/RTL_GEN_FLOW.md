@@ -33,5 +33,32 @@ flowchart TD
 - DUT compile report: `workflow/rtl-gen/scripts/rtl_compile_report.py`
 - DUT-only lint report: `workflow/lint/scripts/dut_lint_report.py`
 
+## `/ssot-rtl` Internal Contract
+
+`/ssot-rtl <ip>` is a workflow command, not a shell command and not a plain
+prompt. It first runs the deterministic SSOT-to-RTL TODO derivation path, then
+loads the generated dynamic TodoTracker for the LLM rtl-gen repair loop.
+
+Internal order:
+
+1. `workflow/rtl-gen/commands/ssot-rtl.json` maps `/ssot-rtl` to
+   `handler: stage:ssot-rtl`.
+2. `src/workflow_stage_engine.py` handles the `ssot-rtl` stage.
+3. The stage runs
+   `workflow/rtl-gen/scripts/derive_rtl_todos.py <ip> --root <project-root>`.
+4. The derive script writes/refreshes:
+   - `<ip>/rtl/rtl_todo_plan.json`
+   - `<ip>/rtl/rtl_todo_tracker.json`
+   - `<ip>/todo/rtl_todo_tracker.json`
+5. `workflow/loader.py` loads the dynamic tracker for the existing TodoTracker.
+6. `rtl-gen` implements and repairs RTL from the loaded flat TODO ledger.
+7. After RTL edits, the stage reruns compile, DUT-only lint, and
+   `derive_rtl_todos.py --audit-rtl` until the required gate TODOs close.
+
+The fixed `workflow/rtl-gen/todo_templates/ssot-rtl.json` file is only a seed
+surface. The authoritative work breakdown is the derived dynamic tracker, so a
+fresh run starts dynamic tracker tasks as `pending`; current audit pass/fail
+state is preserved in each task detail/criteria, not pre-approved.
+
 See `workflow/COMMON_ENGINE_FLOW.md` for the full req -> SSOT -> FL -> RTL ->
 TB -> sim -> sim-debug -> goal-audit flow.

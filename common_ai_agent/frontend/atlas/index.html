@@ -157,7 +157,7 @@
   </script>
 
   <!-- Backend adapter: window.backend (live WebSocket) -->
-  <script src="backend.js"></script>
+  <script src="backend.js?v=atlas-20260514-session-switch"></script>
 
   <!-- VCD parser (pure JS, no Babel — ships as plain script). -->
   <script src="vcd-parser.js"></script>
@@ -166,7 +166,7 @@
   <!-- LoginScreen — registers window.LoginScreen, consumed by app.jsx
        when /api/users/me returns 401. -->
   <script type="text/babel" data-presets="react" src="login.jsx?v=atlas-20260511-login"></script>
-  <script type="text/babel" data-presets="react" src="data.jsx?v=atlas-20260503-strict-status"></script>
+  <script type="text/babel" data-presets="react" src="data.jsx?v=atlas-20260514-session-switch"></script>
   <script type="text/babel" data-presets="react" src="shared.jsx?v=atlas-20260503-strict-status"></script>
   <!-- sim_debug components (loaded BEFORE workspace.jsx so the
        conditional render in workspace.jsx can reference them). -->
@@ -181,13 +181,13 @@
   <script type="text/babel" data-presets="react" src="git-tab.jsx?v=atlas-20260511-gittab"></script>
   <!-- coverage workflow panel — same loading rule as sim_debug -->
   <script type="text/babel" data-presets="react" src="coverage.jsx?v=atlas-20260503-strict-status"></script>
-  <script type="text/babel" data-presets="react" src="workspace.jsx?v=atlas-20260512-light-feed-readability"></script>
+  <script type="text/babel" data-presets="react" src="workspace.jsx?v=atlas-20260514-session-switch"></script>
   <!-- SoC Architect (mock data; loaded before app.jsx so the screen
        toggle in app.jsx can mount <SocArchitect />). -->
   <script type="text/babel" data-presets="react" src="soc-data.jsx?v=atlas-20260503-strict-status"></script>
   <script type="text/babel" data-presets="react" src="soc-shared.jsx?v=atlas-20260503-strict-status"></script>
   <script type="text/babel" data-presets="react" src="soc-architect.jsx?v=atlas-20260503-strict-status"></script>
-  <script type="text/babel" data-presets="react" src="app.jsx?v=atlas-20260512-workbench-default"></script>
+  <script type="text/babel" data-presets="react" src="app.jsx?v=atlas-20260514-session-switch"></script>
 
   <script>
     const ATLAS_RESOLUTION_PRESETS = {

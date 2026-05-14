@@ -938,6 +938,9 @@ def create_app():
             info["active_workflow"] = (
                 os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
             )
+            info["session_dir"] = str(getattr(_cfg, "SESSION_DIR", "") or "")
+            info["todo_file"] = str(getattr(_cfg, "TODO_FILE", "") or "")
+            info["history_file"] = str(getattr(_cfg, "HISTORY_FILE", "") or "")
             # Per-model pricing (USD / 1M tokens) — input / cache / output.
             # get_active_pricing honors LLM_BASE_NAME env first, falling
             # back to LLM_MODEL_NAME / config.MODEL_NAME, so the rate shown
@@ -10861,6 +10864,27 @@ def create_app():
         if callable(fn):
             fn(name)
 
+    def _setup_session_proxy(session_id: str) -> None:
+        session = normalize_session_name(str(session_id or ""))
+        if not session:
+            return
+        _atlas_active_session_cv.set(session)
+        os.environ["ATLAS_ACTIVE_SESSION"] = session
+        try:
+            import main as _main_mod  # type: ignore
+        except ImportError:
+            try:
+                from src import main as _main_mod  # type: ignore
+            except ImportError:
+                _main_mod = None
+        fn = getattr(_main_mod, "_setup_session", None) if _main_mod is not None else None
+        if callable(fn):
+            fn(session)
+        else:
+            from core.session_setup import setup_session as _shared_setup_session
+            _shared_setup_session(session)
+        os.environ["ATLAS_SESSION_APPLIED"] = session
+
     register_sessions_routes(
         app,
         project_root=lambda: PROJECT_ROOT,
@@ -10871,6 +10895,7 @@ def create_app():
         bridge=bridge,
         get_jobs_state=_get_jobs_state,
         atlas_db_factory=AtlasDB,
+        setup_session=_setup_session_proxy,
         setup_workspace=_setup_workspace_proxy,
     )
 
@@ -11096,6 +11121,10 @@ def create_app():
             await _close_websocket_quietly(websocket, code=1008, reason="forbidden")
             return
         bridge.bind_client(websocket, session_id)
+        try:
+            _setup_session_proxy(session_id)
+        except Exception:
+            pass
         _ensure_broadcaster()
         # Greeting — surface user-tunable layout settings so the frontend
         # can pick its center-column shape (classic vs tabbed Chat/Preview/Q&A).
@@ -11153,6 +11182,11 @@ def create_app():
                                 continue
                             set_atlas_bridge_session_id(session.session_id)
                         _atlas_active_session_cv.set(_session)
+                        try:
+                            _setup_session_proxy(_session)
+                        except Exception as exc:
+                            session.emit("error", message=f"session setup failed: {exc}")
+                            continue
                     # Idempotent submit + ack:
                     # The frontend retransmits a prompt with the same
                     # msg_id if it doesn't see an `agent_received`

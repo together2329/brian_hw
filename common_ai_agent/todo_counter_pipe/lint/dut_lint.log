@@ -19,16 +19,12 @@ errors: 0 warnings: 6
                                                    : ... note: In instance 'todo_counter_pipe'
     4 |     parameter integer CORE_CLK_FREQ_MHZ = 300
       |                       ^~~~~~~~~~~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/todo_counter_pipe.sv:37:11: Signal is not used: 'status_core_to_bus'
-                                                     : ... note: In instance 'todo_counter_pipe'
-   37 |     logic status_core_to_bus;
-      |           ^~~~~~~~~~~~~~~~~~
-                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
-                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
 %Warning-UNUSEDSIGNAL: rtl/todo_counter_pipe_regs.sv:47:11: Signal is not driven, nor used: 'counter_irq'
                                                           : ... note: In instance 'todo_counter_pipe.u_regs'
    47 |     logic counter_irq;
       |           ^~~~~~~~~~~
+                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
+                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
 %Warning-UNUSEDSIGNAL: rtl/todo_counter_pipe_regs.sv:48:11: Signal is not used: 'S0_APB_ACCESS'
                                                           : ... note: In instance 'todo_counter_pipe.u_regs'
    48 |     logic S0_APB_ACCESS;
@@ -37,4 +33,8 @@ errors: 0 warnings: 6
                                                           : ... note: In instance 'todo_counter_pipe.u_regs'
    49 |     logic S4_STATUS_UPDATE;
       |           ^~~~~~~~~~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/todo_counter_pipe_cdc.sv:18:34: Signal is not used: 'control_bus_to_core'
+                                                         : ... note: In instance 'todo_counter_pipe.u_cdc'
+   18 |     input  logic                 control_bus_to_core,
+      |                                  ^~~~~~~~~~~~~~~~~~~
 %Error: Exiting due to 6 warning(s)

@@ -74,6 +74,16 @@
 
   function liveConnect(sessionId) {
     const targetSessionId = String(sessionId || currentSessionId || '');
+    if (
+      targetSessionId &&
+      currentSessionId &&
+      targetSessionId !== currentSessionId &&
+      ws &&
+      (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)
+    ) {
+      try { ws.onclose = null; ws.close(); } catch (_) {}
+      ws = null;
+    }
     currentSessionId = targetSessionId;
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';

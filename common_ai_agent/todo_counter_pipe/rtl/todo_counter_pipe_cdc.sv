@@ -98,6 +98,7 @@ module todo_counter_pipe_cdc #(
         end
     end
     assign status_or_reduce = overflow_bus_o | underflow_bus_o | tc_pending_bus_o | ovf_pending_bus_o | unf_pending_bus_o;
-    // Machine-readable contract hook ports: control_bus_to_core is consumed; status_core_to_bus reflects synchronized status activity.
-    assign status_core_to_bus = status_or_reduce | control_bus_to_core;
+    // Machine-readable contract hook ports: control_bus_to_core is consumed;
+    // status_core_to_bus reports synchronized core->bus status activity.
+    assign status_core_to_bus = status_or_reduce;
 endmodule

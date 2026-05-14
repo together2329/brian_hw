@@ -30,7 +30,7 @@
 - Tool-evidence blockers:
   - common_ai_agent_authoring: RTL authoring provenance is incomplete: todo_plan_sha256
   - dut_lint: DUT lint artifact is not clean.
-  - dynamic_todo_closure: 8 required non-closure TODO(s) remain open.
+  - dynamic_todo_closure: 7 required non-closure TODO(s) remain open.
 - Tool-evidence runbook:
   - common_ai_agent_authoring: stages=ssot-rtl; artifact=todo_counter_pipe/rtl/rtl_authoring_provenance.json
   - dut_lint: stages=lint, dut_lint; artifact=todo_counter_pipe/lint/dut_lint.json
@@ -128,7 +128,7 @@ Owner: todo_counter_pipe in rtl/todo_counter_pipe.sv via top_module.
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: todo_counter_pipe in rtl/todo_counter_pipe.sv via top_module.
-- Current reason: 8 required non-closure TODO(s) remain open.
+- Current reason: 7 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

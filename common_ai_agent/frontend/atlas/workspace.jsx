@@ -1140,7 +1140,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
 
   const sendPrompt = React.useCallback((text, sessionOverride) => {
     if (window.backend) {
-      const session = resolveSession(sessionOverride, activeSession, window.ACTIVE_SESSION);
+      const session = resolveSession(
+        sessionOverride,
+        window.ACTIVE_SESSION,
+        activeSessionRef.current,
+        activeSession,
+      );
       // crypto.randomUUID is secure-context only (localhost / https).
       // Accessing it from http://<lan-ip>/ throws — fall back to
       // getRandomValues, which IS available in non-secure contexts.
@@ -1648,6 +1653,25 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     window.addEventListener('atlas-data-changed', onData);
     return () => window.removeEventListener('atlas-data-changed', onData);
   }, [activateSession, workflow]);
+
+  React.useEffect(() => {
+    const onSessionSwitched = (ev) => {
+      const detail = ev?.detail || {};
+      const sid = normalizeUiSession(detail.namespace || detail.session || '');
+      if (!sid) return;
+      window.ACTIVE_SESSION = sid;
+      activeSessionRef.current = sid;
+      setActiveSession(sid);
+      try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
+      const nextWorkflow = workflowFromSession(sid);
+      setWorkflow(nextWorkflow && nextWorkflow !== 'default' ? nextWorkflow : null);
+      if (window.atlasData && window.atlasData.refreshSessionState) {
+        window.atlasData.refreshSessionState(sid, false);
+      }
+    };
+    window.addEventListener('atlas-session-switched', onSessionSwitched);
+    return () => window.removeEventListener('atlas-session-switched', onSessionSwitched);
+  }, []);
 
   // Hydrate the chat feed from the active .session/<scope>/<workflow>
   // conversation.json. data.jsx fires 'atlas-conversation-loaded' after

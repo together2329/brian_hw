@@ -10,10 +10,10 @@
     "todo_counter_pipe/rtl/rtl_blocked.json (only when SSOT decision is required)"
   ],
   "blocker": "todo_counter_pipe/rtl/rtl_blocked.json",
-  "created_at": "2026-05-14T03:20:29Z",
+  "created_at": "2026-05-14T04:24:29Z",
   "headline": "[RTL BLOCKED] rtl-gen waiting for LLM-authored RTL",
   "ip": "todo_counter_pipe",
-  "message": "[RTL BLOCKED] rtl-gen waiting for LLM-authored RTL\nmodule: todo_counter_pipe\ntop: todo_counter_pipe\nsource: todo_counter_pipe/yaml/todo_counter_pipe.ssot.yaml\npreflight: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/ssot_to_rtl.py\ndynamic_todos: todo_counter_pipe/rtl/rtl_todo_plan.json\nblocker: LLM-authored RTL evidence is missing or stale.\nevidence: todo_counter_pipe/rtl/rtl_blocked.json\nnext: Run rtl-gen against rtl_todo_plan.json, replace stale generated artifacts, then rerun /ssot-rtl.\n\nquestions:\n- COMMON_AI_AGENT_RTL_PROVENANCE_REQUIRED: Prove the RTL was authored by the common_ai_agent rtl-gen workflow, not by the operator.\n  recommended: Operator-authored RTL is not valid evidence for this workflow.\n\nruns:\n- derive_rtl_todos: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/derive_rtl_todos.py todo_counter_pipe --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[derive_rtl_todos] todo_counter_pipe: tasks=279 blockers=0 orphans=0 gate=planned\n- rtl_preflight: exit 2\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/ssot_to_rtl.py todo_counter_pipe --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[RTL BLOCKED] rtl-gen waiting for LLM-authored RTL for todo_counter_pipe: 1 gate(s)\n- COMMON_AI_AGENT_RTL_PROVENANCE_REQUIRED: Prove the RTL was authored by the common_ai_agent rtl-gen workflow, not by the operator.\n- audit_rtl_todos: exit 1\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/derive_rtl_todos.py todo_counter_pipe --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent --audit-rtl\n  stdout:\n[derive_rtl_todos] todo_counter_pipe: tasks=279 blockers=0 orphans=0 gate=fail\n\nrtl_dynamic_todos:\n- tasks: 279 required=279\n- ssot_workflow_todos: 4\n- rtl_gate_todos: 17\n- sections: cycle_model, equivalence, error_handling, features, fsm, function_model, integration, interrupts, io_list, memory, parameters, registers\n- gate: fail\n- blockers: 0\n- orphans: 0\n- static_missing: 0\n- open_required_todos: 3\n- all_required_todos_pass: False\n- owner_logic_checked: 4\n- owner_logic_issues: 0\n- top_io_contracts: 14\n- top_io_issues: 0\n- port_connection_issues: 0\n- connection_contract_issues: 0\n- open_required_details:\n  - RTL-0006: quality_gates.rtl_gen.common_ai_agent_authoring category=rtl_gate.rtl_gen reason=RTL authoring provenance is incomplete: todo_plan_sha256\n  - RTL-0018: quality_gates.rtl_gen.dut_lint category=rtl_gate.rtl_gen reason=DUT lint artifact is not clean.\n  - RTL-0019: quality_gates.rtl_gen.dynamic_todo_closure category=rtl_gate.rtl_gen reason=2 required non-closure TODO(s) remain open.\n\nrtl_manifest:\n- approved: 4/4\n- filelist: todo_counter_pipe/list/todo_counter_pipe.f\n- manifest_mismatches: 0\n- hierarchy_issues: 0\n- quality_issues: 0\n\nartifacts:\n- todo_counter_pipe/yaml/todo_counter_pipe.ssot.yaml\n- todo_counter_pipe/rtl/rtl_todo_plan.json\n- todo_counter_pipe/rtl/rtl_todo_tracker.json\n- todo_counter_pipe/rtl/rtl_traceability.json\n- todo_counter_pipe/list/todo_counter_pipe.f\n- todo_counter_pipe/rtl/rtl_compile.json\n- todo_counter_pipe/lint/dut_lint.json\n- todo_counter_pipe/rtl/rtl_blocked.json (only when SSOT decision is required)\n\nnext: ATLAS opened an SSOT decision Q&A card for the RTL blocker.",
+  "message": "[RTL BLOCKED] rtl-gen waiting for LLM-authored RTL\nmodule: todo_counter_pipe\ntop: todo_counter_pipe\nsource: todo_counter_pipe/yaml/todo_counter_pipe.ssot.yaml\npreflight: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/ssot_to_rtl.py\ndynamic_todos: todo_counter_pipe/rtl/rtl_todo_plan.json\nblocker: LLM-authored RTL evidence is missing or stale.\nevidence: todo_counter_pipe/rtl/rtl_blocked.json\nnext: Run rtl-gen against rtl_todo_plan.json, replace stale generated artifacts, then rerun /ssot-rtl.\n\nquestions:\n- COMMON_AI_AGENT_RTL_PROVENANCE_REQUIRED: Prove the RTL was authored by the common_ai_agent rtl-gen workflow, not by the operator.\n  recommended: Operator-authored RTL is not valid evidence for this workflow.\n\nruns:\n- derive_rtl_todos: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/derive_rtl_todos.py todo_counter_pipe --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[derive_rtl_todos] todo_counter_pipe: tasks=279 blockers=0 orphans=0 gate=planned\n- rtl_preflight: exit 2\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/ssot_to_rtl.py todo_counter_pipe --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[RTL BLOCKED] rtl-gen waiting for LLM-authored RTL for todo_counter_pipe: 1 gate(s)\n- COMMON_AI_AGENT_RTL_PROVENANCE_REQUIRED: Prove the RTL was authored by the common_ai_agent rtl-gen workflow, not by the operator.\n- audit_rtl_todos: exit 1\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/derive_rtl_todos.py todo_counter_pipe --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent --audit-rtl\n  stdout:\n[derive_rtl_todos] todo_counter_pipe: tasks=279 blockers=0 orphans=0 gate=fail\n\nrtl_dynamic_todos:\n- tasks: 279 required=279\n- ssot_workflow_todos: 4\n- rtl_gate_todos: 17\n- sections: cycle_model, equivalence, error_handling, features, fsm, function_model, integration, interrupts, io_list, memory, parameters, registers\n- gate: fail\n- blockers: 0\n- orphans: 0\n- static_missing: 4\n- open_required_todos: 9\n- all_required_todos_pass: False\n- owner_logic_checked: 4\n- owner_logic_issues: 0\n- top_io_contracts: 14\n- top_io_issues: 0\n- port_connection_issues: 0\n- connection_contract_issues: 0\n- static_missing_details:\n  - RTL-0222: fsm.core_fsm.states.state_0 terms=['IDLE']\n  - RTL-0224: fsm.core_fsm.transitions.transition_0 terms=['COUNT', 'IDLE', 'event_i']\n  - RTL-0225: fsm.core_fsm.transitions.transition_1 terms=['COUNT', 'IDLE']\n  - RTL-0226: fsm.core_fsm.transitions.transition_2 terms=['COUNT', 'event_i']\n- open_required_details:\n  - RTL-0006: quality_gates.rtl_gen.common_ai_agent_authoring category=rtl_gate.rtl_gen reason=RTL authoring provenance is incomplete: todo_plan_sha256\n  - RTL-0007: quality_gates.rtl_gen.static_rtl_evidence category=rtl_gate.rtl_gen reason=4 static-evidence-required task(s) still lack DUT RTL evidence.\n  - RTL-0015: quality_gates.rtl_gen.manifest_signal_flow_evidence category=rtl_gate.rtl_gen reason=1 manifest signal-flow issue(s) remain. todo_counter_pipe_cdc: status_core_to_bus: Manifest child output does not feed a top output, parent RTL logic, or another child input/inout\n  - RTL-0018: quality_gates.rtl_gen.dut_lint category=rtl_gate.rtl_gen reason=DUT lint artifact is not clean.\n  - RTL-0019: quality_gates.rtl_gen.dynamic_todo_closure category=rtl_gate.rtl_gen reason=8 required non-closure TODO(s) remain open.\n  - RTL-0222: fsm.core_fsm.states.state_0 category=fsm.state reason=Required RTL static evidence is missing.\n  - RTL-0224: fsm.core_fsm.transitions.transition_0 category=fsm.transition reason=Required RTL static evidence is missing.\n  - RTL-0225: fsm.core_fsm.transitions.transition_1 category=fsm.transition reason=Required RTL static evidence is missing.\n  - RTL-0226: fsm.core_fsm.transitions.transition_2 category=fsm.transition reason=Required RTL static evidence is missing.\n\nrtl_manifest:\n- approved: 4/4\n- filelist: todo_counter_pipe/list/todo_counter_pipe.f\n- manifest_mismatches: 0\n- hierarchy_issues: 0\n- quality_issues: 0\n\nartifacts:\n- todo_counter_pipe/yaml/todo_counter_pipe.ssot.yaml\n- todo_counter_pipe/rtl/rtl_todo_plan.json\n- todo_counter_pipe/rtl/rtl_todo_tracker.json\n- todo_counter_pipe/rtl/rtl_traceability.json\n- todo_counter_pipe/list/todo_counter_pipe.f\n- todo_counter_pipe/rtl/rtl_compile.json\n- todo_counter_pipe/lint/dut_lint.json\n- todo_counter_pipe/rtl/rtl_blocked.json (only when SSOT decision is required)\n\nnext: ATLAS opened an SSOT decision Q&A card for the RTL blocker.",
   "metadata": {
     "rtl_blocked": {
       "ip": "todo_counter_pipe",
@@ -36,7 +36,7 @@
       "reason": "LLM-authored RTL evidence is missing or stale.",
       "schema_version": 1,
       "status": "blocked",
-      "timestamp": "2026-05-14T03:20:28Z",
+      "timestamp": "2026-05-14T04:24:26Z",
       "top": "todo_counter_pipe",
       "type": "rtl_blocker"
     },
@@ -167,7 +167,7 @@
           "status": "approved"
         },
         {
-          "bytes": 6494,
+          "bytes": 5449,
           "exists": true,
           "file": "rtl/todo_counter_pipe_core.sv",
           "include_header": false,
@@ -195,7 +195,7 @@
           "status": "approved"
         },
         {
-          "bytes": 5587,
+          "bytes": 5240,
           "exists": true,
           "file": "rtl/todo_counter_pipe.sv",
           "include_header": false,
@@ -267,12 +267,12 @@
           "Gate: DUT-only lint report passes after the final RTL edit",
           "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
         ],
-        "open_required_todos": 3,
+        "open_required_todos": 9,
         "orphan_tasks": 0,
-        "static_missing": 0,
+        "static_missing": 4,
         "status": "fail"
       },
-      "generated_at": "2026-05-14T03:20:28Z",
+      "generated_at": "2026-05-14T04:24:28Z",
       "ip": "todo_counter_pipe",
       "manifest_hierarchy_evidence": {
         "connection_contract_count": 16,
@@ -317,7 +317,16 @@
       "manifest_signal_flow_evidence": {
         "checked_inputs": 50,
         "checked_outputs": 38,
-        "issues": [],
+        "issues": [
+          {
+            "expr": "status_core_to_bus",
+            "instance": "u_cdc",
+            "issue": "Manifest child output does not feed a top output, parent RTL logic, or another child input/inout",
+            "module": "todo_counter_pipe_cdc",
+            "parent": "todo_counter_pipe",
+            "port": "status_core_to_bus"
+          }
+        ],
         "reachable_modules": [
           "todo_counter_pipe",
           "todo_counter_pipe_cdc",
@@ -327,7 +336,7 @@
         "roots": [
           "todo_counter_pipe"
         ],
-        "status": "pass"
+        "status": "fail"
       },
       "orphans": [],
       "owner_logic_evidence": {
@@ -354,33 +363,19 @@
         "aggregate": {
           "behavior_owner_logic_modules": 4,
           "control_flow": 40,
-          "depth_score": 433,
+          "depth_score": 411,
           "instances": 3,
-          "lines": 523,
+          "lines": 497,
           "logic_modules": 4,
           "modules": 4,
-          "nonconstant_assigns": 26,
+          "nonconstant_assigns": 15,
           "procedural_blocks": 5,
           "source_files": 4,
           "state_updates": 148,
-          "storage_decls": 50
+          "storage_decls": 39
         },
         "issues": [],
         "modules": [
-          {
-            "depth_score": 155,
-            "file": "rtl/todo_counter_pipe_core.sv",
-            "metrics": {
-              "control_flow": 19,
-              "instances": 0,
-              "nonconstant_assigns": 15,
-              "placeholder_tokens": false,
-              "procedural_blocks": 1,
-              "state_updates": 49,
-              "storage_decls": 20
-            },
-            "module": "todo_counter_pipe_core"
-          },
           {
             "depth_score": 153,
             "file": "rtl/todo_counter_pipe_cdc.sv",
@@ -394,6 +389,20 @@
               "storage_decls": 7
             },
             "module": "todo_counter_pipe_cdc"
+          },
+          {
+            "depth_score": 133,
+            "file": "rtl/todo_counter_pipe_core.sv",
+            "metrics": {
+              "control_flow": 19,
+              "instances": 0,
+              "nonconstant_assigns": 4,
+              "placeholder_tokens": false,
+              "procedural_blocks": 1,
+              "state_updates": 49,
+              "storage_decls": 9
+            },
+            "module": "todo_counter_pipe_core"
           },
           {
             "depth_score": 103,
@@ -837,10 +846,73 @@
         }
       ],
       "static_rtl_evidence": {
-        "checked": 67,
-        "missing": 0,
-        "missing_tasks": [],
-        "passed": 67,
+        "checked": 64,
+        "missing": 4,
+        "missing_tasks": [
+          {
+            "category": "fsm.state",
+            "matched_count": 0,
+            "matched_terms": [],
+            "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+            "required_match_count": 1,
+            "required_terms": [
+              "IDLE"
+            ],
+            "source_ref": "fsm.core_fsm.states.state_0",
+            "source_scope": "rtl/todo_counter_pipe_cdc.sv",
+            "task_id": "RTL-0222"
+          },
+          {
+            "category": "fsm.transition",
+            "matched_count": 1,
+            "matched_terms": [
+              "COUNT"
+            ],
+            "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+            "required_match_count": 2,
+            "required_terms": [
+              "COUNT",
+              "IDLE",
+              "event_i"
+            ],
+            "source_ref": "fsm.core_fsm.transitions.transition_0",
+            "source_scope": "rtl/todo_counter_pipe_cdc.sv",
+            "task_id": "RTL-0224"
+          },
+          {
+            "category": "fsm.transition",
+            "matched_count": 1,
+            "matched_terms": [
+              "COUNT"
+            ],
+            "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+            "required_match_count": 2,
+            "required_terms": [
+              "COUNT",
+              "IDLE"
+            ],
+            "source_ref": "fsm.core_fsm.transitions.transition_1",
+            "source_scope": "rtl/todo_counter_pipe_cdc.sv",
+            "task_id": "RTL-0225"
+          },
+          {
+            "category": "fsm.transition",
+            "matched_count": 1,
+            "matched_terms": [
+              "COUNT"
+            ],
+            "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+            "required_match_count": 2,
+            "required_terms": [
+              "COUNT",
+              "event_i"
+            ],
+            "source_ref": "fsm.core_fsm.transitions.transition_2",
+            "source_scope": "rtl/todo_counter_pipe_cdc.sv",
+            "task_id": "RTL-0226"
+          }
+        ],
+        "passed": 60,
         "sources": [
           "rtl/todo_counter_pipe.sv",
           "rtl/todo_counter_pipe_cdc.sv",
@@ -921,6 +993,7 @@
               "cycle_model.pipeline.S0_APB_ACCESS",
               "cycle_model.pipeline.S4_STATUS_UPDATE",
               "decomposition.units.apb_decode",
+              "function_model.transactions.FM10",
               "interrupts",
               "io_list",
               "io_list.interfaces.apb_slave",
@@ -1366,9 +1439,9 @@
               "rtl_todo_plan.json task criteria",
               "rtl/rtl_todo_plan.json"
             ],
-            "reason": "Static DUT RTL evidence audit has no missing required task.",
+            "reason": "4 static-evidence-required task(s) still lack DUT RTL evidence.",
             "required": true,
-            "status": "pass"
+            "status": "open"
           }
         },
         {
@@ -1745,9 +1818,9 @@
               "rtl_todo_plan.json task criteria",
               "rtl/rtl_todo_plan.json"
             ],
-            "reason": "Manifest child port maps carry live non-placeholder RTL signal flow.",
+            "reason": "1 manifest signal-flow issue(s) remain. todo_counter_pipe_cdc: status_core_to_bus: Manifest child output does not feed a top output, parent RTL logic, or another child input/inout",
             "required": true,
-            "status": "pass"
+            "status": "open"
           }
         },
         {
@@ -1938,7 +2011,7 @@
               "rtl_todo_plan.json task criteria",
               "rtl/rtl_todo_plan.json"
             ],
-            "reason": "2 required non-closure TODO(s) remain open.",
+            "reason": "8 required non-closure TODO(s) remain open.",
             "required": true,
             "status": "open"
           }
@@ -1991,13 +2064,10 @@
             "workflow_todos.rtl-gen[0]"
           ],
           "static_evidence": {
-            "matched_count": 10,
+            "matched_count": 7,
             "matched_terms": [
               "CORE",
               "COUNT",
-              "EVAL",
-              "S2",
-              "S2_COUNT_EVAL",
               "TODO",
               "core",
               "pipe",
@@ -4300,9 +4370,8 @@
             "function_model.transactions.FM1.output_rules.interrupt"
           ],
           "static_evidence": {
-            "matched_count": 8,
+            "matched_count": 7,
             "matched_terms": [
-              "counter_irq",
               "irq",
               "ovf",
               "ovf_pending",
@@ -8246,14 +8315,14 @@
             "All outputs and side effects occur exactly once per accepted transaction",
             "The transaction is covered by equivalence goals and scoreboard observations downstream",
             "Traceability keeps source_ref function_model.transactions.FM10",
-            "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
+            "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv"
           ],
-          "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM10.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.\nSSOT item context: id=FM10; name=interrupt_clear.",
+          "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM10.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via function_model.transactions.FM10.\nSSOT item context: id=FM10; name=interrupt_clear.",
           "evidence_terms": [],
           "id": "RTL-0145",
-          "owner_file": "rtl/todo_counter_pipe_core.sv",
-          "owner_match": "function_model",
-          "owner_module": "todo_counter_pipe_core",
+          "owner_file": "rtl/todo_counter_pipe_regs.sv",
+          "owner_match": "function_model.transactions.FM10",
+          "owner_module": "todo_counter_pipe_regs",
           "priority": "high",
           "required": true,
           "requires_static_rtl_evidence": false,
@@ -8290,9 +8359,9 @@
             "Reset/enable/error behavior is consistent with the parent transaction",
             "Downstream equivalence/coverage can observe this behavior",
             "Traceability keeps source_ref function_model.transactions.FM10.preconditions.precondition_0",
-            "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
+            "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv"
           ],
-          "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM10.preconditions.precondition_0.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.\nSSOT item context: value=INTCLR.tc_clr, .ovf_clr, or .unf_clr written 1.",
+          "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM10.preconditions.precondition_0.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via function_model.transactions.FM10.\nSSOT item context: value=INTCLR.tc_clr, .ovf_clr, or .unf_clr written 1.",
           "evidence_terms": [
             "clr",
             "ovf",
@@ -8303,9 +8372,9 @@
             "unf_clr"
           ],
           "id": "RTL-0146",
-          "owner_file": "rtl/todo_counter_pipe_core.sv",
-          "owner_match": "function_model",
-          "owner_module": "todo_counter_pipe_core",
+          "owner_file": "rtl/todo_counter_pipe_regs.sv",
+          "owner_match": "function_model.transactions.FM10",
+          "owner_module": "todo_counter_pipe_regs",
           "priority": "high",
           "required": true,
           "requires_static_rtl_evidence": true,
@@ -8339,7 +8408,7 @@
               "unf",
               "unf_clr"
             ],
-            "source_scope": "rtl/todo_counter_pipe_core.sv",
+            "source_scope": "rtl/todo_counter_pipe_regs.sv",
             "status": "pass"
           },
           "todo_completion": {
@@ -8363,14 +8432,14 @@
             "Reset/enable/error behavior is consistent with the parent transaction",
             "Downstream equivalence/coverage can observe this behavior",
             "Traceability keeps source_ref function_model.transactions.FM10.inputs.input_0",
-            "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
+            "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv"
           ],
-          "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM10.inputs.input_0.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.\nSSOT item context: value=W1C write.",
+          "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM10.inputs.input_0.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via function_model.transactions.FM10.\nSSOT item context: value=W1C write.",
           "evidence_terms": [],
           "id": "RTL-0147",
-          "owner_file": "rtl/todo_counter_pipe_core.sv",
-          "owner_match": "function_model",
-          "owner_module": "todo_counter_pipe_core",
+          "owner_file": "rtl/todo_counter_pipe_regs.sv",
+          "owner_match": "function_model.transactions.FM10",
+          "owner_module": "todo_counter_pipe_regs",
           "priority": "high",
           "required": true,
           "requires_static_rtl_evidence": false,
@@ -8406,14 +8475,14 @@
             "Reset/enable/error behavior is consistent with the parent transaction",
             "Downstream equivalence/coverage can observe this behavior",
             "Traceability keeps source_ref function_model.transactions.FM10.outputs.output_0",
-            "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
+            "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv"
           ],
-          "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM10.outputs.output_0.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.\nSSOT item context: value=Corresponding INTSTAT bit cleared.",
+          "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM10.outputs.output_0.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via function_model.transactions.FM10.\nSSOT item context: value=Corresponding INTSTAT bit cleared.",
           "evidence_terms": [],
           "id": "RTL-0148",
-          "owner_file": "rtl/todo_counter_pipe_core.sv",
-          "owner_match": "function_model",
-          "owner_module": "todo_counter_pipe_core",
+          "owner_file": "rtl/todo_counter_pipe_regs.sv",
+          "owner_match": "function_model.transactions.FM10",
+          "owner_module": "todo_counter_pipe_regs",
           "priority": "high",
           "required": true,
           "requires_static_rtl_evidence": false,
@@ -8449,18 +8518,18 @@
             "Reset/enable/error behavior is consistent with the parent transaction",
             "Downstream equivalence/coverage can observe this behavior",
             "Traceability keeps source_ref function_model.transactions.FM10.outputs.output_1",
-            "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
+            "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv"
           ],
-          "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM10.outputs.output_1.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.\nSSOT item context: value=For ovf_clr: STATUS.overflow cleared.",
+          "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM10.outputs.output_1.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via function_model.transactions.FM10.\nSSOT item context: value=For ovf_clr: STATUS.overflow cleared.",
           "evidence_terms": [
             "clr",
             "ovf",
             "ovf_clr"
           ],
           "id": "RTL-0149",
-          "owner_file": "rtl/todo_counter_pipe_core.sv",
-          "owner_match": "function_model",
-          "owner_module": "todo_counter_pipe_core",
+          "owner_file": "rtl/todo_counter_pipe_regs.sv",
+          "owner_match": "function_model.transactions.FM10",
+          "owner_module": "todo_counter_pipe_regs",
           "priority": "high",
           "required": true,
           "requires_static_rtl_evidence": true,
@@ -8486,7 +8555,7 @@
               "ovf",
               "ovf_clr"
             ],
-            "source_scope": "rtl/todo_counter_pipe_core.sv",
+            "source_scope": "rtl/todo_counter_pipe_regs.sv",
             "status": "pass"
           },
           "todo_completion": {
@@ -8510,18 +8579,18 @@
             "Reset/enable/error behavior is consistent with the parent transaction",
             "Downstream equivalence/coverage can observe this behavior",
             "Traceability keeps source_ref function_model.transactions.FM10.outputs.output_2",
-            "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
+            "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv"
           ],
-          "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM10.outputs.output_2.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.\nSSOT item context: value=For unf_clr: STATUS.underflow cleared.",
+          "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM10.outputs.output_2.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via function_model.transactions.FM10.\nSSOT item context: value=For unf_clr: STATUS.underflow cleared.",
           "evidence_terms": [
             "clr",
             "unf",
             "unf_clr"
           ],
           "id": "RTL-0150",
-          "owner_file": "rtl/todo_counter_pipe_core.sv",
-          "owner_match": "function_model",
-          "owner_module": "todo_counter_pipe_core",
+          "owner_file": "rtl/todo_counter_pipe_regs.sv",
+          "owner_match": "function_model.transactions.FM10",
+          "owner_module": "todo_counter_pipe_regs",
           "priority": "high",
           "required": true,
           "requires_static_rtl_evidence": true,
@@ -8547,7 +8616,7 @@
               "unf",
               "unf_clr"
             ],
-            "source_scope": "rtl/todo_counter_pipe_core.sv",
+            "source_scope": "rtl/todo_counter_pipe_regs.sv",
             "status": "pass"
           },
           "todo_completion": {
@@ -8571,17 +8640,17 @@
             "Reset/enable/error behavior is consistent with the parent transaction",
             "Downstream equivalence/coverage can observe this behavior",
             "Traceability keeps source_ref function_model.transactions.FM10.side_effects.side_effect_0",
-            "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
+            "Primary implementation evidence is in rtl/todo_counter_pipe_regs.sv"
           ],
-          "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM10.side_effects.side_effect_0.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.\nSSOT item context: value=counter_irq deasserts if no other enabled pending sources remain.",
+          "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM10.side_effects.side_effect_0.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via function_model.transactions.FM10.\nSSOT item context: value=counter_irq deasserts if no other enabled pending sources remain.",
           "evidence_terms": [
             "counter_irq",
             "irq"
           ],
           "id": "RTL-0151",
-          "owner_file": "rtl/todo_counter_pipe_core.sv",
-          "owner_match": "function_model",
-          "owner_module": "todo_counter_pipe_core",
+          "owner_file": "rtl/todo_counter_pipe_regs.sv",
+          "owner_match": "function_model.transactions.FM10",
+          "owner_module": "todo_counter_pipe_regs",
           "priority": "high",
           "required": true,
           "requires_static_rtl_evidence": true,
@@ -8605,7 +8674,7 @@
               "counter_irq",
               "irq"
             ],
-            "source_scope": "rtl/todo_counter_pipe_core.sv",
+            "source_scope": "rtl/todo_counter_pipe_regs.sv",
             "status": "pass"
           },
           "todo_completion": {
@@ -9371,11 +9440,11 @@
             "cycle_model.pipeline.S0_APB_ACCESS timing uses SSOT cycle/latency 0",
             "cycle_model.pipeline.S0_APB_ACCESS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
           ],
-          "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S0_APB_ACCESS.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via cycle_model.pipeline.S0_APB_ACCESS.\nSSOT item context: stage=S0_APB_ACCESS; cycle=0.",
+          "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S0_APB_ACCESS.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via cycle_model.pipeline.S0_APB_ACCESS.\nSSOT item context: stage=S0_APB_ACCESS; action=APB decode: paddr→register select, pwrite→read/write, pwdata→write data captured on psel&&penable; cycle=0.",
           "evidence_terms": [
-            "APB",
-            "S0",
-            "S0_APB_ACCESS"
+            "bus",
+            "bus_clk",
+            "clk"
           ],
           "id": "RTL-0167",
           "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -9386,6 +9455,7 @@
           "requires_static_rtl_evidence": true,
           "source_ref": "cycle_model.pipeline.S0_APB_ACCESS",
           "ssot_context": {
+            "action": "APB decode: paddr→register select, pwrite→read/write, pwdata→write data captured on psel&&penable",
             "cycle": "0",
             "stage": "S0_APB_ACCESS"
           },
@@ -9395,17 +9465,17 @@
           "static_evidence": {
             "matched_count": 3,
             "matched_terms": [
-              "APB",
-              "S0",
-              "S0_APB_ACCESS"
+              "bus",
+              "bus_clk",
+              "clk"
             ],
             "owner_file_scoped": true,
             "required": true,
             "required_match_count": 2,
             "required_terms": [
-              "APB",
-              "S0",
-              "S0_APB_ACCESS"
+              "bus",
+              "bus_clk",
+              "clk"
             ],
             "source_scope": "rtl/todo_counter_pipe_regs.sv",
             "status": "pass"
@@ -9435,12 +9505,14 @@
             "cycle_model.pipeline.S1_CDC_CTRL timing uses SSOT cycle/latency 0..4",
             "cycle_model.pipeline.S1_CDC_CTRL appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
           ],
-          "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S1_CDC_CTRL.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.\nSSOT item context: stage=S1_CDC_CTRL; cycle=0..4.",
+          "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S1_CDC_CTRL.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.\nSSOT item context: stage=S1_CDC_CTRL; action=2-stage synchronizer: CTRL fields (enable, up_down, mode, clear pulse, load pulse), LOAD value cross bus→core; cycle=0..4.",
           "evidence_terms": [
-            "CDC",
-            "CTRL",
-            "S1",
-            "S1_CDC_CTRL"
+            "clk",
+            "core",
+            "core_clk",
+            "down",
+            "up",
+            "up_down"
           ],
           "id": "RTL-0168",
           "owner_file": "rtl/todo_counter_pipe_core.sv",
@@ -9451,6 +9523,7 @@
           "requires_static_rtl_evidence": true,
           "source_ref": "cycle_model.pipeline.S1_CDC_CTRL",
           "ssot_context": {
+            "action": "2-stage synchronizer: CTRL fields (enable, up_down, mode, clear pulse, load pulse), LOAD value cross bus→core",
             "cycle": "0..4",
             "stage": "S1_CDC_CTRL"
           },
@@ -9458,21 +9531,25 @@
             "cycle_model.pipeline.S1_CDC_CTRL"
           ],
           "static_evidence": {
-            "matched_count": 4,
+            "matched_count": 6,
             "matched_terms": [
-              "CDC",
-              "CTRL",
-              "S1",
-              "S1_CDC_CTRL"
+              "clk",
+              "core",
+              "core_clk",
+              "down",
+              "up",
+              "up_down"
             ],
             "owner_file_scoped": true,
             "required": true,
             "required_match_count": 2,
             "required_terms": [
-              "CDC",
-              "CTRL",
-              "S1",
-              "S1_CDC_CTRL"
+              "clk",
+              "core",
+              "core_clk",
+              "down",
+              "up",
+              "up_down"
             ],
             "source_scope": "rtl/todo_counter_pipe_core.sv",
             "status": "pass"
@@ -9502,12 +9579,15 @@
             "cycle_model.pipeline.S2_COUNT_EVAL timing uses SSOT cycle/latency 0..N",
             "cycle_model.pipeline.S2_COUNT_EVAL appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
           ],
-          "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S2_COUNT_EVAL.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.\nSSOT item context: stage=S2_COUNT_EVAL; cycle=0..N.",
+          "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S2_COUNT_EVAL.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.\nSSOT item context: stage=S2_COUNT_EVAL; action=Sample event_i; if enable && event_i rising edge, evaluate prio (clear>load>count), arithmetic, saturate/wrap, termin...; cycle=0..N.",
           "evidence_terms": [
-            "COUNT",
-            "EVAL",
-            "S2",
-            "S2_COUNT_EVAL"
+            "clk",
+            "core",
+            "core_clk",
+            "count",
+            "dbg",
+            "dbg_cycle_count",
+            "event_i"
           ],
           "id": "RTL-0169",
           "owner_file": "rtl/todo_counter_pipe_core.sv",
@@ -9518,6 +9598,7 @@
           "requires_static_rtl_evidence": true,
           "source_ref": "cycle_model.pipeline.S2_COUNT_EVAL",
           "ssot_context": {
+            "action": "Sample event_i; if enable && event_i rising edge, evaluate prio (clear>load>count), arithmetic, saturate/wrap, termin...",
             "cycle": "0..N",
             "stage": "S2_COUNT_EVAL"
           },
@@ -9525,21 +9606,27 @@
             "cycle_model.pipeline.S2_COUNT_EVAL"
           ],
           "static_evidence": {
-            "matched_count": 4,
+            "matched_count": 7,
             "matched_terms": [
-              "COUNT",
-              "EVAL",
-              "S2",
-              "S2_COUNT_EVAL"
+              "clk",
+              "core",
+              "core_clk",
+              "count",
+              "dbg",
+              "dbg_cycle_count",
+              "event_i"
             ],
             "owner_file_scoped": true,
             "required": true,
             "required_match_count": 2,
             "required_terms": [
-              "COUNT",
-              "EVAL",
-              "S2",
-              "S2_COUNT_EVAL"
+              "clk",
+              "core",
+              "core_clk",
+              "count",
+              "dbg",
+              "dbg_cycle_count",
+              "event_i"
             ],
             "source_scope": "rtl/todo_counter_pipe_core.sv",
             "status": "pass"
@@ -9569,12 +9656,23 @@
             "cycle_model.pipeline.S3_CDC_STATUS timing uses SSOT cycle/latency 0..5",
             "cycle_model.pipeline.S3_CDC_STATUS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
           ],
-          "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S3_CDC_STATUS.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.\nSSOT item context: stage=S3_CDC_STATUS; cycle=0..5.",
+          "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S3_CDC_STATUS.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.\nSSOT item context: stage=S3_CDC_STATUS; action=2-stage synchronizer: cnt_value, overflow, underflow, tc_pending, ovf_pending, unf_pending, dbg_cycle_count cross cor...; cycle=0..5.",
           "evidence_terms": [
-            "CDC",
-            "S3",
-            "S3_CDC_STATUS",
-            "STATUS"
+            "bus",
+            "bus_clk",
+            "clk",
+            "cnt",
+            "cnt_value",
+            "count",
+            "dbg",
+            "dbg_cycle_count",
+            "ovf",
+            "ovf_pending",
+            "tc",
+            "tc_pending",
+            "unf",
+            "unf_pending",
+            "value"
           ],
           "id": "RTL-0170",
           "owner_file": "rtl/todo_counter_pipe_core.sv",
@@ -9585,6 +9683,7 @@
           "requires_static_rtl_evidence": true,
           "source_ref": "cycle_model.pipeline.S3_CDC_STATUS",
           "ssot_context": {
+            "action": "2-stage synchronizer: cnt_value, overflow, underflow, tc_pending, ovf_pending, unf_pending, dbg_cycle_count cross cor...",
             "cycle": "0..5",
             "stage": "S3_CDC_STATUS"
           },
@@ -9592,21 +9691,40 @@
             "cycle_model.pipeline.S3_CDC_STATUS"
           ],
           "static_evidence": {
-            "matched_count": 4,
+            "matched_count": 12,
             "matched_terms": [
-              "CDC",
-              "S3",
-              "S3_CDC_STATUS",
-              "STATUS"
+              "clk",
+              "cnt",
+              "count",
+              "dbg",
+              "dbg_cycle_count",
+              "ovf",
+              "ovf_pending",
+              "tc",
+              "tc_pending",
+              "unf",
+              "unf_pending",
+              "value"
             ],
             "owner_file_scoped": true,
             "required": true,
             "required_match_count": 2,
             "required_terms": [
-              "CDC",
-              "S3",
-              "S3_CDC_STATUS",
-              "STATUS"
+              "bus",
+              "bus_clk",
+              "clk",
+              "cnt",
+              "cnt_value",
+              "count",
+              "dbg",
+              "dbg_cycle_count",
+              "ovf",
+              "ovf_pending",
+              "tc",
+              "tc_pending",
+              "unf",
+              "unf_pending",
+              "value"
             ],
             "source_scope": "rtl/todo_counter_pipe_core.sv",
             "status": "pass"
@@ -9636,12 +9754,13 @@
             "cycle_model.pipeline.S4_STATUS_UPDATE timing uses SSOT cycle/latency 0..1",
             "cycle_model.pipeline.S4_STATUS_UPDATE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
           ],
-          "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S4_STATUS_UPDATE.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via cycle_model.pipeline.S4_STATUS_UPDATE.\nSSOT item context: stage=S4_STATUS_UPDATE; cycle=0..1.",
+          "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S4_STATUS_UPDATE.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via cycle_model.pipeline.S4_STATUS_UPDATE.\nSSOT item context: stage=S4_STATUS_UPDATE; action=Latched status reflected in CNT/STATUS/INTSTAT registers; W1C clear logic evaluated; counter_irq updated; cycle=0..1.",
           "evidence_terms": [
-            "S4",
-            "S4_STATUS_UPDATE",
-            "STATUS",
-            "UPDATE"
+            "bus",
+            "bus_clk",
+            "clk",
+            "counter_irq",
+            "irq"
           ],
           "id": "RTL-0171",
           "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -9652,6 +9771,7 @@
           "requires_static_rtl_evidence": true,
           "source_ref": "cycle_model.pipeline.S4_STATUS_UPDATE",
           "ssot_context": {
+            "action": "Latched status reflected in CNT/STATUS/INTSTAT registers; W1C clear logic evaluated; counter_irq updated",
             "cycle": "0..1",
             "stage": "S4_STATUS_UPDATE"
           },
@@ -9659,21 +9779,23 @@
             "cycle_model.pipeline.S4_STATUS_UPDATE"
           ],
           "static_evidence": {
-            "matched_count": 4,
+            "matched_count": 5,
             "matched_terms": [
-              "S4",
-              "S4_STATUS_UPDATE",
-              "STATUS",
-              "UPDATE"
+              "bus",
+              "bus_clk",
+              "clk",
+              "counter_irq",
+              "irq"
             ],
             "owner_file_scoped": true,
             "required": true,
             "required_match_count": 2,
             "required_terms": [
-              "S4",
-              "S4_STATUS_UPDATE",
-              "STATUS",
-              "UPDATE"
+              "bus",
+              "bus_clk",
+              "clk",
+              "counter_irq",
+              "irq"
             ],
             "source_scope": "rtl/todo_counter_pipe_regs.sv",
             "status": "pass"
@@ -9747,18 +9869,14 @@
             "cycle_model.ordering.ordering_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
           ],
           "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_1.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.\nSSOT item context: value=A write to CTRL.clear or CTRL.load followed by a write to CTRL.enable in the same or subsequent bus_clk cycle must gu....",
-          "evidence_terms": [
-            "bus",
-            "bus_clk",
-            "clk"
-          ],
+          "evidence_terms": [],
           "id": "RTL-0173",
           "owner_file": "rtl/todo_counter_pipe_core.sv",
           "owner_match": "cycle_model",
           "owner_module": "todo_counter_pipe_core",
           "priority": "high",
           "required": true,
-          "requires_static_rtl_evidence": true,
+          "requires_static_rtl_evidence": false,
           "source_ref": "cycle_model.ordering.ordering_rule_1",
           "ssot_context": {
             "value": "A write to CTRL.clear or CTRL.load followed by a write to CTRL.enable in the same or subsequent bus_clk cycle must gu..."
@@ -9767,22 +9885,8 @@
             "cycle_model.ordering.ordering_rule_1"
           ],
           "static_evidence": {
-            "matched_count": 3,
-            "matched_terms": [
-              "bus",
-              "bus_clk",
-              "clk"
-            ],
-            "owner_file_scoped": true,
-            "required": true,
-            "required_match_count": 2,
-            "required_terms": [
-              "bus",
-              "bus_clk",
-              "clk"
-            ],
-            "source_scope": "rtl/todo_counter_pipe_core.sv",
-            "status": "pass"
+            "required": false,
+            "status": "not_required"
           },
           "todo_completion": {
             "criteria_total": 6,
@@ -9809,20 +9913,14 @@
             "cycle_model.ordering.ordering_rule_2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
           ],
           "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_2.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.\nSSOT item context: value=Interrupt status updates (INTSTAT, STATUS) occur in bus_clk domain after CDC convergence; counter_irq follows in the ....",
-          "evidence_terms": [
-            "bus",
-            "bus_clk",
-            "clk",
-            "counter_irq",
-            "irq"
-          ],
+          "evidence_terms": [],
           "id": "RTL-0174",
           "owner_file": "rtl/todo_counter_pipe_core.sv",
           "owner_match": "cycle_model",
           "owner_module": "todo_counter_pipe_core",
           "priority": "high",
           "required": true,
-          "requires_static_rtl_evidence": true,
+          "requires_static_rtl_evidence": false,
           "source_ref": "cycle_model.ordering.ordering_rule_2",
           "ssot_context": {
             "value": "Interrupt status updates (INTSTAT, STATUS) occur in bus_clk domain after CDC convergence; counter_irq follows in the ..."
@@ -9831,26 +9929,8 @@
             "cycle_model.ordering.ordering_rule_2"
           ],
           "static_evidence": {
-            "matched_count": 5,
-            "matched_terms": [
-              "bus",
-              "bus_clk",
-              "clk",
-              "counter_irq",
-              "irq"
-            ],
-            "owner_file_scoped": true,
-            "required": true,
-            "required_match_count": 2,
-            "required_terms": [
-              "bus",
-              "bus_clk",
-              "clk",
-              "counter_irq",
-              "irq"
-            ],
-            "source_scope": "rtl/todo_counter_pipe_core.sv",
-            "status": "pass"
+            "required": false,
+            "status": "not_required"
           },
           "todo_completion": {
             "criteria_total": 6,
@@ -9877,24 +9957,14 @@
             "cycle_model.ordering.ordering_rule_3 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
           ],
           "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_3.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.\nSSOT item context: value=dbg_cycle_count is free-running on core_clk and visible through CDC on bus_clk; no synchronization to event_i..",
-          "evidence_terms": [
-            "bus",
-            "bus_clk",
-            "clk",
-            "core",
-            "core_clk",
-            "count",
-            "dbg",
-            "dbg_cycle_count",
-            "event_i"
-          ],
+          "evidence_terms": [],
           "id": "RTL-0175",
           "owner_file": "rtl/todo_counter_pipe_core.sv",
           "owner_match": "cycle_model",
           "owner_module": "todo_counter_pipe_core",
           "priority": "high",
           "required": true,
-          "requires_static_rtl_evidence": true,
+          "requires_static_rtl_evidence": false,
           "source_ref": "cycle_model.ordering.ordering_rule_3",
           "ssot_context": {
             "value": "dbg_cycle_count is free-running on core_clk and visible through CDC on bus_clk; no synchronization to event_i."
@@ -9903,34 +9973,8 @@
             "cycle_model.ordering.ordering_rule_3"
           ],
           "static_evidence": {
-            "matched_count": 9,
-            "matched_terms": [
-              "bus",
-              "bus_clk",
-              "clk",
-              "core",
-              "core_clk",
-              "count",
-              "dbg",
-              "dbg_cycle_count",
-              "event_i"
-            ],
-            "owner_file_scoped": true,
-            "required": true,
-            "required_match_count": 2,
-            "required_terms": [
-              "bus",
-              "bus_clk",
-              "clk",
-              "core",
-              "core_clk",
-              "count",
-              "dbg",
-              "dbg_cycle_count",
-              "event_i"
-            ],
-            "source_scope": "rtl/todo_counter_pipe_core.sv",
-            "status": "pass"
+            "required": false,
+            "status": "not_required"
           },
           "todo_completion": {
             "criteria_total": 6,
@@ -12241,16 +12285,16 @@
             "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
             "Coverage can observe the state or equivalent condition",
             "Traceability keeps source_ref fsm.core_fsm.states.state_0",
-            "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
+            "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv"
           ],
-          "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core_fsm.states.state_0.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via fsm.\nSSOT item context: value=IDLE.",
+          "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core_fsm.states.state_0.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via fsm.core_fsm.\nSSOT item context: value=IDLE.",
           "evidence_terms": [
             "IDLE"
           ],
           "id": "RTL-0222",
-          "owner_file": "rtl/todo_counter_pipe_core.sv",
-          "owner_match": "fsm",
-          "owner_module": "todo_counter_pipe_core",
+          "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+          "owner_match": "fsm.core_fsm",
+          "owner_module": "todo_counter_pipe_cdc",
           "priority": "high",
           "required": true,
           "requires_static_rtl_evidence": true,
@@ -12262,18 +12306,16 @@
             "fsm.core_fsm.states.state_0"
           ],
           "static_evidence": {
-            "matched_count": 1,
-            "matched_terms": [
-              "IDLE"
-            ],
+            "matched_count": 0,
+            "matched_terms": [],
             "owner_file_scoped": true,
             "required": true,
             "required_match_count": 1,
             "required_terms": [
               "IDLE"
             ],
-            "source_scope": "rtl/todo_counter_pipe_core.sv",
-            "status": "pass"
+            "source_scope": "rtl/todo_counter_pipe_cdc.sv",
+            "status": "missing"
           },
           "todo_completion": {
             "criteria_total": 6,
@@ -12283,9 +12325,9 @@
               "owner RTL file/module declaration evidence",
               "static RTL evidence audit when evidence_terms are required"
             ],
-            "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+            "reason": "Required RTL static evidence is missing.",
             "required": true,
-            "status": "pass"
+            "status": "open"
           }
         },
         {
@@ -12297,16 +12339,16 @@
             "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
             "Coverage can observe the state or equivalent condition",
             "Traceability keeps source_ref fsm.core_fsm.states.state_1",
-            "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
+            "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv"
           ],
-          "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core_fsm.states.state_1.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via fsm.\nSSOT item context: value=COUNT.",
+          "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core_fsm.states.state_1.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via fsm.core_fsm.\nSSOT item context: value=COUNT.",
           "evidence_terms": [
             "COUNT"
           ],
           "id": "RTL-0223",
-          "owner_file": "rtl/todo_counter_pipe_core.sv",
-          "owner_match": "fsm",
-          "owner_module": "todo_counter_pipe_core",
+          "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+          "owner_match": "fsm.core_fsm",
+          "owner_module": "todo_counter_pipe_cdc",
           "priority": "high",
           "required": true,
           "requires_static_rtl_evidence": true,
@@ -12328,7 +12370,7 @@
             "required_terms": [
               "COUNT"
             ],
-            "source_scope": "rtl/todo_counter_pipe_core.sv",
+            "source_scope": "rtl/todo_counter_pipe_cdc.sv",
             "status": "pass"
           },
           "todo_completion": {
@@ -12352,20 +12394,20 @@
             "Transition action/state update is implemented",
             "Illegal/missing transition behavior is handled per SSOT",
             "Traceability keeps source_ref fsm.core_fsm.transitions.transition_0",
-            "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv",
+            "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv",
             "fsm.core_fsm.transitions.transition_0 condition is implemented as RTL control logic: enable=1 and event_i=1",
             "fsm.core_fsm.transitions.transition_0 transition path IDLE -> COUNT is encoded or explicitly proven equivalent"
           ],
-          "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core_fsm.transitions.transition_0.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via fsm.\nSSOT item context: from=IDLE; to=COUNT; condition=enable=1 and event_i=1.",
+          "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core_fsm.transitions.transition_0.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via fsm.core_fsm.\nSSOT item context: from=IDLE; to=COUNT; condition=enable=1 and event_i=1.",
           "evidence_terms": [
             "COUNT",
             "IDLE",
             "event_i"
           ],
           "id": "RTL-0224",
-          "owner_file": "rtl/todo_counter_pipe_core.sv",
-          "owner_match": "fsm",
-          "owner_module": "todo_counter_pipe_core",
+          "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+          "owner_match": "fsm.core_fsm",
+          "owner_module": "todo_counter_pipe_cdc",
           "priority": "high",
           "required": true,
           "requires_static_rtl_evidence": true,
@@ -12379,11 +12421,9 @@
             "fsm.core_fsm.transitions.transition_0"
           ],
           "static_evidence": {
-            "matched_count": 3,
+            "matched_count": 1,
             "matched_terms": [
-              "COUNT",
-              "IDLE",
-              "event_i"
+              "COUNT"
             ],
             "owner_file_scoped": true,
             "required": true,
@@ -12393,8 +12433,8 @@
               "IDLE",
               "event_i"
             ],
-            "source_scope": "rtl/todo_counter_pipe_core.sv",
-            "status": "pass"
+            "source_scope": "rtl/todo_counter_pipe_cdc.sv",
+            "status": "missing"
           },
           "todo_completion": {
             "criteria_total": 7,
@@ -12404,9 +12444,9 @@
               "owner RTL file/module declaration evidence",
               "static RTL evidence audit when evidence_terms are required"
             ],
-            "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+            "reason": "Required RTL static evidence is missing.",
             "required": true,
-            "status": "pass"
+            "status": "open"
           }
         },
         {
@@ -12417,19 +12457,19 @@
             "Transition action/state update is implemented",
             "Illegal/missing transition behavior is handled per SSOT",
             "Traceability keeps source_ref fsm.core_fsm.transitions.transition_1",
-            "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv",
+            "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv",
             "fsm.core_fsm.transitions.transition_1 condition is implemented as RTL control logic: enable=0",
             "fsm.core_fsm.transitions.transition_1 transition path COUNT -> IDLE is encoded or explicitly proven equivalent"
           ],
-          "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core_fsm.transitions.transition_1.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via fsm.\nSSOT item context: from=COUNT; to=IDLE; condition=enable=0.",
+          "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core_fsm.transitions.transition_1.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via fsm.core_fsm.\nSSOT item context: from=COUNT; to=IDLE; condition=enable=0.",
           "evidence_terms": [
             "COUNT",
             "IDLE"
           ],
           "id": "RTL-0225",
-          "owner_file": "rtl/todo_counter_pipe_core.sv",
-          "owner_match": "fsm",
-          "owner_module": "todo_counter_pipe_core",
+          "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+          "owner_match": "fsm.core_fsm",
+          "owner_module": "todo_counter_pipe_cdc",
           "priority": "high",
           "required": true,
           "requires_static_rtl_evidence": true,
@@ -12443,10 +12483,9 @@
             "fsm.core_fsm.transitions.transition_1"
           ],
           "static_evidence": {
-            "matched_count": 2,
+            "matched_count": 1,
             "matched_terms": [
-              "COUNT",
-              "IDLE"
+              "COUNT"
             ],
             "owner_file_scoped": true,
             "required": true,
@@ -12455,8 +12494,8 @@
               "COUNT",
               "IDLE"
             ],
-            "source_scope": "rtl/todo_counter_pipe_core.sv",
-            "status": "pass"
+            "source_scope": "rtl/todo_counter_pipe_cdc.sv",
+            "status": "missing"
           },
           "todo_completion": {
             "criteria_total": 7,
@@ -12466,9 +12505,9 @@
               "owner RTL file/module declaration evidence",
               "static RTL evidence audit when evidence_terms are required"
             ],
-            "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+            "reason": "Required RTL static evidence is missing.",
             "required": true,
-            "status": "pass"
+            "status": "open"
           }
         },
         {
@@ -12479,19 +12518,19 @@
             "Transition action/state update is implemented",
             "Illegal/missing transition behavior is handled per SSOT",
             "Traceability keeps source_ref fsm.core_fsm.transitions.transition_2",
-            "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv",
+            "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv",
             "fsm.core_fsm.transitions.transition_2 condition is implemented as RTL control logic: enable=1 and event_i=1 (next count)",
             "fsm.core_fsm.transitions.transition_2 transition path COUNT -> COUNT is encoded or explicitly proven equivalent"
           ],
-          "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core_fsm.transitions.transition_2.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via fsm.\nSSOT item context: from=COUNT; to=COUNT; condition=enable=1 and event_i=1 (next count).",
+          "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core_fsm.transitions.transition_2.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via fsm.core_fsm.\nSSOT item context: from=COUNT; to=COUNT; condition=enable=1 and event_i=1 (next count).",
           "evidence_terms": [
             "COUNT",
             "event_i"
           ],
           "id": "RTL-0226",
-          "owner_file": "rtl/todo_counter_pipe_core.sv",
-          "owner_match": "fsm",
-          "owner_module": "todo_counter_pipe_core",
+          "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+          "owner_match": "fsm.core_fsm",
+          "owner_module": "todo_counter_pipe_cdc",
           "priority": "high",
           "required": true,
           "requires_static_rtl_evidence": true,
@@ -12505,10 +12544,9 @@
             "fsm.core_fsm.transitions.transition_2"
           ],
           "static_evidence": {
-            "matched_count": 2,
+            "matched_count": 1,
             "matched_terms": [
-              "COUNT",
-              "event_i"
+              "COUNT"
             ],
             "owner_file_scoped": true,
             "required": true,
@@ -12517,8 +12555,8 @@
               "COUNT",
               "event_i"
             ],
-            "source_scope": "rtl/todo_counter_pipe_core.sv",
-            "status": "pass"
+            "source_scope": "rtl/todo_counter_pipe_cdc.sv",
+            "status": "missing"
           },
           "todo_completion": {
             "criteria_total": 7,
@@ -12528,9 +12566,9 @@
               "owner RTL file/module declaration evidence",
               "static RTL evidence audit when evidence_terms are required"
             ],
-            "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+            "reason": "Required RTL static evidence is missing.",
             "required": true,
-            "status": "pass"
+            "status": "open"
           }
         },
         {
@@ -12673,18 +12711,18 @@
             "Feature observability and error behavior match SSOT",
             "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
             "Traceability keeps source_ref features.Clear_Load_Control",
-            "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
+            "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv"
           ],
-          "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Clear_Load_Control.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.\nSSOT item context: name=Clear/Load Control; output=cnt updated on next core_clk edge after CDC convergence.",
+          "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Clear_Load_Control.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via features.Clear_Load_Control.\nSSOT item context: name=Clear/Load Control; output=cnt updated on next core_clk edge after CDC convergence.",
           "evidence_terms": [
             "clk",
             "core",
             "core_clk"
           ],
           "id": "RTL-0230",
-          "owner_file": "rtl/todo_counter_pipe_core.sv",
-          "owner_match": "features",
-          "owner_module": "todo_counter_pipe_core",
+          "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+          "owner_match": "features.Clear_Load_Control",
+          "owner_module": "todo_counter_pipe_cdc",
           "priority": "high",
           "required": true,
           "requires_static_rtl_evidence": true,
@@ -12711,7 +12749,7 @@
               "core",
               "core_clk"
             ],
-            "source_scope": "rtl/todo_counter_pipe_core.sv",
+            "source_scope": "rtl/todo_counter_pipe_cdc.sv",
             "status": "pass"
           },
           "todo_completion": {
@@ -12760,9 +12798,8 @@
             "features.Terminal_Count_Interrupt"
           ],
           "static_evidence": {
-            "matched_count": 4,
+            "matched_count": 3,
             "matched_terms": [
-              "counter_irq",
               "irq",
               "tc",
               "tc_pending"
@@ -12800,18 +12837,18 @@
             "Feature observability and error behavior match SSOT",
             "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
             "Traceability keeps source_ref features.Debug_Cycle_Counter",
-            "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
+            "Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv"
           ],
-          "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Debug_Cycle_Counter.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.\nSSOT item context: name=Debug Cycle Counter; output=DBGCNT.dbg_cycle_count readable via APB after CDC.",
+          "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Debug_Cycle_Counter.\nOwner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via features.Debug_Cycle_Counter.\nSSOT item context: name=Debug Cycle Counter; output=DBGCNT.dbg_cycle_count readable via APB after CDC.",
           "evidence_terms": [
             "count",
             "dbg",
             "dbg_cycle_count"
           ],
           "id": "RTL-0232",
-          "owner_file": "rtl/todo_counter_pipe_core.sv",
-          "owner_match": "features",
-          "owner_module": "todo_counter_pipe_core",
+          "owner_file": "rtl/todo_counter_pipe_cdc.sv",
+          "owner_match": "features.Debug_Cycle_Counter",
+          "owner_module": "todo_counter_pipe_cdc",
           "priority": "high",
           "required": true,
           "requires_static_rtl_evidence": true,
@@ -12838,7 +12875,7 @@
               "dbg",
               "dbg_cycle_count"
             ],
-            "source_scope": "rtl/todo_counter_pipe_core.sv",
+            "source_scope": "rtl/todo_counter_pipe_cdc.sv",
             "status": "pass"
           },
           "todo_completion": {
@@ -12864,7 +12901,7 @@
             "Traceability keeps source_ref error_handling.recovery.recovery_0",
             "Primary implementation evidence is in rtl/todo_counter_pipe.sv"
           ],
-          "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_0.\nOwner: todo_counter_pipe in rtl/todo_counter_pipe.sv via error_handling.",
+          "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_0.\nOwner: todo_counter_pipe in rtl/todo_counter_pipe.sv via error_handling.\nSSOT item context: action=software W1C write to INTCLR.ovf_clr.",
           "evidence_terms": [],
           "id": "RTL-0233",
           "owner_file": "rtl/todo_counter_pipe.sv",
@@ -12874,7 +12911,9 @@
           "required": true,
           "requires_static_rtl_evidence": false,
           "source_ref": "error_handling.recovery.recovery_0",
-          "ssot_context": {},
+          "ssot_context": {
+            "action": "software W1C write to INTCLR.ovf_clr"
+          },
           "ssot_refs": [
             "error_handling.recovery.recovery_0"
           ],
@@ -12905,7 +12944,7 @@
             "Traceability keeps source_ref error_handling.recovery.recovery_1",
             "Primary implementation evidence is in rtl/todo_counter_pipe.sv"
           ],
-          "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_1.\nOwner: todo_counter_pipe in rtl/todo_counter_pipe.sv via error_handling.",
+          "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_1.\nOwner: todo_counter_pipe in rtl/todo_counter_pipe.sv via error_handling.\nSSOT item context: action=software W1C write to INTCLR.unf_clr.",
           "evidence_terms": [],
           "id": "RTL-0234",
           "owner_file": "rtl/todo_counter_pipe.sv",
@@ -12915,7 +12954,9 @@
           "required": true,
           "requires_static_rtl_evidence": false,
           "source_ref": "error_handling.recovery.recovery_1",
-          "ssot_context": {},
+          "ssot_context": {
+            "action": "software W1C write to INTCLR.unf_clr"
+          },
           "ssot_refs": [
             "error_handling.recovery.recovery_1"
           ],
@@ -12946,7 +12987,7 @@
             "Traceability keeps source_ref error_handling.recovery.recovery_2",
             "Primary implementation evidence is in rtl/todo_counter_pipe.sv"
           ],
-          "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_2.\nOwner: todo_counter_pipe in rtl/todo_counter_pipe.sv via error_handling.",
+          "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_2.\nOwner: todo_counter_pipe in rtl/todo_counter_pipe.sv via error_handling.\nSSOT item context: action=software W1C write to INTCLR.tc_clr.",
           "evidence_terms": [],
           "id": "RTL-0235",
           "owner_file": "rtl/todo_counter_pipe.sv",
@@ -12956,7 +12997,9 @@
           "required": true,
           "requires_static_rtl_evidence": false,
           "source_ref": "error_handling.recovery.recovery_2",
-          "ssot_context": {},
+          "ssot_context": {
+            "action": "software W1C write to INTCLR.tc_clr"
+          },
           "ssot_refs": [
             "error_handling.recovery.recovery_2"
           ],
@@ -15003,7 +15046,7 @@
       "todo_completion": {
         "all_required_todos_pass": false,
         "audit_rtl": true,
-        "open_required_tasks": 3,
+        "open_required_tasks": 9,
         "open_tasks": [
           {
             "category": "rtl_gate.rtl_gen",
@@ -15013,18 +15056,54 @@
           },
           {
             "category": "rtl_gate.rtl_gen",
+            "reason": "4 static-evidence-required task(s) still lack DUT RTL evidence.",
+            "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
+            "task_id": "RTL-0007"
+          },
+          {
+            "category": "rtl_gate.rtl_gen",
+            "reason": "1 manifest signal-flow issue(s) remain. todo_counter_pipe_cdc: status_core_to_bus: Manifest child output does not feed a top output, parent RTL logic, or another child input/inout",
+            "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
+            "task_id": "RTL-0015"
+          },
+          {
+            "category": "rtl_gate.rtl_gen",
             "reason": "DUT lint artifact is not clean.",
             "source_ref": "quality_gates.rtl_gen.dut_lint",
             "task_id": "RTL-0018"
           },
           {
             "category": "rtl_gate.rtl_gen",
-            "reason": "2 required non-closure TODO(s) remain open.",
+            "reason": "8 required non-closure TODO(s) remain open.",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "task_id": "RTL-0019"
+          },
+          {
+            "category": "fsm.state",
+            "reason": "Required RTL static evidence is missing.",
+            "source_ref": "fsm.core_fsm.states.state_0",
+            "task_id": "RTL-0222"
+          },
+          {
+            "category": "fsm.transition",
+            "reason": "Required RTL static evidence is missing.",
+            "source_ref": "fsm.core_fsm.transitions.transition_0",
+            "task_id": "RTL-0224"
+          },
+          {
+            "category": "fsm.transition",
+            "reason": "Required RTL static evidence is missing.",
+            "source_ref": "fsm.core_fsm.transitions.transition_1",
+            "task_id": "RTL-0225"
+          },
+          {
+            "category": "fsm.transition",
+            "reason": "Required RTL static evidence is missing.",
+            "source_ref": "fsm.core_fsm.transitions.transition_2",
+            "task_id": "RTL-0226"
           }
         ],
-        "required_passed": 276,
+        "required_passed": 270,
         "required_total": 279,
         "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
       },
