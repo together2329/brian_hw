@@ -19,7 +19,6 @@ decomposition:
     - { id: "sync", kind: "datapath", source_refs: ["cycle_model.pipeline.S0_SYNC"], rtl_candidates: ["edge_detector_core"], verification_impact: ["test_requirements.scenarios"] }
     - { id: "edge_detect", kind: "datapath", source_refs: ["function_model.transactions.EDGE_DETECT", "cycle_model.pipeline.S1_EDGE_LOGIC"], rtl_candidates: ["edge_detector_core"], verification_impact: ["test_requirements.scenarios"] }
     - { id: "apb_decode", kind: "control", source_refs: ["registers.register_list"], rtl_candidates: ["edge_detector_regs"], verification_impact: ["test_requirements.scenarios"] }
-decomposition: TBD
 parameters:
   - name: "NUM_INPUTS"
     default: 8

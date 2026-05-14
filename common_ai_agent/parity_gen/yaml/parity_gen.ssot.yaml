@@ -200,10 +200,13 @@ function_model:
       inputs:
         - "data_i (DATA_WIDTH bits)"
         - "CTRL.parity_type"
-      outputs:
-        - "parity_o = XOR_reduce(data_i) ^ CTRL.parity_type"
-        - "parity_valid_o = 1"
-        - "error_o = 0"
+      output_rules:
+        - { name: "parity_o",       expr: "XOR_reduce(data_i) ^ parity_type", width: "PARITY_WIDTH", port: "parity_o" }
+        - { name: "parity_valid_o", expr: "1",                                width: 1,              port: "parity_valid_o" }
+        - { name: "error_o",        expr: "0",                                width: 1,              port: "error_o" }
+      state_updates:
+        - { name: "parity_val", reset: 0, expr: "XOR_reduce(data_i) ^ parity_type" }
+        - { name: "error_flag", reset: 0, expr: "error_flag" }
       side_effects:
         - "parity_val ← XOR_reduce(data_i) ^ CTRL.parity_type"
         - "error_flag unchanged"
@@ -221,10 +224,13 @@ function_model:
         - "data_i (DATA_WIDTH bits)"
         - "parity_in_i (PARITY_WIDTH bits)"
         - "CTRL.parity_type"
-      outputs:
-        - "parity_o = XOR_reduce(data_i) ^ CTRL.parity_type"
-        - "parity_valid_o = 1"
-        - "error_o = (parity_o != parity_in_i)"
+      output_rules:
+        - { name: "parity_o",       expr: "XOR_reduce(data_i) ^ parity_type", width: "PARITY_WIDTH", port: "parity_o" }
+        - { name: "parity_valid_o", expr: "1",                                width: 1,              port: "parity_valid_o" }
+        - { name: "error_o",        expr: "(XOR_reduce(data_i) ^ parity_type) != parity_in_i", width: 1, port: "error_o" }
+      state_updates:
+        - { name: "parity_val", reset: 0, expr: "XOR_reduce(data_i) ^ parity_type" }
+        - { name: "error_flag", reset: 0, expr: "error_flag | ((XOR_reduce(data_i) ^ parity_type) != parity_in_i)" }
       side_effects:
         - "parity_val ← XOR_reduce(data_i) ^ CTRL.parity_type"
         - "error_flag ← error_flag | (parity_val != parity_in_i)"
@@ -237,20 +243,16 @@ function_model:
         - "CTRL.enable == 0"
       inputs:
         - "any data_valid_i"
-      outputs:
-        - "parity_o = 0"
-        - "parity_valid_o = 0"
-        - "error_o = 0"
+      output_rules:
+        - { name: "parity_o",       expr: "0", width: "PARITY_WIDTH", port: "parity_o" }
+        - { name: "parity_valid_o", expr: "0", width: 1,              port: "parity_valid_o" }
+        - { name: "error_o",        expr: "0", width: 1,              port: "error_o" }
+      state_updates:
+        - { name: "parity_val", reset: 0, expr: "parity_val" }
+        - { name: "error_flag", reset: 0, expr: "error_flag" }
       side_effects:
         - "parity_val unchanged"
         - "error_flag unchanged"
-  output_rules:
-    - { name: "parity_o",       expr: "enabled ? (XOR_reduce(data_i) ^ parity_type) : 0", width: "PARITY_WIDTH", port: "parity_o" }
-    - { name: "parity_valid_o", expr: "enabled & data_valid_i_d1", width: 1,              port: "parity_valid_o" }
-    - { name: "error_o",        expr: "enabled & (mode==check) & data_valid_i_d1 & (parity_val != parity_in_i_d1)", width: 1, port: "error_o" }
-  state_updates:
-    - { name: "parity_val", reset: 0, expr: "enabled & data_valid_i ? (XOR_reduce(data_i) ^ parity_type) : parity_val" }
-    - { name: "error_flag", reset: 0, expr: "status_read ? 0 : (enabled & (mode==check) & data_valid_i_d1 & (parity_val != parity_in_i_d1) ? 1 : error_flag)" }
   invariants:
     - "1-cycle latency: outputs valid exactly 1 PCLK cycle after data_valid_i assertion."
     - "When enable=0, all outputs are driven to 0."

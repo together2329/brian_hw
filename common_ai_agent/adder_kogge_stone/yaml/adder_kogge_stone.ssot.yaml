@@ -695,6 +695,72 @@ quality_gates:
   signoff:
     pass: "SSOT, RTL, lint, DV, simulation, coverage, and required EDA gates pass with fresh evidence."
     evidence: ["ATLAS progress signoff pass", "artifact timestamps newer than final source edits"]
-traceability: TBD
-workflow_todos: TBD
-generation_flow: TBD
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "ALL files (module name)" }
+    - { yaml: "parameters", output: "adder_kogge_stone_param.vh (shared parameter include)" }
+    - { yaml: "io_list.interfaces", output: "adder_kogge_stone.sv (port list / top-level wiring)" }
+    - { yaml: "registers.register_list", output: "adder_kogge_stone_regs.sv + firmware + docs" }
+    - { yaml: "function_model", output: "adder_kogge_stone_core.sv + tb/cocotb scoreboard/reference model" }
+    - { yaml: "cycle_model", output: "adder_kogge_stone_core.sv pipeline/handshake logic + waveform checks" }
+    - { yaml: "fsm", output: "adder_kogge_stone_core.sv + docs/fsm_diagram.md" }
+    - { yaml: "test_requirements.scenarios", output: "sim/tb_program.sv" }
+workflow_todos:
+  fl-model-gen: []
+  rtl-gen:
+    - id: "RTL_KS_CORE"
+      content: "Implement Kogge-Stone parallel-prefix adder core datapath"
+      detail: "Translate function_model FM_ADD transaction, cycle_model S0_SAMPLE/S1_COMPUTE pipeline stages, and dataflow.datapath Kogge-Stone tree description into parameterized RTL with generate loops for ceil(log2(WIDTH)) stages."
+      criteria:
+        - "Kogge-Stone tree implemented with generate loops over WIDTH and log2(WIDTH) stages"
+        - "Output sum_o produces (a_i + b_i + cin_i) mod 2^WIDTH one cycle after operand sampling"
+        - "Output cout_o produces carry-out of the WIDTH-bit addition"
+        - "valid_o = CTRL.enable (registered)"
+        - "DUT-only compile/lint evidence is fresh after final edit"
+      source_refs: ["function_model.transactions.FM_ADD", "cycle_model.pipeline", "dataflow.datapath", "features"]
+      owner_module: "adder_kogge_stone_core"
+      owner_file: "rtl/adder_kogge_stone_core.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_KS_REGS"
+      content: "Implement APB-lite register file with CSR decode"
+      detail: "Translate registers.register_list into APB-lite address decode, read/write muxing, byte-strobe logic, and error response (PSLVERR for RO writes and unimplemented addresses)."
+      criteria:
+        - "All declared registers accessible at their offsets"
+        - "Read-only registers ignore writes and assert PSLVERR"
+        - "Unimplemented addresses assert PSLVERR with PRDATA=0"
+        - "Reserved fields read as zero"
+        - "Zero-wait-state APB (PREADY=1 in access phase)"
+      source_refs: ["registers.register_list", "error_handling", "function_model.transactions.FM_APB_READ", "function_model.transactions.FM_APB_WRITE"]
+      owner_module: "adder_kogge_stone_regs"
+      owner_file: "rtl/adder_kogge_stone_regs.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_KS_TOP"
+      content: "Integrate top-level adder_kogge_stone module"
+      detail: "Instantiate adder_kogge_stone_core and adder_kogge_stone_regs; wire APB ports, datapath ports, and internal control signals (CTRL fields to core). Map integration.connections to named port connections."
+      criteria:
+        - "Top-level ports match io_list exactly"
+        - "All integration.connections satisfied with named port maps"
+        - "Top-level compile/lint passes"
+      source_refs: ["io_list", "integration.connections", "sub_modules"]
+      owner_module: "adder_kogge_stone"
+      owner_file: "rtl/adder_kogge_stone.sv"
+      priority: "medium"
+      required: true
+  tb-gen: []
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh adder_kogge_stone", description: "Validate production SSOT structure and quality gates" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model adder_kogge_stone", description: "FunctionalModel, decomposition, coverage plan, and equivalence goals from validated SSOT" }
+    - { name: "handoff_rtl", command: "/ssot-rtl adder_kogge_stone", description: "Downstream RTL generation from validated SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb adder_kogge_stone", description: "Downstream pyuvm/cocotb verification from validated SSOT" }
+    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Downstream waveform, failure, and coverage inspection" }
+    - { name: "handoff_coverage", command: "/coverage adder_kogge_stone", description: "Measure SSOT-declared coverage goals" }
+    - { name: "handoff_eda", command: "/syn adder_kogge_stone && /sta adder_kogge_stone", description: "Produce SSOT-declared synthesis and STA evidence" }

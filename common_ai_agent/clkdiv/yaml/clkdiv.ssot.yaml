@@ -745,6 +745,7 @@ registers:
   register_list:
   - name: DIVISOR
     offset: "0x00"
+    width: 32
     access: rw
     reset: 0x00000000
     description: "Clock divisor register. Effective divide ratio = DIVISOR + 1. DIVISOR=0 → passthrough (clkdiv_o = PCLK). Max divisor limited by COUNTER_WIDTH parameter."
@@ -767,6 +768,7 @@ registers:
       description: "Reserved; reads zero"
   - name: CTRL
     offset: "0x04"
+    width: 32
     access: rw
     reset: 0x00000000
     description: "Control register. Enables/disables the divided clock output."
@@ -790,6 +792,7 @@ registers:
       description: "Reserved; reads zero"
   - name: STATUS
     offset: "0x08"
+    width: 32
     access: ro
     reset: 0x00000000
     description: "Status register. Exposes the internal counter value for debug and observability."

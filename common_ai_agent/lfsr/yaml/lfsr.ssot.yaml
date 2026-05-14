@@ -173,7 +173,8 @@ function_model:
       inputs: []
       outputs:
         - "lfsr_out hold previous value"
-      side_effects: []
+      side_effects:
+        - "No state change; lfsr_state and all registers hold current values"
       error_cases: []
   invariants:
     - "SEED must be non-zero for maximal-length sequence; zero seed produces degenerate all-zero output."
@@ -749,4 +750,12 @@ workflow_todos:
   pnr: []
   sta: []
   sta-post: []
-generation_flow: TBD
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh lfsr", description: "Validate production SSOT structure and quality gates" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model lfsr", description: "FunctionalModel, decomposition, coverage plan, and equivalence goals" }
+    - { name: "handoff_rtl", command: "/ssot-rtl lfsr", description: "Downstream RTL generation from validated SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb lfsr", description: "Downstream cocotb verification from validated SSOT" }
+    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Waveform, failure, and coverage inspection after sim" }
+    - { name: "handoff_coverage", command: "/coverage lfsr", description: "Measure SSOT-declared coverage goals" }
+    - { name: "handoff_eda", command: "/syn lfsr && /sta lfsr && /pnr lfsr && /sta-post lfsr", description: "Synthesis, STA, PnR, post-route STA evidence" }
