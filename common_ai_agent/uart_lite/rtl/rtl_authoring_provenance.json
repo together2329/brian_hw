@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "type": "rtl_authoring_provenance",
+  "agent": "common_ai_agent",
+  "workflow": "rtl-gen",
+  "surface": "atlas_ui",
+  "ip": "uart_lite",
+  "top": "uart_lite",
+  "todo_plan_sha256": "7968e784e430802d7fb2adb6d8d821b927d5c37c3d6d23dfd2220afcc6cad853",
+  "rtl_files": [
+    "rtl/uart_lite.sv",
+    "rtl/uart_lite_baud_gen.sv",
+    "rtl/uart_lite_core.sv",
+    "rtl/uart_lite_regs.sv",
+    "rtl/uart_lite_rx_fifo.sv",
+    "rtl/uart_lite_rx_fsm.sv",
+    "rtl/uart_lite_tx_fifo.sv",
+    "rtl/uart_lite_tx_fsm.sv"
+  ],
+  "generated_at": "2026-05-14T06:00:00Z",
+  "source": "uart_lite/yaml/uart_lite.ssot.yaml",
+  "status": "generated"
+}

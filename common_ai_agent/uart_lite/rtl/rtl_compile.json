@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "type": "rtl_compile",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "iverilog",
+  "command": "iverilog -g2012 -Irtl -f list/uart_lite.f -s uart_lite -o /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/uart_lite_rtl_check.vvp",
+  "cwd": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite",
+  "top": "uart_lite",
+  "filelist": "list/uart_lite.f",
+  "rtl_files": [
+    "rtl/uart_lite.sv",
+    "rtl/uart_lite_core.sv",
+    "rtl/uart_lite_regs.sv",
+    "rtl/uart_lite_tx_fifo.sv",
+    "rtl/uart_lite_rx_fifo.sv",
+    "rtl/uart_lite_baud_gen.sv",
+    "rtl/uart_lite_tx_fsm.sv",
+    "rtl/uart_lite_rx_fsm.sv"
+  ],
+  "timestamp": "2026-05-14T06:10:37Z",
+  "returncode": 0,
+  "errors": 0,
+  "diagnostics": 0,
+  "style_violations": 0,
+  "style_violation_details": [],
+  "passed": true,
+  "policy": "returncode==0, no error/fatal/warning/sorry diagnostics, no procedural parameterized part-select style violations, and no generated-RTL policy violations: .sv filenames with SystemVerilog logic-port syntax, rtl/<ip>_param.vh for shared parameters, no package/import/interface/modport/function/task/for/while, and no typedef/enum/always_ff/always_comb"
+}

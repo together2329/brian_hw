@@ -93,6 +93,27 @@ def test_ip_create_endpoint_does_not_pre_scaffold_ip_root(tmp_path, monkeypatch)
     assert not (tmp_path / "gpio").exists()
 
 
+def test_model_scoped_session_dirs_are_opt_in(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_SESSION_PER_MODEL", "1")
+    monkeypatch.setenv("LLM_ACTIVE_MODEL_NAME", "kimi-2.6")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    response = _activate(client, "alice", "ip_alpha", "sta")
+
+    assert response.status_code == 200
+    assert response.json()["session_id"] == "alice__kimi-2_6"
+    assert (tmp_path / ".session" / "alice__kimi-2_6" / "ip_alpha" / "sta" / "conversation.json").is_file()
+
+
 def test_multiuser_and_process_isolation_default_on(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 

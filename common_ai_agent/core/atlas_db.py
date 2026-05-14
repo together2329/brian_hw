@@ -133,6 +133,164 @@ CREATE TABLE IF NOT EXISTS session_queue (
 );
 CREATE INDEX IF NOT EXISTS idx_queue_session_direction ON session_queue(session_id, direction, created_at);
 CREATE INDEX IF NOT EXISTS idx_queue_created ON session_queue(created_at);
+
+-- workspaces (git/filesystem registry; DB stores pointers, not artifact bytes)
+CREATE TABLE IF NOT EXISTS workspaces (
+    id TEXT PRIMARY KEY,
+    owner_user_id TEXT,
+    name TEXT NOT NULL,
+    local_path TEXT,
+    git_remote TEXT,
+    git_branch TEXT,
+    base_commit TEXT,
+    head_commit TEXT,
+    dirty_state TEXT,
+    created_at REAL,
+    updated_at REAL,
+    UNIQUE(owner_user_id, name)
+);
+CREATE INDEX IF NOT EXISTS idx_workspaces_owner ON workspaces(owner_user_id, updated_at);
+
+-- ip_blocks (IP catalog within a workspace)
+CREATE TABLE IF NOT EXISTS ip_blocks (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    ip_name TEXT NOT NULL,
+    ip_type TEXT,
+    ssot_path TEXT,
+    status TEXT DEFAULT 'active',
+    created_at REAL,
+    updated_at REAL,
+    UNIQUE(workspace_id, ip_name)
+);
+CREATE INDEX IF NOT EXISTS idx_ip_blocks_workspace ON ip_blocks(workspace_id, ip_name);
+
+-- workflow_runs (one executable workflow invocation)
+CREATE TABLE IF NOT EXISTS workflow_runs (
+    id TEXT PRIMARY KEY,
+    session_id TEXT,
+    workspace_id TEXT,
+    ip_id TEXT,
+    workflow TEXT,
+    mode TEXT,
+    model_profile TEXT,
+    reasoning_effort TEXT,
+    status TEXT,
+    started_at REAL,
+    ended_at REAL,
+    duration_ms REAL,
+    trigger TEXT,
+    input_summary TEXT,
+    error_summary TEXT,
+    created_at REAL,
+    updated_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_workflow_runs_session ON workflow_runs(session_id, started_at);
+CREATE INDEX IF NOT EXISTS idx_workflow_runs_context ON workflow_runs(workspace_id, ip_id, workflow, started_at);
+
+-- workflow_stages (stage-level status inside a run)
+CREATE TABLE IF NOT EXISTS workflow_stages (
+    id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL,
+    stage_name TEXT NOT NULL,
+    status TEXT,
+    attempt INT DEFAULT 1,
+    started_at REAL,
+    ended_at REAL,
+    duration_ms REAL,
+    error_summary TEXT,
+    created_at REAL,
+    updated_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_workflow_stages_run ON workflow_stages(run_id, stage_name, attempt);
+
+-- workflow_events (append-only run timeline)
+CREATE TABLE IF NOT EXISTS workflow_events (
+    id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL,
+    stage_id TEXT,
+    event_type TEXT NOT NULL,
+    payload TEXT,
+    created_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_workflow_events_run ON workflow_events(run_id, created_at);
+
+-- workflow_todos (DB mirror of todo tracker state)
+CREATE TABLE IF NOT EXISTS workflow_todos (
+    id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL,
+    source TEXT,
+    title TEXT NOT NULL,
+    detail TEXT,
+    criteria TEXT,
+    status TEXT,
+    owner_file TEXT,
+    owner_module TEXT,
+    source_refs TEXT,
+    evidence TEXT,
+    created_at REAL,
+    updated_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_workflow_todos_run ON workflow_todos(run_id, status, updated_at);
+
+-- todo_events (append-only todo status changes)
+CREATE TABLE IF NOT EXISTS todo_events (
+    id TEXT PRIMARY KEY,
+    todo_id TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    reason TEXT,
+    evidence TEXT,
+    created_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_todo_events_todo ON todo_events(todo_id, created_at);
+
+-- llm_calls (canonical token/cost trace)
+CREATE TABLE IF NOT EXISTS llm_calls (
+    id TEXT PRIMARY KEY,
+    message_id TEXT,
+    run_id TEXT,
+    stage_id TEXT,
+    todo_id TEXT,
+    session_id TEXT,
+    workspace_id TEXT,
+    ip_id TEXT,
+    workflow TEXT,
+    model TEXT,
+    provider TEXT,
+    base_url_hash TEXT,
+    call_role TEXT,
+    attempt INT DEFAULT 1,
+    tokens_input INT DEFAULT 0,
+    tokens_output INT DEFAULT 0,
+    tokens_reasoning INT DEFAULT 0,
+    cache_read_tokens INT DEFAULT 0,
+    cache_write_tokens INT DEFAULT 0,
+    cost_usd REAL DEFAULT 0,
+    latency_ms REAL,
+    status TEXT,
+    error_type TEXT,
+    created_at REAL,
+    completed_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_llm_calls_context ON llm_calls(workspace_id, ip_id, workflow, created_at);
+CREATE INDEX IF NOT EXISTS idx_llm_calls_session ON llm_calls(session_id, created_at);
+
+-- artifacts (metadata/pointers only; content remains in filesystem/git/object storage)
+CREATE TABLE IF NOT EXISTS artifacts (
+    id TEXT PRIMARY KEY,
+    run_id TEXT,
+    stage_id TEXT,
+    ip_id TEXT,
+    workflow TEXT,
+    kind TEXT,
+    path TEXT,
+    storage_backend TEXT DEFAULT 'filesystem',
+    sha256 TEXT,
+    size_bytes INT,
+    git_commit TEXT,
+    created_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_artifacts_run ON artifacts(run_id, kind, created_at);
 """
 
 # Columns that should be serialized as JSON on write / deserialized on read
@@ -143,6 +301,9 @@ _JSON_COLUMNS = {
     "parts": {"tool_input", "patch_files"},
     "ws_connections": set(),
     "session_queue": {"payload"},
+    "workflow_events": {"payload"},
+    "workflow_todos": {"source_refs", "evidence"},
+    "todo_events": {"evidence"},
 }
 
 
@@ -409,6 +570,15 @@ class AtlasDB:
         tokens_output: int = 0,
         tokens_reasoning: int = 0,
         error: Any = None,
+        workflow: str = "",
+        run_id: str = "",
+        stage_id: str = "",
+        todo_id: str = "",
+        workspace_id: str = "",
+        ip_id: str = "",
+        latency_ms: float = None,
+        call_role: str = "primary",
+        attempt: int = 1,
     ) -> Dict[str, Any]:
         """Save a message. Returns the message dict."""
         message_id = self._new_id()
@@ -436,6 +606,39 @@ class AtlasDB:
                 error_json,
             ),
         )
+        if (
+            role == "assistant"
+            and (
+                model_id
+                or provider_id
+                or cost
+                or tokens_input
+                or tokens_output
+                or tokens_reasoning
+            )
+        ):
+            self.record_llm_call(
+                message_id=message_id,
+                session_id=session_id,
+                run_id=run_id,
+                stage_id=stage_id,
+                todo_id=todo_id,
+                workspace_id=workspace_id,
+                ip_id=ip_id,
+                workflow=workflow or agent,
+                model=model_id,
+                provider=provider_id,
+                call_role=call_role,
+                attempt=attempt,
+                tokens_input=tokens_input,
+                tokens_output=tokens_output,
+                tokens_reasoning=tokens_reasoning,
+                cost_usd=cost,
+                latency_ms=latency_ms,
+                status="error" if error else "ok",
+                error_type=str(error.get("code", "")) if isinstance(error, dict) else "",
+                created_at=now,
+            )
         return {
             "id": message_id,
             "session_id": session_id,
@@ -930,6 +1133,563 @@ class AtlasDB:
         if row is None:
             return None
         return self._row_to_dict(row, "session_queue")
+
+    # ---------- Workflow observability ----------
+
+    def upsert_workspace(
+        self,
+        name: str,
+        owner_user_id: str = "",
+        local_path: str = "",
+        git_remote: str = "",
+        git_branch: str = "",
+        base_commit: str = "",
+        head_commit: str = "",
+        dirty_state: str = "",
+        workspace_id: str = None,
+    ) -> Dict[str, Any]:
+        """Create or update a workspace registry row."""
+        now = self._now()
+        if workspace_id:
+            existing = self.get_workspace(workspace_id)
+        else:
+            existing = None
+            row = self._fetchone(
+                "SELECT id FROM workspaces WHERE owner_user_id = ? AND name = ?",
+                (owner_user_id, name),
+            )
+            if row is not None:
+                existing = self.get_workspace(row["id"])
+
+        if existing is None:
+            workspace_id = workspace_id or self._new_id()
+            self._execute(
+                """
+                INSERT INTO workspaces
+                (id, owner_user_id, name, local_path, git_remote, git_branch,
+                 base_commit, head_commit, dirty_state, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    workspace_id,
+                    owner_user_id,
+                    name,
+                    local_path,
+                    git_remote,
+                    git_branch,
+                    base_commit,
+                    head_commit,
+                    dirty_state,
+                    now,
+                    now,
+                ),
+            )
+        else:
+            workspace_id = existing["id"]
+            self._execute(
+                """
+                UPDATE workspaces
+                   SET local_path = ?, git_remote = ?, git_branch = ?,
+                       base_commit = ?, head_commit = ?, dirty_state = ?,
+                       updated_at = ?
+                 WHERE id = ?
+                """,
+                (
+                    local_path,
+                    git_remote,
+                    git_branch,
+                    base_commit,
+                    head_commit,
+                    dirty_state,
+                    now,
+                    workspace_id,
+                ),
+            )
+        return self.get_workspace(workspace_id)
+
+    def get_workspace(self, workspace_id: str) -> Optional[Dict[str, Any]]:
+        row = self._fetchone("SELECT * FROM workspaces WHERE id = ?", (workspace_id,))
+        return dict(row) if row is not None else None
+
+    def list_workspaces(self, owner_user_id: str = None) -> List[Dict[str, Any]]:
+        if owner_user_id is None:
+            rows = self._fetchall("SELECT * FROM workspaces ORDER BY updated_at DESC")
+        else:
+            rows = self._fetchall(
+                "SELECT * FROM workspaces WHERE owner_user_id = ? ORDER BY updated_at DESC",
+                (owner_user_id,),
+            )
+        return [dict(row) for row in rows]
+
+    def upsert_ip_block(
+        self,
+        workspace_id: str,
+        ip_name: str,
+        ip_type: str = "",
+        ssot_path: str = "",
+        status: str = "active",
+        ip_id: str = None,
+    ) -> Dict[str, Any]:
+        """Create or update an IP catalog row for a workspace."""
+        now = self._now()
+        if ip_id:
+            existing = self.get_ip_block(ip_id)
+        else:
+            existing = None
+            row = self._fetchone(
+                "SELECT id FROM ip_blocks WHERE workspace_id = ? AND ip_name = ?",
+                (workspace_id, ip_name),
+            )
+            if row is not None:
+                existing = self.get_ip_block(row["id"])
+
+        if existing is None:
+            ip_id = ip_id or self._new_id()
+            self._execute(
+                """
+                INSERT INTO ip_blocks
+                (id, workspace_id, ip_name, ip_type, ssot_path, status, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (ip_id, workspace_id, ip_name, ip_type, ssot_path, status, now, now),
+            )
+        else:
+            ip_id = existing["id"]
+            self._execute(
+                """
+                UPDATE ip_blocks
+                   SET ip_type = ?, ssot_path = ?, status = ?, updated_at = ?
+                 WHERE id = ?
+                """,
+                (ip_type, ssot_path, status, now, ip_id),
+            )
+        return self.get_ip_block(ip_id)
+
+    def get_ip_block(self, ip_id: str) -> Optional[Dict[str, Any]]:
+        row = self._fetchone("SELECT * FROM ip_blocks WHERE id = ?", (ip_id,))
+        return dict(row) if row is not None else None
+
+    def list_ip_blocks(self, workspace_id: str) -> List[Dict[str, Any]]:
+        rows = self._fetchall(
+            "SELECT * FROM ip_blocks WHERE workspace_id = ? ORDER BY ip_name",
+            (workspace_id,),
+        )
+        return [dict(row) for row in rows]
+
+    def start_workflow_run(
+        self,
+        session_id: str = "",
+        workspace_id: str = "",
+        ip_id: str = "",
+        workflow: str = "",
+        mode: str = "interactive",
+        model_profile: str = "",
+        reasoning_effort: str = "",
+        trigger: str = "",
+        input_summary: str = "",
+        status: str = "running",
+    ) -> Dict[str, Any]:
+        run_id = self._new_id()
+        now = self._now()
+        self._execute(
+            """
+            INSERT INTO workflow_runs
+            (id, session_id, workspace_id, ip_id, workflow, mode, model_profile,
+             reasoning_effort, status, started_at, ended_at, duration_ms,
+             trigger, input_summary, error_summary, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                run_id,
+                session_id,
+                workspace_id,
+                ip_id,
+                workflow,
+                mode,
+                model_profile,
+                reasoning_effort,
+                status,
+                now,
+                None,
+                None,
+                trigger,
+                input_summary,
+                None,
+                now,
+                now,
+            ),
+        )
+        return self.get_workflow_run(run_id)
+
+    def finish_workflow_run(
+        self,
+        run_id: str,
+        status: str,
+        error_summary: str = None,
+    ) -> Optional[Dict[str, Any]]:
+        row = self._fetchone("SELECT started_at FROM workflow_runs WHERE id = ?", (run_id,))
+        if row is None:
+            return None
+        now = self._now()
+        started = row["started_at"] or now
+        self._execute(
+            """
+            UPDATE workflow_runs
+               SET status = ?, ended_at = ?, duration_ms = ?,
+                   error_summary = ?, updated_at = ?
+             WHERE id = ?
+            """,
+            (status, now, (now - started) * 1000, error_summary, now, run_id),
+        )
+        return self.get_workflow_run(run_id)
+
+    def get_workflow_run(self, run_id: str) -> Optional[Dict[str, Any]]:
+        row = self._fetchone(
+            """
+            SELECT r.*, w.name AS workspace_name, w.local_path AS workspace_path,
+                   i.ip_name AS ip_name, i.ssot_path AS ssot_path
+              FROM workflow_runs r
+              LEFT JOIN workspaces w ON w.id = r.workspace_id
+              LEFT JOIN ip_blocks i ON i.id = r.ip_id
+             WHERE r.id = ?
+            """,
+            (run_id,),
+        )
+        return dict(row) if row is not None else None
+
+    def start_workflow_stage(
+        self,
+        run_id: str,
+        stage_name: str,
+        status: str = "running",
+        attempt: int = 1,
+    ) -> Dict[str, Any]:
+        stage_id = self._new_id()
+        now = self._now()
+        self._execute(
+            """
+            INSERT INTO workflow_stages
+            (id, run_id, stage_name, status, attempt, started_at, ended_at,
+             duration_ms, error_summary, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (stage_id, run_id, stage_name, status, attempt, now, None, None, None, now, now),
+        )
+        return self.get_workflow_stage(stage_id)
+
+    def finish_workflow_stage(
+        self,
+        stage_id: str,
+        status: str,
+        error_summary: str = None,
+    ) -> Optional[Dict[str, Any]]:
+        row = self._fetchone("SELECT started_at FROM workflow_stages WHERE id = ?", (stage_id,))
+        if row is None:
+            return None
+        now = self._now()
+        started = row["started_at"] or now
+        self._execute(
+            """
+            UPDATE workflow_stages
+               SET status = ?, ended_at = ?, duration_ms = ?,
+                   error_summary = ?, updated_at = ?
+             WHERE id = ?
+            """,
+            (status, now, (now - started) * 1000, error_summary, now, stage_id),
+        )
+        return self.get_workflow_stage(stage_id)
+
+    def get_workflow_stage(self, stage_id: str) -> Optional[Dict[str, Any]]:
+        row = self._fetchone("SELECT * FROM workflow_stages WHERE id = ?", (stage_id,))
+        return dict(row) if row is not None else None
+
+    def record_workflow_event(
+        self,
+        run_id: str,
+        event_type: str,
+        payload: Any = None,
+        stage_id: str = "",
+    ) -> Dict[str, Any]:
+        event_id = self._new_id()
+        now = self._now()
+        self._execute(
+            """
+            INSERT INTO workflow_events (id, run_id, stage_id, event_type, payload, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (event_id, run_id, stage_id, event_type, self._dump_json(payload), now),
+        )
+        return self.list_workflow_events(run_id=run_id, event_id=event_id)[0]
+
+    def list_workflow_events(
+        self,
+        run_id: str = None,
+        event_id: str = None,
+    ) -> List[Dict[str, Any]]:
+        if event_id is not None:
+            rows = self._fetchall("SELECT * FROM workflow_events WHERE id = ?", (event_id,))
+        elif run_id is not None:
+            rows = self._fetchall(
+                "SELECT * FROM workflow_events WHERE run_id = ? ORDER BY created_at ASC",
+                (run_id,),
+            )
+        else:
+            rows = self._fetchall("SELECT * FROM workflow_events ORDER BY created_at ASC")
+        return [self._row_to_dict(row, "workflow_events") for row in rows]
+
+    def upsert_workflow_todo(
+        self,
+        run_id: str,
+        title: str,
+        detail: str = "",
+        criteria: str = "",
+        status: str = "pending",
+        source: str = "",
+        owner_file: str = "",
+        owner_module: str = "",
+        source_refs: Any = None,
+        evidence: Any = None,
+        todo_id: str = None,
+    ) -> Dict[str, Any]:
+        now = self._now()
+        if todo_id and self._fetchone("SELECT id FROM workflow_todos WHERE id = ?", (todo_id,)):
+            self._execute(
+                """
+                UPDATE workflow_todos
+                   SET source = ?, title = ?, detail = ?, criteria = ?, status = ?,
+                       owner_file = ?, owner_module = ?, source_refs = ?, evidence = ?,
+                       updated_at = ?
+                 WHERE id = ?
+                """,
+                (
+                    source,
+                    title,
+                    detail,
+                    criteria,
+                    status,
+                    owner_file,
+                    owner_module,
+                    self._dump_json(source_refs),
+                    self._dump_json(evidence),
+                    now,
+                    todo_id,
+                ),
+            )
+        else:
+            todo_id = todo_id or self._new_id()
+            self._execute(
+                """
+                INSERT INTO workflow_todos
+                (id, run_id, source, title, detail, criteria, status, owner_file,
+                 owner_module, source_refs, evidence, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    todo_id,
+                    run_id,
+                    source,
+                    title,
+                    detail,
+                    criteria,
+                    status,
+                    owner_file,
+                    owner_module,
+                    self._dump_json(source_refs),
+                    self._dump_json(evidence),
+                    now,
+                    now,
+                ),
+            )
+        rows = self.list_workflow_todos(run_id=run_id, todo_id=todo_id)
+        return rows[0]
+
+    def list_workflow_todos(
+        self,
+        run_id: str = None,
+        todo_id: str = None,
+    ) -> List[Dict[str, Any]]:
+        if todo_id is not None:
+            rows = self._fetchall("SELECT * FROM workflow_todos WHERE id = ?", (todo_id,))
+        elif run_id is not None:
+            rows = self._fetchall(
+                "SELECT * FROM workflow_todos WHERE run_id = ? ORDER BY created_at ASC",
+                (run_id,),
+            )
+        else:
+            rows = self._fetchall("SELECT * FROM workflow_todos ORDER BY created_at ASC")
+        return [self._row_to_dict(row, "workflow_todos") for row in rows]
+
+    def record_todo_event(
+        self,
+        todo_id: str,
+        event_type: str,
+        reason: str = "",
+        evidence: Any = None,
+    ) -> Dict[str, Any]:
+        event_id = self._new_id()
+        now = self._now()
+        self._execute(
+            """
+            INSERT INTO todo_events (id, todo_id, event_type, reason, evidence, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (event_id, todo_id, event_type, reason, self._dump_json(evidence), now),
+        )
+        if event_type in {"pending", "in_progress", "approved", "rejected", "blocked"}:
+            self._execute(
+                "UPDATE workflow_todos SET status = ?, evidence = ?, updated_at = ? WHERE id = ?",
+                (event_type, self._dump_json(evidence), now, todo_id),
+            )
+        rows = self._fetchall("SELECT * FROM todo_events WHERE id = ?", (event_id,))
+        return self._row_to_dict(rows[0], "todo_events")
+
+    def record_llm_call(
+        self,
+        session_id: str = "",
+        message_id: str = "",
+        run_id: str = "",
+        stage_id: str = "",
+        todo_id: str = "",
+        workspace_id: str = "",
+        ip_id: str = "",
+        workflow: str = "",
+        model: str = "",
+        provider: str = "",
+        base_url_hash: str = "",
+        call_role: str = "primary",
+        attempt: int = 1,
+        tokens_input: int = 0,
+        tokens_output: int = 0,
+        tokens_reasoning: int = 0,
+        cache_read_tokens: int = 0,
+        cache_write_tokens: int = 0,
+        cost_usd: float = 0.0,
+        latency_ms: float = None,
+        status: str = "ok",
+        error_type: str = "",
+        created_at: float = None,
+        completed_at: float = None,
+    ) -> Dict[str, Any]:
+        call_id = self._new_id()
+        now = self._now()
+        created = created_at or now
+        completed = completed_at if completed_at is not None else now
+        self._execute(
+            """
+            INSERT INTO llm_calls
+            (id, message_id, run_id, stage_id, todo_id, session_id, workspace_id,
+             ip_id, workflow, model, provider, base_url_hash, call_role, attempt,
+             tokens_input, tokens_output, tokens_reasoning, cache_read_tokens,
+             cache_write_tokens, cost_usd, latency_ms, status, error_type,
+             created_at, completed_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                call_id,
+                message_id,
+                run_id,
+                stage_id,
+                todo_id,
+                session_id,
+                workspace_id,
+                ip_id,
+                workflow,
+                model,
+                provider,
+                base_url_hash,
+                call_role,
+                attempt,
+                tokens_input,
+                tokens_output,
+                tokens_reasoning,
+                cache_read_tokens,
+                cache_write_tokens,
+                cost_usd,
+                latency_ms,
+                status,
+                error_type,
+                created,
+                completed,
+            ),
+        )
+        return self.list_llm_calls(call_id=call_id)[0]
+
+    def list_llm_calls(
+        self,
+        session_id: str = None,
+        run_id: str = None,
+        call_id: str = None,
+    ) -> List[Dict[str, Any]]:
+        if call_id is not None:
+            rows = self._fetchall("SELECT * FROM llm_calls WHERE id = ?", (call_id,))
+        elif run_id is not None:
+            rows = self._fetchall(
+                "SELECT * FROM llm_calls WHERE run_id = ? ORDER BY created_at ASC",
+                (run_id,),
+            )
+        elif session_id is not None:
+            rows = self._fetchall(
+                "SELECT * FROM llm_calls WHERE session_id = ? ORDER BY created_at ASC",
+                (session_id,),
+            )
+        else:
+            rows = self._fetchall("SELECT * FROM llm_calls ORDER BY created_at ASC")
+        return [dict(row) for row in rows]
+
+    def register_artifact(
+        self,
+        run_id: str = "",
+        stage_id: str = "",
+        ip_id: str = "",
+        workflow: str = "",
+        kind: str = "",
+        path: str = "",
+        storage_backend: str = "filesystem",
+        sha256: str = "",
+        size_bytes: int = None,
+        git_commit: str = "",
+    ) -> Dict[str, Any]:
+        artifact_id = self._new_id()
+        now = self._now()
+        self._execute(
+            """
+            INSERT INTO artifacts
+            (id, run_id, stage_id, ip_id, workflow, kind, path, storage_backend,
+             sha256, size_bytes, git_commit, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                artifact_id,
+                run_id,
+                stage_id,
+                ip_id,
+                workflow,
+                kind,
+                path,
+                storage_backend,
+                sha256,
+                size_bytes,
+                git_commit,
+                now,
+            ),
+        )
+        return self.list_artifacts(artifact_id=artifact_id)[0]
+
+    def list_artifacts(
+        self,
+        run_id: str = None,
+        artifact_id: str = None,
+    ) -> List[Dict[str, Any]]:
+        if artifact_id is not None:
+            rows = self._fetchall("SELECT * FROM artifacts WHERE id = ?", (artifact_id,))
+        elif run_id is not None:
+            rows = self._fetchall(
+                "SELECT * FROM artifacts WHERE run_id = ? ORDER BY created_at ASC",
+                (run_id,),
+            )
+        else:
+            rows = self._fetchall("SELECT * FROM artifacts ORDER BY created_at ASC")
+        return [dict(row) for row in rows]
 
     # ---------- Admin ----------
 

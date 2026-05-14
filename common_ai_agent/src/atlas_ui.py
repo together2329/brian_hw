@@ -180,8 +180,32 @@ def _canonical_model_option_key(key: str) -> str:
     raw = str(key or "").strip()
     for group in (_MODEL_OPTION_KEYS, _BASE_MODEL_OPTION_KEYS, _LEGACY_MODEL_OPTION_KEYS):
         if raw in group:
-            return _MODEL_OPTION_KEYS[group.index(raw)]
+            return raw
     return raw
+
+
+def _model_option_index(key: str) -> int | None:
+    raw = _canonical_model_option_key(key)
+    for group in (_MODEL_OPTION_KEYS, _BASE_MODEL_OPTION_KEYS, _LEGACY_MODEL_OPTION_KEYS):
+        if raw in group:
+            return group.index(raw)
+    return None
+
+
+def _display_model_option_keys(env_file: dict[str, str]) -> tuple[str, str, str]:
+    selected_key = (
+        env_file.get("LLM_SELECTED_MODEL_KEY", "")
+        or os.environ.get("LLM_SELECTED_MODEL_KEY", "")
+    ).strip()
+    if selected_key in _BASE_MODEL_OPTION_KEYS:
+        return _BASE_MODEL_OPTION_KEYS
+    if selected_key in _LEGACY_MODEL_OPTION_KEYS:
+        return _LEGACY_MODEL_OPTION_KEYS
+    if any((env_file.get(key, os.environ.get(key, "")) or "").strip() for key in _BASE_MODEL_OPTION_KEYS):
+        return _BASE_MODEL_OPTION_KEYS
+    if any((env_file.get(key, os.environ.get(key, "")) or "").strip() for key in _LEGACY_MODEL_OPTION_KEYS):
+        return _LEGACY_MODEL_OPTION_KEYS
+    return _MODEL_OPTION_KEYS
 
 
 def _model_option_value(env_file: dict[str, str], index: int) -> str:
@@ -221,10 +245,11 @@ def _set_runtime_reasoning_effort(effort: str) -> None:
 
 def _model_option_rows(active_model: str = "") -> list[dict[str, str]]:
     env_file = _read_env_file_values()
+    display_keys = _display_model_option_keys(env_file)
 
     rows: list[dict[str, str]] = []
     seen_models: set[str] = set()
-    for index, key in enumerate(_MODEL_OPTION_KEYS):
+    for index, key in enumerate(display_keys):
         model = _model_option_value(env_file, index)
         if not model or model in seen_models or model.lower().startswith("default"):
             continue
@@ -267,8 +292,9 @@ def _set_runtime_model(model: str, selected_key: str = "") -> None:
 
 def _apply_selected_model_from_env() -> str:
     selected_key = _canonical_model_option_key(os.environ.get("LLM_SELECTED_MODEL_KEY", ""))
-    if selected_key in _MODEL_OPTION_KEYS:
-        model = _model_option_value({}, _MODEL_OPTION_KEYS.index(selected_key))
+    selected_index = _model_option_index(selected_key)
+    if selected_index is not None:
+        model = _model_option_value({}, selected_index)
         if model:
             _set_runtime_model(model, selected_key)
             return model
@@ -6596,7 +6622,7 @@ def create_app():
         so model runs cannot overwrite each other's .session trees.
         """
         base = str(owner or "default").strip() or "default"
-        enabled = os.environ.get("ATLAS_SESSION_PER_MODEL", "1").strip().lower() in ("1", "true", "yes", "on")
+        enabled = os.environ.get("ATLAS_SESSION_PER_MODEL", "0").strip().lower() in ("1", "true", "yes", "on")
         if not enabled:
             return base
         raw_model = (

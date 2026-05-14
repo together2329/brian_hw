@@ -556,7 +556,7 @@ def register_sessions_routes(
             return JSONResponse({"error": str(e)}, status_code=500)
     def _session_owner_with_model(owner: str) -> str:
         base = str(owner or "default").strip() or "default"
-        enabled = os.environ.get("ATLAS_SESSION_PER_MODEL", "1").strip().lower() in ("1", "true", "yes", "on")
+        enabled = os.environ.get("ATLAS_SESSION_PER_MODEL", "0").strip().lower() in ("1", "true", "yes", "on")
         if not enabled:
             return base
         raw_model = (
