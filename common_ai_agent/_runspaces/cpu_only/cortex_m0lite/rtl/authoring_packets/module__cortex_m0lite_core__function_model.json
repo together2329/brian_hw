@@ -1,0 +1,1434 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 40,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model",
+      "module_task_count": 98,
+      "rule": "Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/cortex_m0lite_core.sv",
+      "name": "cortex_m0lite_core",
+      "refs": [
+        "coverage_tap",
+        "cycle_model",
+        "cycle_model.pipeline",
+        "dataflow",
+        "dataflow.ordering",
+        "dataflow.sequence",
+        "dataflow.state_flow",
+        "decomposition",
+        "error_handling",
+        "fsm",
+        "fsm.control",
+        "function_model",
+        "function_model.transactions.FM_CPU_STEP",
+        "io_list",
+        "parameters",
+        "registers",
+        "registers.register_list",
+        "workflow_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/cortex_m0lite.sv",
+        "name": "cortex_m0lite",
+        "wiring_only": true
+      },
+      {
+        "file": "rtl/cortex_m0lite_core.sv",
+        "name": "cortex_m0lite_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_if_stage.sv",
+        "name": "if_stage",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_id_stage.sv",
+        "name": "id_stage",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_ex_stage.sv",
+        "name": "ex_stage",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_wb_stage.sv",
+        "name": "wb_stage",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_regfile.sv",
+        "name": "regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/cortex_m0lite_bus_if.sv",
+        "name": "bus_if",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "rst_n",
+        "signal": "core_rst_n_sync",
+        "signal_terms": [
+          "core_rst_n_sync"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "hclk",
+        "signal": "hclk",
+        "signal_terms": [
+          "hclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "hresetn",
+        "signal": "bus_rst_n_sync",
+        "signal_terms": [
+          "bus_rst_n_sync"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "irq",
+        "signal": "irq",
+        "signal_terms": [
+          "irq"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "pc_dbg",
+        "signal": "pc_dbg",
+        "signal_terms": [
+          "pc_dbg"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "state_dbg",
+        "signal": "state_dbg",
+        "signal_terms": [
+          "state_dbg"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "retire",
+        "signal": "retire",
+        "signal_terms": [
+          "retire"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "u_core",
+        "machine_readable": true,
+        "module": "cortex_m0lite_core",
+        "port": "trap",
+        "signal": "trap",
+        "signal_terms": [
+          "trap"
+        ],
+        "source_ref": "integration.connections[0]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "Human-authored Cortex-M0-lite architecture decomposition.",
+      "min_behavior_owner_logic_modules": 6,
+      "min_depth_score": 120,
+      "min_logic_modules": 7,
+      "min_modules": 8,
+      "min_procedural_blocks": 12,
+      "min_source_files": 8,
+      "min_state_updates": 10,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 28,
+    "open_required_count": 28,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "cortex_m0lite",
+  "kind": "module",
+  "owner_file": "rtl/cortex_m0lite_core.sv",
+  "owner_module": "cortex_m0lite_core",
+  "packet_id": "module__cortex_m0lite_core__function_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.error_case": 3,
+      "function_model.invariant": 5,
+      "function_model.output": 3,
+      "function_model.output_rule": 2,
+      "function_model.precondition": 3,
+      "function_model.side_effect": 4,
+      "function_model.state_update": 3,
+      "function_model.state_variable": 4,
+      "function_model.transaction": 1
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model",
+      "module_task_count": 98,
+      "rule": "Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 28,
+    "required_count": 28,
+    "source_refs": [
+      "function_model.state_variables.pc_q",
+      "function_model.state_variables.rf_q",
+      "function_model.state_variables.nzcv_q",
+      "function_model.state_variables.trap_q",
+      "function_model.transactions.FM_CPU_STEP",
+      "function_model.transactions.FM_CPU_STEP.preconditions.precondition_0",
+      "function_model.transactions.FM_CPU_STEP.preconditions.precondition_1",
+      "function_model.transactions.FM_CPU_STEP.preconditions.precondition_2",
+      "function_model.transactions.FM_CPU_STEP.outputs.output_0",
+      "function_model.transactions.FM_CPU_STEP.outputs.output_1",
+      "function_model.transactions.FM_CPU_STEP.outputs.output_2",
+      "function_model.transactions.FM_CPU_STEP.output_rules.retire_pulse",
+      "function_model.transactions.FM_CPU_STEP.output_rules.trap_flag",
+      "function_model.transactions.FM_CPU_STEP.state_updates.pc_q",
+      "function_model.transactions.FM_CPU_STEP.state_updates.rf_q",
+      "function_model.transactions.FM_CPU_STEP.state_updates.nzcv_q",
+      "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_0",
+      "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_1",
+      "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_2",
+      "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_3",
+      "function_model.transactions.FM_CPU_STEP.error_cases.error_case_0",
+      "function_model.transactions.FM_CPU_STEP.error_cases.error_case_1",
+      "function_model.transactions.FM_CPU_STEP.error_cases.error_case_2",
+      "function_model.invariants.invariant_0"
+    ],
+    "status_counts": {
+      "planned": 28
+    },
+    "task_count": 28
+  },
+  "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state pc_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.pc_q",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "pc_q width matches SSOT value XLEN",
+        "pc_q reset behavior matches SSOT value RESET_PC"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.pc_q.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: name=pc_q; width=XLEN; reset=RESET_PC.",
+      "evidence_terms": [],
+      "id": "RTL-0072",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.pc_q",
+      "ssot_context": {
+        "name": "pc_q",
+        "reset": "RESET_PC",
+        "width": "XLEN"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.pc_q"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state rf_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.rf_q",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "rf_q width matches SSOT value 32",
+        "rf_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.rf_q.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: name=rf_q; width=32; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0073",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.rf_q",
+      "ssot_context": {
+        "name": "rf_q",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.rf_q"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state nzcv_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.nzcv_q",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "nzcv_q width matches SSOT value 4",
+        "nzcv_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.nzcv_q.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: name=nzcv_q; width=4; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0074",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.nzcv_q",
+      "ssot_context": {
+        "name": "nzcv_q",
+        "reset": "0",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.nzcv_q"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state trap_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.trap_q",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "trap_q width matches SSOT value 1",
+        "trap_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.trap_q.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: name=trap_q; width=1; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0075",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.trap_q",
+      "ssot_context": {
+        "name": "trap_q",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.trap_q"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_CPU_STEP",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_CPU_STEP.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: id=FM_CPU_STEP; name=cpu_cycle_step.",
+      "evidence_terms": [],
+      "id": "RTL-0076",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP",
+      "ssot_context": {
+        "id": "FM_CPU_STEP",
+        "name": "cpu_cycle_step"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_CPU_STEP: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CPU_STEP.preconditions.precondition_0.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: value=core_rst_n_sync and bus_rst_n_sync are deasserted..",
+      "evidence_terms": [
+        "bus",
+        "bus_rst_n_sync",
+        "core",
+        "core_rst_n_sync",
+        "rst",
+        "sync"
+      ],
+      "id": "RTL-0077",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "core_rst_n_sync and bus_rst_n_sync are deasserted."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP.preconditions.precondition_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_CPU_STEP: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CPU_STEP.preconditions.precondition_1.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: value=instr_valid indicates a 16-bit instruction word is available from the IF path..",
+      "evidence_terms": [
+        "instr",
+        "instr_valid",
+        "valid"
+      ],
+      "id": "RTL-0078",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "instr_valid indicates a 16-bit instruction word is available from the IF path."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP.preconditions.precondition_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_CPU_STEP: precondition_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP.preconditions.precondition_2",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CPU_STEP.preconditions.precondition_2.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: value=Any data access waits for the declared AHB-Lite ready/response contract..",
+      "evidence_terms": [],
+      "id": "RTL-0079",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP.preconditions.precondition_2",
+      "ssot_context": {
+        "value": "Any data access waits for the declared AHB-Lite ready/response contract."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP.preconditions.precondition_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_CPU_STEP: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP.outputs.output_0",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CPU_STEP.outputs.output_0.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: value=pc_dbg.",
+      "evidence_terms": [
+        "dbg",
+        "pc",
+        "pc_dbg"
+      ],
+      "id": "RTL-0080",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP.outputs.output_0",
+      "ssot_context": {
+        "value": "pc_dbg"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP.outputs.output_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_CPU_STEP: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP.outputs.output_1",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CPU_STEP.outputs.output_1.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: value=retire.",
+      "evidence_terms": [],
+      "id": "RTL-0081",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP.outputs.output_1",
+      "ssot_context": {
+        "value": "retire"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP.outputs.output_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_CPU_STEP: output_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP.outputs.output_2",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CPU_STEP.outputs.output_2.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: value=trap.",
+      "evidence_terms": [],
+      "id": "RTL-0082",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP.outputs.output_2",
+      "ssot_context": {
+        "value": "trap"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP.outputs.output_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_CPU_STEP: retire_pulse",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP.output_rules.retire_pulse",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "retire_pulse width matches SSOT value 1",
+        "retire_pulse RTL expression implements SSOT expression 1 when one instruction commits without trap, else 0",
+        "DUT port retire is the implementation/observation point for retire_pulse",
+        "retire_pulse is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CPU_STEP.output_rules.retire_pulse.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: name=retire_pulse; port=retire; expr=1 when one instruction commits without trap, else 0; width=1.",
+      "evidence_terms": [],
+      "id": "RTL-0083",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP.output_rules.retire_pulse",
+      "ssot_context": {
+        "expr": "1 when one instruction commits without trap, else 0",
+        "name": "retire_pulse",
+        "port": "retire",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP.output_rules.retire_pulse"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_CPU_STEP: trap_flag",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP.output_rules.trap_flag",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "trap_flag width matches SSOT value 1",
+        "trap_flag RTL expression implements SSOT expression 1 when illegal opcode, bus error, or misalignment is detected at commit boundary",
+        "DUT port trap is the implementation/observation point for trap_flag",
+        "trap_flag is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CPU_STEP.output_rules.trap_flag.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: name=trap_flag; port=trap; expr=1 when illegal opcode, bus error, or misalignment is detected at commit boundary; width=1.",
+      "evidence_terms": [],
+      "id": "RTL-0084",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP.output_rules.trap_flag",
+      "ssot_context": {
+        "expr": "1 when illegal opcode, bus error, or misalignment is detected at commit boundary",
+        "name": "trap_flag",
+        "port": "trap",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP.output_rules.trap_flag"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_CPU_STEP: pc_q",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP.state_updates.pc_q",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "pc_q width matches SSOT value XLEN",
+        "pc_q reset behavior matches SSOT value RESET_PC",
+        "pc_q RTL expression implements SSOT expression pc+2 on normal flow; branch target on taken branch; trap vector on exception",
+        "pc_q updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CPU_STEP.state_updates.pc_q.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: name=pc_q; expr=pc+2 on normal flow; branch target on taken branch; trap vector on exception; width=XLEN; reset=RESET_PC.",
+      "evidence_terms": [],
+      "id": "RTL-0085",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP.state_updates.pc_q",
+      "ssot_context": {
+        "expr": "pc+2 on normal flow; branch target on taken branch; trap vector on exception",
+        "name": "pc_q",
+        "reset": "RESET_PC",
+        "width": "XLEN"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP.state_updates.pc_q"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_CPU_STEP: rf_q",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP.state_updates.rf_q",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "rf_q width matches SSOT value 32",
+        "rf_q reset behavior matches SSOT value 0",
+        "rf_q RTL expression implements SSOT expression register writeback on ALU/LDR/MOV commit only",
+        "rf_q updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CPU_STEP.state_updates.rf_q.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: name=rf_q; expr=register writeback on ALU/LDR/MOV commit only; width=32; reset=0.",
+      "evidence_terms": [
+        "ALU",
+        "LDR",
+        "MOV"
+      ],
+      "id": "RTL-0086",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP.state_updates.rf_q",
+      "ssot_context": {
+        "expr": "register writeback on ALU/LDR/MOV commit only",
+        "name": "rf_q",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP.state_updates.rf_q"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_CPU_STEP: nzcv_q",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP.state_updates.nzcv_q",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
+        "nzcv_q width matches SSOT value 4",
+        "nzcv_q reset behavior matches SSOT value 0",
+        "nzcv_q RTL expression implements SSOT expression updated by arithmetic/compare instructions per ARM-like semantics",
+        "nzcv_q updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CPU_STEP.state_updates.nzcv_q.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: name=nzcv_q; expr=updated by arithmetic/compare instructions per ARM-like semantics; width=4; reset=0.",
+      "evidence_terms": [
+        "ARM"
+      ],
+      "id": "RTL-0087",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP.state_updates.nzcv_q",
+      "ssot_context": {
+        "expr": "updated by arithmetic/compare instructions per ARM-like semantics",
+        "name": "nzcv_q",
+        "reset": "0",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP.state_updates.nzcv_q"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_CPU_STEP: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CPU_STEP.side_effects.side_effect_0.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: value=Successful ALU/MOV/LDR instructions update the destination architectural register at commit..",
+      "evidence_terms": [],
+      "id": "RTL-0088",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "Successful ALU/MOV/LDR instructions update the destination architectural register at commit."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_CPU_STEP: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CPU_STEP.side_effects.side_effect_1.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: value=Arithmetic and compare instructions update NZCV according to flag_formulas..",
+      "evidence_terms": [
+        "flag",
+        "flag_formulas",
+        "formulas"
+      ],
+      "id": "RTL-0089",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_1",
+      "ssot_context": {
+        "value": "Arithmetic and compare instructions update NZCV according to flag_formulas."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_CPU_STEP: side_effect_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP.side_effects.side_effect_2",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CPU_STEP.side_effects.side_effect_2.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: value=Taken branches redirect pc_q and flush IF/ID before the next fetch..",
+      "evidence_terms": [
+        "pc",
+        "pc_q"
+      ],
+      "id": "RTL-0090",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_2",
+      "ssot_context": {
+        "value": "Taken branches redirect pc_q and flush IF/ID before the next fetch."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_CPU_STEP: side_effect_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP.side_effects.side_effect_3",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CPU_STEP.side_effects.side_effect_3.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: value=Trap conditions suppress retire of the offending instruction and update exception metadata only..",
+      "evidence_terms": [],
+      "id": "RTL-0091",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_3",
+      "ssot_context": {
+        "value": "Trap conditions suppress retire of the offending instruction and update exception metadata only."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_3"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_CPU_STEP: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CPU_STEP.error_cases.error_case_0.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: value=Illegal instruction encoding -> trap_code=1.",
+      "evidence_terms": [
+        "code",
+        "trap",
+        "trap_code"
+      ],
+      "id": "RTL-0092",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP.error_cases.error_case_0",
+      "ssot_context": {
+        "value": "Illegal instruction encoding -> trap_code=1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP.error_cases.error_case_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_CPU_STEP: error_case_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP.error_cases.error_case_1",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CPU_STEP.error_cases.error_case_1.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: value=Instruction/data bus error (HRESP=1) -> trap_code=2.",
+      "evidence_terms": [
+        "code",
+        "trap",
+        "trap_code"
+      ],
+      "id": "RTL-0093",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP.error_cases.error_case_1",
+      "ssot_context": {
+        "value": "Instruction/data bus error (HRESP=1) -> trap_code=2"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP.error_cases.error_case_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_CPU_STEP: error_case_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CPU_STEP.error_cases.error_case_2",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CPU_STEP.error_cases.error_case_2.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: value=Misaligned word access -> trap_code=3.",
+      "evidence_terms": [
+        "code",
+        "trap",
+        "trap_code"
+      ],
+      "id": "RTL-0094",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CPU_STEP.error_cases.error_case_2",
+      "ssot_context": {
+        "value": "Misaligned word access -> trap_code=3"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CPU_STEP.error_cases.error_case_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_0",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_0",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: value=R15 reflects architectural PC view at commit..",
+      "evidence_terms": [],
+      "id": "RTL-0095",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_0",
+      "ssot_context": {
+        "value": "R15 reflects architectural PC view at commit."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_1",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_1",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: value=No architectural state update on trapped instruction except exception metadata..",
+      "evidence_terms": [],
+      "id": "RTL-0096",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_1",
+      "ssot_context": {
+        "value": "No architectural state update on trapped instruction except exception metadata."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_2",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_2",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: value=At most one retire pulse per cycle..",
+      "evidence_terms": [],
+      "id": "RTL-0097",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_2",
+      "ssot_context": {
+        "value": "At most one retire pulse per cycle."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_3",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_3",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_3.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: value=x0-like behavior is not used; all R0-R15 are normal ARM-style architectural registers..",
+      "evidence_terms": [],
+      "id": "RTL-0098",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_3",
+      "ssot_context": {
+        "value": "x0-like behavior is not used; all R0-R15 are normal ARM-style architectural registers."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_3"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_4",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_4",
+        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_4.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.\nSSOT item context: value=No instruction commits while trap_q is active until trap vectoring completes..",
+      "evidence_terms": [
+        "trap",
+        "trap_q"
+      ],
+      "id": "RTL-0099",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_4",
+      "ssot_context": {
+        "value": "No instruction commits while trap_q is active until trap vectoring completes."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_4"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "67adb8890410a2aeeee9a654b645018e5e9f79eb8ebcffab7e873d9d102687f9",
+  "top": "cortex_m0lite",
+  "type": "rtl_authoring_packet"
+}

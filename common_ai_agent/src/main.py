@@ -2051,6 +2051,20 @@ def chat_loop():
                             print(Color.warning(f"\n⏸️  Step-by-Step execution mode disabled.\n"))
                         continue
 
+                    if result.startswith("ASK_USER_MODE:"):
+                        ask_mode = result.split(":", 1)[1].strip().lower()
+                        if ask_mode not in ("interactive", "pipeline", "ci"):
+                            print(Color.error(f"\n❌ Invalid ask_user mode: {ask_mode}\n"))
+                            continue
+                        os.environ["ASK_USER_EXEC_MODE"] = ask_mode
+                        _labels = {
+                            "interactive": "Interactive (ask_user enabled)",
+                            "pipeline": "Pipeline (ask_user blocked, continue)",
+                            "ci": "CI (ask_user blocked, fail-fast)",
+                        }
+                        print(Color.success(f"\n✅ AskUser mode: {_labels.get(ask_mode, ask_mode)}\n"))
+                        continue
+
                     if result.startswith("EXECUTION_MODE:"):
                         _em_parts = result.split(":", 2)
                         em = _em_parts[1]

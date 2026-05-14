@@ -1,0 +1,222 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 3,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/todo_demo_ip.sv",
+      "name": "todo_demo_ip",
+      "refs": [
+        "top_module",
+        "function_model",
+        "cycle_model"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/todo_demo_ip.sv",
+        "name": "todo_demo_ip",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": false,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 3,
+    "open_required_count": 3,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": false
+  },
+  "ip": "todo_demo_ip",
+  "kind": "module",
+  "owner_file": "rtl/todo_demo_ip.sv",
+  "owner_module": "todo_demo_ip",
+  "packet_id": "module__todo_demo_ip",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "rtl_flow.seed": 1,
+      "rtl_flow.top": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 3,
+      "task_limit": 48
+    },
+    "open_required_count": 3,
+    "required_count": 3,
+    "source_refs": [
+      "top_module",
+      "io_list",
+      "sub_modules.todo_demo_ip.module_equivalence"
+    ],
+    "status_counts": {
+      "planned": 3
+    },
+    "task_count": 3
+  },
+  "tasks": [
+    {
+      "category": "rtl_flow.seed",
+      "content": "Read SSOT and build dynamic RTL implementation ledger",
+      "criteria": [
+        "rtl_todo_plan.json was regenerated from the current SSOT",
+        "Every required task in the plan is either implemented, evidenced, or escalated",
+        "No IP-specific fixed template is used as the source of truth",
+        "Traceability keeps source_ref top_module",
+        "Primary implementation evidence is in rtl/todo_demo_ip.sv"
+      ],
+      "detail": "Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.\nSSOT ref: top_module.\nOwner: todo_demo_ip in rtl/todo_demo_ip.sv via top_module.",
+      "evidence_terms": [],
+      "id": "RTL-0001",
+      "owner_file": "rtl/todo_demo_ip.sv",
+      "owner_module": "todo_demo_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "top_module",
+      "ssot_context": {},
+      "ssot_refs": [
+        "top_module"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "rtl_flow.top",
+      "content": "Implement top-level ports, reset, and filelist integration",
+      "criteria": [
+        "Top module name matches SSOT top_module",
+        "Every SSOT top-level port appears with matching direction and width",
+        "Filelist contains all LLM-authored RTL sources and no stale sources",
+        "Traceability keeps source_ref io_list",
+        "Primary implementation evidence is in rtl/todo_demo_ip.sv"
+      ],
+      "detail": "The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.\nSSOT ref: io_list.\nOwner: todo_demo_ip in rtl/todo_demo_ip.sv via top_module.\nSSOT item context: value=todo_demo_ip.",
+      "evidence_terms": [
+        "demo",
+        "ip",
+        "todo",
+        "todo_demo_ip"
+      ],
+      "id": "RTL-0002",
+      "owner_file": "rtl/todo_demo_ip.sv",
+      "owner_module": "todo_demo_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "io_list",
+      "ssot_context": {
+        "value": "todo_demo_ip"
+      },
+      "ssot_refs": [
+        "io_list"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module todo_demo_ip is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.todo_demo_ip.module_equivalence",
+        "Primary implementation evidence is in rtl/todo_demo_ip.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.todo_demo_ip.module_equivalence.\nOwner: todo_demo_ip in rtl/todo_demo_ip.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0020",
+      "owner_file": "rtl/todo_demo_ip.sv",
+      "owner_module": "todo_demo_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.todo_demo_ip.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.todo_demo_ip.module_equivalence"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "483f4a5dd4142ddd40cd2740b9b6ac21c270b34a00a48a50c2745747f1b181c0",
+  "top": "todo_demo_ip",
+  "type": "rtl_authoring_packet"
+}

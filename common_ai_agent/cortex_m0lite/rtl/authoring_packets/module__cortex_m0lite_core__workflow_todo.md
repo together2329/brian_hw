@@ -22,7 +22,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 2
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: coverage_tap, cycle_model, cycle_model.pipeline, dataflow, dataflow.ordering, dataflow.sequence, dataflow.state_flow, decomposition, error_handling, fsm, fsm.control, function_model, function_model.transactions.FM_CPU_STEP, io_list, parameters, registers
 - Module slice: 8/9 section=workflow_todo task_limit=48
@@ -45,14 +45,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[0]
 - Detail: Decoder must derive op class from isa_spec.decode_rule_set, enforce field constraints, resolve class overlap by priority, and raise illegal trap on decode miss.
 SSOT ref: workflow_todos.rtl-gen[0].
 Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
 SSOT item context: id=todo_decode_rules.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - No fixed opcode table is used as the implementation source.
   - All supported op classes decode deterministically.
@@ -68,14 +68,14 @@ SSOT item context: id=todo_decode_rules.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[1]
 - Detail: ALU-to-ALU dependencies forward, load-use dependency inserts exactly one bubble, and branch flag dependencies observe the latest committed/forwarded flags.
 SSOT ref: workflow_todos.rtl-gen[1].
 Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via coverage_tap.
 SSOT item context: id=todo_forwarding_matrix.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - No RAW hazard mismatch in directed hazard tests.
   - hazard_stall_cycles and hazard_matrix bins are covered.

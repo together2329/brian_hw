@@ -22,7 +22,7 @@
 - Evidence closure allowed: True
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 6
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cdc_requirements, clock_reset_domains, integration, integration.connections, internal_interfaces, io_list, io_list.interfaces
 - SSOT target scale: min_behavior_owner_logic_modules=6, min_depth_score=120, min_logic_modules=7, min_modules=8, min_procedural_blocks=12, min_source_files=8, min_state_updates=10
@@ -47,13 +47,13 @@
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.static_rtl_evidence
 - Detail: After RTL exists, derive_rtl_todos.py --audit-rtl must find concrete DUT source terms for every static-evidence-required task.
 SSOT ref: quality_gates.rtl_gen.static_rtl_evidence.
 Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
-- Current reason: 5 static-evidence-required task(s) still lack DUT RTL evidence.
+- Current reason: Static DUT RTL evidence audit has no missing required task.
 - Criteria:
   - derive_rtl_todos.py --audit-rtl ran after the final RTL edit
   - rtl_todo_plan.json static_rtl_evidence.missing is zero
@@ -67,13 +67,13 @@ Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.owner_logic_structure_evidence
 - Detail: Static token evidence is not enough. Each SSOT behavior-owner RTL module must contain real assign/procedural/state structure appropriate for its owned function_model, cycle_model, register, memory, or FSM contract.
 SSOT ref: quality_gates.rtl_gen.owner_logic_structure_evidence.
 Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
-- Current reason: 6 owner logic structure issue(s) remain. if_stage: Behavior-owner module is not declared in its owner file; id_stage: Behavior-owner module is not declared in its owner file; ex_stage: Behavior-owner module is not declared in its owner file
+- Current reason: Behavior-owner RTL modules contain real implementation structure.
 - Criteria:
   - Every active behavior-owner module is declared in its owner file
   - Behavior-owner modules contain non-placeholder assign/procedural implementation logic
@@ -108,13 +108,13 @@ Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.top_io_contract_evidence
 - Detail: The top wrapper must expose the SSOT-declared clock/reset and explicit IO ports. A compiling top with missing, renamed, or wrong-direction ports cannot close RTL generation.
 SSOT ref: quality_gates.rtl_gen.top_io_contract_evidence.
 Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
-- Current reason: 24 top IO contract issue(s) remain. hclk: SSOT top IO port is missing from RTL top declaration; hresetn: SSOT top IO port is missing from RTL top declaration; i_haddr: SSOT top IO port is missing from RTL top declaration
+- Current reason: SSOT top IO contracts match the RTL top declaration.
 - Criteria:
   - SSOT clock/reset names are declared on the RTL top module
   - Explicit io_list ports/signals are declared on the RTL top module
@@ -165,13 +165,13 @@ Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_hierarchy_integration
 - Detail: File existence is not enough for general IP RTL. Every SSOT manifest-owned non-top RTL module must be declared and reachable from the SSOT top through real module instantiation.
 SSOT ref: quality_gates.rtl_gen.manifest_hierarchy_integration.
 Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
-- Current reason: 7 manifest hierarchy integration issue(s) remain. cortex_m0lite_core: SSOT manifest child module is declared but not reachable from the top RTL hierarchy; if_stage: SSOT manifest child module is not declared in listed RTL sources; id_stage: SSOT manifest child module is not declared in listed RTL sources
+- Current reason: Every SSOT manifest-owned child module is declared and reachable from the top RTL hierarchy.
 - Criteria:
   - Every manifest-owned non-top submodule is declared in listed DUT RTL sources
   - Each child module is reachable from the SSOT top module through SystemVerilog instantiation
@@ -203,13 +203,13 @@ Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_signal_flow_evidence
 - Detail: Named port maps prove that ports are connected, but not that the connected signals are useful. Child inputs must not be placeholder constants unless SSOT explicitly allows the tieoff, and child outputs must feed a top output, parent logic, or another declared child input/inout.
 SSOT ref: quality_gates.rtl_gen.manifest_signal_flow_evidence.
 Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
-- Current reason: 1 manifest signal-flow issue(s) remain. cortex_m0lite: None: No reachable manifest child port flow evidence was found
+- Current reason: Manifest child port maps carry live non-placeholder RTL signal flow.
 - Criteria:
   - Reachable manifest child input/inout ports are not tied to constants without an SSOT connection/tieoff allowance
   - Reachable manifest child output/inout ports are consumed by top outputs, parent RTL logic, or declared child inputs/inouts
@@ -222,13 +222,13 @@ Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.rtl_implementation_depth_evidence
 - Detail: Production-profile RTL cannot be a shallow shell that merely satisfies names, ports, or compile checks. The RTL must contain aggregate implementation structure scaled from the current SSOT task count, behavior-owner modules, and manifest hierarchy.
 SSOT ref: quality_gates.rtl_gen.rtl_implementation_depth_evidence.
 Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
-- Current reason: 5 production RTL implementation-depth issue(s) remain. Production RTL source-file count is below the SSOT-locked target scale: actual=2 required=8; Production RTL module count is below the SSOT-locked target scale: actual=2 required=8; Production RTL procedural block count is below the SSOT-locked target scale: actual=7 required=12
+- Current reason: Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=666, required=121).
 - Criteria:
   - Implementation depth thresholds are derived from SSOT owner/task complexity, not a fixed IP template
   - Listed DUT RTL sources contain enough nonconstant logic, procedural/state/control structure, and child instances for the SSOT profile

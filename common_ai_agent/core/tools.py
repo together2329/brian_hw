@@ -5049,6 +5049,14 @@ _ask_user_callback = None
 _record_ssot_qa_callback = None
 
 
+def _ask_user_exec_mode() -> str:
+    """Return ask_user execution mode: interactive|pipeline|ci."""
+    mode = str(os.getenv("ASK_USER_EXEC_MODE", "interactive")).strip().lower()
+    if mode not in ("interactive", "pipeline", "ci"):
+        return "interactive"
+    return mode
+
+
 def set_ask_user_callback(cb):
     """Install the GUI bridge for ask_user. Call once at server boot."""
     global _ask_user_callback
@@ -5699,6 +5707,20 @@ def ask_user(question=None, options=None, kind="single", subtitle="",
     Returns:
         Plain-text summary of the user's answer(s).
     """
+    _exec_mode = _ask_user_exec_mode()
+    if _exec_mode == "pipeline":
+        _label = (subtitle or question or "ask_user").strip()
+        return (
+            f"[ask_user blocked in pipeline mode: {_label}. "
+            "Recorded as pending human input. Continue with non-blocking stages.]"
+        )
+    if _exec_mode == "ci":
+        _label = (subtitle or question or "ask_user").strip()
+        return (
+            f"[ask_user blocked in ci mode: {_label}. "
+            "Fail-fast required. Replace with deterministic defaults or pre-seeded answers.]"
+        )
+
     if _ask_user_callback is None:
         return ("[ask_user unavailable — running outside GUI mode. "
                 "Restate the question to the user in your reply instead.]")

@@ -22,7 +22,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 3
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: coverage_tap, cycle_model, cycle_model.pipeline, dataflow, dataflow.ordering, dataflow.sequence, dataflow.state_flow, decomposition, error_handling, fsm, fsm.control, function_model, function_model.transactions.FM_CPU_STEP, io_list, parameters, registers
 - Module slice: 2/9 section=function_model task_limit=48
@@ -345,14 +345,14 @@ SSOT item context: name=pc_q; expr=pc+2 on normal flow; branch target on taken b
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_CPU_STEP.state_updates.rf_q
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.state_updates.rf_q.
 Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
 SSOT item context: name=rf_q; expr=register writeback on ALU/LDR/MOV commit only; width=32; reset=0.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -369,14 +369,14 @@ SSOT item context: name=rf_q; expr=register writeback on ALU/LDR/MOV commit only
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_CPU_STEP.state_updates.nzcv_q
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.state_updates.nzcv_q.
 Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
 SSOT item context: name=nzcv_q; expr=updated by arithmetic/compare instructions per ARM-like semantics; width=4; reset=0.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -413,14 +413,14 @@ SSOT item context: value=Successful ALU/MOV/LDR instructions update the destinat
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_CPU_STEP.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.side_effects.side_effect_1.
 Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
 SSOT item context: value=Arithmetic and compare instructions update NZCV according to flag_formulas..
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction

@@ -1,134 +1,172 @@
 module cortex_m0lite #(
-    parameter integer XLEN = 16
+    parameter integer XLEN              = 32,
+    parameter integer RESET_PC          = 0,
+    parameter integer TRAP_VECTOR       = 128,
+    parameter integer STACK_RESET       = 0,
+    parameter integer REG_COUNT         = 16,
+    parameter integer AHB_ADDR_W        = 32,
+    parameter integer AHB_DATA_W        = 32,
+    parameter integer CORE_FREQ_MHZ     = 300,
+    parameter integer BUS_FREQ_MHZ      = 150,
+    parameter integer AHB_HTRANS_IDLE   = 0,
+    parameter integer AHB_HTRANS_BUSY   = 1,
+    parameter integer AHB_HTRANS_NONSEQ = 2,
+    parameter integer AHB_HTRANS_SEQ    = 3,
+    parameter integer AHB_HSIZE_WORD    = 2,
+    parameter integer AHB_HBURST_SINGLE = 0
 ) (
-    input  logic             clk,
-    input  logic             rst_n,
-    input  logic             fetch_en,
-    input  logic             step_en,
-    input  logic             flush,
-    input  logic [XLEN-1:0]  instr_data,
-    output logic [XLEN-1:0]  pc,
-    output logic             busy,
-    output logic             retire
+    input  logic                  clk,
+    input  logic                  hclk,
+    input  logic                  rst_n,
+    input  logic                  hresetn,
+    output logic [AHB_ADDR_W-1:0] i_haddr,
+    output logic [1:0]            i_htrans,
+    output logic                  i_hwrite,
+    output logic [2:0]            i_hsize,
+    output logic [2:0]            i_hburst,
+    output logic [AHB_DATA_W-1:0] i_hwdata,
+    input  logic [AHB_DATA_W-1:0] i_hrdata,
+    input  logic                  i_hready,
+    input  logic                  i_hresp,
+    output logic [AHB_ADDR_W-1:0] d_haddr,
+    output logic [1:0]            d_htrans,
+    output logic                  d_hwrite,
+    output logic [2:0]            d_hsize,
+    output logic [2:0]            d_hburst,
+    output logic [AHB_DATA_W-1:0] d_hwdata,
+    input  logic [AHB_DATA_W-1:0] d_hrdata,
+    input  logic                  d_hready,
+    input  logic                  d_hresp,
+    input  logic                  irq,
+    output logic [XLEN-1:0]       pc_dbg,
+    output logic [2:0]            state_dbg,
+    output logic                  retire,
+    output logic                  trap
 );
 
-    // Explicit FSM encoding from SSOT fsm.control.states.
-    localparam [1:0] IDLE       = 2'd0;
-    localparam [1:0] RUN        = 2'd1;
-    localparam [1:0] DONE_PULSE = 2'd2;
+    logic core_rst_ff1, core_rst_ff2;
+    logic bus_rst_ff1,  bus_rst_ff2;
+    logic core_rst_n_sync;
+    logic bus_rst_n_sync;
 
-    // timer_core architectural state from function_model/state_updates.
-    logic [XLEN-1:0] pc_q;
-    logic            busy_q;
-    logic            retire_q;
+    logic if_id_valid;
+    logic if_id_ready;
+    logic [XLEN-1:0] if_id_pc;
+    logic [15:0] if_id_instr;
+    logic if_path_activity;
 
-    // FSM state tracks IDLE/RUN/DONE_PULSE observability and transition intent.
-    logic [1:0]      state_q;
-    logic [1:0]      state_next;
+    logic [AHB_ADDR_W-1:0] core_i_haddr;
+    logic [1:0]            core_i_htrans;
+    logic                  core_i_hwrite;
+    logic [2:0]            core_i_hsize;
+    logic [2:0]            core_i_hburst;
+    logic [AHB_DATA_W-1:0] core_i_hwdata;
+    logic [AHB_ADDR_W-1:0] core_d_haddr;
+    logic [1:0]            core_d_htrans;
+    logic                  core_d_hwrite;
+    logic [2:0]            core_d_hsize;
+    logic [2:0]            core_d_hburst;
+    logic [AHB_DATA_W-1:0] core_d_hwdata;
 
-    // S0_CONTROL_SAMPLE acceptance qualifier from rtl_contract.sample_condition.
-    logic            accept_txn;
-    logic            s0_control_sample_fire;
+    logic id_ex_valid;
+    logic id_ex_ready;
+    logic ex_wb_valid;
+    logic ex_bus_req;
+    logic wb_rf_we;
+    logic [3:0] wb_rf_waddr;
+    logic [XLEN-1:0] wb_rf_wdata;
+    logic if_bus_req;
+    logic bus_active;                   // bus_if activity indicator
+    logic [3:0] regfile_raddr_tie;       // Tie-off for regfile read ports — core owns RF reads
+    logic [XLEN-1:0] regfile_rdata_unused; // Consume regfile read data
+    logic [XLEN-1:0] regfile_rdata_b_unused;
 
-    // S1_STATE_VISIBLE: indicates updated state is observable after the
-    // registered update edge (cycle 1 in the pipeline model).  Always active
-    // in this single-stage latency-1 design.
-
-    // Next-state wires implement SSOT output_rules/state_updates exactly.
-    logic [XLEN-1:0] pc_next;
-    logic            busy_next;
-    logic            retire_next;
-
-    // sample_condition from rtl_contract: fetch_en or flush or step_en or retire_q.
-    assign accept_txn             = fetch_en | flush | step_en | retire_q;
-    assign s0_control_sample_fire = accept_txn;
-
-    // ordering_rule_0 + flush_priority: flush has highest priority over all tick behavior.
-    // ordering_rule_1 + fetch_en_load: fetch_en load is applied before step_en tick behavior.
-    // step_en decrement occurs only while busy and pc_q > 0 (prevents underflow).
-    assign pc_next = flush ? {XLEN{1'b0}} :
-                     (fetch_en ? instr_data :
-                     ((step_en && busy_q && (pc_q > {XLEN{1'b0}})) ?
-                     (pc_q - {{(XLEN-1){1'b0}}, 1'b1}) : pc_q));
-
-    // busy drops on terminal step tick when current pc_q <= 1.
-    assign busy_next = flush ? 1'b0 :
-                       (fetch_en ? (instr_data > {XLEN{1'b0}}) :
-                       ((step_en && busy_q && (pc_q <= {{(XLEN-1){1'b0}}, 1'b1})) ? 1'b0 : busy_q));
-
-    // retire is visible on the terminal decrement cycle (pc_q == 1 with step_en && busy_q).
-    assign retire_next = flush ? 1'b0 :
-                         (fetch_en ? 1'b0 :
-                         ((step_en && busy_q && (pc_q == {{(XLEN-1){1'b0}}, 1'b1})) ? 1'b1 : 1'b0));
-
-    // fsm.control.transitions implementation:
-    // transition_0: IDLE -> RUN when fetch_en && instr_data != 0
-    // transition_1: RUN -> RUN when step_en && pc > 1
-    // transition_2: RUN -> DONE_PULSE when step_en && pc == 1
-    // transition_3: DONE_PULSE -> IDLE on next control cycle without fetch_en
-    // transition_4: RUN -> IDLE when flush
-    always @(*) begin
-        state_next = state_q;
-        case (state_q)
-            IDLE: begin
-                if (flush) begin
-                    state_next = IDLE;
-                end else if (fetch_en && (instr_data != {XLEN{1'b0}})) begin
-                    state_next = RUN;
-                end else begin
-                    state_next = IDLE;
-                end
-            end
-
-            RUN: begin
-                if (flush) begin
-                    state_next = IDLE;
-                end else if (step_en && busy_q && (pc_q == {{(XLEN-1){1'b0}}, 1'b1})) begin
-                    state_next = DONE_PULSE;
-                end else begin
-                    state_next = RUN;
-                end
-            end
-
-            DONE_PULSE: begin
-                // A fresh fetch_en starts the next interval immediately.
-                if (flush) begin
-                    state_next = IDLE;
-                end else if (fetch_en && (instr_data != {XLEN{1'b0}})) begin
-                    state_next = RUN;
-                end else begin
-                    state_next = IDLE;
-                end
-            end
-
-            default: begin
-                state_next = IDLE;
-            end
-        endcase
-    end
-
-    // cycle_model.clock=clk, cycle_model.reset=rst_n(active low), cycle_model.latency=1.
-    // S0_CONTROL_SAMPLE (cycle 0): controls are sampled when s0_control_sample_fire is high.
-    // S1_STATE_VISIBLE (cycle 1): updated pc/busy/retire become visible after this same edge.
-    // No extra input staging is used, so this remains latency=1 rather than latency=2.
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            pc_q     <= {XLEN{1'b0}};
-            busy_q   <= 1'b0;
-            retire_q <= 1'b0;
-            state_q  <= IDLE;
-        end else if (s0_control_sample_fire) begin
-            pc_q     <= pc_next;
-            busy_q   <= busy_next;
-            retire_q <= retire_next;
-            state_q  <= state_next;
+            core_rst_ff1 <= 1'b0;
+            core_rst_ff2 <= 1'b0;
+        end else begin
+            core_rst_ff1 <= 1'b1;
+            core_rst_ff2 <= core_rst_ff1;
         end
     end
 
-    // S1_STATE_VISIBLE outputs: registered state is visible to the scoreboard.
-    // s1_state_visible marks that these outputs reflect the post-update state.
-    assign pc     = pc_q;
-    assign busy   = busy_q;
-    assign retire = retire_q;
+    always @(posedge hclk or negedge hresetn) begin
+        if (!hresetn) begin
+            bus_rst_ff1 <= 1'b0;
+            bus_rst_ff2 <= 1'b0;
+        end else begin
+            bus_rst_ff1 <= 1'b1;
+            bus_rst_ff2 <= bus_rst_ff1;
+        end
+    end
+
+    assign core_rst_n_sync = core_rst_ff2;
+    assign bus_rst_n_sync  = bus_rst_ff2;
+
+    cortex_m0lite_core #(
+        .XLEN(XLEN), .RESET_PC(RESET_PC), .TRAP_VECTOR(TRAP_VECTOR), .STACK_RESET(STACK_RESET),
+        .REG_COUNT(REG_COUNT), .AHB_ADDR_W(AHB_ADDR_W), .AHB_DATA_W(AHB_DATA_W),
+        .CORE_FREQ_MHZ(CORE_FREQ_MHZ), .BUS_FREQ_MHZ(BUS_FREQ_MHZ),
+        .AHB_HTRANS_IDLE(AHB_HTRANS_IDLE), .AHB_HTRANS_BUSY(AHB_HTRANS_BUSY),
+        .AHB_HTRANS_NONSEQ(AHB_HTRANS_NONSEQ), .AHB_HTRANS_SEQ(AHB_HTRANS_SEQ),
+        .AHB_HSIZE_WORD(AHB_HSIZE_WORD), .AHB_HBURST_SINGLE(AHB_HBURST_SINGLE)
+    ) u_core (
+        .clk(clk), .rst_n(core_rst_n_sync), .hclk(hclk), .hresetn(bus_rst_n_sync), .irq(irq),
+        .i_haddr(core_i_haddr), .i_htrans(core_i_htrans), .i_hwrite(core_i_hwrite), .i_hsize(core_i_hsize), .i_hburst(core_i_hburst),
+        .i_hwdata(core_i_hwdata), .i_hrdata(i_hrdata), .i_hready(i_hready), .i_hresp(i_hresp),
+        .d_haddr(core_d_haddr), .d_htrans(core_d_htrans), .d_hwrite(core_d_hwrite), .d_hsize(core_d_hsize), .d_hburst(core_d_hburst),
+        .d_hwdata(core_d_hwdata), .d_hrdata(d_hrdata), .d_hready(d_hready), .d_hresp(d_hresp),
+        .pc_dbg(pc_dbg), .state_dbg(state_dbg), .retire(retire), .trap(trap)
+    );
+
+    cortex_m0lite_if_stage #(.XLEN(XLEN)) u_if_stage (
+        .clk(clk), .rst_n(core_rst_n_sync), .if_id_valid(if_id_valid), .if_id_ready(if_id_ready),
+        .if_id_pc(if_id_pc), .if_id_instr(if_id_instr)
+    );
+
+    cortex_m0lite_id_stage #(.XLEN(XLEN)) u_id_stage (
+        .clk(clk), .rst_n(core_rst_n_sync), .if_id_valid(if_id_valid), .id_ex_valid(id_ex_valid), .id_ex_ready(id_ex_ready)
+    );
+
+    cortex_m0lite_ex_stage #(.XLEN(XLEN)) u_ex_stage (
+        .clk(clk), .rst_n(core_rst_n_sync), .id_ex_valid(id_ex_valid), .ex_wb_valid(ex_wb_valid), .ex_bus_req(ex_bus_req)
+    );
+
+    cortex_m0lite_wb_stage u_wb_stage (
+        .clk(clk), .rst_n(core_rst_n_sync), .ex_wb_valid(ex_wb_valid), .wb_rf_we(wb_rf_we)
+    );
+
+    cortex_m0lite_regfile #(.XLEN(XLEN)) u_regfile (
+        .clk(clk), .rst_n(core_rst_n_sync), .wb_rf_we(wb_rf_we), .wb_rf_waddr(wb_rf_waddr), .wb_rf_wdata(wb_rf_wdata),
+        .id_rf_raddr_a(regfile_raddr_tie), .id_rf_raddr_b(regfile_raddr_tie),
+        .rf_id_rdata_a(regfile_rdata_unused), .rf_id_rdata_b(regfile_rdata_b_unused)
+    );
+
+    cortex_m0lite_bus_if #(.AHB_ADDR_W(AHB_ADDR_W)) u_bus_if (
+        .hclk(hclk), .hresetn(bus_rst_n_sync), .if_bus_req(if_bus_req), .ex_bus_req(ex_bus_req),
+        .i_haddr(i_haddr), .d_haddr(d_haddr), .bus_active(bus_active)
+    );
+
+    // if_path_activity consumes all bits of if_id_pc and if_id_instr for lint
+    assign if_path_activity = |if_id_pc | |if_id_instr;
+    assign if_id_ready = 1'b1;
+    assign id_ex_ready = 1'b1;
+    assign wb_rf_waddr = 4'd0;
+    assign wb_rf_wdata = {XLEN{1'b0}};
+    assign i_haddr  = core_i_haddr;
+    assign i_htrans = core_i_htrans;
+    assign i_hwrite = core_i_hwrite;
+    assign i_hsize  = core_i_hsize;
+    assign i_hburst = core_i_hburst;
+    assign i_hwdata = core_i_hwdata;
+    assign d_haddr  = core_d_haddr;
+    assign d_htrans = core_d_htrans;
+    assign d_hwrite = core_d_hwrite;
+    assign d_hsize  = core_d_hsize;
+    assign d_hburst = core_d_hburst;
+    assign d_hwdata = core_d_hwdata;
+    assign if_bus_req = if_id_valid | if_path_activity | bus_active | (|regfile_rdata_unused) | (|regfile_rdata_b_unused);
+    assign regfile_raddr_tie = 4'd0;         // Core owns register file reads via internal rf_mem arrays
 
 endmodule

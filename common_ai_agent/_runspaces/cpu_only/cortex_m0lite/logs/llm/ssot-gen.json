@@ -1,0 +1,15 @@
+{
+  "error": "Error calling LLM: HTTP Error 400: Bad Request",
+  "finish_reason": "",
+  "finished_at": "2026-05-13T15:52:17Z",
+  "input_hash": "e507d5f7db88046d9326c7603f302af8f9584bc51a0f1d4783a4f1682e72de48",
+  "model": "deepseek-v4-pro",
+  "output_hash": "498b61f32190ec135e8268e22473c6d30922321198a23a9df234f963ebd85a00",
+  "parsed_artifacts": [],
+  "prompt_hash": "20b0b5a315ed2c2f7e89d04e404bc41ca9c58277efca3dbb427761135b58e80b",
+  "raw_response": "Error calling LLM: HTTP Error 400: Bad Request",
+  "stage": "ssot-gen",
+  "started_at": "2026-05-13T15:52:07Z",
+  "status": "blocked",
+  "usage": {}
+}

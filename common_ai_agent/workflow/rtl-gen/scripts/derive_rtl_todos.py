@@ -14,6 +14,7 @@ import argparse
 import ast
 import hashlib
 import json
+import os
 import re
 import time
 from collections import Counter
@@ -4382,6 +4383,11 @@ def _write_outputs(ip_dir: Path, plan: dict[str, Any]) -> None:
     (logs_dir / "rtl_todo_plan.json").write_text(full_plan_text, encoding="utf-8")
     todo_plan_path = rtl_dir / "rtl_todo_plan.json"
     todo_plan_path.write_text(full_plan_text, encoding="utf-8")
+    todo_dir = ip_dir / "todo"
+    todo_dir.mkdir(parents=True, exist_ok=True)
+    # New canonical TODO artifact location under <ip>/todo/.
+    # Keep legacy rtl/ copies for backward compatibility.
+    (todo_dir / "rtl_todo_plan.json").write_text(full_plan_text, encoding="utf-8")
     todo_plan_sha256 = _stable_json_sha256(todo_plan_path) or hashlib.sha256(full_plan_text.encode("utf-8")).hexdigest()
     authoring_plan = _write_authoring_packets(ip_dir, plan, todo_plan_sha256=todo_plan_sha256)
 
@@ -4426,6 +4432,8 @@ def _write_outputs(ip_dir: Path, plan: dict[str, Any]) -> None:
     template_plan = _convert_to_template_format(plan)
     template_text = json.dumps(template_plan, ensure_ascii=False, indent=2) + "\n"
     (rtl_dir / "rtl_todo_tracker.json").write_text(template_text, encoding="utf-8")
+    (todo_dir / "rtl_todo_tracker.json").write_text(template_text, encoding="utf-8")
+    _direct_load_session_todo(ip_dir, plan, template_text)
     trace = {
         "schema_version": plan["schema_version"],
         "type": "rtl_traceability_matrix",
@@ -4455,6 +4463,52 @@ def _write_outputs(ip_dir: Path, plan: dict[str, Any]) -> None:
         json.dumps(trace, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+
+
+def _direct_load_session_todo(ip_dir: Path, plan: dict[str, Any], template_text: str) -> None:
+    """Direct-load dynamic TODOs into a session-scoped todo.json.
+
+    Target path contract:
+      .session/<session_id>/<ip_id>/<workflow>/todo.json
+    """
+    root = ip_dir.parent
+    ip = str(plan.get("ip") or ip_dir.name)
+    workflow = (
+        os.environ.get("ACTIVE_WORKSPACE")
+        or os.environ.get("ATLAS_DEFAULT_WORKFLOW")
+        or "rtl-gen"
+    ).strip() or "rtl-gen"
+
+    active_session = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip().strip("/")
+    session_hint = (
+        os.environ.get("SESSION_ID")
+        or os.environ.get("ACTIVE_PROJECT")
+        or "default"
+    ).strip().strip("/")
+
+    parts: list[str]
+    if active_session:
+        raw = [p for p in active_session.split("/") if p]
+        if len(raw) >= 3:
+            parts = [raw[0], raw[1], raw[2]]
+        elif len(raw) == 2:
+            parts = [raw[0], raw[1], workflow]
+        else:
+            parts = [raw[0], ip, workflow]
+    else:
+        raw = [p for p in session_hint.split("/") if p]
+        if len(raw) >= 3:
+            parts = [raw[0], raw[1], raw[2]]
+        elif len(raw) == 2:
+            parts = [raw[0], raw[1], workflow]
+        else:
+            parts = [raw[0] if raw else "default", ip, workflow]
+
+    session_todo = root / ".session" / parts[0] / parts[1] / parts[2] / "todo.json"
+    session_todo.parent.mkdir(parents=True, exist_ok=True)
+    session_todo.write_text(template_text, encoding="utf-8")
+    plan.setdefault("artifacts", {})
+    plan["artifacts"]["session_todo"] = str(session_todo.relative_to(root))
 
 
 def _write_dynamic_blocker(ip_dir: Path, plan: dict[str, Any]) -> None:

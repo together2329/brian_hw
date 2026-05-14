@@ -2331,7 +2331,7 @@ class SlashCommandRegistry:
                 if dynamic_ip:
                     return (
                         f"Template '{template_name}' not found and no dynamic TodoTracker file was found for {dynamic_ip}.\n"
-                        f"Expected: {dynamic_ip}/rtl/rtl_todo_tracker.json\n"
+                        f"Expected: {dynamic_ip}/todo/rtl_todo_tracker.json (fallback: {dynamic_ip}/rtl/rtl_todo_tracker.json)\n"
                         f"Available: {available}\n"
                     )
                 return f"Template '{template_name}' not found.\nAvailable: {available}\n"
@@ -2391,22 +2391,29 @@ class SlashCommandRegistry:
             em = getattr(_cfg, 'EXECUTION_MODE', 'agent')
             ci = getattr(_cfg, 'CHAT_MAX_ITERATIONS', 1)
             sbsm = getattr(_cfg, 'STEP_BY_STEP_MODE', False)
+            ask_mode = os.getenv("ASK_USER_EXEC_MODE", "interactive").strip().lower()
             chat_desc = f"chat (max {ci} iter{'s' if ci != 1 else ''}, {'no tools' if ci == 0 else 'tools allowed'})"
             cur = chat_desc if em == 'chat' else em
             return (f"\nExecution mode: {cur}  |  Step-by-step: {'ON' if sbsm else 'OFF'}\n"
-                    f"Usage: /mode agent | chat [N] | step | plan | normal\n"
+                    f"AskUser mode: {ask_mode}\n"
+                    f"Usage: /mode agent | chat [N] | step | plan | normal | interactive | pipeline | ci\n"
                     f"  chat 0   respond only, no tools\n"
                     f"  chat 1   1 ReAct iteration with tools (default)\n"
-                    f"  chat N   N iterations with tools\n")
+                    f"  chat N   N iterations with tools\n"
+                    f"  interactive  ask_user allowed (default)\n"
+                    f"  pipeline     ask_user blocked, continue non-blocking stages\n"
+                    f"  ci           ask_user blocked, fail-fast\n")
         mode = parts[0]
         if mode == 'chat':
             n = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 1
             return f"EXECUTION_MODE:chat:{n}"
         if mode in ('agent', 'step'):
             return f"EXECUTION_MODE:{mode}:0"
+        if mode in ('interactive', 'pipeline', 'ci'):
+            return f"ASK_USER_MODE:{mode}"
         if mode in ('plan', 'normal'):
             return f"AGENT_MODE:{mode}"
-        return f"\nUnknown mode: {mode}\nUsage: /mode agent|chat [N]|step|plan|normal\n"
+        return f"\nUnknown mode: {mode}\nUsage: /mode agent|chat [N]|step|plan|normal|interactive|pipeline|ci\n"
 
     def _cmd_step(self, args: str) -> str:
         """Toggle Step-by-Step execution mode."""

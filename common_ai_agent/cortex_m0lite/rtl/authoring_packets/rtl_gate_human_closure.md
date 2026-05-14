@@ -23,11 +23,10 @@
 - PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
-- Human-locked open tasks: 3
+- Human-locked open tasks: 2
 - Owner refs: cdc_requirements, clock_reset_domains, integration, integration.connections, internal_interfaces, io_list, io_list.interfaces
 - SSOT target scale: min_behavior_owner_logic_modules=6, min_depth_score=120, min_logic_modules=7, min_modules=8, min_procedural_blocks=12, min_source_files=8, min_state_updates=10
 - Locked-truth blockers:
-  - manifest_connection_contract_evidence: 40 SSOT connection contract issue(s) remain. cortex_m0lite_core: SSOT connection contract targets a module not reachable from top RTL hierarchy; cortex_m0lite_core: SSOT connection contract targets a module not reachable from top RTL hierarchy; cortex_m0lite_core: SSOT connection contract targets a module not reachable from top RTL hierarchy
   - golden_authority_artifacts: Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json
   - cycle_model_artifacts: Missing executable cycle model: model/cycle_model.py.
 - SSOT connection contracts:
@@ -109,13 +108,13 @@ Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_connection_contract_evidence
 - Detail: Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.
 SSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.
 Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
-- Current reason: 40 SSOT connection contract issue(s) remain. cortex_m0lite_core: SSOT connection contract targets a module not reachable from top RTL hierarchy; cortex_m0lite_core: SSOT connection contract targets a module not reachable from top RTL hierarchy; cortex_m0lite_core: SSOT connection contract targets a module not reachable from top RTL hierarchy
+- Current reason: SSOT connection contracts are satisfied by reachable RTL named port maps.
 - Criteria:
   - Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections
   - Each SSOT connection contract resolves to a reachable manifest child module and port

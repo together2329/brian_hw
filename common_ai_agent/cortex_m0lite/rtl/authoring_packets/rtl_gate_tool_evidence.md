@@ -27,16 +27,12 @@
 - Owner refs: cdc_requirements, clock_reset_domains, integration, integration.connections, internal_interfaces, io_list, io_list.interfaces
 - SSOT target scale: min_behavior_owner_logic_modules=6, min_depth_score=120, min_logic_modules=7, min_modules=8, min_procedural_blocks=12, min_source_files=8, min_state_updates=10
 - Tool-evidence blockers:
-  - common_ai_agent_authoring: RTL authoring provenance is incomplete: todo_plan_sha256, rtl_files_missing_manifest:rtl/cortex_m0lite_bus_if.sv,rtl/cortex_m0lite_ex_stage.sv,rtl/cortex_m0lite_id_stage.sv,rtl/cortex_m0lite_if_stage.sv,rtl/cortex_m0lite_regfile.sv,rtl/cortex_m0lite_wb_stage.sv
-  - dut_compile: rtl/rtl_compile.json is older than current RTL source rtl/cortex_m0lite_core.sv; rerun DUT compile after the final RTL edit.
-  - dut_lint: lint/dut_lint.json is older than current RTL source rtl/cortex_m0lite_core.sv; rerun DUT lint after the final RTL edit.
-  - dynamic_todo_closure: 29 required non-closure TODO(s) remain open.
+  - dut_lint: DUT lint artifact is not clean.
+  - dynamic_todo_closure: 6 required non-closure TODO(s) remain open.
   - protocol_assertion_evidence: Missing protocol assertion artifact: verify/protocol_assertions.sva.
   - fl_rtl_goal_audit: Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
   - coverage_closure: Coverage closure report is not pass.
 - Tool-evidence runbook:
-  - common_ai_agent_authoring: stages=ssot-rtl; artifact=cortex_m0lite/rtl/rtl_authoring_provenance.json
-  - dut_compile: stages=ssot-rtl, dut_compile; artifact=cortex_m0lite/rtl/rtl_compile.json
   - dut_lint: stages=lint, dut_lint; artifact=cortex_m0lite/lint/dut_lint.json
   - dynamic_todo_closure: stages=audit-rtl; artifact=cortex_m0lite/rtl/rtl_todo_plan.json
   - protocol_assertion_evidence: stages=ssot-protocol-assertions, sim; artifact=cortex_m0lite/verify/protocol_assertions.sva
@@ -63,13 +59,13 @@
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.common_ai_agent_authoring
 - Detail: RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.
 SSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.
 Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
-- Current reason: RTL authoring provenance is incomplete: todo_plan_sha256, rtl_files_missing_manifest:rtl/cortex_m0lite_bus_if.sv,rtl/cortex_m0lite_ex_stage.sv,rtl/cortex_m0lite_id_stage.sv,rtl/cortex_m0lite_if_stage.sv,rtl/cortex_m0lite_regfile.sv,rtl/cortex_m0lite_wb_stage.sv
+- Current reason: RTL authoring provenance proves common_ai_agent rtl-gen ownership.
 - Criteria:
   - rtl/rtl_authoring_provenance.json exists
   - provenance agent is common_ai_agent
@@ -86,13 +82,13 @@ Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_compile
 - Detail: Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.
 SSOT ref: quality_gates.rtl_gen.dut_compile.
 Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
-- Current reason: rtl/rtl_compile.json is older than current RTL source rtl/cortex_m0lite_core.sv; rerun DUT compile after the final RTL edit.
+- Current reason: DUT-only compile artifact passed with zero errors, diagnostics, and style violations.
 - Criteria:
   - rtl/rtl_compile.json exists
   - rtl_compile.json reports dut_only=true
@@ -113,7 +109,7 @@ Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
 - Detail: Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.
 SSOT ref: quality_gates.rtl_gen.dut_lint.
 Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
-- Current reason: lint/dut_lint.json is older than current RTL source rtl/cortex_m0lite_core.sv; rerun DUT lint after the final RTL edit.
+- Current reason: DUT lint artifact is not clean.
 - Criteria:
   - lint/dut_lint.json exists
   - dut_lint.json reports dut_only=true
@@ -135,7 +131,7 @@ Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
-- Current reason: 29 required non-closure TODO(s) remain open.
+- Current reason: 6 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "ip": "cortex_m0lite",
+  "generated_at": "2026-05-13T16:05:31Z",
+  "emitter": "fl-model-gen",
+  "produced": [
+    "model/functional_model.py",
+    "model/decomposition.json",
+    "model/fl_model_check.json",
+    "cov/fcov_plan.json"
+  ]
+}

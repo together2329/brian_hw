@@ -542,9 +542,9 @@ def load_dynamic_todo_template(
 ) -> tuple[Optional[list], Optional[Path], Optional[dict]]:
     """Load a per-IP dynamic TodoTracker template when one exists.
 
-    The static ``ssot-rtl`` template is only a seed.  Once rtl-gen has derived
-    SSOT-specific tasks, the active TodoTracker list must come from
-    ``<ip>/rtl/rtl_todo_tracker.json`` instead of the fixed seed template.
+    The static ``ssot-rtl`` template is only a seed. Once rtl-gen has derived
+    SSOT-specific tasks, the active TodoTracker list should come from
+    ``<ip>/todo/rtl_todo_tracker.json`` (legacy fallback: ``<ip>/rtl/...``).
     """
     if template_name != "ssot-rtl" or not ip:
         return None, None, None
@@ -553,6 +553,8 @@ def load_dynamic_todo_template(
 
     for root in _dynamic_todo_project_roots(project_root):
         for path in (
+            root / ip / "todo" / "rtl_todo_tracker.json",
+            root / ip / "todo" / "rtl_todo_plan.todo.json",
             root / ip / "rtl" / "rtl_todo_tracker.json",
             root / ip / "rtl" / "rtl_todo_plan.todo.json",
         ):

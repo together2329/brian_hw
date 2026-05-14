@@ -5,72 +5,8 @@
       "Add tests, vectors, assertions, reports, and repair RTL under LLM-editable surfaces.",
       "Leave unresolved locked-truth decisions as human_gate/change-request records instead of changing SSOT authority."
     ],
-    "blocked_by_llm_work": [
-      {
-        "gate_kind": "static_rtl_evidence",
-        "owner_module": "cortex_m0lite",
-        "reason": "5 static-evidence-required task(s) still lack DUT RTL evidence.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
-        "status": "open",
-        "task_id": "RTL-0007"
-      },
-      {
-        "gate_kind": "owner_logic_structure_evidence",
-        "owner_module": "cortex_m0lite",
-        "reason": "6 owner logic structure issue(s) remain. if_stage: Behavior-owner module is not declared in its owner file; id_stage: Behavior-owner module is not declared in its owner file; ex_stage: Behavior-owner module is not declared in its owner file",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
-        "status": "open",
-        "task_id": "RTL-0008"
-      },
-      {
-        "gate_kind": "top_io_contract_evidence",
-        "owner_module": "cortex_m0lite",
-        "reason": "24 top IO contract issue(s) remain. hclk: SSOT top IO port is missing from RTL top declaration; hresetn: SSOT top IO port is missing from RTL top declaration; i_haddr: SSOT top IO port is missing from RTL top declaration",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
-        "status": "open",
-        "task_id": "RTL-0010"
-      },
-      {
-        "gate_kind": "manifest_hierarchy_integration",
-        "owner_module": "cortex_m0lite",
-        "reason": "7 manifest hierarchy integration issue(s) remain. cortex_m0lite_core: SSOT manifest child module is declared but not reachable from the top RTL hierarchy; if_stage: SSOT manifest child module is not declared in listed RTL sources; id_stage: SSOT manifest child module is not declared in listed RTL sources",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
-        "status": "open",
-        "task_id": "RTL-0013"
-      },
-      {
-        "gate_kind": "manifest_signal_flow_evidence",
-        "owner_module": "cortex_m0lite",
-        "reason": "1 manifest signal-flow issue(s) remain. cortex_m0lite: None: No reachable manifest child port flow evidence was found",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
-        "status": "open",
-        "task_id": "RTL-0015"
-      },
-      {
-        "gate_kind": "rtl_implementation_depth_evidence",
-        "owner_module": "cortex_m0lite",
-        "reason": "5 production RTL implementation-depth issue(s) remain. Production RTL source-file count is below the SSOT-locked target scale: actual=2 required=8; Production RTL module count is below the SSOT-locked target scale: actual=2 required=8; Production RTL procedural block count is below the SSOT-locked target scale: actual=7 required=12",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
-        "status": "open",
-        "task_id": "RTL-0022"
-      }
-    ],
+    "blocked_by_llm_work": [],
     "blocked_by_locked_truth": [
-      {
-        "gate_kind": "manifest_connection_contract_evidence",
-        "owner_module": "cortex_m0lite",
-        "reason": "40 SSOT connection contract issue(s) remain. cortex_m0lite_core: SSOT connection contract targets a module not reachable from top RTL hierarchy; cortex_m0lite_core: SSOT connection contract targets a module not reachable from top RTL hierarchy; cortex_m0lite_core: SSOT connection contract targets a module not reachable from top RTL hierarchy",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-        "status": "open",
-        "task_id": "RTL-0016"
-      },
       {
         "gate_kind": "golden_authority_artifacts",
         "owner_module": "cortex_m0lite",
@@ -92,27 +28,9 @@
     ],
     "blocked_by_tool_evidence": [
       {
-        "gate_kind": "common_ai_agent_authoring",
-        "owner_module": "cortex_m0lite",
-        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256, rtl_files_missing_manifest:rtl/cortex_m0lite_bus_if.sv,rtl/cortex_m0lite_ex_stage.sv,rtl/cortex_m0lite_id_stage.sv,rtl/cortex_m0lite_if_stage.sv,rtl/cortex_m0lite_regfile.sv,rtl/cortex_m0lite_wb_stage.sv",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "status": "open",
-        "task_id": "RTL-0006"
-      },
-      {
-        "gate_kind": "dut_compile",
-        "owner_module": "cortex_m0lite",
-        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/cortex_m0lite_core.sv; rerun DUT compile after the final RTL edit.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
         "gate_kind": "dut_lint",
         "owner_module": "cortex_m0lite",
-        "reason": "lint/dut_lint.json is older than current RTL source rtl/cortex_m0lite_core.sv; rerun DUT lint after the final RTL edit.",
+        "reason": "DUT lint artifact is not clean.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dut_lint",
         "status": "open",
@@ -121,7 +39,7 @@
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "cortex_m0lite",
-        "reason": "29 required non-closure TODO(s) remain open.",
+        "reason": "6 required non-closure TODO(s) remain open.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -176,7 +94,7 @@
     "draft_allowed": true,
     "gate_status": "fail",
     "hard_blockers": [],
-    "open_required_todos": 30,
+    "open_required_todos": 7,
     "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
@@ -185,53 +103,6 @@
       "Do not sign off top integration while required connection contracts are missing."
     ],
     "tool_evidence_plan": [
-      {
-        "artifact": "rtl/rtl_authoring_provenance.json",
-        "artifacts": [
-          "cortex_m0lite/rtl/rtl_authoring_provenance.json",
-          "cortex_m0lite/rtl/rtl_todo_plan.json"
-        ],
-        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-        "commands": [
-          "python3 src/headless_workflow.py --root . --ip cortex_m0lite --stages rtl-gen",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py cortex_m0lite --root . --audit-rtl"
-        ],
-        "gate_kind": "common_ai_agent_authoring",
-        "prerequisites": [
-          "An LLM authoring pass emitted or repaired DUT RTL files."
-        ],
-        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256, rtl_files_missing_manifest:rtl/cortex_m0lite_bus_if.sv,rtl/cortex_m0lite_ex_stage.sv,rtl/cortex_m0lite_id_stage.sv,rtl/cortex_m0lite_if_stage.sv,rtl/cortex_m0lite_regfile.sv,rtl/cortex_m0lite_wb_stage.sv",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "stage_sequence": [
-          "ssot-rtl"
-        ],
-        "status": "open",
-        "task_id": "RTL-0006"
-      },
-      {
-        "artifact": "rtl/rtl_compile.json",
-        "artifacts": [
-          "cortex_m0lite/rtl/rtl_compile.json",
-          "cortex_m0lite/rtl/rtl_compile.log"
-        ],
-        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-        "commands": [
-          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py cortex_m0lite --top cortex_m0lite --project-root .",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py cortex_m0lite --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_compile",
-        "prerequisites": [
-          "cortex_m0lite/list/cortex_m0lite.f covers the current DUT RTL sources."
-        ],
-        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/cortex_m0lite_core.sv; rerun DUT compile after the final RTL edit.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "stage_sequence": [
-          "ssot-rtl",
-          "dut_compile"
-        ],
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
       {
         "artifact": "lint/dut_lint.json",
         "artifacts": [
@@ -246,7 +117,7 @@
         "prerequisites": [
           "cortex_m0lite/list/cortex_m0lite.f covers the current DUT RTL/header sources."
         ],
-        "reason": "lint/dut_lint.json is older than current RTL source rtl/cortex_m0lite_core.sv; rerun DUT lint after the final RTL edit.",
+        "reason": "DUT lint artifact is not clean.",
         "source_ref": "quality_gates.rtl_gen.dut_lint",
         "stage_sequence": [
           "lint",
@@ -269,7 +140,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "29 required non-closure TODO(s) remain open.",
+        "reason": "6 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -359,536 +230,7 @@
   "packets": [
     {
       "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__if_stage.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__if_stage.md",
-      "owner_file": "rtl/cortex_m0lite_if_stage.sv",
-      "owner_module": "if_stage",
-      "packet_id": "module__if_stage",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "sub_modules.if_stage.module_equivalence"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__id_stage.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__id_stage.md",
-      "owner_file": "rtl/cortex_m0lite_id_stage.sv",
-      "owner_module": "id_stage",
-      "packet_id": "module__id_stage",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "sub_modules.id_stage.module_equivalence"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__ex_stage.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__ex_stage.md",
-      "owner_file": "rtl/cortex_m0lite_ex_stage.sv",
-      "owner_module": "ex_stage",
-      "packet_id": "module__ex_stage",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "sub_modules.ex_stage.module_equivalence"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__wb_stage.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__wb_stage.md",
-      "owner_file": "rtl/cortex_m0lite_wb_stage.sv",
-      "owner_module": "wb_stage",
-      "packet_id": "module__wb_stage",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "sub_modules.wb_stage.module_equivalence"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 2,
-        "open_required_count": 2,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__regfile.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__regfile.md",
-      "owner_file": "rtl/cortex_m0lite_regfile.sv",
-      "owner_module": "regfile",
-      "packet_id": "module__regfile",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1,
-          "memory.instances": 1
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 2,
-          "task_limit": 48
-        },
-        "open_required_count": 2,
-        "required_count": 2,
-        "source_refs": [
-          "memory.instances.regfile_storage",
-          "sub_modules.regfile.module_equivalence"
-        ],
-        "status_counts": {
-          "open": 2
-        },
-        "task_count": 2
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 3,
-        "open_required_count": 3,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__bus_if.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__bus_if.md",
-      "owner_file": "rtl/cortex_m0lite_bus_if.sv",
-      "owner_module": "bus_if",
-      "packet_id": "module__bus_if",
-      "summary": {
-        "categories": {
-          "equivalence.module": 1,
-          "security.assets": 1,
-          "synthesis.ppa_targets": 1
-        },
-        "module_slice": {
-          "count": 1,
-          "enabled": false,
-          "index": 1,
-          "key": "all",
-          "module_task_count": 3,
-          "task_limit": 48
-        },
-        "open_required_count": 3,
-        "required_count": 3,
-        "source_refs": [
-          "security.assets.bus_integrity",
-          "synthesis.ppa_targets.bus_frequency_mhz_min",
-          "sub_modules.bus_if.module_equivalence"
-        ],
-        "status_counts": {
-          "open": 3
-        },
-        "task_count": 3
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 3,
-        "open_required_count": 3,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__cortex_m0lite_core__function_model.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__cortex_m0lite_core__function_model.md",
-      "owner_file": "rtl/cortex_m0lite_core.sv",
-      "owner_module": "cortex_m0lite_core",
-      "packet_id": "module__cortex_m0lite_core__function_model",
-      "summary": {
-        "categories": {
-          "function_model.error_case": 3,
-          "function_model.invariant": 5,
-          "function_model.output": 3,
-          "function_model.output_rule": 2,
-          "function_model.precondition": 3,
-          "function_model.side_effect": 4,
-          "function_model.state_update": 3,
-          "function_model.state_variable": 4,
-          "function_model.transaction": 1
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 2,
-          "key": "function_model",
-          "module_task_count": 98,
-          "rule": "Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "function_model",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 3,
-        "required_count": 28,
-        "source_refs": [
-          "function_model.state_variables.pc_q",
-          "function_model.state_variables.rf_q",
-          "function_model.state_variables.nzcv_q",
-          "function_model.state_variables.trap_q",
-          "function_model.transactions.FM_CPU_STEP",
-          "function_model.transactions.FM_CPU_STEP.preconditions.precondition_0",
-          "function_model.transactions.FM_CPU_STEP.preconditions.precondition_1",
-          "function_model.transactions.FM_CPU_STEP.preconditions.precondition_2",
-          "function_model.transactions.FM_CPU_STEP.outputs.output_0",
-          "function_model.transactions.FM_CPU_STEP.outputs.output_1",
-          "function_model.transactions.FM_CPU_STEP.outputs.output_2",
-          "function_model.transactions.FM_CPU_STEP.output_rules.retire_pulse",
-          "function_model.transactions.FM_CPU_STEP.output_rules.trap_flag",
-          "function_model.transactions.FM_CPU_STEP.state_updates.pc_q",
-          "function_model.transactions.FM_CPU_STEP.state_updates.rf_q",
-          "function_model.transactions.FM_CPU_STEP.state_updates.nzcv_q",
-          "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_0",
-          "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_1",
-          "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_2",
-          "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_3",
-          "function_model.transactions.FM_CPU_STEP.error_cases.error_case_0",
-          "function_model.transactions.FM_CPU_STEP.error_cases.error_case_1",
-          "function_model.transactions.FM_CPU_STEP.error_cases.error_case_2",
-          "function_model.invariants.invariant_0"
-        ],
-        "status_counts": {
-          "open": 3,
-          "pass": 25
-        },
-        "task_count": 28
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 2,
-        "open_required_count": 2,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__cortex_m0lite_core__workflow_todo.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__cortex_m0lite_core__workflow_todo.md",
-      "owner_file": "rtl/cortex_m0lite_core.sv",
-      "owner_module": "cortex_m0lite_core",
-      "packet_id": "module__cortex_m0lite_core__workflow_todo",
-      "summary": {
-        "categories": {
-          "workflow_todo.rtl_gen": 3
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 8,
-          "key": "workflow_todo",
-          "module_task_count": 98,
-          "rule": "Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "workflow_todo",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 2,
-        "required_count": 3,
-        "source_refs": [
-          "workflow_todos.rtl-gen[0]",
-          "workflow_todos.rtl-gen[1]",
-          "workflow_todos.rtl-gen[2]"
-        ],
-        "status_counts": {
-          "open": 2,
-          "pass": 1
-        },
-        "task_count": 3
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": false,
-        "evidence_closure_allowed": true,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 6,
-        "open_required_count": 6,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
-      "kind": "gate",
-      "markdown": "rtl/authoring_packets/rtl_gate_evidence_closure.md",
-      "owner_file": "rtl/cortex_m0lite.sv",
-      "owner_module": "cortex_m0lite",
-      "packet_id": "rtl_gate_evidence_closure",
-      "summary": {
-        "categories": {
-          "rtl_gate.rtl_gen": 10
-        },
-        "module_slice": {},
-        "open_required_count": 6,
-        "required_count": 10,
-        "source_refs": [
-          "quality_gates.rtl_gen.static_rtl_evidence",
-          "quality_gates.rtl_gen.owner_logic_structure_evidence",
-          "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-          "quality_gates.rtl_gen.top_io_contract_evidence",
-          "quality_gates.rtl_gen.top_output_drive_evidence",
-          "quality_gates.rtl_gen.top_input_consumption_evidence",
-          "quality_gates.rtl_gen.manifest_hierarchy_integration",
-          "quality_gates.rtl_gen.manifest_port_connection_evidence",
-          "quality_gates.rtl_gen.manifest_signal_flow_evidence",
-          "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
-        ],
-        "status_counts": {
-          "open": 6,
-          "pass": 4
-        },
-        "task_count": 10
-      }
-    },
-    {
-      "execution_policy": {
         "blocked_by_locked_truth": [
-          {
-            "gate_kind": "manifest_connection_contract_evidence",
-            "owner_module": "cortex_m0lite",
-            "reason": "40 SSOT connection contract issue(s) remain. cortex_m0lite_core: SSOT connection contract targets a module not reachable from top RTL hierarchy; cortex_m0lite_core: SSOT connection contract targets a module not reachable from top RTL hierarchy; cortex_m0lite_core: SSOT connection contract targets a module not reachable from top RTL hierarchy",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-            "status": "open",
-            "task_id": "RTL-0016"
-          },
           {
             "gate_kind": "golden_authority_artifacts",
             "owner_module": "cortex_m0lite",
@@ -913,11 +255,11 @@
         "deferred_human_qa_allowed": true,
         "draft_allowed": false,
         "evidence_closure_allowed": true,
-        "human_locked_open_count": 3,
+        "human_locked_open_count": 2,
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 3,
+        "open_required_count": 2,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -939,7 +281,7 @@
           "rtl_gate.rtl_gen": 7
         },
         "module_slice": {},
-        "open_required_count": 3,
+        "open_required_count": 2,
         "required_count": 7,
         "source_refs": [
           "quality_gates.rtl_gen.ssot_required_sections",
@@ -951,8 +293,8 @@
           "quality_gates.rtl_gen.cycle_model_artifacts"
         ],
         "status_counts": {
-          "open": 3,
-          "pass": 4
+          "open": 2,
+          "pass": 5
         },
         "task_count": 7
       }
@@ -962,27 +304,9 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [
           {
-            "gate_kind": "common_ai_agent_authoring",
-            "owner_module": "cortex_m0lite",
-            "reason": "RTL authoring provenance is incomplete: todo_plan_sha256, rtl_files_missing_manifest:rtl/cortex_m0lite_bus_if.sv,rtl/cortex_m0lite_ex_stage.sv,rtl/cortex_m0lite_id_stage.sv,rtl/cortex_m0lite_if_stage.sv,rtl/cortex_m0lite_regfile.sv,rtl/cortex_m0lite_wb_stage.sv",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-            "status": "open",
-            "task_id": "RTL-0006"
-          },
-          {
-            "gate_kind": "dut_compile",
-            "owner_module": "cortex_m0lite",
-            "reason": "rtl/rtl_compile.json is older than current RTL source rtl/cortex_m0lite_core.sv; rerun DUT compile after the final RTL edit.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dut_compile",
-            "status": "open",
-            "task_id": "RTL-0017"
-          },
-          {
             "gate_kind": "dut_lint",
             "owner_module": "cortex_m0lite",
-            "reason": "lint/dut_lint.json is older than current RTL source rtl/cortex_m0lite_core.sv; rerun DUT lint after the final RTL edit.",
+            "reason": "DUT lint artifact is not clean.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.dut_lint",
             "status": "open",
@@ -991,7 +315,7 @@
           {
             "gate_kind": "dynamic_todo_closure",
             "owner_module": "cortex_m0lite",
-            "reason": "29 required non-closure TODO(s) remain open.",
+            "reason": "6 required non-closure TODO(s) remain open.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "status": "open",
@@ -1033,62 +357,15 @@
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 7,
+        "open_required_count": 5,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
           "Never use a fixed RTL template as the implementation."
         ],
-        "tool_evidence_open_count": 7,
+        "tool_evidence_open_count": 5,
         "tool_evidence_plan": [
-          {
-            "artifact": "rtl/rtl_authoring_provenance.json",
-            "artifacts": [
-              "cortex_m0lite/rtl/rtl_authoring_provenance.json",
-              "cortex_m0lite/rtl/rtl_todo_plan.json"
-            ],
-            "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-            "commands": [
-              "python3 src/headless_workflow.py --root . --ip cortex_m0lite --stages rtl-gen",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py cortex_m0lite --root . --audit-rtl"
-            ],
-            "gate_kind": "common_ai_agent_authoring",
-            "prerequisites": [
-              "An LLM authoring pass emitted or repaired DUT RTL files."
-            ],
-            "reason": "RTL authoring provenance is incomplete: todo_plan_sha256, rtl_files_missing_manifest:rtl/cortex_m0lite_bus_if.sv,rtl/cortex_m0lite_ex_stage.sv,rtl/cortex_m0lite_id_stage.sv,rtl/cortex_m0lite_if_stage.sv,rtl/cortex_m0lite_regfile.sv,rtl/cortex_m0lite_wb_stage.sv",
-            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-            "stage_sequence": [
-              "ssot-rtl"
-            ],
-            "status": "open",
-            "task_id": "RTL-0006"
-          },
-          {
-            "artifact": "rtl/rtl_compile.json",
-            "artifacts": [
-              "cortex_m0lite/rtl/rtl_compile.json",
-              "cortex_m0lite/rtl/rtl_compile.log"
-            ],
-            "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-            "commands": [
-              "python3 workflow/rtl-gen/scripts/rtl_compile_report.py cortex_m0lite --top cortex_m0lite --project-root .",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py cortex_m0lite --root . --audit-rtl"
-            ],
-            "gate_kind": "dut_compile",
-            "prerequisites": [
-              "cortex_m0lite/list/cortex_m0lite.f covers the current DUT RTL sources."
-            ],
-            "reason": "rtl/rtl_compile.json is older than current RTL source rtl/cortex_m0lite_core.sv; rerun DUT compile after the final RTL edit.",
-            "source_ref": "quality_gates.rtl_gen.dut_compile",
-            "stage_sequence": [
-              "ssot-rtl",
-              "dut_compile"
-            ],
-            "status": "open",
-            "task_id": "RTL-0017"
-          },
           {
             "artifact": "lint/dut_lint.json",
             "artifacts": [
@@ -1103,7 +380,7 @@
             "prerequisites": [
               "cortex_m0lite/list/cortex_m0lite.f covers the current DUT RTL/header sources."
             ],
-            "reason": "lint/dut_lint.json is older than current RTL source rtl/cortex_m0lite_core.sv; rerun DUT lint after the final RTL edit.",
+            "reason": "DUT lint artifact is not clean.",
             "source_ref": "quality_gates.rtl_gen.dut_lint",
             "stage_sequence": [
               "lint",
@@ -1126,7 +403,7 @@
             "prerequisites": [
               "All non-closure required TODOs have pass status."
             ],
-            "reason": "29 required non-closure TODO(s) remain open.",
+            "reason": "6 required non-closure TODO(s) remain open.",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "stage_sequence": [
               "audit-rtl"
@@ -1223,7 +500,7 @@
           "rtl_gate.rtl_gen": 7
         },
         "module_slice": {},
-        "open_required_count": 7,
+        "open_required_count": 5,
         "required_count": 7,
         "source_refs": [
           "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -1235,7 +512,8 @@
           "quality_gates.rtl_gen.coverage_closure"
         ],
         "status_counts": {
-          "open": 7
+          "open": 5,
+          "pass": 2
         },
         "task_count": 7
       }
@@ -2025,6 +1303,93 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
+      "json": "rtl/authoring_packets/module__cortex_m0lite_core__function_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__cortex_m0lite_core__function_model.md",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "packet_id": "module__cortex_m0lite_core__function_model",
+      "summary": {
+        "categories": {
+          "function_model.error_case": 3,
+          "function_model.invariant": 5,
+          "function_model.output": 3,
+          "function_model.output_rule": 2,
+          "function_model.precondition": 3,
+          "function_model.side_effect": 4,
+          "function_model.state_update": 3,
+          "function_model.state_variable": 4,
+          "function_model.transaction": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 2,
+          "key": "function_model",
+          "module_task_count": 98,
+          "rule": "Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 28,
+        "source_refs": [
+          "function_model.state_variables.pc_q",
+          "function_model.state_variables.rf_q",
+          "function_model.state_variables.nzcv_q",
+          "function_model.state_variables.trap_q",
+          "function_model.transactions.FM_CPU_STEP",
+          "function_model.transactions.FM_CPU_STEP.preconditions.precondition_0",
+          "function_model.transactions.FM_CPU_STEP.preconditions.precondition_1",
+          "function_model.transactions.FM_CPU_STEP.preconditions.precondition_2",
+          "function_model.transactions.FM_CPU_STEP.outputs.output_0",
+          "function_model.transactions.FM_CPU_STEP.outputs.output_1",
+          "function_model.transactions.FM_CPU_STEP.outputs.output_2",
+          "function_model.transactions.FM_CPU_STEP.output_rules.retire_pulse",
+          "function_model.transactions.FM_CPU_STEP.output_rules.trap_flag",
+          "function_model.transactions.FM_CPU_STEP.state_updates.pc_q",
+          "function_model.transactions.FM_CPU_STEP.state_updates.rf_q",
+          "function_model.transactions.FM_CPU_STEP.state_updates.nzcv_q",
+          "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_0",
+          "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_1",
+          "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_2",
+          "function_model.transactions.FM_CPU_STEP.side_effects.side_effect_3",
+          "function_model.transactions.FM_CPU_STEP.error_cases.error_case_0",
+          "function_model.transactions.FM_CPU_STEP.error_cases.error_case_1",
+          "function_model.transactions.FM_CPU_STEP.error_cases.error_case_2",
+          "function_model.invariants.invariant_0"
+        ],
+        "status_counts": {
+          "pass": 28
+        },
+        "task_count": 28
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
       "json": "rtl/authoring_packets/module__cortex_m0lite_core__parameters.json",
       "kind": "module",
       "markdown": "rtl/authoring_packets/module__cortex_m0lite_core__parameters.md",
@@ -2142,6 +1507,436 @@
         },
         "task_count": 15
       }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__cortex_m0lite_core__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__cortex_m0lite_core__workflow_todo.md",
+      "owner_file": "rtl/cortex_m0lite_core.sv",
+      "owner_module": "cortex_m0lite_core",
+      "packet_id": "module__cortex_m0lite_core__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 3
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 8,
+          "key": "workflow_todo",
+          "module_task_count": 98,
+          "rule": "Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 3,
+        "source_refs": [
+          "workflow_todos.rtl-gen[0]",
+          "workflow_todos.rtl-gen[1]",
+          "workflow_todos.rtl-gen[2]"
+        ],
+        "status_counts": {
+          "pass": 3
+        },
+        "task_count": 3
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__if_stage.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__if_stage.md",
+      "owner_file": "rtl/cortex_m0lite_if_stage.sv",
+      "owner_module": "if_stage",
+      "packet_id": "module__if_stage",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.if_stage.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__id_stage.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__id_stage.md",
+      "owner_file": "rtl/cortex_m0lite_id_stage.sv",
+      "owner_module": "id_stage",
+      "packet_id": "module__id_stage",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.id_stage.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__ex_stage.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__ex_stage.md",
+      "owner_file": "rtl/cortex_m0lite_ex_stage.sv",
+      "owner_module": "ex_stage",
+      "packet_id": "module__ex_stage",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.ex_stage.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__wb_stage.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__wb_stage.md",
+      "owner_file": "rtl/cortex_m0lite_wb_stage.sv",
+      "owner_module": "wb_stage",
+      "packet_id": "module__wb_stage",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.wb_stage.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__regfile.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__regfile.md",
+      "owner_file": "rtl/cortex_m0lite_regfile.sv",
+      "owner_module": "regfile",
+      "packet_id": "module__regfile",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "memory.instances": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 2,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 2,
+        "source_refs": [
+          "memory.instances.regfile_storage",
+          "sub_modules.regfile.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__bus_if.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__bus_if.md",
+      "owner_file": "rtl/cortex_m0lite_bus_if.sv",
+      "owner_module": "bus_if",
+      "packet_id": "module__bus_if",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "security.assets": 1,
+          "synthesis.ppa_targets": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 3,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 3,
+        "source_refs": [
+          "security.assets.bus_integrity",
+          "synthesis.ppa_targets.bus_frequency_mhz_min",
+          "sub_modules.bus_if.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 3
+        },
+        "task_count": 3
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_evidence_closure.md",
+      "owner_file": "rtl/cortex_m0lite.sv",
+      "owner_module": "cortex_m0lite",
+      "packet_id": "rtl_gate_evidence_closure",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 10
+        },
+        "module_slice": {},
+        "open_required_count": 0,
+        "required_count": 10,
+        "source_refs": [
+          "quality_gates.rtl_gen.static_rtl_evidence",
+          "quality_gates.rtl_gen.owner_logic_structure_evidence",
+          "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+          "quality_gates.rtl_gen.top_io_contract_evidence",
+          "quality_gates.rtl_gen.top_output_drive_evidence",
+          "quality_gates.rtl_gen.top_input_consumption_evidence",
+          "quality_gates.rtl_gen.manifest_hierarchy_integration",
+          "quality_gates.rtl_gen.manifest_port_connection_evidence",
+          "quality_gates.rtl_gen.manifest_signal_flow_evidence",
+          "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
+        ],
+        "status_counts": {
+          "pass": 10
+        },
+        "task_count": 10
+      }
     }
   ],
   "policy": {
@@ -2186,21 +1981,12 @@
     "deferred_human_qa_allowed": true,
     "gate_packets": 3,
     "human_locked_packets": 1,
-    "human_locked_tasks": 3,
-    "llm_actionable_packets": 9,
-    "llm_actionable_tasks": 20,
+    "human_locked_tasks": 2,
+    "llm_actionable_packets": 0,
+    "llm_actionable_tasks": 0,
     "max_packet_required_tasks": 28,
     "module_packets": 22,
-    "next_llm_packets": [
-      "module__if_stage",
-      "module__id_stage",
-      "module__ex_stage",
-      "module__wb_stage",
-      "module__regfile",
-      "module__bus_if",
-      "module__cortex_m0lite_core__function_model",
-      "module__cortex_m0lite_core__workflow_todo"
-    ],
+    "next_llm_packets": [],
     "packet_task_limit": 48,
     "packets": 25,
     "pass_allowed": false,
@@ -2212,7 +1998,7 @@
     "sliced_module_packets": 16,
     "target_scale_present": true,
     "tool_evidence_packets": 1,
-    "tool_evidence_tasks": 7,
+    "tool_evidence_tasks": 5,
     "total_tasks": 189,
     "unowned_packets": 0
   },

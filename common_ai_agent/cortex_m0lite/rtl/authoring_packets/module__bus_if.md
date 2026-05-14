@@ -22,7 +22,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 3
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, error_handling, io_list, io_list.interfaces, parameters
 - SSOT target scale: min_behavior_owner_logic_modules=6, min_depth_score=120, min_logic_modules=7, min_modules=8, min_procedural_blocks=12, min_source_files=8, min_state_updates=10
@@ -40,14 +40,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: security.assets
 - Source ref: security.assets.bus_integrity
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.bus_integrity.
 Owner: bus_if in rtl/cortex_m0lite_bus_if.sv via semantic_terms:bus.
 SSOT item context: name=bus_integrity.
-- Current reason: Owner RTL file is missing: rtl/cortex_m0lite_bus_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -60,14 +60,14 @@ SSOT item context: name=bus_integrity.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.bus_frequency_mhz_min
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.bus_frequency_mhz_min.
 Owner: bus_if in rtl/cortex_m0lite_bus_if.sv via semantic_terms:bus.
 SSOT item context: name=bus_frequency_mhz_min; value=150.
-- Current reason: Owner RTL file is missing: rtl/cortex_m0lite_bus_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -80,13 +80,13 @@ SSOT item context: name=bus_frequency_mhz_min; value=150.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.bus_if.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.bus_if.module_equivalence.
 Owner: bus_if in rtl/cortex_m0lite_bus_if.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/cortex_m0lite_bus_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff

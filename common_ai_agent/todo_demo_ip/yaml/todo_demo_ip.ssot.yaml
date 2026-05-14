@@ -1,0 +1,5 @@
+# todo_demo_ip.ssot.yaml — Single Source of Truth
+top_module:
+  name: todo_demo_ip
+  type: "<TBD>"  # TBD
+  description: "<TBD>"  # TBD
