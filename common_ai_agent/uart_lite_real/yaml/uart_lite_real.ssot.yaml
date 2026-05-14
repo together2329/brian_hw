@@ -1,0 +1,5 @@
+# uart_lite_real.ssot.yaml — Single Source of Truth
+top_module:
+  name: uart_lite_real
+  type: "<TBD>"  # TBD
+  description: "<TBD>"  # TBD
