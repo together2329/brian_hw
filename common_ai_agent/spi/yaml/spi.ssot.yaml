@@ -1,0 +1,908 @@
+top_module:
+  name: "spi"
+  file: "rtl/spi.sv"
+  version: "1.0"
+  type: "peripheral"
+  description: "APB-lite controlled SPI master with programmable frame format, TX/RX FIFOs, interrupting, and debug observability."
+  reference_spec: "Project requirement seed: spi/req/spi_requirements.md"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+
+sub_modules:
+  - name: "spi_regs"
+    file: "rtl/spi_regs.sv"
+    ownership: "manifest"
+    ssot_gen: true
+    implements:
+      - "registers.register_list"
+      - "interrupts"
+      - "error_handling"
+      - "io_list.interfaces.apb_slave"
+    source_sections: ["registers", "interrupts", "error_handling", "io_list"]
+    register_refs: ["registers.register_list"]
+    description: "APB register decode, policy checks, sticky/status update plumbing"
+  - name: "spi_fifo"
+    file: "rtl/spi_fifo.sv"
+    ownership: "manifest"
+    ssot_gen: true
+    implements:
+      - "memory.instances"
+      - "cycle_model.backpressure"
+      - "dataflow"
+    source_sections: ["memory", "cycle_model", "dataflow"]
+    dataflow_refs: ["dataflow.tx_path", "dataflow.rx_path"]
+    cycle_model_refs: ["cycle_model.backpressure"]
+    description: "TX/RX FIFO storage and level tracking"
+  - name: "spi_clkgen"
+    file: "rtl/spi_clkgen.sv"
+    ownership: "manifest"
+    ssot_gen: true
+    implements:
+      - "parameters.PRESCALE_WIDTH"
+      - "cycle_model.handshake_rules"
+      - "timing"
+    source_sections: ["parameters", "cycle_model", "timing"]
+    cycle_model_refs: ["cycle_model.handshake_rules", "cycle_model.pipeline"]
+    description: "SCLK waveform generation from PCLK prescale"
+  - name: "spi_shift"
+    file: "rtl/spi_shift.sv"
+    ownership: "manifest"
+    ssot_gen: false
+    implements:
+      - "function_model.transactions"
+      - "cycle_model.pipeline"
+      - "fsm.channel_level"
+      - "features"
+    source_sections: ["function_model", "cycle_model", "fsm", "features"]
+    function_model_refs: ["function_model.transactions"]
+    cycle_model_refs: ["cycle_model.pipeline", "cycle_model.ordering"]
+    fsm_refs: ["fsm.channel_level"]
+    description: "Frame launch/shift/sample engine and chip-select control"
+  - name: "spi_int"
+    file: "rtl/spi_int.sv"
+    ownership: "manifest"
+    ssot_gen: true
+    implements:
+      - "interrupts"
+      - "registers.register_list"
+      - "error_handling"
+    source_sections: ["interrupts", "registers", "error_handling"]
+    description: "Interrupt pending/mask/clear logic and irq_o generation"
+
+decomposition:
+  units:
+    - id: "csr_decode"
+      kind: "control"
+      source_refs: ["registers.register_list", "io_list.interfaces.apb_slave"]
+      rtl_candidates: ["spi_regs"]
+      verification_impact: ["test_requirements.scenarios.SC_APB_CONFIG"]
+    - id: "fifo_buffering"
+      kind: "datapath"
+      source_refs: ["memory.instances", "dataflow"]
+      rtl_candidates: ["spi_fifo"]
+      verification_impact: ["test_requirements.scenarios.SC_FIFO_LIMITS"]
+    - id: "serial_engine"
+      kind: "datapath/control"
+      source_refs: ["function_model.transactions", "cycle_model", "fsm.channel_level"]
+      rtl_candidates: ["spi_shift", "spi_clkgen"]
+      verification_impact: ["test_requirements.scenarios.SC_BASIC_TRANSFER", "test_requirements.scenarios.SC_CPOL_CPHA_SWEEP"]
+
+rtl_contract:
+  top_owner: "spi"
+  architectural_state_owner: "spi_shift"
+  register_owner: "spi_regs"
+  fifo_owner: "spi_fifo"
+  interrupt_owner: "spi_int"
+  clocking_owner: "spi_clkgen"
+  integration_notes:
+    - "All sequential logic uses PCLK only; sclk_o is generated waveform and not an internal clock domain."
+    - "PSLVERR is asserted on access cycle for illegal APB address, unsupported byte strobe, or access-policy violation."
+
+parameters:
+  - name: "APB_ADDR_WIDTH"
+    default: 12
+    type: int
+    description: "APB address width"
+    drives: ["rtl/spi_regs.sv", "rtl/spi.sv"]
+  - name: "APB_DATA_WIDTH"
+    default: 32
+    type: int
+    description: "APB data width"
+    drives: ["rtl/spi_regs.sv", "rtl/spi.sv"]
+  - name: "DATA_WIDTH"
+    default: 8
+    type: int
+    description: "Default frame width; runtime legal range controlled by CTRL.data_width_m1"
+    drives: ["rtl/spi_shift.sv", "rtl/spi_fifo.sv"]
+  - name: "FIFO_DEPTH"
+    default: 16
+    type: int
+    description: "Depth of TX and RX FIFOs; must be power of two"
+    drives: ["rtl/spi_fifo.sv", "rtl/spi_regs.sv"]
+  - name: "NUM_CS"
+    default: 4
+    type: int
+    description: "Number of chip-select outputs"
+    drives: ["rtl/spi_shift.sv", "rtl/spi.sv"]
+  - name: "PRESCALE_WIDTH"
+    default: 16
+    type: int
+    description: "Width of programmable prescale divisor"
+    drives: ["rtl/spi_clkgen.sv", "rtl/spi_regs.sv"]
+  - name: "CPOL_RESET"
+    default: 0
+    type: int
+    description: "Reset value for CTRL.cpol"
+    drives: ["rtl/spi_regs.sv", "rtl/spi_shift.sv"]
+  - name: "CPHA_RESET"
+    default: 0
+    type: int
+    description: "Reset value for CTRL.cpha"
+    drives: ["rtl/spi_regs.sv", "rtl/spi_shift.sv"]
+  - name: "LSB_FIRST_RESET"
+    default: 0
+    type: int
+    description: "Reset value for CTRL.lsb_first"
+    drives: ["rtl/spi_regs.sv", "rtl/spi_shift.sv"]
+  - name: "PCLK_FREQ_MHZ"
+    default: 100
+    type: int
+    description: "Nominal input clock frequency"
+    drives: ["timing", "sdc/spi.sdc"]
+
+io_list:
+  clock_domains:
+    - name: "pclk"
+      frequency_mhz: 100
+      description: "Primary APB and engine clock"
+      ports:
+        - { name: "PCLK", width: 1, direction: "input", description: "Peripheral clock" }
+  resets:
+    - name: "presetn"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "Global reset"
+      ports:
+        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low reset" }
+  interfaces:
+    - name: "apb_slave"
+      type: "APB4-lite"
+      role: "slave"
+      description: "Control/status register interface"
+      ports:
+        - { name: "PADDR", width: 12, direction: "input", description: "Byte address" }
+        - { name: "PSEL", width: 1, direction: "input", description: "Peripheral select" }
+        - { name: "PENABLE", width: 1, direction: "input", description: "Enable phase" }
+        - { name: "PWRITE", width: 1, direction: "input", description: "Write/read select" }
+        - { name: "PWDATA", width: 32, direction: "input", description: "Write data" }
+        - { name: "PSTRB", width: 4, direction: "input", description: "Byte strobes" }
+        - { name: "PRDATA", width: 32, direction: "output", description: "Read data" }
+        - { name: "PREADY", width: 1, direction: "output", description: "Transfer ready" }
+        - { name: "PSLVERR", width: 1, direction: "output", description: "Access error" }
+    - name: "spi_master"
+      type: "custom_spi"
+      role: "master"
+      description: "External SPI pins"
+      ports:
+        - { name: "sclk_o", width: 1, direction: "output", description: "SPI serial clock" }
+        - { name: "mosi_o", width: 1, direction: "output", description: "SPI master out" }
+        - { name: "miso_i", width: 1, direction: "input", description: "SPI master in" }
+        - { name: "csn_o", width: 4, direction: "output", description: "Active-low chip selects" }
+    - name: "irq"
+      type: "custom"
+      role: "output"
+      description: "Combined interrupt"
+      ports:
+        - { name: "irq_o", width: 1, direction: "output", description: "Masked interrupt output" }
+
+features:
+  - name: "APB-programmed frame transfer"
+    trigger: "SW writes CTRL.start pulse with CTRL.enable=1 and legal launch conditions"
+    datapath: "TX FIFO word -> shift register -> MOSI; sampled MISO bits -> RX shift register -> RX FIFO"
+    control: "IDLE->LOAD->ASSERT_CS->SHIFT->COMPLETE"
+    output: "Serialized frame on mosi_o/sclk_o and optional received frame in RX FIFO"
+  - name: "Programmable SPI mode and bit order"
+    trigger: "CTRL.{cpol,cpha,lsb_first,data_width_m1} programmed"
+    datapath: "Edge select controls launch/sample timing; shift direction depends on lsb_first"
+    control: "Mode latched per frame at launch"
+    output: "Protocol-compliant phase/polarity behavior and chosen bit ordering"
+  - name: "Interrupt and sticky error reporting"
+    trigger: "Status/error/fifo events"
+    datapath: "Raw event -> INT_PENDING, mask via INT_MASK -> irq_o"
+    control: "Sticky bits clear on INT_CLEAR W1C; level bits follow source levels"
+    output: "irq_o and software-readable status/error telemetry"
+
+dataflow:
+  tx_path:
+    source: "APB write to TXDATA"
+    enqueue: "Accepted when TX FIFO not full; otherwise dropped and tx_overrun set"
+    sequence: "TXDATA write -> tx_fifo push -> frame launch pops word -> shift register"
+  rx_path:
+    source: "miso_i sampled during active frame"
+    enqueue: "At frame complete, sampled word pushed if RX FIFO not full; else dropped and rx_overrun set"
+    sequence: "sample bits -> rx_shift_reg -> rx_fifo push -> APB read RXDATA pop"
+  control_path:
+    launch_gate: "enable && start_pulse && !busy && tx_fifo_not_empty && legal_cs && legal_width"
+    completion: "done pulse and status update when last configured bit is sampled"
+    continuous_cs: "When continuous_cs=1 and next frame launches back-to-back with legal mode, csn_o remains asserted for same cs_sel"
+
+function_model:
+  purpose: "Executable behavioral contract for SPI transactions independent of exact cycle latency."
+  state_variables:
+    - { name: "ctrl_enable", source: "registers.CTRL.enable", reset: 0, description: "Global transfer enable" }
+    - { name: "ctrl_mode", source: "registers.CTRL.{cpol,cpha,lsb_first,continuous_cs,loopback}", reset: "{cpol:CPOL_RESET,cpha:CPHA_RESET,lsb_first:LSB_FIRST_RESET,continuous_cs:0,loopback:0}", description: "Latched transfer mode" }
+    - { name: "active_cs", source: "registers.CTRL.cs_sel", reset: 0, description: "Selected chip-select index" }
+    - { name: "frame_bits", source: "registers.CTRL.data_width_m1+1", reset: 8, description: "Runtime frame bit count (legal 4..32)" }
+    - { name: "prescale_div", source: "registers.PRESCALE.divisor", reset: 0, description: "SCLK half-period divisor" }
+    - { name: "tx_fifo", source: "memory.instances.tx_fifo", reset: "empty", description: "Pending TX frames" }
+    - { name: "rx_fifo", source: "memory.instances.rx_fifo", reset: "empty", description: "Received RX frames" }
+    - { name: "busy", source: "registers.STATUS.busy", reset: 0, description: "Frame in progress" }
+    - { name: "sticky_errors", source: "registers.STATUS.{tx_overrun,rx_overrun,rx_underrun,mode_fault,illegal_access}", reset: 0, description: "Sticky error latches" }
+    - { name: "int_pending", source: "registers.INT_PENDING", reset: 0, description: "Pending interrupt sources" }
+  transactions:
+    - id: "FM_APB_TX_PUSH"
+      name: "apb_write_txdata"
+      preconditions:
+        - "APB write handshake to TXDATA"
+      inputs:
+        - "PWDATA[DATA_WIDTH-1:0]"
+      outputs:
+        - "TX FIFO occupancy increments by one when not full"
+      side_effects:
+        - "If tx_fifo full, payload is discarded and STATUS.tx_overrun set"
+        - "tx_empty/tx_full level indicators update"
+      error_cases:
+        - { condition: "unsupported PSTRB for TXDATA width", result: "PSLVERR asserted and STATUS.illegal_access set" }
+    - id: "FM_FRAME_LAUNCH"
+      name: "launch_frame"
+      preconditions:
+        - "CTRL.start pulse observed"
+        - "ctrl_enable == 1"
+        - "busy == 0"
+        - "tx_fifo not empty"
+        - "cs_sel in [0, NUM_CS-1]"
+        - "frame_bits in [4, 32]"
+      outputs:
+        - "busy transitions to 1"
+        - "One TX word is consumed from TX FIFO for shift register load"
+      side_effects:
+        - "csn_o drives exactly one active-low bit at selected CS"
+        - "SCLK idle level driven per CPOL before first active edge"
+      error_cases:
+        - { condition: "cs_sel illegal or frame_bits illegal", result: "No frame activity; STATUS.mode_fault set; pending mode fault interrupt source raised" }
+        - { condition: "CTRL.enable == 0 or tx_fifo empty or busy==1", result: "Launch suppressed without consuming TX FIFO" }
+    - id: "FM_SHIFT_SAMPLE"
+      name: "shift_and_sample_bits"
+      preconditions:
+        - "busy == 1"
+      inputs:
+        - "miso_i sampled on mode-dependent sample edges or internal mosi_o if loopback=1"
+      outputs:
+        - "mosi_o presents serialized transmit bits with configured bit order"
+        - "rx_shift_reg accumulates sampled bits"
+      side_effects:
+        - "bit_index progresses from 0 to frame_bits-1"
+        - "done asserted when terminal sample edge occurs"
+      error_cases:
+        - { condition: "none during legal frame", result: "normal completion" }
+    - id: "FM_FRAME_COMPLETE"
+      name: "complete_frame_and_store_rx"
+      preconditions:
+        - "terminal sample edge reached"
+      outputs:
+        - "busy transitions to 0"
+        - "STATUS.done pulse/latched event generated"
+      side_effects:
+        - "If RX FIFO has space, received frame pushed; else discard and STATUS.rx_overrun set"
+        - "CS deasserts to CS_IDLE unless continuous_cs holds across back-to-back frame"
+        - "Interrupt pending bits update for done and FIFO level"
+      error_cases:
+        - { condition: "RX FIFO full", result: "received word dropped, rx_overrun sticky set" }
+    - id: "FM_APB_RX_POP"
+      name: "apb_read_rxdata"
+      preconditions:
+        - "APB read handshake to RXDATA"
+      outputs:
+        - "Returns oldest RX word when FIFO non-empty"
+      side_effects:
+        - "RX FIFO occupancy decrements on successful pop"
+      error_cases:
+        - { condition: "RX FIFO empty", result: "Read returns zero and STATUS.rx_underrun set" }
+    - id: "FM_INT_CLEAR"
+      name: "w1c_interrupt_and_status_clear"
+      preconditions:
+        - "APB write handshake to INT_CLEAR"
+      outputs:
+        - "Selected sticky pending/status bits cleared"
+      side_effects:
+        - "FIFO level-derived pending bits remain level-sensitive and unaffected by W1C"
+      error_cases:
+        - { condition: "write to read-only register or bad byte strobes", result: "PSLVERR asserted and STATUS.illegal_access set" }
+  invariants:
+    - "Only one csn_o bit may be active-low during an active frame."
+    - "No frame launch consumes TX FIFO unless all launch preconditions are true."
+    - "irq_o equals OR(INT_PENDING & INT_MASK) at all times."
+    - "sclk_o is a generated output waveform; no internal sequential process is clocked by sclk_o."
+    - "Sticky bits clear only via reset or INT_CLEAR W1C semantics."
+  reference_model_hint: "tb-gen scoreboard should model FIFO queues, mode-dependent edge behavior, bit order, and sticky/level interrupt semantics from these transactions."
+
+cycle_model:
+  purpose: "Cycle-level timing and handshake contract for APB access and SPI serial engine"
+  executable: "pymtl3"
+  backend_policy: "Use Python behavioral model for expected values and cycle checkers for ready/valid, edge timing, and status updates."
+  clock: "PCLK"
+  reset:
+    assertion: "PRESETn low asynchronously clears control/FIFOs/status/interrupt pending and drives csn_o to CS_IDLE"
+    deassertion: "State is valid after first rising PCLK edge following synchronized PRESETn release"
+  latency:
+    apb_read: { min_cycles: 0, max_cycles: 1, description: "PRDATA/PREADY returned in same or next cycle; no multi-cycle wait-state required" }
+    apb_write: { min_cycles: 0, max_cycles: 1, description: "Register writes accepted in same or next cycle" }
+    frame_launch_to_first_sclk_toggle: { min_cycles: 1, max_cycles: null, description: "Depends on prescale divisor" }
+    frame_total: { min_cycles: 2, max_cycles: null, description: "Proportional to frame_bits and prescale, plus APB/control overhead" }
+  handshake_rules:
+    - { signal: "APB", rule: "Transfer occurs when PSEL && PENABLE && PREADY; PSLVERR valid in same transfer." }
+    - { signal: "CTRL.start", rule: "Sampled as pulse request; hardware may auto-clear start bit after acceptance." }
+    - { signal: "launch_gate", rule: "Shift FSM leaves IDLE only when all launch preconditions are simultaneously true." }
+    - { signal: "sclk_o", rule: "Half-period equals (PRESCALE.divisor+1) PCLK cycles; CPOL controls idle level." }
+    - { signal: "sample_edge", rule: "CPHA selects whether first active edge launches then samples or samples then launches." }
+  pipeline:
+    - { stage: "S0_APB_CFG", cycle: "t", action: "Program mode/prescale/CS and push TX words" }
+    - { stage: "S1_LAUNCH_CHECK", cycle: "t+0..t+1", action: "Evaluate launch preconditions and latch frame context" }
+    - { stage: "S2_ASSERT_CS", cycle: "next", action: "Drive selected chip select active-low" }
+    - { stage: "S3_SHIFT", cycle: "repeating", action: "Generate sclk_o edges and launch MOSI bits" }
+    - { stage: "S4_SAMPLE", cycle: "repeating", action: "Sample MISO/loopback bit and advance bit_index" }
+    - { stage: "S5_COMPLETE", cycle: "terminal", action: "Push RX word if possible, update done/errors/pending, manage CS hold/deassert" }
+  ordering:
+    - "For each frame, TX dequeue precedes first MOSI launch edge."
+    - "Final RX sample precedes done event and interrupt pending update for completion."
+    - "INT_CLEAR W1C effects apply after the write transfer edge and before next irq_o observation edge."
+  backpressure:
+    - "TX backpressure appears as tx_full; writes are dropped with tx_overrun when full."
+    - "RX backpressure appears as rx_full at completion; received frame is dropped with rx_overrun when full."
+  performance:
+    throughput: "One frame every frame_bits*2*(divisor+1) PCLK cycles in steady state, excluding optional inter-frame gap"
+    max_sclk_hz_formula: "PCLK_FREQ_MHZ*1e6 / (2*(PRESCALE+1))"
+  observability:
+    - "Probe launch_accept, sample_edge, shift_edge, bit_index, cs_active, tx_fifo_level, rx_fifo_level, done_event"
+
+clock_reset_domains:
+  domains:
+    - { name: "pclk", frequency_mhz: 100, description: "Single synchronous domain" }
+  reset_scheme:
+    signal: "PRESETn"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain; no CDC crossings allowed in this revision"
+
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single reset domain; no RDC crossings"
+
+registers:
+  config:
+    register_width: 32
+    addr_width: 12
+    byte_addressable: true
+  register_list:
+    - name: "CTRL"
+      offset: 0x000
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      description: "Control register"
+      fields:
+        - { name: "enable", bits: [0,0], access: "rw", reset: 0x0, description: "Enable transfer launches" }
+        - { name: "start", bits: [1,1], access: "wo", reset: 0x0, description: "Start pulse request" }
+        - { name: "cpol", bits: [2,2], access: "rw", reset: 0x0, description: "Clock polarity" }
+        - { name: "cpha", bits: [3,3], access: "rw", reset: 0x0, description: "Clock phase" }
+        - { name: "lsb_first", bits: [4,4], access: "rw", reset: 0x0, description: "1=LSB first, 0=MSB first" }
+        - { name: "continuous_cs", bits: [5,5], access: "rw", reset: 0x0, description: "Hold CS across back-to-back frames" }
+        - { name: "loopback", bits: [6,6], access: "rw", reset: 0x0, description: "Internal MOSI->MISO loopback" }
+        - { name: "soft_reset", bits: [7,7], access: "wo", reset: 0x0, description: "Pulse to clear FIFOs/status and return idle" }
+        - { name: "cs_sel", bits: [10,8], access: "rw", reset: 0x0, description: "Active chip-select index" }
+        - { name: "data_width_m1", bits: [15,11], access: "rw", reset: 0x7, description: "Frame width minus one; legal width 4..32" }
+    - name: "STATUS"
+      offset: 0x004
+      width: 32
+      access: "ro"
+      reset: 0x00000012
+      description: "Status and sticky error bits"
+      fields:
+        - { name: "busy", bits: [0,0], access: "ro", reset: 0x0, description: "Transfer in progress" }
+        - { name: "tx_full", bits: [1,1], access: "ro", reset: 0x0, description: "TX FIFO full level" }
+        - { name: "tx_empty", bits: [2,2], access: "ro", reset: 0x1, description: "TX FIFO empty level" }
+        - { name: "rx_full", bits: [3,3], access: "ro", reset: 0x0, description: "RX FIFO full level" }
+        - { name: "rx_empty", bits: [4,4], access: "ro", reset: 0x1, description: "RX FIFO empty level" }
+        - { name: "done", bits: [5,5], access: "ro", reset: 0x0, description: "Frame-complete sticky event" }
+        - { name: "tx_overrun", bits: [6,6], access: "ro", reset: 0x0, description: "TX write while full" }
+        - { name: "rx_overrun", bits: [7,7], access: "ro", reset: 0x0, description: "RX push while full" }
+        - { name: "rx_underrun", bits: [8,8], access: "ro", reset: 0x0, description: "RX read while empty" }
+        - { name: "mode_fault", bits: [9,9], access: "ro", reset: 0x0, description: "Illegal launch config" }
+        - { name: "illegal_access", bits: [10,10], access: "ro", reset: 0x0, description: "Illegal APB access" }
+        - { name: "cs_active", bits: [11,11], access: "ro", reset: 0x0, description: "Any CS asserted" }
+    - name: "PRESCALE"
+      offset: 0x008
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      description: "SCLK prescale divisor"
+      fields:
+        - { name: "divisor", bits: [15,0], access: "rw", reset: 0x0000, description: "Half-period cycles = divisor+1" }
+    - name: "TXDATA"
+      offset: 0x00C
+      width: 32
+      access: "wo"
+      reset: 0x00000000
+      description: "TX FIFO push payload"
+      fields:
+        - { name: "tx_payload", bits: [31,0], access: "wo", reset: 0x0, description: "Frame data; only lower frame width bits used" }
+    - name: "RXDATA"
+      offset: 0x010
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      description: "RX FIFO pop payload"
+      fields:
+        - { name: "rx_payload", bits: [31,0], access: "ro", reset: 0x0, description: "Received frame data" }
+    - name: "INT_MASK"
+      offset: 0x014
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      description: "Interrupt enables"
+      fields:
+        - { name: "done_en", bits: [0,0], access: "rw", reset: 0x0, description: "Enable done interrupt" }
+        - { name: "tx_overrun_en", bits: [1,1], access: "rw", reset: 0x0, description: "Enable tx_overrun interrupt" }
+        - { name: "rx_overrun_en", bits: [2,2], access: "rw", reset: 0x0, description: "Enable rx_overrun interrupt" }
+        - { name: "rx_underrun_en", bits: [3,3], access: "rw", reset: 0x0, description: "Enable rx_underrun interrupt" }
+        - { name: "mode_fault_en", bits: [4,4], access: "rw", reset: 0x0, description: "Enable mode_fault interrupt" }
+        - { name: "illegal_access_en", bits: [5,5], access: "rw", reset: 0x0, description: "Enable illegal_access interrupt" }
+        - { name: "tx_empty_en", bits: [6,6], access: "rw", reset: 0x0, description: "Enable tx_empty level interrupt" }
+        - { name: "rx_full_en", bits: [7,7], access: "rw", reset: 0x0, description: "Enable rx_full level interrupt" }
+    - name: "INT_PENDING"
+      offset: 0x018
+      width: 32
+      access: "ro"
+      reset: 0x00000040
+      description: "Raw pending interrupt sources"
+      fields:
+        - { name: "done_pend", bits: [0,0], access: "ro", reset: 0x0, description: "Sticky done pending" }
+        - { name: "tx_overrun_pend", bits: [1,1], access: "ro", reset: 0x0, description: "Sticky tx_overrun pending" }
+        - { name: "rx_overrun_pend", bits: [2,2], access: "ro", reset: 0x0, description: "Sticky rx_overrun pending" }
+        - { name: "rx_underrun_pend", bits: [3,3], access: "ro", reset: 0x0, description: "Sticky rx_underrun pending" }
+        - { name: "mode_fault_pend", bits: [4,4], access: "ro", reset: 0x0, description: "Sticky mode_fault pending" }
+        - { name: "illegal_access_pend", bits: [5,5], access: "ro", reset: 0x0, description: "Sticky illegal_access pending" }
+        - { name: "tx_empty_level", bits: [6,6], access: "ro", reset: 0x1, description: "Level pending mirrors tx_empty" }
+        - { name: "rx_full_level", bits: [7,7], access: "ro", reset: 0x0, description: "Level pending mirrors rx_full" }
+    - name: "INT_CLEAR"
+      offset: 0x01C
+      width: 32
+      access: "wo"
+      reset: 0x00000000
+      description: "W1C for sticky pending/status bits"
+      fields:
+        - { name: "w1c", bits: [7,0], access: "wo", reset: 0x00, description: "Write 1 clears corresponding sticky bits; level bits unaffected" }
+    - name: "CS_IDLE"
+      offset: 0x020
+      width: 32
+      access: "rw"
+      reset: 0x0000000F
+      description: "Idle chip-select output value"
+      fields:
+        - { name: "cs_idle_val", bits: [7,0], access: "rw", reset: 0x0F, description: "Bit value driven on csn_o when idle" }
+    - name: "DEBUG"
+      offset: 0x024
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      description: "Debug counters/state"
+      fields:
+        - { name: "tx_count", bits: [4,0], access: "ro", reset: 0x0, description: "TX FIFO occupancy" }
+        - { name: "rx_count", bits: [9,5], access: "ro", reset: 0x0, description: "RX FIFO occupancy" }
+        - { name: "bit_index", bits: [15,10], access: "ro", reset: 0x0, description: "Current bit index in active frame" }
+        - { name: "active_cs", bits: [18,16], access: "ro", reset: 0x0, description: "Currently asserted CS index" }
+
+memory:
+  instances:
+    - { name: "tx_fifo", type: "sync_fifo", depth: 16, width: 32, read_ports: 1, write_ports: 1, latency: 0, description: "Transmit frame queue" }
+    - { name: "rx_fifo", type: "sync_fifo", depth: 16, width: 32, read_ports: 1, write_ports: 1, latency: 0, description: "Receive frame queue" }
+  note: "FIFO_DEPTH parameter scales both queues; occupancy exported via STATUS/DEBUG"
+
+interrupts:
+  sources:
+    - { name: "DONE", bit: 0, type: "sticky_level", enable_reg: "INT_MASK.done_en", status_reg: "INT_PENDING.done_pend", clear: "INT_CLEAR.W1C[0]", description: "Frame complete event" }
+    - { name: "TX_OVERRUN", bit: 1, type: "sticky_level", enable_reg: "INT_MASK.tx_overrun_en", status_reg: "INT_PENDING.tx_overrun_pend", clear: "INT_CLEAR.W1C[1]", description: "TX FIFO write while full" }
+    - { name: "RX_OVERRUN", bit: 2, type: "sticky_level", enable_reg: "INT_MASK.rx_overrun_en", status_reg: "INT_PENDING.rx_overrun_pend", clear: "INT_CLEAR.W1C[2]", description: "RX FIFO full on completion" }
+    - { name: "RX_UNDERRUN", bit: 3, type: "sticky_level", enable_reg: "INT_MASK.rx_underrun_en", status_reg: "INT_PENDING.rx_underrun_pend", clear: "INT_CLEAR.W1C[3]", description: "RXDATA read while empty" }
+    - { name: "MODE_FAULT", bit: 4, type: "sticky_level", enable_reg: "INT_MASK.mode_fault_en", status_reg: "INT_PENDING.mode_fault_pend", clear: "INT_CLEAR.W1C[4]", description: "Illegal launch config" }
+    - { name: "ILLEGAL_ACCESS", bit: 5, type: "sticky_level", enable_reg: "INT_MASK.illegal_access_en", status_reg: "INT_PENDING.illegal_access_pend", clear: "INT_CLEAR.W1C[5]", description: "Illegal APB access" }
+    - { name: "TX_EMPTY", bit: 6, type: "level", enable_reg: "INT_MASK.tx_empty_en", status_reg: "INT_PENDING.tx_empty_level", clear: "not_w1c", description: "TX FIFO empty level" }
+    - { name: "RX_FULL", bit: 7, type: "level", enable_reg: "INT_MASK.rx_full_en", status_reg: "INT_PENDING.rx_full_level", clear: "not_w1c", description: "RX FIFO full level" }
+  output:
+    signal: "irq_o"
+    polarity: "active_high"
+    type: "level"
+
+fsm:
+  channel_level:
+    states:
+      - "IDLE"
+      - "CHECK_LAUNCH"
+      - "ASSERT_CS"
+      - "SHIFT_EDGE"
+      - "SAMPLE_EDGE"
+      - "COMPLETE"
+      - "ERROR_SUPPRESS"
+    transitions:
+      - { from: "IDLE", to: "CHECK_LAUNCH", condition: "start_pulse" }
+      - { from: "CHECK_LAUNCH", to: "ASSERT_CS", condition: "launch_gate_true" }
+      - { from: "CHECK_LAUNCH", to: "ERROR_SUPPRESS", condition: "illegal_cs_or_width" }
+      - { from: "CHECK_LAUNCH", to: "IDLE", condition: "launch_gate_false_without_fault" }
+      - { from: "ASSERT_CS", to: "SHIFT_EDGE", condition: "prescale_tick" }
+      - { from: "SHIFT_EDGE", to: "SAMPLE_EDGE", condition: "mode_edge_progress" }
+      - { from: "SAMPLE_EDGE", to: "SHIFT_EDGE", condition: "bit_index_not_last" }
+      - { from: "SAMPLE_EDGE", to: "COMPLETE", condition: "bit_index_last" }
+      - { from: "COMPLETE", to: "ASSERT_CS", condition: "continuous_cs_and_next_launch_ready" }
+      - { from: "COMPLETE", to: "IDLE", condition: "otherwise" }
+      - { from: "ERROR_SUPPRESS", to: "IDLE", condition: "one_cycle_report_done" }
+
+timing:
+  target_clocks:
+    - { domain: "pclk", freq_mhz: 100, duty_cycle: 50 }
+  latency_budget:
+    apb_access_cycles: { min: 0, max: 1 }
+    launch_to_done_cycles_formula: "(data_width_bits*2*(prescale+1)) + control_overhead"
+  protocol_timing:
+    - "SCLK half-period is divisor+1 PCLK cycles."
+    - "CPOL sets idle SCLK level when busy=0."
+    - "CPHA selects first action edge; sampling and launching alternate each active edge."
+
+power:
+  domains:
+    - { name: "PD_MAIN", supply: "VDD", description: "Primary logic domain for APB/SPI core" }
+  power_states:
+    - { name: "ON", description: "Clock active, transfers allowed when enabled" }
+    - { name: "IDLE", description: "No active frame; static outputs per CS_IDLE/CPOL" }
+    - { name: "RESET", description: "PRESETn asserted; state cleared" }
+  clock_gating:
+    - "Optional internal clock enable may gate shift datapath when busy=0; APB register interface remains responsive."
+
+security:
+  classification: "non-cryptographic peripheral control"
+  assets:
+    - "Correct APB register access policy"
+    - "Integrity of serialized command/data words"
+    - "Integrity of interrupt/error telemetry"
+  threat_model:
+    - { threat: "malformed APB accesses", mitigation: "PSLVERR + illegal_access sticky logging" }
+    - { threat: "protocol misuse via illegal cs_sel/data_width", mitigation: "frame suppression + mode_fault sticky" }
+    - { threat: "faulty software interrupt clear sequencing", mitigation: "W1C policy isolated to sticky bits; level sources are non-W1C" }
+  privilege_assumptions:
+    - "APB bus fabric enforces initiator permissions; SPI IP does not implement internal privilege levels."
+
+error_handling:
+  error_sources:
+    - { name: "illegal_apb_address", detect: "decode miss", effect: "PSLVERR=1 for transfer; STATUS.illegal_access sticky set; INT_PENDING.illegal_access_pend sticky set" }
+    - { name: "unsupported_write_strobe", detect: "PSTRB mismatch for accessed register policy", effect: "PSLVERR=1; STATUS.illegal_access set" }
+    - { name: "access_policy_violation", detect: "write RO or read side-effect misuse policy", effect: "PSLVERR=1; STATUS.illegal_access set" }
+    - { name: "tx_overrun", detect: "TXDATA write when tx_full=1", effect: "drop write data; set STATUS.tx_overrun and INT pending" }
+    - { name: "rx_overrun", detect: "frame completion when rx_full=1", effect: "drop received frame; set STATUS.rx_overrun and INT pending" }
+    - { name: "rx_underrun", detect: "RXDATA read when rx_empty=1", effect: "return zero; set STATUS.rx_underrun and INT pending" }
+    - { name: "mode_fault", detect: "launch attempt with illegal cs_sel or data_width", effect: "suppress frame launch; set STATUS.mode_fault and INT pending" }
+  recovery:
+    - "Sticky status and sticky interrupt pending bits clear via INT_CLEAR W1C or reset."
+    - "soft_reset pulse in CTRL clears FIFOs, busy, done, and sticky status bits while preserving programmable static configuration fields unless software rewrites them."
+
+debug_observability:
+  waveform_probes:
+    - "spi_shift.state"
+    - "spi_shift.bit_index"
+    - "spi_shift.launch_accept"
+    - "spi_clkgen.prescale_cnt"
+    - "spi_clkgen.sclk_toggle"
+    - "spi_fifo.tx_level"
+    - "spi_fifo.rx_level"
+    - "spi_int.int_pending_raw"
+    - "spi_int.irq_masked"
+  trace_events:
+    - { name: "evt_apb_write", payload: "addr,data,pstrb,pslverr" }
+    - { name: "evt_launch", payload: "cs_sel,data_width,cpol,cpha,lsb_first" }
+    - { name: "evt_frame_done", payload: "rx_word,rx_push_ok,errors" }
+    - { name: "evt_int_change", payload: "pending,mask,irq_o" }
+  source_tracking:
+    requirement_to_signal_examples:
+      - { req: "illegal APB access asserts PSLVERR and sticky flag", signals: ["PSLVERR", "STATUS.illegal_access", "INT_PENDING.illegal_access_pend"] }
+      - { req: "irq_o is OR reduction of INT_PENDING & INT_MASK", signals: ["INT_PENDING", "INT_MASK", "irq_o"] }
+
+integration:
+  bus_attachment:
+    bus: "APB-lite"
+    role: "slave"
+    address_width: 12
+    data_width: 32
+  dependencies:
+    - "External SPI slave device timing is out of scope; this IP only guarantees generated SCLK/MOSI/CS waveform contract."
+  connections:
+    - { from: "spi_regs.start_pulse", to: "spi_shift.start_req", signal: "start_req" }
+    - { from: "spi_regs.ctrl_cfg", to: "spi_shift.ctrl_cfg", signal: "ctrl_cfg" }
+    - { from: "spi_fifo.tx_pop_data", to: "spi_shift.tx_word", signal: "tx_word" }
+    - { from: "spi_shift.rx_word", to: "spi_fifo.rx_push_data", signal: "rx_word" }
+    - { from: "spi_int.irq_o", to: "spi.irq_o", signal: "irq_o" }
+
+dft:
+  scan:
+    strategy: "single_clock_scan"
+    assumptions:
+      - "PCLK is controllable in test mode."
+      - "PRESETn can be asserted/deasserted from test controller."
+  test_points:
+    - "FIFO full/empty boundary conditions should be controllable via APB writes and frame completions."
+
+synthesis:
+  language: "systemverilog_2012"
+  constraints:
+    - "Use PCLK as only sequential clock."
+    - "Do not infer latches."
+  ppa_targets:
+    fmax_mhz: 100
+    area_priority: "balanced"
+    power_priority: "low_dynamic_when_idle"
+
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers: { horizontal: "met3", vertical: "met2" }
+  cts: { buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"] }
+  routing: { signal_layers: { min: "met1", max: "met5" }, drc_waivers: [] }
+
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/spi_param.vh"
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge PCLK or negedge PRESETn)"
+    - "blocking (=) in combinational always @(*)"
+    - "No latches: every combinational branch assigns all outputs"
+    - "sclk_o is output waveform only and never used as internal RTL clock"
+    - "Parameterize widths and limits"
+  lint_waivers:
+    - "UNUSEDSIGNAL: optional debug probe nets in synthesis-off blocks"
+
+reuse_modules: []
+
+custom:
+  assumptions:
+    - "CTRL.start is treated as edge-detected launch request and does not need software clear."
+    - "When CTRL.enable transitions low during active frame, in-flight frame is allowed to complete; only new launches are blocked."
+    - "CS_IDLE reset value 0x0F assumes NUM_CS<=4 default; hardware masks cs_idle_val to NUM_CS width at runtime."
+  note: "Assumptions are conservative and can be tightened by future change request without altering required behavior semantics."
+
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "docs/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+
+filelist:
+  headers:
+    - "rtl/spi_param.vh"
+  rtl:
+    - "rtl/spi.sv"
+    - "rtl/spi_regs.sv"
+    - "rtl/spi_fifo.sv"
+    - "rtl/spi_clkgen.sv"
+    - "rtl/spi_shift.sv"
+    - "rtl/spi_int.sv"
+  sim:
+    - "sim/tb_top.sv"
+    - "sim/tb_program.sv"
+    - "sim/spi_model.py"
+  firmware:
+    - "firmware/spi_regs.h"
+  docs:
+    - "docs/spi_register_map.md"
+    - "docs/spi_programming_guide.md"
+
+test_requirements:
+  scenarios:
+    - { id: "SC_APB_CONFIG", name: "APB config/readback", stimulus: "Program CTRL/PRESCALE/CS_IDLE/INT_MASK and read back RW fields", expected: "Readback matches writes; RO/WO behavior and PSLVERR policy hold", checker: "APB scoreboard and access-policy assertions", coverage: ["function_model.transactions.FM_APB_TX_PUSH", "cycle_model.handshake_rules"] }
+    - { id: "SC_BASIC_TRANSFER", name: "Basic frame transfer", stimulus: "Push TXDATA then start single 8-bit frame", expected: "busy asserts then clears, done pending sets, RXDATA returns sampled value", checker: "frame scoreboard and status checks", coverage: ["function_model.transactions.FM_FRAME_LAUNCH", "function_model.transactions.FM_FRAME_COMPLETE", "fsm.channel_level"] }
+    - { id: "SC_CPOL_CPHA_SWEEP", name: "CPOL/CPHA sweep", stimulus: "Run frames in all four CPOL/CPHA combinations", expected: "edge launch/sample ordering follows mode", checker: "edge timing monitor", coverage: ["cycle_model.handshake_rules", "cycle_model.pipeline"] }
+    - { id: "SC_LSB_FIRST", name: "LSB-first ordering", stimulus: "Set lsb_first=1 and run known pattern", expected: "MOSI bit order reversed relative to MSB-first", checker: "serial bit-sequence checker", coverage: ["function_model.transactions.FM_SHIFT_SAMPLE"] }
+    - { id: "SC_WIDTH_SWEEP", name: "Frame width sweep", stimulus: "Program data_width_m1 to legal widths 4..32 and transfer", expected: "exact configured bit count shifted/sampled", checker: "bit counter and waveform checks", coverage: ["function_model.state_variables.frame_bits", "fsm.channel_level"] }
+    - { id: "SC_FIFO_LIMITS", name: "FIFO boundary behavior", stimulus: "Fill TX FIFO, overflow writes, fill RX FIFO then complete another frame", expected: "tx_overrun and rx_overrun sticky behavior with data drop policy", checker: "FIFO occupancy scoreboard", coverage: ["memory.instances", "cycle_model.backpressure"] }
+    - { id: "SC_IRQ_W1C", name: "Interrupt mask and W1C", stimulus: "Trigger sticky and level sources, toggle mask, clear via INT_CLEAR", expected: "irq_o == OR(INT_PENDING & INT_MASK); W1C clears sticky only", checker: "interrupt equation assertions", coverage: ["interrupts.sources", "function_model.transactions.FM_INT_CLEAR"] }
+    - { id: "SC_ERROR_PATHS", name: "Error paths", stimulus: "Illegal address/strobe/access, invalid cs_sel, illegal width, RX empty read", expected: "PSLVERR and corresponding sticky bits/pending bits set", checker: "error monitor and CSR checks", coverage: ["error_handling.error_sources"] }
+    - { id: "SC_PRESCALE_TIMING", name: "Prescale timing", stimulus: "Sweep divisor values", expected: "SCLK half-period equals divisor+1 PCLK cycles", checker: "cycle-accurate period checker", coverage: ["timing.protocol_timing", "cycle_model.performance"] }
+    - { id: "SC_LOOPBACK_DEBUG", name: "Loopback and debug observability", stimulus: "Enable loopback and capture debug register/probes across frames", expected: "RX equals MOSI sequence and debug counters/probes align", checker: "debug trace checker", coverage: ["debug_observability.waveform_probes", "registers.register_list.DEBUG"] }
+  scoreboard_checks: 24
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      bins:
+        - { id: "FCOV_TX_PUSH_OK", source_ref: "function_model.transactions.FM_APB_TX_PUSH", class: "transaction", description: "TXDATA accepted path" }
+        - { id: "FCOV_TX_PUSH_OVERRUN", source_ref: "function_model.transactions.FM_APB_TX_PUSH", class: "error_case", description: "TX full drop path" }
+        - { id: "FCOV_LAUNCH_SUPPRESS", source_ref: "function_model.transactions.FM_FRAME_LAUNCH", class: "error_case", description: "Launch suppression paths" }
+        - { id: "FCOV_FRAME_COMPLETE", source_ref: "function_model.transactions.FM_FRAME_COMPLETE", class: "transaction", description: "Normal frame completion" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      bins:
+        - { id: "CCOV_APB_HANDSHAKE", source_ref: "cycle_model.handshake_rules", class: "handshake", description: "APB transfer and PSLVERR timing" }
+        - { id: "CCOV_SPI_PIPELINE", source_ref: "cycle_model.pipeline", class: "pipeline_stage", description: "All SPI pipeline stages observed" }
+        - { id: "CCOV_FSM_TRANSITIONS", source_ref: "fsm.channel_level.transitions", class: "fsm", description: "Legal transitions covered" }
+    code: "verilator line >= 90%, branch >= 85%; pyslang structural checks clean"
+    observed:
+      sim_debug_waveforms: "VCD/FST traces must show probe activity for launch/sample/complete/error events mapped to scenario IDs"
+
+quality_gates:
+  ssot:
+    pass: "YAML parses and check_ssot_disk.sh spi passes with all required production sections present."
+    evidence: ["spi/yaml/spi.ssot.yaml", "workflow/ssot-gen/scripts/check_ssot_disk.sh output"]
+  rtl_gen:
+    profile: "production"
+    target_scale:
+      basis: "spi peripheral complexity"
+      source_files_min: 6
+      modules_min: 6
+      procedural_blocks_min: 20
+      state_updates_min: 25
+      depth_score_min: 40
+      logic_modules_min: 4
+      behavior_owner_logic_modules_min: 3
+    target_scale_waiver:
+      approved: false
+      reason: ""
+      owner: ""
+    pass: "All SSOT-derived rtl-gen TODO items close with provenance and no behavior ownership gaps."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json"]
+  rtl:
+    pass: "RTL compiles/lints and matches SSOT function_model + cycle_model semantics."
+    evidence: ["compile report", "lint report", "scoreboard report"]
+  coverage:
+    pass: "Function/cycle/code goals met or waived with approved SSOT change request."
+    evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+  eda:
+    pass: "Synthesis/STA/PnR meet 100MHz target or contain approved waivers."
+    evidence: ["syn report", "sta report", "pnr report"]
+
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "rtl/spi.sv module name" }
+    - { yaml: "parameters", output: "rtl/spi_param.vh and module parameterization" }
+    - { yaml: "io_list.interfaces", output: "rtl/spi.sv port list and protocol wrappers" }
+    - { yaml: "registers.register_list", output: "rtl/spi_regs.sv and firmware header" }
+    - { yaml: "function_model", output: "rtl/spi_shift.sv behavior and TB scoreboard model" }
+    - { yaml: "cycle_model", output: "rtl/spi_clkgen.sv + rtl/spi_shift.sv timing checks" }
+    - { yaml: "interrupts", output: "rtl/spi_int.sv" }
+    - { yaml: "error_handling", output: "RTL sticky/error paths and DV negative tests" }
+    - { yaml: "debug_observability", output: "sim_debug probe lists and trace hooks" }
+    - { yaml: "test_requirements.scenarios", output: "tb stimulus plan" }
+
+workflow_todos:
+  fl-model-gen:
+    - id: "FL_SPI_SCOREBOARD"
+      content: "Build functional SPI/APB reference model"
+      detail: "Implement FIFO queues, frame launch legality, CPOL/CPHA/bit-order behavior, and sticky/level interrupt semantics."
+      criteria:
+        - "Model reproduces all function_model transactions and error cases"
+        - "Model emits expected outputs for every test scenario"
+      source_refs: ["function_model", "registers.register_list", "interrupts"]
+      owner_module: "spi_shift"
+      owner_file: "rtl/spi_shift.sv"
+  rtl-gen:
+    - id: "RTL_SPI_SHIFT_ENGINE"
+      content: "Implement frame launch/shift/sample engine"
+      detail: "Create FSM and datapath for launch gate, CPOL/CPHA edges, lsb/msb order, CS handling, and completion events."
+      criteria:
+        - "All fsm states/transitions implemented"
+        - "No internal clocking on sclk_o"
+        - "Cycle rules and ordering assertions pass"
+      source_refs: ["fsm.channel_level", "cycle_model.pipeline", "function_model.transactions.FM_SHIFT_SAMPLE"]
+      owner_module: "spi_shift"
+      owner_file: "rtl/spi_shift.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_SPI_APB_POLICY"
+      content: "Implement APB decode and access policy"
+      detail: "Decode CSR map, enforce RO/WO and PSTRB policy, assert PSLVERR on illegal access, and update illegal_access sticky bits."
+      criteria:
+        - "Register map offsets/fields match SSOT"
+        - "Error handling semantics match error_handling"
+      source_refs: ["registers.register_list", "io_list.interfaces.apb_slave", "error_handling.error_sources"]
+      owner_module: "spi_regs"
+      owner_file: "rtl/spi_regs.sv"
+      priority: "high"
+      required: true
+  tb-gen:
+    - id: "TB_SPI_SCENARIOS"
+      content: "Implement SSOT scenario suite"
+      detail: "Create directed+constrained tests for all SC_* scenarios, including prescale timing and W1C semantics."
+      criteria:
+        - "All scenarios mapped to explicit checks"
+        - "Coverage bins linked to source refs"
+      source_refs: ["test_requirements.scenarios", "test_requirements.coverage_goals"]
+      owner_module: "tb_top"
+      owner_file: "sim/tb_top.sv"
+  sim_debug:
+    - id: "SIMDBG_SPI_PROBES"
+      content: "Capture and publish debug waveform set"
+      detail: "Dump required VCD/FST probes and annotate traces with launch/complete/error events for root-cause analysis."
+      criteria:
+        - "All listed probes visible in dumped waveforms"
+      source_refs: ["debug_observability.waveform_probes", "debug_observability.trace_events"]
+      owner_module: "spi"
+      owner_file: "sim/tb_top.sv"
+  coverage:
+    - id: "COV_SPI_CLOSURE"
+      content: "Close function/cycle/code coverage goals"
+      detail: "Collect bin hits and code metrics; justify any waivers with explicit source refs."
+      criteria:
+        - "Function and cycle target_pct met"
+        - "Code coverage thresholds met"
+      source_refs: ["test_requirements.coverage_goals"]
+      owner_module: "spi"
+      owner_file: "cov/coverage.json"
+  syn:
+    - id: "SYN_SPI_100MHZ"
+      content: "Synthesize SPI for 100MHz"
+      detail: "Constrain PCLK and ensure inferred logic respects single-clock architecture."
+      criteria:
+        - "No timing violations at 100MHz typical corner"
+      source_refs: ["timing.target_clocks", "synthesis.constraints"]
+      owner_module: "spi"
+      owner_file: "syn/report"
+  pnr:
+    - id: "PNR_SPI_FLOORPLAN"
+      content: "Implement physical flow with declared pnr targets"
+      detail: "Use utilization/density/aspect settings and report final DRC/LVS status."
+      criteria:
+        - "PnR complete with no unwaived DRC"
+      source_refs: ["pnr"]
+      owner_module: "spi"
+      owner_file: "pnr/report"
+  sta:
+    - id: "STA_SPI_SIGNOFF"
+      content: "Run pre-route STA"
+      detail: "Check setup/hold for PCLK domain and generated clock constraints as needed for SCLK output path timing checks."
+      criteria:
+        - "No unwaived setup/hold violations"
+      source_refs: ["timing", "synthesis.constraints"]
+      owner_module: "spi"
+      owner_file: "sta/report"
+  sta-post:
+    - id: "STA_POST_SPI_SIGNOFF"
+      content: "Run post-route STA"
+      detail: "Validate final timing with extracted parasitics and document any exceptions."
+      criteria:
+        - "Post-route timing closure at target frequency"
+      source_refs: ["timing.target_clocks"]
+      owner_module: "spi"
+      owner_file: "sta-post/report"
+
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh spi", description: "Validate production SSOT structure and quality gates" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model spi", description: "Generate functional model and FCOV plan from SSOT" }
+    - { name: "handoff_rtl", command: "/ssot-rtl spi", description: "Generate RTL from validated SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb spi", description: "Generate testbench from validated SSOT" }
+    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Inspect waveforms/failures and debug evidence" }
+    - { name: "handoff_coverage", command: "/coverage spi", description: "Measure SSOT-declared coverage goals" }
+    - { name: "handoff_eda", command: "/syn spi && /sta spi && /pnr spi && /sta-post spi", description: "Run implementation and signoff evidence generation" }

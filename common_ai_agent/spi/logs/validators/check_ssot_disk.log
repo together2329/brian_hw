@@ -1,0 +1,6 @@
+cmd: bash /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/ssot-gen/scripts/check_ssot_disk.sh spi
+cwd: /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+returncode: 1
+stdout:
+[check_ssot_disk] FAIL: spi/yaml/spi.ssot.yaml failed YAML/model validation
+  io_list.interfaces.apb_slave requires protocol/timing/handshake rules; port declarations alone are not enough

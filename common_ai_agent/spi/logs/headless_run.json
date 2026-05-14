@@ -1,0 +1,18 @@
+{
+  "ip": "spi",
+  "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "run_log": "spi/logs/headless_run.json",
+  "stages": [
+    {
+      "artifacts": [
+        "spi/questions/req_requirements.json"
+      ],
+      "blocker": "spi/questions/req_requirements.json",
+      "message": "requirements are incomplete",
+      "returncode": 0,
+      "stage": "req",
+      "status": "human_gate"
+    }
+  ],
+  "status": "blocked"
+}

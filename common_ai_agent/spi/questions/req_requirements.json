@@ -1,0 +1,31 @@
+{
+  "created_at": "2026-05-14T05:20:51Z",
+  "decision_needed": "Provide substantive requirements without placeholder markers before SSOT generation.",
+  "downstream_effect": [
+    "SSOT",
+    "functional_model",
+    "RTL",
+    "TB"
+  ],
+  "evidence": {
+    "goal_ids": [],
+    "requirement_refs": [
+      "spi/req/spi_requirements.md"
+    ],
+    "ssot_refs": [],
+    "tool_logs": []
+  },
+  "options": [
+    {
+      "description": "Define the missing behavior in SSOT",
+      "id": "A",
+      "impact": "Regenerate FL/RTL/TB from updated SSOT"
+    }
+  ],
+  "recommended_default": {
+    "id": "A",
+    "reason": "SSOT must own product semantics"
+  },
+  "stage": "req",
+  "status": "human_gate"
+}
