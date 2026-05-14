@@ -266,6 +266,32 @@ CREATE TABLE IF NOT EXISTS todo_events (
 );
 CREATE INDEX IF NOT EXISTS idx_todo_events_todo ON todo_events(todo_id, created_at);
 
+-- trace_events (canonical append-only ledger for workflow/session actions)
+CREATE TABLE IF NOT EXISTS trace_events (
+    id TEXT PRIMARY KEY,
+    event_type TEXT NOT NULL,
+    session_id TEXT,
+    workspace_id TEXT,
+    ip_id TEXT,
+    workflow TEXT,
+    run_id TEXT,
+    stage_id TEXT,
+    todo_id TEXT,
+    message_id TEXT,
+    llm_call_id TEXT,
+    artifact_id TEXT,
+    actor_user_id TEXT,
+    correlation_id TEXT,
+    causation_id TEXT,
+    idempotency_key TEXT UNIQUE,
+    payload TEXT,
+    created_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_trace_events_context ON trace_events(workspace_id, ip_id, workflow, created_at);
+CREATE INDEX IF NOT EXISTS idx_trace_events_run ON trace_events(run_id, stage_id, todo_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_trace_events_correlation ON trace_events(correlation_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_trace_events_session ON trace_events(session_id, created_at);
+
 -- llm_calls (canonical token/cost trace)
 CREATE TABLE IF NOT EXISTS llm_calls (
     id TEXT PRIMARY KEY,
@@ -327,6 +353,7 @@ _JSON_COLUMNS = {
     "workflow_events": {"payload"},
     "workflow_todos": {"source_refs", "evidence", "notes"},
     "todo_events": {"evidence"},
+    "trace_events": {"payload"},
 }
 
 
@@ -1776,13 +1803,110 @@ class AtlasDB:
             """,
             (event_id, todo_id, event_type, reason, self._dump_json(evidence), now),
         )
-        if event_type in {"pending", "in_progress", "approved", "rejected", "blocked"}:
+        if event_type in {"pending", "in_progress", "completed", "approved", "rejected", "blocked"}:
             self._execute(
                 "UPDATE workflow_todos SET status = ?, evidence = ?, updated_at = ? WHERE id = ?",
                 (event_type, self._dump_json(evidence), now, todo_id),
             )
         rows = self._fetchall("SELECT * FROM todo_events WHERE id = ?", (event_id,))
         return self._row_to_dict(rows[0], "todo_events")
+
+    def record_trace_event(
+        self,
+        event_type: str,
+        payload: Any = None,
+        session_id: str = "",
+        workspace_id: str = "",
+        ip_id: str = "",
+        workflow: str = "",
+        run_id: str = "",
+        stage_id: str = "",
+        todo_id: str = "",
+        message_id: str = "",
+        llm_call_id: str = "",
+        artifact_id: str = "",
+        actor_user_id: str = "",
+        correlation_id: str = "",
+        causation_id: str = "",
+        idempotency_key: str = "",
+        created_at: float = None,
+    ) -> Dict[str, Any]:
+        """Append a canonical trace event, returning an existing row for duplicate keys."""
+        key = str(idempotency_key or "")
+        if key:
+            existing = self._fetchone(
+                "SELECT * FROM trace_events WHERE idempotency_key = ?",
+                (key,),
+            )
+            if existing is not None:
+                return self._row_to_dict(existing, "trace_events")
+
+        event_id = self._new_id()
+        now = created_at if created_at is not None else self._now()
+        self._execute(
+            """
+            INSERT INTO trace_events
+            (id, event_type, session_id, workspace_id, ip_id, workflow, run_id,
+             stage_id, todo_id, message_id, llm_call_id, artifact_id,
+             actor_user_id, correlation_id, causation_id, idempotency_key,
+             payload, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                event_id,
+                event_type,
+                session_id,
+                workspace_id,
+                ip_id,
+                workflow,
+                run_id,
+                stage_id,
+                todo_id,
+                message_id,
+                llm_call_id,
+                artifact_id,
+                actor_user_id,
+                correlation_id,
+                causation_id,
+                key,
+                self._dump_json(payload),
+                now,
+            ),
+        )
+        return self.list_trace_events(event_id=event_id)[0]
+
+    def list_trace_events(
+        self,
+        event_id: str = None,
+        session_id: str = None,
+        run_id: str = None,
+        todo_id: str = None,
+        correlation_id: str = None,
+    ) -> List[Dict[str, Any]]:
+        """List canonical trace events in append order with optional narrow filters."""
+        clauses: list[str] = []
+        values: list[Any] = []
+        if event_id is not None:
+            clauses.append("id = ?")
+            values.append(event_id)
+        if session_id is not None:
+            clauses.append("session_id = ?")
+            values.append(session_id)
+        if run_id is not None:
+            clauses.append("run_id = ?")
+            values.append(run_id)
+        if todo_id is not None:
+            clauses.append("todo_id = ?")
+            values.append(todo_id)
+        if correlation_id is not None:
+            clauses.append("correlation_id = ?")
+            values.append(correlation_id)
+        where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
+        rows = self._fetchall(
+            f"SELECT * FROM trace_events{where} ORDER BY created_at ASC, id ASC",
+            tuple(values),
+        )
+        return [self._row_to_dict(row, "trace_events") for row in rows]
 
     def record_llm_call(
         self,

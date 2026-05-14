@@ -2,7 +2,14 @@ import asyncio
 import threading
 import time
 
-from core.atlas_multiuser import _MultiUserBridge, changed_paths_from_tool_result
+import pytest
+
+from core.atlas_multiuser import (
+    _MultiUserBridge,
+    changed_paths_from_tool_result,
+    reset_atlas_bridge_session_id,
+    set_atlas_bridge_session_id,
+)
 
 
 def test_session_isolation():
@@ -147,6 +154,39 @@ def test_patch_summary_emits_file_changed():
     assert msg and msg.get("type") == "file_changed"
     assert msg.get("path") == "gpio/yaml/gpio.ssot.yaml"
     print("PASS: patch summary emits file_changed")
+
+
+def test_strict_routing_requires_session_or_context():
+    bridge = _MultiUserBridge(strict_session_routing=True)
+
+    with pytest.raises(RuntimeError):
+        bridge.emit("token", text="missing session")
+
+    token = set_atlas_bridge_session_id("user-a")
+    try:
+        bridge.emit("token", text="context routed")
+    finally:
+        reset_atlas_bridge_session_id(token)
+
+    msg, sid = asyncio.get_event_loop().run_until_complete(bridge.next_event(timeout=0.5))
+    assert sid == "user-a"
+    assert msg and msg.get("text") == "context routed"
+
+
+def test_question_flow_uses_context_session_not_latest_active():
+    bridge = _MultiUserBridge()
+    bridge.activate_session("user-b")
+
+    token = set_atlas_bridge_session_id("user-a")
+    try:
+        bridge.open_question("flow-1")
+        assert bridge.submit_answer_for_session("user-a", "flow-1", {"answer": "ok"})
+        assert bridge.wait_answer("flow-1", timeout=0.1) == {"answer": "ok"}
+        bridge.close_question("flow-1")
+    finally:
+        reset_atlas_bridge_session_id(token)
+
+    assert bridge.get_session("user-a").pending_ask_user_events() == []
 
 
 if __name__ == "__main__":

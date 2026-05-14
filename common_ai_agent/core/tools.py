@@ -2829,6 +2829,22 @@ def _todo_template_lock_error(op_name: str) -> str:
     )
 
 
+def _trace_todo_tool_event(index: int, item, status: str, reason: str = "", note_text: str = "") -> None:
+    """Best-effort mirror of todo tool transitions into Atlas trace storage."""
+    try:
+        from core.atlas_trace import record_todo_tool_event_from_env
+
+        record_todo_tool_event_from_env(
+            index,
+            item,
+            status,
+            reason=reason or "",
+            note_text=note_text or "",
+        )
+    except Exception:
+        pass
+
+
 def todo_write(todos=None, tasks=None, **kwargs):
     """
     Create or update task list to track multi-step task progress.
@@ -3049,6 +3065,8 @@ def todo_write(todos=None, tasks=None, **kwargs):
         todo_tracker.add_todos(todos)
     except Exception as e:
         return f"Error updating todo tracker: {e}"
+    for _idx, _item in enumerate(todo_tracker.todos, 1):
+        _trace_todo_tool_event(_idx, _item, getattr(_item, "status", "pending") or "pending", reason="todo_write")
 
     # Clear any previous write error on success
     try:
@@ -3482,6 +3500,7 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
 
             item.rejection_reason = ""
             todo_tracker.mark_approved(idx, _reason_stripped)  # internally calls save() + persists approved_reason
+            _trace_todo_tool_event(index, item, "approved", reason=_reason_stripped)
             _git_tag_todo(index, "approved", item.content)
             # Per-IP commit checkpoint when a todo gets approved. The
             # auto-commit hook in atlas_ui only fires on file writes;
@@ -3526,6 +3545,7 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             item.tools_since_in_progress = 0  # reset for potential re-work
             item.tools_since_completed = 0    # reset review-gate counter
             todo_tracker.mark_completed(idx)  # internally calls save()
+            _trace_todo_tool_event(index, item, "completed", reason=reason or "")
             try:
                 _slug = (item.content or "")[:60].replace("\n", " ")
                 commit_ip(f"todo[{index}] completed: {_slug}")
@@ -3605,12 +3625,14 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                     f"→ todo_update(index={index}, status='rejected', reason='<specific problem and required fix>')"
                 )
             todo_tracker.mark_rejected(idx, _reason_stripped)  # internally calls save()
+            _trace_todo_tool_event(index, item, "rejected", reason=_reason_stripped)
             return f"❌ Task {index} rejected: {reason}"
         elif status == "in_progress":
             # NOTE: Do NOT store reason in rejection_reason — that field is
             # exclusively for rejected status. The step header will still show
             # the detail/criteria fields for context.
             todo_tracker.mark_in_progress(idx)
+            _trace_todo_tool_event(index, item, "in_progress", reason=reason or "")
 
             # ── Static command execution (LLM-free) ──────────────────────────
             result = todo_tracker.auto_execute_command(idx)
@@ -3852,6 +3874,7 @@ def todo_note(index=None, text=""):
         item.notes = []
     item.notes.append(str(text).strip())
     todo_tracker.save()
+    _trace_todo_tool_event(index, item, "note", note_text=str(text).strip())
     return f"📝 Note [{len(item.notes)}] added to Task {index}: {text.strip()}"
 
 

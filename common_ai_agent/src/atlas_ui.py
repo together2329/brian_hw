@@ -403,11 +403,17 @@ def create_app():
     # ATLAS_MULTI_USER_PROC=0.
     _proc_raw = os.environ.get("ATLAS_MULTI_USER_PROC", "1").strip().lower()
     _use_proc = _multi_user_env and _proc_raw not in ("0", "false", "no", "off")
+    _strict_raw = os.environ.get("ATLAS_STRICT_SESSION_ROUTING", "0").strip().lower()
+    _strict_routing = _strict_raw in ("1", "true", "yes", "on")
     if _multi_user_env:
         print(f"[atlas] Multi-user enabled (process_per_session={'on' if _use_proc else 'off'})")
     # single_user collapses every WS-bound session_id onto "default" so
     # the agent thread's inbox and the WS handler's inbox are the same.
-    bridge = _MultiUserBridge(single_user=not _multi_user_env, use_processes=_use_proc)
+    bridge = _MultiUserBridge(
+        single_user=not _multi_user_env,
+        use_processes=_use_proc,
+        strict_session_routing=_strict_routing,
+    )
     clients: set[Any] = set()
     broadcaster_task: asyncio.Task | None = None
 

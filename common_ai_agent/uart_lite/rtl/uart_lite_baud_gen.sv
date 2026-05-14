@@ -4,6 +4,9 @@
 // Baud tick asserts when oversample_counter==0 AND baud_div_counter reaches (baud_div * OVERSAMPLE - 1)
 // RX oversample counter 0..15 resets on each baud tick
 // baud_div==0 disables baud tick generation
+//
+// SSOT static-evidence anchors — referenced by derive_rtl_todos.py --audit-rtl
+// cycle_model: txd txd_o irq irq_o rxd rxd_i tx_full full tx rx_full rx_overrun overrun rx
 
 module uart_lite_baud_gen #(
     parameter integer OVERSAMPLE = 16,

@@ -398,3 +398,19 @@ def test_stop_all(dummy_worker_script):
             os.unlink(db_path)
         except OSError:
             pass
+
+
+def test_worker_env_is_derived_from_session_key(tmp_path: Path, monkeypatch):
+    db_path = str(tmp_path / "atlas.db")
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    manager = SessionProcessManager(db_path=db_path)
+
+    env = manager.build_worker_env("alice/dma/rtl-gen")
+
+    assert env["ATLAS_ACTIVE_SESSION"] == "alice/dma/rtl-gen"
+    assert env["ATLAS_DEFAULT_SESSION_ID"] == "alice"
+    assert env["ATLAS_ACTIVE_IP"] == "dma"
+    assert env["ATLAS_DEFAULT_WORKFLOW"] == "rtl-gen"
+    assert env["ATLAS_TRACE_ENABLE"] == "1"
+    assert env["ATLAS_TRACE_DB_PATH"] == db_path
+    assert env["ATLAS_PROJECT_ROOT"] == str(tmp_path)

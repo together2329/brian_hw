@@ -260,10 +260,16 @@ class _SessionBridge:
 class _MultiUserBridge:
     """Manage multiple isolated session bridges with legacy delegation."""
 
-    def __init__(self, single_user: bool = False, use_processes: bool = False):
+    def __init__(
+        self,
+        single_user: bool = False,
+        use_processes: bool = False,
+        strict_session_routing: bool = False,
+    ):
         self._sessions = {}
         self._sessions_lock = threading.RLock()
         self._single_user = single_user
+        self._strict_session_routing = strict_session_routing
         self._active_session_id = "default"
         self._active_lock = threading.Lock()
         self._agent_starter = None
@@ -408,6 +414,14 @@ class _MultiUserBridge:
             session_id = self._active_session_id
         return self._ensure_session(session_id)
 
+    def _context_session(self) -> _SessionBridge:
+        session_id = get_atlas_bridge_session_id() or None
+        if session_id is not None:
+            return self._ensure_session(session_id)
+        if self._strict_session_routing:
+            raise RuntimeError("strict session routing requires an explicit session context")
+        return self._active_session()
+
     def get_input(self, prompt: str = "") -> str:
         return self._active_session().get_input(prompt)
 
@@ -421,22 +435,22 @@ class _MultiUserBridge:
         if session_id is not None:
             self._ensure_session(str(session_id)).emit(msg_type, **payload)
             return
-        self._active_session().emit(msg_type, **payload)
+        self._context_session().emit(msg_type, **payload)
 
     def pending_ask_user_events(self) -> list[dict[str, Any]]:
-        return self._active_session().pending_ask_user_events()
+        return self._context_session().pending_ask_user_events()
 
     def session_pending_ask_user_events(self, session_id: str | None) -> list[dict[str, Any]]:
         return self._ensure_session(session_id).pending_ask_user_events()
 
     def open_question(self, flow_id: str) -> queue.Queue[Any]:
-        return self._active_session().open_question(flow_id)
+        return self._context_session().open_question(flow_id)
 
     def close_question(self, flow_id: str) -> None:
-        self._active_session().close_question(flow_id)
+        self._context_session().close_question(flow_id)
 
     def wait_answer(self, flow_id: str, timeout: float | None = None) -> Any | None:
-        return self._active_session().wait_answer(flow_id, timeout=timeout)
+        return self._context_session().wait_answer(flow_id, timeout=timeout)
 
     def set_agent_starter(self, fn: Callable[[], None]) -> None:
         self._agent_starter = fn

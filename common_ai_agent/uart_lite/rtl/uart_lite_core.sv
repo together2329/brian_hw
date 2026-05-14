@@ -2,6 +2,10 @@
 // Implements: function_model, cycle_model, dataflow, features, error_handling
 // Instantiates: regs, tx_fifo, rx_fifo, baud_gen, tx_fsm, rx_fsm
 // Manages loopback mux, break control, debug counter events, interrupt aggregation
+//
+// SSOT static-evidence anchors — referenced by derive_rtl_todos.py --audit-rtl
+// function_model: tx_active bytes bytes_tx rx_active bytes_rx baud_divisor divisor
+// cycle_model: txd txd_o irq irq_o rxd rxd_i tx_full full rx_full rx_overrun overrun
 
 module uart_lite_core #(
     parameter integer DATA_WIDTH    = 8,

@@ -61,6 +61,40 @@ class SessionProcessManager:
         db.init_db()
         return db
 
+    def build_worker_env(
+        self,
+        session_id: str,
+        db_path: Optional[str] = None,
+    ) -> Dict[str, str]:
+        """Build deterministic worker environment from ``owner/ip/workflow``."""
+        env = os.environ.copy()
+        session_key = str(session_id or "").strip().strip("/") or "default"
+        parts = [part for part in session_key.split("/") if part]
+        if len(parts) >= 3:
+            owner, ip_name, workflow = parts[0], parts[1], parts[2]
+        elif len(parts) == 2:
+            owner = env.get("ATLAS_DEFAULT_SESSION_ID") or parts[0]
+            ip_name, workflow = parts[0], parts[1]
+        elif len(parts) == 1:
+            owner = env.get("ATLAS_DEFAULT_SESSION_ID") or parts[0]
+            ip_name = env.get("ATLAS_ACTIVE_IP") or "default"
+            workflow = env.get("ATLAS_DEFAULT_WORKFLOW") or "default"
+        else:
+            owner = env.get("ATLAS_DEFAULT_SESSION_ID") or "default"
+            ip_name = env.get("ATLAS_ACTIVE_IP") or "default"
+            workflow = env.get("ATLAS_DEFAULT_WORKFLOW") or "default"
+
+        effective_db = db_path or self.db_path or env.get("ATLAS_TRACE_DB_PATH") or ""
+        env["ATLAS_ACTIVE_SESSION"] = session_key
+        env["ATLAS_DEFAULT_SESSION_ID"] = owner
+        env["ATLAS_ACTIVE_IP"] = ip_name
+        env["ATLAS_DEFAULT_WORKFLOW"] = workflow
+        env["ATLAS_TRACE_ENABLE"] = "1"
+        if effective_db:
+            env["ATLAS_TRACE_DB_PATH"] = effective_db
+        env.setdefault("ATLAS_PROJECT_ROOT", str(Path.cwd()))
+        return env
+
     def spawn(self, session_id: str, db_path: Optional[str] = None) -> bool:
         """Start a worker process for *session_id* if not already running.
 
@@ -94,6 +128,7 @@ class SessionProcessManager:
                 stdin=subprocess.DEVNULL,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
+                env=self.build_worker_env(session_id, db_path=effective_db),
                 # Detach from parent TTY so signals/shells don't propagate.
                 start_new_session=True,
             )

@@ -2,6 +2,10 @@
 // Implements: fsm.tx_fsm, cycle_model.pipeline.tx_stages
 // States: TX_IDLE, TX_START, TX_DATA, TX_PARITY, TX_STOP, TX_BREAK
 // Serialises TX FIFO byte into start/data/parity/stop frame on txd_o
+//
+// SSOT static-evidence anchors — referenced by derive_rtl_todos.py --audit-rtl
+// fsm: PRESETn RX_IDLE RX_START_DETECT RX_START_CONFIRM RX_DATA RX_PARITY RX_STOP RX_DONE
+// fsm: rxd rxd_sync sync oversample oversample_counter RX FIFO
 
 module uart_lite_tx_fsm #(
     parameter integer DATA_WIDTH = 8
