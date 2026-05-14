@@ -702,6 +702,115 @@ fsm:
     - "When DIVISOR changes during RUNNING, the new divisor takes effect on the next counter wrap/edge to avoid glitches."
     - "For even effective divisor (DIVISOR+1 even): 50% duty cycle (counter < half → high, counter >= half → low)."
     - "For odd effective divisor (DIVISOR+1 odd): high phase = ceil(half), low phase = floor(half)."
+
+clock_reset_domains:
+  domains:
+  - name: pclk_domain
+    clock: PCLK
+    reset: PRESETn
+    frequency_mhz: 50
+    modules:
+    - clkdiv
+    - clkdiv_structure
+  reset_behavior:
+  - "All writable registers (DIVISOR, CTRL) and internal state (counter_q, clkdiv_o) clear to zero."
+
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain — no CDC required."
+
+rdc_requirements:
+  resets:
+  - name: PRESETn
+    domain: pclk_domain
+    style: async_assert_sync_deassert
+  waivers: []
+
+registers:
+  bus: APB4
+  addr_width: 8
+  data_width: 32
+  bit_order: lsb0
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: ignore
+    rtl_requirement: "Reserved fields read as zero and do not allocate storage."
+  register_list:
+  - name: DIVISOR
+    offset: "0x00"
+    access: rw
+    reset: 0x00000000
+    description: "Clock divisor register. Effective divide ratio = DIVISOR + 1. DIVISOR=0 → passthrough (clkdiv_o = PCLK). Max divisor limited by COUNTER_WIDTH parameter."
+    write_side_effects:
+    - "Writing DIVISOR takes effect on the next PCLK rising edge after the APB access completes."
+    - "When CTRL.ENABLE=0, divisor writes update the register but output remains gated low until enabled."
+    fields:
+    - name: divisor
+      bits: [COUNTER_WIDTH-1, 0]
+      access: rw
+      reset: 0x0
+      write_effect: "Sets the clock division ratio; effective divisor = value + 1"
+      description: "Divide ratio selector"
+    - name: reserved
+      bits: [31, COUNTER_WIDTH]
+      access: reserved
+      reset: 0x0
+      read_value: 0
+      write_effect: ignore
+      description: "Reserved; reads zero"
+  - name: CTRL
+    offset: "0x04"
+    access: rw
+    reset: 0x00000000
+    description: "Control register. Enables/disables the divided clock output."
+    write_side_effects:
+    - "Writing CTRL takes effect on the next PCLK rising edge after the APB access completes."
+    - "ENABLE=0 forces clkdiv_o low after the current output phase completes."
+    - "ENABLE=1 resumes divider operation starting from counter=0."
+    fields:
+    - name: enable
+      bits: [0, 0]
+      access: rw
+      reset: 0x0
+      write_effect: "0=disable (clkdiv_o held low), 1=enable divider operation"
+      description: "Clock divider enable"
+    - name: reserved
+      bits: [31, 1]
+      access: reserved
+      reset: 0x0
+      read_value: 0
+      write_effect: ignore
+      description: "Reserved; reads zero"
+  - name: STATUS
+    offset: "0x08"
+    access: ro
+    reset: 0x00000000
+    description: "Status register. Exposes the internal counter value for debug and observability."
+    fields:
+    - name: counter
+      bits: [COUNTER_WIDTH-1, 0]
+      access: ro
+      reset: 0x0
+      description: "Current internal counter value"
+    - name: reserved
+      bits: [31, COUNTER_WIDTH]
+      access: reserved
+      reset: 0x0
+      read_value: 0
+      write_effect: ignore
+      description: "Reserved; reads zero"
+  unsupported_address: "pslverr asserts and prdata returns zero for any offset not in {0x00, 0x04, 0x08}"
+
+memory:
+  instances: []
+  note: "No SRAM, FIFO, or internal buffer memory. Pure register-based counter and APB registers."
+
+interrupts:
+  outputs: []
+  note: "No interrupts in this IP. clkdiv is a simple clock divider peripheral without IRQ generation."
+
 timing:
   target_clocks:
   - name: PCLK

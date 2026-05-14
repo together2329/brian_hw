@@ -722,7 +722,7 @@ test_requirements:
         - { id: "fcov_interrupt", source_ref: "function_model.transactions.FM_TICK.output_rules.pulse_irq", class: "event", description: "Interrupt asserts on completion" }
         - { id: "fcov_int_masked", source_ref: "function_model.transactions.FM_TICK.output_rules.pulse_irq", class: "event", description: "Interrupt masked when INTEN=0" }
         - { id: "fcov_zero_width", source_ref: "function_model.transactions.FM_TICK.error_cases", class: "edge_case", description: "Zero-width degenerates to 1-cycle" }
-        - { id: "fcov_apb_error", source_ref: "error_handling.error_sources.ERR_APB_OUT_OF_RANGE", class: "error", description: "APB out-of-range PSLVERR" }
+        - { id: "fcov_apb_error", source_ref: "function_model.invariants.register_side_effects", class: "error", description: "APB out-of-range PSLVERR — register access contract" }
         - { id: "fcov_back_to_back", source_ref: "function_model.transactions.FM_TICK", class: "transaction", description: "Back-to-back pulse triggers" }
     cycle:
       target_pct: 100

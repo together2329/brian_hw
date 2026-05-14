@@ -799,5 +799,22 @@ traceability:
     - { yaml: "quality_gates", output: "ATLAS progress and signoff criteria" }
     - { yaml: "fsm", output: "rtl/priority_enc_structure.sv control logic" }
     - { yaml: "test_requirements.scenarios", output: "tb/cocotb/test_priority_enc.py" }
-workflow_todos: TBD
-generation_flow: TBD
+workflow_todos:
+  rtl-gen:
+    - { id: "RTL_APB_REGFILE", content: "Implement APB register decode and register file", detail: "RTL must decode supported offsets 0x00/0x04/0x08, implement rw CTRL and MASK, ro STATUS, return pslverr for unsupported offsets, and handle reserved fields per reserved_field_policy.", criteria: ["CTRL/MASK writable fields update on APB write", "STATUS mirrors enc_out_q/enc_valid_q", "Unsupported offsets assert pslverr", "Reserved fields read zero and ignore writes", "pready always 1"], source_refs: ["registers.register_list", "io_list.interfaces.apb_slave", "error_handling"], owner_module: "priority_enc_structure", owner_file: "rtl/priority_enc_structure.sv", priority: "high", required: true }
+    - { id: "RTL_PRIORITY_EVAL", content: "Implement priority encoder datapath with mask and direction control", detail: "Combinational block: apply MASK to enc_in, detect highest-priority asserted bit per priority_dir, produce 3-bit encoded output and valid flag. Use function_model.transactions.TX_PRIORITY_EVALUATE.output_rules as behavioral reference.", criteria: ["Mask gating: enc_in & mask_q before evaluation", "priority_dir=0: bit7-highest priority encoding", "priority_dir=1: bit0-highest priority encoding", "enable_q=0 gates enc_out=0 enc_valid=0", "All-zero masked input produces enc_valid=0 enc_out=0"], source_refs: ["function_model.transactions.TX_PRIORITY_EVALUATE", "function_model.state_variables", "registers.register_list.CTRL", "registers.register_list.MASK"], owner_module: "priority_enc_structure", owner_file: "rtl/priority_enc_structure.sv", priority: "high", required: true }
+    - { id: "RTL_OUTPUT_REGISTER", content: "Register the priority evaluation result and drive top-level outputs", detail: "Capture combinational evaluation into enc_out_q/enc_valid_q on pclk edge; drive enc_out/enc_valid ports; update STATUS.enc_out/STATUS.enc_valid for APB readback. 1-cycle latency from input to output.", criteria: ["enc_out/enc_valid registered on pclk posedge", "enc_out/enc_valid reset to 0 on presetn assertion", "STATUS read returns current registered values", "1-cycle latency from enc_in change to output update"], source_refs: ["cycle_model.pipeline.S1_REGISTER", "cycle_model.latency.priority_eval_latency", "function_model.transactions.TX_PRIORITY_EVALUATE"], owner_module: "priority_enc_structure", owner_file: "rtl/priority_enc_structure.sv", priority: "high", required: true }
+    - { id: "RTL_TOP_WRAPPER", content: "Implement top wrapper and filelist", detail: "Top module priority_enc exposes all SSOT top ports, instantiates priority_enc_structure with named connections, and includes parameter header.", criteria: ["priority_enc module exists with full port list", "priority_enc_structure instantiated with named port connections", "list/priority_enc.f lists both RTL files", "rtl/priority_enc_param.vh included"], source_refs: ["top_module", "io_list.top_ports", "integration.connections", "filelist.rtl", "parameters"], owner_module: "priority_enc", owner_file: "rtl/priority_enc.sv", priority: "high", required: true }
+
+generation_flow:
+  current_stage: "ssot-gen to rtl-gen"
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh priority_enc", description: "Validate production SSOT structure and quality gates" }
+    - { name: "handoff_rtl", command: "/ssot-rtl priority_enc", description: "Downstream RTL generation from validated SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb priority_enc", description: "Downstream testbench generation from validated SSOT" }
+    - { name: "handoff_coverage", command: "/coverage priority_enc", description: "Measure SSOT-declared coverage goals" }
+    - { name: "handoff_eda", command: "/syn priority_enc && /sta priority_enc", description: "Produce SSOT-declared synthesis and STA evidence" }
+  handoff:
+    next: "rtl-gen"
+    ssot: "priority_enc/yaml/priority_enc.ssot.yaml"
+    top_module: "priority_enc"

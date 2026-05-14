@@ -696,6 +696,9 @@ quality_gates:
   coverage:
     pass: "All SSOT-declared function/cycle coverage bins close."
     evidence: ["cov/coverage.json"]
+  dv:
+    pass: "All SSOT-declared test scenarios pass with scoreboard assertions enabled."
+    evidence: ["sim/results.json", "sim/coverage_report.md"]
   eda:
     pass: "Synthesis meets 50MHz timing."
     evidence: ["syn report"]

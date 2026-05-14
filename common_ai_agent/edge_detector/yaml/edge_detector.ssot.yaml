@@ -559,8 +559,80 @@ filelist:
   docs:
     - "docs/register_map.md"
     - "docs/README.md"
-test_requirements: TBD
-quality_gates: TBD
+test_requirements:
+  scenarios:
+    - { id: "SC1", name: "Rising edge detection", stimulus: "Program EDGE_CTRL=edge_mode[i]=01, drive signal_inputs[i] 0→1 transition", expected: "edge_outputs[i]=1 for exactly one PCLK cycle after transition; EDGE_RAW[i]=1 that cycle", checker: "Scoreboard compares edge_outputs vs output_rules.edge_detect_rising", coverage: ["EDGE_DETECT", "S0_SYNC", "S1_EDGE_LOGIC"] }
+    - { id: "SC2", name: "Falling edge detection", stimulus: "Program EDGE_CTRL=edge_mode[i]=10, drive signal_inputs[i] 1→0 transition", expected: "edge_outputs[i]=1 for exactly one PCLK cycle", checker: "Scoreboard compares vs output_rules.edge_detect_falling", coverage: ["EDGE_DETECT", "S0_SYNC", "S1_EDGE_LOGIC"] }
+    - { id: "SC3", name: "Both edges detection", stimulus: "Program EDGE_CTRL=edge_mode[i]=11, drive two consecutive transitions 0→1 then 1→0", expected: "edge_outputs[i]=1 for one cycle after each transition", checker: "Scoreboard compares vs output_rules.edge_detect_both", coverage: ["EDGE_DETECT", "S0_SYNC", "S1_EDGE_LOGIC"] }
+    - { id: "SC4", name: "Disabled input", stimulus: "Program EDGE_CTRL=edge_mode[i]=00, drive transitions on signal_inputs[i]", expected: "edge_outputs[i]=0 at all times", checker: "Scoreboard verifies no spurious pulses", coverage: ["edge_disabled"] }
+    - { id: "SC5", name: "Interrupt generation", stimulus: "Set INT_EN[i]=1, drive edge on input i", expected: "INT_STATUS[i] set sticky; edge_irq asserted", checker: "Scoreboard checks INT_STATUS sticky and edge_irq", coverage: ["INT_STATUS", "edge_irq"] }
+    - { id: "SC6", name: "Interrupt masking", stimulus: "Set INT_EN[i]=0, drive edge on input i", expected: "INT_STATUS[i] unchanged; edge_irq unchanged", checker: "Scoreboard verifies no interrupt activity", coverage: ["INT_EN masking"] }
+    - { id: "SC7", name: "W1C clear", stimulus: "Set INT_STATUS[i]=1 via edge event, then write 1 to INT_STATUS[i]", expected: "INT_STATUS[i] cleared to 0; edge_irq deasserts if no other pending", checker: "Scoreboard checks W1C timing", coverage: ["W1C clear"] }
+    - { id: "SC8", name: "Concurrent set+clear", stimulus: "Edge event sets INT_STATUS[i] same cycle as APB write clears it", expected: "Per custom.assumptions: new edge takes priority (or-last); INT_STATUS[i]=1 after cycle", checker: "Scoreboard checks or-last behavior", coverage: ["concurrent set+clear"] }
+    - { id: "SC9", name: "APB register readback", stimulus: "Write EDGE_CTRL, INT_EN; read back all registers", expected: "Read data matches written values; reserved fields read zero", checker: "APB readback checker", coverage: ["register access"] }
+    - { id: "SC10", name: "APB error response", stimulus: "Access unsupported APB address", expected: "PSLVERR=1, PREADY=1 for access phase; no register update", checker: "APB protocol checker", coverage: ["ERR_APB_DECODE"] }
+    - { id: "SC11", name: "Reset behavior", stimulus: "Assert PRESETn low during operation, then deassert", expected: "All registers reset to defaults; edge_outputs=0; edge_irq=0; prev_inputs=0", checker: "Reset value checker", coverage: ["reset"] }
+    - { id: "SC12", name: "Multi-input simultaneous edges", stimulus: "Program all 8 inputs for both-edges, drive simultaneous transitions on all", expected: "Each edge_outputs[i] independently pulses as appropriate", checker: "Per-bit scoreboard comparison", coverage: ["multi-input", "throughput"] }
+  scoreboard_checks: 24
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Behavioral coverage for edge detection correctness"
+      bins:
+        - { id: "FCOV_EDGE_DETECT_RISING", source_ref: "function_model.transactions.EDGE_DETECT.output_rules.edge_detect_rising", class: "output_rule", description: "Rising edge output rule observed" }
+        - { id: "FCOV_EDGE_DETECT_FALLING", source_ref: "function_model.transactions.EDGE_DETECT.output_rules.edge_detect_falling", class: "output_rule", description: "Falling edge output rule observed" }
+        - { id: "FCOV_EDGE_DETECT_BOTH", source_ref: "function_model.transactions.EDGE_DETECT.output_rules.edge_detect_both", class: "output_rule", description: "Both-edges output rule observed" }
+        - { id: "FCOV_EDGE_DISABLED", source_ref: "function_model.transactions.EDGE_DETECT.output_rules.edge_disabled", class: "output_rule", description: "Disabled output rule observed" }
+        - { id: "FCOV_STATE_UPDATE_PREV", source_ref: "function_model.state_updates.prev_inputs", class: "state_update", description: "prev_inputs state update observed" }
+        - { id: "FCOV_STATE_UPDATE_INT_STATUS", source_ref: "function_model.state_updates.int_status", class: "state_update", description: "int_status state update observed" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle/handshake/pipeline coverage"
+      bins:
+        - { id: "CCOV_STAGE_SYNC", source_ref: "cycle_model.pipeline.S0_SYNC", class: "pipeline_stage", description: "Input synchronization stage observed" }
+        - { id: "CCOV_STAGE_EDGE_LOGIC", source_ref: "cycle_model.pipeline.S1_EDGE_LOGIC", class: "pipeline_stage", description: "Edge detection logic stage observed" }
+        - { id: "CCOV_STAGE_STATUS_IRQ", source_ref: "cycle_model.pipeline.S2_STATUS_IRQ", class: "pipeline_stage", description: "Status/IRQ update stage observed" }
+        - { id: "CCOV_LATENCY_EDGE", source_ref: "cycle_model.latency.edge_detect", class: "latency", description: "1-cycle edge detect latency observed" }
+        - { id: "CCOV_LATENCY_IRQ", source_ref: "cycle_model.latency.interrupt_assertion", class: "latency", description: "0-cycle interrupt latency observed" }
+        - { id: "CCOV_PERF_THROUGHPUT", source_ref: "cycle_model.performance.throughput", class: "throughput", description: "All-inputs simultaneous edge throughput exercised" }
+        - { id: "CCOV_PERF_FREQUENCY", source_ref: "cycle_model.performance.frequency_mhz", class: "frequency", description: "50 MHz frequency assumption recorded" }
+    functional: "Legacy alias: function + cycle coverage must both close"
+    line: ">= 90% instrumented line coverage"
+    branch: ">= 85% instrumented branch coverage"
+    fsm: "N/A — no complex FSM; pipeline coverage via cycle_model bins suffices"
+    assertions: "APB protocol assertions (PSEL/PENABLE/PREADY handshake) must pass"
+quality_gates:
+  ssot:
+    pass: "All canonical sections present, substantive, internally consistent, no live TBD placeholders"
+    evidence: ["check_ssot_disk.sh PASS", "traceability covers function_model/cycle_model/test_requirements"]
+  rtl_gen:
+    profile: "standard"
+    target_scale:
+      basis: "lightweight peripheral — small structural depth expected"
+      source_files_min: 3
+      modules_min: 2
+      procedural_blocks_min: 2
+      state_updates_min: 2
+      depth_score_min: 2
+      logic_modules_min: 1
+      behavior_owner_logic_modules_min: 1
+    target_scale_waiver:
+      approved: false
+      reason: ""
+      owner: ""
+    pass: "SSOT-derived rtl_todo_plan has no blockers/orphans; compile/lint pass; FL-vs-RTL goals close"
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json", "rtl/rtl_compile.json", "lint/dut_lint.json", "sim/fl_rtl_goal_audit.json", "sim/fl_rtl_compare.json", "cov/coverage.json"]
+  rtl:
+    pass: "RTL implements function_model and cycle_model, compiles, lints clean"
+    evidence: ["rtl compile report", "dut lint report"]
+  coverage:
+    pass: "SSOT-declared function/cycle/line/branch coverage goals met or waived"
+    evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+  eda:
+    pass: "Synthesis and STA meet SSOT timing/area targets"
+    evidence: ["syn report", "sta reports"]
 traceability: TBD
 workflow_todos: TBD
 generation_flow: TBD

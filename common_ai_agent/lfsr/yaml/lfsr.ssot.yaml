@@ -575,7 +575,82 @@ filelist:
     - "docs/register_map.md"
     - "docs/fsm_diagram.md"
     - "docs/README.md"
-test_requirements: TBD
+test_requirements:
+  scenarios:
+    - id: "SC_PRBS_SHIFT"
+      name: "Basic PRBS shift operation"
+      stimulus: "Assert PRESETn deasserted. Write SEED=0xDEADBEEF, TAPS for PRBS31 (0x80000004). Write CTRL.enable=1. Run for 100 PCLK cycles."
+      expected: "lfsr_out updates every enabled cycle; sequence matches reference Python model applying Fibonacci shift formula."
+      checker: "Scoreboard compares RTL lfsr_out against Python reference model per-cycle."
+      coverage: ["FM_SHIFT", "S2_SHIFT_EVAL", "S3_OUTPUT_UPDATE"]
+    - id: "SC_SEED_LOAD"
+      name: "Seed load operation"
+      stimulus: "Write SEED=0x12345678. Write CTRL.load_seed=1. Wait 2 cycles. Read DATA."
+      expected: "DATA == 0x12345678. CTRL.load_seed reads back 0 (self-cleared)."
+      checker: "APB readback assertion on DATA register; self-clear check on CTRL.load_seed field."
+      coverage: ["FM_LOAD_SEED", "S3_OUTPUT_UPDATE"]
+    - id: "SC_ENABLE_GATE"
+      name: "Enable/disable gating"
+      stimulus: "With SEED loaded and TAPS configured, set CTRL.enable=1 for 5 cycles, then CTRL.enable=0 for 3 cycles, then CTRL.enable=1 again."
+      expected: "lfsr_out advances during enabled cycles; holds value during disabled cycles; resumes correctly."
+      checker: "Scoreboard tracks lfsr_out per-cycle; verifies hold during disabled windows."
+      coverage: ["FM_IDLE", "S2_SHIFT_EVAL"]
+    - id: "SC_APB_RW"
+      name: "APB register read/write"
+      stimulus: "Write known values to CTRL, SEED, TAPS. Read back all registers. Write to DATA (expect no change — RO)."
+      expected: "CTRL.enable, SEED, TAPS read back written values. DATA read ignores write (RO). STATUS.running matches CTRL.enable."
+      checker: "APB readback assertion; RO write-ignore check."
+      coverage: ["S0_REGISTER_READ", "S1_REGISTER_WRITE"]
+    - id: "SC_RESET"
+      name: "Reset behavior"
+      stimulus: "Configure SEED/TAPS/CTRL. Assert PRESETn low for 3 cycles, deassert. Read all registers."
+      expected: "All registers at reset values. lfsr_out = DEFAULT_SEED. CTRL.enable = 0."
+      checker: "APB readback after reset; lfsr_out sampling."
+      coverage: ["cycle_model.reset"]
+    - id: "SC_ZERO_SEED_DEGENERATE"
+      name: "Zero-seed degenerate behavior"
+      stimulus: "Write SEED=0x00000000. Assert load_seed. Enable shift for 10 cycles."
+      expected: "lfsr_out stays 0x00000000 (degenerate all-zero)."
+      checker: "Scoreboard verifies stuck-at-zero output."
+      coverage: ["ERR_ZERO_SEED"]
+    - id: "SC_DEFAULT_TAPS_PRBS31"
+      name: "Default PRBS31 maximal-length sequence check"
+      stimulus: "With DEFAULT_SEED and DEFAULT_TAPS, enable shift for (2^31 - 1) beats (or a proven subset with known check pattern)."
+      expected: "Sequence matches ITU-T O.150 PRBS31 reference at known check points."
+      checker: "Scoreboard compares per-cycle against golden PRBS31 model; asserts known check-value at offset N."
+      coverage: ["FM_SHIFT", "CCOV_PRBS31_CHECK"]
+  scoreboard_checks: 7
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Cycle-independent behavioral intent coverage; proves what LFSR computes."
+      bins:
+        - { id: "FCOV_FM_SHIFT", source_ref: "function_model.transactions.FM_SHIFT", class: "transaction", description: "LFSR shift transaction observed by scoreboard" }
+        - { id: "FCOV_FM_LOAD_SEED", source_ref: "function_model.transactions.FM_LOAD_SEED", class: "transaction", description: "Seed load transaction observed by scoreboard" }
+        - { id: "FCOV_FM_IDLE", source_ref: "function_model.transactions.FM_IDLE", class: "transaction", description: "Hold/idle transaction observed" }
+        - { id: "FCOV_ERR_ZERO_SEED", source_ref: "error_handling.error_sources.ERR_ZERO_SEED", class: "error_case", description: "Zero-seed degenerate behavior observed" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle/handshake/latency/FSM coverage; proves when LFSR behavior occurs."
+      bins:
+        - { id: "CCOV_STAGE_REG_READ", source_ref: "cycle_model.pipeline.S0_REGISTER_READ", class: "pipeline_stage", description: "APB read access phase observed" }
+        - { id: "CCOV_STAGE_REG_WRITE", source_ref: "cycle_model.pipeline.S1_REGISTER_WRITE", class: "pipeline_stage", description: "APB write access phase observed" }
+        - { id: "CCOV_STAGE_SHIFT_EVAL", source_ref: "cycle_model.pipeline.S2_SHIFT_EVAL", class: "pipeline_stage", description: "Shift feedback eval stage observed" }
+        - { id: "CCOV_STAGE_OUT_UPDATE", source_ref: "cycle_model.pipeline.S3_OUTPUT_UPDATE", class: "pipeline_stage", description: "Output update stage observed" }
+        - { id: "CCOV_HANDSHAKE_PSEL", source_ref: "cycle_model.handshake_rules.PSEL/PENABLE", class: "handshake", description: "APB handshake rule observed" }
+        - { id: "CCOV_FSM_IDLE_TO_SHIFT", source_ref: "fsm.lfsr_core_fsm.transitions", class: "state_transition", description: "FSM transition IDLE→SHIFT observed" }
+        - { id: "CCOV_FSM_SHIFT_TO_LOAD", source_ref: "fsm.lfsr_core_fsm.transitions", class: "state_transition", description: "FSM transition SHIFT→LOAD_SEED observed" }
+        - { id: "CCOV_PERF_THROUGHPUT", source_ref: "cycle_model.performance.throughput", class: "throughput", description: "Sustained 1 beat/cycle throughput condition exercised" }
+        - { id: "CCOV_PERF_DEPTH", source_ref: "cycle_model.performance.depth", class: "depth", description: "2-stage pipeline depth exercised" }
+        - { id: "CCOV_RESET", source_ref: "cycle_model.reset", class: "reset", description: "Reset assertion/deassertion cycle observed" }
+        - { id: "CCOV_PRBS31_CHECK", source_ref: "test_requirements.scenarios.SC_DEFAULT_TAPS_PRBS31", class: "sequence_check", description: "PRBS31 reference model check passed" }
+    functional: "Legacy alias: function + cycle coverage must both close."
+    line: ">= 90%"
+    branch: ">= 85%"
+    fsm: "100% declared FSM states and legal transitions covered"
+    assertions: "All protocol/order assertions pass"
 quality_gates: TBD
 traceability: TBD
 workflow_todos: TBD

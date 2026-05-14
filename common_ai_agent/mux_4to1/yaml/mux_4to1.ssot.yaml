@@ -167,7 +167,8 @@ function_model:
         - "PRDATA[SEL_WIDTH-1:0] equals sel; upper bits read as 0"
       output_rules:
         - { name: "prdata_sel", expr: "{ {32-SEL_WIDTH{1'b0}}, sel }", width: 32, port: "PRDATA" }
-      side_effects: []
+      side_effects:
+        - "Register read has no architectural side effects"
       error_cases: []
       state_updates: []
   invariants:
