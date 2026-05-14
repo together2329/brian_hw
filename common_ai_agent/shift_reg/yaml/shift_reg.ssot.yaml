@@ -217,7 +217,7 @@ function_model:
         - { name: "data_out_serial", expr: "reg_value after each 1-bit shift", width: "WIDTH", port: "data_out", per_cycle: true }
         - { name: "shift_out_serial_left",  expr: "reg_value[WIDTH-1]", width: 1, port: "shift_out", condition: "direction==0", per_cycle: true }
         - { name: "shift_out_serial_right", expr: "reg_value[0]", width: 1, port: "shift_out", condition: "direction==1", per_cycle: true }
-        - { name: "busy_serial", expr: "1 while shift_count > 0 else 0", width: 1, port: "internal", note: "Observable via STATUS.busy register field read" }
+        - { name: "busy_serial", expr: "1 while shift_count > 0 else 0", width: 1, note: "Internal signal observable via STATUS.busy register field read" }
   state_updates:
     - { name: "reg_value", reset: 0, expr: "FM1: pwdata[WIDTH-1:0]; FM2: barrel-shifted reg_value; FM3: {shift_in, reg_value[WIDTH-1:1]} or {reg_value[WIDTH-2:0], shift_in}" }
     - { name: "busy", reset: 0, expr: "1 during shift operation (FM3 only), 0 otherwise" }

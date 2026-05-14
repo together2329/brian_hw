@@ -556,7 +556,82 @@ test_requirements:
     branch: ">= 85% instrumented branch coverage or explicit project waiver"
     fsm: "No FSM in this IP — waived"
     assertions: "APB protocol assertions pass"
-quality_gates: TBD
-traceability: TBD
-workflow_todos: TBD
-generation_flow: TBD
+quality_gates:
+  ssot:
+    pass: "All canonical sections are present, substantive, internally consistent, and have no live TBD placeholders."
+    evidence: ["check_ssot_disk.sh PASS", "traceability covers function_model/cycle_model/test_requirements"]
+  rtl_gen:
+    profile: "standard"
+    pass: "SSOT-derived rtl_todo_plan has no blockers/orphans; all implementation TODOs close with fresh compile/lint evidence."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_compile.json", "lint/dut_lint.json"]
+  rtl:
+    pass: "RTL implements function_model and cycle_model, compiles, and has no unwaived lint warnings."
+    evidence: ["rtl filelist", "compile log", "lint report"]
+  dv:
+    pass: "Every test_requirements scenario has an executable test, expected/got checker, and coverage bin."
+    evidence: ["results.xml", "coverage.json", "VCD/FST waveform"]
+  coverage:
+    pass: "Functional coverage goals pass and code/FSM/assertion coverage meets thresholds or has approved waiver."
+    evidence: ["instrumented coverage report", "coverage_report.md"]
+  eda:
+    pass: "Synthesis, pre-route STA, PnR, and post-route STA meet SSOT timing/area/power/physical targets or have explicit signed-off waivers."
+    evidence: ["syn report", "sta setup/hold report", "wns.json", "pnr report", "routed.def", "routed.spef", "sta-post setup/hold report"]
+  signoff:
+    pass: "SSOT, RTL, lint, DV, simulation, coverage, and required EDA gates pass with fresh evidence."
+    evidence: ["ATLAS progress signoff pass", "artifact timestamps newer than final source edits"]
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "ALL files (module name)" }
+    - { yaml: "parameters", output: "rtl/mux_4to1_param.vh (shared parameter include, no package)" }
+    - { yaml: "io_list.interfaces", output: "rtl/mux_4to1.sv (port list)" }
+    - { yaml: "registers.register_list", output: "rtl/mux_4to1_regs.sv + firmware + docs" }
+    - { yaml: "function_model", output: "rtl/mux_4to1_core.sv + tb/cocotb scoreboard/reference model" }
+    - { yaml: "cycle_model", output: "rtl/mux_4to1_core.sv pipeline/handshake logic + waveform checks" }
+    - { yaml: "timing", output: "STA constraints and timing pass/fail criteria" }
+    - { yaml: "pnr", output: "floorplan/place/CTS/route TCL, routed DEF/Verilog/SPEF, PnR pass/fail criteria" }
+    - { yaml: "power", output: "power-state assumptions or explicit no-UPF rationale" }
+    - { yaml: "security", output: "security/safety checks and threat mitigations" }
+    - { yaml: "error_handling", output: "RTL error paths + DV fault scenarios" }
+    - { yaml: "quality_gates", output: "ATLAS progress/signoff criteria" }
+    - { yaml: "test_requirements.scenarios", output: "sim/tb_program.sv" }
+workflow_todos:
+  fl-model-gen: []
+  rtl-gen:
+    - id: "RTL_TODO_MUX_4TO1_IMPLEMENTATION"
+      content: "Implement the SSOT-declared mux transaction pipeline"
+      detail: "Translate function_model transactions FM_MUX_SELECT and FM_READBACK, cycle_model pipeline stages S0-S2, and ownership refs into RTL state/datapath/control logic. The top module mux_4to1.sv instantiates mux_4to1_regs and mux_4to1_core with named port connections matching integration.connections."
+      criteria:
+        - "RTL owner logic is present in the declared owner files"
+        - "FunctionalModel expected result and RTL observed result can be compared for the referenced source_refs"
+        - "DUT-only compile/lint evidence is fresh after the final edit"
+        - "Named port connections between mux_4to1_regs and mux_4to1_core match integration.connections"
+      source_refs: ["function_model.transactions", "cycle_model.pipeline", "integration.connections"]
+      owner_module: "mux_4to1_core"
+      owner_file: "rtl/mux_4to1_core.sv"
+      priority: "high"
+      required: true
+  tb-gen: []
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh mux_4to1", description: "Validate production SSOT structure, function_model, cycle_model, DV plan, and quality gates" }
+    - { name: "handoff_rtl", command: "/ssot-rtl mux_4to1", description: "rtl-gen writes RTL directly from the SSOT and proves compile/lint gates" }
+    - { name: "handoff_tb", command: "/ssot-tb mux_4to1", description: "tb-gen writes cocotb tests, runs simulation, emits results XML, VCD, and functional coverage" }
+    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "sim_debug inspects waveform, failures, coverage evidence, and escalation ownership" }
+    - { name: "handoff_coverage", command: "/coverage mux_4to1", description: "coverage workflow measures SSOT-declared functional/code/toggle/FSM/assertion goals" }
+    - { name: "handoff_eda", command: "/syn mux_4to1 && /sta mux_4to1 && /pnr mux_4to1 && /sta-post mux_4to1", description: "EDA workflows produce SSOT-declared synthesis, STA, PnR, and post-route STA evidence" }
+  atlas_workflows:
+    - "ssot-gen"
+    - "rtl-gen"
+    - "tb-gen"
+    - "sim_debug"
+    - "coverage"
+    - "syn"
+    - "pnr"
+    - "sta"
+    - "sta-post"

@@ -784,6 +784,20 @@ quality_gates:
   signoff:
     pass: "SSOT, RTL compile, lint, DV, coverage, and EDA gates all pass with fresh evidence."
     evidence: ["ATLAS stage engine signoff.json"]
-traceability: TBD
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "ALL files (module name)" }
+    - { yaml: "parameters", output: "rtl/priority_enc_param.vh" }
+    - { yaml: "io_list.interfaces", output: "rtl/priority_enc.sv (top wrapper) + rtl/priority_enc_structure.sv" }
+    - { yaml: "registers.register_list", output: "rtl/priority_enc_structure.sv + docs/register_map.md" }
+    - { yaml: "function_model", output: "rtl/priority_enc_structure.sv + tb/cocotb scoreboard" }
+    - { yaml: "cycle_model", output: "rtl/priority_enc_structure.sv pipeline + waveform checks" }
+    - { yaml: "timing", output: "STA constraints and latency pass/fail criteria" }
+    - { yaml: "pnr", output: "floorplan/place/CTS/route TCL and routed DEF/Verilog/SPEF" }
+    - { yaml: "security", output: "security negative tests" }
+    - { yaml: "error_handling", output: "rtl/priority_enc_structure.sv pslverr path + DV unsupported-address scenarios" }
+    - { yaml: "quality_gates", output: "ATLAS progress and signoff criteria" }
+    - { yaml: "fsm", output: "rtl/priority_enc_structure.sv control logic" }
+    - { yaml: "test_requirements.scenarios", output: "tb/cocotb/test_priority_enc.py" }
 workflow_todos: TBD
 generation_flow: TBD

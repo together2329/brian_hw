@@ -547,8 +547,34 @@ custom:
       description: "PREADY always 1; APB slave always ready. No backpressure from peripheral."
       status: "pending_review"
       yaml_path: "cycle_model.handshake_rules"
-dir_structure: TBD
-filelist: TBD
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "docs/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+filelist:
+  headers:
+    - "rtl/lfsr_param.vh"
+  rtl:
+    - "rtl/lfsr_regs.sv"
+    - "rtl/lfsr_core.sv"
+    - "rtl/lfsr.sv"
+  sim:
+    - "sim/tb_top.sv"
+    - "sim/tb_program.sv"
+    - "sim/lfsr_model.sv"
+  firmware:
+    - "firmware/lfsr_regs.h"
+  docs:
+    - "docs/register_map.md"
+    - "docs/fsm_diagram.md"
+    - "docs/README.md"
 test_requirements: TBD
 quality_gates: TBD
 traceability: TBD

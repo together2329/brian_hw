@@ -435,7 +435,8 @@ error_handling:
     - { id: "ERR_NONE", condition: "No internal error conditions exist for this IP", architectural_effect: "Not applicable — all error conditions are handled externally (e.g., APB protocol errors are outside IP scope; req_i/gnt_o interface has no error protocol)" }
   propagation:
     - "No internal errors to propagate; externally visible behavior is limited to one-hot gnt_o invariant"
-  recovery: []
+  recovery:
+    - { action: "reset", clears: ["all internal state"], preserves: ["configuration defaults set at reset"] }
   note: "Round-robin arbiter has no internal error conditions; upstream/downstream errors are handled externally"
 
 # =============================================================================

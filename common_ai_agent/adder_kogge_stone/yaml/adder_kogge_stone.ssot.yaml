@@ -549,10 +549,64 @@ synthesis:
     - "syn/out/adder_kogge_stone.json"
     - "syn/out/area.rpt"
     - "syn/out/timing_summary.rpt"
-pnr: TBD
-coding_rules: TBD
-reuse_modules: TBD
-custom: TBD
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: "met3"
+    vertical: "met2"
+  placement:
+    density_target: 0.65
+    max_displacement_um: null
+  cts:
+    buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"]
+    functional_mode_case_analysis:
+      - { port: "scan_en", value: 0, when_present: true }
+  routing:
+    signal_layers: { min: "met1", max: "met5" }
+    clock_layers: { min: "met3", max: "met5" }
+    drc_waivers: []
+  required_outputs:
+    - "pnr/out/floorplan.def"
+    - "pnr/out/placed.def"
+    - "pnr/out/cts.def"
+    - "pnr/out/routed.def"
+    - "pnr/out/routed.v"
+    - "pnr/out/routed.spef"
+    - "pnr/out/pnr.report.md"
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/adder_kogge_stone_param.vh"
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge clk …)"
+    - "blocking (=) in combinational always @(*)"
+    - "No latches: every combinational branch assigns all outputs (use default)"
+    - "Active-low async reset: always @(posedge clk or negedge rst_n) with if (!rst_n)"
+    - "Parameterize widths (no hardcoded numbers)"
+    - "Use rtl/adder_kogge_stone_param.vh for shared parameter declarations; include inside consuming modules"
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+    - "Use localparam state encoding with logic state/next_state for FSM"
+    - "Kogge-Stone tree implemented with generate loops over WIDTH and log2(WIDTH) stages"
+  lint_waivers:
+    - "UNUSEDSIGNAL: reserved field tie-offs in register block"
+    - "WIDTHEXPAND: parameterized generate loop indexing"
+reuse_modules: []
+custom:
+  note: "No custom extensions"
+  assumptions:
+    - "Operand source selection (CTRL.src_sel) is a registered signal that takes effect on the next PCLK edge after APB write."
+    - "When CTRL.src_sel=1 (CSR operands), a_i/b_i/cin_i input ports are ignored for computation but still visible for debug."
+    - "The Kogge-Stone tree uses exactly ceil(log2(WIDTH)) stages; when WIDTH is not a power of 2, the tree gracefully handles non-power-of-2 widths."
+    - "APB_DATA_WIDTH is assumed >= WIDTH for full operand register access; if smaller, only the lower APB_DATA_WIDTH bits of operand registers are accessible."
+    - "PSTRB byte strobes are honored for register writes; partial-byte writes update only the strobed bytes within the target register."
+    - "No interrupt output; status polling via APB STATUS register is the only completion notification mechanism."
+    - "Single-cycle latency means operands sampled on cycle N produce valid sum_o/cout_o on cycle N+1; there is no multi-cycle or pipelined backpressure."
+    - "RESULT and COUT registers are only updated when CTRL.src_sel=1; when src_sel=0 (direct port mode), these registers hold their last value."
+    - "The IP targets a 50 MHz PCLK; the Kogge-Stone tree combinational depth must close timing at this frequency for the maximum WIDTH parameter."
 dir_structure: TBD
 filelist: TBD
 test_requirements: TBD
