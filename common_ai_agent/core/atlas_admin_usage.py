@@ -41,6 +41,17 @@ def _json_list(value: Any) -> list[Any]:
     return [value]
 
 
+def _json_any(value: Any) -> Any:
+    if value is None or value == "":
+        return None
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except (json.JSONDecodeError, TypeError):
+            return value
+    return value
+
+
 def _cost_context(row: dict[str, Any]) -> dict[str, str]:
     ip_name = _text(row.get("ip_name"))
     workspace_name = _text(row.get("workspace_name"))
@@ -264,6 +275,27 @@ def build_admin_usage_payload(db) -> dict[str, Any]:
          ORDER BY e.created_at ASC
         """
     )]
+    trace_rows = [dict(r) for r in db._fetchall(
+        """
+        SELECT e.id AS event_id, e.event_type, e.session_id, e.workspace_id,
+               e.ip_id, e.workflow, e.run_id, e.stage_id, e.todo_id,
+               e.message_id, e.llm_call_id, e.artifact_id, e.actor_user_id,
+               e.correlation_id, e.causation_id, e.idempotency_key,
+               e.payload, e.created_at,
+               COALESCE(us.username, ua.username) AS username,
+               s.project_id, s.directory, s.title,
+               w.name AS workspace_name, w.local_path AS workspace_path,
+               i.ip_name
+          FROM trace_events e
+          LEFT JOIN sessions s ON s.id = e.session_id
+          LEFT JOIN users us ON us.id = s.user_id
+          LEFT JOIN users ua ON ua.id = e.actor_user_id
+          LEFT JOIN workspaces w ON w.id = e.workspace_id
+          LEFT JOIN ip_blocks i ON i.id = e.ip_id
+         ORDER BY e.created_at DESC
+         LIMIT 500
+        """
+    )]
 
     models_by_user: dict[str, list[dict[str, Any]]] = {}
     for row in models_rows:
@@ -366,11 +398,38 @@ def build_admin_usage_payload(db) -> dict[str, Any]:
             "created_at": row.get("created_at"),
         })
 
+    trace_events = []
+    for row in trace_rows:
+        context = _cost_context(row)
+        trace_events.append({
+            **context,
+            "event_id": row.get("event_id"),
+            "event_type": row.get("event_type") or "",
+            "session_id": row.get("session_id") or "",
+            "workspace_id": row.get("workspace_id") or "",
+            "ip_id": row.get("ip_id") or "",
+            "workflow": row.get("workflow") or "",
+            "run_id": row.get("run_id") or "",
+            "stage_id": row.get("stage_id") or "",
+            "todo_id": row.get("todo_id") or "",
+            "message_id": row.get("message_id") or "",
+            "llm_call_id": row.get("llm_call_id") or "",
+            "artifact_id": row.get("artifact_id") or "",
+            "actor_user_id": row.get("actor_user_id") or "",
+            "username": row.get("username") or "unknown",
+            "correlation_id": row.get("correlation_id") or "",
+            "causation_id": row.get("causation_id") or "",
+            "idempotency_key": row.get("idempotency_key") or "",
+            "payload": _json_any(row.get("payload")),
+            "created_at": row.get("created_at"),
+        })
+
     return {
         "users": totals,
         "cost_by_context": cost_by_context,
         "cost_by_date": cost_by_date,
         "todo_usage": todo_usage,
         "todo_flow": todo_flow,
+        "trace_events": trace_events,
         "generated_at": time.time(),
     }

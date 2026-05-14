@@ -235,6 +235,19 @@ def test_admin_usage_reports_todo_flow_and_llm_usage(tmp_path: Path) -> None:
         db.record_todo_event(todo["id"], "rejected", reason="missing illegal descriptor trap")
         db.record_todo_event(todo["id"], "rejected", reason="trap path did not clear busy")
         db.record_todo_event(todo["id"], "approved", reason="read RTL and ran descriptor tests")
+        trace = db.record_trace_event(
+            "todo.approved",
+            session_id=session["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="rtl-gen",
+            run_id=run["id"],
+            todo_id=todo["id"],
+            actor_user_id=user["id"],
+            correlation_id="corr-dma",
+            idempotency_key="todo-approved-trace",
+            payload={"reason": "read RTL and ran descriptor tests"},
+        )
         db.record_llm_call(
             session_id=session["id"],
             run_id=run["id"],
@@ -298,6 +311,18 @@ def test_admin_usage_reports_todo_flow_and_llm_usage(tmp_path: Path) -> None:
         "approved",
     ]
     assert flow[-1]["content"] == "Implement DMA descriptor decoder"
+
+    assert len(usage["trace_events"]) == 1
+    event = usage["trace_events"][0]
+    assert event["event_id"] == trace["id"]
+    assert event["event_type"] == "todo.approved"
+    assert event["ip"] == "dma"
+    assert event["workspace"] == "soc-workspace"
+    assert event["workflow"] == "rtl-gen"
+    assert event["todo_id"] == todo["id"]
+    assert event["username"] == "erin"
+    assert event["correlation_id"] == "corr-dma"
+    assert event["payload"]["reason"] == "read RTL and ran descriptor tests"
 
 
 def test_ip_permissions_allow_view_and_import_by_user(tmp_path: Path) -> None:

@@ -4,6 +4,9 @@ function AdminPage() {
   const [usage, setUsage] = React.useState([]);
   const [costContexts, setCostContexts] = React.useState([]);
   const [dateCosts, setDateCosts] = React.useState([]);
+  const [todoUsage, setTodoUsage] = React.useState([]);
+  const [todoFlow, setTodoFlow] = React.useState([]);
+  const [traceEvents, setTraceEvents] = React.useState([]);
   const [feedback, setFeedback] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
@@ -57,6 +60,9 @@ function AdminPage() {
       setUsage(usageData.users || []);
       setCostContexts(usageData.cost_by_context || []);
       setDateCosts(usageData.cost_by_date || []);
+      setTodoUsage(usageData.todo_usage || []);
+      setTodoFlow(usageData.todo_flow || []);
+      setTraceEvents(usageData.trace_events || []);
       setFeedback(fbData.feedback || []);
     } catch (e) {
       setError(String(e));
@@ -259,6 +265,15 @@ function AdminPage() {
   const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString());
   const usd = (n) => (n == null ? '—' : `$${Number(n).toFixed(4)}`);
   const shortId = (value) => String(value || '').slice(0, 8) || '—';
+  const payloadText = (value) => {
+    if (value == null || value === '') return '—';
+    try {
+      const text = typeof value === 'string' ? value : JSON.stringify(value);
+      return text.length > 180 ? text.slice(0, 177) + '…' : text;
+    } catch (_) {
+      return String(value);
+    }
+  };
 
   return (
     <div style={pageStyle}>
@@ -297,6 +312,15 @@ function AdminPage() {
               </button>
               <button style={tabStyle(activeTab === 'costs')} onClick={() => setActiveTab('costs')}>
                 Costs ({costContexts.length})
+              </button>
+              <button style={tabStyle(activeTab === 'todos')} onClick={() => setActiveTab('todos')}>
+                Todos ({todoUsage.length})
+              </button>
+              <button style={tabStyle(activeTab === 'flow')} onClick={() => setActiveTab('flow')}>
+                Flow ({todoFlow.length})
+              </button>
+              <button style={tabStyle(activeTab === 'trace')} onClick={() => setActiveTab('trace')}>
+                Trace ({traceEvents.length})
               </button>
               <button style={tabStyle(activeTab === 'feedback')} onClick={() => setActiveTab('feedback')}>
                 Feedback ({feedback.filter(f => f.status !== 'resolved').length}/{feedback.length})
@@ -600,6 +624,140 @@ function AdminPage() {
                     </tbody>
                   </table>
                 </div>
+              </div>
+            )}
+
+            {activeTab === 'todos' && (
+              <div style={tableWrapStyle}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr>
+                      <th style={thStyle}>IP</th>
+                      <th style={thStyle}>Workspace</th>
+                      <th style={thStyle}>Workflow</th>
+                      <th style={thStyle}>Todo</th>
+                      <th style={thStyle}>Status</th>
+                      <th style={thStyle}>Rejects</th>
+                      <th style={thStyle}>LLM Calls</th>
+                      <th style={thStyle}>Tokens</th>
+                      <th style={thStyle}>Cost</th>
+                      <th style={thStyle}>Last Reason</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {todoUsage.length === 0 ? (
+                      <tr>
+                        <td colSpan={10} style={{ ...tdStyle, ...emptyStateStyle }}>No todo usage data yet.</td>
+                      </tr>
+                    ) : (
+                      todoUsage.map((row) => (
+                        <tr key={row.todo_id}>
+                          <td style={tdStyle}>{row.ip || 'unknown'}</td>
+                          <td style={tdStyle}>{row.workspace || 'default'}</td>
+                          <td style={tdStyle}>{row.workflow || '—'}</td>
+                          <td style={{ ...tdStyle, minWidth: 240 }}>
+                            <div>{row.content || '—'}</div>
+                            <div style={{ color: '#8893a3', fontSize: 11, marginTop: 4 }}>
+                              {row.detail || row.criteria || '—'}
+                            </div>
+                          </td>
+                          <td style={tdStyle}>{row.status || '—'}</td>
+                          <td style={tdStyle}>{fmt(row.rejected_count)}</td>
+                          <td style={tdStyle}>{fmt(row.llm_calls)}</td>
+                          <td style={tdStyle}>{fmt(row.tokens)}</td>
+                          <td style={tdStyle}>{usd(row.cost)}</td>
+                          <td style={{ ...tdStyle, maxWidth: 260, whiteSpace: 'normal' }}>
+                            {row.last_event_reason || row.last_rejected_reason || '—'}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {activeTab === 'flow' && (
+              <div style={tableWrapStyle}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr>
+                      <th style={thStyle}>When</th>
+                      <th style={thStyle}>IP</th>
+                      <th style={thStyle}>Workflow</th>
+                      <th style={thStyle}>Todo</th>
+                      <th style={thStyle}>Event</th>
+                      <th style={thStyle}>Reason</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {todoFlow.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} style={{ ...tdStyle, ...emptyStateStyle }}>No todo flow events yet.</td>
+                      </tr>
+                    ) : (
+                      todoFlow.map((row) => (
+                        <tr key={row.event_id}>
+                          <td style={tdStyle}>{formatDate(row.created_at)}</td>
+                          <td style={tdStyle}>{row.ip || 'unknown'}</td>
+                          <td style={tdStyle}>{row.workflow || '—'}</td>
+                          <td style={{ ...tdStyle, maxWidth: 300, whiteSpace: 'normal' }}>
+                            {row.content || shortId(row.todo_id)}
+                          </td>
+                          <td style={tdStyle}>{row.event_type || '—'}</td>
+                          <td style={{ ...tdStyle, maxWidth: 360, whiteSpace: 'normal' }}>
+                            {row.reason || '—'}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {activeTab === 'trace' && (
+              <div style={tableWrapStyle}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr>
+                      <th style={thStyle}>When</th>
+                      <th style={thStyle}>Event</th>
+                      <th style={thStyle}>IP</th>
+                      <th style={thStyle}>Workspace</th>
+                      <th style={thStyle}>Workflow</th>
+                      <th style={thStyle}>User</th>
+                      <th style={thStyle}>Run</th>
+                      <th style={thStyle}>Todo</th>
+                      <th style={thStyle}>Correlation</th>
+                      <th style={thStyle}>Payload</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {traceEvents.length === 0 ? (
+                      <tr>
+                        <td colSpan={10} style={{ ...tdStyle, ...emptyStateStyle }}>No trace events yet.</td>
+                      </tr>
+                    ) : (
+                      traceEvents.map((row) => (
+                        <tr key={row.event_id}>
+                          <td style={tdStyle}>{formatDate(row.created_at)}</td>
+                          <td style={tdStyle}>{row.event_type || '—'}</td>
+                          <td style={tdStyle}>{row.ip || 'unknown'}</td>
+                          <td style={tdStyle}>{row.workspace || 'default'}</td>
+                          <td style={tdStyle}>{row.workflow || '—'}</td>
+                          <td style={tdStyle}>{row.username || shortId(row.actor_user_id)}</td>
+                          <td style={tdStyle} title={row.run_id || ''}>{shortId(row.run_id)}</td>
+                          <td style={tdStyle} title={row.todo_id || ''}>{shortId(row.todo_id)}</td>
+                          <td style={tdStyle} title={row.correlation_id || ''}>{shortId(row.correlation_id)}</td>
+                          <td style={{ ...tdStyle, maxWidth: 360, whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                            {payloadText(row.payload)}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             )}
 
