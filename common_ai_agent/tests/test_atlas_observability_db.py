@@ -210,7 +210,11 @@ def test_admin_usage_reports_todo_flow_and_llm_usage(tmp_path: Path) -> None:
     with AtlasDB(str(tmp_path / "atlas.db")) as db:
         user = db.create_user("erin", "Erin")
         session = db.create_session(user["id"], "DMA RTL", project_id="dma")
-        workspace = db.upsert_workspace(user["id"], "soc-workspace", local_path="/repo/soc")
+        workspace = db.upsert_workspace(
+            "soc-workspace",
+            owner_user_id=user["id"],
+            local_path="/repo/soc",
+        )
         ip = db.upsert_ip_block(workspace["id"], "dma", ip_type="controller")
         run = db.start_workflow_run(
             session_id=session["id"],
@@ -299,7 +303,11 @@ def test_ip_permissions_allow_view_and_import_by_user(tmp_path: Path) -> None:
     with AtlasDB(str(tmp_path / "atlas.db")) as db:
         owner = db.create_user("owner", "Owner")
         reviewer = db.create_user("reviewer", "Reviewer")
-        workspace = db.upsert_workspace(owner["id"], "owner-ws", local_path="/repo/owner")
+        workspace = db.upsert_workspace(
+            "owner-ws",
+            owner_user_id=owner["id"],
+            local_path="/repo/owner",
+        )
         ip = db.upsert_ip_block(workspace["id"], "dma", ip_type="controller")
 
         assert db.can_user_access_ip(ip["id"], owner["id"], "admin") is True
