@@ -225,6 +225,43 @@ def register_sessions_routes(
         })
 
     # ── /api/session/history ───────────────────────────────────────
+    def _db_conversation_messages(session_id: str) -> Optional[list[dict[str, Any]]]:
+        """Return DB-backed conversation messages when *session_id* is a DB session."""
+        try:
+            with _atlas_db() as db:
+                if db.get_session(session_id) is None:
+                    return None
+                messages: list[dict[str, Any]] = []
+                for msg in db.get_messages(session_id):
+                    if msg.get("role") == "system":
+                        continue
+                    parts = db.get_parts(msg["id"])
+                    text_chunks = [
+                        str(part.get("text") or "")
+                        for part in parts
+                        if part.get("type") == "text" and part.get("text")
+                    ]
+                    text = "\n".join(chunk for chunk in text_chunks if chunk)
+                    item = {
+                        "id": msg.get("id"),
+                        "role": msg.get("role"),
+                        "agent": msg.get("agent") or "",
+                        "model_id": msg.get("model_id") or "",
+                        "created_at": msg.get("created_at"),
+                        "cost": msg.get("cost") or 0,
+                        "tokens_input": msg.get("tokens_input") or 0,
+                        "tokens_output": msg.get("tokens_output") or 0,
+                        "tokens_reasoning": msg.get("tokens_reasoning") or 0,
+                        "parts": parts,
+                    }
+                    if text:
+                        item["text"] = text
+                        item["content"] = text
+                    messages.append(item)
+                return messages
+        except Exception:
+            return None
+
     @app.get("/api/session/history")
     async def api_session_history(session: str, limit: int = 200):
         """Read a specific .session/<session>/conversation.json.
@@ -245,11 +282,25 @@ def register_sessions_routes(
             sdir.relative_to(root)
         except Exception:
             return JSONResponse({"error": "session path escapes .session"}, status_code=400)
+        db_msgs = _db_conversation_messages(session)
+        if db_msgs is not None:
+            if limit == 0:
+                db_msgs = []
+            elif limit > 0 and len(db_msgs) > limit:
+                db_msgs = db_msgs[-limit:]
+            return JSONResponse({
+                "messages": db_msgs,
+                "session": session,
+                "path": "",
+                "exists": True,
+                "source": "db",
+                "truncated_to": limit,
+            })
         hpath = sdir / "conversation.json"
         if not hpath.is_file():
             return JSONResponse({"messages": [], "session": session,
                                  "path": hpath.relative_to(PROJECT_ROOT).as_posix(),
-                                 "exists": False})
+                                 "exists": False, "source": "file"})
         try:
             msgs = json.loads(hpath.read_text(encoding="utf-8"))
             if not isinstance(msgs, list):
@@ -270,7 +321,7 @@ def register_sessions_routes(
             msgs = msgs[-limit:]
         return JSONResponse({"messages": msgs, "session": session,
                              "path": hpath.relative_to(PROJECT_ROOT).as_posix(),
-                             "exists": True, "truncated_to": limit})
+                             "exists": True, "source": "file", "truncated_to": limit})
 
     # ── /api/session/state ─────────────────────────────────────────
     @app.get("/api/session/state")
@@ -325,10 +376,15 @@ def register_sessions_routes(
             if not conv_path.is_file():
                 conv_path = sdir / "conversation.json"
 
-        messages = _read_json(conv_path, [])
-        if not isinstance(messages, list):
-            messages = []
-        messages = [m for m in messages if isinstance(m, dict) and m.get("role") != "system"]
+        db_messages = _db_conversation_messages(session)
+        conversation_source = "db" if db_messages is not None else "file"
+        if db_messages is not None:
+            messages = db_messages
+        else:
+            messages = _read_json(conv_path, [])
+            if not isinstance(messages, list):
+                messages = []
+            messages = [m for m in messages if isinstance(m, dict) and m.get("role") != "system"]
         # `full` returns everything; `conversation` and `recent` cap at limit.
         # Same `-0 == 0` guard as /api/session/history above.
         if mode_norm != "full":
@@ -372,7 +428,8 @@ def register_sessions_routes(
             "conversation": {
                 "messages": messages,
                 "path": conv_path.relative_to(PROJECT_ROOT).as_posix(),
-                "exists": conv_path.is_file(),
+                "exists": bool(db_messages is not None or conv_path.is_file()),
+                "source": conversation_source,
                 "mode": mode_norm,
                 "truncated_to": (None if mode_norm == "full" else limit),
             },
