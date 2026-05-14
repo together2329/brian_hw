@@ -6166,14 +6166,41 @@ def create_app():
 
     def _save_ssot_qa_items(ip: str, items: list[dict[str, Any]], session: str | None = None) -> None:
         path = _ssot_qa_path(ip, session)
-        path.parent.mkdir(parents=True, exist_ok=True)
         doc = {
             "ip": ip,
             "workflow": "ssot-gen",
             "updated_at": time.time(),
             "items": items,
         }
-        path.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
+        text = json.dumps(doc, ensure_ascii=False, indent=2)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+
+        # Compatibility bridge: before canonical session paths, SSOT QA lived at
+        # .session/<ip>/ssot-gen/qa.json. Keep mirroring default-owner sessions
+        # there so old UI/tests/tools continue to read the same cards, while
+        # avoiding cross-user leakage for real owner sessions.
+        clean = normalize_session_name(str(session or ""))
+        parts = [p for p in clean.split("/") if p]
+        try:
+            path_parts = [p for p in path.relative_to(PROJECT_ROOT / ".session").parts if p]
+        except Exception:
+            path_parts = []
+        mirror_legacy = (
+            not clean
+            or (len(parts) >= 3 and parts[0] == "default" and parts[-2] == ip and parts[-1] == "ssot-gen")
+            or (
+                len(path_parts) >= 4
+                and path_parts[0] == "default"
+                and path_parts[-3] == ip
+                and path_parts[-2] == "ssot-gen"
+                and path_parts[-1] == "qa.json"
+            )
+        )
+        legacy_path = _legacy_ssot_session_dir(ip) / "qa.json"
+        if mirror_legacy and legacy_path != path:
+            legacy_path.parent.mkdir(parents=True, exist_ok=True)
+            legacy_path.write_text(text, encoding="utf-8")
 
     def _status_group(status: str) -> str:
         return "approved" if str(status or "").lower() in {"approved", "answered", "resolved"} else "pending"
@@ -7919,6 +7946,7 @@ def create_app():
 
         ctx_ip, ctx_session = _active_ssot_qa_context()
         ssot_session = ctx_session if ctx_ip == ip and ctx_session else _canonical_session_string(ip)
+        qa_write_session = ssot_session if client_session is not None else None
         qa_flow_id = _rtl_blocker_flow_id(blocker)
         qa_questions = _rtl_blocker_qa_questions(ip, blocker, cards, reason=reason)
         qa_pairs = _ssot_q_pairs_from_questions(qa_questions)
@@ -7929,7 +7957,7 @@ def create_app():
                 kind=str((_load_ssot_state(ip) or {}).get("kind") or "general IP"),
                 q_pairs=qa_pairs,
                 status="pending",
-                session=ssot_session,
+                session=qa_write_session,
                 source="rtl-blocker",
             )
             bridge.emit(
@@ -8003,7 +8031,7 @@ def create_app():
                     q_pairs=qa_pairs,
                     status="approved",
                     answers=qa_answers,
-                    session=ssot_session,
+                    session=qa_write_session,
                     source="rtl-blocker",
                 )
                 bridge.emit(

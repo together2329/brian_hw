@@ -1832,7 +1832,7 @@ class AtlasDB:
         created_at: float = None,
     ) -> Dict[str, Any]:
         """Append a canonical trace event, returning an existing row for duplicate keys."""
-        key = str(idempotency_key or "")
+        key = str(idempotency_key or "").strip()
         if key:
             existing = self._fetchone(
                 "SELECT * FROM trace_events WHERE idempotency_key = ?",
@@ -1868,7 +1868,7 @@ class AtlasDB:
                 actor_user_id,
                 correlation_id,
                 causation_id,
-                key,
+                key or None,
                 self._dump_json(payload),
                 now,
             ),

@@ -114,3 +114,48 @@ def test_sqlite_storage_admin_usage_matches_existing_payload_shape(tmp_path: Pat
     assert usage["users"][0]["total_cost_usd"] == 1.5
     assert usage["cost_by_context"][0]["ip"] == "timer"
     assert usage["cost_by_date"][0]["calls"] == 1
+
+
+def test_storage_gateway_tracks_artifact_pointer_not_artifact_bytes(tmp_path: Path) -> None:
+    from core.atlas_storage import StorageGateway
+
+    workspace_root = tmp_path / "soc"
+    artifact_file = workspace_root / "dma" / "rtl" / "dma.sv"
+    artifact_file.parent.mkdir(parents=True)
+    artifact_file.write_text("module dma; endmodule\n", encoding="utf-8")
+
+    with AtlasDB(str(tmp_path / "atlas.db")) as db:
+        user = db.create_user("owner", "Owner")
+        session = db.create_session(user["id"], "DMA RTL", project_id="dma")
+        workspace = db.upsert_workspace(
+            "soc",
+            owner_user_id=user["id"],
+            local_path=str(workspace_root),
+        )
+        ip = db.upsert_ip_block(workspace["id"], "dma")
+        run = db.start_workflow_run(
+            session_id=session["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="rtl-gen",
+        )
+
+        gateway = StorageGateway(db=db)
+        artifact = gateway.register_artifact_pointer(
+            run_id=run["id"],
+            ip_id=ip["id"],
+            workflow="rtl-gen",
+            kind="rtl",
+            path=artifact_file,
+            base_path=workspace_root,
+        )
+
+        stored = db.list_artifacts(run_id=run["id"])[0]
+
+    assert artifact["path"] == "dma/rtl/dma.sv"
+    assert stored["path"] == "dma/rtl/dma.sv"
+    assert stored["storage_backend"] == "filesystem"
+    assert stored["size_bytes"] == artifact_file.stat().st_size
+    assert stored["sha256"]
+    assert "module dma" not in str(stored)
+    assert gateway.resolve_artifact_path(stored, base_path=workspace_root) == artifact_file

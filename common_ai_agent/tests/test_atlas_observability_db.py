@@ -21,6 +21,7 @@ def test_observability_schema_is_additive(tmp_path: Path) -> None:
         "workflow_events",
         "workflow_todos",
         "todo_events",
+        "trace_events",
         "llm_calls",
         "artifacts",
         "ip_permissions",

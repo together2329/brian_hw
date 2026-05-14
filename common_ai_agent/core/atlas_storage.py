@@ -7,6 +7,7 @@ redefining session semantics. Future backends can implement the same surface.
 
 from __future__ import annotations
 
+import hashlib
 import os
 from pathlib import Path
 from typing import Any, Optional, Protocol
@@ -153,6 +154,72 @@ class SQLiteStorage:
 
     def get_admin_usage(self) -> dict[str, Any]:
         return build_admin_usage_payload(self._db)
+
+
+class StorageGateway(SQLiteStorage):
+    """Compatibility gateway for runtime DB state plus artifact pointers.
+
+    The first implementation intentionally keeps artifact content in the
+    filesystem/git layer and stores only metadata in SQLite. That makes the
+    future Supabase/object-storage path additive instead of a rewrite.
+    """
+
+    @staticmethod
+    def _sha256_file(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as fh:
+            for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+                digest.update(chunk)
+        return digest.hexdigest()
+
+    @staticmethod
+    def _storage_path(path: str | Path, base_path: str | Path | None = None) -> str:
+        path_obj = Path(path)
+        if base_path is None:
+            return path_obj.as_posix()
+        try:
+            return path_obj.resolve().relative_to(Path(base_path).resolve()).as_posix()
+        except ValueError:
+            return path_obj.as_posix()
+
+    def register_artifact_pointer(
+        self,
+        *,
+        run_id: str = "",
+        stage_id: str = "",
+        ip_id: str = "",
+        workflow: str = "",
+        kind: str = "",
+        path: str | Path,
+        base_path: str | Path | None = None,
+        storage_backend: str = "filesystem",
+        git_commit: str = "",
+    ) -> dict[str, Any]:
+        path_obj = Path(path)
+        exists = path_obj.exists() and path_obj.is_file()
+        return self._db.register_artifact(
+            run_id=run_id,
+            stage_id=stage_id,
+            ip_id=ip_id,
+            workflow=workflow,
+            kind=kind,
+            path=self._storage_path(path_obj, base_path=base_path),
+            storage_backend=storage_backend,
+            sha256=self._sha256_file(path_obj) if exists else "",
+            size_bytes=path_obj.stat().st_size if exists else None,
+            git_commit=git_commit,
+        )
+
+    def resolve_artifact_path(
+        self,
+        artifact: dict[str, Any],
+        *,
+        base_path: str | Path | None = None,
+    ) -> Path:
+        path = Path(str(artifact.get("path") or ""))
+        if path.is_absolute() or base_path is None:
+            return path
+        return Path(base_path) / path
 
 
 LegacyAtlasStorage = SQLiteStorage

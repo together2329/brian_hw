@@ -144,6 +144,8 @@ def test_trace_recorder_writes_event_ledger_and_projections(tmp_path: Path) -> N
             todo_id=todo["id"],
             idempotency_key="ask-1",
         )
+        db.record_trace_event("debug.sample", correlation_id="corr-dma")
+        db.record_trace_event("debug.sample", correlation_id="corr-dma")
 
         events = db.list_trace_events(correlation_id="corr-dma")
         todos = db.list_workflow_todos(run_id=run["id"])
@@ -160,6 +162,8 @@ def test_trace_recorder_writes_event_ledger_and_projections(tmp_path: Path) -> N
         "artifact.registered",
         "command.completed",
         "ask_user.opened",
+        "debug.sample",
+        "debug.sample",
     ]
     assert len([event for event in events if event["idempotency_key"] == "todo-1-start"]) == 1
     assert todos[0]["status"] == "rejected"

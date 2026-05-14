@@ -443,6 +443,17 @@ class _MultiUserBridge:
     def session_pending_ask_user_events(self, session_id: str | None) -> list[dict[str, Any]]:
         return self._ensure_session(session_id).pending_ask_user_events()
 
+    @property
+    def _pending_ask_user(self) -> dict[str, dict[str, Any]]:
+        """Legacy aggregate view used by older tests and UI helpers."""
+        pending: dict[str, dict[str, Any]] = {}
+        with self._sessions_lock:
+            sessions = list(self._sessions.values())
+        for session in sessions:
+            with session._pending_ask_user_lock:
+                pending.update({flow_id: dict(event) for flow_id, event in session._pending_ask_user.items()})
+        return pending
+
     def open_question(self, flow_id: str) -> queue.Queue[Any]:
         return self._context_session().open_question(flow_id)
 
