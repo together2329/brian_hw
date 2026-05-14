@@ -12,7 +12,14 @@ function AdminPage() {
   const [feedback, setFeedback] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
-  const [activeTab, setActiveTab] = React.useState('users');
+  const [activeTab, setActiveTab] = React.useState('overview');
+  const [filters, setFilters] = React.useState({
+    range: '7d',
+    ip: '',
+    workspace: '',
+    workflow: '',
+    user: '',
+  });
   const [deleting, setDeleting] = React.useState(null);
   const [expandedUsage, setExpandedUsage] = React.useState(null);
   const [resolving, setResolving] = React.useState(null);
@@ -173,6 +180,7 @@ function AdminPage() {
 
   const tabRowStyle = {
     display: 'flex',
+    flexWrap: 'wrap',
     gap: 4,
     background: '#161d25',
     borderRadius: 6,
@@ -193,6 +201,79 @@ function AdminPage() {
     color: active ? '#f0c674' : '#8893a3',
     transition: 'background 0.2s ease, color 0.2s ease',
   });
+
+  const filterBarStyle = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+    gap: 10,
+    padding: 12,
+    background: '#161d25',
+    border: '1px solid #2a3540',
+    borderRadius: 10,
+  };
+
+  const filterLabelStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 5,
+    color: '#8893a3',
+    fontSize: 11,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.04em',
+  };
+
+  const selectStyle = {
+    minHeight: 32,
+    background: '#10161d',
+    color: '#d6dde6',
+    border: '1px solid #2a3540',
+    borderRadius: 5,
+    padding: '5px 8px',
+    fontFamily: 'inherit',
+    fontSize: 12,
+  };
+
+  const overviewGridStyle = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))',
+    gap: 12,
+  };
+
+  const metricCardStyle = (tone = 'default') => ({
+    background: tone === 'danger' ? 'rgba(224,108,117,0.10)' : '#161d25',
+    border: tone === 'danger' ? '1px solid rgba(224,108,117,0.45)' : '1px solid #2a3540',
+    borderRadius: 8,
+    padding: '14px 15px',
+    minHeight: 82,
+  });
+
+  const metricLabelStyle = {
+    color: '#8893a3',
+    fontSize: 11,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    marginBottom: 7,
+  };
+
+  const metricValueStyle = {
+    color: '#f0c674',
+    fontSize: 24,
+    fontWeight: 750,
+    lineHeight: 1.1,
+  };
+
+  const panelTitleStyle = {
+    padding: '12px 14px',
+    borderBottom: '1px solid #2a3540',
+    background: '#1c252f',
+    color: '#f0c674',
+    fontSize: 12,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+  };
 
   const tableWrapStyle = {
     background: '#161d25',
@@ -278,6 +359,125 @@ function AdminPage() {
       return String(value);
     }
   };
+  const sum = (rows, key) => rows.reduce((acc, row) => acc + Number(row[key] || 0), 0);
+  const rowTimestamp = (row) => {
+    const direct = row.last_message_at || row.last_event_at || row.last_tool_at
+      || row.last_intervention_at || row.created_at || row.updated_at || row.first_intervention_at;
+    if (direct) return Number(direct) || 0;
+    if (row.day) {
+      const parsed = Date.parse(`${row.day}T23:59:59`);
+      return Number.isNaN(parsed) ? 0 : parsed / 1000;
+    }
+    return 0;
+  };
+  const inRange = (row) => {
+    if (!filters.range || filters.range === 'all') return true;
+    const days = { '24h': 1, '7d': 7, '30d': 30 }[filters.range] || 7;
+    const ts = rowTimestamp(row);
+    if (!ts) return true;
+    return ts >= ((Date.now() / 1000) - days * 86400);
+  };
+  const valueMatches = (selected, value) => !selected || String(value || '') === selected;
+  const rowMatches = (row) => (
+    inRange(row)
+    && valueMatches(filters.ip, row.ip)
+    && valueMatches(filters.workspace, row.workspace)
+    && valueMatches(filters.workflow, row.workflow)
+    && valueMatches(filters.user, row.username || row.owner_username)
+  );
+  const uniqueOptions = (rows, key) => Array.from(new Set(
+    rows.map((row) => String(row[key] || '').trim()).filter(Boolean)
+  )).sort((a, b) => a.localeCompare(b));
+  const allContextRows = [
+    ...costContexts,
+    ...dateCosts,
+    ...todoUsage,
+    ...todoFlow,
+    ...traceEvents,
+    ...toolUsage,
+    ...interventions,
+  ];
+  const filterOptions = {
+    ips: uniqueOptions(allContextRows, 'ip'),
+    workspaces: uniqueOptions(allContextRows, 'workspace'),
+    workflows: uniqueOptions(allContextRows, 'workflow'),
+    users: uniqueOptions([
+      ...allContextRows,
+      ...usage,
+      ...sessions.map((s) => ({ username: s.owner_username || s.user_id })),
+      ...feedback,
+    ], 'username'),
+  };
+  const filteredUsers = users.filter((row) => (
+    valueMatches(filters.user, row.username)
+    && !filters.ip
+    && !filters.workspace
+    && !filters.workflow
+  ));
+  const filteredUsage = usage.filter((row) => (
+    inRange(row)
+    && valueMatches(filters.user, row.username)
+    && !filters.ip
+    && !filters.workspace
+    && !filters.workflow
+  ));
+  const filteredSessions = sessions.filter((row) => (
+    inRange(row)
+    && valueMatches(filters.user, row.owner_username || row.user_id)
+    && (!filters.ip || String(row.project_id || row.title || '') === filters.ip)
+    && !filters.workspace
+    && !filters.workflow
+  ));
+  const filteredCostContexts = costContexts.filter(rowMatches);
+  const filteredDateCosts = dateCosts.filter(rowMatches);
+  const filteredTodoUsage = todoUsage.filter(rowMatches);
+  const filteredTodoFlow = todoFlow.filter(rowMatches);
+  const filteredTraceEvents = traceEvents.filter(rowMatches);
+  const filteredToolUsage = toolUsage.filter(rowMatches);
+  const filteredInterventions = interventions.filter(rowMatches);
+  const filteredFeedback = feedback.filter((row) => (
+    inRange(row)
+    && valueMatches(filters.user, row.username)
+    && !filters.ip
+    && !filters.workspace
+    && !filters.workflow
+  ));
+  const topCostRows = [...filteredCostContexts].sort((a, b) => Number(b.cost || 0) - Number(a.cost || 0)).slice(0, 5);
+  const topRejectedTodos = [...filteredTodoUsage]
+    .filter((row) => Number(row.rejected_count || 0) > 0)
+    .sort((a, b) => Number(b.rejected_count || 0) - Number(a.rejected_count || 0))
+    .slice(0, 5);
+  const topToolRows = [...filteredToolUsage]
+    .sort((a, b) => (
+      Number(b.failed_calls || 0) - Number(a.failed_calls || 0)
+      || Number(b.observation_tokens_est || 0) - Number(a.observation_tokens_est || 0)
+    ))
+    .slice(0, 5);
+  const topHumanRows = [...filteredInterventions]
+    .sort((a, b) => Number(b.intervention_count || 0) - Number(a.intervention_count || 0))
+    .slice(0, 5);
+  const askUserOpened = new Set(filteredTraceEvents
+    .filter((row) => row.event_type === 'ask_user.opened')
+    .map((row) => (row.payload && row.payload.flow_id) || row.event_id)
+    .filter(Boolean));
+  const askUserAnswered = new Set(filteredTraceEvents
+    .filter((row) => row.event_type === 'ask_user.answered')
+    .map((row) => (row.payload && row.payload.flow_id) || row.event_id)
+    .filter(Boolean));
+  const overview = {
+    cost: sum(filteredCostContexts, 'cost'),
+    llmCalls: sum(filteredCostContexts, 'calls'),
+    toolCalls: sum(filteredToolUsage, 'calls'),
+    toolFailures: sum(filteredToolUsage, 'failed_calls'),
+    obsTokens: sum(filteredToolUsage, 'observation_tokens_est'),
+    rejectedTodos: sum(filteredTodoUsage, 'rejected_count'),
+    openTodos: filteredTodoUsage.filter((row) => !['approved', 'completed'].includes(String(row.status || '').toLowerCase())).length,
+    humanInputs: sum(filteredInterventions, 'intervention_count'),
+    pendingHuman: Array.from(askUserOpened).filter((flow) => !askUserAnswered.has(flow)).length,
+    pendingFeedback: filteredFeedback.filter((row) => row.status !== 'resolved').length,
+  };
+  const setFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
+  const clearFilters = () => setFilters({ range: 'all', ip: '', workspace: '', workflow: '', user: '' });
 
   return (
     <div style={pageStyle}>
@@ -305,37 +505,241 @@ function AdminPage() {
         {!loading && !error && (
           <>
             <div style={tabRowStyle}>
+              <button style={tabStyle(activeTab === 'overview')} onClick={() => setActiveTab('overview')}>
+                Overview
+              </button>
               <button style={tabStyle(activeTab === 'users')} onClick={() => setActiveTab('users')}>
-                Users ({users.length})
+                Users ({filteredUsers.length})
               </button>
               <button style={tabStyle(activeTab === 'sessions')} onClick={() => setActiveTab('sessions')}>
-                Sessions ({sessions.length})
+                Sessions ({filteredSessions.length})
               </button>
               <button style={tabStyle(activeTab === 'usage')} onClick={() => setActiveTab('usage')}>
-                Usage ({usage.length})
+                Usage ({filteredUsage.length})
               </button>
               <button style={tabStyle(activeTab === 'costs')} onClick={() => setActiveTab('costs')}>
-                Costs ({costContexts.length})
+                Costs ({filteredCostContexts.length})
               </button>
               <button style={tabStyle(activeTab === 'todos')} onClick={() => setActiveTab('todos')}>
-                Todos ({todoUsage.length})
+                Todos ({filteredTodoUsage.length})
               </button>
               <button style={tabStyle(activeTab === 'flow')} onClick={() => setActiveTab('flow')}>
-                Flow ({todoFlow.length})
+                Flow ({filteredTodoFlow.length})
               </button>
               <button style={tabStyle(activeTab === 'trace')} onClick={() => setActiveTab('trace')}>
-                Trace ({traceEvents.length})
+                Trace ({filteredTraceEvents.length})
               </button>
               <button style={tabStyle(activeTab === 'tools')} onClick={() => setActiveTab('tools')}>
-                Tools ({toolUsage.length})
+                Tools ({filteredToolUsage.length})
               </button>
               <button style={tabStyle(activeTab === 'human')} onClick={() => setActiveTab('human')}>
-                Human ({interventions.length})
+                Human ({filteredInterventions.length})
               </button>
               <button style={tabStyle(activeTab === 'feedback')} onClick={() => setActiveTab('feedback')}>
-                Feedback ({feedback.filter(f => f.status !== 'resolved').length}/{feedback.length})
+                Feedback ({filteredFeedback.filter(f => f.status !== 'resolved').length}/{filteredFeedback.length})
               </button>
             </div>
+
+            <div style={filterBarStyle}>
+              <label style={filterLabelStyle}>
+                Range
+                <select style={selectStyle} value={filters.range} onChange={(e) => setFilter('range', e.target.value)}>
+                  <option value="24h">Last 24h</option>
+                  <option value="7d">Last 7d</option>
+                  <option value="30d">Last 30d</option>
+                  <option value="all">All time</option>
+                </select>
+              </label>
+              <label style={filterLabelStyle}>
+                IP
+                <select style={selectStyle} value={filters.ip} onChange={(e) => setFilter('ip', e.target.value)}>
+                  <option value="">All IPs</option>
+                  {filterOptions.ips.map((value) => <option key={value} value={value}>{value}</option>)}
+                </select>
+              </label>
+              <label style={filterLabelStyle}>
+                Workspace
+                <select style={selectStyle} value={filters.workspace} onChange={(e) => setFilter('workspace', e.target.value)}>
+                  <option value="">All workspaces</option>
+                  {filterOptions.workspaces.map((value) => <option key={value} value={value}>{value}</option>)}
+                </select>
+              </label>
+              <label style={filterLabelStyle}>
+                Workflow
+                <select style={selectStyle} value={filters.workflow} onChange={(e) => setFilter('workflow', e.target.value)}>
+                  <option value="">All workflows</option>
+                  {filterOptions.workflows.map((value) => <option key={value} value={value}>{value}</option>)}
+                </select>
+              </label>
+              <label style={filterLabelStyle}>
+                User
+                <select style={selectStyle} value={filters.user} onChange={(e) => setFilter('user', e.target.value)}>
+                  <option value="">All users</option>
+                  {filterOptions.users.map((value) => <option key={value} value={value}>{value}</option>)}
+                </select>
+              </label>
+              <label style={filterLabelStyle}>
+                Reset
+                <button type="button" style={{ ...selectStyle, cursor: 'pointer', color: '#f0c674' }} onClick={clearFilters}>
+                  Clear filters
+                </button>
+              </label>
+            </div>
+
+            {activeTab === 'overview' && (
+              <>
+                <div style={overviewGridStyle}>
+                  <div style={metricCardStyle()}>
+                    <div style={metricLabelStyle}>Cost</div>
+                    <div style={metricValueStyle}>{usd(overview.cost)}</div>
+                  </div>
+                  <div style={metricCardStyle()}>
+                    <div style={metricLabelStyle}>LLM Calls</div>
+                    <div style={metricValueStyle}>{fmt(overview.llmCalls)}</div>
+                  </div>
+                  <div style={metricCardStyle()}>
+                    <div style={metricLabelStyle}>Tool Calls</div>
+                    <div style={metricValueStyle}>{fmt(overview.toolCalls)}</div>
+                  </div>
+                  <div style={metricCardStyle(overview.toolFailures ? 'danger' : 'default')}>
+                    <div style={metricLabelStyle}>Tool Failures</div>
+                    <div style={metricValueStyle}>{fmt(overview.toolFailures)}</div>
+                  </div>
+                  <div style={metricCardStyle()}>
+                    <div style={metricLabelStyle}>Obs Tokens Est</div>
+                    <div style={metricValueStyle}>{fmt(overview.obsTokens)}</div>
+                  </div>
+                  <div style={metricCardStyle(overview.rejectedTodos ? 'danger' : 'default')}>
+                    <div style={metricLabelStyle}>Rejected Todos</div>
+                    <div style={metricValueStyle}>{fmt(overview.rejectedTodos)}</div>
+                  </div>
+                  <div style={metricCardStyle(overview.openTodos ? 'danger' : 'default')}>
+                    <div style={metricLabelStyle}>Open Todos</div>
+                    <div style={metricValueStyle}>{fmt(overview.openTodos)}</div>
+                  </div>
+                  <div style={metricCardStyle()}>
+                    <div style={metricLabelStyle}>Human Inputs</div>
+                    <div style={metricValueStyle}>{fmt(overview.humanInputs)}</div>
+                  </div>
+                  <div style={metricCardStyle(overview.pendingHuman ? 'danger' : 'default')}>
+                    <div style={metricLabelStyle}>Ask User Pending</div>
+                    <div style={metricValueStyle}>{fmt(overview.pendingHuman)}</div>
+                  </div>
+                  <div style={metricCardStyle(overview.pendingFeedback ? 'danger' : 'default')}>
+                    <div style={metricLabelStyle}>Open Feedback</div>
+                    <div style={metricValueStyle}>{fmt(overview.pendingFeedback)}</div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 430px), 1fr))', gap: 18 }}>
+                  <div style={tableWrapStyle}>
+                    <div style={panelTitleStyle}>Top Cost Contexts</div>
+                    <table style={tableStyle}>
+                      <thead>
+                        <tr>
+                          <th style={thStyle}>IP</th>
+                          <th style={thStyle}>Workspace</th>
+                          <th style={thStyle}>Workflow</th>
+                          <th style={thStyle}>Calls</th>
+                          <th style={thStyle}>Cost</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {topCostRows.length === 0 ? (
+                          <tr><td colSpan={5} style={{ ...tdStyle, ...emptyStateStyle }}>No cost data in filter.</td></tr>
+                        ) : topCostRows.map((row) => (
+                          <tr key={`${row.session_id}-${row.ip}-${row.workflow}-${row.workspace}`}>
+                            <td style={tdStyle}>{row.ip || 'unknown'}</td>
+                            <td style={tdStyle}>{row.workspace || 'default'}</td>
+                            <td style={tdStyle}>{row.workflow || '—'}</td>
+                            <td style={tdStyle}>{fmt(row.calls)}</td>
+                            <td style={tdStyle}>{usd(row.cost)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div style={tableWrapStyle}>
+                    <div style={panelTitleStyle}>Tool Pressure</div>
+                    <table style={tableStyle}>
+                      <thead>
+                        <tr>
+                          <th style={thStyle}>Tool</th>
+                          <th style={thStyle}>IP</th>
+                          <th style={thStyle}>Failures</th>
+                          <th style={thStyle}>Obs Tokens</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {topToolRows.length === 0 ? (
+                          <tr><td colSpan={4} style={{ ...tdStyle, ...emptyStateStyle }}>No tool data in filter.</td></tr>
+                        ) : topToolRows.map((row) => (
+                          <tr key={`${row.session_id}-${row.ip}-${row.workflow}-${row.tool_name}`}>
+                            <td style={tdStyle}>{row.tool_name || '—'}</td>
+                            <td style={tdStyle}>{row.ip || 'unknown'}</td>
+                            <td style={tdStyle}>{fmt(row.failed_calls)}</td>
+                            <td style={tdStyle}>{fmt(row.observation_tokens_est)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div style={tableWrapStyle}>
+                    <div style={panelTitleStyle}>Rejected Todo Hotspots</div>
+                    <table style={tableStyle}>
+                      <thead>
+                        <tr>
+                          <th style={thStyle}>Todo</th>
+                          <th style={thStyle}>IP</th>
+                          <th style={thStyle}>Rejects</th>
+                          <th style={thStyle}>Last Reason</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {topRejectedTodos.length === 0 ? (
+                          <tr><td colSpan={4} style={{ ...tdStyle, ...emptyStateStyle }}>No rejected todos in filter.</td></tr>
+                        ) : topRejectedTodos.map((row) => (
+                          <tr key={row.todo_id}>
+                            <td style={{ ...tdStyle, maxWidth: 260, whiteSpace: 'normal' }}>{row.content || shortId(row.todo_id)}</td>
+                            <td style={tdStyle}>{row.ip || 'unknown'}</td>
+                            <td style={tdStyle}>{fmt(row.rejected_count)}</td>
+                            <td style={{ ...tdStyle, maxWidth: 320, whiteSpace: 'normal' }}>{row.last_rejected_reason || row.last_event_reason || '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div style={tableWrapStyle}>
+                    <div style={panelTitleStyle}>Human Intervention Hotspots</div>
+                    <table style={tableStyle}>
+                      <thead>
+                        <tr>
+                          <th style={thStyle}>User</th>
+                          <th style={thStyle}>IP</th>
+                          <th style={thStyle}>Workflow</th>
+                          <th style={thStyle}>Inputs</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {topHumanRows.length === 0 ? (
+                          <tr><td colSpan={4} style={{ ...tdStyle, ...emptyStateStyle }}>No human input in filter.</td></tr>
+                        ) : topHumanRows.map((row) => (
+                          <tr key={`${row.session_id}-${row.ip}-${row.workflow}-${row.username}`}>
+                            <td style={tdStyle}>{row.username || 'unknown'}</td>
+                            <td style={tdStyle}>{row.ip || 'unknown'}</td>
+                            <td style={tdStyle}>{row.workflow || '—'}</td>
+                            <td style={tdStyle}>{fmt(row.intervention_count)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
 
             {activeTab === 'users' && (
               <div style={tableWrapStyle}>
@@ -350,12 +754,12 @@ function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {users.length === 0 ? (
+                    {filteredUsers.length === 0 ? (
                       <tr>
                         <td colSpan={5} style={{ ...tdStyle, ...emptyStateStyle }}>No users found.</td>
                       </tr>
                     ) : (
-                      users.map((u) => (
+                      filteredUsers.map((u) => (
                         <tr key={u.id}>
                           <td style={tdStyle}>{u.username}</td>
                           <td style={tdStyle}>{u.display_name || '—'}</td>
@@ -398,12 +802,12 @@ function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {sessions.length === 0 ? (
+                    {filteredSessions.length === 0 ? (
                       <tr>
                         <td colSpan={7} style={{ ...tdStyle, ...emptyStateStyle }}>No sessions found.</td>
                       </tr>
                     ) : (
-                      sessions.map((s) => (
+                      filteredSessions.map((s) => (
                         <tr key={s.id}>
                           <td style={tdStyle}>{s.title || '—'}</td>
                           <td style={tdStyle}>{s.project_id || '—'}</td>
@@ -458,12 +862,12 @@ function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {usage.length === 0 ? (
+                    {filteredUsage.length === 0 ? (
                       <tr>
                         <td colSpan={9} style={{ ...tdStyle, ...emptyStateStyle }}>No usage data yet.</td>
                       </tr>
                     ) : (
-                      usage.flatMap((u) => {
+                      filteredUsage.flatMap((u) => {
                         const expanded = expandedUsage === u.user_id;
                         const rows = [
                           <tr key={u.user_id}
@@ -572,12 +976,12 @@ function AdminPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {costContexts.length === 0 ? (
+                      {filteredCostContexts.length === 0 ? (
                         <tr>
                           <td colSpan={8} style={{ ...tdStyle, ...emptyStateStyle }}>No cost data yet.</td>
                         </tr>
                       ) : (
-                        costContexts.map((row) => (
+                        filteredCostContexts.map((row) => (
                           <tr key={`${row.session_id || ''}-${row.ip}-${row.workspace}`}>
                             <td style={tdStyle}>{row.ip || 'unknown'}</td>
                             <td style={tdStyle}>{row.workspace || 'default'}</td>
@@ -615,12 +1019,12 @@ function AdminPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {dateCosts.length === 0 ? (
+                      {filteredDateCosts.length === 0 ? (
                         <tr>
                           <td colSpan={6} style={{ ...tdStyle, ...emptyStateStyle }}>No daily cost data yet.</td>
                         </tr>
                       ) : (
-                        dateCosts.map((row) => (
+                        filteredDateCosts.map((row) => (
                           <tr key={`${row.day}-${row.session_id || ''}-${row.ip}-${row.workspace}`}>
                             <td style={tdStyle}>{row.day || 'unknown'}</td>
                             <td style={tdStyle}>{row.ip || 'unknown'}</td>
@@ -655,12 +1059,12 @@ function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {todoUsage.length === 0 ? (
+                    {filteredTodoUsage.length === 0 ? (
                       <tr>
                         <td colSpan={10} style={{ ...tdStyle, ...emptyStateStyle }}>No todo usage data yet.</td>
                       </tr>
                     ) : (
-                      todoUsage.map((row) => (
+                      filteredTodoUsage.map((row) => (
                         <tr key={row.todo_id}>
                           <td style={tdStyle}>{row.ip || 'unknown'}</td>
                           <td style={tdStyle}>{row.workspace || 'default'}</td>
@@ -701,12 +1105,12 @@ function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {todoFlow.length === 0 ? (
+                    {filteredTodoFlow.length === 0 ? (
                       <tr>
                         <td colSpan={6} style={{ ...tdStyle, ...emptyStateStyle }}>No todo flow events yet.</td>
                       </tr>
                     ) : (
-                      todoFlow.map((row) => (
+                      filteredTodoFlow.map((row) => (
                         <tr key={row.event_id}>
                           <td style={tdStyle}>{formatDate(row.created_at)}</td>
                           <td style={tdStyle}>{row.ip || 'unknown'}</td>
@@ -744,12 +1148,12 @@ function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {traceEvents.length === 0 ? (
+                    {filteredTraceEvents.length === 0 ? (
                       <tr>
                         <td colSpan={10} style={{ ...tdStyle, ...emptyStateStyle }}>No trace events yet.</td>
                       </tr>
                     ) : (
-                      traceEvents.map((row) => (
+                      filteredTraceEvents.map((row) => (
                         <tr key={row.event_id}>
                           <td style={tdStyle}>{formatDate(row.created_at)}</td>
                           <td style={tdStyle}>{row.event_type || '—'}</td>
@@ -790,12 +1194,12 @@ function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {toolUsage.length === 0 ? (
+                    {filteredToolUsage.length === 0 ? (
                       <tr>
                         <td colSpan={11} style={{ ...tdStyle, ...emptyStateStyle }}>No tool usage data yet.</td>
                       </tr>
                     ) : (
-                      toolUsage.map((row) => (
+                      filteredToolUsage.map((row) => (
                         <tr key={`${row.session_id}-${row.ip}-${row.workflow}-${row.tool_name}`}>
                           <td style={tdStyle}>{row.tool_name || '—'}</td>
                           <td style={tdStyle}>{fmt(row.calls)}</td>
@@ -837,12 +1241,12 @@ function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {interventions.length === 0 ? (
+                    {filteredInterventions.length === 0 ? (
                       <tr>
                         <td colSpan={11} style={{ ...tdStyle, ...emptyStateStyle }}>No human intervention data yet.</td>
                       </tr>
                     ) : (
-                      interventions.map((row) => (
+                      filteredInterventions.map((row) => (
                         <tr key={`${row.session_id}-${row.ip}-${row.workflow}-${row.username}`}>
                           <td style={tdStyle}>{row.username || 'unknown'}</td>
                           <td style={tdStyle} title={row.session_id || ''}>{row.session || shortId(row.session_id)}</td>
@@ -878,14 +1282,14 @@ function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {feedback.length === 0 ? (
+                    {filteredFeedback.length === 0 ? (
                       <tr>
                         <td colSpan={7} style={{ ...tdStyle, ...emptyStateStyle }}>
                           No feedback yet. Users can submit with <code>/feedback &lt;message&gt;</code> in the chat.
                         </td>
                       </tr>
                     ) : (
-                      feedback.map((f) => {
+                      filteredFeedback.map((f) => {
                         const open = f.status !== 'resolved';
                         return (
                           <tr key={f.id} style={open ? { background: '#191c22' } : { opacity: 0.65 }}>
