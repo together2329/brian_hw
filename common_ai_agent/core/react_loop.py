@@ -139,6 +139,13 @@ class ReactLoopDeps:
     # Human-in-the-loop: poll for mid-run user messages (None = disabled)
     poll_human_input_fn: Optional[Callable] = None  # () → str | None
 
+    # Orchestrator chat / context injector — runs once per iteration right
+    # after the system prompt is refreshed. Receives (messages, agent_mode)
+    # and mutates messages in place (typically appending an
+    # <orchestrator-context> + <team-chat-feedback> system block).
+    # None disables the feature entirely.
+    orchestrator_inject_fn: Optional[Callable] = None  # (messages, agent_mode) → None
+
 
 # ---------------------------------------------------------------------------
 # Tool-arg JSON repair
@@ -622,6 +629,20 @@ def run_react_agent_impl(
                     messages[0]["content"] = content + ctx_msg
                 elif isinstance(content, list):
                     messages[0]["content"].append({"type": "text", "text": ctx_msg})
+
+        # Orchestrator chat: room context + unread human feedback. The
+        # injector pulls live state from AtlasDB (per-IP workflow / todos /
+        # gates / recent events) plus any chat_message rows the agent has
+        # not yet recorded chat_consumed for. Mutates messages in place;
+        # never raises into the loop — chat must not break the agent.
+        if deps.orchestrator_inject_fn is not None and messages:
+            try:
+                deps.orchestrator_inject_fn(messages, agent_mode)
+            except Exception:
+                if cfg.DEBUG_MODE:
+                    import traceback as _tb
+                    print(Color.warn("[Inject] orchestrator_inject_fn failed:"))
+                    _tb.print_exc()
 
         # Per-turn todo state injection — ephemeral (appended to last user message copy,
         # never saved to history). Only inject when task/status changes to avoid

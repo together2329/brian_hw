@@ -4010,10 +4010,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
           <div className="box-h" style={{ padding: 0 }}>
             <RightTab id="todo" cur={rightTab} onTab={setRightTab}>Todo</RightTab>
             <RightTab id="progress" cur={rightTab} onTab={setRightTab}>Progress</RightTab>
+            <RightTab id="chat" cur={rightTab} onTab={setRightTab}>Chat</RightTab>
             <RightTab id="git"  cur={rightTab} onTab={setRightTab}>Git</RightTab>
           </div>
           {rightTab === 'progress' && <ProgressPanel />}
           {rightTab === 'todo' && <TodoPanel />}
+          {rightTab === 'chat' && <OrchestratorChatPanel activeIp={activeIp} />}
           {rightTab === 'git'  && <GitPanel activeIp={activeIp} />}
         </div>
       </div>
@@ -10109,6 +10111,280 @@ const _statusGlyph = (xy) => {
   const a = GIT_STATUS_GLYPH[xy[0]] || GIT_STATUS_GLYPH[' '];
   const b = GIT_STATUS_GLYPH[xy[1]] || GIT_STATUS_GLYPH[' '];
   return { staged: a, work: b };
+};
+
+// ============================================================
+// OrchestratorChatPanel
+//
+// Per-IP rooms + the special "_global" room. Renders three stacked
+// regions in the right sidebar:
+//   1. Room switcher (only rooms the user can enter)
+//   2. Collapsible "context card" — workflow / todos / gates / recent
+//      events for the active room (the same JSON the running agent
+//      receives on its next iteration via core/orchestrator_inject)
+//   3. Message thread + composer
+//
+// Backend: src/atlas_api_chat.py. Live updates ride the existing
+// WebSocket via window.backend.subscribe('chat_message', ...).
+// ============================================================
+const OrchestratorChatPanel = ({ activeIp: activeIpProp = '' } = {}) => {
+  const [rooms, setRooms]       = React.useState([]);
+  const [room, setRoom]         = React.useState('_global');
+  const [messages, setMessages] = React.useState([]);
+  const [context, setContext]   = React.useState(null);
+  const [contextOpen, setContextOpen] = React.useState(true);
+  const [draft, setDraft]       = React.useState('');
+  const [busy, setBusy]         = React.useState(false);
+  const [error, setError]       = React.useState('');
+  const threadRef               = React.useRef(null);
+
+  const fetchRooms = React.useCallback(async () => {
+    try {
+      const r = await fetch('/api/chat/rooms', { credentials: 'include' });
+      if (!r.ok) { setError(`rooms: ${r.status}`); return; }
+      const data = await r.json();
+      setRooms(data.rooms || []);
+    } catch (e) { setError(String(e)); }
+  }, []);
+
+  const fetchMessages = React.useCallback(async (rm) => {
+    try {
+      const r = await fetch(`/api/chat/${encodeURIComponent(rm)}/messages?limit=100`,
+                            { credentials: 'include' });
+      if (!r.ok) { setError(`messages: ${r.status}`); setMessages([]); return; }
+      const data = await r.json();
+      // API returns newest-first; reverse for chronological render.
+      setMessages((data.messages || []).slice().reverse());
+      setError('');
+    } catch (e) { setError(String(e)); }
+  }, []);
+
+  const fetchContext = React.useCallback(async (rm) => {
+    try {
+      const r = await fetch(`/api/chat/${encodeURIComponent(rm)}/context`,
+                            { credentials: 'include' });
+      if (!r.ok) { setContext(null); return; }
+      setContext(await r.json());
+    } catch (_) { setContext(null); }
+  }, []);
+
+  // Initial + room-change loads.
+  React.useEffect(() => { fetchRooms(); }, [fetchRooms]);
+  React.useEffect(() => {
+    fetchMessages(room);
+    fetchContext(room);
+  }, [room, fetchMessages, fetchContext]);
+
+  // Default room: prefer the workspace's active IP, fall back to _global.
+  React.useEffect(() => {
+    if (!rooms.length) return;
+    const names = new Set(rooms.map((r) => r.name));
+    if (activeIpProp && names.has(activeIpProp)) { setRoom(activeIpProp); return; }
+    if (names.has(room)) return;
+    setRoom(names.has('_global') ? '_global' : rooms[0].name);
+  }, [rooms, activeIpProp, room]);
+
+  // Live updates over the existing WS bus.
+  React.useEffect(() => {
+    if (!window.backend || typeof window.backend.subscribe !== 'function') {
+      return undefined;
+    }
+    const off = window.backend.subscribe('chat_message', (m) => {
+      if (!m || m.room == null) return;
+      if (m.room !== room) {
+        // Could bump unread badge here; left to a follow-up.
+        return;
+      }
+      setMessages((prev) => {
+        // Dedup by id — broadcast_all fans out to every session, so the
+        // sender's own client may see its own POST echo.
+        if (prev.some((x) => x.id === m.id)) return prev;
+        return prev.concat([{
+          id: m.id,
+          ip_id: m.ip_id,
+          user_id: m.user_id,
+          display_name: m.display_name,
+          content: m.content,
+          created_at: m.created_at,
+        }]);
+      });
+    });
+    return off;
+  }, [room]);
+
+  // Auto-scroll thread on new message.
+  React.useEffect(() => {
+    const el = threadRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages]);
+
+  const submit = async () => {
+    const text = draft.trim();
+    if (!text || busy) return;
+    setBusy(true);
+    try {
+      const r = await fetch(`/api/chat/${encodeURIComponent(room)}/send`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: text }),
+      });
+      if (!r.ok) {
+        const body = await r.json().catch(() => ({}));
+        setError(body.error || `POST ${r.status}`);
+      } else {
+        setDraft('');
+        setError('');
+      }
+    } catch (e) { setError(String(e)); }
+    finally { setBusy(false); }
+  };
+
+  const onKey = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0,
+                  padding: '8px 10px', gap: 8 }}>
+      {/* Room switcher */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span style={{ fontSize: 11, color: 'var(--fg-mute)' }}>Room:</span>
+        <select
+          value={room}
+          onChange={(e) => setRoom(e.target.value)}
+          style={{ flex: 1, fontSize: 12, padding: '2px 4px',
+                   background: 'var(--bg-soft)', color: 'var(--fg)',
+                   border: '1px solid var(--border)' }}>
+          {rooms.length === 0 && <option value="">(no accessible rooms)</option>}
+          {rooms.map((r) => (
+            <option key={r.name} value={r.name}>
+              {r.scope === 'global' ? 'all IPs (_global)' : r.name}
+            </option>
+          ))}
+        </select>
+        <button onClick={() => { fetchRooms(); fetchContext(room); fetchMessages(room); }}
+                title="refresh"
+                style={{ fontSize: 11, padding: '2px 6px' }}>⟳</button>
+      </div>
+
+      {/* Context card */}
+      {context && (
+        <div className="orchestrator-card"
+             style={{ border: '1px solid var(--border)', borderRadius: 4,
+                      padding: 6, fontSize: 11, background: 'var(--bg-soft)' }}>
+          <div onClick={() => setContextOpen((v) => !v)}
+               style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}>
+            <strong>Orchestrator · {room}</strong>
+            <span style={{ color: 'var(--fg-mute)' }}>{contextOpen ? '▾' : '▸'}</span>
+          </div>
+          {contextOpen && (
+            <div style={{ marginTop: 6, lineHeight: 1.4 }}>
+              {room === '_global' ? (
+                <div>
+                  <div style={{ color: 'var(--fg-mute)' }}>IPs in workspace:</div>
+                  {(context.ips || []).map((ip) => (
+                    <div key={ip.id || ip.name} style={{ marginLeft: 6 }}>
+                      <code>{ip.name}</code>
+                      {' · '}
+                      <span>{ip.latest_workflow || '—'}/{ip.run_status || '—'}</span>
+                      {' · open='}{ip.open_blockers}
+                      {' · done='}{ip.completed}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div>
+                  <div>
+                    <code>{(context.ip || {}).name}</code>
+                    {' · '}
+                    <span style={{ color: 'var(--fg-mute)' }}>
+                      {(context.workflow || {}).latest_run
+                        ? `${context.workflow.latest_run.workflow}/${context.workflow.latest_run.status}`
+                        : 'no run yet'}
+                    </span>
+                  </div>
+                  {(context.todos && context.todos.counts) && (
+                    <div style={{ marginTop: 4 }}>
+                      <span style={{ color: 'var(--fg-mute)' }}>todos:</span>{' '}
+                      {Object.entries(context.todos.counts).map(([k, v]) => (
+                        <span key={k} style={{ marginRight: 6 }}>{k}={v}</span>
+                      ))}
+                    </div>
+                  )}
+                  {(context.todos && context.todos.top_blockers || []).slice(0, 3).map((b) => (
+                    <div key={b.id} style={{ marginLeft: 6, color: 'var(--warn)' }}>
+                      blocker[{b.status}]: {b.title}
+                    </div>
+                  ))}
+                  {(context.recent_events || []).slice(0, 4).map((e, i) => (
+                    <div key={i} style={{ marginLeft: 6, color: 'var(--fg-mute)' }}>
+                      {e.kind === 'llm'
+                        ? `llm · ${e.model} · $${(e.cost_usd || 0).toFixed(3)}`
+                        : `· ${e.event_type || e.kind}`}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Message thread */}
+      <div ref={threadRef}
+           style={{ flex: 1, minHeight: 100, overflowY: 'auto',
+                    border: '1px solid var(--border)', borderRadius: 4,
+                    padding: 6, fontSize: 12, background: 'var(--bg-soft)' }}>
+        {messages.length === 0 ? (
+          <div style={{ color: 'var(--fg-mute)', fontStyle: 'italic' }}>
+            No messages in this room yet. Posts are sent to the running agent on its next iteration.
+          </div>
+        ) : (
+          messages.map((m) => (
+            <div key={m.id} className="chat-bubble"
+                 style={{ marginBottom: 6, padding: '4px 6px', borderRadius: 4,
+                          background: 'var(--bg)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between',
+                            fontSize: 10, color: 'var(--fg-mute)' }}>
+                <strong>{m.display_name || m.user_id || 'user'}</strong>
+                <span>{m.created_at ? new Date(m.created_at * 1000).toLocaleTimeString() : ''}</span>
+              </div>
+              <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                {m.content}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Composer */}
+      <div style={{ display: 'flex', gap: 4 }}>
+        <textarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={onKey}
+          rows={2}
+          placeholder={
+            rooms.length === 0
+              ? 'No rooms available'
+              : `Type feedback for ${room}…  (Enter to send, Shift+Enter newline)`
+          }
+          disabled={rooms.length === 0 || busy}
+          style={{ flex: 1, fontSize: 12, padding: '4px 6px', resize: 'vertical',
+                   background: 'var(--bg-soft)', color: 'var(--fg)',
+                   border: '1px solid var(--border)' }}/>
+        <button onClick={submit} disabled={busy || !draft.trim() || rooms.length === 0}
+                style={{ fontSize: 12, padding: '4px 10px' }}>
+          {busy ? '…' : 'Send'}
+        </button>
+      </div>
+
+      {error && (
+        <div style={{ fontSize: 10, color: 'var(--err)' }}>{error}</div>
+      )}
+    </div>
+  );
 };
 
 const GitPanel = ({ activeIp: activeIpProp = '' } = {}) => {

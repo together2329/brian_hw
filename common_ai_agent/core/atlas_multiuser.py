@@ -114,6 +114,10 @@ class _SessionBridge:
         self._seen_msg_ids: collections.OrderedDict[str, float] = collections.OrderedDict()
         self._seen_msg_ids_lock = threading.Lock()
         self._SEEN_MSG_LIMIT = 256
+        # Orchestrator chat watermark — the last chat_message.id this session
+        # already injected as feedback into the agent. Seeded lazily from the
+        # DB on first read so a restarted agent does not re-replay history.
+        self.last_chat_seen_id: str = ""
 
     def touch(self):
         self.last_active = time.time()
@@ -350,6 +354,19 @@ class _MultiUserBridge:
     def list_sessions(self) -> list[_SessionBridge]:
         with self._sessions_lock:
             return list(self._sessions.values())
+
+    def broadcast_all(self, msg_type: str, **payload: Any) -> None:
+        """Fan-out a single message to every active session's outbox.
+
+        Per-session emit() routes to one session's WS clients only; chat
+        rooms cross session boundaries (user on uart_lite session must see
+        a global-room post from a user on a dma session), so chat events
+        emit through this path instead. Each session keeps the same dedup
+        via msg_id_seen() on the receiving WS leg."""
+        with self._sessions_lock:
+            sessions = list(self._sessions.values())
+        for session in sessions:
+            session.emit(msg_type, **payload)
 
     def delete_session(self, session_id: str | None) -> bool:
         session_id = self._normalize_session_id(session_id)

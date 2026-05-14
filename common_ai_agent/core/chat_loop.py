@@ -35,6 +35,12 @@ class ChatLoopState:
     conversation_count: int = 0
     is_first_turn: bool = True
     todo_tracker: Optional[Any] = None
+    # When set, the loop runs without interactive prompts: max-iterations is
+    # never blocked by a `(y/n)` confirm, and EOFError on stdin is treated as
+    # a clean termination signal rather than an abnormal exit. Designed so the
+    # workflow can be driven from a CI job, a parent agent, or `--prompt-file`
+    # without leaving a zombie process waiting on input.
+    headless: bool = False
 
 
 @dataclass
@@ -195,7 +201,7 @@ def process_chat_turn(
         window = sys_msgs + non_sys[-(state.rolling_window_size * 2):]
         result_msgs, new_mode = deps.run_react_agent_fn(
             window, tracker, user_input,
-            mode="interactive",
+            mode=("oneshot" if state.headless else "interactive"),
             agent_mode=state.agent_mode,
             todo_tracker=state.todo_tracker,
         )
@@ -206,7 +212,7 @@ def process_chat_turn(
     else:
         state.messages, state.agent_mode = deps.run_react_agent_fn(
             state.messages, tracker, user_input,
-            mode="interactive",
+            mode=("oneshot" if state.headless else "interactive"),
             agent_mode=state.agent_mode,
             todo_tracker=state.todo_tracker,
         )

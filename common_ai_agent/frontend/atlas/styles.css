@@ -2197,3 +2197,22 @@ code,
 .tool-card-args {
   text-rendering: geometricPrecision;
 }
+
+/* OrchestratorChatPanel (right sidebar Chat tab) hooks. Inline
+   styles in the component cover layout; these classes exist so the
+   panel can be themed later without touching JSX. */
+.orchestrator-card { font-variant-numeric: tabular-nums; }
+.chat-bubble { transition: background 80ms linear; }
+.chat-bubble:hover { background: var(--bg-elevated, var(--bg)); }
+.chat-unread-badge {
+  display: inline-block;
+  min-width: 14px;
+  padding: 0 4px;
+  margin-left: 4px;
+  border-radius: 7px;
+  background: var(--warn, #c87f1a);
+  color: var(--bg, #111);
+  font-size: 10px;
+  text-align: center;
+  line-height: 14px;
+}

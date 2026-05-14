@@ -1169,6 +1169,33 @@ def _control_owner_fallback(ref: str, modules: list[dict[str, Any]], top: str) -
     return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": matched_ref}
 
 
+def _direct_name_owner_match(ref: str, modules: list[dict[str, Any]]) -> dict[str, str] | None:
+    """Map a task ref to a module whose name uniquely contains the ref's
+    second-level token.
+
+    This catches the common case where the SSOT omits ``sub_modules[].refs``
+    but uses consistent naming (e.g. ``fsm.rx_fsm.transitions.transition_0``
+    should land on a module named ``*rx_fsm*``). Token length must exceed two
+    characters to avoid noise from generic prefixes like ``tx`` or ``rx`` when
+    they happen to appear as substrings of unrelated module names.
+    """
+    parts = [part for part in str(ref or "").split(".") if part]
+    if len(parts) < 2:
+        return None
+    candidate = parts[1].lower()
+    if len(candidate) < 3:
+        return None
+    hits = [m for m in modules if candidate in str(m.get("name", "")).lower()]
+    if len(hits) != 1:
+        return None
+    module = hits[0]
+    return {
+        "module": str(module.get("name") or ""),
+        "file": str(module.get("file") or ""),
+        "matched_ref": f"name_token:{candidate}",
+    }
+
+
 def _owner_for(ref: str, modules: list[dict[str, Any]], top: str, value: Any = None) -> dict[str, str]:
     matches: list[tuple[dict[str, Any], str]] = []
     for module in modules:
@@ -1177,7 +1204,6 @@ def _owner_for(ref: str, modules: list[dict[str, Any]], top: str, value: Any = N
             owner_ref = str(owner_ref)
             if _ref_is_covered(ref, owner_ref):
                 matches.append((module, owner_ref))
-                break
     if matches:
         module, matched_ref = max(
             matches,
@@ -1187,6 +1213,9 @@ def _owner_for(ref: str, modules: list[dict[str, Any]], top: str, value: Any = N
             ),
         )
         return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": matched_ref}
+    direct_owner = _direct_name_owner_match(ref, modules)
+    if direct_owner is not None:
+        return direct_owner
     semantic_owner = _semantic_owner_match(ref, value, modules, top)
     if semantic_owner is not None:
         return semantic_owner
@@ -5561,8 +5590,17 @@ def _audit_owner_logic_structure(ip_dir: Path, plan: dict[str, Any]) -> dict[str
 
 
 def _audit_rtl_placeholder_free(ip_dir: Path) -> dict[str, Any]:
-    placeholder_re = re.compile(
-        r"\b(?:TODO|TBD|FIXME|HACK|PLACEHOLDER|STUB|DUMMY)\b|not\s+implemented|implement\s+later",
+    # Strict markers: work-in-progress tokens that must never appear, even in
+    # comments. These signal incomplete authoring regardless of context.
+    strict_placeholder_re = re.compile(
+        r"\b(?:TODO|TBD|FIXME|HACK|PLACEHOLDER|STUB|DUMMY)\b",
+        flags=re.I,
+    )
+    # Soft markers: phrases that are legitimate when documenting an intentional
+    # SSOT-driven omission (e.g. `// break detect: not implemented per SSOT`).
+    # These must only fail when they appear in executable code, not in comments.
+    code_only_placeholder_re = re.compile(
+        r"not\s+implemented|implement\s+later",
         flags=re.I,
     )
     banned_reasons = [
@@ -5588,7 +5626,8 @@ def _audit_rtl_placeholder_free(ip_dir: Path) -> dict[str, Any]:
             issues.append({"file": rel, "issue": f"Cannot read RTL source: {exc}"})
             continue
         for line_no, line in enumerate(lines, start=1):
-            match = placeholder_re.search(line)
+            policy_line = line.split("//", 1)[0]
+            match = strict_placeholder_re.search(line)
             if match:
                 issues.append({
                     "file": rel,
@@ -5598,7 +5637,16 @@ def _audit_rtl_placeholder_free(ip_dir: Path) -> dict[str, Any]:
                 })
                 if len(issues) >= 128:
                     break
-            policy_line = line.split("//", 1)[0]
+            soft_match = code_only_placeholder_re.search(policy_line)
+            if soft_match:
+                issues.append({
+                    "file": rel,
+                    "line": line_no,
+                    "token": soft_match.group(0),
+                    "issue": "RTL source contains a placeholder implementation marker",
+                })
+                if len(issues) >= 128:
+                    break
             for pattern, reason in banned_reasons:
                 policy_match = pattern.search(policy_line)
                 if policy_match:

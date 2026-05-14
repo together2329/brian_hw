@@ -541,39 +541,69 @@ function AdminPage() {
             </div>
 
             <div style={filterBarStyle}>
-              <label style={filterLabelStyle}>
+              <label style={filterLabelStyle} htmlFor="admin-filter-range">
                 Range
-                <select style={selectStyle} value={filters.range} onChange={(e) => setFilter('range', e.target.value)}>
+                <select
+                  id="admin-filter-range"
+                  aria-label="Range"
+                  style={selectStyle}
+                  value={filters.range}
+                  onChange={(e) => setFilter('range', e.target.value)}
+                >
                   <option value="24h">Last 24h</option>
                   <option value="7d">Last 7d</option>
                   <option value="30d">Last 30d</option>
                   <option value="all">All time</option>
                 </select>
               </label>
-              <label style={filterLabelStyle}>
+              <label style={filterLabelStyle} htmlFor="admin-filter-ip">
                 IP
-                <select style={selectStyle} value={filters.ip} onChange={(e) => setFilter('ip', e.target.value)}>
+                <select
+                  id="admin-filter-ip"
+                  aria-label="IP"
+                  style={selectStyle}
+                  value={filters.ip}
+                  onChange={(e) => setFilter('ip', e.target.value)}
+                >
                   <option value="">All IPs</option>
                   {filterOptions.ips.map((value) => <option key={value} value={value}>{value}</option>)}
                 </select>
               </label>
-              <label style={filterLabelStyle}>
+              <label style={filterLabelStyle} htmlFor="admin-filter-workspace">
                 Workspace
-                <select style={selectStyle} value={filters.workspace} onChange={(e) => setFilter('workspace', e.target.value)}>
+                <select
+                  id="admin-filter-workspace"
+                  aria-label="Workspace"
+                  style={selectStyle}
+                  value={filters.workspace}
+                  onChange={(e) => setFilter('workspace', e.target.value)}
+                >
                   <option value="">All workspaces</option>
                   {filterOptions.workspaces.map((value) => <option key={value} value={value}>{value}</option>)}
                 </select>
               </label>
-              <label style={filterLabelStyle}>
+              <label style={filterLabelStyle} htmlFor="admin-filter-workflow">
                 Workflow
-                <select style={selectStyle} value={filters.workflow} onChange={(e) => setFilter('workflow', e.target.value)}>
+                <select
+                  id="admin-filter-workflow"
+                  aria-label="Workflow"
+                  style={selectStyle}
+                  value={filters.workflow}
+                  onChange={(e) => setFilter('workflow', e.target.value)}
+                >
                   <option value="">All workflows</option>
                   {filterOptions.workflows.map((value) => <option key={value} value={value}>{value}</option>)}
                 </select>
               </label>
-              <label style={filterLabelStyle}>
+              <label style={filterLabelStyle} htmlFor="admin-filter-user">
                 User
-                <select style={selectStyle} value={filters.user} onChange={(e) => setFilter('user', e.target.value)}>
+                <select
+                  id="admin-filter-user"
+                  aria-label="User"
+                  style={selectStyle}
+                  value={filters.user}
+                  onChange={(e) => setFilter('user', e.target.value)}
+                >
                   <option value="">All users</option>
                   {filterOptions.users.map((value) => <option key={value} value={value}>{value}</option>)}
                 </select>

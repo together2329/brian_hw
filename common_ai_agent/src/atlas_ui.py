@@ -414,6 +414,14 @@ def create_app():
         use_processes=_use_proc,
         strict_session_routing=_strict_routing,
     )
+    # Register the bridge so the ReAct loop's orchestrator chat
+    # injector (built lazily inside main.py / agent_server.py before
+    # this point) can resolve sessions for the chat watermark.
+    try:
+        from core.orchestrator_inject import register_bridge as _orch_register_bridge
+        _orch_register_bridge(bridge)
+    except Exception:
+        pass
     clients: set[Any] = set()
     broadcaster_task: asyncio.Task | None = None
 
@@ -10877,6 +10885,20 @@ def create_app():
         project_root=lambda: PROJECT_ROOT,
         source_root=SOURCE_ROOT,
         safe_path=_safe,
+    )
+    # Orchestrator Chat API (per-IP rooms + _global). Routes share the
+    # AtlasDB used everywhere else and route chat events through the
+    # multi-user bridge's broadcast_all so cross-session clients see
+    # them in real time.
+    from atlas_api_chat import register_chat_routes  # noqa: WPS433
+    from core.atlas_db import AtlasDB as _ChatAtlasDB  # noqa: WPS433
+    from core.atlas_permissions import PermissionPolicy as _ChatPermissionPolicy  # noqa: WPS433
+    _chat_db = _ChatAtlasDB()
+    register_chat_routes(
+        app,
+        db=_chat_db,
+        bridge=bridge,
+        permissions=_ChatPermissionPolicy(_chat_db),
     )
     # SSOT API (/api/ssot, /api/ssot/qa, /api/ssot/qa/sessions,
     # /api/ssot/qa/answer) lives in src/atlas_api_ssot.py.

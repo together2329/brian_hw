@@ -936,6 +936,21 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         max_iterations = int(os.getenv("AGENT_SERVER_MAX_ITERATIONS", "60"))
         tracker = IterationTracker(max_iterations=max_iterations)
 
+        # Orchestrator chat injector — best-effort. Workers in process
+        # mode have no direct bridge handle; the injector falls back to
+        # the chat_consumed ledger and runs DB-only.
+        try:
+            from core.atlas_db import AtlasDB as _OrchDB
+            from core.orchestrator_inject import (
+                build_orchestrator_inject_fn,
+                get_registered_bridge,
+            )
+            _orch_inject = build_orchestrator_inject_fn(
+                _OrchDB(), get_registered_bridge()
+            )
+        except Exception:
+            _orch_inject = None
+
         deps = ReactLoopDeps(
             cfg=run_cfg,
             llm_call_fn=_llm_call_fn,
@@ -967,6 +982,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             build_prompt_str_fn=None,
             get_recovery_state_fn=None,
             poll_human_input_fn=None,
+            orchestrator_inject_fn=_orch_inject,
             # ESC key — wire to cancel event
             esc_check_fn=_esc_check,
             esc_start_fn=_esc_start,

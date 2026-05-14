@@ -1206,6 +1206,23 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
     else:
         _llm_fn = (lambda msg, stop=None: chat_completion_stream(msg, stop=stop, suppress_spinner=True)) \
             if _is_tui else chat_completion_stream
+    # Orchestrator chat injector — best-effort. Built lazily so test
+    # harnesses that don't import the atlas DB still work. The bridge
+    # is resolved via the shared registry written by atlas_ui at boot;
+    # standalone CLI runs without a bridge still get chat (the DB-level
+    # chat_consumed ledger is the source of truth, bridge watermark is
+    # just an in-memory fast path).
+    try:
+        from core.atlas_db import AtlasDB as _OrchDB
+        from core.orchestrator_inject import (
+            build_orchestrator_inject_fn,
+            get_registered_bridge,
+        )
+        _orch_inject = build_orchestrator_inject_fn(
+            _OrchDB(), get_registered_bridge()
+        )
+    except Exception:
+        _orch_inject = None
     deps = ReactLoopDeps(
         cfg=config,
         llm_call_fn=_llm_fn,
@@ -1224,6 +1241,7 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
         get_turn_id_fn=lambda: current_turn_id,
         get_llm_usage_fn=llm_client.get_last_usage,
         get_llm_tokens_fn=lambda: (llm_client.last_input_tokens, llm_client.last_output_tokens),
+        orchestrator_inject_fn=_orch_inject,
         orchestrator=orchestrator,
         procedural_memory=procedural_memory,
         graph_lite=graph_lite,
@@ -1445,6 +1463,7 @@ def chat_loop():
         conversation_count=conversation_count,
         is_first_turn=is_first_turn,
         todo_tracker=todo_tracker_main,
+        headless=bool(getattr(config, "HEADLESS_MODE", False)),
     )
     global _loop_deps
     _loop_deps = _ChatLoopDeps(
@@ -2690,6 +2709,43 @@ def chat_loop():
     except Exception as e:
         print(Color.warning(f"[Warning] Failed to save knowledge: {e}"))
 
+    # Headless mode: emit a structured exit.json next to the session state so
+    # an external driver (CI, parent agent, shell script) can inspect the run
+    # outcome without parsing ANSI logs.
+    if bool(getattr(config, "HEADLESS_MODE", False)):
+        _write_exit_json(messages)
+
+
+def _write_exit_json(messages: list) -> None:
+    """Write a session-scoped ``exit.json`` summarising the headless run.
+
+    Schema kept deliberately small; downstream consumers depend on stable
+    field names. ``status`` is best-effort — refined once the workflow stage
+    engine starts feeding richer signals (gate result, blocker count, etc.).
+    """
+    try:
+        import json as _json
+        import datetime as _datetime
+        session_dir = getattr(config, "SESSION_DIR", None)
+        if not session_dir:
+            return
+        os.makedirs(session_dir, exist_ok=True)
+        exit_path = os.path.join(session_dir, "exit.json")
+        payload = {
+            "status": "ok",
+            "session": os.path.basename(session_dir),
+            "messages": len(messages or []),
+            "model": getattr(config, "MODEL_NAME", ""),
+            "ended_at": _datetime.datetime.utcnow().isoformat() + "Z",
+        }
+        tmp_path = exit_path + ".tmp"
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            _json.dump(payload, f, indent=2)
+        os.replace(tmp_path, exit_path)
+        print(Color.info(f"[--headless] wrote {exit_path}"))
+    except Exception as exc:
+        print(Color.warning(f"[--headless] failed to write exit.json: {exc}"))
+
 def _ensure_git_repo():
     """Check for .git walking up from cwd; run git init if none found."""
     cwd = os.getcwd()
@@ -2738,6 +2794,15 @@ if __name__ == "__main__":
                          help='Active LLM profile or bare model name. Profiles '
                               '(PROFILE_<name>_BASE_URL/API_KEY/MODEL in .env) switch '
                               'all three at once; bare names only override LLM_MODEL_NAME.')
+    _parser.add_argument('--headless', action='store_true',
+                         help='Run the chat loop without interactive prompts: max-iterations '
+                              'auto-stops instead of prompting (y/n), EOFError on stdin is a '
+                              'normal termination, and an exit.json with status/counts is '
+                              'written to the session directory on exit.')
+    _parser.add_argument('--prompt-file', type=str, default='',
+                         help='Read user prompts from the given file instead of stdin. '
+                              'Each line is consumed as a separate user turn (slash commands '
+                              'work the same as in stdin mode). Useful with --headless.')
     _args, _ = _parser.parse_known_args()
 
     # --model: switch profile (BASE_URL+API_KEY+MODEL) or bare model name.
@@ -2787,6 +2852,27 @@ if __name__ == "__main__":
             print(f"[--effort] reasoning effort set to {_effort} (API: reasoning.effort={_effort})")
         else:
             print(f"[--effort] unknown effort: {_raw_effort}. Allowed: none, low, medium, high, xhigh")
+
+    # --headless: drive the chat loop without interactive prompts. Stored on
+    # config so chat_loop's ChatLoopState picks it up and so iteration_control
+    # sees `mode='oneshot'` at max iters (no `(y/n)` prompt). exit.json is
+    # written from the bottom of chat_loop when this is set.
+    if getattr(_args, 'headless', False):
+        config.HEADLESS_MODE = True
+        print("[--headless] interactive prompts disabled; exit.json will be written on termination")
+
+    # --prompt-file: read user turns from a file instead of stdin. Each line
+    # is consumed as a separate REPL turn (slash commands behave the same as
+    # in stdin mode). After the file is exhausted the chat loop sees EOFError
+    # and terminates — combined with --headless this produces a clean,
+    # scriptable, non-interactive run.
+    if getattr(_args, 'prompt_file', ''):
+        _prompt_path = _args.prompt_file.strip()
+        if _prompt_path and os.path.exists(_prompt_path):
+            sys.stdin = open(_prompt_path, "r", encoding="utf-8")
+            print(f"[--prompt-file] reading user turns from {_prompt_path}")
+        else:
+            print(f"[--prompt-file] file not found: {_prompt_path} — falling back to stdin")
 
     # Each project gets its own session context:
     # if -s is not explicitly given, use the workspace name as the project name

@@ -1343,6 +1343,26 @@ class AtlasDB:
         )
         return [dict(row) for row in rows]
 
+    def get_ip_block_by_name(
+        self,
+        ip_name: str,
+        workspace_id: str = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Look up an IP row by its name. Without a workspace_id, returns the
+        first match across workspaces (deterministic by created_at). Used by
+        room-based APIs where the URL carries ip_name, not ip_id."""
+        if workspace_id is not None:
+            row = self._fetchone(
+                "SELECT * FROM ip_blocks WHERE workspace_id = ? AND ip_name = ?",
+                (workspace_id, ip_name),
+            )
+        else:
+            row = self._fetchone(
+                "SELECT * FROM ip_blocks WHERE ip_name = ? ORDER BY created_at ASC LIMIT 1",
+                (ip_name,),
+            )
+        return dict(row) if row is not None else None
+
     @staticmethod
     def _permission_rank(permission: str) -> int:
         return _IP_PERMISSION_LEVELS.get(str(permission or "").strip().lower(), 0)
@@ -1908,6 +1928,145 @@ class AtlasDB:
         )
         return [self._row_to_dict(row, "trace_events") for row in rows]
 
+    # ---------- Orchestrator chat (over trace_events) ----------
+    #
+    # Chat is stored on the canonical trace ledger, not a separate table:
+    #   - event_type='chat_message' is a human-authored post.
+    #       ip_id IS NULL  => the special _global room
+    #       ip_id = <id>   => the per-IP room
+    #       payload      = {"content": str, "display_name": str}
+    #       actor_user_id is the poster.
+    #   - event_type='chat_consumed' marks an agent having read a chat in its
+    #     next ReAct iteration. correlation_id = the original chat message id.
+    #
+    # This keeps room-based reads on the existing
+    # idx_trace_events_context(workspace_id, ip_id, workflow, created_at)
+    # and lets the observability dashboard show feedback alongside workflow
+    # events on the same timeline.
+
+    def record_chat_message(
+        self,
+        ip_id: Optional[str],
+        user_id: str,
+        content: str,
+        display_name: str = "",
+        workspace_id: str = "",
+    ) -> Dict[str, Any]:
+        """Append a human chat post for either an IP room (ip_id set) or the
+        global room (ip_id is None / falsy)."""
+        ip_value = ip_id or ""
+        payload = {"content": content, "display_name": display_name or ""}
+        return self.record_trace_event(
+            event_type="chat_message",
+            payload=payload,
+            workspace_id=workspace_id,
+            ip_id=ip_value,
+            actor_user_id=user_id,
+        )
+
+    def record_chat_consumed(
+        self,
+        chat_id: str,
+        session_id: str,
+        ip_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Mark a chat as read by the agent on a given session bridge."""
+        return self.record_trace_event(
+            event_type="chat_consumed",
+            payload={"by": "agent"},
+            session_id=session_id,
+            ip_id=ip_id or "",
+            correlation_id=chat_id,
+        )
+
+    def list_chat_messages(
+        self,
+        ip_id: Optional[str],
+        limit: int = 50,
+        after_id: str = None,
+    ) -> List[Dict[str, Any]]:
+        """Return chat messages for a room, newest first. ip_id=None or ""
+        selects the global room (ip_id IS NULL or = '')."""
+        clauses = ["event_type = ?"]
+        values: list[Any] = ["chat_message"]
+        if ip_id:
+            clauses.append("ip_id = ?")
+            values.append(ip_id)
+        else:
+            clauses.append("(ip_id IS NULL OR ip_id = '')")
+        if after_id:
+            clauses.append(
+                "created_at > (SELECT created_at FROM trace_events WHERE id = ?)"
+            )
+            values.append(after_id)
+        where = " WHERE " + " AND ".join(clauses)
+        rows = self._fetchall(
+            f"SELECT * FROM trace_events{where} ORDER BY created_at DESC, id DESC LIMIT ?",
+            tuple(values + [int(limit)]),
+        )
+        return [self._row_to_dict(row, "trace_events") for row in rows]
+
+    def list_chat_unconsumed_for(
+        self,
+        session_id: str,
+        ip_id: Optional[str],
+        after_id: str = None,
+    ) -> List[Dict[str, Any]]:
+        """Return chat messages the given session bridge has NOT yet
+        recorded as consumed. Ordered oldest-first so the agent reads them
+        in chronological order on its next iteration."""
+        clauses = ["event_type = ?"]
+        values: list[Any] = ["chat_message"]
+        if ip_id:
+            clauses.append("ip_id = ?")
+            values.append(ip_id)
+        else:
+            clauses.append("(ip_id IS NULL OR ip_id = '')")
+        if after_id:
+            clauses.append(
+                "created_at > (SELECT created_at FROM trace_events WHERE id = ?)"
+            )
+            values.append(after_id)
+        clauses.append(
+            """id NOT IN (
+                SELECT correlation_id FROM trace_events
+                 WHERE event_type = 'chat_consumed'
+                   AND session_id = ?
+                   AND correlation_id IS NOT NULL
+            )"""
+        )
+        values.append(session_id)
+        where = " WHERE " + " AND ".join(clauses)
+        rows = self._fetchall(
+            f"SELECT * FROM trace_events{where} ORDER BY created_at ASC, id ASC",
+            tuple(values),
+        )
+        return [self._row_to_dict(row, "trace_events") for row in rows]
+
+    def latest_chat_consumed_id(
+        self,
+        session_id: str,
+        ip_id: Optional[str] = None,
+    ) -> Optional[str]:
+        """Last chat message id this session has marked consumed — used to
+        seed the bridge watermark when the agent restarts."""
+        clauses = ["event_type = 'chat_consumed'", "session_id = ?"]
+        values: list[Any] = [session_id]
+        if ip_id:
+            clauses.append("ip_id = ?")
+            values.append(ip_id)
+        else:
+            clauses.append("(ip_id IS NULL OR ip_id = '')")
+        where = " WHERE " + " AND ".join(clauses)
+        row = self._fetchone(
+            f"SELECT correlation_id FROM trace_events{where} "
+            "ORDER BY created_at DESC, id DESC LIMIT 1",
+            tuple(values),
+        )
+        if row is None:
+            return None
+        return row["correlation_id"]
+
     def record_llm_call(
         self,
         session_id: str = "",
@@ -2055,6 +2214,224 @@ class AtlasDB:
         else:
             rows = self._fetchall("SELECT * FROM artifacts ORDER BY created_at ASC")
         return [dict(row) for row in rows]
+
+    # ---------- Orchestrator room context ----------
+    #
+    # These two helpers assemble the "current ground truth" panel that the
+    # OrchestratorPanel renders above the chat thread. The same JSON is also
+    # injected into the agent's next ReAct iteration so humans and the agent
+    # are reasoning from the same snapshot.
+
+    def _latest_run_for_ip(self, ip_id: str) -> Optional[Dict[str, Any]]:
+        row = self._fetchone(
+            """
+            SELECT * FROM workflow_runs
+             WHERE ip_id = ?
+             ORDER BY started_at DESC, created_at DESC
+             LIMIT 1
+            """,
+            (ip_id,),
+        )
+        return dict(row) if row is not None else None
+
+    def _todo_counts_for_run(self, run_id: str) -> Dict[str, int]:
+        rows = self._fetchall(
+            "SELECT status, COUNT(*) AS n FROM workflow_todos WHERE run_id = ? GROUP BY status",
+            (run_id,),
+        )
+        return {str(row["status"] or "unknown"): int(row["n"] or 0) for row in rows}
+
+    def _top_blockers_for_run(self, run_id: str, limit: int = 5) -> List[Dict[str, Any]]:
+        rows = self._fetchall(
+            """
+            SELECT id, title, criteria, status FROM workflow_todos
+             WHERE run_id = ? AND status IN ('blocked', 'pending', 'in_progress')
+             ORDER BY
+               CASE status WHEN 'blocked' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END,
+               updated_at DESC
+             LIMIT ?
+            """,
+            (run_id, int(limit)),
+        )
+        return [
+            {
+                "id": row["id"],
+                "title": row["title"],
+                "criteria": row["criteria"],
+                "status": row["status"],
+            }
+            for row in rows
+        ]
+
+    def _recent_events_for_ip(self, ip_id: str, limit: int = 20) -> List[Dict[str, Any]]:
+        """Mixed slice of recent trace_events + llm_calls scoped to one IP."""
+        trace_rows = self._fetchall(
+            """
+            SELECT id, event_type, payload, created_at FROM trace_events
+             WHERE ip_id = ? AND event_type NOT IN ('chat_message', 'chat_consumed')
+             ORDER BY created_at DESC LIMIT ?
+            """,
+            (ip_id, int(limit)),
+        )
+        llm_rows = self._fetchall(
+            """
+            SELECT id, model, cost_usd, tokens_input, tokens_output, status, created_at
+              FROM llm_calls
+             WHERE ip_id = ?
+             ORDER BY created_at DESC LIMIT ?
+            """,
+            (ip_id, int(limit)),
+        )
+        events: List[Dict[str, Any]] = []
+        for row in trace_rows:
+            events.append({
+                "kind": "trace",
+                "id": row["id"],
+                "event_type": row["event_type"],
+                "ts": row["created_at"],
+                "payload": self._load_json(row["payload"]),
+            })
+        for row in llm_rows:
+            events.append({
+                "kind": "llm",
+                "id": row["id"],
+                "ts": row["created_at"],
+                "model": row["model"],
+                "cost_usd": row["cost_usd"] or 0,
+                "tokens_input": row["tokens_input"] or 0,
+                "tokens_output": row["tokens_output"] or 0,
+                "status": row["status"],
+            })
+        events.sort(key=lambda e: e.get("ts") or 0, reverse=True)
+        return events[:limit]
+
+    def summarize_ip_room_context(self, ip_id: str) -> Optional[Dict[str, Any]]:
+        """Assemble the per-IP orchestrator context bundle."""
+        ip = self.get_ip_block(ip_id)
+        if ip is None:
+            return None
+
+        latest_run = self._latest_run_for_ip(ip_id)
+        run_block: Optional[Dict[str, Any]] = None
+        stages: List[Dict[str, Any]] = []
+        todos_counts: Dict[str, int] = {}
+        top_blockers: List[Dict[str, Any]] = []
+        if latest_run is not None:
+            run_id = latest_run["id"]
+            stage_rows = self._fetchall(
+                """
+                SELECT stage_name, status, attempt, started_at, ended_at
+                  FROM workflow_stages
+                 WHERE run_id = ?
+                 ORDER BY started_at ASC, created_at ASC
+                """,
+                (run_id,),
+            )
+            stages = [
+                {
+                    "name": r["stage_name"],
+                    "status": r["status"],
+                    "attempt": r["attempt"],
+                    "started_at": r["started_at"],
+                    "ended_at": r["ended_at"],
+                }
+                for r in stage_rows
+            ]
+            current_stage = next(
+                (s["name"] for s in reversed(stages) if s["status"] == "running"),
+                stages[-1]["name"] if stages else None,
+            )
+            run_block = {
+                "id": run_id,
+                "workflow": latest_run.get("workflow"),
+                "status": latest_run.get("status"),
+                "mode": latest_run.get("mode"),
+                "model_profile": latest_run.get("model_profile"),
+                "started_at": latest_run.get("started_at"),
+                "ended_at": latest_run.get("ended_at"),
+                "current_stage": current_stage,
+            }
+            todos_counts = self._todo_counts_for_run(run_id)
+            top_blockers = self._top_blockers_for_run(run_id)
+
+        return {
+            "ip": {
+                "id": ip["id"],
+                "name": ip["ip_name"],
+                "type": ip.get("ip_type"),
+                "ssot_path": ip.get("ssot_path"),
+                "workspace_id": ip.get("workspace_id"),
+            },
+            "workflow": {
+                "latest_run": run_block,
+                "stages": stages,
+            },
+            "todos": {
+                "counts": todos_counts,
+                "top_blockers": top_blockers,
+            },
+            "recent_events": self._recent_events_for_ip(ip_id),
+        }
+
+    def summarize_global_room_context(
+        self,
+        user_id: str = "",
+    ) -> Dict[str, Any]:
+        """Cross-IP snapshot. If user_id is given, restrict to IPs the user
+        can view; otherwise list every IP (server-side admin use)."""
+        if user_id:
+            ip_rows = self.list_accessible_ip_blocks(user_id, "view")
+        else:
+            ip_rows = self._fetchall("SELECT * FROM ip_blocks ORDER BY ip_name")
+            ip_rows = [dict(r) for r in ip_rows]
+
+        ip_summaries: List[Dict[str, Any]] = []
+        for ip in ip_rows:
+            ip_id = ip["id"]
+            latest_run = self._latest_run_for_ip(ip_id)
+            counts = self._todo_counts_for_run(latest_run["id"]) if latest_run else {}
+            ip_summaries.append({
+                "id": ip_id,
+                "name": ip["ip_name"],
+                "type": ip.get("ip_type"),
+                "latest_workflow": latest_run.get("workflow") if latest_run else None,
+                "run_status": latest_run.get("status") if latest_run else None,
+                "open_blockers": counts.get("blocked", 0)
+                                  + counts.get("pending", 0)
+                                  + counts.get("in_progress", 0),
+                "completed": counts.get("completed", 0) + counts.get("approved", 0),
+            })
+
+        ip_id_filter = {ip["id"] for ip in ip_rows}
+        if ip_id_filter:
+            placeholders = ",".join("?" for _ in ip_id_filter)
+            recent_rows = self._fetchall(
+                f"""
+                SELECT id, event_type, ip_id, payload, created_at
+                  FROM trace_events
+                 WHERE ip_id IN ({placeholders})
+                   AND event_type NOT IN ('chat_message', 'chat_consumed')
+                 ORDER BY created_at DESC LIMIT 20
+                """,
+                tuple(ip_id_filter),
+            )
+            recent = [
+                {
+                    "id": r["id"],
+                    "event_type": r["event_type"],
+                    "ip_id": r["ip_id"],
+                    "ts": r["created_at"],
+                    "payload": self._load_json(r["payload"]),
+                }
+                for r in recent_rows
+            ]
+        else:
+            recent = []
+
+        return {
+            "ips": ip_summaries,
+            "recent_cross_ip_events": recent,
+        }
 
     # ---------- Admin ----------
 
