@@ -607,9 +607,71 @@ custom:
     - "Single-cycle latency means operands sampled on cycle N produce valid sum_o/cout_o on cycle N+1; there is no multi-cycle or pipelined backpressure."
     - "RESULT and COUT registers are only updated when CTRL.src_sel=1; when src_sel=0 (direct port mode), these registers hold their last value."
     - "The IP targets a 50 MHz PCLK; the Kogge-Stone tree combinational depth must close timing at this frequency for the maximum WIDTH parameter."
-dir_structure: TBD
-filelist: TBD
-test_requirements: TBD
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "docs/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+filelist:
+  headers:
+    - "rtl/adder_kogge_stone_param.vh"
+  rtl:
+    - "rtl/adder_kogge_stone_regs.sv"
+    - "rtl/adder_kogge_stone_core.sv"
+    - "rtl/adder_kogge_stone.sv"
+  sim:
+    - "sim/tb_top.sv"
+    - "sim/tb_program.sv"
+    - "sim/tb_apb_master.sv"
+    - "sim/adder_kogge_stone_model.sv"
+  firmware:
+    - "firmware/adder_kogge_stone_regs.h"
+  docs:
+    - "docs/register_map.md"
+    - "docs/fsm_diagram.md"
+    - "docs/README.md"
+test_requirements:
+  scenarios:
+    - { id: "SC1", name: "Basic addition — direct port mode", stimulus: "Set CTRL.enable=1, CTRL.src_sel=0. Drive a_i=0xAAAA, b_i=0x5555, cin_i=0. Wait 2 PCLK cycles.", expected: "sum_o = 0xFFFF, cout_o = 0, valid_o = 1, STATUS.valid = 1, STATUS.overflow = 0", checker: "Scoreboard compares RTL sum_o/cout_o/valid_o against Python reference model", coverage: ["FM_ADD", "S0_SAMPLE", "S1_COMPUTE"] }
+    - { id: "SC2", name: "Addition with carry-out", stimulus: "Set CTRL.enable=1, CTRL.src_sel=0. Drive a_i=0xFFFFFFFF, b_i=0x1, cin_i=0. Wait 2 PCLK cycles.", expected: "sum_o = 0x00000000, cout_o = 1, valid_o = 1, STATUS.overflow = 1", checker: "Scoreboard checks overflow flag", coverage: ["overflow", "cout_o"] }
+    - { id: "SC3", name: "Addition with carry-in", stimulus: "Set CTRL.enable=1, src_sel=0. Drive a_i=0xAAAA, b_i=0x5554, cin_i=1. Wait 2 cycles.", expected: "sum_o = 0x10000, cout_o = 1, valid_o = 1", checker: "Scoreboard verifies carry-in contribution", coverage: ["cin_i", "FM_ADD"] }
+    - { id: "SC4", name: "CSR operand mode", stimulus: "APB-write CTRL.src_sel=1, OP_A=0x1234, OP_B=0x5678, CIN=0. Then set CTRL.enable=1. Wait 2 cycles.", expected: "sum_o = 0x68AC, cout_o = 0, RESULT = 0x68AC via APB read", checker: "Scoreboard compares APB RESULT read against expected sum", coverage: ["FM_APB_READ", "FM_APB_WRITE", "src_sel=1"] }
+    - { id: "SC5", name: "Disabled compute", stimulus: "Set CTRL.enable=0. Drive a_i=0x1111, b_i=0x2222. Wait 2 cycles.", expected: "valid_o = 0, sum_o/cout_o hold last values, STATUS unchanged", checker: "Scoreboard verifies no architectural update", coverage: ["ERR_DISABLED_COMPUTE"] }
+    - { id: "SC6", name: "APB RO write error", stimulus: "APB-write to STATUS offset (0x04) with valid data.", expected: "PSLVERR = 1, PREADY = 1, STATUS register unchanged", checker: "APB protocol checker verifies PSLVERR and register immutability", coverage: ["ERR_APB_RO_WRITE"] }
+    - { id: "SC7", name: "APB unimplemented address", stimulus: "APB read/write to unimplemented offset (e.g., 0x20).", expected: "PSLVERR = 1, PREADY = 1, PRDATA = 0 for read", checker: "APB protocol checker", coverage: ["ERR_APB_BAD_ADDR"] }
+    - { id: "SC8", name: "Back-to-back additions", stimulus: "Keep CTRL.enable=1. Stream a_i/b_i pairs on consecutive PCLK cycles: (1,2), (3,4), (5,6).", expected: "Each pair produces correct sum_o on the following cycle (1+2=3, 3+4=7, 5+6=11)", checker: "Scoreboard tracks all pipelined results", coverage: ["sustained_adds_per_cycle", "pipeline_depth"] }
+  scoreboard_checks: 12
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Behavioral coverage for Kogge-Stone addition and APB register semantics"
+      bins:
+        - { id: "FCOV_FM_ADD", source_ref: "function_model.transactions.FM_ADD", class: "transaction", description: "FM_ADD legal addition observed with valid_o=1" }
+        - { id: "FCOV_FM_APB_READ", source_ref: "function_model.transactions.FM_APB_READ", class: "transaction", description: "APB read transaction observed" }
+        - { id: "FCOV_FM_APB_WRITE", source_ref: "function_model.transactions.FM_APB_WRITE", class: "transaction", description: "APB write transaction observed" }
+        - { id: "FCOV_ERR_DISABLED", source_ref: "function_model.transactions.FM_ADD.error_cases", class: "error_case", description: "Disabled compute error case covered" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle/handshake/pipeline coverage for Kogge-Stone adder"
+      bins:
+        - { id: "CCOV_S0_SAMPLE", source_ref: "cycle_model.pipeline.S0_SAMPLE", class: "pipeline_stage", description: "Operand sampling stage observed" }
+        - { id: "CCOV_S1_COMPUTE", source_ref: "cycle_model.pipeline.S1_COMPUTE", class: "pipeline_stage", description: "Compute + output update stage observed" }
+        - { id: "CCOV_APB_HANDSHAKE", source_ref: "cycle_model.handshake_rules", class: "handshake", description: "APB PSEL/PENABLE/PREADY handshake observed" }
+        - { id: "CCOV_FSM_TRANSITION", source_ref: "fsm.core_fsm.transitions", class: "state_transition", description: "IDLE→COMPUTE→IDLE transition observed" }
+        - { id: "CCOV_PERF_THROUGHPUT", source_ref: "cycle_model.performance.throughput", class: "throughput", description: "Back-to-back sustained throughput exercised" }
+    functional: "Legacy alias: function + cycle coverage must both close; new flows read coverage_goals.function and coverage_goals.cycle separately."
+    line: ">= 90% instrumented line coverage or explicit project waiver"
+    branch: ">= 85% instrumented branch coverage or explicit project waiver"
+    fsm: "100% declared FSM states and transitions covered"
+    assertions: "All APB protocol and result-valid assertions pass"
 quality_gates: TBD
 traceability: TBD
 workflow_todos: TBD

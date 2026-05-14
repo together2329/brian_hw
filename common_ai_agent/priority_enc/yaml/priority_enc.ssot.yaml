@@ -348,7 +348,6 @@ function_model:
         - "enc_out_q updated per priority encoding"
         - "enc_valid_q updated per validity check"
       output_rules:
-        - { name: "masked",     expr: "enc_in & mask_q",                                                                              width: 8, port: "internal" }
         - { name: "enc_out",    expr: "if enable_q and |masked: if priority_dir_q==0 then leading_one_index(masked, hi_to_lo) else leading_one_index(masked, lo_to_hi); else 0", width: 3, port: "enc_out" }
         - { name: "enc_valid",  expr: "enable_q && (|masked)",                                                                         width: 1, port: "enc_valid" }
       side_effects:

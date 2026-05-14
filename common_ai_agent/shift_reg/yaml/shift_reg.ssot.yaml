@@ -85,7 +85,13 @@ io_list:
         - { name: "pslverr", width: 1,  direction: "output", description: "APB error" }
     - name: "shift_data"
       type: "custom"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
       description: "Shift register data ports"
+      protocol:
+        sampling: "data_in and shift_in are sampled on PCLK rising edge when PRESETn is deasserted."
+        output_update: "data_out and shift_out update on PCLK rising edge."
+        timing: "data_out/shift_out are valid within 1 PCLK cycle of any state change."
       ports:
         - { name: "shift_in",    width: 1,            direction: "input",  description: "Serial shift input bit" }
         - { name: "shift_out",   width: 1,            direction: "output", description: "Serial shift output bit" }

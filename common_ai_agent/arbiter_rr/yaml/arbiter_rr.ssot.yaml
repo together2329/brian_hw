@@ -702,6 +702,9 @@ quality_gates:
   eda:
     pass: "Synthesis meets 50MHz timing."
     evidence: ["syn report"]
+  signoff:
+    pass: "All upstream quality gates (SSOT, RTL, DV, coverage, EDA) pass with required evidence."
+    evidence: ["check_ssot_disk.sh PASS", "rtl compile report", "dut lint report", "sim/results.json", "cov/coverage.json", "syn report"]
 
 # =============================================================================
 # SECTION 32: Traceability

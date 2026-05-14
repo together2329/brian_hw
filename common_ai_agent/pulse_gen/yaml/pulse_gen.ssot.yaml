@@ -206,12 +206,12 @@ function_model:
       error_cases:
         - { condition: "WIDTH.PULSE_WIDTH == 0", result: "Pulse width of 0 behaves as a 1-cycle pulse (counter_q loaded with 1). Treated as degenerate legal case, not an error." }
   invariants:
-    - "Reset leaves counter_q=0, active_q=0, done_q=0, pulse_out=0, pulse_irq=0."
-    - "pulse_out is the registered value of active_q — 1-cycle latency from trigger decision to assertion."
-    - "pulse_out remains high for exactly WIDTH.PULSE_WIDTH PCLK cycles."
-    - "counter_q never underflows below 0 because the decrement rule is gated by counter_q > 0."
-    - "done_q is a true one-cycle pulse — it asserts only on the terminal countdown tick and deasserts the following cycle."
-    - "Register read side effects are exactly those listed in registers.register_list."
+    - { id: "inv_reset", rule: "Reset leaves counter_q=0, active_q=0, done_q=0, pulse_out=0, pulse_irq=0." }
+    - { id: "inv_latency", rule: "pulse_out is the registered value of active_q — 1-cycle latency from trigger decision to assertion." }
+    - { id: "inv_pulse_width", rule: "pulse_out remains high for exactly WIDTH.PULSE_WIDTH PCLK cycles." }
+    - { id: "inv_no_underflow", rule: "counter_q never underflows below 0 because the decrement rule is gated by counter_q > 0." }
+    - { id: "inv_done_pulse", rule: "done_q is a true one-cycle pulse — it asserts only on the terminal countdown tick and deasserts the following cycle." }
+    - { id: "inv_register_side_effects", rule: "Register read side effects are exactly those listed in registers.register_list. APB out-of-range access asserts PSLVERR with no internal state change." }
   reference_model_hint: "tb-gen should implement a Python scoreboard model from this section. FunctionalModel.apply(trigger, width, inten) returns (pulse_out, pulse_irq) after one control tick."
 cycle_model:
   purpose: "Cycle/handshake contract for rtl-gen; describes when state, outputs, and interrupts may change."
@@ -722,7 +722,7 @@ test_requirements:
         - { id: "fcov_interrupt", source_ref: "function_model.transactions.FM_TICK.output_rules.pulse_irq", class: "event", description: "Interrupt asserts on completion" }
         - { id: "fcov_int_masked", source_ref: "function_model.transactions.FM_TICK.output_rules.pulse_irq", class: "event", description: "Interrupt masked when INTEN=0" }
         - { id: "fcov_zero_width", source_ref: "function_model.transactions.FM_TICK.error_cases", class: "edge_case", description: "Zero-width degenerates to 1-cycle" }
-        - { id: "fcov_apb_error", source_ref: "function_model.invariants.register_side_effects", class: "error", description: "APB out-of-range PSLVERR — register access contract" }
+        - { id: "fcov_apb_error", source_ref: "function_model.invariants.inv_register_side_effects", class: "error", description: "APB out-of-range PSLVERR — register access contract verified" }
         - { id: "fcov_back_to_back", source_ref: "function_model.transactions.FM_TICK", class: "transaction", description: "Back-to-back pulse triggers" }
     cycle:
       target_pct: 100

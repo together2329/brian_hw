@@ -633,6 +633,20 @@ quality_gates:
   eda:
     pass: "Synthesis and STA meet SSOT timing/area targets"
     evidence: ["syn report", "sta reports"]
-traceability: TBD
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "ALL files (module name)" }
+    - { yaml: "parameters", output: "edge_detector_param.vh" }
+    - { yaml: "io_list.interfaces", output: "edge_detector.sv (port list)" }
+    - { yaml: "registers.register_list", output: "edge_detector_regs.sv + firmware + docs" }
+    - { yaml: "function_model", output: "edge_detector_core.sv + tb/edge_detector_model.py" }
+    - { yaml: "cycle_model", output: "edge_detector_core.sv pipeline + waveform checks" }
+    - { yaml: "timing", output: "STA constraints and latency criteria" }
+    - { yaml: "interrupts", output: "edge_detector_regs.sv interrupt aggregation" }
+    - { yaml: "error_handling", output: "edge_detector_regs.sv PSLVERR decode" }
+    - { yaml: "test_requirements.scenarios", output: "sim/tb_program.sv + tb/edge_detector_model.py" }
+    - { yaml: "quality_gates", output: "ATLAS progress and signoff criteria" }
+    - { yaml: "features", output: "edge_detector_core.sv edge detect logic" }
+    - { yaml: "dataflow", output: "edge_detector_core.sv datapath" }
 workflow_todos: TBD
 generation_flow: TBD
