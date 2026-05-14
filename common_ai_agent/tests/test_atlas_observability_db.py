@@ -278,6 +278,45 @@ def test_admin_usage_reports_todo_flow_and_llm_usage(tmp_path: Path) -> None:
             cost_usd=0.6,
             latency_ms=900,
         )
+        db.save_message(session["id"], "user")
+        tool_msg = db.save_message(session["id"], "assistant", agent="rtl-gen")
+        db.save_part(
+            tool_msg["id"],
+            session["id"],
+            "tool_result",
+            tool_name="run_command",
+            tool_status="ok",
+            tool_output="lint clean\n",
+            start_time=10.0,
+            end_time=12.0,
+        )
+        db.save_part(
+            tool_msg["id"],
+            session["id"],
+            "tool_result",
+            tool_name="read_file",
+            tool_status="error",
+            tool_output="x" * 400,
+            tool_error="file missing",
+        )
+        db.record_trace_event(
+            "ask_user.answered",
+            session_id=session["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="rtl-gen",
+            actor_user_id=user["id"],
+            payload={"flow_id": "qa-1", "answer": "approved"},
+        )
+        db.record_trace_event(
+            "chat_message",
+            session_id=session["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="rtl-gen",
+            actor_user_id=user["id"],
+            payload={"content": "please keep descriptor trap visible"},
+        )
 
         usage = build_admin_usage_payload(db)
 
@@ -312,8 +351,8 @@ def test_admin_usage_reports_todo_flow_and_llm_usage(tmp_path: Path) -> None:
     ]
     assert flow[-1]["content"] == "Implement DMA descriptor decoder"
 
-    assert len(usage["trace_events"]) == 1
-    event = usage["trace_events"][0]
+    assert len(usage["trace_events"]) == 3
+    event = next(row for row in usage["trace_events"] if row["event_type"] == "todo.approved")
     assert event["event_id"] == trace["id"]
     assert event["event_type"] == "todo.approved"
     assert event["ip"] == "dma"
@@ -323,6 +362,29 @@ def test_admin_usage_reports_todo_flow_and_llm_usage(tmp_path: Path) -> None:
     assert event["username"] == "erin"
     assert event["correlation_id"] == "corr-dma"
     assert event["payload"]["reason"] == "read RTL and ran descriptor tests"
+
+    tools = {row["tool_name"]: row for row in usage["tool_usage"]}
+    assert tools["run_command"]["calls"] == 1
+    assert tools["run_command"]["failed_calls"] == 0
+    assert tools["run_command"]["observation_chars"] == len("lint clean\n")
+    assert tools["run_command"]["observation_tokens_est"] == 3
+    assert tools["run_command"]["avg_latency_ms"] == 2000
+    assert tools["run_command"]["ip"] == "dma"
+    assert tools["run_command"]["workspace"] == "soc-workspace"
+    assert tools["run_command"]["workflow"] == "rtl-gen"
+    assert tools["read_file"]["failed_calls"] == 1
+    assert tools["read_file"]["observation_tokens_est"] == 100
+
+    assert len(usage["interventions"]) == 1
+    intervention = usage["interventions"][0]
+    assert intervention["username"] == "erin"
+    assert intervention["ip"] == "dma"
+    assert intervention["workspace"] == "soc-workspace"
+    assert intervention["workflow"] == "rtl-gen"
+    assert intervention["intervention_count"] == 3
+    assert intervention["user_messages"] == 1
+    assert intervention["chat_messages"] == 1
+    assert intervention["ask_user_answers"] == 1
 
 
 def test_ip_permissions_allow_view_and_import_by_user(tmp_path: Path) -> None:
@@ -351,3 +413,111 @@ def test_ip_permissions_allow_view_and_import_by_user(tmp_path: Path) -> None:
     assert grant["grantee_user_id"] == reviewer["id"]
     assert accessible[0]["ip_name"] == "dma"
     assert accessible[0]["permission"] == "import"
+
+
+# ---------------------------------------------------------------------------
+# Orchestrator chat (stored on trace_events; no separate chat_messages table)
+# ---------------------------------------------------------------------------
+
+
+def _bootstrap_two_ips(tmp_path: Path):
+    db = AtlasDB(str(tmp_path / "atlas.db"))
+    owner = db.create_user("owner", "Owner")
+    ws = db.upsert_workspace("ws", owner_user_id=owner["id"], local_path="/repo")
+    ip_uart = db.upsert_ip_block(ws["id"], "uart_lite", ip_type="uart")
+    ip_dma = db.upsert_ip_block(ws["id"], "dma", ip_type="dma")
+    return db, owner, ip_uart, ip_dma
+
+
+def _content_set(rows):
+    out = set()
+    for r in rows:
+        payload = r.get("payload") or {}
+        c = payload.get("content") if isinstance(payload, dict) else None
+        if c:
+            out.add(c)
+    return out
+
+
+def test_chat_message_per_ip_and_global_rooms_isolated(tmp_path: Path) -> None:
+    db, owner, ip_uart, ip_dma = _bootstrap_two_ips(tmp_path)
+    db.record_chat_message(ip_uart["id"], owner["id"], "uart hello", "Owner")
+    db.record_chat_message(None, owner["id"], "global hello", "Owner")
+    db.record_chat_message(ip_dma["id"], owner["id"], "dma hello", "Owner")
+
+    assert _content_set(db.list_chat_messages(ip_uart["id"])) == {"uart hello"}
+    assert _content_set(db.list_chat_messages(ip_dma["id"])) == {"dma hello"}
+    assert _content_set(db.list_chat_messages(None)) == {"global hello"}
+
+
+def test_chat_unconsumed_advances_per_session(tmp_path: Path) -> None:
+    db, owner, ip_uart, _ = _bootstrap_two_ips(tmp_path)
+    m1 = db.record_chat_message(ip_uart["id"], owner["id"], "one")
+    m2 = db.record_chat_message(ip_uart["id"], owner["id"], "two")
+
+    sid = "owner/uart_lite/rtl-gen"
+    unread = db.list_chat_unconsumed_for(sid, ip_uart["id"])
+    assert [m["id"] for m in unread] == [m1["id"], m2["id"]]
+
+    db.record_chat_consumed(m1["id"], sid, ip_uart["id"])
+    unread2 = db.list_chat_unconsumed_for(sid, ip_uart["id"])
+    assert [m["id"] for m in unread2] == [m2["id"]]
+
+    # Different session — has not consumed anything yet, sees both.
+    unread_other = db.list_chat_unconsumed_for("other/uart/rtl-gen", ip_uart["id"])
+    assert {m["id"] for m in unread_other} == {m1["id"], m2["id"]}
+
+
+def test_chat_unconsumed_global_room_ignores_ip_rows(tmp_path: Path) -> None:
+    db, owner, ip_uart, _ = _bootstrap_two_ips(tmp_path)
+    db.record_chat_message(ip_uart["id"], owner["id"], "uart only")
+    g = db.record_chat_message(None, owner["id"], "for everyone")
+    unread = db.list_chat_unconsumed_for("owner/_global", None)
+    assert [m["id"] for m in unread] == [g["id"]]
+
+
+def test_latest_chat_consumed_id_returns_watermark(tmp_path: Path) -> None:
+    db, owner, ip_uart, _ = _bootstrap_two_ips(tmp_path)
+    m = db.record_chat_message(ip_uart["id"], owner["id"], "ping")
+    sid = "s1"
+    assert db.latest_chat_consumed_id(sid, ip_uart["id"]) is None
+    db.record_chat_consumed(m["id"], sid, ip_uart["id"])
+    assert db.latest_chat_consumed_id(sid, ip_uart["id"]) == m["id"]
+
+
+def test_summarize_ip_room_context_shape(tmp_path: Path) -> None:
+    db, owner, ip_uart, _ = _bootstrap_two_ips(tmp_path)
+    run = db.start_workflow_run(
+        workspace_id=ip_uart["workspace_id"],
+        ip_id=ip_uart["id"],
+        workflow="rtl-gen",
+        mode="pipeline",
+        model_profile="deepseek",
+        status="running",
+    )
+    db.upsert_workflow_todo(run["id"], title="impl x", status="in_progress")
+    db.upsert_workflow_todo(run["id"], title="lock policy", status="blocked")
+
+    ctx = db.summarize_ip_room_context(ip_uart["id"])
+    assert ctx is not None
+    assert ctx["ip"]["name"] == "uart_lite"
+    assert ctx["workflow"]["latest_run"]["workflow"] == "rtl-gen"
+    counts = ctx["todos"]["counts"]
+    assert counts["in_progress"] == 1
+    assert counts["blocked"] == 1
+    titles = {b["title"] for b in ctx["todos"]["top_blockers"]}
+    assert "lock policy" in titles
+
+
+def test_summarize_global_room_context_lists_all_ips(tmp_path: Path) -> None:
+    db, _owner, _ip_uart, _ip_dma = _bootstrap_two_ips(tmp_path)
+    ctx = db.summarize_global_room_context()
+    names = {row["name"] for row in ctx["ips"]}
+    assert names == {"uart_lite", "dma"}
+
+
+def test_get_ip_block_by_name_resolves_room_to_id(tmp_path: Path) -> None:
+    db, _owner, ip_uart, ip_dma = _bootstrap_two_ips(tmp_path)
+    assert db.get_ip_block_by_name("uart_lite")["id"] == ip_uart["id"]
+    assert db.get_ip_block_by_name("dma")["id"] == ip_dma["id"]
+    assert db.get_ip_block_by_name("nonexistent") is None

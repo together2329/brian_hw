@@ -296,6 +296,122 @@ def build_admin_usage_payload(db) -> dict[str, Any]:
          LIMIT 500
         """
     )]
+    tool_rows = [dict(r) for r in db._fetchall(
+        """
+        WITH tool_parts AS (
+            SELECT p.*,
+                   r.workflow AS run_workflow,
+                   r.workspace_id AS run_workspace_id,
+                   r.ip_id AS run_ip_id
+              FROM parts p
+              LEFT JOIN workflow_runs r ON r.id = (
+                   SELECT rr.id
+                     FROM workflow_runs rr
+                    WHERE rr.session_id = p.session_id
+                      AND (rr.started_at IS NULL OR p.created_at >= rr.started_at)
+                      AND (rr.ended_at IS NULL OR p.created_at <= rr.ended_at)
+                    ORDER BY rr.started_at DESC, rr.created_at DESC
+                    LIMIT 1
+              )
+             WHERE p.tool_name IS NOT NULL AND p.tool_name != ''
+        )
+        SELECT tp.session_id, s.user_id, u.username,
+               s.project_id, s.directory, s.title,
+               tp.run_workflow AS workflow,
+               w.name AS workspace_name, w.local_path AS workspace_path,
+               i.ip_name, tp.tool_name,
+               COUNT(*) AS calls,
+               SUM(CASE
+                   WHEN tp.tool_status IN ('error', 'failed')
+                        OR (tp.tool_error IS NOT NULL AND tp.tool_error != '')
+                   THEN 1 ELSE 0 END) AS failed_calls,
+               SUM(LENGTH(COALESCE(tp.tool_output, ''))) AS observation_chars,
+               SUM(CAST((LENGTH(COALESCE(tp.tool_output, '')) + 3) / 4 AS INTEGER))
+                   AS observation_tokens_est,
+               SUM(LENGTH(COALESCE(tp.tool_input, ''))) AS input_chars,
+               SUM(CASE
+                   WHEN tp.start_time IS NOT NULL AND tp.end_time IS NOT NULL
+                   THEN MAX(0, (tp.end_time - tp.start_time) * 1000)
+                   ELSE 0 END) AS latency_ms,
+               SUM(CASE
+                   WHEN tp.start_time IS NOT NULL AND tp.end_time IS NOT NULL
+                   THEN 1 ELSE 0 END) AS timed_calls,
+               MAX(tp.created_at) AS last_tool_at
+          FROM tool_parts tp
+          LEFT JOIN sessions s ON s.id = tp.session_id
+          LEFT JOIN users u ON u.id = s.user_id
+          LEFT JOIN workspaces w ON w.id = tp.run_workspace_id
+          LEFT JOIN ip_blocks i ON i.id = tp.run_ip_id
+         GROUP BY tp.session_id, s.user_id, u.username, s.project_id,
+                  s.directory, s.title, tp.run_workflow, w.name,
+                  w.local_path, i.ip_name, tp.tool_name
+         ORDER BY calls DESC, observation_tokens_est DESC, last_tool_at DESC
+        """
+    )]
+    intervention_rows = [dict(r) for r in db._fetchall(
+        """
+        WITH raw_interventions AS (
+            SELECT m.id AS intervention_id, m.session_id, '' AS workflow,
+                   '' AS workspace_id, '' AS ip_id, '' AS actor_user_id,
+                   'message.user' AS source, m.created_at
+              FROM messages m
+             WHERE m.role = 'user'
+            UNION ALL
+            SELECT e.id AS intervention_id, e.session_id, e.workflow,
+                   e.workspace_id, e.ip_id, e.actor_user_id,
+                   e.event_type AS source, e.created_at
+              FROM trace_events e
+             WHERE e.event_type IN (
+                   'ask_user.answered',
+                   'chat_message',
+                   'ssot_qa.answered',
+                   'ssot_qa.approved',
+                   'human.intervention'
+             )
+        ),
+        scoped AS (
+            SELECT ri.*,
+                   COALESCE(NULLIF(ri.workflow, ''), r.workflow, '') AS resolved_workflow,
+                   COALESCE(NULLIF(ri.workspace_id, ''), r.workspace_id, '') AS resolved_workspace_id,
+                   COALESCE(NULLIF(ri.ip_id, ''), r.ip_id, '') AS resolved_ip_id
+              FROM raw_interventions ri
+              LEFT JOIN workflow_runs r ON r.id = (
+                   SELECT rr.id
+                     FROM workflow_runs rr
+                    WHERE rr.session_id = ri.session_id
+                      AND (rr.started_at IS NULL OR ri.created_at >= rr.started_at)
+                      AND (rr.ended_at IS NULL OR ri.created_at <= rr.ended_at)
+                    ORDER BY rr.started_at DESC, rr.created_at DESC
+                    LIMIT 1
+              )
+        )
+        SELECT sc.session_id, s.user_id, COALESCE(ua.username, u.username) AS username,
+               s.project_id, s.directory, s.title,
+               sc.resolved_workflow AS workflow,
+               w.name AS workspace_name, w.local_path AS workspace_path,
+               i.ip_name,
+               COUNT(*) AS intervention_count,
+               SUM(CASE WHEN sc.source = 'message.user' THEN 1 ELSE 0 END) AS user_messages,
+               SUM(CASE WHEN sc.source = 'chat_message' THEN 1 ELSE 0 END) AS chat_messages,
+               SUM(CASE WHEN sc.source = 'ask_user.answered' THEN 1 ELSE 0 END)
+                   AS ask_user_answers,
+               SUM(CASE WHEN sc.source LIKE 'ssot_qa.%' THEN 1 ELSE 0 END) AS ssot_qa_answers,
+               SUM(CASE WHEN sc.source = 'human.intervention' THEN 1 ELSE 0 END)
+                   AS explicit_human_events,
+               MIN(sc.created_at) AS first_intervention_at,
+               MAX(sc.created_at) AS last_intervention_at
+          FROM scoped sc
+          LEFT JOIN sessions s ON s.id = sc.session_id
+          LEFT JOIN users u ON u.id = s.user_id
+          LEFT JOIN users ua ON ua.id = sc.actor_user_id
+          LEFT JOIN workspaces w ON w.id = sc.resolved_workspace_id
+          LEFT JOIN ip_blocks i ON i.id = sc.resolved_ip_id
+         GROUP BY sc.session_id, s.user_id, COALESCE(ua.username, u.username),
+                  s.project_id, s.directory, s.title, sc.resolved_workflow,
+                  w.name, w.local_path, i.ip_name
+         ORDER BY intervention_count DESC, last_intervention_at DESC
+        """
+    )]
 
     models_by_user: dict[str, list[dict[str, Any]]] = {}
     for row in models_rows:
@@ -424,6 +540,47 @@ def build_admin_usage_payload(db) -> dict[str, Any]:
             "created_at": row.get("created_at"),
         })
 
+    tool_usage = []
+    for row in tool_rows:
+        context = _cost_context(row)
+        timed_calls = int(row.get("timed_calls") or 0)
+        latency_ms = float(row.get("latency_ms") or 0)
+        tool_usage.append({
+            **context,
+            "session_id": row.get("session_id") or "",
+            "user_id": row.get("user_id") or "",
+            "username": row.get("username") or "unknown",
+            "workflow": row.get("workflow") or "",
+            "tool_name": row.get("tool_name") or "",
+            "calls": row.get("calls") or 0,
+            "failed_calls": row.get("failed_calls") or 0,
+            "observation_chars": row.get("observation_chars") or 0,
+            "observation_tokens_est": row.get("observation_tokens_est") or 0,
+            "input_chars": row.get("input_chars") or 0,
+            "latency_ms": latency_ms,
+            "avg_latency_ms": (latency_ms / timed_calls) if timed_calls else None,
+            "last_tool_at": row.get("last_tool_at"),
+        })
+
+    interventions = []
+    for row in intervention_rows:
+        context = _cost_context(row)
+        interventions.append({
+            **context,
+            "session_id": row.get("session_id") or "",
+            "user_id": row.get("user_id") or "",
+            "username": row.get("username") or "unknown",
+            "workflow": row.get("workflow") or "",
+            "intervention_count": row.get("intervention_count") or 0,
+            "user_messages": row.get("user_messages") or 0,
+            "chat_messages": row.get("chat_messages") or 0,
+            "ask_user_answers": row.get("ask_user_answers") or 0,
+            "ssot_qa_answers": row.get("ssot_qa_answers") or 0,
+            "explicit_human_events": row.get("explicit_human_events") or 0,
+            "first_intervention_at": row.get("first_intervention_at"),
+            "last_intervention_at": row.get("last_intervention_at"),
+        })
+
     return {
         "users": totals,
         "cost_by_context": cost_by_context,
@@ -431,5 +588,7 @@ def build_admin_usage_payload(db) -> dict[str, Any]:
         "todo_usage": todo_usage,
         "todo_flow": todo_flow,
         "trace_events": trace_events,
+        "tool_usage": tool_usage,
+        "interventions": interventions,
         "generated_at": time.time(),
     }

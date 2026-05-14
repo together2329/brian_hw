@@ -7,6 +7,8 @@ function AdminPage() {
   const [todoUsage, setTodoUsage] = React.useState([]);
   const [todoFlow, setTodoFlow] = React.useState([]);
   const [traceEvents, setTraceEvents] = React.useState([]);
+  const [toolUsage, setToolUsage] = React.useState([]);
+  const [interventions, setInterventions] = React.useState([]);
   const [feedback, setFeedback] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
@@ -63,6 +65,8 @@ function AdminPage() {
       setTodoUsage(usageData.todo_usage || []);
       setTodoFlow(usageData.todo_flow || []);
       setTraceEvents(usageData.trace_events || []);
+      setToolUsage(usageData.tool_usage || []);
+      setInterventions(usageData.interventions || []);
       setFeedback(fbData.feedback || []);
     } catch (e) {
       setError(String(e));
@@ -321,6 +325,12 @@ function AdminPage() {
               </button>
               <button style={tabStyle(activeTab === 'trace')} onClick={() => setActiveTab('trace')}>
                 Trace ({traceEvents.length})
+              </button>
+              <button style={tabStyle(activeTab === 'tools')} onClick={() => setActiveTab('tools')}>
+                Tools ({toolUsage.length})
+              </button>
+              <button style={tabStyle(activeTab === 'human')} onClick={() => setActiveTab('human')}>
+                Human ({interventions.length})
               </button>
               <button style={tabStyle(activeTab === 'feedback')} onClick={() => setActiveTab('feedback')}>
                 Feedback ({feedback.filter(f => f.status !== 'resolved').length}/{feedback.length})
@@ -753,6 +763,98 @@ function AdminPage() {
                           <td style={{ ...tdStyle, maxWidth: 360, whiteSpace: 'normal', wordBreak: 'break-word' }}>
                             {payloadText(row.payload)}
                           </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {activeTab === 'tools' && (
+              <div style={tableWrapStyle}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr>
+                      <th style={thStyle}>Tool</th>
+                      <th style={thStyle}>Calls</th>
+                      <th style={thStyle}>Failures</th>
+                      <th style={thStyle}>Obs Tokens (est)</th>
+                      <th style={thStyle}>Obs Chars</th>
+                      <th style={thStyle}>Avg Latency</th>
+                      <th style={thStyle}>IP</th>
+                      <th style={thStyle}>Workspace</th>
+                      <th style={thStyle}>Workflow</th>
+                      <th style={thStyle}>Session</th>
+                      <th style={thStyle}>User</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {toolUsage.length === 0 ? (
+                      <tr>
+                        <td colSpan={11} style={{ ...tdStyle, ...emptyStateStyle }}>No tool usage data yet.</td>
+                      </tr>
+                    ) : (
+                      toolUsage.map((row) => (
+                        <tr key={`${row.session_id}-${row.ip}-${row.workflow}-${row.tool_name}`}>
+                          <td style={tdStyle}>{row.tool_name || '—'}</td>
+                          <td style={tdStyle}>{fmt(row.calls)}</td>
+                          <td style={tdStyle}>{fmt(row.failed_calls)}</td>
+                          <td style={tdStyle}>{fmt(row.observation_tokens_est)}</td>
+                          <td style={tdStyle}>{fmt(row.observation_chars)}</td>
+                          <td style={tdStyle}>
+                            {row.avg_latency_ms == null ? '—' : `${Number(row.avg_latency_ms).toFixed(0)} ms`}
+                          </td>
+                          <td style={tdStyle}>{row.ip || 'unknown'}</td>
+                          <td style={tdStyle}>{row.workspace || 'default'}</td>
+                          <td style={tdStyle}>{row.workflow || '—'}</td>
+                          <td style={tdStyle} title={row.session_id || ''}>{row.session || shortId(row.session_id)}</td>
+                          <td style={tdStyle}>{row.username || 'unknown'}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {activeTab === 'human' && (
+              <div style={tableWrapStyle}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr>
+                      <th style={thStyle}>User</th>
+                      <th style={thStyle}>Session</th>
+                      <th style={thStyle}>IP</th>
+                      <th style={thStyle}>Workspace</th>
+                      <th style={thStyle}>Workflow</th>
+                      <th style={thStyle}>Total</th>
+                      <th style={thStyle}>Prompts</th>
+                      <th style={thStyle}>Chat</th>
+                      <th style={thStyle}>Ask User</th>
+                      <th style={thStyle}>SSOT QA</th>
+                      <th style={thStyle}>Last</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {interventions.length === 0 ? (
+                      <tr>
+                        <td colSpan={11} style={{ ...tdStyle, ...emptyStateStyle }}>No human intervention data yet.</td>
+                      </tr>
+                    ) : (
+                      interventions.map((row) => (
+                        <tr key={`${row.session_id}-${row.ip}-${row.workflow}-${row.username}`}>
+                          <td style={tdStyle}>{row.username || 'unknown'}</td>
+                          <td style={tdStyle} title={row.session_id || ''}>{row.session || shortId(row.session_id)}</td>
+                          <td style={tdStyle}>{row.ip || 'unknown'}</td>
+                          <td style={tdStyle}>{row.workspace || 'default'}</td>
+                          <td style={tdStyle}>{row.workflow || '—'}</td>
+                          <td style={tdStyle}>{fmt(row.intervention_count)}</td>
+                          <td style={tdStyle}>{fmt(row.user_messages)}</td>
+                          <td style={tdStyle}>{fmt(row.chat_messages)}</td>
+                          <td style={tdStyle}>{fmt(row.ask_user_answers)}</td>
+                          <td style={tdStyle}>{fmt(row.ssot_qa_answers)}</td>
+                          <td style={tdStyle}>{formatDate(row.last_intervention_at)}</td>
                         </tr>
                       ))
                     )}
