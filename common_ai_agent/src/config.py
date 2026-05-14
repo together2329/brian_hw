@@ -293,6 +293,23 @@ def _refresh_runtime_globals():
     g['MODEL_NAME'] = os.getenv("LLM_MODEL_NAME", "gpt-4o-mini")
     g['PRIMARY_MODEL'] = os.getenv("PRIMARY_MODEL", g['MODEL_NAME'])
     g['SECONDARY_MODEL'] = os.getenv("SECONDARY_MODEL", g['MODEL_NAME'])
+    g['CURSOR_AGENT_ENABLE'] = os.getenv("CURSOR_AGENT_ENABLE", "false").lower() == "true"
+    g['CURSOR_AGENT_MODEL'] = os.getenv("CURSOR_AGENT_MODEL", "auto")
+    g['CURSOR_AGENT_YOLO'] = os.getenv("CURSOR_AGENT_YOLO", "false").lower() == "true"
+    g['CURSOR_AGENT_MODE'] = os.getenv("CURSOR_AGENT_MODE", "")
+    g['CURSOR_AGENT_WORKSPACE'] = os.getenv("CURSOR_AGENT_WORKSPACE", "")
+    g['CURSOR_AGENT_ACTIVE_MODE'] = os.getenv("CURSOR_AGENT_ACTIVE_MODE", "false").lower() == "true"
+    g['CLAUDE_CLI_ENABLE'] = os.getenv("CLAUDE_CLI_ENABLE", "false").lower() == "true"
+    g['CLAUDE_CLI_MODEL'] = os.getenv("CLAUDE_CLI_MODEL", "sonnet")
+    g['CLAUDE_CLI_PERMISSION_MODE'] = os.getenv("CLAUDE_CLI_PERMISSION_MODE", "default")
+    g['CLAUDE_CLI_TOOLS'] = os.getenv("CLAUDE_CLI_TOOLS", "")
+    g['CLAUDE_CLI_WORKSPACE'] = os.getenv("CLAUDE_CLI_WORKSPACE", "")
+    g['CLAUDE_CLI_NO_SESSION_PERSISTENCE'] = os.getenv("CLAUDE_CLI_NO_SESSION_PERSISTENCE", "true").lower() in ("true", "1", "yes")
+    g['CLAUDE_CLI_OUTPUT_FORMAT'] = os.getenv("CLAUDE_CLI_OUTPUT_FORMAT", "json").lower()
+    try:
+        g['CLAUDE_CLI_TIMEOUT_SEC'] = int(os.getenv("CLAUDE_CLI_TIMEOUT_SEC", "300"))
+    except ValueError:
+        g['CLAUDE_CLI_TIMEOUT_SEC'] = 300
     # Mirror Azure auto-switch from initial load (config.py:126-134)
     if (os.getenv("LLM_PROVIDER", "openai").lower() == "azure"
             and os.getenv("AZURE_OPENAI_ENDPOINT")):
@@ -308,6 +325,10 @@ def _refresh_runtime_globals():
     g['REASONING_MODE'] = reasoning_mode
     g['REASONING_EFFORT'] = reasoning_mode
     _apply_model_dropdown_selection()
+    if "is_cli_backend_model" in g and is_cli_backend_model(g['MODEL_NAME']):
+        activate_cli_backend(g['MODEL_NAME'])
+    elif g.get('CURSOR_AGENT_ENABLE') or g.get('CLAUDE_CLI_ENABLE'):
+        os.environ["ENABLE_NATIVE_TOOL_CALLS"] = "false"
     for key in ("PDK_ROOT", "PDK_LIB_PATH", "SKY130_PDK_ROOT", "SKY130_LIB",
                 "SKY130_TLEF", "SKY130_LEF", "SKY130_TRACKS", "SKY130_RCX_RULES"):
         g[key] = os.getenv(key, "")
@@ -501,6 +522,9 @@ def set_active_profile(name: str) -> bool:
     """
     ok = _apply_profile(name)
     if ok:
+        _deact_cli = globals().get("deactivate_cli_backends")
+        if callable(_deact_cli):
+            _deact_cli()
         _deact = globals().get("deactivate_opencode_oauth")
         if callable(_deact) and globals().get("USE_OPENCODE_OAUTH"):
             _deact()
@@ -535,10 +559,124 @@ CURSOR_AGENT_WORKSPACE = os.getenv("CURSOR_AGENT_WORKSPACE", "")  # path; empty 
 # Active mode: instructs the primary LLM to delegate most execution to cursor_agent tool
 CURSOR_AGENT_ACTIVE_MODE = os.getenv("CURSOR_AGENT_ACTIVE_MODE", "false").lower() == "true"
 
-# When cursor-agent is the backend, force ReAct text mode so the system prompt
-# includes Action:/Observation: instructions that cursor-agent can follow.
-# cursor-agent does not support receiving an OpenAI-style tools JSON schema.
-if CURSOR_AGENT_ENABLE:
+# ============================================================
+# Claude CLI Backend Configuration
+# ============================================================
+CLAUDE_CLI_ENABLE = os.getenv("CLAUDE_CLI_ENABLE", "false").lower() == "true"
+CLAUDE_CLI_MODEL = os.getenv("CLAUDE_CLI_MODEL", "sonnet")
+CLAUDE_CLI_PERMISSION_MODE = os.getenv("CLAUDE_CLI_PERMISSION_MODE", "default")
+CLAUDE_CLI_TOOLS = os.getenv("CLAUDE_CLI_TOOLS", "")
+CLAUDE_CLI_WORKSPACE = os.getenv("CLAUDE_CLI_WORKSPACE", "")
+CLAUDE_CLI_NO_SESSION_PERSISTENCE = os.getenv("CLAUDE_CLI_NO_SESSION_PERSISTENCE", "true").lower() in ("true", "1", "yes")
+CLAUDE_CLI_OUTPUT_FORMAT = os.getenv("CLAUDE_CLI_OUTPUT_FORMAT", "json").lower()
+try:
+    CLAUDE_CLI_TIMEOUT_SEC = int(os.getenv("CLAUDE_CLI_TIMEOUT_SEC", "300"))
+except ValueError:
+    CLAUDE_CLI_TIMEOUT_SEC = 300
+
+_CLI_BACKEND_ALIASES = {
+    "cursor": "cursor",
+    "cursor-cli": "cursor",
+    "cursor-agent": "cursor",
+    "claude": "claude",
+    "claude-cli": "claude",
+    "claude-code": "claude",
+}
+
+
+def _parse_cli_backend_model(name: str):
+    """Return (backend, optional_model) for CLI backend aliases.
+
+    Supported forms:
+      cursor-cli
+      cursor-cli:<cursor-model>
+      claude-cli
+      claude-cli:<claude-model>
+    """
+    raw = (name or "").strip()
+    if not raw:
+        return None
+    low = raw.lower()
+    if low in _CLI_BACKEND_ALIASES:
+        return (_CLI_BACKEND_ALIASES[low], "")
+    for sep in (":", "/"):
+        head, found, rest = low.partition(sep)
+        if found and head in _CLI_BACKEND_ALIASES:
+            return (_CLI_BACKEND_ALIASES[head], raw.split(sep, 1)[1].strip())
+    return None
+
+
+def is_cli_backend_model(name: str) -> bool:
+    return _parse_cli_backend_model(name) is not None
+
+
+def deactivate_cli_backends() -> None:
+    """Disable subprocess-backed LLM backends when switching back to API models."""
+    global CURSOR_AGENT_ENABLE, CLAUDE_CLI_ENABLE
+    CURSOR_AGENT_ENABLE = False
+    CLAUDE_CLI_ENABLE = False
+    os.environ["CURSOR_AGENT_ENABLE"] = "false"
+    os.environ["CLAUDE_CLI_ENABLE"] = "false"
+
+
+def activate_cli_backend(name: str) -> bool:
+    """Activate cursor-agent or Claude Code as the LLM backend.
+
+    This is intentionally separate from provider profiles: no HTTP BASE_URL/API_KEY
+    is used, and llm_client dispatches through the local CLI process.
+    """
+    parsed = _parse_cli_backend_model(name)
+    if parsed is None:
+        return False
+    backend, requested_model = parsed
+
+    global CURSOR_AGENT_ENABLE, CURSOR_AGENT_MODEL
+    global CLAUDE_CLI_ENABLE, CLAUDE_CLI_MODEL
+    global MODEL_NAME, USE_RESPONSES_API
+
+    _deact_oauth = globals().get("deactivate_opencode_oauth")
+    if callable(_deact_oauth) and globals().get("USE_OPENCODE_OAUTH"):
+        _deact_oauth()
+
+    if backend == "cursor":
+        model = requested_model or os.getenv("CURSOR_AGENT_MODEL", CURSOR_AGENT_MODEL or "auto") or "auto"
+        CURSOR_AGENT_ENABLE = True
+        CLAUDE_CLI_ENABLE = False
+        CURSOR_AGENT_MODEL = model
+        MODEL_NAME = "cursor-cli"
+        os.environ["CURSOR_AGENT_ENABLE"] = "true"
+        os.environ["CLAUDE_CLI_ENABLE"] = "false"
+        os.environ["CURSOR_AGENT_MODEL"] = model
+        os.environ["LLM_ACTIVE_MODEL_NAME"] = f"cursor-cli:{model}"
+    else:
+        model = requested_model or os.getenv("CLAUDE_CLI_MODEL", CLAUDE_CLI_MODEL or "sonnet") or "sonnet"
+        CLAUDE_CLI_ENABLE = True
+        CURSOR_AGENT_ENABLE = False
+        CLAUDE_CLI_MODEL = model
+        MODEL_NAME = "claude-cli"
+        os.environ["CLAUDE_CLI_ENABLE"] = "true"
+        os.environ["CURSOR_AGENT_ENABLE"] = "false"
+        os.environ["CLAUDE_CLI_MODEL"] = model
+        os.environ["LLM_ACTIVE_MODEL_NAME"] = f"claude-cli:{model}"
+
+    USE_RESPONSES_API = False
+    os.environ["USE_RESPONSES_API"] = "false"
+    os.environ["ENABLE_NATIVE_TOOL_CALLS"] = "false"
+    os.environ["LLM_MODEL_NAME"] = MODEL_NAME
+    os.environ["MODEL_NAME"] = MODEL_NAME
+    os.environ["LLM_ACTIVE_BASE_NAME"] = MODEL_NAME
+    os.environ["LLM_ACTIVE_BASE_MODEL"] = MODEL_NAME
+    os.environ.pop("LLM_PROFILE", None)
+    return True
+
+
+# When a CLI backend is active, force ReAct text mode so the system prompt
+# includes Action:/Observation: instructions that subprocess CLIs can follow.
+# CLI subprocess backends do not consume OpenAI-style tool schemas.
+if is_cli_backend_model(MODEL_NAME):
+    activate_cli_backend(MODEL_NAME)
+
+if CURSOR_AGENT_ENABLE or CLAUDE_CLI_ENABLE:
     os.environ["ENABLE_NATIVE_TOOL_CALLS"] = "false"
 
 # ============================================================
@@ -602,6 +740,9 @@ def activate_opencode_oauth(model: str = "") -> bool:
     """
     global API_KEY, BASE_URL, LLM_PROVIDER, MODEL_NAME, USE_OPENCODE_OAUTH
     global OPENCODE_ACCOUNT_ID, USE_RESPONSES_API
+    _deact_cli = globals().get("deactivate_cli_backends")
+    if callable(_deact_cli):
+        _deact_cli()
     try:
         from src.opencode_backend import get_credentials, CODEX_BASE_URL
     except Exception as e:
@@ -664,7 +805,7 @@ def is_opencode_model(name: str) -> bool:
     return n.startswith("gpt-5") or ("gpt" in n and "codex" in n)
 
 
-if USE_OPENCODE_OAUTH:
+if USE_OPENCODE_OAUTH and not (CURSOR_AGENT_ENABLE or CLAUDE_CLI_ENABLE):
     if not activate_opencode_oauth():
         USE_OPENCODE_OAUTH = False
 

@@ -2816,17 +2816,23 @@ class SlashCommandRegistry:
             except Exception:
                 _current_display = _config.MODEL_NAME
 
-            # When cursor-agent is active, show backend info and skip 1/2 markers
-            if getattr(_config, "CURSOR_AGENT_ENABLE", False):
+            # When a CLI backend is active, show backend info and skip 1/2 markers.
+            if getattr(_config, "CURSOR_AGENT_ENABLE", False) or getattr(_config, "CLAUDE_CLI_ENABLE", False):
+                if getattr(_config, "CURSOR_AGENT_ENABLE", False):
+                    _backend = "cursor-agent"
+                    _detail = getattr(_config, "CURSOR_AGENT_MODEL", "auto")
+                else:
+                    _backend = "claude-cli"
+                    _detail = getattr(_config, "CLAUDE_CLI_MODEL", "sonnet")
                 lines = [
                     f"Current model: {_current_display}",
-                    f"  Backend: cursor-agent (CURSOR_AGENT_ENABLE=true)",
-                    f"  Model:   {getattr(_config, 'CURSOR_AGENT_MODEL', 'auto')}",
+                    f"  Backend: {_backend}",
+                    f"  Model:   {_detail}",
                     f"",
-                    f"  API models (inactive while cursor-agent is enabled):",
+                    f"  API models (inactive while CLI backend is enabled):",
                     f"  1: {_config.PRIMARY_MODEL}",
                     f"  2: {_config.SECONDARY_MODEL}",
-                    f"  usage: /model 1|2|<model-name>  (sets CURSOR_AGENT_MODEL when backend active)",
+                    f"  usage: /model cursor-cli | claude-cli | 1 | 2 | <profile>",
                 ]
                 return "\n".join(lines)
 
@@ -2864,7 +2870,11 @@ class SlashCommandRegistry:
                 _row("gpt"),
                 _row("kimi"),
                 "",
-                "  usage: /model deepseek | glm | gpt | kimi",
+                "CLI backends:",
+                f"  {'cursor-cli':<10s} → cursor-agent ({getattr(_config, 'CURSOR_AGENT_MODEL', 'auto')})",
+                f"  {'claude-cli':<10s} → claude ({getattr(_config, 'CLAUDE_CLI_MODEL', 'sonnet')})",
+                "",
+                "  usage: /model deepseek | glm | gpt | kimi | cursor-cli | claude-cli",
             ]
             return "\n".join(lines)
         if name == "1":
@@ -2879,6 +2889,11 @@ class SlashCommandRegistry:
             _profiles = []
         if name in _profiles:
             return f"MODEL_SWITCH:profile:{name}"
+        try:
+            if _config.is_cli_backend_model(name):
+                return f"MODEL_SWITCH:cli:{name}"
+        except Exception:
+            pass
         # Aliases for opencode-OAuth (gpt-5.x via ChatGPT credential, no API key).
         # `/model gpt` → gpt-5.5; `/model gpt-5.5` / `/model gpt-5.4` → that model.
         _alias_map = {"gpt": "gpt-5.5", "openai": "gpt-5.5", "codex": "gpt-5.5"}
@@ -2895,6 +2910,7 @@ class SlashCommandRegistry:
         return ("\n".join([
             f"❌ Unknown model/profile: '{name}'",
             f"  Profiles (atomic switch): {_hint_profiles}",
+            f"  CLI backends:              cursor-cli, claude-cli",
             f"  Opencode-OAuth aliases:   gpt, openai, codex  → gpt-5.5",
             f"  Opencode-OAuth direct:    gpt-5.5, gpt-5.4, gpt-5.4-mini, ...",
             f"  Quick:                    /model 1  /model 2",

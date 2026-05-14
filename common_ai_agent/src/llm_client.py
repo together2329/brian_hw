@@ -48,9 +48,9 @@ last_output_tokens = 0  # Last reported output tokens from API
 def get_active_model() -> str:
     """Return the display name for the currently active LLM backend.
 
-    When cursor-agent is enabled, returns "Cursor (<model>)" where <model>
-    is the human-readable label from cursor-agent's init event (e.g. "Auto",
-    "Sonnet 4.6 1M"). Falls back to config.MODEL_NAME for the normal path.
+    When a CLI backend is enabled, returns a backend-specific label such as
+    "Cursor (Auto)" or "Claude CLI (claude-sonnet-4-6)". Falls back to
+    config.MODEL_NAME for the normal path.
 
     Also calls config.reload_env() so a .env edit (model swap, profile
     change) takes effect without restarting the process — the UI sidebar
@@ -68,6 +68,13 @@ def get_active_model() -> str:
         except Exception:
             label = getattr(config, "CURSOR_AGENT_MODEL", "auto")
         return f"Cursor ({label})"
+    if getattr(config, "CLAUDE_CLI_ENABLE", False):
+        try:
+            from src.claude_cli_backend import last_claude_model
+            label = last_claude_model or getattr(config, "CLAUDE_CLI_MODEL", "sonnet")
+        except Exception:
+            label = getattr(config, "CLAUDE_CLI_MODEL", "sonnet")
+        return f"Claude CLI ({label})"
     return config.MODEL_NAME
 
 
@@ -3253,6 +3260,19 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             workspace=getattr(config, "CURSOR_AGENT_WORKSPACE", ""),
         )
         return
+    if getattr(config, "CLAUDE_CLI_ENABLE", False):
+        from src.claude_cli_backend import claude_cli_stream
+        yield from claude_cli_stream(
+            messages=messages,
+            model=getattr(config, "CLAUDE_CLI_MODEL", "sonnet"),
+            permission_mode=getattr(config, "CLAUDE_CLI_PERMISSION_MODE", "default"),
+            tools=getattr(config, "CLAUDE_CLI_TOOLS", ""),
+            workspace=getattr(config, "CLAUDE_CLI_WORKSPACE", ""),
+            no_session_persistence=getattr(config, "CLAUDE_CLI_NO_SESSION_PERSISTENCE", True),
+            output_format=getattr(config, "CLAUDE_CLI_OUTPUT_FORMAT", "json"),
+            timeout_sec=getattr(config, "CLAUDE_CLI_TIMEOUT_SEC", 300),
+        )
+        return
 
     _t_fn_start = time.time()  # track pre-connect setup time
 
@@ -4315,6 +4335,20 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
             yolo=getattr(config, "CURSOR_AGENT_YOLO", False),
             mode=getattr(config, "CURSOR_AGENT_MODE", ""),
             workspace=getattr(config, "CURSOR_AGENT_WORKSPACE", ""),
+            stream_prefix=stream_prefix,
+        )
+    if getattr(config, "CLAUDE_CLI_ENABLE", False):
+        from src.claude_cli_backend import claude_cli_call
+        msgs = messages if messages else [{"role": "user", "content": prompt}]
+        return claude_cli_call(
+            messages=msgs,
+            model=getattr(config, "CLAUDE_CLI_MODEL", "sonnet"),
+            permission_mode=getattr(config, "CLAUDE_CLI_PERMISSION_MODE", "default"),
+            tools=getattr(config, "CLAUDE_CLI_TOOLS", ""),
+            workspace=getattr(config, "CLAUDE_CLI_WORKSPACE", ""),
+            no_session_persistence=getattr(config, "CLAUDE_CLI_NO_SESSION_PERSISTENCE", True),
+            output_format=getattr(config, "CLAUDE_CLI_OUTPUT_FORMAT", "json"),
+            timeout_sec=getattr(config, "CLAUDE_CLI_TIMEOUT_SEC", 300),
             stream_prefix=stream_prefix,
         )
 

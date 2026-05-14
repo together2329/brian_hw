@@ -89,9 +89,10 @@
        (see index.html for full context). -->
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
 
-  <script type="text/babel" data-presets="react" src="admin.jsx?v=atlas-multiuser"></script>
+  <!-- Admin is precompiled so browser smoke tests and operators do not see
+       Babel standalone's large-inline-script warnings in the console. -->
+  <script src="admin.bundle.js?v=atlas-admin-precompiled"></script>
 
   <script>
     function scale() {

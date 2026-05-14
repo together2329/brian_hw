@@ -1404,8 +1404,13 @@ def chat_loop():
         from src.llm_client import get_active_model
         _rl = get_rate_limiter()
         _rl_info = f"TPM={config.TPM_LIMIT} RPM={config.RPM_LIMIT}" if _rl.active else f"delay={config.RATE_LIMIT_DELAY}s"
+        _backend_url = config.BASE_URL
+        if getattr(config, "CURSOR_AGENT_ENABLE", False):
+            _backend_url = "cursor-agent"
+        elif getattr(config, "CLAUDE_CLI_ENABLE", False):
+            _backend_url = "claude-cli"
         print(format_startup_banner(
-            base_url=config.BASE_URL if not getattr(config, "CURSOR_AGENT_ENABLE", False) else "cursor-agent",
+            base_url=_backend_url,
             model=get_active_model(),
             features={
                 'rate_limit': _rl_info,
@@ -2450,6 +2455,14 @@ def chat_loop():
                                 print(Color.warning(
                                     f"\n⚠ Profile '{_pname}' not defined "
                                     f"(no PROFILE_{_pname}_MODEL in .env)\n"))
+                        elif target.startswith("cli:"):
+                            _cli_name = target.split(":", 1)[1]
+                            if config.activate_cli_backend(_cli_name):
+                                from src.llm_client import get_active_model as _get_active_model
+                                print(Color.success(
+                                    f"\n✅ CLI backend active → {_get_active_model()}\n"))
+                            else:
+                                print(Color.error(f"\n❌ Unknown CLI backend: {_cli_name}\n"))
                         elif target.startswith("opencode:"):
                             # /model gpt | /model gpt-5.5 — route to ChatGPT OAuth.
                             # activate_opencode_oauth swaps BASE_URL → Codex,
@@ -2466,6 +2479,9 @@ def chat_loop():
                                     f"   Run: python -m src.opencode_backend login\n"))
                         else:
                             # Bare model name override (no provider switch)
+                            _deact_cli = getattr(config, "deactivate_cli_backends", None)
+                            if callable(_deact_cli):
+                                _deact_cli()
                             config.MODEL_NAME = target
                             os.environ["LLM_MODEL_NAME"] = config.MODEL_NAME
                             os.environ["MODEL_NAME"] = config.MODEL_NAME
@@ -2793,7 +2809,8 @@ if __name__ == "__main__":
     _parser.add_argument('--model', type=str, default='',
                          help='Active LLM profile or bare model name. Profiles '
                               '(PROFILE_<name>_BASE_URL/API_KEY/MODEL in .env) switch '
-                              'all three at once; bare names only override LLM_MODEL_NAME.')
+                              'all three at once; cursor-cli/claude-cli use local CLI backends; '
+                              'bare names only override LLM_MODEL_NAME.')
     _parser.add_argument('--headless', action='store_true',
                          help='Run the chat loop without interactive prompts: max-iterations '
                               'auto-stops instead of prompting (y/n), EOFError on stdin is a '
@@ -2815,6 +2832,10 @@ if __name__ == "__main__":
             print(Color.success(
                 f"[--model] profile '{_m}' active "
                 f"→ {config.MODEL_NAME} @ {config.BASE_URL}"))
+        elif config.activate_cli_backend(_m):
+            from src.llm_client import get_active_model as _get_active_model
+            print(Color.success(
+                f"[--model] CLI backend active → {_get_active_model()}"))
         elif config.is_opencode_model(_m):
             # gpt-5* / *codex* → ChatGPT OAuth via opencode auth.json.
             # Strip any provider prefix ("openai/gpt-5.5" → "gpt-5.5").
@@ -2830,6 +2851,9 @@ if __name__ == "__main__":
                     f"Run: python -m src.opencode_backend login"))
         else:
             # Not a known profile and not gpt-5* — bare name override.
+            _deact_cli = getattr(config, "deactivate_cli_backends", None)
+            if callable(_deact_cli):
+                _deact_cli()
             config.MODEL_NAME = _m
             os.environ['LLM_MODEL_NAME'] = _m
             os.environ['MODEL_NAME'] = _m

@@ -54,10 +54,18 @@ def test_admin_dashboard_is_open_without_login(tmp_path, monkeypatch):
     page = client.get("/admin")
     assert page.status_code == 200, page.text
     assert "ATLAS Admin" in page.text
+    assert "@babel/standalone" not in page.text
+    assert 'type="text/babel"' not in page.text
+    assert "admin.bundle.js" in page.text
 
     users = client.get("/api/admin/users")
     assert users.status_code == 200, users.text
     assert users.json()["users"] == []
+
+    bundle = client.get("/admin.bundle.js")
+    assert bundle.status_code == 200, bundle.text[:200]
+    assert "window.AdminPage = AdminPage" in bundle.text
+    assert "React.createElement" in bundle.text
 
 
 def test_existing_admin_username_cookie_is_promoted(tmp_path, monkeypatch):

@@ -253,7 +253,8 @@ if __name__ == "__main__":
     _parser.add_argument('--model', type=str, default='',
                          help='Active LLM profile or bare model name. Profiles '
                               '(PROFILE_<name>_BASE_URL/API_KEY/MODEL in .env) switch '
-                              'all three at once; bare names only override LLM_MODEL_NAME. '
+                              'all three at once; cursor-cli/claude-cli use local CLI backends; '
+                              'bare names only override LLM_MODEL_NAME. '
                               'gpt-5* names trigger ChatGPT OAuth (opencode_backend).')
     _parser.add_argument('--effort', default='',
                         help='Responses API reasoning effort: none|low|medium|high|xhigh')
@@ -277,6 +278,9 @@ if __name__ == "__main__":
         if config.set_active_profile(_m):
             print(f"[--model] profile '{_m}' active "
                   f"→ {config.MODEL_NAME} @ {config.BASE_URL}")
+        elif config.activate_cli_backend(_m):
+            from src.llm_client import get_active_model as _get_active_model
+            print(f"[--model] CLI backend active → {_get_active_model()}")
         elif config.is_opencode_model(_m):
             _bare = _m.split("/", 1)[-1]
             if config.activate_opencode_oauth(_bare):
@@ -287,6 +291,9 @@ if __name__ == "__main__":
                       f"no opencode credential is available. "
                       f"Run: python -m src.opencode_backend login")
         else:
+            _deact_cli = getattr(config, "deactivate_cli_backends", None)
+            if callable(_deact_cli):
+                _deact_cli()
             config.MODEL_NAME = _m
             os.environ['LLM_MODEL_NAME'] = _m
             os.environ['MODEL_NAME'] = _m

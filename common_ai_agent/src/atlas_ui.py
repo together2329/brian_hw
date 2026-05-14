@@ -277,6 +277,7 @@ def _model_option_rows(active_model: str = "") -> list[dict[str, str]]:
 
 
 def _set_runtime_model(model: str, selected_key: str = "") -> None:
+    activated_cli = False
     os.environ["LLM_MODEL_NAME"] = model
     os.environ["MODEL_NAME"] = model
     os.environ["LLM_ACTIVE_MODEL_NAME"] = model
@@ -287,7 +288,18 @@ def _set_runtime_model(model: str, selected_key: str = "") -> None:
     for mod_name in ("src.config", "config"):
         mod = sys.modules.get(mod_name)
         if mod is not None:
+            try:
+                if callable(getattr(mod, "activate_cli_backend", None)) and mod.activate_cli_backend(model):
+                    activated_cli = True
+                    continue
+                if callable(getattr(mod, "deactivate_cli_backends", None)):
+                    mod.deactivate_cli_backends()
+            except Exception:
+                pass
             setattr(mod, "MODEL_NAME", model)
+    if activated_cli:
+        os.environ["LLM_MODEL_NAME"] = model
+        os.environ["MODEL_NAME"] = model
 
 
 def _apply_selected_model_from_env() -> str:
@@ -940,7 +952,12 @@ def create_app():
             # which made the ATLAS sidebar look like it was calling the wrong
             # backend even though dispatch was already using MODEL_NAME.
             info["base_model"] = model or getattr(_cfg, "MODEL_NAME", "")
-            info["base_url"] = getattr(_cfg, "BASE_URL", "")
+            if getattr(_cfg, "CURSOR_AGENT_ENABLE", False):
+                info["base_url"] = "cursor-agent"
+            elif getattr(_cfg, "CLAUDE_CLI_ENABLE", False):
+                info["base_url"] = "claude-cli"
+            else:
+                info["base_url"] = getattr(_cfg, "BASE_URL", "")
             info["provider"] = getattr(_cfg, "LLM_PROVIDER", "")
             info["max_context"] = getattr(_cfg, "MAX_CONTEXT_TOKENS", 0)
             info["max_iterations"] = getattr(_cfg, "MAX_ITERATIONS", 0)
@@ -5879,6 +5896,17 @@ def create_app():
                 f"Profile '{profile}' active -> "
                 f"{getattr(_cfg_model, 'MODEL_NAME', '')} @ {getattr(_cfg_model, 'BASE_URL', '')}"
             )
+        elif target.startswith("cli:"):
+            backend = target.split(":", 1)[1]
+            if not _cfg_model.activate_cli_backend(backend):
+                return f"CLI backend '{backend}' is not available."
+            _set_runtime_model(str(getattr(_cfg_model, "MODEL_NAME", "") or backend))
+            try:
+                from src.llm_client import get_active_model as _get_active_model
+                label = _get_active_model()
+            except Exception:
+                label = backend
+            msg = f"CLI backend active -> {label}"
         elif target.startswith("opencode:"):
             model = target.split(":", 1)[1]
             if not _cfg_model.activate_opencode_oauth(model):
