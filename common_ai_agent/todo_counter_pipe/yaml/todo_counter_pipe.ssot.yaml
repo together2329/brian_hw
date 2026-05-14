@@ -21,7 +21,6 @@ decomposition:
     - { id: "apb_decode", kind: "control", source_refs: ["registers.register_list", "io_list.interfaces.apb_slave"], rtl_candidates: ["todo_counter_pipe_regs"], verification_impact: ["test_requirements.scenarios"] }
     - { id: "counter_datapath", kind: "datapath", source_refs: ["function_model.transactions", "cycle_model.pipeline"], rtl_candidates: ["todo_counter_pipe_core"], verification_impact: ["coverage_goals.function"] }
     - { id: "cdc_sync", kind: "structural", source_refs: ["cdc_requirements", "clock_reset_domains"], rtl_candidates: ["todo_counter_pipe_cdc"], verification_impact: [] }
-decomposition: TBD
 rtl_contract:
   transaction: "FM1-FM10"
   sample_condition: "event_i rising edge on core_clk when enable=1, or APB write to CTRL.clear/load, or APB write to INTCLR"
