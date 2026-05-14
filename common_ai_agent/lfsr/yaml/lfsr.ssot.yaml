@@ -132,8 +132,6 @@ function_model:
     - { name: "lfsr_state", source: "internal", reset: "DEFAULT_SEED", description: "Current shift register state (POLY_WIDTH bits)" }
     - { name: "enabled", source: "registers.CTRL.enable", reset: 0, description: "Shift enable flag" }
     - { name: "tap_mask", source: "registers.TAPS", reset: "DEFAULT_TAPS", description: "Active polynomial tap bitmask" }
-  output_rules:
-    - { name: "lfsr_out", expr: "next_lfsr_state after shift or current seed after load", width: "POLY_WIDTH", port: "lfsr_out", description: "PRBS parallel output word (registered)" }
   state_updates:
     - { name: "lfsr_state", reset: "DEFAULT_SEED", expr: "if load_seed: SEED; elif enabled: {feedback_bit, lfsr_state[POLY_WIDTH-1:1]} where feedback_bit = XOR_reduce(lfsr_state[POLY_WIDTH-1:0] & tap_mask[POLY_WIDTH-1:0]); else: lfsr_state (hold)" }
     - { name: "enabled", reset: 0, expr: "CTRL.enable bit value (APB-writable)" }
@@ -148,6 +146,8 @@ function_model:
       inputs:
         - "current lfsr_state"
         - "tap_mask"
+      output_rules:
+        - { name: "lfsr_out", expr: "{feedback_bit, lfsr_state[POLY_WIDTH-1:1]} where feedback_bit = XOR_reduce(lfsr_state[POLY_WIDTH-1:0] & tap_mask[POLY_WIDTH-1:0])", width: "POLY_WIDTH", port: "lfsr_out", description: "Shifted LFSR state with feedback" }
       outputs:
         - "lfsr_out = shifted lfsr_state with feedback bit as computed by state_updates"
       side_effects:
@@ -160,6 +160,8 @@ function_model:
         - "CTRL.load_seed == 1"
       inputs:
         - "SEED register value"
+      output_rules:
+        - { name: "lfsr_out", expr: "SEED", width: "POLY_WIDTH", port: "lfsr_out", description: "Seed value output on load" }
       outputs:
         - "lfsr_out = SEED (on next output edge)"
       side_effects:
@@ -171,6 +173,8 @@ function_model:
       preconditions:
         - "enabled == 0 and load_seed == 0"
       inputs: []
+      output_rules:
+        - { name: "lfsr_out", expr: "lfsr_state (hold)", width: "POLY_WIDTH", port: "lfsr_out", description: "Held LFSR output (no change)" }
       outputs:
         - "lfsr_out hold previous value"
       side_effects:

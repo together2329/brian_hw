@@ -200,6 +200,10 @@ function_model:
       inputs:
         - "data_i (DATA_WIDTH bits)"
         - "CTRL.parity_type"
+      outputs:
+        - "parity_o = XOR_reduce(data_i) ^ parity_type"
+        - "parity_valid_o = 1"
+        - "error_o = 0"
       output_rules:
         - { name: "parity_o",       expr: "XOR_reduce(data_i) ^ parity_type", width: "PARITY_WIDTH", port: "parity_o" }
         - { name: "parity_valid_o", expr: "1",                                width: 1,              port: "parity_valid_o" }

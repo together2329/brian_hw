@@ -633,6 +633,9 @@ quality_gates:
   coverage:
     pass: "SSOT-declared function/cycle/line/branch coverage goals met or waived"
     evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+  dv:
+    pass: "All test_requirements.scenarios executed; scoreboard checks pass; all coverage bins hit"
+    evidence: ["sim/results.xml", "cov/coverage.json"]
   eda:
     pass: "Synthesis and STA meet SSOT timing/area targets"
     evidence: ["syn report", "sta reports"]

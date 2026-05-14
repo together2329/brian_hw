@@ -1,5 +1,38 @@
 # uart_lite_real.ssot.yaml — Single Source of Truth
-top_module:
-  name: uart_lite_real
-  type: "<TBD>"  # TBD
-  description: "<TBD>"  # TBD
+# Phase 1 skeleton — all sections TBD pending user requirements
+top_module: TBD
+sub_modules: TBD
+decomposition: TBD
+parameters: TBD
+io_list: TBD
+features: TBD
+dataflow: TBD
+function_model: TBD
+cycle_model: TBD
+clock_reset_domains: TBD
+cdc_requirements: TBD
+rdc_requirements: TBD
+registers: TBD
+memory: TBD
+interrupts: TBD
+fsm: TBD
+rtl_contract: TBD
+timing: TBD
+power: TBD
+security: TBD
+error_handling: TBD
+debug_observability: TBD
+integration: TBD
+dft: TBD
+synthesis: TBD
+pnr: TBD
+coding_rules: TBD
+reuse_modules: TBD
+custom: TBD
+dir_structure: TBD
+filelist: TBD
+test_requirements: TBD
+quality_gates: TBD
+traceability: TBD
+workflow_todos: TBD
+generation_flow: TBD
