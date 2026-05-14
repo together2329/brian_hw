@@ -1,0 +1,1764 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 30,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/spi.sv",
+      "name": "spi",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/spi_regs.sv",
+        "name": "spi_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_fifo.sv",
+        "name": "spi_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_clkgen.sv",
+        "name": "spi_clkgen",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_shift.sv",
+        "name": "spi_shift",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_int.sv",
+        "name": "spi_int",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi.sv",
+        "name": "spi",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "spi_shift",
+        "port": "start_req",
+        "signal": "start_req",
+        "signal_terms": [
+          "start_req"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "spi_shift",
+        "port": "ctrl_cfg",
+        "signal": "ctrl_cfg",
+        "signal_terms": [
+          "ctrl_cfg"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "spi_shift",
+        "port": "tx_word",
+        "signal": "tx_word",
+        "signal_terms": [
+          "tx_word"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "spi_fifo",
+        "port": "rx_push_data",
+        "signal": "rx_word",
+        "signal_terms": [
+          "rx_word"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "spi",
+        "port": "irq_o",
+        "signal": "irq_o",
+        "signal_terms": [
+          "irq_o"
+        ],
+        "source_ref": "integration.connections[4]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "PCLK"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PCLK",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PRESETn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PRESETn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PADDR",
+          "apb_slave_PADDR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PADDR",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "12"
+      },
+      {
+        "aliases": [
+          "PSEL",
+          "apb_slave_PSEL"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSEL",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PENABLE",
+          "apb_slave_PENABLE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PENABLE",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWRITE",
+          "apb_slave_PWRITE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWRITE",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWDATA",
+          "apb_slave_PWDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWDATA",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PSTRB",
+          "apb_slave_PSTRB"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSTRB",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "PRDATA",
+          "apb_slave_PRDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PRDATA",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PREADY",
+          "apb_slave_PREADY"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PREADY",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PSLVERR",
+          "apb_slave_PSLVERR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PSLVERR",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sclk_o",
+          "spi_master_sclk_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sclk_o",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "mosi_o",
+          "spi_master_mosi_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "mosi_o",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "miso_i",
+          "spi_master_miso_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "miso_i",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "csn_o",
+          "spi_master_csn_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "csn_o",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "irq_irq_o",
+          "irq_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "irq_o",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "1"
+      }
+    ],
+    "target_scale": {
+      "basis": "spi peripheral complexity",
+      "min_behavior_owner_logic_modules": 3,
+      "min_depth_score": 40,
+      "min_logic_modules": 4,
+      "min_modules": 6,
+      "min_procedural_blocks": 20,
+      "min_source_files": 6,
+      "min_state_updates": 25,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 29,
+    "open_required_count": 29,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "spi",
+  "kind": "module",
+  "owner_file": "rtl/spi.sv",
+  "owner_module": "spi",
+  "packet_id": "module__spi",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "dft.scan": 2,
+      "dft.test_points": 1,
+      "equivalence.module": 1,
+      "integration.connections": 5,
+      "integration.dependencies": 1,
+      "rtl_flow.seed": 1,
+      "rtl_flow.top": 1,
+      "security.assets": 3,
+      "synthesis.constraints": 2,
+      "synthesis.ppa_targets": 3,
+      "test_requirements.scenario": 10
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 30,
+      "task_limit": 48
+    },
+    "open_required_count": 29,
+    "required_count": 30,
+    "source_refs": [
+      "top_module",
+      "io_list",
+      "security.assets.asset_0",
+      "security.assets.asset_1",
+      "security.assets.asset_2",
+      "integration.dependencies.dependencie_0",
+      "integration.connections.start_req",
+      "integration.connections.ctrl_cfg",
+      "integration.connections.tx_word",
+      "integration.connections.rx_word",
+      "integration.connections.irq_o",
+      "dft.scan.strategy",
+      "dft.scan.assumptions",
+      "dft.test_points.test_point_0",
+      "synthesis.constraints.constraint_0",
+      "synthesis.constraints.constraint_1",
+      "synthesis.ppa_targets.fmax_mhz",
+      "synthesis.ppa_targets.area_priority",
+      "synthesis.ppa_targets.power_priority",
+      "sub_modules.spi.module_equivalence",
+      "test_requirements.scenarios.SC_APB_CONFIG",
+      "test_requirements.scenarios.SC_BASIC_TRANSFER",
+      "test_requirements.scenarios.SC_CPOL_CPHA_SWEEP",
+      "test_requirements.scenarios.SC_LSB_FIRST"
+    ],
+    "status_counts": {
+      "open": 29,
+      "pass": 1
+    },
+    "task_count": 30
+  },
+  "tasks": [
+    {
+      "category": "rtl_flow.seed",
+      "content": "Read SSOT and build dynamic RTL implementation ledger",
+      "criteria": [
+        "rtl_todo_plan.json was regenerated from the current SSOT",
+        "Every required task in the plan is either implemented, evidenced, or escalated",
+        "No IP-specific fixed template is used as the source of truth",
+        "Traceability keeps source_ref top_module",
+        "Primary implementation evidence is in rtl/spi.sv"
+      ],
+      "detail": "Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.\nSSOT ref: top_module.\nOwner: spi in rtl/spi.sv via top_module.",
+      "evidence_terms": [],
+      "id": "RTL-0001",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "top_module",
+      "ssot_context": {},
+      "ssot_refs": [
+        "top_module"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_flow.top",
+      "content": "Implement top-level ports, reset, and filelist integration",
+      "criteria": [
+        "Top module name matches SSOT top_module",
+        "Every SSOT top-level port appears with matching direction and width",
+        "Filelist contains all LLM-authored RTL sources and no stale sources",
+        "Traceability keeps source_ref io_list",
+        "Primary implementation evidence is in rtl/spi.sv"
+      ],
+      "detail": "The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.\nSSOT ref: io_list.\nOwner: spi in rtl/spi.sv via top_module.\nSSOT item context: value=spi.",
+      "evidence_terms": [],
+      "id": "RTL-0002",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "io_list",
+      "ssot_context": {
+        "value": "spi"
+      },
+      "ssot_refs": [
+        "io_list"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item asset_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.asset_0",
+        "Primary implementation evidence is in rtl/spi.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.asset_0.\nOwner: spi in rtl/spi.sv via security.\nSSOT item context: value=Correct APB register access policy.",
+      "evidence_terms": [],
+      "id": "RTL-0226",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.asset_0",
+      "ssot_context": {
+        "value": "Correct APB register access policy"
+      },
+      "ssot_refs": [
+        "security.assets.asset_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item asset_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.asset_1",
+        "Primary implementation evidence is in rtl/spi.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.asset_1.\nOwner: spi in rtl/spi.sv via security.\nSSOT item context: value=Integrity of serialized command/data words.",
+      "evidence_terms": [],
+      "id": "RTL-0227",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.asset_1",
+      "ssot_context": {
+        "value": "Integrity of serialized command/data words"
+      },
+      "ssot_refs": [
+        "security.assets.asset_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item asset_2",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.asset_2",
+        "Primary implementation evidence is in rtl/spi.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.asset_2.\nOwner: spi in rtl/spi.sv via security.\nSSOT item context: value=Integrity of interrupt/error telemetry.",
+      "evidence_terms": [],
+      "id": "RTL-0228",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.asset_2",
+      "ssot_context": {
+        "value": "Integrity of interrupt/error telemetry"
+      },
+      "ssot_refs": [
+        "security.assets.asset_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item dependencie_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.dependencie_0",
+        "Primary implementation evidence is in rtl/spi.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.dependencie_0.\nOwner: spi in rtl/spi.sv via integration.\nSSOT item context: value=External SPI slave device timing is out of scope; this IP only guarantees generated SCLK/MOSI/CS waveform contract..",
+      "evidence_terms": [],
+      "id": "RTL-0229",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.dependencie_0",
+      "ssot_context": {
+        "value": "External SPI slave device timing is out of scope; this IP only guarantees generated SCLK/MOSI/CS waveform contract."
+      },
+      "ssot_refs": [
+        "integration.dependencies.dependencie_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item start_req",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.start_req",
+        "Primary implementation evidence is in rtl/spi.sv",
+        "integration.connections.start_req transition path spi_regs.start_pulse -> spi_shift.start_req is encoded or explicitly proven equivalent"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.start_req.\nOwner: spi in rtl/spi.sv via integration.\nSSOT item context: signal=start_req; from=spi_regs.start_pulse; to=spi_shift.start_req.",
+      "evidence_terms": [
+        "pulse",
+        "regs",
+        "req",
+        "shift",
+        "spi",
+        "spi_regs",
+        "spi_shift",
+        "start",
+        "start_pulse",
+        "start_req"
+      ],
+      "id": "RTL-0230",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.start_req",
+      "ssot_context": {
+        "from": "spi_regs.start_pulse",
+        "signal": "start_req",
+        "to": "spi_shift.start_req"
+      },
+      "ssot_refs": [
+        "integration.connections.start_req"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item ctrl_cfg",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.ctrl_cfg",
+        "Primary implementation evidence is in rtl/spi.sv",
+        "integration.connections.ctrl_cfg transition path spi_regs.ctrl_cfg -> spi_shift.ctrl_cfg is encoded or explicitly proven equivalent"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.ctrl_cfg.\nOwner: spi in rtl/spi.sv via integration.\nSSOT item context: signal=ctrl_cfg; from=spi_regs.ctrl_cfg; to=spi_shift.ctrl_cfg.",
+      "evidence_terms": [
+        "cfg",
+        "ctrl",
+        "ctrl_cfg",
+        "regs",
+        "shift",
+        "spi",
+        "spi_regs",
+        "spi_shift"
+      ],
+      "id": "RTL-0231",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.ctrl_cfg",
+      "ssot_context": {
+        "from": "spi_regs.ctrl_cfg",
+        "signal": "ctrl_cfg",
+        "to": "spi_shift.ctrl_cfg"
+      },
+      "ssot_refs": [
+        "integration.connections.ctrl_cfg"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item tx_word",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.tx_word",
+        "Primary implementation evidence is in rtl/spi.sv",
+        "integration.connections.tx_word transition path spi_fifo.tx_pop_data -> spi_shift.tx_word is encoded or explicitly proven equivalent"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.tx_word.\nOwner: spi in rtl/spi.sv via integration.\nSSOT item context: signal=tx_word; from=spi_fifo.tx_pop_data; to=spi_shift.tx_word.",
+      "evidence_terms": [
+        "data",
+        "fifo",
+        "pop",
+        "shift",
+        "spi",
+        "spi_fifo",
+        "spi_shift",
+        "tx",
+        "tx_pop_data",
+        "tx_word",
+        "word"
+      ],
+      "id": "RTL-0232",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.tx_word",
+      "ssot_context": {
+        "from": "spi_fifo.tx_pop_data",
+        "signal": "tx_word",
+        "to": "spi_shift.tx_word"
+      },
+      "ssot_refs": [
+        "integration.connections.tx_word"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item rx_word",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.rx_word",
+        "Primary implementation evidence is in rtl/spi.sv",
+        "integration.connections.rx_word transition path spi_shift.rx_word -> spi_fifo.rx_push_data is encoded or explicitly proven equivalent"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.rx_word.\nOwner: spi in rtl/spi.sv via integration.\nSSOT item context: signal=rx_word; from=spi_shift.rx_word; to=spi_fifo.rx_push_data.",
+      "evidence_terms": [
+        "data",
+        "fifo",
+        "push",
+        "rx",
+        "rx_push_data",
+        "rx_word",
+        "shift",
+        "spi",
+        "spi_fifo",
+        "spi_shift",
+        "word"
+      ],
+      "id": "RTL-0233",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.rx_word",
+      "ssot_context": {
+        "from": "spi_shift.rx_word",
+        "signal": "rx_word",
+        "to": "spi_fifo.rx_push_data"
+      },
+      "ssot_refs": [
+        "integration.connections.rx_word"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item irq_o",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.irq_o",
+        "Primary implementation evidence is in rtl/spi.sv",
+        "integration.connections.irq_o transition path spi_int.irq_o -> spi.irq_o is encoded or explicitly proven equivalent"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.irq_o.\nOwner: spi in rtl/spi.sv via integration.\nSSOT item context: signal=irq_o; from=spi_int.irq_o; to=spi.irq_o.",
+      "evidence_terms": [
+        "int",
+        "irq",
+        "irq_o",
+        "spi",
+        "spi_int"
+      ],
+      "id": "RTL-0234",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.irq_o",
+      "ssot_context": {
+        "from": "spi_int.irq_o",
+        "signal": "irq_o",
+        "to": "spi.irq_o"
+      },
+      "ssot_refs": [
+        "integration.connections.irq_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "dft.scan",
+      "content": "Implement DFT item strategy",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref dft.scan.strategy",
+        "Primary implementation evidence is in rtl/spi.sv"
+      ],
+      "detail": "This SSOT dft.scan item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: dft.scan.strategy.\nOwner: spi in rtl/spi.sv via dft.\nSSOT item context: name=strategy; value=single_clock_scan.",
+      "evidence_terms": [],
+      "id": "RTL-0235",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dft.scan.strategy",
+      "ssot_context": {
+        "name": "strategy",
+        "value": "single_clock_scan"
+      },
+      "ssot_refs": [
+        "dft.scan.strategy"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "dft.scan",
+      "content": "Implement DFT item assumptions",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref dft.scan.assumptions",
+        "Primary implementation evidence is in rtl/spi.sv"
+      ],
+      "detail": "This SSOT dft.scan item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: dft.scan.assumptions.\nOwner: spi in rtl/spi.sv via dft.\nSSOT item context: name=assumptions; value=[\"PCLK is controllable in test mode.\", \"PRESETn can be asserted/deasserted from test controller.\"].",
+      "evidence_terms": [],
+      "id": "RTL-0236",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dft.scan.assumptions",
+      "ssot_context": {
+        "name": "assumptions",
+        "value": "[\"PCLK is controllable in test mode.\", \"PRESETn can be asserted/deasserted from test controller.\"]"
+      },
+      "ssot_refs": [
+        "dft.scan.assumptions"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "dft.test_points",
+      "content": "Implement DFT item test_point_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref dft.test_points.test_point_0",
+        "Primary implementation evidence is in rtl/spi.sv"
+      ],
+      "detail": "This SSOT dft.test_points item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: dft.test_points.test_point_0.\nOwner: spi in rtl/spi.sv via dft.\nSSOT item context: value=FIFO full/empty boundary conditions should be controllable via APB writes and frame completions..",
+      "evidence_terms": [],
+      "id": "RTL-0237",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dft.test_points.test_point_0",
+      "ssot_context": {
+        "value": "FIFO full/empty boundary conditions should be controllable via APB writes and frame completions."
+      },
+      "ssot_refs": [
+        "dft.test_points.test_point_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_0",
+        "Primary implementation evidence is in rtl/spi.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_0.\nOwner: spi in rtl/spi.sv via synthesis.\nSSOT item context: value=Use PCLK as only sequential clock..",
+      "evidence_terms": [],
+      "id": "RTL-0238",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_0",
+      "ssot_context": {
+        "value": "Use PCLK as only sequential clock."
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_1",
+        "Primary implementation evidence is in rtl/spi.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_1.\nOwner: spi in rtl/spi.sv via synthesis.\nSSOT item context: value=Do not infer latches..",
+      "evidence_terms": [],
+      "id": "RTL-0239",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_1",
+      "ssot_context": {
+        "value": "Do not infer latches."
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item fmax_mhz",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.fmax_mhz",
+        "Primary implementation evidence is in rtl/spi.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.fmax_mhz.\nOwner: spi in rtl/spi.sv via synthesis.\nSSOT item context: name=fmax_mhz; value=100.",
+      "evidence_terms": [],
+      "id": "RTL-0240",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.fmax_mhz",
+      "ssot_context": {
+        "name": "fmax_mhz",
+        "value": "100"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.fmax_mhz"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item area_priority",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.area_priority",
+        "Primary implementation evidence is in rtl/spi.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.area_priority.\nOwner: spi in rtl/spi.sv via synthesis.\nSSOT item context: name=area_priority; value=balanced.",
+      "evidence_terms": [],
+      "id": "RTL-0241",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.area_priority",
+      "ssot_context": {
+        "name": "area_priority",
+        "value": "balanced"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.area_priority"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item power_priority",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.power_priority",
+        "Primary implementation evidence is in rtl/spi.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.power_priority.\nOwner: spi in rtl/spi.sv via synthesis.\nSSOT item context: name=power_priority; value=low_dynamic_when_idle.",
+      "evidence_terms": [],
+      "id": "RTL-0242",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.power_priority",
+      "ssot_context": {
+        "name": "power_priority",
+        "value": "low_dynamic_when_idle"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.power_priority"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module spi is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.spi.module_equivalence",
+        "Primary implementation evidence is in rtl/spi.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.spi.module_equivalence.\nOwner: spi in rtl/spi.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0248",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.spi.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.spi.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_APB_CONFIG",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_APB_CONFIG",
+        "Primary implementation evidence is in rtl/spi.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Readback matches writes; RO/WO behavior and PSLVERR policy hold"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_APB_CONFIG.\nOwner: spi in rtl/spi.sv via test_requirements.\nSSOT item context: id=SC_APB_CONFIG; name=APB config/readback; expected=Readback matches writes; RO/WO behavior and PSLVERR policy hold.",
+      "evidence_terms": [],
+      "id": "RTL-0249",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_APB_CONFIG",
+      "ssot_context": {
+        "expected": "Readback matches writes; RO/WO behavior and PSLVERR policy hold",
+        "id": "SC_APB_CONFIG",
+        "name": "APB config/readback"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_APB_CONFIG"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_BASIC_TRANSFER",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_BASIC_TRANSFER",
+        "Primary implementation evidence is in rtl/spi.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: busy asserts then clears, done pending sets, RXDATA returns sampled value"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_BASIC_TRANSFER.\nOwner: spi in rtl/spi.sv via test_requirements.\nSSOT item context: id=SC_BASIC_TRANSFER; name=Basic frame transfer; expected=busy asserts then clears, done pending sets, RXDATA returns sampled value.",
+      "evidence_terms": [],
+      "id": "RTL-0250",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_BASIC_TRANSFER",
+      "ssot_context": {
+        "expected": "busy asserts then clears, done pending sets, RXDATA returns sampled value",
+        "id": "SC_BASIC_TRANSFER",
+        "name": "Basic frame transfer"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_BASIC_TRANSFER"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_CPOL_CPHA_SWEEP",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_CPOL_CPHA_SWEEP",
+        "Primary implementation evidence is in rtl/spi.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: edge launch/sample ordering follows mode"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_CPOL_CPHA_SWEEP.\nOwner: spi in rtl/spi.sv via test_requirements.\nSSOT item context: id=SC_CPOL_CPHA_SWEEP; name=CPOL/CPHA sweep; expected=edge launch/sample ordering follows mode.",
+      "evidence_terms": [],
+      "id": "RTL-0251",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_CPOL_CPHA_SWEEP",
+      "ssot_context": {
+        "expected": "edge launch/sample ordering follows mode",
+        "id": "SC_CPOL_CPHA_SWEEP",
+        "name": "CPOL/CPHA sweep"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_CPOL_CPHA_SWEEP"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_LSB_FIRST",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_LSB_FIRST",
+        "Primary implementation evidence is in rtl/spi.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: MOSI bit order reversed relative to MSB-first"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_LSB_FIRST.\nOwner: spi in rtl/spi.sv via test_requirements.\nSSOT item context: id=SC_LSB_FIRST; name=LSB-first ordering; expected=MOSI bit order reversed relative to MSB-first.",
+      "evidence_terms": [],
+      "id": "RTL-0252",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_LSB_FIRST",
+      "ssot_context": {
+        "expected": "MOSI bit order reversed relative to MSB-first",
+        "id": "SC_LSB_FIRST",
+        "name": "LSB-first ordering"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_LSB_FIRST"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_WIDTH_SWEEP",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_WIDTH_SWEEP",
+        "Primary implementation evidence is in rtl/spi.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: exact configured bit count shifted/sampled"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_WIDTH_SWEEP.\nOwner: spi in rtl/spi.sv via test_requirements.\nSSOT item context: id=SC_WIDTH_SWEEP; name=Frame width sweep; expected=exact configured bit count shifted/sampled.",
+      "evidence_terms": [],
+      "id": "RTL-0253",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_WIDTH_SWEEP",
+      "ssot_context": {
+        "expected": "exact configured bit count shifted/sampled",
+        "id": "SC_WIDTH_SWEEP",
+        "name": "Frame width sweep"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_WIDTH_SWEEP"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_FIFO_LIMITS",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_FIFO_LIMITS",
+        "Primary implementation evidence is in rtl/spi.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: tx_overrun and rx_overrun sticky behavior with data drop policy"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_FIFO_LIMITS.\nOwner: spi in rtl/spi.sv via test_requirements.\nSSOT item context: id=SC_FIFO_LIMITS; name=FIFO boundary behavior; expected=tx_overrun and rx_overrun sticky behavior with data drop policy.",
+      "evidence_terms": [],
+      "id": "RTL-0254",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_FIFO_LIMITS",
+      "ssot_context": {
+        "expected": "tx_overrun and rx_overrun sticky behavior with data drop policy",
+        "id": "SC_FIFO_LIMITS",
+        "name": "FIFO boundary behavior"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_FIFO_LIMITS"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_IRQ_W1C",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_IRQ_W1C",
+        "Primary implementation evidence is in rtl/spi.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: irq_o == OR(INT_PENDING & INT_MASK); W1C clears sticky only"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_IRQ_W1C.\nOwner: spi in rtl/spi.sv via test_requirements.\nSSOT item context: id=SC_IRQ_W1C; name=Interrupt mask and W1C; expected=irq_o == OR(INT_PENDING & INT_MASK); W1C clears sticky only.",
+      "evidence_terms": [],
+      "id": "RTL-0255",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_IRQ_W1C",
+      "ssot_context": {
+        "expected": "irq_o == OR(INT_PENDING & INT_MASK); W1C clears sticky only",
+        "id": "SC_IRQ_W1C",
+        "name": "Interrupt mask and W1C"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_IRQ_W1C"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_ERROR_PATHS",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_ERROR_PATHS",
+        "Primary implementation evidence is in rtl/spi.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: PSLVERR and corresponding sticky bits/pending bits set"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_ERROR_PATHS.\nOwner: spi in rtl/spi.sv via test_requirements.\nSSOT item context: id=SC_ERROR_PATHS; name=Error paths; expected=PSLVERR and corresponding sticky bits/pending bits set.",
+      "evidence_terms": [],
+      "id": "RTL-0256",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_ERROR_PATHS",
+      "ssot_context": {
+        "expected": "PSLVERR and corresponding sticky bits/pending bits set",
+        "id": "SC_ERROR_PATHS",
+        "name": "Error paths"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_ERROR_PATHS"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_PRESCALE_TIMING",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_PRESCALE_TIMING",
+        "Primary implementation evidence is in rtl/spi.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: SCLK half-period equals divisor+1 PCLK cycles"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_PRESCALE_TIMING.\nOwner: spi in rtl/spi.sv via test_requirements.\nSSOT item context: id=SC_PRESCALE_TIMING; name=Prescale timing; expected=SCLK half-period equals divisor+1 PCLK cycles.",
+      "evidence_terms": [],
+      "id": "RTL-0257",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_PRESCALE_TIMING",
+      "ssot_context": {
+        "expected": "SCLK half-period equals divisor+1 PCLK cycles",
+        "id": "SC_PRESCALE_TIMING",
+        "name": "Prescale timing"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_PRESCALE_TIMING"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_LOOPBACK_DEBUG",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_LOOPBACK_DEBUG",
+        "Primary implementation evidence is in rtl/spi.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: RX equals MOSI sequence and debug counters/probes align"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_LOOPBACK_DEBUG.\nOwner: spi in rtl/spi.sv via test_requirements.\nSSOT item context: id=SC_LOOPBACK_DEBUG; name=Loopback and debug observability; expected=RX equals MOSI sequence and debug counters/probes align.",
+      "evidence_terms": [],
+      "id": "RTL-0258",
+      "owner_file": "rtl/spi.sv",
+      "owner_module": "spi",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_LOOPBACK_DEBUG",
+      "ssot_context": {
+        "expected": "RX equals MOSI sequence and debug counters/probes align",
+        "id": "SC_LOOPBACK_DEBUG",
+        "name": "Loopback and debug observability"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_LOOPBACK_DEBUG"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "2a60bf453550d0ce8554eb62210062c7cf9b821cfd849f3ea1217a035cfae11d",
+  "top": "spi",
+  "type": "rtl_authoring_packet"
+}

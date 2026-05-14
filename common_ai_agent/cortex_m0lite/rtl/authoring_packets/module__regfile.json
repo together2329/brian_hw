@@ -12,7 +12,7 @@
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 2,
+      "module_task_count": 6,
       "task_limit": 48
     },
     "owner": {
@@ -173,6 +173,8 @@
     "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
     "Every task must satisfy content, detail, and criteria before the packet is closed.",
     "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
     "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
   ],
   "schema_version": 1,
@@ -180,6 +182,7 @@
   "summary": {
     "categories": {
       "equivalence.module": 1,
+      "function_model.state_variable": 4,
       "memory.instances": 1
     },
     "module_slice": {
@@ -187,21 +190,205 @@
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 2,
+      "module_task_count": 6,
       "task_limit": 48
     },
     "open_required_count": 0,
-    "required_count": 2,
+    "required_count": 6,
     "source_refs": [
+      "function_model.state_variables.pc_q",
+      "function_model.state_variables.rf_q",
+      "function_model.state_variables.nzcv_q",
+      "function_model.state_variables.trap_q",
       "memory.instances.regfile_storage",
       "sub_modules.regfile.module_equivalence"
     ],
     "status_counts": {
-      "pass": 2
+      "pass": 6
     },
-    "task_count": 2
+    "task_count": 6
   },
   "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state pc_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.pc_q",
+        "Primary implementation evidence is in rtl/cortex_m0lite_regfile.sv",
+        "pc_q width matches SSOT value XLEN",
+        "pc_q reset behavior matches SSOT value RESET_PC"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.pc_q.\nOwner: regfile in rtl/cortex_m0lite_regfile.sv via function_model.state_variables.\nSSOT item context: name=pc_q; width=XLEN; reset=RESET_PC.",
+      "evidence_terms": [],
+      "id": "RTL-0072",
+      "owner_file": "rtl/cortex_m0lite_regfile.sv",
+      "owner_module": "regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.pc_q",
+      "ssot_context": {
+        "name": "pc_q",
+        "reset": "RESET_PC",
+        "width": "XLEN"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.pc_q"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state rf_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.rf_q",
+        "Primary implementation evidence is in rtl/cortex_m0lite_regfile.sv",
+        "rf_q width matches SSOT value 32",
+        "rf_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.rf_q.\nOwner: regfile in rtl/cortex_m0lite_regfile.sv via function_model.state_variables.\nSSOT item context: name=rf_q; width=32; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0073",
+      "owner_file": "rtl/cortex_m0lite_regfile.sv",
+      "owner_module": "regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.rf_q",
+      "ssot_context": {
+        "name": "rf_q",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.rf_q"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state nzcv_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.nzcv_q",
+        "Primary implementation evidence is in rtl/cortex_m0lite_regfile.sv",
+        "nzcv_q width matches SSOT value 4",
+        "nzcv_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.nzcv_q.\nOwner: regfile in rtl/cortex_m0lite_regfile.sv via function_model.state_variables.\nSSOT item context: name=nzcv_q; width=4; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0074",
+      "owner_file": "rtl/cortex_m0lite_regfile.sv",
+      "owner_module": "regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.nzcv_q",
+      "ssot_context": {
+        "name": "nzcv_q",
+        "reset": "0",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.nzcv_q"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state trap_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.trap_q",
+        "Primary implementation evidence is in rtl/cortex_m0lite_regfile.sv",
+        "trap_q width matches SSOT value 1",
+        "trap_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.trap_q.\nOwner: regfile in rtl/cortex_m0lite_regfile.sv via function_model.state_variables.\nSSOT item context: name=trap_q; width=1; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0075",
+      "owner_file": "rtl/cortex_m0lite_regfile.sv",
+      "owner_module": "regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.trap_q",
+      "ssot_context": {
+        "name": "trap_q",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.trap_q"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
     {
       "category": "memory.instances",
       "content": "Implement memory item regfile_storage",
@@ -291,7 +478,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "67adb8890410a2aeeee9a654b645018e5e9f79eb8ebcffab7e873d9d102687f9",
+  "todo_plan_sha256": "c6dd55ff414292d6cfb25aa90ae64245d5f8618420d87d35c2436677a025d78f",
   "top": "cortex_m0lite",
   "type": "rtl_authoring_packet"
 }

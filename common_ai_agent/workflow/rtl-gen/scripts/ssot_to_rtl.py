@@ -575,7 +575,8 @@ def _generic_rule_contract(doc: dict, top: str, ports: list[dict]) -> tuple[dict
     while pending_outputs:
         progressed = False
         for item in list(pending_outputs):
-            deps = _expr_names(item["raw_expr"]) & all_output_aliases
+            self_state_aliases = set(item["aliases"]) & set(state_vars)
+            deps = (_expr_names(item["raw_expr"]) & all_output_aliases) - self_state_aliases
             unresolved_deps = deps - resolved_aliases
             if unresolved_deps:
                 continue
@@ -1424,7 +1425,23 @@ def _behavior_owner_modules(doc: dict, top: str) -> list[dict]:
             continue
         name = _ident(sm.get("name") or "")
         rel = str(sm.get("file") or "").strip()
-        if name in top_names or Path(rel).stem in top_names:
+        path_stem = _ident(Path(rel).stem) if rel else ""
+        is_top = name in top_names or path_stem in top_names
+        wiring_only = sm.get("wiring_only") is True or str(sm.get("kind") or "").lower() in {
+            "wrapper",
+            "adapter",
+            "tieoff",
+            "tie_off",
+        }
+        declared_refs = _module_declared_refs(sm)
+        owns_behavior = any(
+            ref == "function_model"
+            or ref.startswith("function_model.")
+            or ref in {"decomposition", "functional_decomposition"}
+            or ref.startswith(("decomposition.", "functional_decomposition."))
+            for ref in declared_refs
+        )
+        if is_top and (wiring_only or not owns_behavior):
             continue
         out.append(sm)
     return out

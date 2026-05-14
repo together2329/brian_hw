@@ -68,129 +68,238 @@
   },
   "bins": [
     {
-      "id": "SC_RESET_CLEAR_executed",
+      "id": "SC_RESET_FETCH_executed",
       "class": "scenario",
       "source": "test_requirements.scenarios[0]",
-      "scenario": "SC_RESET_CLEAR",
-      "description": "reset and flush force idle"
+      "scenario": "SC_RESET_FETCH",
+      "description": "Reset vector fetch"
     },
     {
-      "id": "SC_COUNTDOWN_DONE_executed",
+      "id": "SC_ALU_FLAGS_executed",
       "class": "scenario",
       "source": "test_requirements.scenarios[1]",
-      "scenario": "SC_COUNTDOWN_DONE",
-      "description": "pcdown reaches retire"
+      "scenario": "SC_ALU_FLAGS",
+      "description": "ALU operation and NZCV update"
     },
     {
-      "id": "SC_ENABLE_HOLD_executed",
+      "id": "SC_BRANCH_FLUSH_executed",
       "class": "scenario",
       "source": "test_requirements.scenarios[2]",
-      "scenario": "SC_ENABLE_HOLD",
-      "description": "step_en low holds state"
+      "scenario": "SC_BRANCH_FLUSH",
+      "description": "Conditional branch flush"
     },
     {
-      "id": "fcov_fetch_en_load",
-      "class": "transaction",
+      "id": "SC_LOAD_STORE_AHB_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC_LOAD_STORE_AHB",
+      "description": "Load/store AHB access"
+    },
+    {
+      "id": "SC_TRAP_PATHS_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC_TRAP_PATHS",
+      "description": "Trap and precise exception paths"
+    },
+    {
+      "id": "SC_HAZARD_FORWARD_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC_HAZARD_FORWARD",
+      "description": "RAW hazard and forwarding"
+    },
+    {
+      "id": "alu_ops_all",
+      "class": "instruction_class",
       "coverage_domain": "function",
-      "source": "test_requirements.coverage_goals.planned_bins[0]",
-      "source_ref": "function_model.transactions.FM_TICK",
-      "description": "fetch_en loads instr_data."
+      "source": "function_model.transactions.FM_CPU_STEP.operand_rules",
+      "source_ref": "function_model.transactions.FM_CPU_STEP.operand_rules",
+      "description": "All ALU/MOV/CMP operation families execute and match architectural writeback/flag behavior."
     },
     {
-      "id": "fcov_retire_pulse",
-      "class": "event",
+      "id": "alu_flag_update_matrix",
+      "class": "flag_behavior",
       "coverage_domain": "function",
-      "source": "test_requirements.coverage_goals.planned_bins[1]",
-      "source_ref": "function_model.transactions.FM_TICK.output_rules.retire_pulse",
-      "description": "retire pulse observed."
+      "source": "function_model.transactions.FM_CPU_STEP.flag_formulas",
+      "source_ref": "function_model.transactions.FM_CPU_STEP.flag_formulas",
+      "description": "N/Z/C/V formulas are observed for arithmetic, compare, logical, and move cases."
     },
     {
-      "id": "ccov_terminal_tick",
-      "class": "timing",
+      "id": "branch_taken_not_taken",
+      "class": "control_flow",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_CPU_STEP.branch_rules",
+      "source_ref": "function_model.transactions.FM_CPU_STEP.branch_rules",
+      "description": "Taken and not-taken branch paths update PC and flush behavior as specified."
+    },
+    {
+      "id": "load_store_word",
+      "class": "memory_behavior",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_CPU_STEP.memory_rules",
+      "source_ref": "function_model.transactions.FM_CPU_STEP.memory_rules",
+      "description": "Aligned LDR/STR word behavior updates registers or memory side effects correctly."
+    },
+    {
+      "id": "trap_illegal_opcode",
+      "class": "trap",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_CPU_STEP.error_cases",
+      "source_ref": "function_model.transactions.FM_CPU_STEP.error_cases",
+      "description": "Illegal decode raises trap_code=1 and suppresses retire."
+    },
+    {
+      "id": "trap_bus_error",
+      "class": "trap",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_CPU_STEP.error_cases",
+      "source_ref": "function_model.transactions.FM_CPU_STEP.error_cases",
+      "description": "Instruction/data HRESP error raises trap_code=2 and suppresses retire."
+    },
+    {
+      "id": "trap_misaligned",
+      "class": "trap",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_CPU_STEP.error_cases",
+      "source_ref": "function_model.transactions.FM_CPU_STEP.error_cases",
+      "description": "Misaligned word access raises trap_code=3 before data bus launch."
+    },
+    {
+      "id": "pipeline_state_occupancy",
+      "class": "pipeline",
       "coverage_domain": "cycle",
-      "source": "test_requirements.coverage_goals.planned_bins[2]",
-      "source_ref": "cycle_model.handshake_rules.step_end_tick",
-      "description": "terminal tick timing observed."
+      "source": "cycle_model.pipeline",
+      "source_ref": "cycle_model.pipeline",
+      "description": "IF, ID, and EX/WB pipeline stages all become active under directed tests."
     },
     {
-      "id": "fcov_flush_priority",
-      "class": "state",
-      "coverage_domain": "function",
-      "source": "function_model.invariants.flush",
-      "source_ref": "function_model.invariants.flush",
-      "description": "flush returns all observable state to idle."
-    },
-    {
-      "id": "fcov_step_en_hold",
-      "class": "state",
-      "coverage_domain": "function",
-      "source": "function_model.invariants.step_en_hold",
-      "source_ref": "function_model.invariants.step_en_hold",
-      "description": "step_en low prevents pcdown progress."
-    },
-    {
-      "id": "ccov_fetch_en_visible_next_cycle",
-      "class": "latency",
+      "id": "if_wait_cycles",
+      "class": "handshake",
       "coverage_domain": "cycle",
-      "source": "cycle_model.pipeline.S1_STATE_VISIBLE",
-      "source_ref": "cycle_model.pipeline.S1_STATE_VISIBLE",
-      "description": "fetch_en result is visible on the next clock edge."
+      "source": "cycle_model.handshake_rules.if_wait",
+      "source_ref": "cycle_model.handshake_rules.if_wait",
+      "description": "Instruction fetch wait-state hold behavior is observed."
     },
     {
-      "id": "ccov_hold_cycle",
-      "class": "control",
+      "id": "dmem_wait_cycles",
+      "class": "handshake",
       "coverage_domain": "cycle",
-      "source": "cycle_model.backpressure",
-      "source_ref": "cycle_model.backpressure",
-      "description": "step_en low hold is observed."
+      "source": "cycle_model.handshake_rules.dmem_wait",
+      "source_ref": "cycle_model.handshake_rules.dmem_wait",
+      "description": "Data memory wait-state hold behavior is observed."
     },
     {
-      "id": "function_timer_control_tick",
+      "id": "hazard_stall_cycles",
+      "class": "hazard",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules.hazard_stall",
+      "source_ref": "cycle_model.handshake_rules.hazard_stall",
+      "description": "Load-use one-bubble stall behavior is observed."
+    },
+    {
+      "id": "branch_flush_cycles",
+      "class": "flush",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering",
+      "source_ref": "cycle_model.ordering",
+      "description": "Taken branch flush timing is observed."
+    },
+    {
+      "id": "trap_entry_cycles",
+      "class": "trap_timing",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions",
+      "source_ref": "fsm.control.transitions",
+      "description": "Trap-entry FSM transition and flush timing are observed."
+    },
+    {
+      "id": "outstanding_instruction_depth",
+      "class": "outstanding",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.outstanding_depth.instruction",
+      "source_ref": "cycle_model.performance.outstanding_depth.instruction",
+      "description": "Instruction side single-outstanding request limit is exercised."
+    },
+    {
+      "id": "outstanding_data_depth",
+      "class": "outstanding",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.outstanding_depth.data",
+      "source_ref": "cycle_model.performance.outstanding_depth.data",
+      "description": "Data side single-outstanding request limit is exercised."
+    },
+    {
+      "id": "cpi_nominal_stream",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.target_cpi_typical",
+      "source_ref": "cycle_model.performance.target_cpi_typical",
+      "description": "Nominal instruction stream CPI target is measured or explicitly waived."
+    },
+    {
+      "id": "core_bus_frequency_ratio",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.clock_ratio_core_to_bus",
+      "source_ref": "cycle_model.performance.clock_ratio_core_to_bus",
+      "description": "2:1 core_clk to bus_clk cycle relationship is represented in coverage evidence."
+    },
+    {
+      "id": "function_cpu_cycle_step",
       "class": "transaction_type",
       "coverage_domain": "function",
       "source": "function_model.transactions[0]",
-      "source_ref": "function_model.transactions.fm_tick",
-      "description": "timer_control_tick"
+      "source_ref": "function_model.transactions.fm_cpu_step",
+      "description": "cpu_cycle_step"
     },
     {
-      "id": "cycle_fetch_en_load",
+      "id": "cycle_if_wait",
       "class": "protocol",
       "coverage_domain": "cycle",
       "source": "cycle_model.handshake_rules[0]",
       "source_ref": "cycle_model.handshake_rules[0]",
-      "description": "fetch_en samples instr_data on the active clock edge and makes the loaded pc visible after that edge."
+      "description": "IF holds request when i_hready=0."
     },
     {
-      "id": "cycle_step_end_tick",
+      "id": "cycle_dmem_wait",
       "class": "protocol",
       "coverage_domain": "cycle",
       "source": "cycle_model.handshake_rules[1]",
       "source_ref": "cycle_model.handshake_rules[1]",
-      "description": "step_en advances pc only while busy is high."
+      "description": "Load/store completion waits for d_hready=1."
     },
     {
-      "id": "cycle_flush_priority",
+      "id": "cycle_hazard_stall",
       "class": "protocol",
       "coverage_domain": "cycle",
       "source": "cycle_model.handshake_rules[2]",
       "source_ref": "cycle_model.handshake_rules[2]",
-      "description": "flush returns the cortex_m0lite to idle regardless of step_en or busy."
+      "description": "Load-use dependency inserts one bubble."
     },
     {
-      "id": "cycle_pipeline_s0_control_sample",
+      "id": "cycle_pipeline_if",
       "class": "pipeline_stage",
       "coverage_domain": "cycle",
       "source": "cycle_model.pipeline[0]",
       "source_ref": "cycle_model.pipeline[0]",
-      "description": "Sample fetch_en, step_en, flush, instr_data, pc, and busy."
+      "description": "Fetch request/acceptance."
     },
     {
-      "id": "cycle_pipeline_s1_state_visible",
+      "id": "cycle_pipeline_id",
       "class": "pipeline_stage",
       "coverage_domain": "cycle",
       "source": "cycle_model.pipeline[1]",
       "source_ref": "cycle_model.pipeline[1]",
-      "description": "Present updated pc, busy, and retire."
+      "description": "Decode + regfile read + hazard decision."
+    },
+    {
+      "id": "cycle_pipeline_ex_wb",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[2]",
+      "source_ref": "cycle_model.pipeline[2]",
+      "description": "Execute/memory response/writeback/retire."
     },
     {
       "id": "cycle_ordering_0",
@@ -198,7 +307,7 @@
       "coverage_domain": "cycle",
       "source": "cycle_model.ordering[0]",
       "source_ref": "cycle_model.ordering[0]",
-      "description": "flush has highest priority."
+      "description": "Reset dominates all pipeline movement and clears valid bits before instruction retirement."
     },
     {
       "id": "cycle_ordering_1",
@@ -206,7 +315,7 @@
       "coverage_domain": "cycle",
       "source": "cycle_model.ordering[1]",
       "source_ref": "cycle_model.ordering[1]",
-      "description": "fetch_en load is applied before step_end pcdown behavior for a new interval."
+      "description": "Trap entry has priority over branch redirect, writeback, and normal sequential PC update."
     },
     {
       "id": "cycle_ordering_2",
@@ -214,103 +323,55 @@
       "coverage_domain": "cycle",
       "source": "cycle_model.ordering[2]",
       "source_ref": "cycle_model.ordering[2]",
-      "description": "retire is observed on the same state-visible cycle as the terminal decrement."
+      "description": "Branch taken flushes IF/ID before the redirected fetch becomes visible."
     },
     {
-      "id": "cycle_backpressure_0",
-      "class": "backpressure",
+      "id": "cycle_ordering_3",
+      "class": "ordering",
       "coverage_domain": "cycle",
-      "source": "cycle_model.backpressure[0]",
-      "source_ref": "cycle_model.backpressure[0]",
-      "description": "There is no ready/valid backpressure; step_en controls cortex_m0lite progress."
+      "source": "cycle_model.ordering[3]",
+      "source_ref": "cycle_model.ordering[3]",
+      "description": "Load/store bus completion gates retire; no LDR/STR commits before d_hready && !d_hresp."
     },
     {
-      "id": "cycle_perf_outstanding",
-      "class": "performance",
+      "id": "cycle_ordering_4",
+      "class": "ordering",
       "coverage_domain": "cycle",
-      "source": "cycle_model.performance.outstanding",
-      "source_ref": "cycle_model.performance.outstanding",
-      "description": "{'max': 1, 'description': 'One active pcdown interval at a time.'}"
+      "source": "cycle_model.ordering[4]",
+      "source_ref": "cycle_model.ordering[4]",
+      "description": "core_clk:bus_clk is a synchronous 2:1 relationship; bus boundary logic samples requests only on aligned bus_clk cycles."
     },
     {
-      "id": "cycle_perf_depth",
-      "class": "performance",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.performance.depth",
-      "source_ref": "cycle_model.performance.depth",
-      "description": "{'pipeline_stages': 1, 'queue_depth': 0, 'description': 'Registered state update with no internal queue.'}"
-    },
-    {
-      "id": "cycle_perf_frequency_mhz",
-      "class": "frequency",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.performance.frequency_mhz",
-      "source_ref": "cycle_model.performance.frequency_mhz",
-      "description": "100"
-    },
-    {
-      "id": "cycle_perf_throughput",
-      "class": "throughput",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.performance.throughput",
-      "source_ref": "cycle_model.performance.throughput",
-      "description": "{'sustained_ticks_per_cycle': 1, 'condition': 'step_en asserted while busy'}"
-    },
-    {
-      "id": "fsm_control_idle_to_run_0",
-      "class": "state_transition",
-      "coverage_domain": "cycle",
-      "source": "fsm.control.transitions[0]",
-      "source_ref": "fsm.control.transitions[0]",
-      "description": "fetch_en and instr_data != 0"
-    },
-    {
-      "id": "fsm_control_run_to_run_1",
-      "class": "state_transition",
-      "coverage_domain": "cycle",
-      "source": "fsm.control.transitions[1]",
-      "source_ref": "fsm.control.transitions[1]",
-      "description": "step_en and pc > 1"
-    },
-    {
-      "id": "fsm_control_run_to_done_pulse_2",
-      "class": "state_transition",
-      "coverage_domain": "cycle",
-      "source": "fsm.control.transitions[2]",
-      "source_ref": "fsm.control.transitions[2]",
-      "description": "step_en and pc == 1"
-    },
-    {
-      "id": "fsm_control_done_pulse_to_idle_3",
-      "class": "state_transition",
-      "coverage_domain": "cycle",
-      "source": "fsm.control.transitions[3]",
-      "source_ref": "fsm.control.transitions[3]",
-      "description": "next control cycle without fetch_en"
-    },
-    {
-      "id": "fsm_control_run_to_idle_4",
-      "class": "state_transition",
-      "coverage_domain": "cycle",
-      "source": "fsm.control.transitions[4]",
-      "source_ref": "fsm.control.transitions[4]",
-      "description": "flush"
-    },
-    {
-      "id": "error_error_0",
+      "id": "error_illegal_opcode",
       "class": "error",
       "coverage_domain": "function",
       "source": "error_handling.error_sources[0]",
       "source_ref": "error_handling.error_sources[0]",
-      "description": "{'id': 'ERR_NONE', 'condition': 'No malformed transaction class exists for this leaf IP.', 'architectural_effect': 'No error output is asserted.'}"
+      "description": "{'name': 'illegal_opcode', 'condition': 'decode miss or unsupported instruction class', 'architectural_effect': 'trap_code=1, retire suppressed'}"
+    },
+    {
+      "id": "error_bus_error",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[1]",
+      "source_ref": "error_handling.error_sources[1]",
+      "description": "{'name': 'bus_error', 'condition': 'i_hresp=1 or d_hresp=1', 'architectural_effect': 'trap_code=2, retire suppressed'}"
+    },
+    {
+      "id": "error_misaligned_word_access",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[2]",
+      "source_ref": "error_handling.error_sources[2]",
+      "description": "{'name': 'misaligned_word_access', 'condition': \"LDR/STR effective_address[1:0] != 2'b00\", 'architectural_effect': 'trap_code=3, bus launch suppressed, retire suppressed'}"
     }
   ],
   "summary": {
-    "total_bins": 30,
-    "scenario_bins": 3,
+    "total_bins": 38,
+    "scenario_bins": 6,
     "transaction_bins": 1,
     "protocol_bins": 3,
-    "state_transition_bins": 5,
-    "error_bins": 1
+    "state_transition_bins": 0,
+    "error_bins": 3
   }
 }

@@ -8,6 +8,7 @@ stage commands, artifact paths, validator evidence, and blocker classification.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys

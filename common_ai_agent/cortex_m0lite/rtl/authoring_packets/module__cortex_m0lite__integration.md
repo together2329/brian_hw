@@ -12,6 +12,8 @@
 - Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.
 - Every task must satisfy content, detail, and criteria before the packet is closed.
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
+- Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
+- Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
@@ -114,7 +116,7 @@ SSOT item context: name=external_resets; value=["rst_n", "hresetn"].
 - Source ref: integration.connections.connection_0
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.connection_0.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.connections.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
@@ -133,7 +135,7 @@ Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.
 - Source ref: integration.connections.connection_1
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.connection_1.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.connections.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
@@ -152,7 +154,7 @@ Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.
 - Source ref: integration.connections.connection_2
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.connection_2.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.connections.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
@@ -171,7 +173,7 @@ Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.
 - Source ref: integration.connections.connection_3
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.connection_3.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.connections.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
@@ -190,7 +192,7 @@ Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.
 - Source ref: integration.connections.connection_4
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.connection_4.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.connections.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
@@ -209,7 +211,7 @@ Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.
 - Source ref: integration.connections.connection_5
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.connection_5.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.connections.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
@@ -228,7 +230,7 @@ Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.
 - Source ref: integration.connections.connection_6
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.connection_6.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via integration.connections.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item

@@ -12,6 +12,8 @@
 - Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.
 - Every task must satisfy content, detail, and criteria before the packet is closed.
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
+- Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
+- Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
@@ -20,7 +22,7 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: True
+- PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
@@ -103,7 +105,7 @@ SSOT item context: name=DONE_PULSE.
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_0.
 Owner: timer_core in rtl/timer.sv via fsm.
-SSOT item context: from=IDLE; to=RUN; condition=start and load_value != 0.
+SSOT item context: from=IDLE; to=RUN; condition=start and load_value != 0; action=Load count and assert running..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
@@ -125,7 +127,7 @@ SSOT item context: from=IDLE; to=RUN; condition=start and load_value != 0.
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_1.
 Owner: timer_core in rtl/timer.sv via fsm.
-SSOT item context: from=RUN; to=RUN; condition=enable and count > 1.
+SSOT item context: from=RUN; to=RUN; condition=enable and count > 1; action=Decrement count..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
@@ -147,7 +149,7 @@ SSOT item context: from=RUN; to=RUN; condition=enable and count > 1.
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_2.
 Owner: timer_core in rtl/timer.sv via fsm.
-SSOT item context: from=RUN; to=DONE_PULSE; condition=enable and count == 1.
+SSOT item context: from=RUN; to=DONE_PULSE; condition=enable and count == 1; action=Drive done and stop running..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
@@ -169,7 +171,7 @@ SSOT item context: from=RUN; to=DONE_PULSE; condition=enable and count == 1.
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_3.
 Owner: timer_core in rtl/timer.sv via fsm.
-SSOT item context: from=DONE_PULSE; to=IDLE; condition=next control cycle without start.
+SSOT item context: from=DONE_PULSE; to=IDLE; condition=next control cycle without start; action=Clear done..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
@@ -191,7 +193,7 @@ SSOT item context: from=DONE_PULSE; to=IDLE; condition=next control cycle withou
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_4.
 Owner: timer_core in rtl/timer.sv via fsm.
-SSOT item context: from=RUN; to=IDLE; condition=clear.
+SSOT item context: from=RUN; to=IDLE; condition=clear; action=Clear state..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic

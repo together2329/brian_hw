@@ -119,12 +119,25 @@ def _expected_observable_view(
     is_memory = "memory" in context or "mem_" in context
     is_reset = "reset" in context
     register_hint_keys = {"reg", "addr_or_name", "paddr", "pwrite", "psel", "penable"}
+    # Authoritative signal: the goal_id itself encodes scope. A goal id starting
+    # with ``eq_register_`` is a register-access goal; anything else (transaction,
+    # scenario, module-equivalence, …) is not, even if the boilerplate stimulus
+    # carries ``addr_or_name``. Without this guard, ``resp`` from every
+    # transaction maps to ``pready=1``, which then mismatches the idle APB bus
+    # during non-register stimulus and fails goals that have no register intent.
+    goal_id_lower = str(fl_expected.get("goal_id") or "").lower()
+    goal_is_register = goal_id_lower.startswith("eq_register_")
     is_register = (
-        not is_reset
-        and (
-            any(token in context for token in ("csr", "register", "control_status", "apb"))
-            or any(key in txn for key in register_hint_keys)
-            or any(key in model_result for key in {"reg", "addr_or_name"})
+        goal_is_register
+        or (
+            not is_reset
+            and not goal_id_lower.startswith("eq_transaction_")
+            and not goal_id_lower.startswith("eq_scenario_")
+            and (
+                any(token in context for token in ("csr", "register", "control_status", "apb"))
+                or any(key in txn for key in register_hint_keys)
+                or any(key in model_result for key in {"reg", "addr_or_name"})
+            )
         )
     )
 

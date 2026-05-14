@@ -12,6 +12,8 @@
 - Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.
 - Every task must satisfy content, detail, and criteria before the packet is closed.
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
+- Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
+- Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
@@ -25,8 +27,8 @@
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: coverage_tap, cycle_model, cycle_model.pipeline, dataflow, dataflow.ordering, dataflow.sequence, dataflow.state_flow, decomposition, error_handling, fsm, fsm.control, function_model, function_model.transactions.FM_CPU_STEP, io_list, parameters, registers
-- Module slice: 9/9 section=dataflow task_limit=48
-- Slice rule: Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Module slice: 10/10 section=dataflow task_limit=48
+- Slice rule: Owner module cortex_m0lite_core is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT target scale: min_behavior_owner_logic_modules=6, min_depth_score=120, min_logic_modules=7, min_modules=8, min_procedural_blocks=12, min_source_files=8, min_state_updates=10
 - SSOT connection contracts:
   - cortex_m0lite_core.clk <= clk (integration.connections[0])
@@ -50,7 +52,7 @@
 - Source ref: dataflow.sequence.sequence_0
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sequence.sequence_0.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.sequence.
 SSOT item context: value=IF issues instruction fetch request and captures instruction when i_hready is high..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -70,7 +72,7 @@ SSOT item context: value=IF issues instruction fetch request and captures instru
 - Source ref: dataflow.sequence.sequence_1
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sequence.sequence_1.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.sequence.
 SSOT item context: value=ID decodes instruction, reads regfile, and computes immediate/control..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -90,7 +92,7 @@ SSOT item context: value=ID decodes instruction, reads regfile, and computes imm
 - Source ref: dataflow.sequence.sequence_2
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sequence.sequence_2.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.sequence.
 SSOT item context: value=EX executes ALU/branch/address generation and launches data AHB for LDR/STR..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -110,7 +112,7 @@ SSOT item context: value=EX executes ALU/branch/address generation and launches 
 - Source ref: dataflow.sequence.sequence_3
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sequence.sequence_3.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.sequence.
 SSOT item context: value=WB commits architectural state and emits retire pulse..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -130,7 +132,7 @@ SSOT item context: value=WB commits architectural state and emits retire pulse..
 - Source ref: dataflow.ordering.ordering_0
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.ordering.ordering_0.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.ordering.
 SSOT item context: value=Reset dominates all control..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -150,7 +152,7 @@ SSOT item context: value=Reset dominates all control..
 - Source ref: dataflow.ordering.ordering_1
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.ordering.ordering_1.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.ordering.
 SSOT item context: value=Trap dominates writeback and starts flush sequence..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -170,7 +172,7 @@ SSOT item context: value=Trap dominates writeback and starts flush sequence..
 - Source ref: dataflow.ordering.ordering_2
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.ordering.ordering_2.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.ordering.
 SSOT item context: value=Branch taken flushes IF/ID before next fetch..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:

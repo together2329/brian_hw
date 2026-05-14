@@ -1,0 +1,4890 @@
+{
+  "ip": "uart_lite",
+  "schema_version": 1,
+  "type": "fl_rtl_equivalence_goals",
+  "source_of_truth": {
+    "ssot": "uart_lite/yaml/uart_lite.ssot.yaml",
+    "functional_model": "uart_lite/model/functional_model.py",
+    "functional_model_exists": true,
+    "cycle_model_section": "cycle_model",
+    "decomposition": "uart_lite/model/decomposition.json",
+    "coverage_plan": "uart_lite/cov/fcov_plan.json",
+    "authority_contract": {
+      "rule": "LLM repair loops are allowed when a general criterion has objective machine evidence: PASS/FAIL/DIFF, coverage gap, lint diagnostic, assertion failure, stale evidence, traceability gap, or measured performance gap. Human gates own intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff.",
+      "general_evaluation_criteria": [
+        {
+          "id": "traceability",
+          "criterion": "Every generated artifact traces to SSOT requirement, function_model, cycle_model, interface, coverage, or quality_gates refs.",
+          "machine_evidence": [
+            "source refs in decomposition/equivalence goals",
+            "artifact manifests"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "functional_equivalence",
+          "criterion": "RTL observable behavior matches FunctionalModel results for every required transaction/scenario.",
+          "machine_evidence": [
+            "scoreboard_events.jsonl",
+            "fl_rtl_compare.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "module_equivalence",
+          "criterion": "Each behavior-owning RTL module has module-boundary evidence before top-level signoff.",
+          "machine_evidence": [
+            "scope.level=module scoreboard rows",
+            "module goal status"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "coverage_closure",
+          "criterion": "SSOT coverage goals are hit by passing RTL-observed scoreboard evidence.",
+          "machine_evidence": [
+            "fcov_plan.json",
+            "coverage.json",
+            "scoreboard coverage_refs"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "interface_protocol",
+          "criterion": "Ports, handshakes, ordering, reset, and error protocol obey SSOT io_list/cycle_model/interface contract.",
+          "machine_evidence": [
+            "protocol goals",
+            "assertion failures",
+            "waveform evidence"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "lint_compile",
+          "criterion": "DUT-only RTL compile/lint has zero unwaived errors, warnings, and style diagnostics.",
+          "machine_evidence": [
+            "rtl_compile.json",
+            "dut_lint.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "simulation_evidence",
+          "criterion": "Simulation results are fresh, bounded, non-stale, and tied to structured scoreboard goals.",
+          "machine_evidence": [
+            "results.xml",
+            "scoreboard_events.jsonl",
+            "stale_evidence checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "performance_cycle",
+          "criterion": "Cycle/performance targets from cycle_model/timing are measured or explicitly escalated.",
+          "machine_evidence": [
+            "latency/throughput measurements",
+            "CL/performance sweep reports"
+          ],
+          "llm_loop_allowed": "candidate_search_only"
+        },
+        {
+          "id": "debug_observability",
+          "criterion": "Waveforms and debug probes are sufficient to inspect reset, interface activity, state, outputs, and failures.",
+          "machine_evidence": [
+            "VCD/FST presence",
+            "debug_observability goals",
+            "waveform parser summary"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "maintainability",
+          "criterion": "Generated RTL/TB is structured by SSOT-owned modules, avoids fixed IP templates, and remains reviewable.",
+          "machine_evidence": [
+            "module contracts",
+            "dynamic todo plan",
+            "filelist/manifest checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "human_decision",
+          "criterion": "Intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff are human-owned.",
+          "machine_evidence": [
+            "human_gate questions/answers",
+            "approval state"
+          ],
+          "llm_loop_allowed": false
+        }
+      ],
+      "locked_artifacts": [
+        {
+          "name": "requirement",
+          "path": "uart_lite/req/",
+          "owner": "human",
+          "change_rule": "Human owns intent, scope, priority, tradeoffs, and final acceptance."
+        },
+        {
+          "name": "ssot_spec",
+          "path": "uart_lite/yaml/uart_lite.ssot.yaml",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Behavior, interface, coverage goal, and waiver changes require human gate."
+        },
+        {
+          "name": "functional_model",
+          "path": "uart_lite/model/functional_model.py",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "FunctionalModel is the golden oracle; sim-debug cannot change it to match RTL."
+        },
+        {
+          "name": "coverage_plan",
+          "path": "uart_lite/cov/fcov_plan.json",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "LLM may add tests to hit bins, but cannot weaken or delete bins without approval."
+        },
+        {
+          "name": "interface_contract",
+          "path": "uart_lite/yaml/uart_lite.ssot.yaml#io_list",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Protocol and port contract changes require human approval."
+        },
+        {
+          "name": "performance_target",
+          "path": "uart_lite/yaml/uart_lite.ssot.yaml#cycle_model",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "LLM may sweep candidates, but target/tradeoff changes require human approval."
+        }
+      ],
+      "llm_editable_artifacts": [
+        "uart_lite/rtl/",
+        "uart_lite/tb/",
+        "uart_lite/sim/",
+        "uart_lite/reports/",
+        "uart_lite/vectors/"
+      ],
+      "loopable_evidence_points": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "loopable_oracles": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "non_loopable_decisions": [
+        "change requirement intent or scope",
+        "change SSOT behavioral rule",
+        "change FunctionalModel golden semantics",
+        "change coverage goal or waiver",
+        "change interface contract",
+        "change performance target or architecture tradeoff",
+        "final signoff"
+      ]
+    }
+  },
+  "summary": {
+    "total": 68,
+    "required": 68,
+    "optional": 0,
+    "blocked": 0,
+    "module_total": 2,
+    "module_required": 2,
+    "module_blocked": 0
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_FM_TX_BYTE",
+      "title": "Transaction transmit_byte matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[0]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model"
+      ],
+      "coverage_refs": [
+        "fcov_fm_tx_byte",
+        "function_transmit_byte"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "transmit_byte",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "tx_enable == 1",
+          "tx_fifo not empty",
+          "tx_active == false",
+          "break_send == false"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "tx line: start bit (0), d[0]..d[DATA_WIDTH-1] LSB-first, parity bit (if parity_en), 1 or 2 stop bits (1)",
+          "tx_active transitions true \u2192 false across the frame",
+          "tx_serial"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "debug counter bytes_tx increments by 1",
+          "tx_fifo level decreases by 1",
+          "STAT.tx_empty updates when FIFO becomes empty",
+          "tx"
+        ],
+        "error_policy": "{'condition': 'tx_fifo empty when TX FSM requests byte', 'result': 'underrun_err sticky flag set; frame aborted with tx returning to idle (mark)'}"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_RX_BYTE",
+      "title": "Transaction receive_byte matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[1]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model"
+      ],
+      "coverage_refs": [
+        "fcov_fm_rx_byte",
+        "fcov_err_parity",
+        "fcov_err_frame",
+        "fcov_err_overrun",
+        "function_receive_byte"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "receive_byte",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "rx_enable == 1",
+          "rx_active == false",
+          "rx_fifo not full"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "byte d reconstructed from sampled bits pushed to rx_fifo",
+          "STAT.rx_not_empty set",
+          "rx_irq"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "debug counter bytes_rx increments by 1",
+          "rx_fifo level increases by 1",
+          "If parity_en and parity mismatch: parity_err sticky set, parities_errored incremented",
+          "If stop bit(s) not high: frame_err sticky set, frames_errored incremented",
+          "uart_irq"
+        ],
+        "error_policy": "{'condition': 'rx_fifo full when new byte ready', 'result': 'overrun_err sticky flag set; received byte discarded'}; {'condition': 'spurious start bit (mid-bit sample high)', 'result': 'rx_active returns false; no byte pushed'}; {'condition': 'frame_err: stop bit sampled low', 'result': 'frame_err sticky set; byte still pushed to rx_fifo if space available'}; {'condition': 'parity_err: computed parity != received parity bit', 'result': 'parity_err sticky set; byte still pushed to rx_fifo if space available'}"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_BREAK_SEND",
+      "title": "Transaction send_break matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[2]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model"
+      ],
+      "coverage_refs": [
+        "fcov_fm_break",
+        "function_send_break"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "send_break",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "break_send written to 1 via CTRL register"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "tx line forced low for duration of one full frame (start+data+parity+stop bits)",
+          "break_serial"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "break_send self-clears to 0 after break completes",
+          "TX FSM held in IDLE during break",
+          "tx"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_LOOPBACK",
+      "title": "Transaction loopback_mode matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[3]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model"
+      ],
+      "coverage_refs": [
+        "fcov_fm_loopback",
+        "function_loopback_mode"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "loopback_mode",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "loopback == 1"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "rx synchronizer input connected to tx output (after 2-FF synchronizer stage)",
+          "loopback_tx"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "External rx pin ignored",
+          "All TX bytes appear as received bytes when rx_enable == 1",
+          "tx"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC1",
+      "title": "Scenario SC1: TX single byte no parity 1 stop",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[0]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "SC1_executed",
+        "SC10_executed",
+        "SC11_executed",
+        "SC12_executed",
+        "SC13_executed",
+        "SC14_executed",
+        "SC15_executed",
+        "SC16_executed",
+        "SC17_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC1",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Write one byte to TXDATA when TX FIFO empty. CTRL: tx_enable=1, parity_en=0, stop_bits=0."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "tx line shows start=0, DATA_WIDTH data bits LSB-first, 1 stop=1 bit. STAT.tx_empty=1 after frame. bytes_tx increments."
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC2",
+      "title": "Scenario SC2: RX single byte no parity 1 stop",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[1]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "SC2_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC2",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive rx line with start=0, 8 data bits LSB-first, 1 stop=1. CTRL: rx_enable=1."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Byte pushed to RX FIFO. RXDATA reads correct byte. bytes_rx increments. No error flags."
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC3",
+      "title": "Scenario SC3: TX with even parity",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[2]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "SC3_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC3",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Write byte 0xA5 to TXDATA. CTRL: tx_enable=1, parity_en=1, parity_odd=0. DATA_WIDTH=8."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Parity bit after data: 0 (even number of 1s: 4 in 0xA5). tx shows start, 8 data, parity=0, 1 stop."
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC4",
+      "title": "Scenario SC4: RX with odd parity match",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[3]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "SC4_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC4",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive rx with start, 0xA5 data (4 ones), odd parity=1, stop. CTRL: rx_enable=1, parity_en=1, parity_odd=1."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Byte 0xA5 pushed to RX FIFO. No parity_err. parities_errored unchanged."
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC5",
+      "title": "Scenario SC5: RX parity error",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[4]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "SC5_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC5",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive rx with start, 0xA5 data, wrong parity bit (even parity sent, but rx expects odd). CTRL: parity_en=1, parity_odd=1."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "parity_err sticky flag set. Byte still pushed to RX FIFO. parities_errored increments."
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC6",
+      "title": "Scenario SC6: RX framing error",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[5]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "SC6_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC6",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive rx with start, data, stop=0 (invalid). CTRL: rx_enable=1."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "frame_err sticky flag set. Byte pushed to RX FIFO. frames_errored increments."
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC7",
+      "title": "Scenario SC7: RX overrun",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[6]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "SC7_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC7",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Fill RX FIFO to full (16 bytes). Drive 17th byte on rx."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "17th byte discarded. overrun_err sticky flag set. RX FIFO still has 16 bytes."
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC8",
+      "title": "Scenario SC8: TX underrun",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[7]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "SC8_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC8",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Start TX FSM with one byte in TX FIFO, then prevent further writes. After frame completes, TX FSM goes idle with FIFO empty."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "No underrun during normal operation. To trigger underrun: disable TX FIFO write while FSM mid-frame (not directly possible via CSR; tested via back-to-back framing where FIFO drains). STAT.underrun_err=0 if FIFO never underflows."
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC9",
+      "title": "Scenario SC9: Loopback mode",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[8]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "SC9_executed",
+        "fcov_fm_loopback"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC9",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Enable loopback=1. Write bytes to TXDATA. CTRL: tx_enable=1, rx_enable=1."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Transmitted bytes appear in RX FIFO. External rx line ignored. TX and RX data match."
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC10",
+      "title": "Scenario SC10: Break send",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[9]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "SC10_executed",
+        "fcov_fm_break"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC10",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Write break_send=1 to CTRL."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "tx line held low for at least one full frame duration. break_send self-clears to 0."
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC11",
+      "title": "Scenario SC11: 2 stop bits TX/RX",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[10]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "SC11_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC11",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Write byte to TXDATA. CTRL: stop_bits=1. Drive corresponding rx pattern with 2 stop bits."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "TX sends 2 stop bits. RX accepts 2 stop bits."
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC12",
+      "title": "Scenario SC12: Interrupts \u2014 tx_empty",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[11]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "SC12_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC12",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Enable tx_empty interrupt (INTEN.tx_empty_en=1). Fill TX FIFO, let it drain completely."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "INTPEND.tx_empty_pend asserts when TX FIFO goes empty. uart_irq asserts. Write 1 to INTPEND.tx_empty_pend clears it; uart_irq deasserts if no other pend."
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC13",
+      "title": "Scenario SC13: Interrupts \u2014 rx_not_empty + clear via W1C",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[12]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "SC13_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC13",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Enable rx_not_empty interrupt. Drive byte on rx."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "INTPEND.rx_not_empty_pend asserts. uart_irq asserts. Software W1C clears pend."
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC14",
+      "title": "Scenario SC14: DATA_WIDTH=5",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[13]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "SC14_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC14",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Parameter DATA_WIDTH=5. Write/read 5-bit data."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "TX sends 5 data bits. RX receives 5 data bits. Upper bits in TXDATA ignored, RXDATA zero-filled above bit 4."
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC15",
+      "title": "Scenario SC15: FIFO full/empty flags",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[14]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "SC15_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC15",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Fill TX FIFO (16 writes), verify tx_full. Drain TX FIFO, verify tx_empty. Same for RX."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "STAT.tx_full, tx_empty, rx_full, rx_empty track FIFO levels correctly."
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC16",
+      "title": "Scenario SC16: Spurious start bit rejection",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[15]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "SC16_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC16",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive rx low then high before mid-bit sample (glitch shorter than half bit)."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "RX FSM returns to RX_IDLE; no byte captured; no error flag."
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC17",
+      "title": "Scenario SC17: Baud rate change mid-operation",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[16]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "SC17_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC17",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Start TX frame at one baud rate, write new BAUD during frame."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Current frame completes at old rate. Next frame uses new rate."
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "title": "Cycle/handshake rule handshake_0",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[0]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_protocol_model",
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_baud_tick",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_0",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'tx', 'rule': 'Driven synchronously to PCLK; changes only on baud_tick boundaries at TX FSM state transitions. Idle state is high (mark).'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}, 'tx_byte': {'min_cycles': 'baud_tick_period * (1 + DATA_WIDTH + parity_en + stop_bits)', 'max_cycles': None, 'description': 'TX frame duration; max unbounded if TX FIFO is empty and no new data'}, 'rx_byte': {'min_cycles': 'baud_tick_period * (1 + DATA_WIDTH + parity_en + stop_bits)', 'max_cycles': None, 'description': 'RX frame duration; max unbounded waiting for start bit'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "title": "Cycle/handshake rule handshake_1",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[1]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_protocol_model",
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_baud_tick",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_1",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'rx', 'rule': 'External async input. Passed through 2-FF synchronizer. Synchronizer output sampled on every PCLK edge by RX FSM start-bit detector.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}, 'tx_byte': {'min_cycles': 'baud_tick_period * (1 + DATA_WIDTH + parity_en + stop_bits)', 'max_cycles': None, 'description': 'TX frame duration; max unbounded if TX FIFO is empty and no new data'}, 'rx_byte': {'min_cycles': 'baud_tick_period * (1 + DATA_WIDTH + parity_en + stop_bits)', 'max_cycles': None, 'description': 'RX frame duration; max unbounded waiting for start bit'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "title": "Cycle/handshake rule handshake_2",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[2]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_protocol_model",
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_baud_tick",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_2",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'PREADY', 'rule': 'Asserted in the access phase (PSEL=1, PENABLE=1) for all valid register addresses. Deasserted otherwise.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}, 'tx_byte': {'min_cycles': 'baud_tick_period * (1 + DATA_WIDTH + parity_en + stop_bits)', 'max_cycles': None, 'description': 'TX frame duration; max unbounded if TX FIFO is empty and no new data'}, 'rx_byte': {'min_cycles': 'baud_tick_period * (1 + DATA_WIDTH + parity_en + stop_bits)', 'max_cycles': None, 'description': 'RX frame duration; max unbounded waiting for start bit'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_3",
+      "title": "Cycle/handshake rule handshake_3",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[3]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_protocol_model",
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_baud_tick",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_3",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'PSLVERR', 'rule': 'Asserted only with PREADY=1 for accesses to unimplemented address ranges.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}, 'tx_byte': {'min_cycles': 'baud_tick_period * (1 + DATA_WIDTH + parity_en + stop_bits)', 'max_cycles': None, 'description': 'TX frame duration; max unbounded if TX FIFO is empty and no new data'}, 'rx_byte': {'min_cycles': 'baud_tick_period * (1 + DATA_WIDTH + parity_en + stop_bits)', 'max_cycles': None, 'description': 'RX frame duration; max unbounded waiting for start bit'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "title": "Ordering rule ordering_0",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[0]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_protocol_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_0",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "TX FSM does not start a new frame until the current frame completes (no pipelining across bytes)."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}, 'tx_byte': {'min_cycles': 'baud_tick_period * (1 + DATA_WIDTH + parity_en + stop_bits)', 'max_cycles': None, 'description': 'TX frame duration; max unbounded if TX FIFO is empty and no new data'}, 'rx_byte': {'min_cycles': 'baud_tick_period * (1 + DATA_WIDTH + parity_en + stop_bits)', 'max_cycles': None, 'description': 'RX frame duration; max unbounded waiting for start bit'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "title": "Ordering rule ordering_1",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[1]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_protocol_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_1",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "RX FSM does not start a new frame until the current frame completes."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}, 'tx_byte': {'min_cycles': 'baud_tick_period * (1 + DATA_WIDTH + parity_en + stop_bits)', 'max_cycles': None, 'description': 'TX frame duration; max unbounded if TX FIFO is empty and no new data'}, 'rx_byte': {'min_cycles': 'baud_tick_period * (1 + DATA_WIDTH + parity_en + stop_bits)', 'max_cycles': None, 'description': 'RX frame duration; max unbounded waiting for start bit'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "title": "Ordering rule ordering_2",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[2]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_protocol_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_2",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "Interrupt pending bits update on the same PCLK edge as the condition (FIFO threshold crossing, error detection, frame completion)."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}, 'tx_byte': {'min_cycles': 'baud_tick_period * (1 + DATA_WIDTH + parity_en + stop_bits)', 'max_cycles': None, 'description': 'TX frame duration; max unbounded if TX FIFO is empty and no new data'}, 'rx_byte': {'min_cycles': 'baud_tick_period * (1 + DATA_WIDTH + parity_en + stop_bits)', 'max_cycles': None, 'description': 'RX frame duration; max unbounded waiting for start bit'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_CTRL",
+      "title": "Register access CTRL",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[0]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_register_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_2",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'CTRL', 'offset': 0, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'control', 'description': 'Control Register', 'write_side_effects': ['Fields take effect immediately on APB write; TX/RX enable changes during active transfer follow error_handling rules.', 'loopback=1 internally connects tx to rx synchronizer input after the 2-FF stage.', 'break_send=1 forces tx low for at least one full frame duration (start+data+parity+stop) then self-clears.'], 'fields': [{'name': 'tx_enable', 'bits': [0, 0], 'access': 'rw', 'reset': 0, 'description': 'Enable transmitter'}, {'name': 'rx_enable', 'bits': [1, 1], 'access': 'rw', 'reset': 0, 'description': 'Enable receiver'}, {'name': 'loopback', 'bits': [2, 2], 'access': 'rw', 'reset': 0, 'description': 'Loopback test mode: internal tx\u2192rx connection'}, {'name': 'break_send', 'bits': [3, 3], 'access': 'rw', 'reset': 0, 'description': 'Send break (force tx=0); self-clears after one frame'}, {'name': 'parity_en', 'bits': [4, 4], 'access': 'rw', 'reset': 0, 'description': 'Enable parity generation/checking'}, {'name': 'parity_odd', 'bits': [5, 5], 'access': 'rw', 'reset': 0, 'description': '0=even parity, 1=odd parity (when parity_en=1)'}, {'name': 'stop_bits', 'bits': [6, 6], 'access': 'rw', 'reset': 0, 'description': '0=1 stop bit, 1=2 stop bits'}, {'name': 'reserved_31_7', 'bits': [31, 7], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_STAT",
+      "title": "Register access STAT",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[1]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_register_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_2",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "fsm_tx_fsm_tx_idle_to_tx_start_0",
+        "fsm_tx_fsm_tx_start_to_tx_data_1",
+        "fsm_tx_fsm_tx_data_to_tx_parity_2",
+        "fsm_tx_fsm_tx_data_to_tx_stop1_3",
+        "fsm_tx_fsm_tx_parity_to_tx_stop1_4",
+        "fsm_tx_fsm_tx_stop1_to_tx_idle_5",
+        "fsm_tx_fsm_tx_stop1_to_tx_stop2_6",
+        "fsm_tx_fsm_tx_stop2_to_tx_idle_7",
+        "fsm_rx_fsm_rx_idle_to_rx_start_detect_0",
+        "fsm_rx_fsm_rx_start_detect_to_rx_start_confirm_1",
+        "fsm_rx_fsm_rx_start_detect_to_rx_idle_2",
+        "fsm_rx_fsm_rx_start_confirm_to_rx_data_3",
+        "fsm_rx_fsm_rx_data_to_rx_parity_4",
+        "fsm_rx_fsm_rx_data_to_rx_stop1_5",
+        "fsm_rx_fsm_rx_parity_to_rx_stop1_6",
+        "fsm_rx_fsm_rx_stop1_to_rx_idle_7",
+        "fsm_rx_fsm_rx_stop1_to_rx_stop2_8",
+        "fsm_rx_fsm_rx_stop2_to_rx_idle_9",
+        "error_error_0",
+        "error_error_1",
+        "error_error_2",
+        "error_error_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'STAT', 'offset': 4, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'status', 'description': 'Status Register \u2014 live FIFO flags and sticky error flags', 'fields': [{'name': 'tx_full', 'bits': [0, 0], 'access': 'ro', 'reset': 0, 'description': 'TX FIFO full (live)'}, {'name': 'tx_empty', 'bits': [1, 1], 'access': 'ro', 'reset': 1, 'description': 'TX FIFO empty (live)'}, {'name': 'rx_empty', 'bits': [2, 2], 'access': 'ro', 'reset': 1, 'description': 'RX FIFO empty (live)'}, {'name': 'rx_full', 'bits': [3, 3], 'access': 'ro', 'reset': 0, 'description': 'RX FIFO full (live)'}, {'name': 'tx_busy', 'bits': [4, 4], 'access': 'ro', 'reset': 0, 'description': 'Transmitter active (shift register busy)'}, {'name': 'rx_busy', 'bits': [5, 5], 'access': 'ro', 'reset': 0, 'description': 'Receiver active (frame in progress)'}, {'name': 'frame_err', 'bits': [6, 6], 'access': 'ro', 'reset': 0, 'description': 'Framing error detected (sticky, clear via CLR_STAT)'}, {'name': 'parity_err', 'bits': [7, 7], 'access': 'ro', 'reset': 0, 'description': 'Parity error detected (sticky, clear via CLR_STAT)'}, {'name': 'overrun_err', 'bits': [8, 8], 'access': 'ro', 'reset': 0, 'description': 'RX overrun (sticky, clear via CLR_STAT)'}, {'name': 'underrun_err', 'bits': [9, 9], 'access': 'ro', 'reset': 0, 'description': 'TX underrun (sticky, clear via CLR_STAT)'}, {'name': 'reserved_31_10', 'bits': [31, 10], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_BAUD",
+      "title": "Register access BAUD",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[2]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_register_model"
+      ],
+      "coverage_refs": [
+        "SC17_executed",
+        "ccov_baud_tick",
+        "cycle_handshake_0",
+        "cycle_handshake_2",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_latency_tx_byte",
+        "cycle_latency_rx_byte",
+        "cycle_pipeline_tx_start",
+        "cycle_pipeline_tx_data",
+        "cycle_pipeline_tx_parity",
+        "cycle_pipeline_tx_stop1",
+        "cycle_pipeline_tx_stop2",
+        "cycle_perf_throughput",
+        "fsm_tx_fsm_tx_idle_to_tx_start_0",
+        "fsm_tx_fsm_tx_start_to_tx_data_1",
+        "fsm_tx_fsm_tx_data_to_tx_parity_2",
+        "fsm_tx_fsm_tx_data_to_tx_stop1_3",
+        "fsm_tx_fsm_tx_parity_to_tx_stop1_4",
+        "fsm_tx_fsm_tx_stop1_to_tx_idle_5",
+        "fsm_tx_fsm_tx_stop1_to_tx_stop2_6",
+        "fsm_tx_fsm_tx_stop2_to_tx_idle_7"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'BAUD', 'offset': 8, 'width': 32, 'access': 'rw', 'reset': 324, 'category': 'control', 'description': 'Baud Rate Divisor', 'write_side_effects': ['Changing BAUD during an active TX or RX frame results in the current frame completing at the old rate; the new divisor takes effect for the next frame.'], 'fields': [{'name': 'baud_div', 'bits': [15, 0], 'access': 'rw', 'reset': 324, 'description': 'Baud divisor: bit_period = (baud_div+1) * OVERSAMPLE PCLK cycles. Reset=324 \u2192 9600 baud at 50 MHz/16x.'}, {'name': 'reserved_31_16', 'bits': [31, 16], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_TXDATA",
+      "title": "Register access TXDATA",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[3]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_register_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_2",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'TXDATA', 'offset': 12, 'width': 32, 'access': 'wo', 'reset': 0, 'category': 'data', 'description': 'TX Data Write (pushes to TX FIFO)', 'write_side_effects': ['Writing when tx_full=1 discards data and sets underrun_err sticky flag.', 'On successful write, TX FSM is triggered if idle.'], 'fields': [{'name': 'tx_data', 'bits': [7, 0], 'access': 'wo', 'reset': 0, 'description': 'Transmit data byte'}, {'name': 'reserved_31_8', 'bits': [31, 8], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_RXDATA",
+      "title": "Register access RXDATA",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[4]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_register_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_2",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'RXDATA', 'offset': 16, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'data', 'description': 'RX Data Read (pops from RX FIFO)', 'read_side_effects': ['Reading when rx_empty=1 returns last valid data or 0x00 and does not change FIFO state.', 'Successful read pops one byte from RX FIFO.'], 'fields': [{'name': 'rx_data', 'bits': [7, 0], 'access': 'ro', 'reset': 0, 'description': 'Received data byte'}, {'name': 'reserved_31_8', 'bits': [31, 8], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_INTEN",
+      "title": "Register access INTEN",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[5]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_register_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_2",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'INTEN', 'offset': 20, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'interrupt', 'description': 'Interrupt Enable Register', 'write_side_effects': ['Changes take effect immediately.'], 'fields': [{'name': 'tx_empty_en', 'bits': [0, 0], 'access': 'rw', 'reset': 0, 'description': 'Enable TX empty interrupt'}, {'name': 'rx_not_empty_en', 'bits': [1, 1], 'access': 'rw', 'reset': 0, 'description': 'Enable RX not empty interrupt'}, {'name': 'rx_overrun_en', 'bits': [2, 2], 'access': 'rw', 'reset': 0, 'description': 'Enable RX overrun interrupt'}, {'name': 'frame_err_en', 'bits': [3, 3], 'access': 'rw', 'reset': 0, 'description': 'Enable framing error interrupt'}, {'name': 'parity_err_en', 'bits': [4, 4], 'access': 'rw', 'reset': 0, 'description': 'Enable parity error interrupt'}, {'name': 'reserved_31_5', 'bits': [31, 5], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_INTPEND",
+      "title": "Register access INTPEND",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[6]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_register_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_2",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'INTPEND', 'offset': 24, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'interrupt', 'description': 'Interrupt Pending Register (W1C for set bits)', 'write_side_effects': ['Writing 1 to a bit clears that pending flag. Writing 0 has no effect.', 'Hardware sets pending bits when enabled interrupt conditions occur.'], 'fields': [{'name': 'tx_empty_pend', 'bits': [0, 0], 'access': 'rw', 'reset': 0, 'description': 'TX empty pending (W1C)'}, {'name': 'rx_not_empty_pend', 'bits': [1, 1], 'access': 'rw', 'reset': 0, 'description': 'RX not empty pending (W1C)'}, {'name': 'rx_overrun_pend', 'bits': [2, 2], 'access': 'rw', 'reset': 0, 'description': 'RX overrun pending (W1C)'}, {'name': 'frame_err_pend', 'bits': [3, 3], 'access': 'rw', 'reset': 0, 'description': 'Framing error pending (W1C)'}, {'name': 'parity_err_pend', 'bits': [4, 4], 'access': 'rw', 'reset': 0, 'description': 'Parity error pending (W1C)'}, {'name': 'reserved_31_5', 'bits': [31, 5], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_CLR_STAT",
+      "title": "Register access CLR_STAT",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[7]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_register_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_2",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'CLR_STAT', 'offset': 28, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'status', 'description': 'Clear Sticky Status Flags (W1C)', 'write_side_effects': ['Writing 1 to a bit clears the corresponding sticky flag in STAT. Writing 0 has no effect.'], 'fields': [{'name': 'clr_frame_err', 'bits': [0, 0], 'access': 'rw', 'reset': 0, 'description': 'Clear frame_err (W1C)'}, {'name': 'clr_parity_err', 'bits': [1, 1], 'access': 'rw', 'reset': 0, 'description': 'Clear parity_err (W1C)'}, {'name': 'clr_overrun_err', 'bits': [2, 2], 'access': 'rw', 'reset': 0, 'description': 'Clear overrun_err (W1C)'}, {'name': 'clr_underrun_err', 'bits': [3, 3], 'access': 'rw', 'reset': 0, 'description': 'Clear underrun_err (W1C)'}, {'name': 'reserved_31_4', 'bits': [31, 4], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_DBG_BYTES_TX",
+      "title": "Register access DBG_BYTES_TX",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[8]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_register_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_2",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'DBG_BYTES_TX', 'offset': 32, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'debug', 'description': 'Debug Counter: Bytes Transmitted', 'read_side_effects': ['Read returns current count. Counter wraps at 0xFFFFFFFF.'], 'fields': [{'name': 'bytes_tx', 'bits': [31, 0], 'access': 'ro', 'reset': 0, 'description': 'Total bytes transmitted (wrapping)'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_DBG_BYTES_RX",
+      "title": "Register access DBG_BYTES_RX",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[9]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_register_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_2",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'DBG_BYTES_RX', 'offset': 36, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'debug', 'description': 'Debug Counter: Bytes Received', 'fields': [{'name': 'bytes_rx', 'bits': [31, 0], 'access': 'ro', 'reset': 0, 'description': 'Total bytes received (wrapping)'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_DBG_FRAMES_ERR",
+      "title": "Register access DBG_FRAMES_ERR",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[10]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_register_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_2",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "error_error_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'DBG_FRAMES_ERR', 'offset': 40, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'debug', 'description': 'Debug Counter: Framing Errors', 'fields': [{'name': 'frames_errored', 'bits': [31, 0], 'access': 'ro', 'reset': 0, 'description': 'Total framing errors (wrapping)'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_DBG_PARITIES_ERR",
+      "title": "Register access DBG_PARITIES_ERR",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[11]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_register_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_2",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "error_error_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'DBG_PARITIES_ERR', 'offset': 44, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'debug', 'description': 'Debug Counter: Parity Errors', 'fields': [{'name': 'parities_errored', 'bits': [31, 0], 'access': 'ro', 'reset': 0, 'description': 'Total parity errors (wrapping)'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_MEMORY_TX_FIFO",
+      "title": "Memory behavior tx_fifo",
+      "kind": "memory",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "memory.instances[0]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_memory_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "memory_access",
+        "required_fields": [
+          "op",
+          "addr",
+          "data"
+        ],
+        "constraints": [
+          "{'name': 'tx_fifo', 'type': 'sram_fifo', 'depth': 16, 'width': 'DATA_WIDTH', 'read_ports': 1, 'write_ports': 1, 'latency': 1, 'description': 'TX FIFO \u2014 parameterized to FIFO_DEPTH \u00d7 DATA_WIDTH; write on APB write to TXDATA, read on TX FSM pop'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "retention"
+        ],
+        "latency": "memory latency from cycle_model",
+        "state_updates": [
+          "memory contents"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL memory read/write behavior matches FunctionalModel state",
+        "Byte-lane, boundary, and retention behavior match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_MEMORY_RX_FIFO",
+      "title": "Memory behavior rx_fifo",
+      "kind": "memory",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "memory.instances[1]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_memory_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "memory_access",
+        "required_fields": [
+          "op",
+          "addr",
+          "data"
+        ],
+        "constraints": [
+          "{'name': 'rx_fifo', 'type': 'sram_fifo', 'depth': 16, 'width': 'DATA_WIDTH', 'read_ports': 1, 'write_ports': 1, 'latency': 1, 'description': 'RX FIFO \u2014 parameterized to FIFO_DEPTH \u00d7 DATA_WIDTH; write on RX frame complete, read on APB read from RXDATA'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "retention"
+        ],
+        "latency": "memory latency from cycle_model",
+        "state_updates": [
+          "memory contents"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL memory read/write behavior matches FunctionalModel state",
+        "Byte-lane, boundary, and retention behavior match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "title": "Error policy None",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[0]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_protocol_model",
+        "uart_lite_error_model"
+      ],
+      "coverage_refs": [
+        "SC5_executed",
+        "SC6_executed",
+        "fcov_err_parity",
+        "fcov_err_frame",
+        "fcov_err_overrun",
+        "cycle_latency_tx_byte",
+        "cycle_latency_rx_byte",
+        "cycle_ordering_2",
+        "error_error_0",
+        "error_error_1",
+        "error_error_2",
+        "error_error_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "None",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "constraints": [
+          "{'id': 'ERR_FRAME', 'condition': 'RX stop bit(s) sampled low', 'architectural_effect': 'STAT.frame_err sticky set; DBG_FRAMES_ERR incremented; frame_error interrupt if enabled'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "error response",
+          "status/interrupt/debug observable"
+        ],
+        "latency": "error propagation timing from cycle_model",
+        "state_updates": [
+          "error state/counter/status update"
+        ],
+        "error_policy": "['Sticky error flags in STAT remain set until software clears them via CLR_STAT W1C.', 'Multiple errors may accumulate; each sticky flag is independent.', 'Error bytes (frame_err, parity_err) are still pushed to RX FIFO if space is available.']"
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_TX_FSM_TX_IDLE_TO_TX_START_0",
+      "title": "FSM transition tx_fsm: TX_IDLE -> TX_START",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.tx_fsm.transitions[0]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_tx_idle",
+        "cycle_pipeline_tx_idle",
+        "cycle_pipeline_tx_start",
+        "cycle_backpressure_0",
+        "fsm_tx_fsm_tx_idle_to_tx_start_0",
+        "fsm_tx_fsm_tx_start_to_tx_data_1",
+        "fsm_tx_fsm_tx_data_to_tx_parity_2",
+        "fsm_tx_fsm_tx_data_to_tx_stop1_3",
+        "fsm_tx_fsm_tx_parity_to_tx_stop1_4",
+        "fsm_tx_fsm_tx_stop1_to_tx_idle_5",
+        "fsm_tx_fsm_tx_stop1_to_tx_stop2_6",
+        "fsm_tx_fsm_tx_stop2_to_tx_idle_7"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "tx_fsm_TX_IDLE_to_TX_START_0",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "TX FIFO not empty and baud tick"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "tx_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_TX_FSM_TX_START_TO_TX_DATA_1",
+      "title": "FSM transition tx_fsm: TX_START -> TX_DATA",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.tx_fsm.transitions[1]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_tx_data",
+        "cycle_pipeline_tx_start",
+        "cycle_pipeline_tx_data",
+        "fsm_tx_fsm_tx_idle_to_tx_start_0",
+        "fsm_tx_fsm_tx_start_to_tx_data_1",
+        "fsm_tx_fsm_tx_data_to_tx_parity_2",
+        "fsm_tx_fsm_tx_data_to_tx_stop1_3",
+        "fsm_tx_fsm_tx_parity_to_tx_stop1_4",
+        "fsm_tx_fsm_tx_stop1_to_tx_idle_5",
+        "fsm_tx_fsm_tx_stop1_to_tx_stop2_6",
+        "fsm_tx_fsm_tx_stop2_to_tx_idle_7"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "tx_fsm_TX_START_to_TX_DATA_1",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "baud tick (1 bit period elapsed)"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "tx_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_TX_FSM_TX_DATA_TO_TX_PARITY_2",
+      "title": "FSM transition tx_fsm: TX_DATA -> TX_PARITY",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.tx_fsm.transitions[2]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_tx_data",
+        "cycle_pipeline_tx_data",
+        "cycle_pipeline_tx_parity",
+        "fsm_tx_fsm_tx_idle_to_tx_start_0",
+        "fsm_tx_fsm_tx_start_to_tx_data_1",
+        "fsm_tx_fsm_tx_data_to_tx_parity_2",
+        "fsm_tx_fsm_tx_data_to_tx_stop1_3",
+        "fsm_tx_fsm_tx_parity_to_tx_stop1_4",
+        "fsm_tx_fsm_tx_stop1_to_tx_idle_5",
+        "fsm_tx_fsm_tx_stop1_to_tx_stop2_6",
+        "fsm_tx_fsm_tx_stop2_to_tx_idle_7"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "tx_fsm_TX_DATA_to_TX_PARITY_2",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "DATA_WIDTH bits transmitted and parity_en=1 and baud tick"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "tx_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_TX_FSM_TX_DATA_TO_TX_STOP1_3",
+      "title": "FSM transition tx_fsm: TX_DATA -> TX_STOP1",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.tx_fsm.transitions[3]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_tx_data",
+        "cycle_pipeline_tx_data",
+        "cycle_pipeline_tx_stop1",
+        "fsm_tx_fsm_tx_idle_to_tx_start_0",
+        "fsm_tx_fsm_tx_start_to_tx_data_1",
+        "fsm_tx_fsm_tx_data_to_tx_parity_2",
+        "fsm_tx_fsm_tx_data_to_tx_stop1_3",
+        "fsm_tx_fsm_tx_parity_to_tx_stop1_4",
+        "fsm_tx_fsm_tx_stop1_to_tx_idle_5",
+        "fsm_tx_fsm_tx_stop1_to_tx_stop2_6",
+        "fsm_tx_fsm_tx_stop2_to_tx_idle_7"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "tx_fsm_TX_DATA_to_TX_STOP1_3",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "DATA_WIDTH bits transmitted and parity_en=0 and baud tick"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "tx_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_TX_FSM_TX_PARITY_TO_TX_STOP1_4",
+      "title": "FSM transition tx_fsm: TX_PARITY -> TX_STOP1",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.tx_fsm.transitions[4]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_tx_parity",
+        "cycle_pipeline_tx_stop1",
+        "fsm_tx_fsm_tx_idle_to_tx_start_0",
+        "fsm_tx_fsm_tx_start_to_tx_data_1",
+        "fsm_tx_fsm_tx_data_to_tx_parity_2",
+        "fsm_tx_fsm_tx_data_to_tx_stop1_3",
+        "fsm_tx_fsm_tx_parity_to_tx_stop1_4",
+        "fsm_tx_fsm_tx_stop1_to_tx_idle_5",
+        "fsm_tx_fsm_tx_stop1_to_tx_stop2_6",
+        "fsm_tx_fsm_tx_stop2_to_tx_idle_7"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "tx_fsm_TX_PARITY_to_TX_STOP1_4",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "baud tick"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "tx_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_TX_FSM_TX_STOP1_TO_TX_IDLE_5",
+      "title": "FSM transition tx_fsm: TX_STOP1 -> TX_IDLE",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.tx_fsm.transitions[5]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_tx_idle",
+        "cycle_pipeline_tx_idle",
+        "cycle_pipeline_tx_stop1",
+        "cycle_backpressure_0",
+        "fsm_tx_fsm_tx_idle_to_tx_start_0",
+        "fsm_tx_fsm_tx_start_to_tx_data_1",
+        "fsm_tx_fsm_tx_data_to_tx_parity_2",
+        "fsm_tx_fsm_tx_data_to_tx_stop1_3",
+        "fsm_tx_fsm_tx_parity_to_tx_stop1_4",
+        "fsm_tx_fsm_tx_stop1_to_tx_idle_5",
+        "fsm_tx_fsm_tx_stop1_to_tx_stop2_6",
+        "fsm_tx_fsm_tx_stop2_to_tx_idle_7"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "tx_fsm_TX_STOP1_to_TX_IDLE_5",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "stop_bits=0 and baud tick"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "tx_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_TX_FSM_TX_STOP1_TO_TX_STOP2_6",
+      "title": "FSM transition tx_fsm: TX_STOP1 -> TX_STOP2",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.tx_fsm.transitions[6]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_tx_stop1",
+        "cycle_pipeline_tx_stop2",
+        "fsm_tx_fsm_tx_idle_to_tx_start_0",
+        "fsm_tx_fsm_tx_start_to_tx_data_1",
+        "fsm_tx_fsm_tx_data_to_tx_parity_2",
+        "fsm_tx_fsm_tx_data_to_tx_stop1_3",
+        "fsm_tx_fsm_tx_parity_to_tx_stop1_4",
+        "fsm_tx_fsm_tx_stop1_to_tx_idle_5",
+        "fsm_tx_fsm_tx_stop1_to_tx_stop2_6",
+        "fsm_tx_fsm_tx_stop2_to_tx_idle_7"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "tx_fsm_TX_STOP1_to_TX_STOP2_6",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "stop_bits=1 and baud tick"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "tx_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7",
+      "title": "FSM transition tx_fsm: TX_STOP2 -> TX_IDLE",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.tx_fsm.transitions[7]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_tx_idle",
+        "cycle_pipeline_tx_idle",
+        "cycle_pipeline_tx_stop2",
+        "cycle_backpressure_0",
+        "fsm_tx_fsm_tx_idle_to_tx_start_0",
+        "fsm_tx_fsm_tx_start_to_tx_data_1",
+        "fsm_tx_fsm_tx_data_to_tx_parity_2",
+        "fsm_tx_fsm_tx_data_to_tx_stop1_3",
+        "fsm_tx_fsm_tx_parity_to_tx_stop1_4",
+        "fsm_tx_fsm_tx_stop1_to_tx_idle_5",
+        "fsm_tx_fsm_tx_stop1_to_tx_stop2_6",
+        "fsm_tx_fsm_tx_stop2_to_tx_idle_7"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "tx_fsm_TX_STOP2_to_TX_IDLE_7",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "baud tick"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "tx_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_RX_FSM_RX_IDLE_TO_RX_START_DETECT_0",
+      "title": "FSM transition rx_fsm: RX_IDLE -> RX_START_DETECT",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions[0]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_rx_idle",
+        "cycle_pipeline_rx_start_detect",
+        "cycle_pipeline_rx_start_confirm",
+        "cycle_backpressure_1",
+        "fsm_rx_fsm_rx_idle_to_rx_start_detect_0",
+        "fsm_rx_fsm_rx_start_detect_to_rx_start_confirm_1",
+        "fsm_rx_fsm_rx_start_detect_to_rx_idle_2",
+        "fsm_rx_fsm_rx_start_confirm_to_rx_data_3",
+        "fsm_rx_fsm_rx_data_to_rx_parity_4",
+        "fsm_rx_fsm_rx_data_to_rx_stop1_5",
+        "fsm_rx_fsm_rx_parity_to_rx_stop1_6",
+        "fsm_rx_fsm_rx_stop1_to_rx_idle_7",
+        "fsm_rx_fsm_rx_stop1_to_rx_stop2_8",
+        "fsm_rx_fsm_rx_stop2_to_rx_idle_9"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "rx_fsm_RX_IDLE_to_RX_START_DETECT_0",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "rx_synced falling edge detected"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "rx_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_RX_FSM_RX_START_DETECT_TO_RX_START_CONFIRM_1",
+      "title": "FSM transition rx_fsm: RX_START_DETECT -> RX_START_CONFIRM",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions[1]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_rx_start_confirm",
+        "cycle_pipeline_rx_start_detect",
+        "cycle_pipeline_rx_start_confirm",
+        "fsm_rx_fsm_rx_idle_to_rx_start_detect_0",
+        "fsm_rx_fsm_rx_start_detect_to_rx_start_confirm_1",
+        "fsm_rx_fsm_rx_start_detect_to_rx_idle_2",
+        "fsm_rx_fsm_rx_start_confirm_to_rx_data_3",
+        "fsm_rx_fsm_rx_data_to_rx_parity_4",
+        "fsm_rx_fsm_rx_data_to_rx_stop1_5",
+        "fsm_rx_fsm_rx_parity_to_rx_stop1_6",
+        "fsm_rx_fsm_rx_stop1_to_rx_idle_7",
+        "fsm_rx_fsm_rx_stop1_to_rx_stop2_8",
+        "fsm_rx_fsm_rx_stop2_to_rx_idle_9"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "rx_fsm_RX_START_DETECT_to_RX_START_CONFIRM_1",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "mid-bit sample at oversample count 7 confirms low"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "rx_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_RX_FSM_RX_START_DETECT_TO_RX_IDLE_2",
+      "title": "FSM transition rx_fsm: RX_START_DETECT -> RX_IDLE",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions[2]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_rx_idle",
+        "cycle_pipeline_rx_start_detect",
+        "cycle_pipeline_rx_start_confirm",
+        "cycle_backpressure_1",
+        "fsm_rx_fsm_rx_idle_to_rx_start_detect_0",
+        "fsm_rx_fsm_rx_start_detect_to_rx_start_confirm_1",
+        "fsm_rx_fsm_rx_start_detect_to_rx_idle_2",
+        "fsm_rx_fsm_rx_start_confirm_to_rx_data_3",
+        "fsm_rx_fsm_rx_data_to_rx_parity_4",
+        "fsm_rx_fsm_rx_data_to_rx_stop1_5",
+        "fsm_rx_fsm_rx_parity_to_rx_stop1_6",
+        "fsm_rx_fsm_rx_stop1_to_rx_idle_7",
+        "fsm_rx_fsm_rx_stop1_to_rx_stop2_8",
+        "fsm_rx_fsm_rx_stop2_to_rx_idle_9"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "rx_fsm_RX_START_DETECT_to_RX_IDLE_2",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "mid-bit sample at oversample count 7 is high (spurious edge)"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "rx_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_RX_FSM_RX_START_CONFIRM_TO_RX_DATA_3",
+      "title": "FSM transition rx_fsm: RX_START_CONFIRM -> RX_DATA",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions[3]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_rx_start_confirm",
+        "ccov_rx_data",
+        "cycle_pipeline_rx_start_confirm",
+        "cycle_pipeline_rx_data",
+        "fsm_rx_fsm_rx_idle_to_rx_start_detect_0",
+        "fsm_rx_fsm_rx_start_detect_to_rx_start_confirm_1",
+        "fsm_rx_fsm_rx_start_detect_to_rx_idle_2",
+        "fsm_rx_fsm_rx_start_confirm_to_rx_data_3",
+        "fsm_rx_fsm_rx_data_to_rx_parity_4",
+        "fsm_rx_fsm_rx_data_to_rx_stop1_5",
+        "fsm_rx_fsm_rx_parity_to_rx_stop1_6",
+        "fsm_rx_fsm_rx_stop1_to_rx_idle_7",
+        "fsm_rx_fsm_rx_stop1_to_rx_stop2_8",
+        "fsm_rx_fsm_rx_stop2_to_rx_idle_9"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "rx_fsm_RX_START_CONFIRM_to_RX_DATA_3",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "full bit period from start confirm; oversample tick"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "rx_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_RX_FSM_RX_DATA_TO_RX_PARITY_4",
+      "title": "FSM transition rx_fsm: RX_DATA -> RX_PARITY",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions[4]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_rx_data",
+        "cycle_pipeline_rx_data",
+        "cycle_pipeline_rx_parity",
+        "fsm_rx_fsm_rx_idle_to_rx_start_detect_0",
+        "fsm_rx_fsm_rx_start_detect_to_rx_start_confirm_1",
+        "fsm_rx_fsm_rx_start_detect_to_rx_idle_2",
+        "fsm_rx_fsm_rx_start_confirm_to_rx_data_3",
+        "fsm_rx_fsm_rx_data_to_rx_parity_4",
+        "fsm_rx_fsm_rx_data_to_rx_stop1_5",
+        "fsm_rx_fsm_rx_parity_to_rx_stop1_6",
+        "fsm_rx_fsm_rx_stop1_to_rx_idle_7",
+        "fsm_rx_fsm_rx_stop1_to_rx_stop2_8",
+        "fsm_rx_fsm_rx_stop2_to_rx_idle_9"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "rx_fsm_RX_DATA_to_RX_PARITY_4",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "DATA_WIDTH bits sampled at centre and parity_en=1 and oversample tick"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "rx_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_RX_FSM_RX_DATA_TO_RX_STOP1_5",
+      "title": "FSM transition rx_fsm: RX_DATA -> RX_STOP1",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions[5]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_rx_data",
+        "cycle_pipeline_rx_data",
+        "cycle_pipeline_rx_stop1",
+        "fsm_rx_fsm_rx_idle_to_rx_start_detect_0",
+        "fsm_rx_fsm_rx_start_detect_to_rx_start_confirm_1",
+        "fsm_rx_fsm_rx_start_detect_to_rx_idle_2",
+        "fsm_rx_fsm_rx_start_confirm_to_rx_data_3",
+        "fsm_rx_fsm_rx_data_to_rx_parity_4",
+        "fsm_rx_fsm_rx_data_to_rx_stop1_5",
+        "fsm_rx_fsm_rx_parity_to_rx_stop1_6",
+        "fsm_rx_fsm_rx_stop1_to_rx_idle_7",
+        "fsm_rx_fsm_rx_stop1_to_rx_stop2_8",
+        "fsm_rx_fsm_rx_stop2_to_rx_idle_9"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "rx_fsm_RX_DATA_to_RX_STOP1_5",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "DATA_WIDTH bits sampled at centre and parity_en=0 and oversample tick"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "rx_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_RX_FSM_RX_PARITY_TO_RX_STOP1_6",
+      "title": "FSM transition rx_fsm: RX_PARITY -> RX_STOP1",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions[6]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_rx_parity",
+        "cycle_pipeline_rx_stop1",
+        "fsm_rx_fsm_rx_idle_to_rx_start_detect_0",
+        "fsm_rx_fsm_rx_start_detect_to_rx_start_confirm_1",
+        "fsm_rx_fsm_rx_start_detect_to_rx_idle_2",
+        "fsm_rx_fsm_rx_start_confirm_to_rx_data_3",
+        "fsm_rx_fsm_rx_data_to_rx_parity_4",
+        "fsm_rx_fsm_rx_data_to_rx_stop1_5",
+        "fsm_rx_fsm_rx_parity_to_rx_stop1_6",
+        "fsm_rx_fsm_rx_stop1_to_rx_idle_7",
+        "fsm_rx_fsm_rx_stop1_to_rx_stop2_8",
+        "fsm_rx_fsm_rx_stop2_to_rx_idle_9"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "rx_fsm_RX_PARITY_to_RX_STOP1_6",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "parity bit sampled at centre and oversample tick"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "rx_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_RX_FSM_RX_STOP1_TO_RX_IDLE_7",
+      "title": "FSM transition rx_fsm: RX_STOP1 -> RX_IDLE",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions[7]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_rx_idle",
+        "cycle_pipeline_rx_start_confirm",
+        "cycle_pipeline_rx_stop1",
+        "cycle_backpressure_1",
+        "fsm_rx_fsm_rx_idle_to_rx_start_detect_0",
+        "fsm_rx_fsm_rx_start_detect_to_rx_start_confirm_1",
+        "fsm_rx_fsm_rx_start_detect_to_rx_idle_2",
+        "fsm_rx_fsm_rx_start_confirm_to_rx_data_3",
+        "fsm_rx_fsm_rx_data_to_rx_parity_4",
+        "fsm_rx_fsm_rx_data_to_rx_stop1_5",
+        "fsm_rx_fsm_rx_parity_to_rx_stop1_6",
+        "fsm_rx_fsm_rx_stop1_to_rx_idle_7",
+        "fsm_rx_fsm_rx_stop1_to_rx_stop2_8",
+        "fsm_rx_fsm_rx_stop2_to_rx_idle_9"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "rx_fsm_RX_STOP1_to_RX_IDLE_7",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "stop_bits=0; stop bit sampled high at centre and oversample tick"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "rx_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_RX_FSM_RX_STOP1_TO_RX_STOP2_8",
+      "title": "FSM transition rx_fsm: RX_STOP1 -> RX_STOP2",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions[8]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_rx_stop1",
+        "cycle_pipeline_rx_stop2",
+        "fsm_rx_fsm_rx_idle_to_rx_start_detect_0",
+        "fsm_rx_fsm_rx_start_detect_to_rx_start_confirm_1",
+        "fsm_rx_fsm_rx_start_detect_to_rx_idle_2",
+        "fsm_rx_fsm_rx_start_confirm_to_rx_data_3",
+        "fsm_rx_fsm_rx_data_to_rx_parity_4",
+        "fsm_rx_fsm_rx_data_to_rx_stop1_5",
+        "fsm_rx_fsm_rx_parity_to_rx_stop1_6",
+        "fsm_rx_fsm_rx_stop1_to_rx_idle_7",
+        "fsm_rx_fsm_rx_stop1_to_rx_stop2_8",
+        "fsm_rx_fsm_rx_stop2_to_rx_idle_9"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "rx_fsm_RX_STOP1_to_RX_STOP2_8",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "stop_bits=1 and oversample tick"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "rx_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9",
+      "title": "FSM transition rx_fsm: RX_STOP2 -> RX_IDLE",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions[9]"
+      ],
+      "decomposition_refs": [
+        "uart_lite_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_rx_idle",
+        "cycle_pipeline_rx_start_confirm",
+        "cycle_pipeline_rx_stop2",
+        "cycle_backpressure_1",
+        "fsm_rx_fsm_rx_idle_to_rx_start_detect_0",
+        "fsm_rx_fsm_rx_start_detect_to_rx_start_confirm_1",
+        "fsm_rx_fsm_rx_start_detect_to_rx_idle_2",
+        "fsm_rx_fsm_rx_start_confirm_to_rx_data_3",
+        "fsm_rx_fsm_rx_data_to_rx_parity_4",
+        "fsm_rx_fsm_rx_data_to_rx_stop1_5",
+        "fsm_rx_fsm_rx_parity_to_rx_stop1_6",
+        "fsm_rx_fsm_rx_stop1_to_rx_idle_7",
+        "fsm_rx_fsm_rx_stop1_to_rx_stop2_8",
+        "fsm_rx_fsm_rx_stop2_to_rx_idle_9"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "rx_fsm_RX_STOP2_to_RX_IDLE_9",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "oversample tick"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "rx_fsm state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "title": "Required debug/waveform observability exists",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "debug_observability.waveform_must_probe"
+      ],
+      "decomposition_refs": [
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "debug_probe_capture",
+        "required_fields": [
+          "waveform_path"
+        ],
+        "constraints": [
+          "state (TX FSM state, RX FSM state)",
+          "function_model.state_variables (tx_fifo_level, rx_fifo_level, tx_active, rx_active)",
+          "cycle_model.handshake_rules signals (tx, rx_synced, baud_tick)",
+          "interrupt output (uart_irq)",
+          "oversample_counter",
+          "tx_shift_reg, rx_shift_reg"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "waveform contains required probes"
+        ],
+        "latency": "throughout simulation window",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Waveform includes SSOT-required debug probes",
+        "sim_debug can inspect those probes around checked scenarios"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "tb",
+          "coverage",
+          "rtl",
+          "ssot",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_MODULE_UART_LITE_TX",
+      "title": "Module uart_lite_tx functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "uart_lite_tx",
+        "rtl_file": "rtl/uart_lite_tx.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.backpressure.backpressure_1",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.handshake_rules.pslverr",
+        "cycle_model.handshake_rules.tx",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.observability.observability_1",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.tx_data",
+        "cycle_model.pipeline.tx_idle",
+        "cycle_model.pipeline.tx_parity",
+        "cycle_model.pipeline.tx_start",
+        "cycle_model.pipeline.tx_stop1",
+        "cycle_model.pipeline.tx_stop2",
+        "cycle_model.pipeline[TX_DATA]",
+        "cycle_model.pipeline[TX_IDLE]",
+        "cycle_model.pipeline[TX_PARITY]",
+        "cycle_model.pipeline[TX_START]",
+        "cycle_model.pipeline[TX_STOP1]",
+        "cycle_model.pipeline[TX_STOP2]",
+        "cycle_model.reset",
+        "fsm",
+        "fsm.tx_fsm",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables.baud_div",
+        "function_model.state_variables.break_send",
+        "function_model.state_variables.loopback",
+        "function_model.state_variables.parity_en",
+        "function_model.state_variables.parity_odd",
+        "function_model.state_variables.stop_bits",
+        "function_model.state_variables.tx_active",
+        "function_model.state_variables.tx_fifo",
+        "function_model.transactions.FM_TX_BYTE",
+        "function_model.transactions.fm_break_send",
+        "function_model.transactions.fm_break_send.inputs.input_0",
+        "function_model.transactions.fm_break_send.output_rules.break_serial",
+        "function_model.transactions.fm_break_send.outputs.output_0",
+        "function_model.transactions.fm_break_send.preconditions.precondition_0",
+        "function_model.transactions.fm_break_send.side_effects.side_effect_0",
+        "function_model.transactions.fm_break_send.side_effects.side_effect_1",
+        "function_model.transactions.fm_break_send.state_updates.tx",
+        "function_model.transactions.fm_loopback",
+        "function_model.transactions.fm_loopback.inputs.input_0",
+        "function_model.transactions.fm_loopback.output_rules.loopback_tx",
+        "function_model.transactions.fm_loopback.outputs.output_0",
+        "function_model.transactions.fm_loopback.preconditions.precondition_0",
+        "function_model.transactions.fm_loopback.side_effects.side_effect_0",
+        "function_model.transactions.fm_loopback.side_effects.side_effect_1",
+        "function_model.transactions.fm_loopback.state_updates.tx",
+        "function_model.transactions.fm_tx_byte",
+        "function_model.transactions.fm_tx_byte.error_cases.error_case_0",
+        "function_model.transactions.fm_tx_byte.inputs.input_0",
+        "function_model.transactions.fm_tx_byte.output_rules.tx_serial",
+        "function_model.transactions.fm_tx_byte.outputs.output_0",
+        "function_model.transactions.fm_tx_byte.outputs.output_1",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_0",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_1",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_2",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_3",
+        "function_model.transactions.fm_tx_byte.side_effects.side_effect_0",
+        "function_model.transactions.fm_tx_byte.side_effects.side_effect_1",
+        "function_model.transactions.fm_tx_byte.side_effects.side_effect_2",
+        "function_model.transactions.fm_tx_byte.state_updates.tx"
+      ],
+      "decomposition_refs": [
+        "uart_lite_tx"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "transmit_byte",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "tx_enable == 1",
+          "tx_fifo not empty",
+          "tx_active == false",
+          "break_send == false",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "tx line: start bit (0), d[0]..d[DATA_WIDTH-1] LSB-first, parity bit (if parity_en), 1 or 2 stop bits (1)",
+          "tx_active transitions true \u2192 false across the frame",
+          "tx_serial"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "debug counter bytes_tx increments by 1",
+          "tx_fifo level decreases by 1",
+          "STAT.tx_empty updates when FIFO becomes empty",
+          "tx"
+        ],
+        "error_policy": "{'condition': 'tx_fifo empty when TX FSM requests byte', 'result': 'underrun_err sticky flag set; frame aborted with tx returning to idle (mark)'}"
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_MODULE_UART_LITE_RX",
+      "title": "Module uart_lite_rx functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "uart_lite_rx",
+        "rtl_file": "rtl/uart_lite_rx.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.handshake_rules.rx",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.rx_data",
+        "cycle_model.pipeline.rx_idle",
+        "cycle_model.pipeline.rx_parity",
+        "cycle_model.pipeline.rx_start_confirm",
+        "cycle_model.pipeline.rx_start_detect",
+        "cycle_model.pipeline.rx_stop1",
+        "cycle_model.pipeline.rx_stop2",
+        "cycle_model.pipeline[RX_DATA]",
+        "cycle_model.pipeline[RX_IDLE]",
+        "cycle_model.pipeline[RX_PARITY]",
+        "cycle_model.pipeline[RX_START_CONFIRM]",
+        "cycle_model.pipeline[RX_START_DETECT]",
+        "cycle_model.pipeline[RX_STOP1]",
+        "cycle_model.pipeline[RX_STOP2]",
+        "fsm",
+        "fsm.rx_fsm",
+        "function_model",
+        "function_model.state_variables.rx_active",
+        "function_model.state_variables.rx_fifo",
+        "function_model.transactions.FM_RX_BYTE",
+        "function_model.transactions.fm_rx_byte",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_0",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_1",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_2",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_3",
+        "function_model.transactions.fm_rx_byte.inputs.input_0",
+        "function_model.transactions.fm_rx_byte.output_rules.rx_irq",
+        "function_model.transactions.fm_rx_byte.outputs.output_0",
+        "function_model.transactions.fm_rx_byte.outputs.output_1",
+        "function_model.transactions.fm_rx_byte.preconditions.precondition_0",
+        "function_model.transactions.fm_rx_byte.preconditions.precondition_1",
+        "function_model.transactions.fm_rx_byte.preconditions.precondition_2",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_0",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_1",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_2",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_3",
+        "function_model.transactions.fm_rx_byte.state_updates.uart_irq"
+      ],
+      "decomposition_refs": [
+        "uart_lite_rx"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "transmit_byte",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "tx_enable == 1",
+          "tx_fifo not empty",
+          "tx_active == false",
+          "break_send == false",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "tx line: start bit (0), d[0]..d[DATA_WIDTH-1] LSB-first, parity bit (if parity_en), 1 or 2 stop bits (1)",
+          "tx_active transitions true \u2192 false across the frame",
+          "tx_serial"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "debug counter bytes_tx increments by 1",
+          "tx_fifo level decreases by 1",
+          "STAT.tx_empty updates when FIFO becomes empty",
+          "tx"
+        ],
+        "error_policy": "{'condition': 'tx_fifo empty when TX FSM requests byte', 'result': 'underrun_err sticky flag set; frame aborted with tx returning to idle (mark)'}"
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_PERF_FIFO_DEPTH",
+      "title": "Functional coverage bin ccov_perf_fifo_depth: FIFO depth exercised",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.depth"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_perf_fifo_depth"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "transmit_byte",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "tx_enable == 1",
+          "tx_fifo not empty",
+          "tx_active == false",
+          "break_send == false",
+          "FIFO depth exercised"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "tx line: start bit (0), d[0]..d[DATA_WIDTH-1] LSB-first, parity bit (if parity_en), 1 or 2 stop bits (1)",
+          "tx_active transitions true \u2192 false across the frame",
+          "tx_serial"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "debug counter bytes_tx increments by 1",
+          "tx_fifo level decreases by 1",
+          "STAT.tx_empty updates when FIFO becomes empty",
+          "tx"
+        ],
+        "error_policy": "{'condition': 'tx_fifo empty when TX FSM requests byte', 'result': 'underrun_err sticky flag set; frame aborted with tx returning to idle (mark)'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+      "title": "Functional coverage bin cycle_perf_outstanding: {'tx_max': 16, 'rx_max': 16, 'description': 'FIFO depth bounds maximum queued TX/RX bytes'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.outstanding"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_outstanding"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "transmit_byte",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "tx_enable == 1",
+          "tx_fifo not empty",
+          "tx_active == false",
+          "break_send == false",
+          "{'tx_max': 16, 'rx_max': 16, 'description': 'FIFO depth bounds maximum queued TX/RX bytes'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "tx line: start bit (0), d[0]..d[DATA_WIDTH-1] LSB-first, parity bit (if parity_en), 1 or 2 stop bits (1)",
+          "tx_active transitions true \u2192 false across the frame",
+          "tx_serial"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "debug counter bytes_tx increments by 1",
+          "tx_fifo level decreases by 1",
+          "STAT.tx_empty updates when FIFO becomes empty",
+          "tx"
+        ],
+        "error_policy": "{'condition': 'tx_fifo empty when TX FSM requests byte', 'result': 'underrun_err sticky flag set; frame aborted with tx returning to idle (mark)'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "title": "Functional coverage bin cycle_perf_depth: {'fifo_depth': 16, 'oversample_stages': 16, 'description': 'FIFO depth and oversample counter depth'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.depth"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_depth"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "transmit_byte",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "tx_enable == 1",
+          "tx_fifo not empty",
+          "tx_active == false",
+          "break_send == false",
+          "{'fifo_depth': 16, 'oversample_stages': 16, 'description': 'FIFO depth and oversample counter depth'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "tx line: start bit (0), d[0]..d[DATA_WIDTH-1] LSB-first, parity bit (if parity_en), 1 or 2 stop bits (1)",
+          "tx_active transitions true \u2192 false across the frame",
+          "tx_serial"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "debug counter bytes_tx increments by 1",
+          "tx_fifo level decreases by 1",
+          "STAT.tx_empty updates when FIFO becomes empty",
+          "tx"
+        ],
+        "error_policy": "{'condition': 'tx_fifo empty when TX FSM requests byte', 'result': 'underrun_err sticky flag set; frame aborted with tx returning to idle (mark)'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "title": "Functional coverage bin cycle_perf_frequency_mhz: 50",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.frequency_mhz"
+      ],
+      "decomposition_refs": [
+        "uart_lite_regs",
+        "uart_lite_tx",
+        "uart_lite_rx",
+        "uart_lite_baud_gen",
+        "uart_lite_tx_fifo",
+        "uart_lite_rx_fifo",
+        "uart_lite_core",
+        "uart_lite_protocol_model",
+        "uart_lite_register_model",
+        "uart_lite_memory_model",
+        "uart_lite_datapath_model",
+        "uart_lite_fsm_model",
+        "uart_lite_error_model",
+        "uart_lite_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_frequency_mhz"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "transmit_byte",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "tx_enable == 1",
+          "tx_fifo not empty",
+          "tx_active == false",
+          "break_send == false",
+          "50"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "tx line: start bit (0), d[0]..d[DATA_WIDTH-1] LSB-first, parity bit (if parity_en), 1 or 2 stop bits (1)",
+          "tx_active transitions true \u2192 false across the frame",
+          "tx_serial"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "debug counter bytes_tx increments by 1",
+          "tx_fifo level decreases by 1",
+          "STAT.tx_empty updates when FIFO becomes empty",
+          "tx"
+        ],
+        "error_policy": "{'condition': 'tx_fifo empty when TX FSM requests byte', 'result': 'underrun_err sticky flag set; frame aborted with tx returning to idle (mark)'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    }
+  ]
+}

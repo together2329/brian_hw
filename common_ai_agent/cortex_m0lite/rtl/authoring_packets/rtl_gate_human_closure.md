@@ -12,6 +12,8 @@
 - Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.
 - Every task must satisfy content, detail, and criteria before the packet is closed.
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
+- Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
+- Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
@@ -23,10 +25,11 @@
 - PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
-- Human-locked open tasks: 2
+- Human-locked open tasks: 3
 - Owner refs: cdc_requirements, clock_reset_domains, integration, integration.connections, internal_interfaces, io_list, io_list.interfaces
 - SSOT target scale: min_behavior_owner_logic_modules=6, min_depth_score=120, min_logic_modules=7, min_modules=8, min_procedural_blocks=12, min_source_files=8, min_state_updates=10
 - Locked-truth blockers:
+  - manifest_connection_contract_evidence: 31 SSOT connection contract issue(s) remain. if_stage: SSOT connection contract targets a module not declared in RTL; if_stage: SSOT connection contract targets a module not declared in RTL; if_stage: SSOT connection contract targets a module not declared in RTL
   - golden_authority_artifacts: Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json
   - cycle_model_artifacts: Missing executable cycle model: model/cycle_model.py.
 - SSOT connection contracts:
@@ -108,13 +111,13 @@ Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_connection_contract_evidence
 - Detail: Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.
 SSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.
 Owner: cortex_m0lite in rtl/cortex_m0lite.sv via top_fallback.
-- Current reason: SSOT connection contracts are satisfied by reachable RTL named port maps.
+- Current reason: 31 SSOT connection contract issue(s) remain. if_stage: SSOT connection contract targets a module not declared in RTL; if_stage: SSOT connection contract targets a module not declared in RTL; if_stage: SSOT connection contract targets a module not declared in RTL
 - Criteria:
   - Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections
   - Each SSOT connection contract resolves to a reachable manifest child module and port

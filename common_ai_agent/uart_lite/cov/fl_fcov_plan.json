@@ -1,0 +1,294 @@
+{
+  "schema_version": 1,
+  "type": "fl_functional_coverage_plan",
+  "ip": "uart_lite",
+  "source": "uart_lite/yaml/uart_lite.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "fl",
+  "summary": {
+    "total_bins": 43,
+    "by_class": {
+      "scenario": 17,
+      "transaction_type": 4,
+      "state_transition": 18,
+      "error": 4
+    }
+  },
+  "bins": [
+    {
+      "id": "SC1_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC1",
+      "description": "TX single byte no parity 1 stop"
+    },
+    {
+      "id": "SC2_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC2",
+      "description": "RX single byte no parity 1 stop"
+    },
+    {
+      "id": "SC3_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC3",
+      "description": "TX with even parity"
+    },
+    {
+      "id": "SC4_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC4",
+      "description": "RX with odd parity match"
+    },
+    {
+      "id": "SC5_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC5",
+      "description": "RX parity error"
+    },
+    {
+      "id": "SC6_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC6",
+      "description": "RX framing error"
+    },
+    {
+      "id": "SC7_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC7",
+      "description": "RX overrun"
+    },
+    {
+      "id": "SC8_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC8",
+      "description": "TX underrun"
+    },
+    {
+      "id": "SC9_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[8]",
+      "scenario": "SC9",
+      "description": "Loopback mode"
+    },
+    {
+      "id": "SC10_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[9]",
+      "scenario": "SC10",
+      "description": "Break send"
+    },
+    {
+      "id": "SC11_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[10]",
+      "scenario": "SC11",
+      "description": "2 stop bits TX/RX"
+    },
+    {
+      "id": "SC12_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[11]",
+      "scenario": "SC12",
+      "description": "Interrupts \u2014 tx_empty"
+    },
+    {
+      "id": "SC13_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[12]",
+      "scenario": "SC13",
+      "description": "Interrupts \u2014 rx_not_empty + clear via W1C"
+    },
+    {
+      "id": "SC14_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[13]",
+      "scenario": "SC14",
+      "description": "DATA_WIDTH=5"
+    },
+    {
+      "id": "SC15_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[14]",
+      "scenario": "SC15",
+      "description": "FIFO full/empty flags"
+    },
+    {
+      "id": "SC16_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[15]",
+      "scenario": "SC16",
+      "description": "Spurious start bit rejection"
+    },
+    {
+      "id": "SC17_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[16]",
+      "scenario": "SC17",
+      "description": "Baud rate change mid-operation"
+    },
+    {
+      "id": "function_transmit_byte",
+      "class": "transaction_type",
+      "source": "function_model.transactions[0]",
+      "description": "transmit_byte"
+    },
+    {
+      "id": "function_receive_byte",
+      "class": "transaction_type",
+      "source": "function_model.transactions[1]",
+      "description": "receive_byte"
+    },
+    {
+      "id": "function_send_break",
+      "class": "transaction_type",
+      "source": "function_model.transactions[2]",
+      "description": "send_break"
+    },
+    {
+      "id": "function_loopback_mode",
+      "class": "transaction_type",
+      "source": "function_model.transactions[3]",
+      "description": "loopback_mode"
+    },
+    {
+      "id": "fsm_tx_fsm_tx_idle_to_tx_start_0",
+      "class": "state_transition",
+      "source": "fsm.tx_fsm.transitions[0]",
+      "description": "TX FIFO not empty and baud tick"
+    },
+    {
+      "id": "fsm_tx_fsm_tx_start_to_tx_data_1",
+      "class": "state_transition",
+      "source": "fsm.tx_fsm.transitions[1]",
+      "description": "baud tick (1 bit period elapsed)"
+    },
+    {
+      "id": "fsm_tx_fsm_tx_data_to_tx_parity_2",
+      "class": "state_transition",
+      "source": "fsm.tx_fsm.transitions[2]",
+      "description": "DATA_WIDTH bits transmitted and parity_en=1 and baud tick"
+    },
+    {
+      "id": "fsm_tx_fsm_tx_data_to_tx_stop1_3",
+      "class": "state_transition",
+      "source": "fsm.tx_fsm.transitions[3]",
+      "description": "DATA_WIDTH bits transmitted and parity_en=0 and baud tick"
+    },
+    {
+      "id": "fsm_tx_fsm_tx_parity_to_tx_stop1_4",
+      "class": "state_transition",
+      "source": "fsm.tx_fsm.transitions[4]",
+      "description": "baud tick"
+    },
+    {
+      "id": "fsm_tx_fsm_tx_stop1_to_tx_idle_5",
+      "class": "state_transition",
+      "source": "fsm.tx_fsm.transitions[5]",
+      "description": "stop_bits=0 and baud tick"
+    },
+    {
+      "id": "fsm_tx_fsm_tx_stop1_to_tx_stop2_6",
+      "class": "state_transition",
+      "source": "fsm.tx_fsm.transitions[6]",
+      "description": "stop_bits=1 and baud tick"
+    },
+    {
+      "id": "fsm_tx_fsm_tx_stop2_to_tx_idle_7",
+      "class": "state_transition",
+      "source": "fsm.tx_fsm.transitions[7]",
+      "description": "baud tick"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_idle_to_rx_start_detect_0",
+      "class": "state_transition",
+      "source": "fsm.rx_fsm.transitions[0]",
+      "description": "rx_synced falling edge detected"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_start_detect_to_rx_start_confirm_1",
+      "class": "state_transition",
+      "source": "fsm.rx_fsm.transitions[1]",
+      "description": "mid-bit sample at oversample count 7 confirms low"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_start_detect_to_rx_idle_2",
+      "class": "state_transition",
+      "source": "fsm.rx_fsm.transitions[2]",
+      "description": "mid-bit sample at oversample count 7 is high (spurious edge)"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_start_confirm_to_rx_data_3",
+      "class": "state_transition",
+      "source": "fsm.rx_fsm.transitions[3]",
+      "description": "full bit period from start confirm; oversample tick"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_data_to_rx_parity_4",
+      "class": "state_transition",
+      "source": "fsm.rx_fsm.transitions[4]",
+      "description": "DATA_WIDTH bits sampled at centre and parity_en=1 and oversample tick"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_data_to_rx_stop1_5",
+      "class": "state_transition",
+      "source": "fsm.rx_fsm.transitions[5]",
+      "description": "DATA_WIDTH bits sampled at centre and parity_en=0 and oversample tick"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_parity_to_rx_stop1_6",
+      "class": "state_transition",
+      "source": "fsm.rx_fsm.transitions[6]",
+      "description": "parity bit sampled at centre and oversample tick"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_stop1_to_rx_idle_7",
+      "class": "state_transition",
+      "source": "fsm.rx_fsm.transitions[7]",
+      "description": "stop_bits=0; stop bit sampled high at centre and oversample tick"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_stop1_to_rx_stop2_8",
+      "class": "state_transition",
+      "source": "fsm.rx_fsm.transitions[8]",
+      "description": "stop_bits=1 and oversample tick"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_stop2_to_rx_idle_9",
+      "class": "state_transition",
+      "source": "fsm.rx_fsm.transitions[9]",
+      "description": "oversample tick"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "source": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_FRAME', 'condition': 'RX stop bit(s) sampled low', 'architectural_effect': 'STAT.frame_err sticky set; DBG_FRAMES_ERR incremented; frame_error interrupt if enabled'}"
+    },
+    {
+      "id": "error_error_1",
+      "class": "error",
+      "source": "error_handling.error_sources[1]",
+      "description": "{'id': 'ERR_PARITY', 'condition': 'RX computed parity != received parity bit', 'architectural_effect': 'STAT.parity_err sticky set; DBG_PARITIES_ERR incremented; parity_error interrupt if enabled'}"
+    },
+    {
+      "id": "error_error_2",
+      "class": "error",
+      "source": "error_handling.error_sources[2]",
+      "description": "{'id': 'ERR_OVERRUN', 'condition': 'RX FIFO full when new byte ready to push', 'architectural_effect': 'STAT.overrun_err sticky set; received byte discarded; rx_overrun interrupt if enabled'}"
+    },
+    {
+      "id": "error_error_3",
+      "class": "error",
+      "source": "error_handling.error_sources[3]",
+      "description": "{'id': 'ERR_UNDERRUN', 'condition': 'TX FIFO empty when TX FSM requests next byte during active frame', 'architectural_effect': 'STAT.underrun_err sticky set; frame aborted; tx returns to idle (mark)'}"
+    }
+  ]
+}

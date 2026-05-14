@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: cortex_m0lite_core
 - Owner file: rtl/cortex_m0lite_core.sv
-- Task count: 14
-- Required tasks: 14
+- Task count: 13
+- Required tasks: 13
 
 ## Rules
 
@@ -12,6 +12,8 @@
 - Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.
 - Every task must satisfy content, detail, and criteria before the packet is closed.
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
+- Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
+- Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
@@ -25,8 +27,8 @@
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: coverage_tap, cycle_model, cycle_model.pipeline, dataflow, dataflow.ordering, dataflow.sequence, dataflow.state_flow, decomposition, error_handling, fsm, fsm.control, function_model, function_model.transactions.FM_CPU_STEP, io_list, parameters, registers
-- Module slice: 3/9 section=cycle_model task_limit=48
-- Slice rule: Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Module slice: 4/10 section=cycle_model task_limit=48
+- Slice rule: Owner module cortex_m0lite_core is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT target scale: min_behavior_owner_logic_modules=6, min_depth_score=120, min_logic_modules=7, min_modules=8, min_procedural_blocks=12, min_source_files=8, min_state_updates=10
 - SSOT connection contracts:
   - cortex_m0lite_core.clk <= clk (integration.connections[0])
@@ -167,28 +169,6 @@ SSOT item context: name=hazard_stall.
   - hazard_stall appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.handshake_rules.hazard_stall
 
-### RTL-0106: Implement pipeline stage: IF
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: cycle_model.pipeline
-- Source ref: cycle_model.pipeline.IF
-- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
-SSOT ref: cycle_model.pipeline.IF.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via cycle_model.
-SSOT item context: stage=IF; cycle=0.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL contains the control/state/handshake logic for this cycle rule
-  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
-  - TB scoreboard/coverage can observe the rule at the declared phase
-  - Traceability keeps source_ref cycle_model.pipeline.IF
-  - Primary implementation evidence is in rtl/cortex_m0lite_core.sv
-  - cycle_model.pipeline.IF timing uses SSOT cycle/latency 0
-  - cycle_model.pipeline.IF appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
-- SSOT refs: cycle_model.pipeline.IF
-
 ### RTL-0107: Implement pipeline stage: ID
 
 - Priority: high
@@ -198,8 +178,8 @@ SSOT item context: stage=IF; cycle=0.
 - Source ref: cycle_model.pipeline.ID
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.ID.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via cycle_model.
-SSOT item context: stage=ID; cycle=1.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via cycle_model.pipeline.
+SSOT item context: stage=ID; action=Decode + regfile read + hazard decision.; cycle=1.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
@@ -220,8 +200,8 @@ SSOT item context: stage=ID; cycle=1.
 - Source ref: cycle_model.pipeline.EX_WB
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.EX_WB.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via cycle_model.
-SSOT item context: stage=EX_WB; cycle=2.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via cycle_model.pipeline.
+SSOT item context: stage=EX_WB; action=Execute/memory response/writeback/retire.; cycle=2.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule

@@ -12,6 +12,8 @@
 - Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.
 - Every task must satisfy content, detail, and criteria before the packet is closed.
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
+- Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
+- Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
@@ -20,7 +22,7 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: True
+- PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
@@ -166,7 +168,7 @@ SSOT item context: name=clear_priority.
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S0_CONTROL_SAMPLE.
 Owner: timer_core in rtl/timer.sv via cycle_model.
-SSOT item context: stage=S0_CONTROL_SAMPLE; cycle=0.
+SSOT item context: stage=S0_CONTROL_SAMPLE; action=Sample start, enable, clear, load_value, count, and running.; cycle=0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
@@ -188,7 +190,7 @@ SSOT item context: stage=S0_CONTROL_SAMPLE; cycle=0.
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S1_STATE_VISIBLE.
 Owner: timer_core in rtl/timer.sv via cycle_model.
-SSOT item context: stage=S1_STATE_VISIBLE; cycle=1.
+SSOT item context: stage=S1_STATE_VISIBLE; action=Present updated count, running, and done.; cycle=1.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule

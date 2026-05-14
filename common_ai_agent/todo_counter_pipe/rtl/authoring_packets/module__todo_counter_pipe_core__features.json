@@ -8,12 +8,12 @@
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 8,
+      "count": 9,
       "enabled": true,
-      "index": 6,
+      "index": 7,
       "key": "features",
-      "module_task_count": 136,
-      "rule": "Owner module todo_counter_pipe_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 140,
+      "rule": "Owner module todo_counter_pipe_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "features",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -148,32 +148,34 @@
   "source_plan": "rtl/rtl_todo_plan.json",
   "summary": {
     "categories": {
-      "features.item": 4
+      "features.item": 6
     },
     "module_slice": {
-      "count": 8,
+      "count": 9,
       "enabled": true,
-      "index": 6,
+      "index": 7,
       "key": "features",
-      "module_task_count": 136,
-      "rule": "Owner module todo_counter_pipe_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 140,
+      "rule": "Owner module todo_counter_pipe_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "features",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
     "open_required_count": 0,
-    "required_count": 4,
+    "required_count": 6,
     "source_refs": [
       "features.Up_Down_Counting",
       "features.Saturating_Mode",
       "features.Wrap_Mode",
-      "features.Terminal_Count_Interrupt"
+      "features.Clear_Load_Control",
+      "features.Terminal_Count_Interrupt",
+      "features.Debug_Cycle_Counter"
     ],
     "status_counts": {
-      "pass": 4
+      "pass": 6
     },
-    "task_count": 4
+    "task_count": 6
   },
   "tasks": [
     {
@@ -186,7 +188,7 @@
         "Traceability keeps source_ref features.Up_Down_Counting",
         "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
       ],
-      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Up_Down_Counting.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.\nSSOT item context: name=Up/Down Counting; output=Updated cnt value reflected in CNT register.",
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Up_Down_Counting.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.Up_Down_Counting.\nSSOT item context: name=Up/Down Counting; output=Updated cnt value reflected in CNT register.",
       "evidence_terms": [],
       "id": "RTL-0227",
       "owner_file": "rtl/todo_counter_pipe_core.sv",
@@ -228,7 +230,7 @@
         "Traceability keeps source_ref features.Saturating_Mode",
         "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
       ],
-      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Saturating_Mode.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.\nSSOT item context: name=Saturating Mode; output=cnt held at limit; STATUS.overflow/underflow asserted.",
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Saturating_Mode.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.Saturating_Mode.\nSSOT item context: name=Saturating Mode; output=cnt held at limit; STATUS.overflow/underflow asserted.",
       "evidence_terms": [],
       "id": "RTL-0228",
       "owner_file": "rtl/todo_counter_pipe_core.sv",
@@ -270,7 +272,7 @@
         "Traceability keeps source_ref features.Wrap_Mode",
         "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
       ],
-      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Wrap_Mode.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.\nSSOT item context: name=Wrap Mode; output=cnt wraps to opposite extreme; STATUS flags asserted.",
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Wrap_Mode.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.Wrap_Mode.\nSSOT item context: name=Wrap Mode; output=cnt wraps to opposite extreme; STATUS flags asserted.",
       "evidence_terms": [],
       "id": "RTL-0229",
       "owner_file": "rtl/todo_counter_pipe_core.sv",
@@ -304,6 +306,66 @@
     },
     {
       "category": "features.item",
+      "content": "Implement feature Clear/Load Control",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Clear_Load_Control",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Clear_Load_Control.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.Clear_Load_Control.\nSSOT item context: name=Clear/Load Control; output=cnt updated on next core_clk edge after CDC convergence.",
+      "evidence_terms": [
+        "clk",
+        "core",
+        "core_clk"
+      ],
+      "id": "RTL-0230",
+      "owner_file": "rtl/todo_counter_pipe_core.sv",
+      "owner_module": "todo_counter_pipe_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Clear_Load_Control",
+      "ssot_context": {
+        "name": "Clear/Load Control",
+        "output": "cnt updated on next core_clk edge after CDC convergence"
+      },
+      "ssot_refs": [
+        "features.Clear_Load_Control"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "clk",
+          "core",
+          "core_clk"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "clk",
+          "core",
+          "core_clk"
+        ],
+        "source_scope": "rtl/todo_counter_pipe_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
       "content": "Implement feature Terminal Count Interrupt",
       "criteria": [
         "Feature trigger/control/data behavior has RTL owner logic",
@@ -312,7 +374,7 @@
         "Traceability keeps source_ref features.Terminal_Count_Interrupt",
         "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
       ],
-      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Terminal_Count_Interrupt.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.\nSSOT item context: name=Terminal Count Interrupt; output=INTSTAT.tc_pending; counter_irq.",
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Terminal_Count_Interrupt.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.Terminal_Count_Interrupt.\nSSOT item context: name=Terminal Count Interrupt; output=INTSTAT.tc_pending; counter_irq.",
       "evidence_terms": [
         "counter_irq",
         "irq",
@@ -363,9 +425,69 @@
         "required": true,
         "status": "pass"
       }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Debug Cycle Counter",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Debug_Cycle_Counter",
+        "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Debug_Cycle_Counter.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.Debug_Cycle_Counter.\nSSOT item context: name=Debug Cycle Counter; output=DBGCNT.dbg_cycle_count readable via APB after CDC.",
+      "evidence_terms": [
+        "count",
+        "dbg",
+        "dbg_cycle_count"
+      ],
+      "id": "RTL-0232",
+      "owner_file": "rtl/todo_counter_pipe_core.sv",
+      "owner_module": "todo_counter_pipe_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Debug_Cycle_Counter",
+      "ssot_context": {
+        "name": "Debug Cycle Counter",
+        "output": "DBGCNT.dbg_cycle_count readable via APB after CDC"
+      },
+      "ssot_refs": [
+        "features.Debug_Cycle_Counter"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "count",
+          "dbg",
+          "dbg_cycle_count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "count",
+          "dbg",
+          "dbg_cycle_count"
+        ],
+        "source_scope": "rtl/todo_counter_pipe_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
     }
   ],
-  "todo_plan_sha256": "b329388dc9f0734e5afc3107218760f4ee5baf3a53ad32d151a73aac2ea551a4",
+  "todo_plan_sha256": "284e0f7f0d06ac8c9019d0745aa7784b4c39904e7e6e52262786b16e9bc5844c",
   "top": "todo_counter_pipe",
   "type": "rtl_authoring_packet"
 }

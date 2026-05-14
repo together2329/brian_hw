@@ -3233,6 +3233,19 @@ def test_repair_ssot_schema_preserves_general_ip_and_defers_connection_contracts
     assert policy["pass_allowed"] is False
     assert policy["connection_contract_gap"]["status"] == "missing"
 
+    fl = subprocess.run(
+        [sys.executable, str(EMIT_FL_MODEL), ip, "--root", str(tmp_path)],
+        text=True,
+        capture_output=True,
+        timeout=30,
+    )
+    assert fl.returncode == 0, fl.stderr or fl.stdout
+    decomposition = json.loads((ip_dir / "model" / "decomposition.json").read_text(encoding="utf-8"))
+    top_contract = next(item for item in decomposition["module_contracts"] if item["name"] == ip)
+    assert top_contract["blocked"] is False
+    assert {"top_module", "io_list", "integration"} <= set(top_contract["structural_refs"])
+    assert decomposition["complete"] is True
+
 
 def test_sta_sdc_uses_canonical_timing_target_clocks(tmp_path: Path):
     ip = "sta_clock_from_timing"

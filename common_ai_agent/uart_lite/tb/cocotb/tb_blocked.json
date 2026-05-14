@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "type": "tb_blocker",
+  "status": "blocked",
+  "owner": "ssot-gen + rtl-gen + tb-gen",
+  "ip": "uart_lite",
+  "reason": "SSOT/RTL contract is not concrete enough for generic cocotb scoreboard generation.",
+  "questions": [
+    {
+      "id": "TB_INPUT_MAP_TX",
+      "decision_needed": "Map transaction field 'tx' to a real input port.",
+      "evidence": "rtl_contract.input_map.tx='tx', but 'tx' is not an input port.",
+      "options": [
+        "Repair rtl_contract.input_map or io_list."
+      ],
+      "recommended_default": "Repair rtl_contract.input_map or io_list.",
+      "downstream_effect": "The cocotb driver must know which DUT pin receives each FunctionalModel field."
+    },
+    {
+      "id": "TB_INPUT_MAP_UART_IRQ",
+      "decision_needed": "Map transaction field 'uart_irq' to a real input port.",
+      "evidence": "rtl_contract.input_map.uart_irq='uart_irq', but 'uart_irq' is not an input port.",
+      "options": [
+        "Repair rtl_contract.input_map or io_list."
+      ],
+      "recommended_default": "Repair rtl_contract.input_map or io_list.",
+      "downstream_effect": "The cocotb driver must know which DUT pin receives each FunctionalModel field."
+    },
+    {
+      "id": "TB_INPUT_MAP_PRDATA",
+      "decision_needed": "Map transaction field 'PRDATA' to a real input port.",
+      "evidence": "rtl_contract.input_map.PRDATA='PRDATA', but 'PRDATA' is not an input port.",
+      "options": [
+        "Repair rtl_contract.input_map or io_list."
+      ],
+      "recommended_default": "Repair rtl_contract.input_map or io_list.",
+      "downstream_effect": "The cocotb driver must know which DUT pin receives each FunctionalModel field."
+    }
+  ],
+  "next_action": "Repair SSOT/RTL contract through ATLAS, rerun /ssot-rtl, then rerun /tb.",
+  "timestamp": "2026-05-14T13:49:19Z"
+}

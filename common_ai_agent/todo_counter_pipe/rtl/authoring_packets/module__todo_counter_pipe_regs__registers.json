@@ -212,7 +212,7 @@
         "CTRL access policy rw is implemented without read/write shortcuts",
         "CTRL decode uses SSOT address/offset 0"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CTRL.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=0.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CTRL.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=0.",
       "evidence_terms": [],
       "id": "RTL-0183",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -263,7 +263,7 @@
         "enable readback returns implemented RTL state when readable",
         "enable write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.enable.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=enable; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.enable.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=enable; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0184",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -312,7 +312,7 @@
         "up_down readback returns implemented RTL state when readable",
         "up_down write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.up_down.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=up_down; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.up_down.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=up_down; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0185",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -361,7 +361,7 @@
         "mode readback returns implemented RTL state when readable",
         "mode write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.mode.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=mode; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.mode.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=mode; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0186",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -410,7 +410,7 @@
         "clear readback returns implemented RTL state when readable",
         "clear write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.clear.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=clear; reset=0; access=wo.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.clear.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=clear; reset=0; access=wo.",
       "evidence_terms": [],
       "id": "RTL-0187",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -459,7 +459,7 @@
         "load readback returns implemented RTL state when readable",
         "load write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.load.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=load; reset=0; access=wo.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.load.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=load; reset=0; access=wo.",
       "evidence_terms": [],
       "id": "RTL-0188",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -508,7 +508,7 @@
         "reserved_31_5 readback returns implemented RTL state when readable",
         "reserved_31_5 write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.reserved_31_5.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=reserved_31_5; reset=0; access=reserved.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.reserved_31_5.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=reserved_31_5; reset=0; access=reserved.",
       "evidence_terms": [],
       "id": "RTL-0189",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -555,7 +555,7 @@
         "CNT access policy ro is implemented without read/write shortcuts",
         "CNT decode uses SSOT address/offset 4"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CNT.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=CNT; width=32; reset=0; access=ro; offset=4.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CNT.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.CNT.\nSSOT item context: name=CNT; width=32; reset=0; access=ro; offset=4.",
       "evidence_terms": [],
       "id": "RTL-0190",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -606,7 +606,7 @@
         "cnt_value readback returns implemented RTL state when readable",
         "cnt_value write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CNT.fields.cnt_value.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=cnt_value; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CNT.fields.cnt_value.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.CNT.\nSSOT item context: name=cnt_value; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0191",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -653,7 +653,7 @@
         "LOAD access policy rw is implemented without read/write shortcuts",
         "LOAD decode uses SSOT address/offset 8"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.LOAD.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=LOAD; width=32; reset=0; access=rw; offset=8.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.LOAD.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.LOAD.\nSSOT item context: name=LOAD; width=32; reset=0; access=rw; offset=8.",
       "evidence_terms": [],
       "id": "RTL-0192",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -704,7 +704,7 @@
         "load_value readback returns implemented RTL state when readable",
         "load_value write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.LOAD.fields.load_value.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=load_value; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.LOAD.fields.load_value.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.LOAD.\nSSOT item context: name=load_value; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0193",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -751,7 +751,7 @@
         "TERM access policy rw is implemented without read/write shortcuts",
         "TERM decode uses SSOT address/offset 12"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.TERM.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=TERM; width=32; reset=4294967295; access=rw; offset=12.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.TERM.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.TERM.\nSSOT item context: name=TERM; width=32; reset=4294967295; access=rw; offset=12.",
       "evidence_terms": [],
       "id": "RTL-0194",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -802,7 +802,7 @@
         "term_value readback returns implemented RTL state when readable",
         "term_value write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.TERM.fields.term_value.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=term_value; reset=4294967295; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.TERM.fields.term_value.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.TERM.\nSSOT item context: name=term_value; reset=4294967295; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0195",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -849,7 +849,7 @@
         "STATUS access policy ro is implemented without read/write shortcuts",
         "STATUS decode uses SSOT address/offset 16"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.STATUS.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=16.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.STATUS.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=16.",
       "evidence_terms": [],
       "id": "RTL-0196",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -900,7 +900,7 @@
         "overflow readback returns implemented RTL state when readable",
         "overflow write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.overflow.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=overflow; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.overflow.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=overflow; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0197",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -949,7 +949,7 @@
         "underflow readback returns implemented RTL state when readable",
         "underflow write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.underflow.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=underflow; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.underflow.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=underflow; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0198",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -998,7 +998,7 @@
         "reserved_31_2 readback returns implemented RTL state when readable",
         "reserved_31_2 write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.reserved_31_2.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=reserved_31_2; reset=0; access=reserved.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.reserved_31_2.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=reserved_31_2; reset=0; access=reserved.",
       "evidence_terms": [],
       "id": "RTL-0199",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -1045,7 +1045,7 @@
         "INTEN access policy rw is implemented without read/write shortcuts",
         "INTEN decode uses SSOT address/offset 20"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INTEN.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=INTEN; width=32; reset=0; access=rw; offset=20.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INTEN.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTEN.\nSSOT item context: name=INTEN; width=32; reset=0; access=rw; offset=20.",
       "evidence_terms": [],
       "id": "RTL-0200",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -1096,7 +1096,7 @@
         "tc_en readback returns implemented RTL state when readable",
         "tc_en write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTEN.fields.tc_en.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=tc_en; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTEN.fields.tc_en.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTEN.\nSSOT item context: name=tc_en; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0201",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -1145,7 +1145,7 @@
         "ovf_en readback returns implemented RTL state when readable",
         "ovf_en write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTEN.fields.ovf_en.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=ovf_en; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTEN.fields.ovf_en.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTEN.\nSSOT item context: name=ovf_en; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0202",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -1194,7 +1194,7 @@
         "unf_en readback returns implemented RTL state when readable",
         "unf_en write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTEN.fields.unf_en.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=unf_en; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTEN.fields.unf_en.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTEN.\nSSOT item context: name=unf_en; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0203",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -1243,7 +1243,7 @@
         "reserved_31_3 readback returns implemented RTL state when readable",
         "reserved_31_3 write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTEN.fields.reserved_31_3.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=reserved_31_3; reset=0; access=reserved.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTEN.fields.reserved_31_3.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTEN.\nSSOT item context: name=reserved_31_3; reset=0; access=reserved.",
       "evidence_terms": [],
       "id": "RTL-0204",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -1290,7 +1290,7 @@
         "INTSTAT access policy ro is implemented without read/write shortcuts",
         "INTSTAT decode uses SSOT address/offset 24"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INTSTAT.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=INTSTAT; width=32; reset=0; access=ro; offset=24.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INTSTAT.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTSTAT.\nSSOT item context: name=INTSTAT; width=32; reset=0; access=ro; offset=24.",
       "evidence_terms": [],
       "id": "RTL-0205",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -1341,7 +1341,7 @@
         "tc_pending readback returns implemented RTL state when readable",
         "tc_pending write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTSTAT.fields.tc_pending.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=tc_pending; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTSTAT.fields.tc_pending.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTSTAT.\nSSOT item context: name=tc_pending; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0206",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -1390,7 +1390,7 @@
         "ovf_pending readback returns implemented RTL state when readable",
         "ovf_pending write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTSTAT.fields.ovf_pending.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=ovf_pending; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTSTAT.fields.ovf_pending.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTSTAT.\nSSOT item context: name=ovf_pending; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0207",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -1439,7 +1439,7 @@
         "unf_pending readback returns implemented RTL state when readable",
         "unf_pending write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTSTAT.fields.unf_pending.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=unf_pending; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTSTAT.fields.unf_pending.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTSTAT.\nSSOT item context: name=unf_pending; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0208",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -1488,7 +1488,7 @@
         "reserved_31_3 readback returns implemented RTL state when readable",
         "reserved_31_3 write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTSTAT.fields.reserved_31_3.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=reserved_31_3; reset=0; access=reserved.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTSTAT.fields.reserved_31_3.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTSTAT.\nSSOT item context: name=reserved_31_3; reset=0; access=reserved.",
       "evidence_terms": [],
       "id": "RTL-0209",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -1535,7 +1535,7 @@
         "INTCLR access policy rw is implemented without read/write shortcuts",
         "INTCLR decode uses SSOT address/offset 28"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INTCLR.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=INTCLR; width=32; reset=0; access=rw; offset=28.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INTCLR.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTCLR.\nSSOT item context: name=INTCLR; width=32; reset=0; access=rw; offset=28.",
       "evidence_terms": [],
       "id": "RTL-0210",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -1586,7 +1586,7 @@
         "tc_clr readback returns implemented RTL state when readable",
         "tc_clr write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTCLR.fields.tc_clr.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=tc_clr; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTCLR.fields.tc_clr.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTCLR.\nSSOT item context: name=tc_clr; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0211",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -1635,7 +1635,7 @@
         "ovf_clr readback returns implemented RTL state when readable",
         "ovf_clr write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTCLR.fields.ovf_clr.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=ovf_clr; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTCLR.fields.ovf_clr.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTCLR.\nSSOT item context: name=ovf_clr; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0212",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -1684,7 +1684,7 @@
         "unf_clr readback returns implemented RTL state when readable",
         "unf_clr write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTCLR.fields.unf_clr.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=unf_clr; reset=0; access=rw.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTCLR.fields.unf_clr.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTCLR.\nSSOT item context: name=unf_clr; reset=0; access=rw.",
       "evidence_terms": [],
       "id": "RTL-0213",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -1733,7 +1733,7 @@
         "reserved_31_3 readback returns implemented RTL state when readable",
         "reserved_31_3 write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTCLR.fields.reserved_31_3.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=reserved_31_3; reset=0; access=reserved.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTCLR.fields.reserved_31_3.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTCLR.\nSSOT item context: name=reserved_31_3; reset=0; access=reserved.",
       "evidence_terms": [],
       "id": "RTL-0214",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -1780,7 +1780,7 @@
         "DBGCNT access policy ro is implemented without read/write shortcuts",
         "DBGCNT decode uses SSOT address/offset 32"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.DBGCNT.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=DBGCNT; width=32; reset=0; access=ro; offset=32.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.DBGCNT.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.DBGCNT.\nSSOT item context: name=DBGCNT; width=32; reset=0; access=ro; offset=32.",
       "evidence_terms": [],
       "id": "RTL-0215",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -1831,7 +1831,7 @@
         "dbg_cycle_count readback returns implemented RTL state when readable",
         "dbg_cycle_count write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DBGCNT.fields.dbg_cycle_count.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.\nSSOT item context: name=dbg_cycle_count; reset=0; access=ro.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DBGCNT.fields.dbg_cycle_count.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.DBGCNT.\nSSOT item context: name=dbg_cycle_count; reset=0; access=ro.",
       "evidence_terms": [],
       "id": "RTL-0216",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -1865,7 +1865,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "b329388dc9f0734e5afc3107218760f4ee5baf3a53ad32d151a73aac2ea551a4",
+  "todo_plan_sha256": "284e0f7f0d06ac8c9019d0745aa7784b4c39904e7e6e52262786b16e9bc5844c",
   "top": "todo_counter_pipe",
   "type": "rtl_authoring_packet"
 }

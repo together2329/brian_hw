@@ -63,6 +63,30 @@ def test_owner_for_picks_specific_ref_over_generic_one():
     assert tx_trans["matched_ref"] == "fsm.tx_fsm"
 
 
+def test_owner_for_breaks_tie_via_name_token_overlap():
+    """When two modules share the same most-specific owner_ref (e.g.
+    ``cycle_model.pipeline`` listed on both ``uart_lite_tx`` and
+    ``uart_lite_rx``), the resolver must use the ref's leaf tokens
+    (``RX_IDLE`` / ``TX_DATA``) to pick the side-specific owner."""
+    derive = _load_derive()
+    modules = [
+        {
+            "name": "uart_lite_tx",
+            "file": "rtl/uart_lite_tx.sv",
+            "refs": ["cycle_model", "cycle_model.pipeline"],
+        },
+        {
+            "name": "uart_lite_rx",
+            "file": "rtl/uart_lite_rx.sv",
+            "refs": ["cycle_model", "cycle_model.pipeline"],
+        },
+    ]
+    rx_pipe = derive._owner_for("cycle_model.pipeline.RX_IDLE", modules, "uart_lite")
+    assert rx_pipe["module"] == "uart_lite_rx"
+    tx_pipe = derive._owner_for("cycle_model.pipeline.TX_DATA", modules, "uart_lite")
+    assert tx_pipe["module"] == "uart_lite_tx"
+
+
 def test_direct_name_owner_match_falls_back_when_refs_missing():
     derive = _load_derive()
     modules = [

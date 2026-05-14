@@ -169,6 +169,58 @@ def test_generic_rule_contract_defaults_custom_control_to_data_path():
     assert contract["state_updates"] == []
 
 
+def test_generic_rule_contract_allows_state_backed_output_self_reference():
+    rtl_gen = _load_rtl_gen()
+    doc = {
+        "top_module": {"name": "counter_probe"},
+        "io_list": {
+            "clock_domains": [{"ports": [{"name": "clk", "direction": "input", "width": 1}]}],
+            "resets": [{"ports": [{"name": "rst_n", "direction": "input", "width": 1}]}],
+            "interfaces": [
+                {
+                    "name": "native",
+                    "ports": [
+                        {"name": "valid", "direction": "input", "width": 1},
+                        {"name": "data_in", "direction": "input", "width": 8},
+                        {"name": "result", "direction": "output", "width": 9},
+                        {"name": "accepted_count", "direction": "output", "width": 8},
+                    ],
+                }
+            ],
+        },
+        "function_model": {
+            "state_variables": [{"name": "accepted_count", "width": 8, "reset": 0}],
+            "transactions": [
+                {
+                    "id": "FM_PRIMARY",
+                    "output_rules": [{"name": "result", "port": "result", "expr": "data_in << 1", "width": 9}],
+                    "state_updates": [{"name": "accepted_count", "expr": "accepted_count + 1", "width": 8}],
+                }
+            ],
+        },
+        "rtl_contract": {
+            "clock": "clk",
+            "reset": "rst_n",
+            "reset_active": "low",
+            "sample_condition": "valid",
+            "input_map": {"data_in": "data_in", "valid": "valid"},
+            "output_map": {"result": "result", "accepted_count": "accepted_count"},
+            "output_rules": [
+                {"name": "result", "port": "result", "expr": "data_in << 1", "width": 9},
+                {"name": "accepted_count", "port": "accepted_count", "expr": "accepted_count", "width": 8},
+            ],
+        },
+    }
+    ports = rtl_gen._io_ports(doc)
+
+    contract, questions = rtl_gen._generic_rule_contract(doc, "counter_probe", ports)
+
+    question_ids = {q["id"] for q in questions}
+    assert "RTL_OUTPUT_DEP_ACCEPTED_COUNT" not in question_ids
+    assert "RTL_OBSERVABLE_STATE_RULES" not in question_ids
+    assert any(item["port"] == "accepted_count" for item in contract["outputs"])
+
+
 def test_manifest_submodules_need_module_contracts_before_rtl_gen():
     rtl_gen = _load_rtl_gen()
     doc = _doc_with_structured_primary()
@@ -365,6 +417,38 @@ def test_ssot_behavior_ownership_allows_parent_refs_to_cover_children():
             "file": "rtl/simple_cpu.sv",
             "ownership": "manifest",
             "description": "top",
+        },
+    ]
+
+    questions = rtl_gen._rtl_contract_questions(doc, "simple_cpu")
+
+    assert not [q for q in questions if q["id"] == "RTL_MODULE_CONTRACTS"]
+    assert not [q for q in questions if q["id"] == "SSOT_BEHAVIOR_OWNERSHIP"]
+
+
+def test_ssot_behavior_ownership_allows_top_when_top_owns_behavior():
+    rtl_gen = _load_rtl_gen()
+    doc = _doc_with_structured_primary()
+    doc["decomposition"] = {
+        "units": [
+            {"id": "decode", "kind": "control"},
+            {"id": "execute", "kind": "datapath"},
+        ]
+    }
+    doc["filelist"] = {
+        "rtl": [
+            "rtl/simple_cpu.sv",
+        ]
+    }
+    doc["sub_modules"] = [
+        {
+            "name": "simple_cpu",
+            "file": "rtl/simple_cpu.sv",
+            "ownership": "manifest",
+            "implements": ["function_model", "decomposition.units"],
+            "source_sections": ["function_model", "decomposition"],
+            "function_model_refs": ["function_model.transactions"],
+            "decomposition_refs": ["decomposition.units"],
         },
     ]
 

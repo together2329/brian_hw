@@ -379,7 +379,7 @@
         "paddr width matches SSOT value 8",
         "paddr port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.paddr.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.\nSSOT item context: name=paddr; width=8; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.paddr.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=paddr; width=8; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0033",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -424,7 +424,7 @@
         "psel width matches SSOT value 1",
         "psel port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.psel.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.\nSSOT item context: name=psel; width=1; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.psel.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=psel; width=1; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0034",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -469,7 +469,7 @@
         "penable width matches SSOT value 1",
         "penable port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.penable.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.\nSSOT item context: name=penable; width=1; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.penable.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=penable; width=1; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0035",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -514,7 +514,7 @@
         "pwrite width matches SSOT value 1",
         "pwrite port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pwrite.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.\nSSOT item context: name=pwrite; width=1; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pwrite.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=pwrite; width=1; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0036",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -559,7 +559,7 @@
         "pwdata width matches SSOT value 32",
         "pwdata port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pwdata.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.\nSSOT item context: name=pwdata; width=32; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pwdata.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=pwdata; width=32; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0037",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -604,7 +604,7 @@
         "pstrb width matches SSOT value 4",
         "pstrb port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pstrb.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.\nSSOT item context: name=pstrb; width=4; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pstrb.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=pstrb; width=4; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0038",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -649,7 +649,7 @@
         "prdata width matches SSOT value 32",
         "prdata port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.prdata.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.\nSSOT item context: name=prdata; width=32; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.prdata.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=prdata; width=32; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0039",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -694,7 +694,7 @@
         "pready width matches SSOT value 1",
         "pready port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pready.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.\nSSOT item context: name=pready; width=1; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pready.\nOwner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=pready; width=1; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0040",
       "owner_file": "rtl/todo_counter_pipe_regs.sv",
@@ -818,7 +818,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "b329388dc9f0734e5afc3107218760f4ee5baf3a53ad32d151a73aac2ea551a4",
+  "todo_plan_sha256": "284e0f7f0d06ac8c9019d0745aa7784b4c39904e7e6e52262786b16e9bc5844c",
   "top": "todo_counter_pipe",
   "type": "rtl_authoring_packet"
 }

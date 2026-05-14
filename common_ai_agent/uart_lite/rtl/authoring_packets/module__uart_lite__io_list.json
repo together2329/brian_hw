@@ -1,0 +1,1039 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 2,
+      "key": "io_list",
+      "module_task_count": 58,
+      "rule": "Owner module uart_lite is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "io_list",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/uart_lite.sv",
+      "name": "uart_lite",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/uart_lite_regs.sv",
+        "name": "uart_lite_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_tx.sv",
+        "name": "uart_lite_tx",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_rx.sv",
+        "name": "uart_lite_rx",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_baud_gen.sv",
+        "name": "uart_lite_baud_gen",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_tx_fifo.sv",
+        "name": "uart_lite_tx_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_rx_fifo.sv",
+        "name": "uart_lite_rx_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_core.sv",
+        "name": "uart_lite_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite.sv",
+        "name": "uart_lite",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "uart_lite_core",
+        "port": "PCLK",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "uart_lite_core",
+        "port": "PRESETn",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "uart_lite_regs",
+        "port": "uart_irq_o",
+        "signal": "uart_irq",
+        "signal_terms": [
+          "uart_irq"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "uart_lite_core",
+        "port": "tx_o",
+        "signal": "tx",
+        "signal_terms": [
+          "tx"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "uart_lite_core",
+        "port": "rx_i",
+        "signal": "rx",
+        "signal_terms": [
+          "rx"
+        ],
+        "source_ref": "integration.connections[4]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "PCLK"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PCLK",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PRESETn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PRESETn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PADDR",
+          "apb_slave_PADDR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PADDR",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "PSEL",
+          "apb_slave_PSEL"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSEL",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PENABLE",
+          "apb_slave_PENABLE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PENABLE",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWRITE",
+          "apb_slave_PWRITE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWRITE",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWDATA",
+          "apb_slave_PWDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWDATA",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PSTRB",
+          "apb_slave_PSTRB"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSTRB",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "PRDATA",
+          "apb_slave_PRDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PRDATA",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PREADY",
+          "apb_slave_PREADY"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PREADY",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PSLVERR",
+          "apb_slave_PSLVERR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PSLVERR",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "tx",
+          "uart_serial_tx"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "tx",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rx",
+          "uart_serial_rx"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rx",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "interrupt_uart_irq",
+          "uart_irq"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "uart_irq",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "1"
+      }
+    ],
+    "target_scale": {
+      "basis": "UART peripheral with 7 sub-modules, 2 FIFOs, 2 FSMs, 12 registers",
+      "min_behavior_owner_logic_modules": 2,
+      "min_depth_score": 10,
+      "min_logic_modules": 4,
+      "min_modules": 7,
+      "min_procedural_blocks": 20,
+      "min_source_files": 7,
+      "min_state_updates": 8,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "uart_lite",
+  "kind": "module",
+  "owner_file": "rtl/uart_lite.sv",
+  "owner_module": "uart_lite",
+  "packet_id": "module__uart_lite__io_list",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "io_list.port": 14
+    },
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 2,
+      "key": "io_list",
+      "module_task_count": 58,
+      "rule": "Owner module uart_lite is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "io_list",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 14,
+    "source_refs": [
+      "io_list.clock_domains.PCLK.ports.PCLK",
+      "io_list.resets.PRESETn.ports.PRESETn",
+      "io_list.interfaces.apb_slave.ports.PADDR",
+      "io_list.interfaces.apb_slave.ports.PSEL",
+      "io_list.interfaces.apb_slave.ports.PENABLE",
+      "io_list.interfaces.apb_slave.ports.PWRITE",
+      "io_list.interfaces.apb_slave.ports.PWDATA",
+      "io_list.interfaces.apb_slave.ports.PSTRB",
+      "io_list.interfaces.apb_slave.ports.PRDATA",
+      "io_list.interfaces.apb_slave.ports.PREADY",
+      "io_list.interfaces.apb_slave.ports.PSLVERR",
+      "io_list.interfaces.uart_serial.ports.tx",
+      "io_list.interfaces.uart_serial.ports.rx",
+      "io_list.interfaces.interrupt.ports.uart_irq"
+    ],
+    "status_counts": {
+      "pass": 14
+    },
+    "task_count": 14
+  },
+  "tasks": [
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PCLK",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.PCLK.ports.PCLK",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "PCLK width matches SSOT value 1",
+        "PCLK port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.PCLK.ports.PCLK.\nOwner: uart_lite in rtl/uart_lite.sv via io_list.\nSSOT item context: name=PCLK; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0039",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.PCLK.ports.PCLK",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PCLK",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.PCLK.ports.PCLK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PRESETn",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.PRESETn.ports.PRESETn",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "PRESETn width matches SSOT value 1",
+        "PRESETn port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.PRESETn.ports.PRESETn.\nOwner: uart_lite in rtl/uart_lite.sv via io_list.\nSSOT item context: name=PRESETn; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0040",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.PRESETn.ports.PRESETn",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PRESETn",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.PRESETn.ports.PRESETn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PADDR",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PADDR",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "PADDR width matches SSOT value 8",
+        "PADDR port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PADDR.\nOwner: uart_lite in rtl/uart_lite.sv via io_list.\nSSOT item context: name=PADDR; width=8; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0041",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PADDR",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PADDR",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PADDR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PSEL",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PSEL",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "PSEL width matches SSOT value 1",
+        "PSEL port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PSEL.\nOwner: uart_lite in rtl/uart_lite.sv via io_list.\nSSOT item context: name=PSEL; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0042",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PSEL",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PSEL",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PSEL"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PENABLE",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PENABLE",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "PENABLE width matches SSOT value 1",
+        "PENABLE port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PENABLE.\nOwner: uart_lite in rtl/uart_lite.sv via io_list.\nSSOT item context: name=PENABLE; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0043",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PENABLE",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PENABLE",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PENABLE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PWRITE",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PWRITE",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "PWRITE width matches SSOT value 1",
+        "PWRITE port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PWRITE.\nOwner: uart_lite in rtl/uart_lite.sv via io_list.\nSSOT item context: name=PWRITE; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0044",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PWRITE",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PWRITE",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PWRITE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PWDATA",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PWDATA",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "PWDATA width matches SSOT value 32",
+        "PWDATA port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PWDATA.\nOwner: uart_lite in rtl/uart_lite.sv via io_list.\nSSOT item context: name=PWDATA; width=32; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0045",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PWDATA",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PWDATA",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PWDATA"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PSTRB",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PSTRB",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "PSTRB width matches SSOT value 4",
+        "PSTRB port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PSTRB.\nOwner: uart_lite in rtl/uart_lite.sv via io_list.\nSSOT item context: name=PSTRB; width=4; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0046",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PSTRB",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PSTRB",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PSTRB"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PRDATA",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PRDATA",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "PRDATA width matches SSOT value 32",
+        "PRDATA port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PRDATA.\nOwner: uart_lite in rtl/uart_lite.sv via io_list.\nSSOT item context: name=PRDATA; width=32; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0047",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PRDATA",
+      "ssot_context": {
+        "direction": "output",
+        "name": "PRDATA",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PRDATA"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PREADY",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PREADY",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "PREADY width matches SSOT value 1",
+        "PREADY port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PREADY.\nOwner: uart_lite in rtl/uart_lite.sv via io_list.\nSSOT item context: name=PREADY; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0048",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PREADY",
+      "ssot_context": {
+        "direction": "output",
+        "name": "PREADY",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PREADY"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PSLVERR",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PSLVERR",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "PSLVERR width matches SSOT value 1",
+        "PSLVERR port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PSLVERR.\nOwner: uart_lite in rtl/uart_lite.sv via io_list.\nSSOT item context: name=PSLVERR; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0049",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PSLVERR",
+      "ssot_context": {
+        "direction": "output",
+        "name": "PSLVERR",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PSLVERR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port tx",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.uart_serial.ports.tx",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "tx width matches SSOT value 1",
+        "tx port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.uart_serial.ports.tx.\nOwner: uart_lite in rtl/uart_lite.sv via io_list.\nSSOT item context: name=tx; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0050",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.uart_serial.ports.tx",
+      "ssot_context": {
+        "direction": "output",
+        "name": "tx",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.uart_serial.ports.tx"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port rx",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.uart_serial.ports.rx",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "rx width matches SSOT value 1",
+        "rx port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.uart_serial.ports.rx.\nOwner: uart_lite in rtl/uart_lite.sv via io_list.\nSSOT item context: name=rx; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0051",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.uart_serial.ports.rx",
+      "ssot_context": {
+        "direction": "input",
+        "name": "rx",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.uart_serial.ports.rx"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port uart_irq",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.interrupt.ports.uart_irq",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "uart_irq width matches SSOT value 1",
+        "uart_irq port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.interrupt.ports.uart_irq.\nOwner: uart_lite in rtl/uart_lite.sv via io_list.\nSSOT item context: name=uart_irq; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0052",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.interrupt.ports.uart_irq",
+      "ssot_context": {
+        "direction": "output",
+        "name": "uart_irq",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.interrupt.ports.uart_irq"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3e24fd327d20c227969d80d968a7b1af5638d074f7c4857cee081ef19051e830",
+  "top": "uart_lite",
+  "type": "rtl_authoring_packet"
+}

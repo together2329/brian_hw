@@ -8,17 +8,13 @@ errors=0 warnings=0
 ===== verilator =====
 command: verilator --lint-only -Wall -Irtl -f list/todo_counter_pipe.f --top-module todo_counter_pipe
 returncode: 1
-errors: 0 warnings: 6
-%Warning-UNUSEDPARAM: rtl/todo_counter_pipe.sv:3:23: Parameter is not used: 'BUS_CLK_FREQ_MHZ'
-                                                   : ... note: In instance 'todo_counter_pipe'
-    3 |     parameter integer BUS_CLK_FREQ_MHZ = 150,
-      |                       ^~~~~~~~~~~~~~~~
+errors: 0 warnings: 5
+%Warning-UNUSEDPARAM: rtl/todo_counter_pipe.sv:34:24: Parameter is not used: 'CLOCK_FREQ_SUM_MHZ'
+                                                    : ... note: In instance 'todo_counter_pipe'
+   34 |     localparam integer CLOCK_FREQ_SUM_MHZ = BUS_CLK_FREQ_MHZ + CORE_CLK_FREQ_MHZ;
+      |                        ^~~~~~~~~~~~~~~~~~
                       ... For warning description see https://verilator.org/warn/UNUSEDPARAM?v=5.046
                       ... Use "/* verilator lint_off UNUSEDPARAM */" and lint_on around source to disable this message.
-%Warning-UNUSEDPARAM: rtl/todo_counter_pipe.sv:4:23: Parameter is not used: 'CORE_CLK_FREQ_MHZ'
-                                                   : ... note: In instance 'todo_counter_pipe'
-    4 |     parameter integer CORE_CLK_FREQ_MHZ = 300
-      |                       ^~~~~~~~~~~~~~~~~
 %Warning-UNUSEDSIGNAL: rtl/todo_counter_pipe_regs.sv:47:11: Signal is not driven, nor used: 'counter_irq'
                                                           : ... note: In instance 'todo_counter_pipe.u_regs'
    47 |     logic counter_irq;
@@ -37,4 +33,4 @@ errors: 0 warnings: 6
                                                          : ... note: In instance 'todo_counter_pipe.u_cdc'
    18 |     input  logic                 control_bus_to_core,
       |                                  ^~~~~~~~~~~~~~~~~~~
-%Error: Exiting due to 6 warning(s)
+%Error: Exiting due to 5 warning(s)

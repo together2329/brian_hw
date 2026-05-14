@@ -12,6 +12,8 @@
 - Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.
 - Every task must satisfy content, detail, and criteria before the packet is closed.
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
+- Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
+- Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
@@ -25,8 +27,8 @@
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: coverage_tap, cycle_model, cycle_model.pipeline, dataflow, dataflow.ordering, dataflow.sequence, dataflow.state_flow, decomposition, error_handling, fsm, fsm.control, function_model, function_model.transactions.FM_CPU_STEP, io_list, parameters, registers
-- Module slice: 5/9 section=registers task_limit=48
-- Slice rule: Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Module slice: 6/10 section=registers task_limit=48
+- Slice rule: Owner module cortex_m0lite_core is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT target scale: min_behavior_owner_logic_modules=6, min_depth_score=120, min_logic_modules=7, min_modules=8, min_procedural_blocks=12, min_source_files=8, min_state_updates=10
 - SSOT connection contracts:
   - cortex_m0lite_core.clk <= clk (integration.connections[0])
@@ -50,7 +52,7 @@
 - Source ref: registers.register_list.XPSR
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.XPSR.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.register_list.
 SSOT item context: name=XPSR; width=XLEN; reset=0; access=ro; offset=0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -74,7 +76,7 @@ SSOT item context: name=XPSR; width=XLEN; reset=0; access=ro; offset=0.
 - Source ref: registers.register_list.XPSR.fields.n
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.XPSR.fields.n.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.register_list.
 SSOT item context: name=n; width=1; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -101,7 +103,7 @@ SSOT item context: name=n; width=1; reset=0; access=ro.
 - Source ref: registers.register_list.XPSR.fields.z
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.XPSR.fields.z.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.register_list.
 SSOT item context: name=z; width=1; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -128,7 +130,7 @@ SSOT item context: name=z; width=1; reset=0; access=ro.
 - Source ref: registers.register_list.XPSR.fields.c
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.XPSR.fields.c.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.register_list.
 SSOT item context: name=c; width=1; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -155,7 +157,7 @@ SSOT item context: name=c; width=1; reset=0; access=ro.
 - Source ref: registers.register_list.XPSR.fields.v
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.XPSR.fields.v.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.register_list.
 SSOT item context: name=v; width=1; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -182,7 +184,7 @@ SSOT item context: name=v; width=1; reset=0; access=ro.
 - Source ref: registers.register_list.XPSR.fields.reserved_27_0
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.XPSR.fields.reserved_27_0.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.register_list.
 SSOT item context: name=reserved_27_0; width=28; reset=0; access=reserved.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -209,7 +211,7 @@ SSOT item context: name=reserved_27_0; width=28; reset=0; access=reserved.
 - Source ref: registers.register_list.PC
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.PC.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.register_list.
 SSOT item context: name=PC; width=XLEN; reset=RESET_PC; access=ro; offset=4.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -233,7 +235,7 @@ SSOT item context: name=PC; width=XLEN; reset=RESET_PC; access=ro; offset=4.
 - Source ref: registers.register_list.PC.fields.pc
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.PC.fields.pc.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.register_list.
 SSOT item context: name=pc; width=XLEN; reset=RESET_PC; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -260,7 +262,7 @@ SSOT item context: name=pc; width=XLEN; reset=RESET_PC; access=ro.
 - Source ref: registers.register_list.EXC_CAUSE
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.EXC_CAUSE.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.register_list.
 SSOT item context: name=EXC_CAUSE; width=XLEN; reset=0; access=ro; offset=8.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -284,7 +286,7 @@ SSOT item context: name=EXC_CAUSE; width=XLEN; reset=0; access=ro; offset=8.
 - Source ref: registers.register_list.EXC_CAUSE.fields.trap_valid
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.EXC_CAUSE.fields.trap_valid.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.register_list.
 SSOT item context: name=trap_valid; width=1; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -311,7 +313,7 @@ SSOT item context: name=trap_valid; width=1; reset=0; access=ro.
 - Source ref: registers.register_list.EXC_CAUSE.fields.trap_code
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.EXC_CAUSE.fields.trap_code.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.register_list.
 SSOT item context: name=trap_code; width=7; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -338,7 +340,7 @@ SSOT item context: name=trap_code; width=7; reset=0; access=ro.
 - Source ref: registers.register_list.EXC_CAUSE.fields.trap_stage
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.EXC_CAUSE.fields.trap_stage.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.register_list.
 SSOT item context: name=trap_stage; width=3; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -365,7 +367,7 @@ SSOT item context: name=trap_stage; width=3; reset=0; access=ro.
 - Source ref: registers.register_list.EXC_CAUSE.fields.reserved_31_11
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.EXC_CAUSE.fields.reserved_31_11.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.register_list.
 SSOT item context: name=reserved_31_11; width=21; reset=0; access=reserved.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -392,7 +394,7 @@ SSOT item context: name=reserved_31_11; width=21; reset=0; access=reserved.
 - Source ref: registers.register_list.EXC_EPC
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.EXC_EPC.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.register_list.
 SSOT item context: name=EXC_EPC; width=XLEN; reset=RESET_PC; access=ro; offset=12.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -416,7 +418,7 @@ SSOT item context: name=EXC_EPC; width=XLEN; reset=RESET_PC; access=ro; offset=1
 - Source ref: registers.register_list.EXC_EPC.fields.epc
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.EXC_EPC.fields.epc.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via registers.register_list.
 SSOT item context: name=epc; width=XLEN; reset=RESET_PC; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:

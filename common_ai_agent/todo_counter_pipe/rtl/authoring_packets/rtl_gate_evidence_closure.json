@@ -428,9 +428,9 @@
     "evidence_closure_allowed": true,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 1,
-    "open_required_count": 1,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -462,7 +462,7 @@
       "rtl_gate.rtl_gen": 9
     },
     "module_slice": {},
-    "open_required_count": 1,
+    "open_required_count": 0,
     "required_count": 9,
     "source_refs": [
       "quality_gates.rtl_gen.static_rtl_evidence",
@@ -476,8 +476,7 @@
       "quality_gates.rtl_gen.manifest_signal_flow_evidence"
     ],
     "status_counts": {
-      "open": 1,
-      "pass": 8
+      "pass": 9
     },
     "task_count": 9
   },
@@ -523,9 +522,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "4 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "Static DUT RTL evidence audit has no missing required task.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -892,7 +891,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "b329388dc9f0734e5afc3107218760f4ee5baf3a53ad32d151a73aac2ea551a4",
+  "todo_plan_sha256": "284e0f7f0d06ac8c9019d0745aa7784b4c39904e7e6e52262786b16e9bc5844c",
   "top": "todo_counter_pipe",
   "type": "rtl_authoring_packet"
 }

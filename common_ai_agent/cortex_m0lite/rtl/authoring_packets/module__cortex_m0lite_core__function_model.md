@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: cortex_m0lite_core
 - Owner file: rtl/cortex_m0lite_core.sv
-- Task count: 28
-- Required tasks: 28
+- Task count: 24
+- Required tasks: 24
 
 ## Rules
 
@@ -12,6 +12,8 @@
 - Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.
 - Every task must satisfy content, detail, and criteria before the packet is closed.
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
+- Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
+- Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
@@ -22,11 +24,11 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 0
+- LLM-actionable open tasks: 3
 - Human-locked open tasks: 0
 - Owner refs: coverage_tap, cycle_model, cycle_model.pipeline, dataflow, dataflow.ordering, dataflow.sequence, dataflow.state_flow, decomposition, error_handling, fsm, fsm.control, function_model, function_model.transactions.FM_CPU_STEP, io_list, parameters, registers
-- Module slice: 2/9 section=function_model task_limit=48
-- Slice rule: Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Module slice: 3/10 section=function_model task_limit=48
+- Slice rule: Owner module cortex_m0lite_core is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT target scale: min_behavior_owner_logic_modules=6, min_depth_score=120, min_logic_modules=7, min_modules=8, min_procedural_blocks=12, min_source_files=8, min_state_updates=10
 - SSOT connection contracts:
   - cortex_m0lite_core.clk <= clk (integration.connections[0])
@@ -41,94 +43,6 @@
 
 ## Tasks
 
-### RTL-0072: Implement RTL state owner for FL state pc_q
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: function_model.state_variable
-- Source ref: function_model.state_variables.pc_q
-- Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
-SSOT ref: function_model.state_variables.pc_q.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
-SSOT item context: name=pc_q; width=XLEN; reset=RESET_PC.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - State has a flop/register/memory owner in RTL
-  - Reset value matches SSOT
-  - Every transaction update occurs at the SSOT-defined acceptance/cycle point
-  - Traceability keeps source_ref function_model.state_variables.pc_q
-  - Primary implementation evidence is in rtl/cortex_m0lite_core.sv
-  - pc_q width matches SSOT value XLEN
-  - pc_q reset behavior matches SSOT value RESET_PC
-- SSOT refs: function_model.state_variables.pc_q
-
-### RTL-0073: Implement RTL state owner for FL state rf_q
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: function_model.state_variable
-- Source ref: function_model.state_variables.rf_q
-- Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
-SSOT ref: function_model.state_variables.rf_q.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
-SSOT item context: name=rf_q; width=32; reset=0.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - State has a flop/register/memory owner in RTL
-  - Reset value matches SSOT
-  - Every transaction update occurs at the SSOT-defined acceptance/cycle point
-  - Traceability keeps source_ref function_model.state_variables.rf_q
-  - Primary implementation evidence is in rtl/cortex_m0lite_core.sv
-  - rf_q width matches SSOT value 32
-  - rf_q reset behavior matches SSOT value 0
-- SSOT refs: function_model.state_variables.rf_q
-
-### RTL-0074: Implement RTL state owner for FL state nzcv_q
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: function_model.state_variable
-- Source ref: function_model.state_variables.nzcv_q
-- Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
-SSOT ref: function_model.state_variables.nzcv_q.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
-SSOT item context: name=nzcv_q; width=4; reset=0.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - State has a flop/register/memory owner in RTL
-  - Reset value matches SSOT
-  - Every transaction update occurs at the SSOT-defined acceptance/cycle point
-  - Traceability keeps source_ref function_model.state_variables.nzcv_q
-  - Primary implementation evidence is in rtl/cortex_m0lite_core.sv
-  - nzcv_q width matches SSOT value 4
-  - nzcv_q reset behavior matches SSOT value 0
-- SSOT refs: function_model.state_variables.nzcv_q
-
-### RTL-0075: Implement RTL state owner for FL state trap_q
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: function_model.state_variable
-- Source ref: function_model.state_variables.trap_q
-- Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
-SSOT ref: function_model.state_variables.trap_q.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
-SSOT item context: name=trap_q; width=1; reset=0.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - State has a flop/register/memory owner in RTL
-  - Reset value matches SSOT
-  - Every transaction update occurs at the SSOT-defined acceptance/cycle point
-  - Traceability keeps source_ref function_model.state_variables.trap_q
-  - Primary implementation evidence is in rtl/cortex_m0lite_core.sv
-  - trap_q width matches SSOT value 1
-  - trap_q reset behavior matches SSOT value 0
-- SSOT refs: function_model.state_variables.trap_q
-
 ### RTL-0076: Implement transaction FM_CPU_STEP
 
 - Priority: high
@@ -138,7 +52,7 @@ SSOT item context: name=trap_q; width=1; reset=0.
 - Source ref: function_model.transactions.FM_CPU_STEP
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_CPU_STEP.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: id=FM_CPU_STEP; name=cpu_cycle_step.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -158,7 +72,7 @@ SSOT item context: id=FM_CPU_STEP; name=cpu_cycle_step.
 - Source ref: function_model.transactions.FM_CPU_STEP.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.preconditions.precondition_0.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: value=core_rst_n_sync and bus_rst_n_sync are deasserted..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -178,7 +92,7 @@ SSOT item context: value=core_rst_n_sync and bus_rst_n_sync are deasserted..
 - Source ref: function_model.transactions.FM_CPU_STEP.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.preconditions.precondition_1.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: value=instr_valid indicates a 16-bit instruction word is available from the IF path..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -198,7 +112,7 @@ SSOT item context: value=instr_valid indicates a 16-bit instruction word is avai
 - Source ref: function_model.transactions.FM_CPU_STEP.preconditions.precondition_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.preconditions.precondition_2.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: value=Any data access waits for the declared AHB-Lite ready/response contract..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -218,7 +132,7 @@ SSOT item context: value=Any data access waits for the declared AHB-Lite ready/r
 - Source ref: function_model.transactions.FM_CPU_STEP.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.outputs.output_0.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: value=pc_dbg.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -238,7 +152,7 @@ SSOT item context: value=pc_dbg.
 - Source ref: function_model.transactions.FM_CPU_STEP.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.outputs.output_1.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: value=retire.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -258,7 +172,7 @@ SSOT item context: value=retire.
 - Source ref: function_model.transactions.FM_CPU_STEP.outputs.output_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.outputs.output_2.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: value=trap.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -278,7 +192,7 @@ SSOT item context: value=trap.
 - Source ref: function_model.transactions.FM_CPU_STEP.output_rules.retire_pulse
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.output_rules.retire_pulse.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: name=retire_pulse; port=retire; expr=1 when one instruction commits without trap, else 0; width=1.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -302,7 +216,7 @@ SSOT item context: name=retire_pulse; port=retire; expr=1 when one instruction c
 - Source ref: function_model.transactions.FM_CPU_STEP.output_rules.trap_flag
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.output_rules.trap_flag.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: name=trap_flag; port=trap; expr=1 when illegal opcode, bus error, or misalignment is detected at commit boundary; width=1.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -326,7 +240,7 @@ SSOT item context: name=trap_flag; port=trap; expr=1 when illegal opcode, bus er
 - Source ref: function_model.transactions.FM_CPU_STEP.state_updates.pc_q
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.state_updates.pc_q.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: name=pc_q; expr=pc+2 on normal flow; branch target on taken branch; trap vector on exception; width=XLEN; reset=RESET_PC.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -345,14 +259,14 @@ SSOT item context: name=pc_q; expr=pc+2 on normal flow; branch target on taken b
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_CPU_STEP.state_updates.rf_q
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.state_updates.rf_q.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: name=rf_q; expr=register writeback on ALU/LDR/MOV commit only; width=32; reset=0.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -369,14 +283,14 @@ SSOT item context: name=rf_q; expr=register writeback on ALU/LDR/MOV commit only
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_CPU_STEP.state_updates.nzcv_q
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.state_updates.nzcv_q.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: name=nzcv_q; expr=updated by arithmetic/compare instructions per ARM-like semantics; width=4; reset=0.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -398,7 +312,7 @@ SSOT item context: name=nzcv_q; expr=updated by arithmetic/compare instructions 
 - Source ref: function_model.transactions.FM_CPU_STEP.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.side_effects.side_effect_0.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: value=Successful ALU/MOV/LDR instructions update the destination architectural register at commit..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -413,14 +327,14 @@ SSOT item context: value=Successful ALU/MOV/LDR instructions update the destinat
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: open
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_CPU_STEP.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.side_effects.side_effect_1.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: value=Arithmetic and compare instructions update NZCV according to flag_formulas..
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -438,7 +352,7 @@ SSOT item context: value=Arithmetic and compare instructions update NZCV accordi
 - Source ref: function_model.transactions.FM_CPU_STEP.side_effects.side_effect_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.side_effects.side_effect_2.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: value=Taken branches redirect pc_q and flush IF/ID before the next fetch..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -458,7 +372,7 @@ SSOT item context: value=Taken branches redirect pc_q and flush IF/ID before the
 - Source ref: function_model.transactions.FM_CPU_STEP.side_effects.side_effect_3
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.side_effects.side_effect_3.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: value=Trap conditions suppress retire of the offending instruction and update exception metadata only..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -478,7 +392,7 @@ SSOT item context: value=Trap conditions suppress retire of the offending instru
 - Source ref: function_model.transactions.FM_CPU_STEP.error_cases.error_case_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.error_cases.error_case_0.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: value=Illegal instruction encoding -> trap_code=1.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -498,7 +412,7 @@ SSOT item context: value=Illegal instruction encoding -> trap_code=1.
 - Source ref: function_model.transactions.FM_CPU_STEP.error_cases.error_case_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.error_cases.error_case_1.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: value=Instruction/data bus error (HRESP=1) -> trap_code=2.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -518,7 +432,7 @@ SSOT item context: value=Instruction/data bus error (HRESP=1) -> trap_code=2.
 - Source ref: function_model.transactions.FM_CPU_STEP.error_cases.error_case_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_CPU_STEP.error_cases.error_case_2.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via function_model.transactions.FM_CPU_STEP.
 SSOT item context: value=Misaligned word access -> trap_code=3.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:

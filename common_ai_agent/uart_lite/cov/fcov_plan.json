@@ -1,0 +1,750 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "uart_lite",
+  "source": "uart_lite/yaml/uart_lite.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "uart_lite/req/",
+      "uart_lite/yaml/uart_lite.ssot.yaml",
+      "uart_lite/model/functional_model.py",
+      "uart_lite/cov/fcov_plan.json",
+      "uart_lite/yaml/uart_lite.ssot.yaml#io_list",
+      "uart_lite/yaml/uart_lite.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "uart_lite/rtl/",
+      "uart_lite/tb/",
+      "uart_lite/sim/",
+      "uart_lite/vectors/",
+      "uart_lite/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "SC1_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC1",
+      "description": "TX single byte no parity 1 stop"
+    },
+    {
+      "id": "SC2_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC2",
+      "description": "RX single byte no parity 1 stop"
+    },
+    {
+      "id": "SC3_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC3",
+      "description": "TX with even parity"
+    },
+    {
+      "id": "SC4_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC4",
+      "description": "RX with odd parity match"
+    },
+    {
+      "id": "SC5_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC5",
+      "description": "RX parity error"
+    },
+    {
+      "id": "SC6_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC6",
+      "description": "RX framing error"
+    },
+    {
+      "id": "SC7_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC7",
+      "description": "RX overrun"
+    },
+    {
+      "id": "SC8_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC8",
+      "description": "TX underrun"
+    },
+    {
+      "id": "SC9_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[8]",
+      "scenario": "SC9",
+      "description": "Loopback mode"
+    },
+    {
+      "id": "SC10_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[9]",
+      "scenario": "SC10",
+      "description": "Break send"
+    },
+    {
+      "id": "SC11_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[10]",
+      "scenario": "SC11",
+      "description": "2 stop bits TX/RX"
+    },
+    {
+      "id": "SC12_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[11]",
+      "scenario": "SC12",
+      "description": "Interrupts \u2014 tx_empty"
+    },
+    {
+      "id": "SC13_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[12]",
+      "scenario": "SC13",
+      "description": "Interrupts \u2014 rx_not_empty + clear via W1C"
+    },
+    {
+      "id": "SC14_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[13]",
+      "scenario": "SC14",
+      "description": "DATA_WIDTH=5"
+    },
+    {
+      "id": "SC15_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[14]",
+      "scenario": "SC15",
+      "description": "FIFO full/empty flags"
+    },
+    {
+      "id": "SC16_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[15]",
+      "scenario": "SC16",
+      "description": "Spurious start bit rejection"
+    },
+    {
+      "id": "SC17_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[16]",
+      "scenario": "SC17",
+      "description": "Baud rate change mid-operation"
+    },
+    {
+      "id": "fcov_fm_tx_byte",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_TX_BYTE",
+      "source_ref": "function_model.transactions.FM_TX_BYTE",
+      "description": "TX byte transaction observed by scoreboard"
+    },
+    {
+      "id": "fcov_fm_rx_byte",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_RX_BYTE",
+      "source_ref": "function_model.transactions.FM_RX_BYTE",
+      "description": "RX byte transaction observed by scoreboard"
+    },
+    {
+      "id": "fcov_fm_break",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_BREAK_SEND",
+      "source_ref": "function_model.transactions.FM_BREAK_SEND",
+      "description": "Break send observed"
+    },
+    {
+      "id": "fcov_fm_loopback",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_LOOPBACK",
+      "source_ref": "function_model.transactions.FM_LOOPBACK",
+      "description": "Loopback mode verified"
+    },
+    {
+      "id": "fcov_err_parity",
+      "class": "error_case",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_RX_BYTE.error_cases.parity_err",
+      "source_ref": "function_model.transactions.FM_RX_BYTE.error_cases.parity_err",
+      "description": "Parity error detected"
+    },
+    {
+      "id": "fcov_err_frame",
+      "class": "error_case",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_RX_BYTE.error_cases.frame_err",
+      "source_ref": "function_model.transactions.FM_RX_BYTE.error_cases.frame_err",
+      "description": "Framing error detected"
+    },
+    {
+      "id": "fcov_err_overrun",
+      "class": "error_case",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_RX_BYTE.error_cases.overrun_err",
+      "source_ref": "function_model.transactions.FM_RX_BYTE.error_cases.overrun_err",
+      "description": "Overrun error detected"
+    },
+    {
+      "id": "ccov_tx_idle",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[TX_IDLE]",
+      "source_ref": "cycle_model.pipeline[TX_IDLE]",
+      "description": "TX IDLE stage observed"
+    },
+    {
+      "id": "ccov_tx_data",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[TX_DATA]",
+      "source_ref": "cycle_model.pipeline[TX_DATA]",
+      "description": "TX DATA stage observed"
+    },
+    {
+      "id": "ccov_rx_start_confirm",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[RX_START_CONFIRM]",
+      "source_ref": "cycle_model.pipeline[RX_START_CONFIRM]",
+      "description": "RX start confirm stage observed"
+    },
+    {
+      "id": "ccov_rx_data",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[RX_DATA]",
+      "source_ref": "cycle_model.pipeline[RX_DATA]",
+      "description": "RX DATA stage observed"
+    },
+    {
+      "id": "ccov_baud_tick",
+      "class": "handshake",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.baud_generator",
+      "source_ref": "cycle_model.baud_generator",
+      "description": "Baud tick observed at correct rate"
+    },
+    {
+      "id": "ccov_perf_fifo_depth",
+      "class": "depth",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.depth",
+      "source_ref": "cycle_model.performance.depth",
+      "description": "FIFO depth exercised"
+    },
+    {
+      "id": "function_transmit_byte",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm_tx_byte",
+      "description": "transmit_byte"
+    },
+    {
+      "id": "function_receive_byte",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[1]",
+      "source_ref": "function_model.transactions.fm_rx_byte",
+      "description": "receive_byte"
+    },
+    {
+      "id": "function_send_break",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[2]",
+      "source_ref": "function_model.transactions.fm_break_send",
+      "description": "send_break"
+    },
+    {
+      "id": "function_loopback_mode",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[3]",
+      "source_ref": "function_model.transactions.fm_loopback",
+      "description": "loopback_mode"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'signal': 'tx', 'rule': 'Driven synchronously to PCLK; changes only on baud_tick boundaries at TX FSM state transitions. Idle state is high (mark).'}"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "{'signal': 'rx', 'rule': 'External async input. Passed through 2-FF synchronizer. Synchronizer output sampled on every PCLK edge by RX FSM start-bit detector.'}"
+    },
+    {
+      "id": "cycle_handshake_2",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[2]",
+      "source_ref": "cycle_model.handshake_rules[2]",
+      "description": "{'signal': 'PREADY', 'rule': 'Asserted in the access phase (PSEL=1, PENABLE=1) for all valid register addresses. Deasserted otherwise.'}"
+    },
+    {
+      "id": "cycle_handshake_3",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[3]",
+      "source_ref": "cycle_model.handshake_rules[3]",
+      "description": "{'signal': 'PSLVERR', 'rule': 'Asserted only with PREADY=1 for accesses to unimplemented address ranges.'}"
+    },
+    {
+      "id": "cycle_latency_register_read",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_read",
+      "source_ref": "cycle_model.latency.register_read",
+      "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data and PREADY timing'}"
+    },
+    {
+      "id": "cycle_latency_register_write",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_write",
+      "source_ref": "cycle_model.latency.register_write",
+      "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing'}"
+    },
+    {
+      "id": "cycle_latency_tx_byte",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.tx_byte",
+      "source_ref": "cycle_model.latency.tx_byte",
+      "description": "{'min_cycles': 'baud_tick_period * (1 + DATA_WIDTH + parity_en + stop_bits)', 'max_cycles': None, 'description': 'TX frame duration; max unbounded if TX FIFO is empty and no new data'}"
+    },
+    {
+      "id": "cycle_latency_rx_byte",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.rx_byte",
+      "source_ref": "cycle_model.latency.rx_byte",
+      "description": "{'min_cycles': 'baud_tick_period * (1 + DATA_WIDTH + parity_en + stop_bits)', 'max_cycles': None, 'description': 'RX frame duration; max unbounded waiting for start bit'}"
+    },
+    {
+      "id": "cycle_pipeline_tx_idle",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "Wait for TX FIFO not empty; assert tx_active=false"
+    },
+    {
+      "id": "cycle_pipeline_tx_start",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "Drive tx=0 for one baud tick period; assert tx_active"
+    },
+    {
+      "id": "cycle_pipeline_tx_data",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[2]",
+      "source_ref": "cycle_model.pipeline[2]",
+      "description": "Shift LSB of tx_shift_reg to tx each baud tick; repeat DATA_WIDTH times. tx_shift_reg loaded from TX FIFO on entry."
+    },
+    {
+      "id": "cycle_pipeline_tx_parity",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[3]",
+      "source_ref": "cycle_model.pipeline[3]",
+      "description": "Drive computed parity bit to tx for one baud tick (present only if parity_en=1)"
+    },
+    {
+      "id": "cycle_pipeline_tx_stop1",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[4]",
+      "source_ref": "cycle_model.pipeline[4]",
+      "description": "Drive tx=1 for one baud tick"
+    },
+    {
+      "id": "cycle_pipeline_tx_stop2",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[5]",
+      "source_ref": "cycle_model.pipeline[5]",
+      "description": "Drive tx=1 for one baud tick (present only if stop_bits=1)"
+    },
+    {
+      "id": "cycle_pipeline_rx_idle",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[6]",
+      "source_ref": "cycle_model.pipeline[6]",
+      "description": "Monitor synchronized rx for falling edge; assert rx_active=false"
+    },
+    {
+      "id": "cycle_pipeline_rx_start_detect",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[7]",
+      "source_ref": "cycle_model.pipeline[7]",
+      "description": "On falling edge, wait until oversample count 7"
+    },
+    {
+      "id": "cycle_pipeline_rx_start_confirm",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[8]",
+      "source_ref": "cycle_model.pipeline[8]",
+      "description": "At oversample count 7, sample synchronized rx. If low \u2192 confirmed start, advance. If high \u2192 spurious, return to RX_IDLE."
+    },
+    {
+      "id": "cycle_pipeline_rx_data",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[9]",
+      "source_ref": "cycle_model.pipeline[9]",
+      "description": "At oversample count 7 of each subsequent bit period, sample rx into rx_shift_reg LSB-first; repeat DATA_WIDTH times"
+    },
+    {
+      "id": "cycle_pipeline_rx_parity",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[10]",
+      "source_ref": "cycle_model.pipeline[10]",
+      "description": "At oversample count 7, sample parity bit; compute expected parity; compare. (present only if parity_en=1)"
+    },
+    {
+      "id": "cycle_pipeline_rx_stop1",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[11]",
+      "source_ref": "cycle_model.pipeline[11]",
+      "description": "At oversample count 7, sample stop bit. If high \u2192 valid. If low \u2192 frame_err."
+    },
+    {
+      "id": "cycle_pipeline_rx_stop2",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[12]",
+      "source_ref": "cycle_model.pipeline[12]",
+      "description": "At oversample count 7, sample second stop bit. (present only if stop_bits=1)"
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "TX FSM does not start a new frame until the current frame completes (no pipelining across bytes)."
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[1]",
+      "source_ref": "cycle_model.ordering[1]",
+      "description": "RX FSM does not start a new frame until the current frame completes."
+    },
+    {
+      "id": "cycle_ordering_2",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[2]",
+      "source_ref": "cycle_model.ordering[2]",
+      "description": "Interrupt pending bits update on the same PCLK edge as the condition (FIFO threshold crossing, error detection, frame completion)."
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "TX backpressure: TX FSM waits in TX_IDLE when TX FIFO is empty."
+    },
+    {
+      "id": "cycle_backpressure_1",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[1]",
+      "source_ref": "cycle_model.backpressure[1]",
+      "description": "RX backpressure: If RX FIFO is full when a new byte would be pushed, overrun_err is set and the byte is discarded; RX FSM returns to RX_IDLE."
+    },
+    {
+      "id": "cycle_perf_outstanding",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.outstanding",
+      "source_ref": "cycle_model.performance.outstanding",
+      "description": "{'tx_max': 16, 'rx_max': 16, 'description': 'FIFO depth bounds maximum queued TX/RX bytes'}"
+    },
+    {
+      "id": "cycle_perf_depth",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.depth",
+      "source_ref": "cycle_model.performance.depth",
+      "description": "{'fifo_depth': 16, 'oversample_stages': 16, 'description': 'FIFO depth and oversample counter depth'}"
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "50"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'max_baud': 'PCLK / (OVERSAMPLE * 1) = 3.125 Mbaud at baud_div=0', 'sustained_bytes_per_second': 'baud_rate / (1 + DATA_WIDTH + parity_en + stop_bits)'}"
+    },
+    {
+      "id": "fsm_tx_fsm_tx_idle_to_tx_start_0",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.tx_fsm.transitions[0]",
+      "source_ref": "fsm.tx_fsm.transitions[0]",
+      "description": "TX FIFO not empty and baud tick"
+    },
+    {
+      "id": "fsm_tx_fsm_tx_start_to_tx_data_1",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.tx_fsm.transitions[1]",
+      "source_ref": "fsm.tx_fsm.transitions[1]",
+      "description": "baud tick (1 bit period elapsed)"
+    },
+    {
+      "id": "fsm_tx_fsm_tx_data_to_tx_parity_2",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.tx_fsm.transitions[2]",
+      "source_ref": "fsm.tx_fsm.transitions[2]",
+      "description": "DATA_WIDTH bits transmitted and parity_en=1 and baud tick"
+    },
+    {
+      "id": "fsm_tx_fsm_tx_data_to_tx_stop1_3",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.tx_fsm.transitions[3]",
+      "source_ref": "fsm.tx_fsm.transitions[3]",
+      "description": "DATA_WIDTH bits transmitted and parity_en=0 and baud tick"
+    },
+    {
+      "id": "fsm_tx_fsm_tx_parity_to_tx_stop1_4",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.tx_fsm.transitions[4]",
+      "source_ref": "fsm.tx_fsm.transitions[4]",
+      "description": "baud tick"
+    },
+    {
+      "id": "fsm_tx_fsm_tx_stop1_to_tx_idle_5",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.tx_fsm.transitions[5]",
+      "source_ref": "fsm.tx_fsm.transitions[5]",
+      "description": "stop_bits=0 and baud tick"
+    },
+    {
+      "id": "fsm_tx_fsm_tx_stop1_to_tx_stop2_6",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.tx_fsm.transitions[6]",
+      "source_ref": "fsm.tx_fsm.transitions[6]",
+      "description": "stop_bits=1 and baud tick"
+    },
+    {
+      "id": "fsm_tx_fsm_tx_stop2_to_tx_idle_7",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.tx_fsm.transitions[7]",
+      "source_ref": "fsm.tx_fsm.transitions[7]",
+      "description": "baud tick"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_idle_to_rx_start_detect_0",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.rx_fsm.transitions[0]",
+      "source_ref": "fsm.rx_fsm.transitions[0]",
+      "description": "rx_synced falling edge detected"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_start_detect_to_rx_start_confirm_1",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.rx_fsm.transitions[1]",
+      "source_ref": "fsm.rx_fsm.transitions[1]",
+      "description": "mid-bit sample at oversample count 7 confirms low"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_start_detect_to_rx_idle_2",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.rx_fsm.transitions[2]",
+      "source_ref": "fsm.rx_fsm.transitions[2]",
+      "description": "mid-bit sample at oversample count 7 is high (spurious edge)"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_start_confirm_to_rx_data_3",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.rx_fsm.transitions[3]",
+      "source_ref": "fsm.rx_fsm.transitions[3]",
+      "description": "full bit period from start confirm; oversample tick"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_data_to_rx_parity_4",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.rx_fsm.transitions[4]",
+      "source_ref": "fsm.rx_fsm.transitions[4]",
+      "description": "DATA_WIDTH bits sampled at centre and parity_en=1 and oversample tick"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_data_to_rx_stop1_5",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.rx_fsm.transitions[5]",
+      "source_ref": "fsm.rx_fsm.transitions[5]",
+      "description": "DATA_WIDTH bits sampled at centre and parity_en=0 and oversample tick"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_parity_to_rx_stop1_6",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.rx_fsm.transitions[6]",
+      "source_ref": "fsm.rx_fsm.transitions[6]",
+      "description": "parity bit sampled at centre and oversample tick"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_stop1_to_rx_idle_7",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.rx_fsm.transitions[7]",
+      "source_ref": "fsm.rx_fsm.transitions[7]",
+      "description": "stop_bits=0; stop bit sampled high at centre and oversample tick"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_stop1_to_rx_stop2_8",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.rx_fsm.transitions[8]",
+      "source_ref": "fsm.rx_fsm.transitions[8]",
+      "description": "stop_bits=1 and oversample tick"
+    },
+    {
+      "id": "fsm_rx_fsm_rx_stop2_to_rx_idle_9",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.rx_fsm.transitions[9]",
+      "source_ref": "fsm.rx_fsm.transitions[9]",
+      "description": "oversample tick"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_FRAME', 'condition': 'RX stop bit(s) sampled low', 'architectural_effect': 'STAT.frame_err sticky set; DBG_FRAMES_ERR incremented; frame_error interrupt if enabled'}"
+    },
+    {
+      "id": "error_error_1",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[1]",
+      "source_ref": "error_handling.error_sources[1]",
+      "description": "{'id': 'ERR_PARITY', 'condition': 'RX computed parity != received parity bit', 'architectural_effect': 'STAT.parity_err sticky set; DBG_PARITIES_ERR incremented; parity_error interrupt if enabled'}"
+    },
+    {
+      "id": "error_error_2",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[2]",
+      "source_ref": "error_handling.error_sources[2]",
+      "description": "{'id': 'ERR_OVERRUN', 'condition': 'RX FIFO full when new byte ready to push', 'architectural_effect': 'STAT.overrun_err sticky set; received byte discarded; rx_overrun interrupt if enabled'}"
+    },
+    {
+      "id": "error_error_3",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[3]",
+      "source_ref": "error_handling.error_sources[3]",
+      "description": "{'id': 'ERR_UNDERRUN', 'condition': 'TX FIFO empty when TX FSM requests next byte during active frame', 'architectural_effect': 'STAT.underrun_err sticky set; frame aborted; tx returns to idle (mark)'}"
+    }
+  ],
+  "summary": {
+    "total_bins": 86,
+    "scenario_bins": 17,
+    "transaction_bins": 4,
+    "protocol_bins": 4,
+    "state_transition_bins": 18,
+    "error_bins": 4
+  }
+}

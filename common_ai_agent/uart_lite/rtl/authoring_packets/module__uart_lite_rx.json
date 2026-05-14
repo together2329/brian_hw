@@ -1,0 +1,2947 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 47,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/uart_lite_rx.sv",
+      "name": "uart_lite_rx",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline[RX_DATA]",
+        "cycle_model.pipeline[RX_IDLE]",
+        "cycle_model.pipeline[RX_PARITY]",
+        "cycle_model.pipeline[RX_START_CONFIRM]",
+        "cycle_model.pipeline[RX_START_DETECT]",
+        "cycle_model.pipeline[RX_STOP1]",
+        "cycle_model.pipeline[RX_STOP2]",
+        "fsm",
+        "fsm.rx_fsm",
+        "function_model",
+        "function_model.transactions.FM_RX_BYTE"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/uart_lite_regs.sv",
+        "name": "uart_lite_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_tx.sv",
+        "name": "uart_lite_tx",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_rx.sv",
+        "name": "uart_lite_rx",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_baud_gen.sv",
+        "name": "uart_lite_baud_gen",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_tx_fifo.sv",
+        "name": "uart_lite_tx_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_rx_fifo.sv",
+        "name": "uart_lite_rx_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_core.sv",
+        "name": "uart_lite_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite.sv",
+        "name": "uart_lite",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "UART peripheral with 7 sub-modules, 2 FIFOs, 2 FSMs, 12 registers",
+      "min_behavior_owner_logic_modules": 2,
+      "min_depth_score": 10,
+      "min_logic_modules": 4,
+      "min_modules": 7,
+      "min_procedural_blocks": 20,
+      "min_source_files": 7,
+      "min_state_updates": 8,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 1,
+    "open_required_count": 1,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "uart_lite",
+  "kind": "module",
+  "owner_file": "rtl/uart_lite_rx.sv",
+  "owner_module": "uart_lite_rx",
+  "packet_id": "module__uart_lite_rx",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.handshake_rules": 4,
+      "cycle_model.pipeline": 7,
+      "equivalence.module": 1,
+      "fsm.state": 7,
+      "fsm.transition": 10,
+      "function_model.error_case": 4,
+      "function_model.input": 1,
+      "function_model.output": 2,
+      "function_model.output_rule": 1,
+      "function_model.precondition": 3,
+      "function_model.side_effect": 4,
+      "function_model.state_update": 1,
+      "function_model.transaction": 1,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 47,
+      "task_limit": 48
+    },
+    "open_required_count": 1,
+    "required_count": 47,
+    "source_refs": [
+      "workflow_todos.rtl-gen[2]",
+      "function_model.transactions.FM_RX_BYTE",
+      "function_model.transactions.FM_RX_BYTE.preconditions.precondition_0",
+      "function_model.transactions.FM_RX_BYTE.preconditions.precondition_1",
+      "function_model.transactions.FM_RX_BYTE.preconditions.precondition_2",
+      "function_model.transactions.FM_RX_BYTE.inputs.input_0",
+      "function_model.transactions.FM_RX_BYTE.outputs.output_0",
+      "function_model.transactions.FM_RX_BYTE.outputs.output_1",
+      "function_model.transactions.FM_RX_BYTE.output_rules.rx_irq",
+      "function_model.transactions.FM_RX_BYTE.state_updates.uart_irq",
+      "function_model.transactions.FM_RX_BYTE.side_effects.side_effect_0",
+      "function_model.transactions.FM_RX_BYTE.side_effects.side_effect_1",
+      "function_model.transactions.FM_RX_BYTE.side_effects.side_effect_2",
+      "function_model.transactions.FM_RX_BYTE.side_effects.side_effect_3",
+      "function_model.transactions.FM_RX_BYTE.error_cases.error_case_0",
+      "function_model.transactions.FM_RX_BYTE.error_cases.error_case_1",
+      "function_model.transactions.FM_RX_BYTE.error_cases.error_case_2",
+      "function_model.transactions.FM_RX_BYTE.error_cases.error_case_3",
+      "cycle_model.handshake_rules.tx",
+      "cycle_model.handshake_rules.rx",
+      "cycle_model.handshake_rules.PREADY",
+      "cycle_model.handshake_rules.PSLVERR",
+      "cycle_model.pipeline.RX_IDLE",
+      "cycle_model.pipeline.RX_START_DETECT"
+    ],
+    "status_counts": {
+      "open": 1,
+      "pass": 46
+    },
+    "task_count": 47
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement RX FSM with 2-FF synchronizer and oversampling",
+      "criteria": [
+        "RX FSM states and all declared transitions implemented",
+        "Mid-bit sampling at oversample count 7",
+        "2-FF synchronizer on rx input",
+        "Spurious start bit rejection implemented",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[2]",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "Semantic source_refs covered: cdc_requirements, cycle_model.pipeline.rx_stages, fsm.rx_fsm"
+      ],
+      "detail": "From fsm.rx_fsm and cycle_model pipeline: implement RX_IDLE → RX_START_DETECT → RX_START_CONFIRM → RX_DATA → RX_PARITY (if parity_en) → RX_STOP1 → RX_STOP2 (if stop_bits=1). Sample at oversample count 7 of 16. Detect framing/parity errors.\nSSOT ref: workflow_todos.rtl-gen[2].\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via workflow_todos.owner.\nSSOT item context: id=RTL_IMPL_RX_FSM.",
+      "evidence_terms": [
+        "IMPL",
+        "RTL_IMPL_RX_FSM",
+        "RX",
+        "cdc",
+        "cdc_requirements",
+        "lite",
+        "requirements",
+        "rx",
+        "rx_fsm",
+        "rx_stages",
+        "stages",
+        "uart",
+        "uart_lite_rx"
+      ],
+      "id": "RTL-0029",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[2]",
+      "ssot_context": {
+        "id": "RTL_IMPL_RX_FSM"
+      },
+      "ssot_refs": [
+        "cdc_requirements",
+        "cycle_model.pipeline.rx_stages",
+        "fsm.rx_fsm",
+        "workflow_todos.rtl-gen[2]"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "RX",
+          "lite",
+          "rx",
+          "uart",
+          "uart_lite_rx"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "IMPL",
+          "RTL_IMPL_RX_FSM",
+          "RX",
+          "cdc",
+          "cdc_requirements",
+          "lite",
+          "requirements",
+          "rx",
+          "rx_fsm",
+          "rx_stages",
+          "stages",
+          "uart",
+          "uart_lite_rx"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_IMPL_RX_FSM",
+        "source_refs": [
+          "cdc_requirements",
+          "cycle_model.pipeline.rx_stages",
+          "fsm.rx_fsm"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_RX_BYTE",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_RX_BYTE",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_RX_BYTE.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via function_model.transactions.FM_RX_BYTE.\nSSOT item context: id=FM_RX_BYTE; name=receive_byte.",
+      "evidence_terms": [],
+      "id": "RTL-0077",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RX_BYTE",
+      "ssot_context": {
+        "id": "FM_RX_BYTE",
+        "name": "receive_byte"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RX_BYTE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_RX_BYTE: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RX_BYTE.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RX_BYTE.preconditions.precondition_0.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via function_model.transactions.FM_RX_BYTE.\nSSOT item context: value=rx_enable == 1.",
+      "evidence_terms": [
+        "enable",
+        "rx",
+        "rx_enable"
+      ],
+      "id": "RTL-0078",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RX_BYTE.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "rx_enable == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RX_BYTE.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "enable",
+          "rx",
+          "rx_enable"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "enable",
+          "rx",
+          "rx_enable"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_RX_BYTE: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RX_BYTE.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RX_BYTE.preconditions.precondition_1.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via function_model.transactions.FM_RX_BYTE.\nSSOT item context: value=rx_active == false.",
+      "evidence_terms": [
+        "active",
+        "rx",
+        "rx_active"
+      ],
+      "id": "RTL-0079",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RX_BYTE.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "rx_active == false"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RX_BYTE.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "active",
+          "rx",
+          "rx_active"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "active",
+          "rx",
+          "rx_active"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_RX_BYTE: precondition_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RX_BYTE.preconditions.precondition_2",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RX_BYTE.preconditions.precondition_2.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via function_model.transactions.FM_RX_BYTE.\nSSOT item context: value=rx_fifo not full.",
+      "evidence_terms": [
+        "fifo",
+        "rx",
+        "rx_fifo"
+      ],
+      "id": "RTL-0080",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RX_BYTE.preconditions.precondition_2",
+      "ssot_context": {
+        "value": "rx_fifo not full"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RX_BYTE.preconditions.precondition_2"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fifo",
+          "rx",
+          "rx_fifo"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fifo",
+          "rx",
+          "rx_fifo"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_RX_BYTE: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RX_BYTE.inputs.input_0",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RX_BYTE.inputs.input_0.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via function_model.transactions.FM_RX_BYTE.\nSSOT item context: value=rx line serial stream after 2-FF synchronizer.",
+      "evidence_terms": [],
+      "id": "RTL-0081",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RX_BYTE.inputs.input_0",
+      "ssot_context": {
+        "value": "rx line serial stream after 2-FF synchronizer"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RX_BYTE.inputs.input_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RX_BYTE: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RX_BYTE.outputs.output_0",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RX_BYTE.outputs.output_0.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via function_model.transactions.FM_RX_BYTE.\nSSOT item context: value=byte d reconstructed from sampled bits pushed to rx_fifo.",
+      "evidence_terms": [
+        "fifo",
+        "rx",
+        "rx_fifo"
+      ],
+      "id": "RTL-0082",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RX_BYTE.outputs.output_0",
+      "ssot_context": {
+        "value": "byte d reconstructed from sampled bits pushed to rx_fifo"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RX_BYTE.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fifo",
+          "rx",
+          "rx_fifo"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fifo",
+          "rx",
+          "rx_fifo"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RX_BYTE: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RX_BYTE.outputs.output_1",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RX_BYTE.outputs.output_1.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via function_model.transactions.FM_RX_BYTE.\nSSOT item context: value=STAT.rx_not_empty set.",
+      "evidence_terms": [
+        "empty",
+        "not",
+        "rx",
+        "rx_not_empty"
+      ],
+      "id": "RTL-0083",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RX_BYTE.outputs.output_1",
+      "ssot_context": {
+        "value": "STAT.rx_not_empty set"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RX_BYTE.outputs.output_1"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "empty",
+          "not",
+          "rx",
+          "rx_not_empty"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "empty",
+          "not",
+          "rx",
+          "rx_not_empty"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_RX_BYTE: rx_irq",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RX_BYTE.output_rules.rx_irq",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "rx_irq RTL expression implements SSOT expression 0",
+        "DUT port uart_irq is the implementation/observation point for rx_irq",
+        "rx_irq is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RX_BYTE.output_rules.rx_irq.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via function_model.transactions.FM_RX_BYTE.\nSSOT item context: name=rx_irq; port=uart_irq; expr=0.",
+      "evidence_terms": [
+        "irq",
+        "uart",
+        "uart_irq"
+      ],
+      "id": "RTL-0084",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RX_BYTE.output_rules.rx_irq",
+      "ssot_context": {
+        "expr": "0",
+        "name": "rx_irq",
+        "port": "uart_irq"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RX_BYTE.output_rules.rx_irq"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "uart"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "irq",
+          "uart",
+          "uart_irq"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RX_BYTE: uart_irq",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RX_BYTE.state_updates.uart_irq",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "uart_irq reset behavior matches SSOT value 0",
+        "uart_irq RTL expression implements SSOT expression 0",
+        "uart_irq updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RX_BYTE.state_updates.uart_irq.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via function_model.transactions.FM_RX_BYTE.\nSSOT item context: name=uart_irq; expr=0; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0085",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RX_BYTE.state_updates.uart_irq",
+      "ssot_context": {
+        "expr": "0",
+        "name": "uart_irq",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RX_BYTE.state_updates.uart_irq"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_RX_BYTE: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RX_BYTE.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RX_BYTE.side_effects.side_effect_0.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via function_model.transactions.FM_RX_BYTE.\nSSOT item context: value=debug counter bytes_rx increments by 1.",
+      "evidence_terms": [
+        "bytes",
+        "bytes_rx",
+        "rx"
+      ],
+      "id": "RTL-0086",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RX_BYTE.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "debug counter bytes_rx increments by 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RX_BYTE.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "bytes",
+          "bytes_rx",
+          "rx"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "bytes",
+          "bytes_rx",
+          "rx"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_RX_BYTE: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RX_BYTE.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RX_BYTE.side_effects.side_effect_1.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via function_model.transactions.FM_RX_BYTE.\nSSOT item context: value=rx_fifo level increases by 1.",
+      "evidence_terms": [
+        "fifo",
+        "rx",
+        "rx_fifo"
+      ],
+      "id": "RTL-0087",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RX_BYTE.side_effects.side_effect_1",
+      "ssot_context": {
+        "value": "rx_fifo level increases by 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RX_BYTE.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fifo",
+          "rx",
+          "rx_fifo"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fifo",
+          "rx",
+          "rx_fifo"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_RX_BYTE: side_effect_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RX_BYTE.side_effects.side_effect_2",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RX_BYTE.side_effects.side_effect_2.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via function_model.transactions.FM_RX_BYTE.\nSSOT item context: value=If parity_en and parity mismatch: parity_err sticky set, parities_errored incremented.",
+      "evidence_terms": [
+        "en",
+        "err",
+        "errored",
+        "parities",
+        "parities_errored",
+        "parity",
+        "parity_en",
+        "parity_err"
+      ],
+      "id": "RTL-0088",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RX_BYTE.side_effects.side_effect_2",
+      "ssot_context": {
+        "value": "If parity_en and parity mismatch: parity_err sticky set, parities_errored incremented"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RX_BYTE.side_effects.side_effect_2"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "en",
+          "err",
+          "parity",
+          "parity_en",
+          "parity_err"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "en",
+          "err",
+          "errored",
+          "parities",
+          "parities_errored",
+          "parity",
+          "parity_en",
+          "parity_err"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_RX_BYTE: side_effect_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RX_BYTE.side_effects.side_effect_3",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RX_BYTE.side_effects.side_effect_3.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via function_model.transactions.FM_RX_BYTE.\nSSOT item context: value=If stop bit(s) not high: frame_err sticky set, frames_errored incremented.",
+      "evidence_terms": [
+        "err",
+        "errored",
+        "frame",
+        "frame_err",
+        "frames",
+        "frames_errored"
+      ],
+      "id": "RTL-0089",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RX_BYTE.side_effects.side_effect_3",
+      "ssot_context": {
+        "value": "If stop bit(s) not high: frame_err sticky set, frames_errored incremented"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RX_BYTE.side_effects.side_effect_3"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "err",
+          "frame",
+          "frame_err"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "err",
+          "errored",
+          "frame",
+          "frame_err",
+          "frames",
+          "frames_errored"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_RX_BYTE: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RX_BYTE.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "function_model.transactions.FM_RX_BYTE.error_cases.error_case_0 condition is implemented as RTL control logic: rx_fifo full when new byte ready"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RX_BYTE.error_cases.error_case_0.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via function_model.transactions.FM_RX_BYTE.\nSSOT item context: condition=rx_fifo full when new byte ready.",
+      "evidence_terms": [
+        "fifo",
+        "rx",
+        "rx_fifo"
+      ],
+      "id": "RTL-0090",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RX_BYTE.error_cases.error_case_0",
+      "ssot_context": {
+        "condition": "rx_fifo full when new byte ready"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RX_BYTE.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fifo",
+          "rx",
+          "rx_fifo"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fifo",
+          "rx",
+          "rx_fifo"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_RX_BYTE: error_case_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RX_BYTE.error_cases.error_case_1",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "function_model.transactions.FM_RX_BYTE.error_cases.error_case_1 condition is implemented as RTL control logic: spurious start bit (mid-bit sample high)"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RX_BYTE.error_cases.error_case_1.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via function_model.transactions.FM_RX_BYTE.\nSSOT item context: condition=spurious start bit (mid-bit sample high).",
+      "evidence_terms": [],
+      "id": "RTL-0091",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RX_BYTE.error_cases.error_case_1",
+      "ssot_context": {
+        "condition": "spurious start bit (mid-bit sample high)"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RX_BYTE.error_cases.error_case_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_RX_BYTE: error_case_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RX_BYTE.error_cases.error_case_2",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "function_model.transactions.FM_RX_BYTE.error_cases.error_case_2 condition is implemented as RTL control logic: frame_err: stop bit sampled low"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RX_BYTE.error_cases.error_case_2.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via function_model.transactions.FM_RX_BYTE.\nSSOT item context: condition=frame_err: stop bit sampled low.",
+      "evidence_terms": [
+        "err",
+        "frame",
+        "frame_err"
+      ],
+      "id": "RTL-0092",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RX_BYTE.error_cases.error_case_2",
+      "ssot_context": {
+        "condition": "frame_err: stop bit sampled low"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RX_BYTE.error_cases.error_case_2"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "err",
+          "frame",
+          "frame_err"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "err",
+          "frame",
+          "frame_err"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_RX_BYTE: error_case_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RX_BYTE.error_cases.error_case_3",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "function_model.transactions.FM_RX_BYTE.error_cases.error_case_3 condition is implemented as RTL control logic: parity_err: computed parity != received parity bit"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RX_BYTE.error_cases.error_case_3.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via function_model.transactions.FM_RX_BYTE.\nSSOT item context: condition=parity_err: computed parity != received parity bit.",
+      "evidence_terms": [
+        "err",
+        "parity",
+        "parity_err"
+      ],
+      "id": "RTL-0093",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RX_BYTE.error_cases.error_case_3",
+      "ssot_context": {
+        "condition": "parity_err: computed parity != received parity bit"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RX_BYTE.error_cases.error_case_3"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "err",
+          "parity",
+          "parity_err"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "err",
+          "parity",
+          "parity_err"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: tx",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.tx",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "cycle_model.handshake_rules.tx appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.tx.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via cycle_model.handshake_rules.\nSSOT item context: signal=tx.",
+      "evidence_terms": [],
+      "id": "RTL-0118",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.tx",
+      "ssot_context": {
+        "signal": "tx"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.tx"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: rx",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.rx",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "cycle_model.handshake_rules.rx appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.rx.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via cycle_model.handshake_rules.\nSSOT item context: signal=rx.",
+      "evidence_terms": [],
+      "id": "RTL-0119",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.rx",
+      "ssot_context": {
+        "signal": "rx"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.rx"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: PREADY",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.PREADY",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "cycle_model.handshake_rules.PREADY appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.PREADY.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via cycle_model.handshake_rules.\nSSOT item context: signal=PREADY.",
+      "evidence_terms": [],
+      "id": "RTL-0120",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.PREADY",
+      "ssot_context": {
+        "signal": "PREADY"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.PREADY"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: PSLVERR",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.PSLVERR",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "cycle_model.handshake_rules.PSLVERR appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.PSLVERR.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via cycle_model.handshake_rules.\nSSOT item context: signal=PSLVERR.",
+      "evidence_terms": [],
+      "id": "RTL-0121",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.PSLVERR",
+      "ssot_context": {
+        "signal": "PSLVERR"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.PSLVERR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: RX_IDLE",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.RX_IDLE",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "cycle_model.pipeline.RX_IDLE timing uses SSOT cycle/latency 0",
+        "cycle_model.pipeline.RX_IDLE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.RX_IDLE.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via cycle_model.pipeline.\nSSOT item context: stage=RX_IDLE; action=Monitor synchronized rx for falling edge; assert rx_active=false; cycle=0.",
+      "evidence_terms": [
+        "active",
+        "rx",
+        "rx_active"
+      ],
+      "id": "RTL-0128",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.RX_IDLE",
+      "ssot_context": {
+        "action": "Monitor synchronized rx for falling edge; assert rx_active=false",
+        "cycle": "0",
+        "stage": "RX_IDLE"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.RX_IDLE"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "active",
+          "rx",
+          "rx_active"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "active",
+          "rx",
+          "rx_active"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: RX_START_DETECT",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.RX_START_DETECT",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "cycle_model.pipeline.RX_START_DETECT timing uses SSOT cycle/latency 1",
+        "cycle_model.pipeline.RX_START_DETECT appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.RX_START_DETECT.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via cycle_model.pipeline.\nSSOT item context: stage=RX_START_DETECT; action=On falling edge, wait until oversample count 7; cycle=1.",
+      "evidence_terms": [],
+      "id": "RTL-0129",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.RX_START_DETECT",
+      "ssot_context": {
+        "action": "On falling edge, wait until oversample count 7",
+        "cycle": "1",
+        "stage": "RX_START_DETECT"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.RX_START_DETECT"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: RX_START_CONFIRM",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.RX_START_CONFIRM",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "cycle_model.pipeline.RX_START_CONFIRM timing uses SSOT cycle/latency 2",
+        "cycle_model.pipeline.RX_START_CONFIRM appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.RX_START_CONFIRM.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via cycle_model.pipeline.\nSSOT item context: stage=RX_START_CONFIRM; action=At oversample count 7, sample synchronized rx. If low → confirmed start, advance. If high → spurious, return to RX_IDLE.; cycle=2.",
+      "evidence_terms": [
+        "IDLE",
+        "RX",
+        "RX_IDLE"
+      ],
+      "id": "RTL-0130",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.RX_START_CONFIRM",
+      "ssot_context": {
+        "action": "At oversample count 7, sample synchronized rx. If low → confirmed start, advance. If high → spurious, return to RX_IDLE.",
+        "cycle": "2",
+        "stage": "RX_START_CONFIRM"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.RX_START_CONFIRM"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "IDLE",
+          "RX",
+          "RX_IDLE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "RX",
+          "RX_IDLE"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: RX_DATA",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.RX_DATA",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "cycle_model.pipeline.RX_DATA timing uses SSOT cycle/latency 3..2+DATA_WIDTH",
+        "cycle_model.pipeline.RX_DATA appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.RX_DATA.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via cycle_model.pipeline.\nSSOT item context: stage=RX_DATA; action=At oversample count 7 of each subsequent bit period, sample rx into rx_shift_reg LSB-first; repeat DATA_WIDTH times; cycle=3..2+DATA_WIDTH.",
+      "evidence_terms": [
+        "DATA",
+        "DATA_WIDTH",
+        "WIDTH",
+        "reg",
+        "rx",
+        "rx_shift_reg",
+        "shift"
+      ],
+      "id": "RTL-0131",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.RX_DATA",
+      "ssot_context": {
+        "action": "At oversample count 7 of each subsequent bit period, sample rx into rx_shift_reg LSB-first; repeat DATA_WIDTH times",
+        "cycle": "3..2+DATA_WIDTH",
+        "stage": "RX_DATA"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.RX_DATA"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "DATA",
+          "DATA_WIDTH",
+          "WIDTH",
+          "reg",
+          "rx",
+          "rx_shift_reg",
+          "shift"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DATA",
+          "DATA_WIDTH",
+          "WIDTH",
+          "reg",
+          "rx",
+          "rx_shift_reg",
+          "shift"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: RX_PARITY",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.RX_PARITY",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "cycle_model.pipeline.RX_PARITY timing uses SSOT cycle/latency 3+DATA_WIDTH",
+        "cycle_model.pipeline.RX_PARITY appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.RX_PARITY.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via cycle_model.pipeline.\nSSOT item context: stage=RX_PARITY; action=At oversample count 7, sample parity bit; compute expected parity; compare. (present only if parity_en=1); cycle=3+DATA_WIDTH.",
+      "evidence_terms": [
+        "en",
+        "parity",
+        "parity_en"
+      ],
+      "id": "RTL-0132",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.RX_PARITY",
+      "ssot_context": {
+        "action": "At oversample count 7, sample parity bit; compute expected parity; compare. (present only if parity_en=1)",
+        "cycle": "3+DATA_WIDTH",
+        "stage": "RX_PARITY"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.RX_PARITY"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "en",
+          "parity",
+          "parity_en"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "en",
+          "parity",
+          "parity_en"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: RX_STOP1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.RX_STOP1",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "cycle_model.pipeline.RX_STOP1 timing uses SSOT cycle/latency 4+DATA_WIDTH",
+        "cycle_model.pipeline.RX_STOP1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.RX_STOP1.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via cycle_model.pipeline.\nSSOT item context: stage=RX_STOP1; action=At oversample count 7, sample stop bit. If high → valid. If low → frame_err.; cycle=4+DATA_WIDTH.",
+      "evidence_terms": [
+        "err",
+        "frame",
+        "frame_err"
+      ],
+      "id": "RTL-0133",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.RX_STOP1",
+      "ssot_context": {
+        "action": "At oversample count 7, sample stop bit. If high → valid. If low → frame_err.",
+        "cycle": "4+DATA_WIDTH",
+        "stage": "RX_STOP1"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.RX_STOP1"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "err",
+          "frame",
+          "frame_err"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "err",
+          "frame",
+          "frame_err"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: RX_STOP2",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.RX_STOP2",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "cycle_model.pipeline.RX_STOP2 timing uses SSOT cycle/latency 5+DATA_WIDTH",
+        "cycle_model.pipeline.RX_STOP2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.RX_STOP2.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via cycle_model.pipeline.\nSSOT item context: stage=RX_STOP2; action=At oversample count 7, sample second stop bit. (present only if stop_bits=1); cycle=5+DATA_WIDTH.",
+      "evidence_terms": [
+        "bits",
+        "stop",
+        "stop_bits"
+      ],
+      "id": "RTL-0134",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.RX_STOP2",
+      "ssot_context": {
+        "action": "At oversample count 7, sample second stop bit. (present only if stop_bits=1)",
+        "cycle": "5+DATA_WIDTH",
+        "stage": "RX_STOP2"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.RX_STOP2"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "bits",
+          "stop",
+          "stop_bits"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "bits",
+          "stop",
+          "stop_bits"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state rx_fsm.state_0",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.rx_fsm.states.state_0",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.rx_fsm.states.state_0.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via fsm.rx_fsm.\nSSOT item context: value=RX_IDLE.",
+      "evidence_terms": [
+        "RX_IDLE"
+      ],
+      "id": "RTL-0221",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.rx_fsm.states.state_0",
+      "ssot_context": {
+        "value": "RX_IDLE"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.states.state_0"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "RX_IDLE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RX_IDLE"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state rx_fsm.state_1",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.rx_fsm.states.state_1",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.rx_fsm.states.state_1.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via fsm.rx_fsm.\nSSOT item context: value=RX_START_DETECT.",
+      "evidence_terms": [
+        "RX_START_DETECT"
+      ],
+      "id": "RTL-0222",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.rx_fsm.states.state_1",
+      "ssot_context": {
+        "value": "RX_START_DETECT"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.states.state_1"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "RX_START_DETECT"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RX_START_DETECT"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state rx_fsm.state_2",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.rx_fsm.states.state_2",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.rx_fsm.states.state_2.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via fsm.rx_fsm.\nSSOT item context: value=RX_START_CONFIRM.",
+      "evidence_terms": [
+        "RX_START_CONFIRM"
+      ],
+      "id": "RTL-0223",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.rx_fsm.states.state_2",
+      "ssot_context": {
+        "value": "RX_START_CONFIRM"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.states.state_2"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "RX_START_CONFIRM"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RX_START_CONFIRM"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state rx_fsm.state_3",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.rx_fsm.states.state_3",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.rx_fsm.states.state_3.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via fsm.rx_fsm.\nSSOT item context: value=RX_DATA.",
+      "evidence_terms": [
+        "RX_DATA"
+      ],
+      "id": "RTL-0224",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.rx_fsm.states.state_3",
+      "ssot_context": {
+        "value": "RX_DATA"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.states.state_3"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "RX_DATA"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RX_DATA"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state rx_fsm.state_4",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.rx_fsm.states.state_4",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.rx_fsm.states.state_4.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via fsm.rx_fsm.\nSSOT item context: value=RX_PARITY.",
+      "evidence_terms": [
+        "RX_PARITY"
+      ],
+      "id": "RTL-0225",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.rx_fsm.states.state_4",
+      "ssot_context": {
+        "value": "RX_PARITY"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.states.state_4"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "RX_PARITY"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RX_PARITY"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state rx_fsm.state_5",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.rx_fsm.states.state_5",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.rx_fsm.states.state_5.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via fsm.rx_fsm.\nSSOT item context: value=RX_STOP1.",
+      "evidence_terms": [
+        "RX_STOP1"
+      ],
+      "id": "RTL-0226",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.rx_fsm.states.state_5",
+      "ssot_context": {
+        "value": "RX_STOP1"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.states.state_5"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "RX_STOP1"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RX_STOP1"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state rx_fsm.state_6",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.rx_fsm.states.state_6",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.rx_fsm.states.state_6.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via fsm.rx_fsm.\nSSOT item context: value=RX_STOP2.",
+      "evidence_terms": [
+        "RX_STOP2"
+      ],
+      "id": "RTL-0227",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.rx_fsm.states.state_6",
+      "ssot_context": {
+        "value": "RX_STOP2"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.states.state_6"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "RX_STOP2"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RX_STOP2"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition rx_fsm.transition_0",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.rx_fsm.transitions.transition_0",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "fsm.rx_fsm.transitions.transition_0 condition is implemented as RTL control logic: rx_synced falling edge detected",
+        "fsm.rx_fsm.transitions.transition_0 transition path RX_IDLE -> RX_START_DETECT is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.rx_fsm.transitions.transition_0.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via fsm.rx_fsm.\nSSOT item context: from=RX_IDLE; to=RX_START_DETECT; condition=rx_synced falling edge detected.",
+      "evidence_terms": [
+        "RX_IDLE",
+        "RX_START_DETECT",
+        "rx",
+        "rx_synced",
+        "synced"
+      ],
+      "id": "RTL-0228",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.rx_fsm.transitions.transition_0",
+      "ssot_context": {
+        "condition": "rx_synced falling edge detected",
+        "from": "RX_IDLE",
+        "to": "RX_START_DETECT"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions.transition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "RX_IDLE",
+          "RX_START_DETECT",
+          "rx",
+          "rx_synced",
+          "synced"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RX_IDLE",
+          "RX_START_DETECT",
+          "rx",
+          "rx_synced",
+          "synced"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition rx_fsm.transition_1",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.rx_fsm.transitions.transition_1",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "fsm.rx_fsm.transitions.transition_1 condition is implemented as RTL control logic: mid-bit sample at oversample count 7 confirms low",
+        "fsm.rx_fsm.transitions.transition_1 transition path RX_START_DETECT -> RX_START_CONFIRM is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.rx_fsm.transitions.transition_1.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via fsm.rx_fsm.\nSSOT item context: from=RX_START_DETECT; to=RX_START_CONFIRM; condition=mid-bit sample at oversample count 7 confirms low.",
+      "evidence_terms": [
+        "RX_START_CONFIRM",
+        "RX_START_DETECT"
+      ],
+      "id": "RTL-0229",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.rx_fsm.transitions.transition_1",
+      "ssot_context": {
+        "condition": "mid-bit sample at oversample count 7 confirms low",
+        "from": "RX_START_DETECT",
+        "to": "RX_START_CONFIRM"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions.transition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "RX_START_CONFIRM",
+          "RX_START_DETECT"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RX_START_CONFIRM",
+          "RX_START_DETECT"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition rx_fsm.transition_2",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.rx_fsm.transitions.transition_2",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "fsm.rx_fsm.transitions.transition_2 condition is implemented as RTL control logic: mid-bit sample at oversample count 7 is high (spurious edge)",
+        "fsm.rx_fsm.transitions.transition_2 transition path RX_START_DETECT -> RX_IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.rx_fsm.transitions.transition_2.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via fsm.rx_fsm.\nSSOT item context: from=RX_START_DETECT; to=RX_IDLE; condition=mid-bit sample at oversample count 7 is high (spurious edge).",
+      "evidence_terms": [
+        "RX_IDLE",
+        "RX_START_DETECT"
+      ],
+      "id": "RTL-0230",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.rx_fsm.transitions.transition_2",
+      "ssot_context": {
+        "condition": "mid-bit sample at oversample count 7 is high (spurious edge)",
+        "from": "RX_START_DETECT",
+        "to": "RX_IDLE"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions.transition_2"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "RX_IDLE",
+          "RX_START_DETECT"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RX_IDLE",
+          "RX_START_DETECT"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition rx_fsm.transition_3",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.rx_fsm.transitions.transition_3",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "fsm.rx_fsm.transitions.transition_3 condition is implemented as RTL control logic: full bit period from start confirm; oversample tick",
+        "fsm.rx_fsm.transitions.transition_3 transition path RX_START_CONFIRM -> RX_DATA is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.rx_fsm.transitions.transition_3.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via fsm.rx_fsm.\nSSOT item context: from=RX_START_CONFIRM; to=RX_DATA; condition=full bit period from start confirm; oversample tick.",
+      "evidence_terms": [
+        "RX_DATA",
+        "RX_START_CONFIRM"
+      ],
+      "id": "RTL-0231",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.rx_fsm.transitions.transition_3",
+      "ssot_context": {
+        "condition": "full bit period from start confirm; oversample tick",
+        "from": "RX_START_CONFIRM",
+        "to": "RX_DATA"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions.transition_3"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "RX_DATA",
+          "RX_START_CONFIRM"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RX_DATA",
+          "RX_START_CONFIRM"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition rx_fsm.transition_4",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.rx_fsm.transitions.transition_4",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "fsm.rx_fsm.transitions.transition_4 condition is implemented as RTL control logic: DATA_WIDTH bits sampled at centre and parity_en=1 and oversample tick",
+        "fsm.rx_fsm.transitions.transition_4 transition path RX_DATA -> RX_PARITY is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.rx_fsm.transitions.transition_4.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via fsm.rx_fsm.\nSSOT item context: from=RX_DATA; to=RX_PARITY; condition=DATA_WIDTH bits sampled at centre and parity_en=1 and oversample tick.",
+      "evidence_terms": [
+        "DATA",
+        "DATA_WIDTH",
+        "RX_DATA",
+        "RX_PARITY",
+        "WIDTH",
+        "en",
+        "parity",
+        "parity_en"
+      ],
+      "id": "RTL-0232",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.rx_fsm.transitions.transition_4",
+      "ssot_context": {
+        "condition": "DATA_WIDTH bits sampled at centre and parity_en=1 and oversample tick",
+        "from": "RX_DATA",
+        "to": "RX_PARITY"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions.transition_4"
+      ],
+      "static_evidence": {
+        "matched_count": 8,
+        "matched_terms": [
+          "DATA",
+          "DATA_WIDTH",
+          "RX_DATA",
+          "RX_PARITY",
+          "WIDTH",
+          "en",
+          "parity",
+          "parity_en"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DATA",
+          "DATA_WIDTH",
+          "RX_DATA",
+          "RX_PARITY",
+          "WIDTH",
+          "en",
+          "parity",
+          "parity_en"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition rx_fsm.transition_5",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.rx_fsm.transitions.transition_5",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "fsm.rx_fsm.transitions.transition_5 condition is implemented as RTL control logic: DATA_WIDTH bits sampled at centre and parity_en=0 and oversample tick",
+        "fsm.rx_fsm.transitions.transition_5 transition path RX_DATA -> RX_STOP1 is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.rx_fsm.transitions.transition_5.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via fsm.rx_fsm.\nSSOT item context: from=RX_DATA; to=RX_STOP1; condition=DATA_WIDTH bits sampled at centre and parity_en=0 and oversample tick.",
+      "evidence_terms": [
+        "DATA",
+        "DATA_WIDTH",
+        "RX_DATA",
+        "RX_STOP1",
+        "WIDTH",
+        "en",
+        "parity",
+        "parity_en"
+      ],
+      "id": "RTL-0233",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.rx_fsm.transitions.transition_5",
+      "ssot_context": {
+        "condition": "DATA_WIDTH bits sampled at centre and parity_en=0 and oversample tick",
+        "from": "RX_DATA",
+        "to": "RX_STOP1"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions.transition_5"
+      ],
+      "static_evidence": {
+        "matched_count": 8,
+        "matched_terms": [
+          "DATA",
+          "DATA_WIDTH",
+          "RX_DATA",
+          "RX_STOP1",
+          "WIDTH",
+          "en",
+          "parity",
+          "parity_en"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DATA",
+          "DATA_WIDTH",
+          "RX_DATA",
+          "RX_STOP1",
+          "WIDTH",
+          "en",
+          "parity",
+          "parity_en"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition rx_fsm.transition_6",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.rx_fsm.transitions.transition_6",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "fsm.rx_fsm.transitions.transition_6 condition is implemented as RTL control logic: parity bit sampled at centre and oversample tick",
+        "fsm.rx_fsm.transitions.transition_6 transition path RX_PARITY -> RX_STOP1 is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.rx_fsm.transitions.transition_6.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via fsm.rx_fsm.\nSSOT item context: from=RX_PARITY; to=RX_STOP1; condition=parity bit sampled at centre and oversample tick.",
+      "evidence_terms": [
+        "RX_PARITY",
+        "RX_STOP1"
+      ],
+      "id": "RTL-0234",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.rx_fsm.transitions.transition_6",
+      "ssot_context": {
+        "condition": "parity bit sampled at centre and oversample tick",
+        "from": "RX_PARITY",
+        "to": "RX_STOP1"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions.transition_6"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "RX_PARITY",
+          "RX_STOP1"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RX_PARITY",
+          "RX_STOP1"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition rx_fsm.transition_7",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.rx_fsm.transitions.transition_7",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "fsm.rx_fsm.transitions.transition_7 condition is implemented as RTL control logic: stop_bits=0; stop bit sampled high at centre and oversample tick",
+        "fsm.rx_fsm.transitions.transition_7 transition path RX_STOP1 -> RX_IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.rx_fsm.transitions.transition_7.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via fsm.rx_fsm.\nSSOT item context: from=RX_STOP1; to=RX_IDLE; condition=stop_bits=0; stop bit sampled high at centre and oversample tick.",
+      "evidence_terms": [
+        "RX_IDLE",
+        "RX_STOP1",
+        "bits",
+        "stop",
+        "stop_bits"
+      ],
+      "id": "RTL-0235",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.rx_fsm.transitions.transition_7",
+      "ssot_context": {
+        "condition": "stop_bits=0; stop bit sampled high at centre and oversample tick",
+        "from": "RX_STOP1",
+        "to": "RX_IDLE"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions.transition_7"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "RX_IDLE",
+          "RX_STOP1",
+          "bits",
+          "stop",
+          "stop_bits"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RX_IDLE",
+          "RX_STOP1",
+          "bits",
+          "stop",
+          "stop_bits"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition rx_fsm.transition_8",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.rx_fsm.transitions.transition_8",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "fsm.rx_fsm.transitions.transition_8 condition is implemented as RTL control logic: stop_bits=1 and oversample tick",
+        "fsm.rx_fsm.transitions.transition_8 transition path RX_STOP1 -> RX_STOP2 is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.rx_fsm.transitions.transition_8.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via fsm.rx_fsm.\nSSOT item context: from=RX_STOP1; to=RX_STOP2; condition=stop_bits=1 and oversample tick.",
+      "evidence_terms": [
+        "RX_STOP1",
+        "RX_STOP2",
+        "bits",
+        "stop",
+        "stop_bits"
+      ],
+      "id": "RTL-0236",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.rx_fsm.transitions.transition_8",
+      "ssot_context": {
+        "condition": "stop_bits=1 and oversample tick",
+        "from": "RX_STOP1",
+        "to": "RX_STOP2"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions.transition_8"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "RX_STOP1",
+          "RX_STOP2",
+          "bits",
+          "stop",
+          "stop_bits"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RX_STOP1",
+          "RX_STOP2",
+          "bits",
+          "stop",
+          "stop_bits"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition rx_fsm.transition_9",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.rx_fsm.transitions.transition_9",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv",
+        "fsm.rx_fsm.transitions.transition_9 condition is implemented as RTL control logic: oversample tick",
+        "fsm.rx_fsm.transitions.transition_9 transition path RX_STOP2 -> RX_IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.rx_fsm.transitions.transition_9.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via fsm.rx_fsm.\nSSOT item context: from=RX_STOP2; to=RX_IDLE; condition=oversample tick.",
+      "evidence_terms": [
+        "RX_IDLE",
+        "RX_STOP2"
+      ],
+      "id": "RTL-0237",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.rx_fsm.transitions.transition_9",
+      "ssot_context": {
+        "condition": "oversample tick",
+        "from": "RX_STOP2",
+        "to": "RX_IDLE"
+      },
+      "ssot_refs": [
+        "fsm.rx_fsm.transitions.transition_9"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "RX_IDLE",
+          "RX_STOP2"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RX_IDLE",
+          "RX_STOP2"
+        ],
+        "source_scope": "rtl/uart_lite_rx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module uart_lite_rx is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.uart_lite_rx.module_equivalence",
+        "Primary implementation evidence is in rtl/uart_lite_rx.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.uart_lite_rx.module_equivalence.\nOwner: uart_lite_rx in rtl/uart_lite_rx.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0264",
+      "owner_file": "rtl/uart_lite_rx.sv",
+      "owner_module": "uart_lite_rx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.uart_lite_rx.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.uart_lite_rx.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3e24fd327d20c227969d80d968a7b1af5638d074f7c4857cee081ef19051e830",
+  "top": "uart_lite",
+  "type": "rtl_authoring_packet"
+}

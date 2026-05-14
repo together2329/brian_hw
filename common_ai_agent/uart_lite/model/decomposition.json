@@ -1,0 +1,1546 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_decomposition",
+  "ip": "uart_lite",
+  "source": "uart_lite/yaml/uart_lite.ssot.yaml",
+  "units": [
+    {
+      "name": "uart_lite_regs",
+      "kind": "rtl_module",
+      "source_sections": [
+        "error_handling",
+        "interrupts",
+        "parameters",
+        "registers"
+      ],
+      "rtl_candidates": [
+        "uart_lite_regs"
+      ],
+      "rtl_file": "rtl/uart_lite_regs.sv",
+      "ssot_refs": [
+        "error_handling",
+        "interrupts",
+        "parameters.apb_addr_width",
+        "parameters.apb_data_width",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.baud",
+        "registers.register_list.clr_stat",
+        "registers.register_list.ctrl",
+        "registers.register_list.dbg_bytes_rx",
+        "registers.register_list.dbg_bytes_tx",
+        "registers.register_list.dbg_frames_err",
+        "registers.register_list.dbg_parities_err",
+        "registers.register_list.inten",
+        "registers.register_list.intpend",
+        "registers.register_list.rxdata",
+        "registers.register_list.stat",
+        "registers.register_list.txdata"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "parameters.apb_addr_width",
+        "parameters.apb_data_width",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list.baud",
+        "registers.register_list.clr_stat",
+        "registers.register_list.ctrl",
+        "registers.register_list.dbg_bytes_rx",
+        "registers.register_list.dbg_bytes_tx",
+        "registers.register_list.dbg_frames_err",
+        "registers.register_list.dbg_parities_err",
+        "registers.register_list.inten",
+        "registers.register_list.intpend",
+        "registers.register_list.rxdata",
+        "registers.register_list.stat",
+        "registers.register_list.txdata"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "uart_lite_tx",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "fsm",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "uart_lite_tx"
+      ],
+      "rtl_file": "rtl/uart_lite_tx.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.backpressure.backpressure_1",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.handshake_rules.pslverr",
+        "cycle_model.handshake_rules.tx",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.observability.observability_1",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.tx_data",
+        "cycle_model.pipeline.tx_idle",
+        "cycle_model.pipeline.tx_parity",
+        "cycle_model.pipeline.tx_start",
+        "cycle_model.pipeline.tx_stop1",
+        "cycle_model.pipeline.tx_stop2",
+        "cycle_model.pipeline[TX_DATA]",
+        "cycle_model.pipeline[TX_IDLE]",
+        "cycle_model.pipeline[TX_PARITY]",
+        "cycle_model.pipeline[TX_START]",
+        "cycle_model.pipeline[TX_STOP1]",
+        "cycle_model.pipeline[TX_STOP2]",
+        "cycle_model.reset",
+        "fsm",
+        "fsm.tx_fsm",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables.baud_div",
+        "function_model.state_variables.break_send",
+        "function_model.state_variables.loopback",
+        "function_model.state_variables.parity_en",
+        "function_model.state_variables.parity_odd",
+        "function_model.state_variables.stop_bits",
+        "function_model.state_variables.tx_active",
+        "function_model.state_variables.tx_fifo",
+        "function_model.transactions.FM_TX_BYTE",
+        "function_model.transactions.fm_break_send",
+        "function_model.transactions.fm_break_send.inputs.input_0",
+        "function_model.transactions.fm_break_send.output_rules.tx_serial",
+        "function_model.transactions.fm_break_send.outputs.output_0",
+        "function_model.transactions.fm_break_send.preconditions.precondition_0",
+        "function_model.transactions.fm_break_send.side_effects.side_effect_0",
+        "function_model.transactions.fm_break_send.side_effects.side_effect_1",
+        "function_model.transactions.fm_break_send.state_updates.tx",
+        "function_model.transactions.fm_loopback",
+        "function_model.transactions.fm_loopback.inputs.input_0",
+        "function_model.transactions.fm_loopback.output_rules.loopback_tx",
+        "function_model.transactions.fm_loopback.outputs.output_0",
+        "function_model.transactions.fm_loopback.preconditions.precondition_0",
+        "function_model.transactions.fm_loopback.side_effects.side_effect_0",
+        "function_model.transactions.fm_loopback.side_effects.side_effect_1",
+        "function_model.transactions.fm_loopback.state_updates.tx",
+        "function_model.transactions.fm_tx_byte",
+        "function_model.transactions.fm_tx_byte.error_cases.error_case_0",
+        "function_model.transactions.fm_tx_byte.inputs.input_0",
+        "function_model.transactions.fm_tx_byte.output_rules.tx_serial",
+        "function_model.transactions.fm_tx_byte.outputs.output_0",
+        "function_model.transactions.fm_tx_byte.outputs.output_1",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_0",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_1",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_2",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_3",
+        "function_model.transactions.fm_tx_byte.side_effects.side_effect_0",
+        "function_model.transactions.fm_tx_byte.side_effects.side_effect_1",
+        "function_model.transactions.fm_tx_byte.side_effects.side_effect_2",
+        "function_model.transactions.fm_tx_byte.state_updates.tx"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables.baud_div",
+        "function_model.state_variables.break_send",
+        "function_model.state_variables.loopback",
+        "function_model.state_variables.parity_en",
+        "function_model.state_variables.parity_odd",
+        "function_model.state_variables.stop_bits",
+        "function_model.state_variables.tx_active",
+        "function_model.state_variables.tx_fifo",
+        "function_model.transactions.fm_break_send",
+        "function_model.transactions.fm_break_send.inputs.input_0",
+        "function_model.transactions.fm_break_send.output_rules.tx_serial",
+        "function_model.transactions.fm_break_send.outputs.output_0",
+        "function_model.transactions.fm_break_send.preconditions.precondition_0",
+        "function_model.transactions.fm_break_send.side_effects.side_effect_0",
+        "function_model.transactions.fm_break_send.side_effects.side_effect_1",
+        "function_model.transactions.fm_break_send.state_updates.tx",
+        "function_model.transactions.fm_loopback",
+        "function_model.transactions.fm_loopback.inputs.input_0",
+        "function_model.transactions.fm_loopback.output_rules.loopback_tx",
+        "function_model.transactions.fm_loopback.outputs.output_0",
+        "function_model.transactions.fm_loopback.preconditions.precondition_0",
+        "function_model.transactions.fm_loopback.side_effects.side_effect_0",
+        "function_model.transactions.fm_loopback.side_effects.side_effect_1",
+        "function_model.transactions.fm_loopback.state_updates.tx",
+        "function_model.transactions.fm_tx_byte",
+        "function_model.transactions.fm_tx_byte.error_cases.error_case_0",
+        "function_model.transactions.fm_tx_byte.inputs.input_0",
+        "function_model.transactions.fm_tx_byte.output_rules.tx_serial",
+        "function_model.transactions.fm_tx_byte.outputs.output_0",
+        "function_model.transactions.fm_tx_byte.outputs.output_1",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_0",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_1",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_2",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_3",
+        "function_model.transactions.fm_tx_byte.side_effects.side_effect_0",
+        "function_model.transactions.fm_tx_byte.side_effects.side_effect_1",
+        "function_model.transactions.fm_tx_byte.side_effects.side_effect_2",
+        "function_model.transactions.fm_tx_byte.state_updates.tx"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.backpressure.backpressure_1",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.handshake_rules.pslverr",
+        "cycle_model.handshake_rules.tx",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.observability.observability_1",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline.tx_data",
+        "cycle_model.pipeline.tx_idle",
+        "cycle_model.pipeline.tx_parity",
+        "cycle_model.pipeline.tx_start",
+        "cycle_model.pipeline.tx_stop1",
+        "cycle_model.pipeline.tx_stop2",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "uart_lite_rx",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "fsm",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "uart_lite_rx"
+      ],
+      "rtl_file": "rtl/uart_lite_rx.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.handshake_rules.rx",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.rx_data",
+        "cycle_model.pipeline.rx_idle",
+        "cycle_model.pipeline.rx_parity",
+        "cycle_model.pipeline.rx_start_confirm",
+        "cycle_model.pipeline.rx_start_detect",
+        "cycle_model.pipeline.rx_stop1",
+        "cycle_model.pipeline.rx_stop2",
+        "cycle_model.pipeline[RX_DATA]",
+        "cycle_model.pipeline[RX_IDLE]",
+        "cycle_model.pipeline[RX_PARITY]",
+        "cycle_model.pipeline[RX_START_CONFIRM]",
+        "cycle_model.pipeline[RX_START_DETECT]",
+        "cycle_model.pipeline[RX_STOP1]",
+        "cycle_model.pipeline[RX_STOP2]",
+        "fsm",
+        "fsm.rx_fsm",
+        "function_model",
+        "function_model.state_variables.rx_active",
+        "function_model.state_variables.rx_fifo",
+        "function_model.transactions.FM_RX_BYTE",
+        "function_model.transactions.fm_rx_byte",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_0",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_1",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_2",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_3",
+        "function_model.transactions.fm_rx_byte.inputs.input_0",
+        "function_model.transactions.fm_rx_byte.output_rules.rx_irq",
+        "function_model.transactions.fm_rx_byte.outputs.output_0",
+        "function_model.transactions.fm_rx_byte.outputs.output_1",
+        "function_model.transactions.fm_rx_byte.preconditions.precondition_0",
+        "function_model.transactions.fm_rx_byte.preconditions.precondition_1",
+        "function_model.transactions.fm_rx_byte.preconditions.precondition_2",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_0",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_1",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_2",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_3",
+        "function_model.transactions.fm_rx_byte.state_updates.uart_irq"
+      ],
+      "function_model_refs": [
+        "function_model.state_variables.rx_active",
+        "function_model.state_variables.rx_fifo",
+        "function_model.transactions.fm_rx_byte",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_0",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_1",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_2",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_3",
+        "function_model.transactions.fm_rx_byte.inputs.input_0",
+        "function_model.transactions.fm_rx_byte.output_rules.rx_irq",
+        "function_model.transactions.fm_rx_byte.outputs.output_0",
+        "function_model.transactions.fm_rx_byte.outputs.output_1",
+        "function_model.transactions.fm_rx_byte.preconditions.precondition_0",
+        "function_model.transactions.fm_rx_byte.preconditions.precondition_1",
+        "function_model.transactions.fm_rx_byte.preconditions.precondition_2",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_0",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_1",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_2",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_3",
+        "function_model.transactions.fm_rx_byte.state_updates.uart_irq"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.handshake_rules.rx",
+        "cycle_model.pipeline.rx_data",
+        "cycle_model.pipeline.rx_idle",
+        "cycle_model.pipeline.rx_parity",
+        "cycle_model.pipeline.rx_start_confirm",
+        "cycle_model.pipeline.rx_start_detect",
+        "cycle_model.pipeline.rx_stop1",
+        "cycle_model.pipeline.rx_stop2"
+      ],
+      "structural_refs": [],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "uart_lite_baud_gen",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "uart_lite_baud_gen"
+      ],
+      "rtl_file": "rtl/uart_lite_baud_gen.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.baud_generator"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "uart_lite_tx_fifo",
+      "kind": "rtl_module",
+      "source_sections": [
+        "dataflow",
+        "memory"
+      ],
+      "rtl_candidates": [
+        "uart_lite_tx_fifo"
+      ],
+      "rtl_file": "rtl/uart_lite_tx_fifo.sv",
+      "ssot_refs": [
+        "dataflow",
+        "dataflow.tx_path",
+        "memory",
+        "memory.instances",
+        "memory.instances.tx_fifo"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "memory.instances.tx_fifo"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "uart_lite_rx_fifo",
+      "kind": "rtl_module",
+      "source_sections": [
+        "dataflow",
+        "memory"
+      ],
+      "rtl_candidates": [
+        "uart_lite_rx_fifo"
+      ],
+      "rtl_file": "rtl/uart_lite_rx_fifo.sv",
+      "ssot_refs": [
+        "dataflow",
+        "dataflow.rx_path",
+        "memory",
+        "memory.instances",
+        "memory.instances.rx_fifo"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "memory.instances.rx_fifo"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "uart_lite_core",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "decomposition",
+        "features",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "uart_lite_core"
+      ],
+      "rtl_file": "rtl/uart_lite_core.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.pipeline",
+        "dataflow",
+        "dataflow.sequence",
+        "decomposition",
+        "decomposition.units.execute",
+        "features",
+        "features.break_send",
+        "features.loopback_test_mode",
+        "features.parity_generation_checking",
+        "features.rx_deserialization",
+        "features.tx_serialization",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.transactions"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "features.break_send",
+        "features.loopback_test_mode",
+        "features.parity_generation_checking",
+        "features.rx_deserialization",
+        "features.tx_serialization"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "uart_lite_protocol_model",
+      "kind": "protocol",
+      "source_sections": [
+        "io_list",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "uart_lite_axi_slv",
+        "uart_lite_protocol"
+      ],
+      "verification_impact": [
+        "driver",
+        "monitor",
+        "protocol coverage"
+      ]
+    },
+    {
+      "name": "uart_lite_register_model",
+      "kind": "register",
+      "source_sections": [
+        "registers",
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "uart_lite_regs",
+        "uart_lite_apb_regs"
+      ],
+      "verification_impact": [
+        "register sequences",
+        "readback scoreboard"
+      ]
+    },
+    {
+      "name": "uart_lite_memory_model",
+      "kind": "memory",
+      "source_sections": [
+        "memory",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "uart_lite_mem",
+        "uart_lite_core"
+      ],
+      "verification_impact": [
+        "address retention",
+        "byte strobes",
+        "boundary coverage"
+      ]
+    },
+    {
+      "name": "uart_lite_datapath_model",
+      "kind": "datapath",
+      "source_sections": [
+        "features",
+        "dataflow",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "uart_lite_core",
+        "uart_lite_datapath"
+      ],
+      "verification_impact": [
+        "functional scoreboard",
+        "transaction coverage"
+      ]
+    },
+    {
+      "name": "uart_lite_fsm_model",
+      "kind": "fsm",
+      "source_sections": [
+        "fsm",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "uart_lite_core"
+      ],
+      "verification_impact": [
+        "state transition coverage",
+        "waveform debug"
+      ]
+    },
+    {
+      "name": "uart_lite_error_model",
+      "kind": "error",
+      "source_sections": [
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "uart_lite_core",
+        "uart_lite_error"
+      ],
+      "verification_impact": [
+        "negative tests",
+        "mismatch classification"
+      ]
+    },
+    {
+      "name": "uart_lite_security_model",
+      "kind": "security",
+      "source_sections": [
+        "security",
+        "debug_observability"
+      ],
+      "rtl_candidates": [
+        "uart_lite_security",
+        "uart_lite_core"
+      ],
+      "verification_impact": [
+        "security bins",
+        "debug observability checks"
+      ]
+    }
+  ],
+  "module_contracts": [
+    {
+      "name": "uart_lite_regs",
+      "kind": "rtl_module",
+      "rtl_module": "uart_lite_regs",
+      "rtl_file": "rtl/uart_lite_regs.sv",
+      "source_sections": [
+        "error_handling",
+        "interrupts",
+        "parameters",
+        "registers"
+      ],
+      "ssot_refs": [
+        "error_handling",
+        "interrupts",
+        "parameters.apb_addr_width",
+        "parameters.apb_data_width",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.baud",
+        "registers.register_list.clr_stat",
+        "registers.register_list.ctrl",
+        "registers.register_list.dbg_bytes_rx",
+        "registers.register_list.dbg_bytes_tx",
+        "registers.register_list.dbg_frames_err",
+        "registers.register_list.dbg_parities_err",
+        "registers.register_list.inten",
+        "registers.register_list.intpend",
+        "registers.register_list.rxdata",
+        "registers.register_list.stat",
+        "registers.register_list.txdata"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "parameters.apb_addr_width",
+        "parameters.apb_data_width",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list.baud",
+        "registers.register_list.clr_stat",
+        "registers.register_list.ctrl",
+        "registers.register_list.dbg_bytes_rx",
+        "registers.register_list.dbg_bytes_tx",
+        "registers.register_list.dbg_frames_err",
+        "registers.register_list.dbg_parities_err",
+        "registers.register_list.inten",
+        "registers.register_list.intpend",
+        "registers.register_list.rxdata",
+        "registers.register_list.stat",
+        "registers.register_list.txdata"
+      ],
+      "owner_matches": [],
+      "structural_owner_matches": [
+        {
+          "ref": "parameters.apb_addr_width",
+          "matched_ref": "semantic_terms:regs,uart_lite_regs"
+        },
+        {
+          "ref": "parameters.apb_data_width",
+          "matched_ref": "semantic_terms:regs,uart_lite_regs"
+        },
+        {
+          "ref": "registers.register_list.ctrl",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.stat",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.baud",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.txdata",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.rxdata",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.inten",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.intpend",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.clr_stat",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.dbg_bytes_tx",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.dbg_bytes_rx",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.dbg_frames_err",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.dbg_parities_err",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.register_width",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.addr_width",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.byte_addressable",
+          "matched_ref": "registers"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "uart_lite_tx",
+      "kind": "rtl_module",
+      "rtl_module": "uart_lite_tx",
+      "rtl_file": "rtl/uart_lite_tx.sv",
+      "source_sections": [
+        "cycle_model",
+        "fsm",
+        "function_model"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.backpressure.backpressure_1",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.handshake_rules.pslverr",
+        "cycle_model.handshake_rules.tx",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.observability.observability_1",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.tx_data",
+        "cycle_model.pipeline.tx_idle",
+        "cycle_model.pipeline.tx_parity",
+        "cycle_model.pipeline.tx_start",
+        "cycle_model.pipeline.tx_stop1",
+        "cycle_model.pipeline.tx_stop2",
+        "cycle_model.pipeline[TX_DATA]",
+        "cycle_model.pipeline[TX_IDLE]",
+        "cycle_model.pipeline[TX_PARITY]",
+        "cycle_model.pipeline[TX_START]",
+        "cycle_model.pipeline[TX_STOP1]",
+        "cycle_model.pipeline[TX_STOP2]",
+        "cycle_model.reset",
+        "fsm",
+        "fsm.tx_fsm",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables.baud_div",
+        "function_model.state_variables.break_send",
+        "function_model.state_variables.loopback",
+        "function_model.state_variables.parity_en",
+        "function_model.state_variables.parity_odd",
+        "function_model.state_variables.stop_bits",
+        "function_model.state_variables.tx_active",
+        "function_model.state_variables.tx_fifo",
+        "function_model.transactions.FM_TX_BYTE",
+        "function_model.transactions.fm_break_send",
+        "function_model.transactions.fm_break_send.inputs.input_0",
+        "function_model.transactions.fm_break_send.output_rules.tx_serial",
+        "function_model.transactions.fm_break_send.outputs.output_0",
+        "function_model.transactions.fm_break_send.preconditions.precondition_0",
+        "function_model.transactions.fm_break_send.side_effects.side_effect_0",
+        "function_model.transactions.fm_break_send.side_effects.side_effect_1",
+        "function_model.transactions.fm_break_send.state_updates.tx",
+        "function_model.transactions.fm_loopback",
+        "function_model.transactions.fm_loopback.inputs.input_0",
+        "function_model.transactions.fm_loopback.output_rules.loopback_tx",
+        "function_model.transactions.fm_loopback.outputs.output_0",
+        "function_model.transactions.fm_loopback.preconditions.precondition_0",
+        "function_model.transactions.fm_loopback.side_effects.side_effect_0",
+        "function_model.transactions.fm_loopback.side_effects.side_effect_1",
+        "function_model.transactions.fm_loopback.state_updates.tx",
+        "function_model.transactions.fm_tx_byte",
+        "function_model.transactions.fm_tx_byte.error_cases.error_case_0",
+        "function_model.transactions.fm_tx_byte.inputs.input_0",
+        "function_model.transactions.fm_tx_byte.output_rules.tx_serial",
+        "function_model.transactions.fm_tx_byte.outputs.output_0",
+        "function_model.transactions.fm_tx_byte.outputs.output_1",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_0",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_1",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_2",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_3",
+        "function_model.transactions.fm_tx_byte.side_effects.side_effect_0",
+        "function_model.transactions.fm_tx_byte.side_effects.side_effect_1",
+        "function_model.transactions.fm_tx_byte.side_effects.side_effect_2",
+        "function_model.transactions.fm_tx_byte.state_updates.tx"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables.baud_div",
+        "function_model.state_variables.break_send",
+        "function_model.state_variables.loopback",
+        "function_model.state_variables.parity_en",
+        "function_model.state_variables.parity_odd",
+        "function_model.state_variables.stop_bits",
+        "function_model.state_variables.tx_active",
+        "function_model.state_variables.tx_fifo",
+        "function_model.transactions.fm_break_send",
+        "function_model.transactions.fm_break_send.inputs.input_0",
+        "function_model.transactions.fm_break_send.output_rules.tx_serial",
+        "function_model.transactions.fm_break_send.outputs.output_0",
+        "function_model.transactions.fm_break_send.preconditions.precondition_0",
+        "function_model.transactions.fm_break_send.side_effects.side_effect_0",
+        "function_model.transactions.fm_break_send.side_effects.side_effect_1",
+        "function_model.transactions.fm_break_send.state_updates.tx",
+        "function_model.transactions.fm_loopback",
+        "function_model.transactions.fm_loopback.inputs.input_0",
+        "function_model.transactions.fm_loopback.output_rules.loopback_tx",
+        "function_model.transactions.fm_loopback.outputs.output_0",
+        "function_model.transactions.fm_loopback.preconditions.precondition_0",
+        "function_model.transactions.fm_loopback.side_effects.side_effect_0",
+        "function_model.transactions.fm_loopback.side_effects.side_effect_1",
+        "function_model.transactions.fm_loopback.state_updates.tx",
+        "function_model.transactions.fm_tx_byte",
+        "function_model.transactions.fm_tx_byte.error_cases.error_case_0",
+        "function_model.transactions.fm_tx_byte.inputs.input_0",
+        "function_model.transactions.fm_tx_byte.output_rules.tx_serial",
+        "function_model.transactions.fm_tx_byte.outputs.output_0",
+        "function_model.transactions.fm_tx_byte.outputs.output_1",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_0",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_1",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_2",
+        "function_model.transactions.fm_tx_byte.preconditions.precondition_3",
+        "function_model.transactions.fm_tx_byte.side_effects.side_effect_0",
+        "function_model.transactions.fm_tx_byte.side_effects.side_effect_1",
+        "function_model.transactions.fm_tx_byte.side_effects.side_effect_2",
+        "function_model.transactions.fm_tx_byte.state_updates.tx"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.backpressure.backpressure_1",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.handshake_rules.pslverr",
+        "cycle_model.handshake_rules.tx",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.observability.observability_1",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline.tx_data",
+        "cycle_model.pipeline.tx_idle",
+        "cycle_model.pipeline.tx_parity",
+        "cycle_model.pipeline.tx_start",
+        "cycle_model.pipeline.tx_stop1",
+        "cycle_model.pipeline.tx_stop2",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.tx_fifo",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.tx_active",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.baud_div",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.parity_en",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.parity_odd",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.stop_bits",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.loopback",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.break_send",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_tx_byte",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_tx_byte.preconditions.precondition_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_tx_byte.preconditions.precondition_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_tx_byte.preconditions.precondition_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_tx_byte.preconditions.precondition_3",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_tx_byte.inputs.input_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_tx_byte.outputs.output_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_tx_byte.outputs.output_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_tx_byte.output_rules.tx_serial",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_tx_byte.state_updates.tx",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_tx_byte.side_effects.side_effect_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_tx_byte.side_effects.side_effect_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_tx_byte.side_effects.side_effect_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_tx_byte.error_cases.error_case_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_break_send",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_break_send.preconditions.precondition_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_break_send.inputs.input_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_break_send.outputs.output_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_break_send.output_rules.tx_serial",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_break_send.state_updates.tx",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_break_send.side_effects.side_effect_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_break_send.side_effects.side_effect_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_loopback",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_loopback.preconditions.precondition_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_loopback.inputs.input_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_loopback.outputs.output_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_loopback.output_rules.loopback_tx",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_loopback.state_updates.tx",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_loopback.side_effects.side_effect_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_loopback.side_effects.side_effect_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_3",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_4",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "cycle_model.clock",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.reset",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.latency",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.tx",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.pready",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.pslverr",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.tx_idle",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.tx_start",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.tx_data",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.tx_parity",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.tx_stop1",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.tx_stop2",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_0",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_1",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_2",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.backpressure.backpressure_0",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.backpressure.backpressure_1",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.observability.observability_0",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.observability.observability_1",
+          "matched_ref": "cycle_model"
+        }
+      ],
+      "structural_owner_matches": [],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "uart_lite_rx",
+      "kind": "rtl_module",
+      "rtl_module": "uart_lite_rx",
+      "rtl_file": "rtl/uart_lite_rx.sv",
+      "source_sections": [
+        "cycle_model",
+        "fsm",
+        "function_model"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.handshake_rules.rx",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.rx_data",
+        "cycle_model.pipeline.rx_idle",
+        "cycle_model.pipeline.rx_parity",
+        "cycle_model.pipeline.rx_start_confirm",
+        "cycle_model.pipeline.rx_start_detect",
+        "cycle_model.pipeline.rx_stop1",
+        "cycle_model.pipeline.rx_stop2",
+        "cycle_model.pipeline[RX_DATA]",
+        "cycle_model.pipeline[RX_IDLE]",
+        "cycle_model.pipeline[RX_PARITY]",
+        "cycle_model.pipeline[RX_START_CONFIRM]",
+        "cycle_model.pipeline[RX_START_DETECT]",
+        "cycle_model.pipeline[RX_STOP1]",
+        "cycle_model.pipeline[RX_STOP2]",
+        "fsm",
+        "fsm.rx_fsm",
+        "function_model",
+        "function_model.state_variables.rx_active",
+        "function_model.state_variables.rx_fifo",
+        "function_model.transactions.FM_RX_BYTE",
+        "function_model.transactions.fm_rx_byte",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_0",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_1",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_2",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_3",
+        "function_model.transactions.fm_rx_byte.inputs.input_0",
+        "function_model.transactions.fm_rx_byte.output_rules.rx_irq",
+        "function_model.transactions.fm_rx_byte.outputs.output_0",
+        "function_model.transactions.fm_rx_byte.outputs.output_1",
+        "function_model.transactions.fm_rx_byte.preconditions.precondition_0",
+        "function_model.transactions.fm_rx_byte.preconditions.precondition_1",
+        "function_model.transactions.fm_rx_byte.preconditions.precondition_2",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_0",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_1",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_2",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_3",
+        "function_model.transactions.fm_rx_byte.state_updates.uart_irq"
+      ],
+      "function_model_refs": [
+        "function_model.state_variables.rx_active",
+        "function_model.state_variables.rx_fifo",
+        "function_model.transactions.fm_rx_byte",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_0",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_1",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_2",
+        "function_model.transactions.fm_rx_byte.error_cases.error_case_3",
+        "function_model.transactions.fm_rx_byte.inputs.input_0",
+        "function_model.transactions.fm_rx_byte.output_rules.rx_irq",
+        "function_model.transactions.fm_rx_byte.outputs.output_0",
+        "function_model.transactions.fm_rx_byte.outputs.output_1",
+        "function_model.transactions.fm_rx_byte.preconditions.precondition_0",
+        "function_model.transactions.fm_rx_byte.preconditions.precondition_1",
+        "function_model.transactions.fm_rx_byte.preconditions.precondition_2",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_0",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_1",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_2",
+        "function_model.transactions.fm_rx_byte.side_effects.side_effect_3",
+        "function_model.transactions.fm_rx_byte.state_updates.uart_irq"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.handshake_rules.rx",
+        "cycle_model.pipeline.rx_data",
+        "cycle_model.pipeline.rx_idle",
+        "cycle_model.pipeline.rx_parity",
+        "cycle_model.pipeline.rx_start_confirm",
+        "cycle_model.pipeline.rx_start_detect",
+        "cycle_model.pipeline.rx_stop1",
+        "cycle_model.pipeline.rx_stop2"
+      ],
+      "structural_refs": [],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.rx_fifo",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.rx_active",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_rx_byte",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_rx_byte.preconditions.precondition_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_rx_byte.preconditions.precondition_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_rx_byte.preconditions.precondition_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_rx_byte.inputs.input_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_rx_byte.outputs.output_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_rx_byte.outputs.output_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_rx_byte.output_rules.rx_irq",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_rx_byte.state_updates.uart_irq",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_rx_byte.side_effects.side_effect_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_rx_byte.side_effects.side_effect_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_rx_byte.side_effects.side_effect_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_rx_byte.side_effects.side_effect_3",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_rx_byte.error_cases.error_case_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_rx_byte.error_cases.error_case_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_rx_byte.error_cases.error_case_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_rx_byte.error_cases.error_case_3",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.rx",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.rx_idle",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.rx_start_detect",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.rx_start_confirm",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.rx_data",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.rx_parity",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.rx_stop1",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.rx_stop2",
+          "matched_ref": "cycle_model"
+        }
+      ],
+      "structural_owner_matches": [],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "uart_lite_baud_gen",
+      "kind": "rtl_module",
+      "rtl_module": "uart_lite_baud_gen",
+      "rtl_file": "rtl/uart_lite_baud_gen.sv",
+      "source_sections": [
+        "cycle_model"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.baud_generator"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "owner_matches": [],
+      "structural_owner_matches": [],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "uart_lite_tx_fifo",
+      "kind": "rtl_module",
+      "rtl_module": "uart_lite_tx_fifo",
+      "rtl_file": "rtl/uart_lite_tx_fifo.sv",
+      "source_sections": [
+        "dataflow",
+        "memory"
+      ],
+      "ssot_refs": [
+        "dataflow",
+        "dataflow.tx_path",
+        "memory",
+        "memory.instances",
+        "memory.instances.tx_fifo"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "memory.instances.tx_fifo"
+      ],
+      "owner_matches": [],
+      "structural_owner_matches": [
+        {
+          "ref": "memory.instances.tx_fifo",
+          "matched_ref": "memory"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "uart_lite_rx_fifo",
+      "kind": "rtl_module",
+      "rtl_module": "uart_lite_rx_fifo",
+      "rtl_file": "rtl/uart_lite_rx_fifo.sv",
+      "source_sections": [
+        "dataflow",
+        "memory"
+      ],
+      "ssot_refs": [
+        "dataflow",
+        "dataflow.rx_path",
+        "memory",
+        "memory.instances",
+        "memory.instances.rx_fifo"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "memory.instances.rx_fifo"
+      ],
+      "owner_matches": [],
+      "structural_owner_matches": [
+        {
+          "ref": "memory.instances.rx_fifo",
+          "matched_ref": "memory"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "uart_lite_core",
+      "kind": "rtl_module",
+      "rtl_module": "uart_lite_core",
+      "rtl_file": "rtl/uart_lite_core.sv",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "decomposition",
+        "features",
+        "function_model"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.pipeline",
+        "dataflow",
+        "dataflow.sequence",
+        "decomposition",
+        "decomposition.units.execute",
+        "features",
+        "features.break_send",
+        "features.loopback_test_mode",
+        "features.parity_generation_checking",
+        "features.rx_deserialization",
+        "features.tx_serialization",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.transactions"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "features.break_send",
+        "features.loopback_test_mode",
+        "features.parity_generation_checking",
+        "features.rx_deserialization",
+        "features.tx_serialization"
+      ],
+      "owner_matches": [],
+      "structural_owner_matches": [
+        {
+          "ref": "features.tx_serialization",
+          "matched_ref": "features"
+        },
+        {
+          "ref": "features.rx_deserialization",
+          "matched_ref": "features"
+        },
+        {
+          "ref": "features.parity_generation_checking",
+          "matched_ref": "features"
+        },
+        {
+          "ref": "features.loopback_test_mode",
+          "matched_ref": "features"
+        },
+        {
+          "ref": "features.break_send",
+          "matched_ref": "features"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    }
+  ],
+  "orphan_function_cycle_refs": [],
+  "function_cycle_ref_count": 89,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "uart_lite/req/",
+      "uart_lite/yaml/uart_lite.ssot.yaml",
+      "uart_lite/model/functional_model.py",
+      "uart_lite/cov/fcov_plan.json",
+      "uart_lite/yaml/uart_lite.ssot.yaml#io_list",
+      "uart_lite/yaml/uart_lite.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "uart_lite/rtl/",
+      "uart_lite/tb/",
+      "uart_lite/sim/",
+      "uart_lite/vectors/",
+      "uart_lite/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "drives": [
+    "rtl_module_plan",
+    "tb_environment_plan",
+    "functional_coverage_plan"
+  ],
+  "complete": true
+}

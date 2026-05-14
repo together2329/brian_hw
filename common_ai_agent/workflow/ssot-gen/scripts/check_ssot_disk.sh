@@ -81,8 +81,22 @@ def as_list(value):
         return value
     return []
 
+def rule_items(value):
+    return [item for item in as_list(value) if isinstance(item, dict)]
+
 def norm_token(value):
     return "".join(ch.lower() if ch.isalnum() else "_" for ch in str(value or "")).strip("_")
+
+def collect_ports():
+    io = doc.get("io_list") if isinstance(doc.get("io_list"), dict) else {}
+    ports = []
+    for iface in io.get("interfaces") or []:
+        if not isinstance(iface, dict):
+            continue
+        for port in iface.get("ports") or []:
+            if isinstance(port, dict) and port.get("name"):
+                ports.append(port)
+    return ports
 
 def rtl_quality_profile():
     qg = doc.get("quality_gates") if isinstance(doc.get("quality_gates"), dict) else {}
@@ -271,6 +285,15 @@ if not isinstance(fm, dict):
 for key in ("state_variables", "transactions", "invariants"):
     if not isinstance(fm.get(key), list) or not fm.get(key):
         raise SystemExit(f"function_model.{key} must be a non-empty list")
+all_ports = collect_ports()
+output_ports = {
+    str(port.get("name"))
+    for port in all_ports
+    if str(port.get("direction") or "").lower() == "output"
+}
+contract = doc.get("rtl_contract") if isinstance(doc.get("rtl_contract"), dict) else {}
+contract_output_map = contract.get("output_map") if isinstance(contract.get("output_map"), dict) else {}
+has_machine_output_rule = False
 for idx, tx in enumerate(fm.get("transactions") or []):
     if not isinstance(tx, dict):
         raise SystemExit(f"function_model.transactions[{idx}] must be a mapping")
@@ -279,6 +302,21 @@ for idx, tx in enumerate(fm.get("transactions") or []):
             raise SystemExit(f"function_model.transactions[{idx}].{key} is required")
     if not (tx.get("side_effects") or tx.get("error_cases")):
         raise SystemExit(f"function_model.transactions[{idx}] needs side_effects or error_cases")
+    for ridx, rule in enumerate(rule_items(tx.get("output_rules"))):
+        base = f"function_model.transactions[{idx}].output_rules[{ridx}]"
+        name = ci_get(rule, "name", "output")
+        expr = ci_get(rule, "expr", "expression", "value")
+        width = ci_get(rule, "width", "bit_width")
+        port = ci_get(rule, "port", "output_port")
+        if not present(port) and present(name):
+            port = contract_output_map.get(str(name))
+        for key, value in (("name", name), ("expr", expr), ("width", width), ("port", port)):
+            require_present(value, f"{base}.{key}")
+        if output_ports and str(port) not in output_ports:
+            raise SystemExit(f"{base}.port must name a declared output port")
+        has_machine_output_rule = True
+if not has_machine_output_rule:
+    raise SystemExit("function_model.transactions[] must include at least one executable output_rules entry with name/expr/width/port")
 
 cm = doc.get("cycle_model")
 if not isinstance(cm, dict):

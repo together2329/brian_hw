@@ -12,6 +12,8 @@
 - Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.
 - Every task must satisfy content, detail, and criteria before the packet is closed.
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
+- Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
+- Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
@@ -20,10 +22,16 @@
 - Work allowed: True
 - Draft allowed: False
 - Evidence closure allowed: True
-- PASS allowed: True
+- PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
+- Tool-evidence blockers:
+  - common_ai_agent_authoring: RTL authoring provenance is incomplete: todo_plan_sha256
+  - dynamic_todo_closure: 1 required non-closure TODO(s) remain open.
+- Tool-evidence runbook:
+  - common_ai_agent_authoring: stages=ssot-rtl; artifact=timer/rtl/rtl_authoring_provenance.json
+  - dynamic_todo_closure: stages=audit-rtl; artifact=timer/rtl/rtl_todo_plan.json
 - SSOT top IO contracts: 9
 
 ## Tasks
@@ -32,13 +40,13 @@
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.common_ai_agent_authoring
 - Detail: RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.
 SSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.
 Owner: timer_core in rtl/timer.sv via single_owner.
-- Current reason: RTL authoring provenance proves common_ai_agent rtl-gen ownership.
+- Current reason: RTL authoring provenance is incomplete: todo_plan_sha256
 - Criteria:
   - rtl/rtl_authoring_provenance.json exists
   - provenance agent is common_ai_agent
@@ -98,13 +106,13 @@ Owner: timer_core in rtl/timer.sv via single_owner.
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dynamic_todo_closure
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: timer_core in rtl/timer.sv via single_owner.
-- Current reason: Every required non-closure TODO has pass status.
+- Current reason: 1 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

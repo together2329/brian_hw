@@ -1,0 +1,2497 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 1,
+      "key": "function_model_01",
+      "module_task_count": 88,
+      "rule": "Owner module spi_shift is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 2,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/spi_shift.sv",
+      "name": "spi_shift",
+      "refs": [
+        "cycle_model",
+        "cycle_model.ordering",
+        "cycle_model.pipeline",
+        "features",
+        "fsm",
+        "fsm.channel_level",
+        "function_model",
+        "function_model.transactions"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/spi_regs.sv",
+        "name": "spi_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_fifo.sv",
+        "name": "spi_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_clkgen.sv",
+        "name": "spi_clkgen",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_shift.sv",
+        "name": "spi_shift",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_int.sv",
+        "name": "spi_int",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi.sv",
+        "name": "spi",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "spi_shift",
+        "port": "start_req",
+        "signal": "start_req",
+        "signal_terms": [
+          "start_req"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "spi_shift",
+        "port": "ctrl_cfg",
+        "signal": "ctrl_cfg",
+        "signal_terms": [
+          "ctrl_cfg"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "spi_shift",
+        "port": "tx_word",
+        "signal": "tx_word",
+        "signal_terms": [
+          "tx_word"
+        ],
+        "source_ref": "integration.connections[2]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "spi peripheral complexity",
+      "min_behavior_owner_logic_modules": 3,
+      "min_depth_score": 40,
+      "min_logic_modules": 4,
+      "min_modules": 6,
+      "min_procedural_blocks": 20,
+      "min_source_files": 6,
+      "min_state_updates": 25,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 48,
+    "open_required_count": 48,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "spi",
+  "kind": "module",
+  "owner_file": "rtl/spi_shift.sv",
+  "owner_module": "spi_shift",
+  "packet_id": "module__spi_shift__function_model_01",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.error_case": 5,
+      "function_model.input": 2,
+      "function_model.output": 7,
+      "function_model.precondition": 10,
+      "function_model.side_effect": 9,
+      "function_model.state_variable": 10,
+      "function_model.transaction": 5
+    },
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 1,
+      "key": "function_model_01",
+      "module_task_count": 88,
+      "rule": "Owner module spi_shift is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 2,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 48,
+    "required_count": 48,
+    "source_refs": [
+      "function_model.state_variables.ctrl_enable",
+      "function_model.state_variables.ctrl_mode",
+      "function_model.state_variables.active_cs",
+      "function_model.state_variables.frame_bits",
+      "function_model.state_variables.prescale_div",
+      "function_model.state_variables.tx_fifo",
+      "function_model.state_variables.rx_fifo",
+      "function_model.state_variables.busy",
+      "function_model.state_variables.sticky_errors",
+      "function_model.state_variables.int_pending",
+      "function_model.transactions.FM_APB_TX_PUSH",
+      "function_model.transactions.FM_APB_TX_PUSH.preconditions.precondition_0",
+      "function_model.transactions.FM_APB_TX_PUSH.inputs.input_0",
+      "function_model.transactions.FM_APB_TX_PUSH.outputs.output_0",
+      "function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_0",
+      "function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_1",
+      "function_model.transactions.FM_APB_TX_PUSH.error_cases.error_case_0",
+      "function_model.transactions.FM_FRAME_LAUNCH",
+      "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_0",
+      "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_1",
+      "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_2",
+      "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_3",
+      "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_4",
+      "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_5"
+    ],
+    "status_counts": {
+      "open": 48
+    },
+    "task_count": 48
+  },
+  "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state ctrl_enable",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.ctrl_enable",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "ctrl_enable reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.ctrl_enable.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=ctrl_enable; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0055",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.ctrl_enable",
+      "ssot_context": {
+        "name": "ctrl_enable",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.ctrl_enable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state ctrl_mode",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.ctrl_mode",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "ctrl_mode reset behavior matches SSOT value {cpol:CPOL_RESET,cpha:CPHA_RESET,lsb_first:LSB_FIRST_RESET,continuous_cs:0,loopback:0}"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.ctrl_mode.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=ctrl_mode; reset={cpol:CPOL_RESET,cpha:CPHA_RESET,lsb_first:LSB_FIRST_RESET,continuous_cs:0,loopback:0}.",
+      "evidence_terms": [],
+      "id": "RTL-0056",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.ctrl_mode",
+      "ssot_context": {
+        "name": "ctrl_mode",
+        "reset": "{cpol:CPOL_RESET,cpha:CPHA_RESET,lsb_first:LSB_FIRST_RESET,continuous_cs:0,loopback:0}"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.ctrl_mode"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state active_cs",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.active_cs",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "active_cs reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.active_cs.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=active_cs; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0057",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.active_cs",
+      "ssot_context": {
+        "name": "active_cs",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.active_cs"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state frame_bits",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.frame_bits",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "frame_bits reset behavior matches SSOT value 8"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.frame_bits.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=frame_bits; reset=8.",
+      "evidence_terms": [],
+      "id": "RTL-0058",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.frame_bits",
+      "ssot_context": {
+        "name": "frame_bits",
+        "reset": "8"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.frame_bits"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state prescale_div",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.prescale_div",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "prescale_div reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.prescale_div.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=prescale_div; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0059",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.prescale_div",
+      "ssot_context": {
+        "name": "prescale_div",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.prescale_div"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state tx_fifo",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.tx_fifo",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "tx_fifo reset behavior matches SSOT value empty"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.tx_fifo.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=tx_fifo; reset=empty.",
+      "evidence_terms": [],
+      "id": "RTL-0060",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.tx_fifo",
+      "ssot_context": {
+        "name": "tx_fifo",
+        "reset": "empty"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.tx_fifo"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state rx_fifo",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.rx_fifo",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "rx_fifo reset behavior matches SSOT value empty"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.rx_fifo.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=rx_fifo; reset=empty.",
+      "evidence_terms": [],
+      "id": "RTL-0061",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.rx_fifo",
+      "ssot_context": {
+        "name": "rx_fifo",
+        "reset": "empty"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.rx_fifo"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state busy",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.busy",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "busy reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.busy.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=busy; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0062",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.busy",
+      "ssot_context": {
+        "name": "busy",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.busy"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state sticky_errors",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.sticky_errors",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "sticky_errors reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.sticky_errors.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=sticky_errors; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0063",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.sticky_errors",
+      "ssot_context": {
+        "name": "sticky_errors",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.sticky_errors"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state int_pending",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.int_pending",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "int_pending reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.int_pending.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.\nSSOT item context: name=int_pending; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0064",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.int_pending",
+      "ssot_context": {
+        "name": "int_pending",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.int_pending"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_APB_TX_PUSH",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_TX_PUSH",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: id=FM_APB_TX_PUSH; name=apb_write_txdata.",
+      "evidence_terms": [],
+      "id": "RTL-0065",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_TX_PUSH",
+      "ssot_context": {
+        "id": "FM_APB_TX_PUSH",
+        "name": "apb_write_txdata"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_TX_PUSH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_APB_TX_PUSH: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_TX_PUSH.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.preconditions.precondition_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=APB write handshake to TXDATA.",
+      "evidence_terms": [],
+      "id": "RTL-0066",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_TX_PUSH.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "APB write handshake to TXDATA"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_TX_PUSH.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_APB_TX_PUSH: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_TX_PUSH.inputs.input_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.inputs.input_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=PWDATA[DATA_WIDTH-1:0].",
+      "evidence_terms": [
+        "DATA",
+        "DATA_WIDTH",
+        "WIDTH"
+      ],
+      "id": "RTL-0067",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_TX_PUSH.inputs.input_0",
+      "ssot_context": {
+        "value": "PWDATA[DATA_WIDTH-1:0]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_TX_PUSH.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DATA",
+          "DATA_WIDTH",
+          "WIDTH"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_TX_PUSH: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_TX_PUSH.outputs.output_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.outputs.output_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=TX FIFO occupancy increments by one when not full.",
+      "evidence_terms": [],
+      "id": "RTL-0068",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_TX_PUSH.outputs.output_0",
+      "ssot_context": {
+        "value": "TX FIFO occupancy increments by one when not full"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_TX_PUSH.outputs.output_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_APB_TX_PUSH: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=If tx_fifo full, payload is discarded and STATUS.tx_overrun set.",
+      "evidence_terms": [
+        "fifo",
+        "overrun",
+        "tx",
+        "tx_fifo",
+        "tx_overrun"
+      ],
+      "id": "RTL-0069",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "If tx_fifo full, payload is discarded and STATUS.tx_overrun set"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fifo",
+          "overrun",
+          "tx",
+          "tx_fifo",
+          "tx_overrun"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_APB_TX_PUSH: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=tx_empty/tx_full level indicators update.",
+      "evidence_terms": [
+        "empty",
+        "full",
+        "tx",
+        "tx_empty",
+        "tx_full"
+      ],
+      "id": "RTL-0070",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_1",
+      "ssot_context": {
+        "value": "tx_empty/tx_full level indicators update"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_TX_PUSH.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "empty",
+          "full",
+          "tx",
+          "tx_empty",
+          "tx_full"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_APB_TX_PUSH: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_TX_PUSH.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "function_model.transactions.FM_APB_TX_PUSH.error_cases.error_case_0 condition is implemented as RTL control logic: unsupported PSTRB for TXDATA width"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_TX_PUSH.error_cases.error_case_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: condition=unsupported PSTRB for TXDATA width.",
+      "evidence_terms": [
+        "PSTRB",
+        "TXDATA"
+      ],
+      "id": "RTL-0071",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_TX_PUSH.error_cases.error_case_0",
+      "ssot_context": {
+        "condition": "unsupported PSTRB for TXDATA width"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_TX_PUSH.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "PSTRB",
+          "TXDATA"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_FRAME_LAUNCH",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: id=FM_FRAME_LAUNCH; name=launch_frame.",
+      "evidence_terms": [],
+      "id": "RTL-0072",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_LAUNCH",
+      "ssot_context": {
+        "id": "FM_FRAME_LAUNCH",
+        "name": "launch_frame"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_LAUNCH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_FRAME_LAUNCH: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=CTRL.start pulse observed.",
+      "evidence_terms": [],
+      "id": "RTL-0073",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "CTRL.start pulse observed"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_FRAME_LAUNCH: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=ctrl_enable == 1.",
+      "evidence_terms": [
+        "ctrl",
+        "ctrl_enable",
+        "enable"
+      ],
+      "id": "RTL-0074",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "ctrl_enable == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ctrl",
+          "ctrl_enable",
+          "enable"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_FRAME_LAUNCH: precondition_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_2",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_2.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=busy == 0.",
+      "evidence_terms": [],
+      "id": "RTL-0075",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_2",
+      "ssot_context": {
+        "value": "busy == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_FRAME_LAUNCH: precondition_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_3",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_3.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=tx_fifo not empty.",
+      "evidence_terms": [
+        "fifo",
+        "tx",
+        "tx_fifo"
+      ],
+      "id": "RTL-0076",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_3",
+      "ssot_context": {
+        "value": "tx_fifo not empty"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_3"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fifo",
+          "tx",
+          "tx_fifo"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_FRAME_LAUNCH: precondition_4",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_4",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_4.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=cs_sel in [0, NUM_CS-1].",
+      "evidence_terms": [
+        "CS",
+        "NUM",
+        "NUM_CS",
+        "cs",
+        "cs_sel",
+        "sel"
+      ],
+      "id": "RTL-0077",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_4",
+      "ssot_context": {
+        "value": "cs_sel in [0, NUM_CS-1]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_4"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CS",
+          "NUM",
+          "NUM_CS",
+          "cs",
+          "cs_sel",
+          "sel"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_FRAME_LAUNCH: precondition_5",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_5",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_5.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=frame_bits in [4, 32].",
+      "evidence_terms": [
+        "bits",
+        "frame",
+        "frame_bits"
+      ],
+      "id": "RTL-0078",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_5",
+      "ssot_context": {
+        "value": "frame_bits in [4, 32]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_LAUNCH.preconditions.precondition_5"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "bits",
+          "frame",
+          "frame_bits"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_FRAME_LAUNCH: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.outputs.output_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.outputs.output_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=busy transitions to 1.",
+      "evidence_terms": [],
+      "id": "RTL-0079",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_LAUNCH.outputs.output_0",
+      "ssot_context": {
+        "value": "busy transitions to 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_LAUNCH.outputs.output_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_FRAME_LAUNCH: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.outputs.output_1",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.outputs.output_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=One TX word is consumed from TX FIFO for shift register load.",
+      "evidence_terms": [],
+      "id": "RTL-0080",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_LAUNCH.outputs.output_1",
+      "ssot_context": {
+        "value": "One TX word is consumed from TX FIFO for shift register load"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_LAUNCH.outputs.output_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_FRAME_LAUNCH: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=csn_o drives exactly one active-low bit at selected CS.",
+      "evidence_terms": [
+        "csn",
+        "csn_o"
+      ],
+      "id": "RTL-0081",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "csn_o drives exactly one active-low bit at selected CS"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "csn",
+          "csn_o"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_FRAME_LAUNCH: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=SCLK idle level driven per CPOL before first active edge.",
+      "evidence_terms": [],
+      "id": "RTL-0082",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_1",
+      "ssot_context": {
+        "value": "SCLK idle level driven per CPOL before first active edge"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_LAUNCH.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_FRAME_LAUNCH: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_0 condition is implemented as RTL control logic: cs_sel illegal or frame_bits illegal"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: condition=cs_sel illegal or frame_bits illegal.",
+      "evidence_terms": [
+        "bits",
+        "cs",
+        "cs_sel",
+        "frame",
+        "frame_bits",
+        "sel"
+      ],
+      "id": "RTL-0083",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_0",
+      "ssot_context": {
+        "condition": "cs_sel illegal or frame_bits illegal"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "bits",
+          "cs",
+          "cs_sel",
+          "frame",
+          "frame_bits",
+          "sel"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_FRAME_LAUNCH: error_case_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_1",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_1 condition is implemented as RTL control logic: CTRL.enable == 0 or tx_fifo empty or busy==1"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: condition=CTRL.enable == 0 or tx_fifo empty or busy==1.",
+      "evidence_terms": [
+        "CTRL",
+        "fifo",
+        "tx",
+        "tx_fifo"
+      ],
+      "id": "RTL-0084",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_1",
+      "ssot_context": {
+        "condition": "CTRL.enable == 0 or tx_fifo empty or busy==1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_LAUNCH.error_cases.error_case_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CTRL",
+          "fifo",
+          "tx",
+          "tx_fifo"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_SHIFT_SAMPLE",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_SHIFT_SAMPLE",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: id=FM_SHIFT_SAMPLE; name=shift_and_sample_bits.",
+      "evidence_terms": [],
+      "id": "RTL-0085",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SHIFT_SAMPLE",
+      "ssot_context": {
+        "id": "FM_SHIFT_SAMPLE",
+        "name": "shift_and_sample_bits"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SHIFT_SAMPLE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_SHIFT_SAMPLE: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SHIFT_SAMPLE.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.preconditions.precondition_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=busy == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0086",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SHIFT_SAMPLE.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "busy == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SHIFT_SAMPLE.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_SHIFT_SAMPLE: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SHIFT_SAMPLE.inputs.input_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.inputs.input_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=miso_i sampled on mode-dependent sample edges or internal mosi_o if loopback=1.",
+      "evidence_terms": [
+        "miso",
+        "miso_i",
+        "mosi",
+        "mosi_o"
+      ],
+      "id": "RTL-0087",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SHIFT_SAMPLE.inputs.input_0",
+      "ssot_context": {
+        "value": "miso_i sampled on mode-dependent sample edges or internal mosi_o if loopback=1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SHIFT_SAMPLE.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "miso",
+          "miso_i",
+          "mosi",
+          "mosi_o"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_SHIFT_SAMPLE: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=mosi_o presents serialized transmit bits with configured bit order.",
+      "evidence_terms": [
+        "mosi",
+        "mosi_o"
+      ],
+      "id": "RTL-0088",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_0",
+      "ssot_context": {
+        "value": "mosi_o presents serialized transmit bits with configured bit order"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "mosi",
+          "mosi_o"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_SHIFT_SAMPLE: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_1",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=rx_shift_reg accumulates sampled bits.",
+      "evidence_terms": [
+        "reg",
+        "rx",
+        "rx_shift_reg",
+        "shift"
+      ],
+      "id": "RTL-0089",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_1",
+      "ssot_context": {
+        "value": "rx_shift_reg accumulates sampled bits"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SHIFT_SAMPLE.outputs.output_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "reg",
+          "rx",
+          "rx_shift_reg",
+          "shift"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_SHIFT_SAMPLE: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SHIFT_SAMPLE.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.side_effects.side_effect_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=bit_index progresses from 0 to frame_bits-1.",
+      "evidence_terms": [
+        "bit",
+        "bit_index",
+        "bits",
+        "frame",
+        "frame_bits",
+        "index"
+      ],
+      "id": "RTL-0090",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SHIFT_SAMPLE.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "bit_index progresses from 0 to frame_bits-1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SHIFT_SAMPLE.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "bit",
+          "bit_index",
+          "bits",
+          "frame",
+          "frame_bits",
+          "index"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_SHIFT_SAMPLE: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SHIFT_SAMPLE.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.side_effects.side_effect_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=done asserted when terminal sample edge occurs.",
+      "evidence_terms": [],
+      "id": "RTL-0091",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SHIFT_SAMPLE.side_effects.side_effect_1",
+      "ssot_context": {
+        "value": "done asserted when terminal sample edge occurs"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SHIFT_SAMPLE.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_SHIFT_SAMPLE: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SHIFT_SAMPLE.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "function_model.transactions.FM_SHIFT_SAMPLE.error_cases.error_case_0 condition is implemented as RTL control logic: none during legal frame"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SHIFT_SAMPLE.error_cases.error_case_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: condition=none during legal frame.",
+      "evidence_terms": [],
+      "id": "RTL-0092",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SHIFT_SAMPLE.error_cases.error_case_0",
+      "ssot_context": {
+        "condition": "none during legal frame"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SHIFT_SAMPLE.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_FRAME_COMPLETE",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_COMPLETE",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: id=FM_FRAME_COMPLETE; name=complete_frame_and_store_rx.",
+      "evidence_terms": [],
+      "id": "RTL-0093",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_COMPLETE",
+      "ssot_context": {
+        "id": "FM_FRAME_COMPLETE",
+        "name": "complete_frame_and_store_rx"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_COMPLETE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_FRAME_COMPLETE: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_COMPLETE.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.preconditions.precondition_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=terminal sample edge reached.",
+      "evidence_terms": [],
+      "id": "RTL-0094",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_COMPLETE.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "terminal sample edge reached"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_COMPLETE.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_FRAME_COMPLETE: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_COMPLETE.outputs.output_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.outputs.output_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=busy transitions to 0.",
+      "evidence_terms": [],
+      "id": "RTL-0095",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_COMPLETE.outputs.output_0",
+      "ssot_context": {
+        "value": "busy transitions to 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_COMPLETE.outputs.output_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_FRAME_COMPLETE: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_COMPLETE.outputs.output_1",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.outputs.output_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=STATUS.done pulse/latched event generated.",
+      "evidence_terms": [],
+      "id": "RTL-0096",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_COMPLETE.outputs.output_1",
+      "ssot_context": {
+        "value": "STATUS.done pulse/latched event generated"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_COMPLETE.outputs.output_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_FRAME_COMPLETE: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=If RX FIFO has space, received frame pushed; else discard and STATUS.rx_overrun set.",
+      "evidence_terms": [
+        "overrun",
+        "rx",
+        "rx_overrun"
+      ],
+      "id": "RTL-0097",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "If RX FIFO has space, received frame pushed; else discard and STATUS.rx_overrun set"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "overrun",
+          "rx",
+          "rx_overrun"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_FRAME_COMPLETE: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_1.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=CS deasserts to CS_IDLE unless continuous_cs holds across back-to-back frame.",
+      "evidence_terms": [
+        "CS",
+        "CS_IDLE",
+        "IDLE",
+        "continuous",
+        "continuous_cs",
+        "cs"
+      ],
+      "id": "RTL-0098",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_1",
+      "ssot_context": {
+        "value": "CS deasserts to CS_IDLE unless continuous_cs holds across back-to-back frame"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CS",
+          "CS_IDLE",
+          "IDLE",
+          "continuous",
+          "continuous_cs",
+          "cs"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_FRAME_COMPLETE: side_effect_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_2",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_2.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=Interrupt pending bits update for done and FIFO level.",
+      "evidence_terms": [],
+      "id": "RTL-0099",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_2",
+      "ssot_context": {
+        "value": "Interrupt pending bits update for done and FIFO level"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_COMPLETE.side_effects.side_effect_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_FRAME_COMPLETE: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FRAME_COMPLETE.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "function_model.transactions.FM_FRAME_COMPLETE.error_cases.error_case_0 condition is implemented as RTL control logic: RX FIFO full"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FRAME_COMPLETE.error_cases.error_case_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: condition=RX FIFO full.",
+      "evidence_terms": [
+        "FIFO",
+        "RX"
+      ],
+      "id": "RTL-0100",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FRAME_COMPLETE.error_cases.error_case_0",
+      "ssot_context": {
+        "condition": "RX FIFO full"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FRAME_COMPLETE.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "FIFO",
+          "RX"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_APB_RX_POP",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_RX_POP",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_APB_RX_POP.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: id=FM_APB_RX_POP; name=apb_read_rxdata.",
+      "evidence_terms": [],
+      "id": "RTL-0101",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_RX_POP",
+      "ssot_context": {
+        "id": "FM_APB_RX_POP",
+        "name": "apb_read_rxdata"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_RX_POP"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_APB_RX_POP: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_RX_POP.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_RX_POP.preconditions.precondition_0.\nOwner: spi_shift in rtl/spi_shift.sv via function_model.transactions.\nSSOT item context: value=APB read handshake to RXDATA.",
+      "evidence_terms": [],
+      "id": "RTL-0102",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_RX_POP.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "APB read handshake to RXDATA"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_RX_POP.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "2a60bf453550d0ce8554eb62210062c7cf9b821cfd849f3ea1217a035cfae11d",
+  "top": "spi",
+  "type": "rtl_authoring_packet"
+}

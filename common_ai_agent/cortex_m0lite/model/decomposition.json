@@ -5,119 +5,427 @@
   "source": "cortex_m0lite/yaml/cortex_m0lite.ssot.yaml",
   "units": [
     {
-      "name": "timer_core",
+      "name": "cortex_m0lite",
       "kind": "rtl_module",
       "source_sections": [
+        "cdc_requirements",
+        "clock_reset_domains",
+        "integration",
+        "internal_interfaces",
+        "io_list"
+      ],
+      "rtl_candidates": [
+        "cortex_m0lite"
+      ],
+      "rtl_file": "rtl/cortex_m0lite.sv",
+      "ssot_refs": [
+        "cdc_requirements",
+        "clock_reset_domains",
+        "integration",
+        "integration.connections",
+        "internal_interfaces",
+        "io_list",
+        "io_list.interfaces"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "integration",
+        "integration.connections",
+        "io_list",
+        "io_list.interfaces"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "cortex_m0lite_core",
+      "kind": "rtl_module",
+      "source_sections": [
+        "coverage_tap",
         "cycle_model",
-        "features",
+        "dataflow",
+        "decomposition",
+        "error_handling",
         "fsm",
         "function_model",
         "io_list",
         "parameters",
-        "rtl_contract"
+        "registers",
+        "workflow_todos"
       ],
       "rtl_candidates": [
-        "timer_core"
+        "cortex_m0lite_core"
       ],
-      "rtl_file": "rtl/cortex_m0lite.sv",
+      "rtl_file": "rtl/cortex_m0lite_core.sv",
       "ssot_refs": [
+        "coverage_tap",
         "cycle_model",
-        "cycle_model.backpressure.backpressure_0",
         "cycle_model.clock",
-        "cycle_model.handshake_rules.fetch_en_load",
-        "cycle_model.handshake_rules.flush_priority",
-        "cycle_model.handshake_rules.step_end_tick",
+        "cycle_model.handshake_rules.dmem_wait",
+        "cycle_model.handshake_rules.hazard_stall",
+        "cycle_model.handshake_rules.if_wait",
         "cycle_model.latency",
         "cycle_model.ordering.ordering_0",
         "cycle_model.ordering.ordering_1",
         "cycle_model.ordering.ordering_2",
-        "cycle_model.pipeline.s0_control_sample",
-        "cycle_model.pipeline.s1_state_visible",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.ordering.ordering_4",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.ex_wb",
+        "cycle_model.pipeline.id",
+        "cycle_model.pipeline.if",
         "cycle_model.reset",
-        "features.flush_priority",
-        "features.parameterized_pcdown",
-        "features.retire_pulse",
+        "dataflow",
+        "dataflow.ordering",
+        "dataflow.sequence",
+        "dataflow.state_flow",
+        "decomposition",
+        "error_handling",
         "fsm",
+        "fsm.control",
         "function_model",
         "function_model.invariants.invariant_0",
         "function_model.invariants.invariant_1",
         "function_model.invariants.invariant_2",
         "function_model.invariants.invariant_3",
-        "function_model.state_variables.busy_q",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables.nzcv_q",
         "function_model.state_variables.pc_q",
-        "function_model.state_variables.retire_q",
-        "function_model.transactions.FM_TICK",
-        "function_model.transactions.fm_tick",
-        "function_model.transactions.fm_tick.error_cases.error_case_0",
-        "function_model.transactions.fm_tick.output_rules.busy_next",
-        "function_model.transactions.fm_tick.output_rules.pc_next",
-        "function_model.transactions.fm_tick.output_rules.retire_pulse",
-        "function_model.transactions.fm_tick.outputs.output_0",
-        "function_model.transactions.fm_tick.outputs.output_1",
-        "function_model.transactions.fm_tick.outputs.output_2",
-        "function_model.transactions.fm_tick.preconditions.precondition_0",
-        "function_model.transactions.fm_tick.preconditions.precondition_1",
-        "function_model.transactions.fm_tick.side_effects.side_effect_0",
-        "function_model.transactions.fm_tick.side_effects.side_effect_1",
-        "function_model.transactions.fm_tick.side_effects.side_effect_2",
-        "function_model.transactions.fm_tick.state_updates.busy_q",
-        "function_model.transactions.fm_tick.state_updates.pc_q",
-        "function_model.transactions.fm_tick.state_updates.retire_q",
+        "function_model.state_variables.rf_q",
+        "function_model.state_variables.trap_q",
+        "function_model.transactions.FM_CPU_STEP",
+        "function_model.transactions.fm_cpu_step",
+        "function_model.transactions.fm_cpu_step.error_cases.error_case_0",
+        "function_model.transactions.fm_cpu_step.error_cases.error_case_1",
+        "function_model.transactions.fm_cpu_step.error_cases.error_case_2",
+        "function_model.transactions.fm_cpu_step.output_rules.retire_pulse",
+        "function_model.transactions.fm_cpu_step.output_rules.trap_flag",
+        "function_model.transactions.fm_cpu_step.outputs.output_0",
+        "function_model.transactions.fm_cpu_step.outputs.output_1",
+        "function_model.transactions.fm_cpu_step.outputs.output_2",
+        "function_model.transactions.fm_cpu_step.preconditions.precondition_0",
+        "function_model.transactions.fm_cpu_step.preconditions.precondition_1",
+        "function_model.transactions.fm_cpu_step.preconditions.precondition_2",
+        "function_model.transactions.fm_cpu_step.side_effects.side_effect_0",
+        "function_model.transactions.fm_cpu_step.side_effects.side_effect_1",
+        "function_model.transactions.fm_cpu_step.side_effects.side_effect_2",
+        "function_model.transactions.fm_cpu_step.side_effects.side_effect_3",
+        "function_model.transactions.fm_cpu_step.state_updates.nzcv_q",
+        "function_model.transactions.fm_cpu_step.state_updates.pc_q",
+        "function_model.transactions.fm_cpu_step.state_updates.rf_q",
         "io_list",
         "parameters",
+        "parameters.ahb_addr_w",
+        "parameters.ahb_data_w",
+        "parameters.ahb_hburst_single",
+        "parameters.ahb_hsize_word",
+        "parameters.ahb_htrans_busy",
+        "parameters.ahb_htrans_idle",
+        "parameters.ahb_htrans_nonseq",
+        "parameters.ahb_htrans_seq",
+        "parameters.core_freq_mhz",
+        "parameters.reg_count",
+        "parameters.reset_pc",
+        "parameters.stack_reset",
+        "parameters.trap_vector",
         "parameters.xlen",
-        "rtl_contract"
+        "registers",
+        "registers.register_list",
+        "registers.register_list.exc_cause",
+        "registers.register_list.exc_epc",
+        "registers.register_list.pc",
+        "registers.register_list.xpsr",
+        "workflow_todos"
       ],
       "function_model_refs": [
         "function_model.invariants.invariant_0",
         "function_model.invariants.invariant_1",
         "function_model.invariants.invariant_2",
         "function_model.invariants.invariant_3",
-        "function_model.state_variables.busy_q",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables.nzcv_q",
         "function_model.state_variables.pc_q",
-        "function_model.state_variables.retire_q",
-        "function_model.transactions.fm_tick",
-        "function_model.transactions.fm_tick.error_cases.error_case_0",
-        "function_model.transactions.fm_tick.output_rules.busy_next",
-        "function_model.transactions.fm_tick.output_rules.pc_next",
-        "function_model.transactions.fm_tick.output_rules.retire_pulse",
-        "function_model.transactions.fm_tick.outputs.output_0",
-        "function_model.transactions.fm_tick.outputs.output_1",
-        "function_model.transactions.fm_tick.outputs.output_2",
-        "function_model.transactions.fm_tick.preconditions.precondition_0",
-        "function_model.transactions.fm_tick.preconditions.precondition_1",
-        "function_model.transactions.fm_tick.side_effects.side_effect_0",
-        "function_model.transactions.fm_tick.side_effects.side_effect_1",
-        "function_model.transactions.fm_tick.side_effects.side_effect_2",
-        "function_model.transactions.fm_tick.state_updates.busy_q",
-        "function_model.transactions.fm_tick.state_updates.pc_q",
-        "function_model.transactions.fm_tick.state_updates.retire_q"
+        "function_model.state_variables.rf_q",
+        "function_model.state_variables.trap_q",
+        "function_model.transactions.fm_cpu_step",
+        "function_model.transactions.fm_cpu_step.error_cases.error_case_0",
+        "function_model.transactions.fm_cpu_step.error_cases.error_case_1",
+        "function_model.transactions.fm_cpu_step.error_cases.error_case_2",
+        "function_model.transactions.fm_cpu_step.output_rules.retire_pulse",
+        "function_model.transactions.fm_cpu_step.output_rules.trap_flag",
+        "function_model.transactions.fm_cpu_step.outputs.output_0",
+        "function_model.transactions.fm_cpu_step.outputs.output_1",
+        "function_model.transactions.fm_cpu_step.outputs.output_2",
+        "function_model.transactions.fm_cpu_step.preconditions.precondition_0",
+        "function_model.transactions.fm_cpu_step.preconditions.precondition_1",
+        "function_model.transactions.fm_cpu_step.preconditions.precondition_2",
+        "function_model.transactions.fm_cpu_step.side_effects.side_effect_0",
+        "function_model.transactions.fm_cpu_step.side_effects.side_effect_1",
+        "function_model.transactions.fm_cpu_step.side_effects.side_effect_2",
+        "function_model.transactions.fm_cpu_step.side_effects.side_effect_3",
+        "function_model.transactions.fm_cpu_step.state_updates.nzcv_q",
+        "function_model.transactions.fm_cpu_step.state_updates.pc_q",
+        "function_model.transactions.fm_cpu_step.state_updates.rf_q"
       ],
       "cycle_model_refs": [
-        "cycle_model.backpressure.backpressure_0",
         "cycle_model.clock",
-        "cycle_model.handshake_rules.fetch_en_load",
-        "cycle_model.handshake_rules.flush_priority",
-        "cycle_model.handshake_rules.step_end_tick",
+        "cycle_model.handshake_rules.dmem_wait",
+        "cycle_model.handshake_rules.hazard_stall",
+        "cycle_model.handshake_rules.if_wait",
         "cycle_model.latency",
         "cycle_model.ordering.ordering_0",
         "cycle_model.ordering.ordering_1",
         "cycle_model.ordering.ordering_2",
-        "cycle_model.pipeline.s0_control_sample",
-        "cycle_model.pipeline.s1_state_visible",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.ordering.ordering_4",
+        "cycle_model.pipeline.ex_wb",
+        "cycle_model.pipeline.id",
+        "cycle_model.pipeline.if",
         "cycle_model.reset"
       ],
       "structural_refs": [
-        "features.flush_priority",
-        "features.parameterized_pcdown",
-        "features.retire_pulse",
-        "parameters.xlen"
+        "parameters.ahb_addr_w",
+        "parameters.ahb_data_w",
+        "parameters.ahb_hburst_single",
+        "parameters.ahb_hsize_word",
+        "parameters.ahb_htrans_busy",
+        "parameters.ahb_htrans_idle",
+        "parameters.ahb_htrans_nonseq",
+        "parameters.ahb_htrans_seq",
+        "parameters.core_freq_mhz",
+        "parameters.reg_count",
+        "parameters.reset_pc",
+        "parameters.stack_reset",
+        "parameters.trap_vector",
+        "parameters.xlen",
+        "registers.register_list.exc_cause",
+        "registers.register_list.exc_epc",
+        "registers.register_list.pc",
+        "registers.register_list.xpsr"
       ],
       "verification_impact": [
         "module-level FL-vs-RTL scoreboard",
         "module functional coverage"
       ],
       "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "if_stage",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "io_list",
+        "isa_spec",
+        "parameters"
+      ],
+      "rtl_candidates": [
+        "if_stage"
+      ],
+      "rtl_file": "rtl/cortex_m0lite_if_stage.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.pipeline",
+        "dataflow",
+        "dataflow.ordering",
+        "dataflow.sequence",
+        "io_list",
+        "isa_spec",
+        "isa_spec.decode_contract",
+        "parameters"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "id_stage",
+      "kind": "rtl_module",
+      "source_sections": [
+        "coverage_tap",
+        "dataflow",
+        "function_model",
+        "isa_spec",
+        "parameters"
+      ],
+      "rtl_candidates": [
+        "id_stage"
+      ],
+      "rtl_file": "rtl/cortex_m0lite_id_stage.sv",
+      "ssot_refs": [
+        "coverage_tap",
+        "dataflow",
+        "dataflow.ordering",
+        "dataflow.sequence",
+        "function_model",
+        "function_model.transactions.FM_CPU_STEP",
+        "isa_spec",
+        "isa_spec.decode_rule_set",
+        "parameters"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "ex_stage",
+      "kind": "rtl_module",
+      "source_sections": [
+        "coverage_tap",
+        "dataflow",
+        "error_handling",
+        "function_model",
+        "parameters"
+      ],
+      "rtl_candidates": [
+        "ex_stage"
+      ],
+      "rtl_file": "rtl/cortex_m0lite_ex_stage.sv",
+      "ssot_refs": [
+        "coverage_tap",
+        "dataflow",
+        "dataflow.ordering",
+        "dataflow.sequence",
+        "error_handling",
+        "function_model",
+        "function_model.transactions.FM_CPU_STEP",
+        "parameters"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "wb_stage",
+      "kind": "rtl_module",
+      "source_sections": [
+        "dataflow",
+        "error_handling",
+        "function_model",
+        "registers"
+      ],
+      "rtl_candidates": [
+        "wb_stage"
+      ],
+      "rtl_file": "rtl/cortex_m0lite_wb_stage.sv",
+      "ssot_refs": [
+        "dataflow",
+        "dataflow.ordering",
+        "dataflow.sequence",
+        "error_handling",
+        "function_model",
+        "function_model.transactions.FM_CPU_STEP",
+        "registers",
+        "registers.register_list"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "regfile",
+      "kind": "rtl_module",
+      "source_sections": [
+        "function_model",
+        "memory",
+        "parameters",
+        "registers"
+      ],
+      "rtl_candidates": [
+        "regfile"
+      ],
+      "rtl_file": "rtl/cortex_m0lite_regfile.sv",
+      "ssot_refs": [
+        "function_model",
+        "function_model.state_variables",
+        "memory.instances.regfile_storage",
+        "parameters",
+        "registers",
+        "registers.register_list"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "memory.instances.regfile_storage"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "bus_if",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "error_handling",
+        "features",
+        "io_list",
+        "parameters"
+      ],
+      "rtl_candidates": [
+        "bus_if"
+      ],
+      "rtl_file": "rtl/cortex_m0lite_bus_if.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "error_handling",
+        "features.precise_trap",
+        "io_list",
+        "io_list.interfaces",
+        "parameters",
+        "parameters.bus_freq_mhz"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "features.precise_trap",
+        "parameters.bus_freq_mhz"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
       "blocked": false,
       "blocker": ""
     },
@@ -136,6 +444,39 @@
         "driver",
         "monitor",
         "protocol coverage"
+      ]
+    },
+    {
+      "name": "cortex_m0lite_register_model",
+      "kind": "register",
+      "source_sections": [
+        "registers",
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "cortex_m0lite_regs",
+        "cortex_m0lite_apb_regs"
+      ],
+      "verification_impact": [
+        "register sequences",
+        "readback scoreboard"
+      ]
+    },
+    {
+      "name": "cortex_m0lite_memory_model",
+      "kind": "memory",
+      "source_sections": [
+        "memory",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "cortex_m0lite_mem",
+        "cortex_m0lite_core"
+      ],
+      "verification_impact": [
+        "address retention",
+        "byte strobes",
+        "boundary coverage"
       ]
     },
     {
@@ -204,280 +545,665 @@
   ],
   "module_contracts": [
     {
-      "name": "timer_core",
+      "name": "cortex_m0lite",
       "kind": "rtl_module",
-      "rtl_module": "timer_core",
+      "rtl_module": "cortex_m0lite",
       "rtl_file": "rtl/cortex_m0lite.sv",
       "source_sections": [
+        "cdc_requirements",
+        "clock_reset_domains",
+        "integration",
+        "internal_interfaces",
+        "io_list"
+      ],
+      "ssot_refs": [
+        "cdc_requirements",
+        "clock_reset_domains",
+        "integration",
+        "integration.connections",
+        "internal_interfaces",
+        "io_list",
+        "io_list.interfaces"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "integration",
+        "integration.connections",
+        "io_list",
+        "io_list.interfaces"
+      ],
+      "owner_matches": [],
+      "structural_owner_matches": [],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "cortex_m0lite_core",
+      "kind": "rtl_module",
+      "rtl_module": "cortex_m0lite_core",
+      "rtl_file": "rtl/cortex_m0lite_core.sv",
+      "source_sections": [
+        "coverage_tap",
         "cycle_model",
-        "features",
+        "dataflow",
+        "decomposition",
+        "error_handling",
         "fsm",
         "function_model",
         "io_list",
         "parameters",
-        "rtl_contract"
+        "registers",
+        "workflow_todos"
       ],
       "ssot_refs": [
+        "coverage_tap",
         "cycle_model",
-        "cycle_model.backpressure.backpressure_0",
         "cycle_model.clock",
-        "cycle_model.handshake_rules.fetch_en_load",
-        "cycle_model.handshake_rules.flush_priority",
-        "cycle_model.handshake_rules.step_end_tick",
+        "cycle_model.handshake_rules.dmem_wait",
+        "cycle_model.handshake_rules.hazard_stall",
+        "cycle_model.handshake_rules.if_wait",
         "cycle_model.latency",
         "cycle_model.ordering.ordering_0",
         "cycle_model.ordering.ordering_1",
         "cycle_model.ordering.ordering_2",
-        "cycle_model.pipeline.s0_control_sample",
-        "cycle_model.pipeline.s1_state_visible",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.ordering.ordering_4",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.ex_wb",
+        "cycle_model.pipeline.id",
+        "cycle_model.pipeline.if",
         "cycle_model.reset",
-        "features.flush_priority",
-        "features.parameterized_pcdown",
-        "features.retire_pulse",
+        "dataflow",
+        "dataflow.ordering",
+        "dataflow.sequence",
+        "dataflow.state_flow",
+        "decomposition",
+        "error_handling",
         "fsm",
+        "fsm.control",
         "function_model",
         "function_model.invariants.invariant_0",
         "function_model.invariants.invariant_1",
         "function_model.invariants.invariant_2",
         "function_model.invariants.invariant_3",
-        "function_model.state_variables.busy_q",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables.nzcv_q",
         "function_model.state_variables.pc_q",
-        "function_model.state_variables.retire_q",
-        "function_model.transactions.FM_TICK",
-        "function_model.transactions.fm_tick",
-        "function_model.transactions.fm_tick.error_cases.error_case_0",
-        "function_model.transactions.fm_tick.output_rules.busy_next",
-        "function_model.transactions.fm_tick.output_rules.pc_next",
-        "function_model.transactions.fm_tick.output_rules.retire_pulse",
-        "function_model.transactions.fm_tick.outputs.output_0",
-        "function_model.transactions.fm_tick.outputs.output_1",
-        "function_model.transactions.fm_tick.outputs.output_2",
-        "function_model.transactions.fm_tick.preconditions.precondition_0",
-        "function_model.transactions.fm_tick.preconditions.precondition_1",
-        "function_model.transactions.fm_tick.side_effects.side_effect_0",
-        "function_model.transactions.fm_tick.side_effects.side_effect_1",
-        "function_model.transactions.fm_tick.side_effects.side_effect_2",
-        "function_model.transactions.fm_tick.state_updates.busy_q",
-        "function_model.transactions.fm_tick.state_updates.pc_q",
-        "function_model.transactions.fm_tick.state_updates.retire_q",
+        "function_model.state_variables.rf_q",
+        "function_model.state_variables.trap_q",
+        "function_model.transactions.FM_CPU_STEP",
+        "function_model.transactions.fm_cpu_step",
+        "function_model.transactions.fm_cpu_step.error_cases.error_case_0",
+        "function_model.transactions.fm_cpu_step.error_cases.error_case_1",
+        "function_model.transactions.fm_cpu_step.error_cases.error_case_2",
+        "function_model.transactions.fm_cpu_step.output_rules.retire_pulse",
+        "function_model.transactions.fm_cpu_step.output_rules.trap_flag",
+        "function_model.transactions.fm_cpu_step.outputs.output_0",
+        "function_model.transactions.fm_cpu_step.outputs.output_1",
+        "function_model.transactions.fm_cpu_step.outputs.output_2",
+        "function_model.transactions.fm_cpu_step.preconditions.precondition_0",
+        "function_model.transactions.fm_cpu_step.preconditions.precondition_1",
+        "function_model.transactions.fm_cpu_step.preconditions.precondition_2",
+        "function_model.transactions.fm_cpu_step.side_effects.side_effect_0",
+        "function_model.transactions.fm_cpu_step.side_effects.side_effect_1",
+        "function_model.transactions.fm_cpu_step.side_effects.side_effect_2",
+        "function_model.transactions.fm_cpu_step.side_effects.side_effect_3",
+        "function_model.transactions.fm_cpu_step.state_updates.nzcv_q",
+        "function_model.transactions.fm_cpu_step.state_updates.pc_q",
+        "function_model.transactions.fm_cpu_step.state_updates.rf_q",
         "io_list",
         "parameters",
+        "parameters.ahb_addr_w",
+        "parameters.ahb_data_w",
+        "parameters.ahb_hburst_single",
+        "parameters.ahb_hsize_word",
+        "parameters.ahb_htrans_busy",
+        "parameters.ahb_htrans_idle",
+        "parameters.ahb_htrans_nonseq",
+        "parameters.ahb_htrans_seq",
+        "parameters.core_freq_mhz",
+        "parameters.reg_count",
+        "parameters.reset_pc",
+        "parameters.stack_reset",
+        "parameters.trap_vector",
         "parameters.xlen",
-        "rtl_contract"
+        "registers",
+        "registers.register_list",
+        "registers.register_list.exc_cause",
+        "registers.register_list.exc_epc",
+        "registers.register_list.pc",
+        "registers.register_list.xpsr",
+        "workflow_todos"
       ],
       "function_model_refs": [
         "function_model.invariants.invariant_0",
         "function_model.invariants.invariant_1",
         "function_model.invariants.invariant_2",
         "function_model.invariants.invariant_3",
-        "function_model.state_variables.busy_q",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables.nzcv_q",
         "function_model.state_variables.pc_q",
-        "function_model.state_variables.retire_q",
-        "function_model.transactions.fm_tick",
-        "function_model.transactions.fm_tick.error_cases.error_case_0",
-        "function_model.transactions.fm_tick.output_rules.busy_next",
-        "function_model.transactions.fm_tick.output_rules.pc_next",
-        "function_model.transactions.fm_tick.output_rules.retire_pulse",
-        "function_model.transactions.fm_tick.outputs.output_0",
-        "function_model.transactions.fm_tick.outputs.output_1",
-        "function_model.transactions.fm_tick.outputs.output_2",
-        "function_model.transactions.fm_tick.preconditions.precondition_0",
-        "function_model.transactions.fm_tick.preconditions.precondition_1",
-        "function_model.transactions.fm_tick.side_effects.side_effect_0",
-        "function_model.transactions.fm_tick.side_effects.side_effect_1",
-        "function_model.transactions.fm_tick.side_effects.side_effect_2",
-        "function_model.transactions.fm_tick.state_updates.busy_q",
-        "function_model.transactions.fm_tick.state_updates.pc_q",
-        "function_model.transactions.fm_tick.state_updates.retire_q"
+        "function_model.state_variables.rf_q",
+        "function_model.state_variables.trap_q",
+        "function_model.transactions.fm_cpu_step",
+        "function_model.transactions.fm_cpu_step.error_cases.error_case_0",
+        "function_model.transactions.fm_cpu_step.error_cases.error_case_1",
+        "function_model.transactions.fm_cpu_step.error_cases.error_case_2",
+        "function_model.transactions.fm_cpu_step.output_rules.retire_pulse",
+        "function_model.transactions.fm_cpu_step.output_rules.trap_flag",
+        "function_model.transactions.fm_cpu_step.outputs.output_0",
+        "function_model.transactions.fm_cpu_step.outputs.output_1",
+        "function_model.transactions.fm_cpu_step.outputs.output_2",
+        "function_model.transactions.fm_cpu_step.preconditions.precondition_0",
+        "function_model.transactions.fm_cpu_step.preconditions.precondition_1",
+        "function_model.transactions.fm_cpu_step.preconditions.precondition_2",
+        "function_model.transactions.fm_cpu_step.side_effects.side_effect_0",
+        "function_model.transactions.fm_cpu_step.side_effects.side_effect_1",
+        "function_model.transactions.fm_cpu_step.side_effects.side_effect_2",
+        "function_model.transactions.fm_cpu_step.side_effects.side_effect_3",
+        "function_model.transactions.fm_cpu_step.state_updates.nzcv_q",
+        "function_model.transactions.fm_cpu_step.state_updates.pc_q",
+        "function_model.transactions.fm_cpu_step.state_updates.rf_q"
       ],
       "cycle_model_refs": [
-        "cycle_model.backpressure.backpressure_0",
         "cycle_model.clock",
-        "cycle_model.handshake_rules.fetch_en_load",
-        "cycle_model.handshake_rules.flush_priority",
-        "cycle_model.handshake_rules.step_end_tick",
+        "cycle_model.handshake_rules.dmem_wait",
+        "cycle_model.handshake_rules.hazard_stall",
+        "cycle_model.handshake_rules.if_wait",
         "cycle_model.latency",
         "cycle_model.ordering.ordering_0",
         "cycle_model.ordering.ordering_1",
         "cycle_model.ordering.ordering_2",
-        "cycle_model.pipeline.s0_control_sample",
-        "cycle_model.pipeline.s1_state_visible",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.ordering.ordering_4",
+        "cycle_model.pipeline.ex_wb",
+        "cycle_model.pipeline.id",
+        "cycle_model.pipeline.if",
         "cycle_model.reset"
       ],
       "structural_refs": [
-        "features.flush_priority",
-        "features.parameterized_pcdown",
-        "features.retire_pulse",
-        "parameters.xlen"
+        "parameters.ahb_addr_w",
+        "parameters.ahb_data_w",
+        "parameters.ahb_hburst_single",
+        "parameters.ahb_hsize_word",
+        "parameters.ahb_htrans_busy",
+        "parameters.ahb_htrans_idle",
+        "parameters.ahb_htrans_nonseq",
+        "parameters.ahb_htrans_seq",
+        "parameters.core_freq_mhz",
+        "parameters.reg_count",
+        "parameters.reset_pc",
+        "parameters.stack_reset",
+        "parameters.trap_vector",
+        "parameters.xlen",
+        "registers.register_list.exc_cause",
+        "registers.register_list.exc_epc",
+        "registers.register_list.pc",
+        "registers.register_list.xpsr"
       ],
       "owner_matches": [
         {
           "ref": "function_model.state_variables.pc_q",
-          "matched_ref": "single_owner"
+          "matched_ref": "function_model"
         },
         {
-          "ref": "function_model.state_variables.busy_q",
-          "matched_ref": "single_owner"
+          "ref": "function_model.state_variables.rf_q",
+          "matched_ref": "function_model"
         },
         {
-          "ref": "function_model.state_variables.retire_q",
-          "matched_ref": "single_owner"
+          "ref": "function_model.state_variables.nzcv_q",
+          "matched_ref": "function_model"
         },
         {
-          "ref": "function_model.transactions.fm_tick",
-          "matched_ref": "single_owner"
+          "ref": "function_model.state_variables.trap_q",
+          "matched_ref": "function_model"
         },
         {
-          "ref": "function_model.transactions.fm_tick.preconditions.precondition_0",
-          "matched_ref": "single_owner"
+          "ref": "function_model.transactions.fm_cpu_step",
+          "matched_ref": "function_model"
         },
         {
-          "ref": "function_model.transactions.fm_tick.preconditions.precondition_1",
-          "matched_ref": "single_owner"
+          "ref": "function_model.transactions.fm_cpu_step.preconditions.precondition_0",
+          "matched_ref": "function_model"
         },
         {
-          "ref": "function_model.transactions.fm_tick.outputs.output_0",
-          "matched_ref": "single_owner"
+          "ref": "function_model.transactions.fm_cpu_step.preconditions.precondition_1",
+          "matched_ref": "function_model"
         },
         {
-          "ref": "function_model.transactions.fm_tick.outputs.output_1",
-          "matched_ref": "single_owner"
+          "ref": "function_model.transactions.fm_cpu_step.preconditions.precondition_2",
+          "matched_ref": "function_model"
         },
         {
-          "ref": "function_model.transactions.fm_tick.outputs.output_2",
-          "matched_ref": "single_owner"
+          "ref": "function_model.transactions.fm_cpu_step.outputs.output_0",
+          "matched_ref": "function_model"
         },
         {
-          "ref": "function_model.transactions.fm_tick.output_rules.pc_next",
-          "matched_ref": "single_owner"
+          "ref": "function_model.transactions.fm_cpu_step.outputs.output_1",
+          "matched_ref": "function_model"
         },
         {
-          "ref": "function_model.transactions.fm_tick.output_rules.busy_next",
-          "matched_ref": "single_owner"
+          "ref": "function_model.transactions.fm_cpu_step.outputs.output_2",
+          "matched_ref": "function_model"
         },
         {
-          "ref": "function_model.transactions.fm_tick.output_rules.retire_pulse",
-          "matched_ref": "single_owner"
+          "ref": "function_model.transactions.fm_cpu_step.output_rules.retire_pulse",
+          "matched_ref": "function_model"
         },
         {
-          "ref": "function_model.transactions.fm_tick.state_updates.pc_q",
-          "matched_ref": "single_owner"
+          "ref": "function_model.transactions.fm_cpu_step.output_rules.trap_flag",
+          "matched_ref": "function_model"
         },
         {
-          "ref": "function_model.transactions.fm_tick.state_updates.busy_q",
-          "matched_ref": "single_owner"
+          "ref": "function_model.transactions.fm_cpu_step.state_updates.pc_q",
+          "matched_ref": "function_model"
         },
         {
-          "ref": "function_model.transactions.fm_tick.state_updates.retire_q",
-          "matched_ref": "single_owner"
+          "ref": "function_model.transactions.fm_cpu_step.state_updates.rf_q",
+          "matched_ref": "function_model"
         },
         {
-          "ref": "function_model.transactions.fm_tick.side_effects.side_effect_0",
-          "matched_ref": "single_owner"
+          "ref": "function_model.transactions.fm_cpu_step.state_updates.nzcv_q",
+          "matched_ref": "function_model"
         },
         {
-          "ref": "function_model.transactions.fm_tick.side_effects.side_effect_1",
-          "matched_ref": "single_owner"
+          "ref": "function_model.transactions.fm_cpu_step.side_effects.side_effect_0",
+          "matched_ref": "function_model"
         },
         {
-          "ref": "function_model.transactions.fm_tick.side_effects.side_effect_2",
-          "matched_ref": "single_owner"
+          "ref": "function_model.transactions.fm_cpu_step.side_effects.side_effect_1",
+          "matched_ref": "function_model"
         },
         {
-          "ref": "function_model.transactions.fm_tick.error_cases.error_case_0",
-          "matched_ref": "single_owner"
+          "ref": "function_model.transactions.fm_cpu_step.side_effects.side_effect_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_cpu_step.side_effects.side_effect_3",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_cpu_step.error_cases.error_case_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_cpu_step.error_cases.error_case_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_cpu_step.error_cases.error_case_2",
+          "matched_ref": "function_model"
         },
         {
           "ref": "function_model.invariants.invariant_0",
-          "matched_ref": "single_owner"
+          "matched_ref": "function_model"
         },
         {
           "ref": "function_model.invariants.invariant_1",
-          "matched_ref": "single_owner"
+          "matched_ref": "function_model"
         },
         {
           "ref": "function_model.invariants.invariant_2",
-          "matched_ref": "single_owner"
+          "matched_ref": "function_model"
         },
         {
           "ref": "function_model.invariants.invariant_3",
-          "matched_ref": "single_owner"
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_4",
+          "matched_ref": "function_model"
         },
         {
           "ref": "cycle_model.clock",
-          "matched_ref": "single_owner"
+          "matched_ref": "cycle_model"
         },
         {
           "ref": "cycle_model.reset",
-          "matched_ref": "single_owner"
+          "matched_ref": "cycle_model"
         },
         {
           "ref": "cycle_model.latency",
-          "matched_ref": "single_owner"
+          "matched_ref": "cycle_model"
         },
         {
-          "ref": "cycle_model.handshake_rules.fetch_en_load",
-          "matched_ref": "single_owner"
+          "ref": "cycle_model.handshake_rules.if_wait",
+          "matched_ref": "cycle_model"
         },
         {
-          "ref": "cycle_model.handshake_rules.step_end_tick",
-          "matched_ref": "single_owner"
+          "ref": "cycle_model.handshake_rules.dmem_wait",
+          "matched_ref": "cycle_model"
         },
         {
-          "ref": "cycle_model.handshake_rules.flush_priority",
-          "matched_ref": "single_owner"
+          "ref": "cycle_model.handshake_rules.hazard_stall",
+          "matched_ref": "cycle_model"
         },
         {
-          "ref": "cycle_model.pipeline.s0_control_sample",
-          "matched_ref": "single_owner"
+          "ref": "cycle_model.pipeline.if",
+          "matched_ref": "cycle_model"
         },
         {
-          "ref": "cycle_model.pipeline.s1_state_visible",
-          "matched_ref": "single_owner"
+          "ref": "cycle_model.pipeline.id",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.ex_wb",
+          "matched_ref": "cycle_model"
         },
         {
           "ref": "cycle_model.ordering.ordering_0",
-          "matched_ref": "single_owner"
+          "matched_ref": "cycle_model"
         },
         {
           "ref": "cycle_model.ordering.ordering_1",
-          "matched_ref": "single_owner"
+          "matched_ref": "cycle_model"
         },
         {
           "ref": "cycle_model.ordering.ordering_2",
-          "matched_ref": "single_owner"
+          "matched_ref": "cycle_model"
         },
         {
-          "ref": "cycle_model.backpressure.backpressure_0",
-          "matched_ref": "single_owner"
+          "ref": "cycle_model.ordering.ordering_3",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_4",
+          "matched_ref": "cycle_model"
         }
       ],
       "structural_owner_matches": [
         {
           "ref": "parameters.xlen",
-          "matched_ref": "single_owner"
+          "matched_ref": "parameters"
         },
         {
-          "ref": "features.parameterized_pcdown",
-          "matched_ref": "single_owner"
+          "ref": "parameters.reset_pc",
+          "matched_ref": "parameters"
         },
         {
-          "ref": "features.retire_pulse",
-          "matched_ref": "single_owner"
+          "ref": "parameters.trap_vector",
+          "matched_ref": "parameters"
         },
         {
-          "ref": "features.flush_priority",
-          "matched_ref": "single_owner"
+          "ref": "parameters.stack_reset",
+          "matched_ref": "parameters"
+        },
+        {
+          "ref": "parameters.reg_count",
+          "matched_ref": "parameters"
+        },
+        {
+          "ref": "parameters.ahb_addr_w",
+          "matched_ref": "parameters"
+        },
+        {
+          "ref": "parameters.ahb_data_w",
+          "matched_ref": "parameters"
+        },
+        {
+          "ref": "parameters.core_freq_mhz",
+          "matched_ref": "parameters"
+        },
+        {
+          "ref": "parameters.ahb_htrans_idle",
+          "matched_ref": "parameters"
+        },
+        {
+          "ref": "parameters.ahb_htrans_busy",
+          "matched_ref": "parameters"
+        },
+        {
+          "ref": "parameters.ahb_htrans_nonseq",
+          "matched_ref": "parameters"
+        },
+        {
+          "ref": "parameters.ahb_htrans_seq",
+          "matched_ref": "parameters"
+        },
+        {
+          "ref": "parameters.ahb_hsize_word",
+          "matched_ref": "parameters"
+        },
+        {
+          "ref": "parameters.ahb_hburst_single",
+          "matched_ref": "parameters"
+        },
+        {
+          "ref": "registers.register_list.xpsr",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.pc",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.exc_cause",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.exc_epc",
+          "matched_ref": "registers"
         }
       ],
       "verification_scope": "module",
       "requires_module_equivalence": true,
       "blocked": false,
       "blocker": ""
+    },
+    {
+      "name": "if_stage",
+      "kind": "rtl_module",
+      "rtl_module": "if_stage",
+      "rtl_file": "rtl/cortex_m0lite_if_stage.sv",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "io_list",
+        "isa_spec",
+        "parameters"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.pipeline",
+        "dataflow",
+        "dataflow.ordering",
+        "dataflow.sequence",
+        "io_list",
+        "isa_spec",
+        "isa_spec.decode_contract",
+        "parameters"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "owner_matches": [],
+      "structural_owner_matches": [],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "id_stage",
+      "kind": "rtl_module",
+      "rtl_module": "id_stage",
+      "rtl_file": "rtl/cortex_m0lite_id_stage.sv",
+      "source_sections": [
+        "coverage_tap",
+        "dataflow",
+        "function_model",
+        "isa_spec",
+        "parameters"
+      ],
+      "ssot_refs": [
+        "coverage_tap",
+        "dataflow",
+        "dataflow.ordering",
+        "dataflow.sequence",
+        "function_model",
+        "function_model.transactions.FM_CPU_STEP",
+        "isa_spec",
+        "isa_spec.decode_rule_set",
+        "parameters"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "owner_matches": [],
+      "structural_owner_matches": [],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "ex_stage",
+      "kind": "rtl_module",
+      "rtl_module": "ex_stage",
+      "rtl_file": "rtl/cortex_m0lite_ex_stage.sv",
+      "source_sections": [
+        "coverage_tap",
+        "dataflow",
+        "error_handling",
+        "function_model",
+        "parameters"
+      ],
+      "ssot_refs": [
+        "coverage_tap",
+        "dataflow",
+        "dataflow.ordering",
+        "dataflow.sequence",
+        "error_handling",
+        "function_model",
+        "function_model.transactions.FM_CPU_STEP",
+        "parameters"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "owner_matches": [],
+      "structural_owner_matches": [],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "wb_stage",
+      "kind": "rtl_module",
+      "rtl_module": "wb_stage",
+      "rtl_file": "rtl/cortex_m0lite_wb_stage.sv",
+      "source_sections": [
+        "dataflow",
+        "error_handling",
+        "function_model",
+        "registers"
+      ],
+      "ssot_refs": [
+        "dataflow",
+        "dataflow.ordering",
+        "dataflow.sequence",
+        "error_handling",
+        "function_model",
+        "function_model.transactions.FM_CPU_STEP",
+        "registers",
+        "registers.register_list"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "owner_matches": [],
+      "structural_owner_matches": [],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "regfile",
+      "kind": "rtl_module",
+      "rtl_module": "regfile",
+      "rtl_file": "rtl/cortex_m0lite_regfile.sv",
+      "source_sections": [
+        "function_model",
+        "memory",
+        "parameters",
+        "registers"
+      ],
+      "ssot_refs": [
+        "function_model",
+        "function_model.state_variables",
+        "memory.instances.regfile_storage",
+        "parameters",
+        "registers",
+        "registers.register_list"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "memory.instances.regfile_storage"
+      ],
+      "owner_matches": [],
+      "structural_owner_matches": [
+        {
+          "ref": "memory.instances.regfile_storage",
+          "matched_ref": "semantic_terms:regfile,register"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "bus_if",
+      "kind": "rtl_module",
+      "rtl_module": "bus_if",
+      "rtl_file": "rtl/cortex_m0lite_bus_if.sv",
+      "source_sections": [
+        "cycle_model",
+        "error_handling",
+        "features",
+        "io_list",
+        "parameters"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "error_handling",
+        "features.precise_trap",
+        "io_list",
+        "io_list.interfaces",
+        "parameters",
+        "parameters.bus_freq_mhz"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "features.precise_trap",
+        "parameters.bus_freq_mhz"
+      ],
+      "owner_matches": [],
+      "structural_owner_matches": [
+        {
+          "ref": "parameters.bus_freq_mhz",
+          "matched_ref": "parameters"
+        },
+        {
+          "ref": "features.precise_trap",
+          "matched_ref": "semantic_terms:bus"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
     }
   ],
   "orphan_function_cycle_refs": [],
-  "function_cycle_ref_count": 35,
+  "function_cycle_ref_count": 42,
   "authority_contract": {
     "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
     "general_evaluation_criteria": [

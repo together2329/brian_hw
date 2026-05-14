@@ -39,6 +39,35 @@ def _filelist_entries(ip_dir: Path, ip_name: str) -> list[str]:
     return entries
 
 
+def _report_rtl_entries(ip_dir: Path, entries: list[str]) -> list[str]:
+    """Return DUT RTL/header files that the lint report claims as covered.
+
+    The Verilator compile filelist intentionally stays tool-owned, but the
+    ATLAS audit also treats generated parameter headers as current DUT sources.
+    Listing them here keeps lint evidence aligned with the audit without
+    compiling include headers as standalone translation units.
+    """
+
+    reported: list[str] = []
+    seen: set[str] = set()
+    for rel in entries:
+        if not rel.endswith((".v", ".sv", ".vh", ".svh")):
+            continue
+        if rel in seen:
+            continue
+        seen.add(rel)
+        reported.append(rel)
+    rtl_dir = ip_dir / "rtl"
+    if rtl_dir.is_dir():
+        for path in sorted(rtl_dir.glob("*_param.vh")):
+            rel = str(path.relative_to(ip_dir))
+            if rel in seen:
+                continue
+            seen.add(rel)
+            reported.append(rel)
+    return reported
+
+
 def _suppression_violations(ip_dir: Path, entries: list[str]) -> list[dict[str, str | int]]:
     """Find ad-hoc lint suppression comments in DUT RTL sources.
 
@@ -389,19 +418,20 @@ def main() -> int:
         print(f"[dut_lint_report] FAIL: filelist missing: {filelist}", file=sys.stderr)
         return 2
 
-    rtl_files = _filelist_entries(ip_dir, ip_name)
+    compile_rtl_files = _filelist_entries(ip_dir, ip_name)
+    report_rtl_files = _report_rtl_entries(ip_dir, compile_rtl_files)
     lint_dir = ip_dir / "lint"
     lint_dir.mkdir(parents=True, exist_ok=True)
     tool_results = [
-        _pyslang_lint(ip_dir, rtl_files),
+        _pyslang_lint(ip_dir, compile_rtl_files),
         _verilator_lint(ip_name, top, ip_dir),
     ]
     output = _log_output(tool_results)
     errors = sum(int(result.get("errors") or 0) for result in tool_results)
     warnings = sum(int(result.get("warnings") or 0) for result in tool_results)
     tool_passed = all(bool(result.get("passed")) for result in tool_results)
-    suppression_violations = _suppression_violations(ip_dir, rtl_files)
-    style_violations = _style_violations(ip_dir, rtl_files)
+    suppression_violations = _suppression_violations(ip_dir, report_rtl_files)
+    style_violations = _style_violations(ip_dir, report_rtl_files)
     combined_returncode = 0 if tool_passed else 1
     report = {
         "schema_version": 1,
@@ -413,7 +443,7 @@ def main() -> int:
         "cwd": str(ip_dir.relative_to(project_root)),
         "top": top,
         "filelist": str(filelist.relative_to(project_root)),
-        "rtl_files": rtl_files,
+        "rtl_files": report_rtl_files,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "returncode": combined_returncode,
         "errors": errors,

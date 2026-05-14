@@ -1,0 +1,288 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage",
+  "status": "pass",
+  "timestamp_iso": "2026-05-14T13:51:18Z",
+  "functional": {
+    "hit": 55,
+    "total": 55,
+    "pct": 100.0,
+    "bins": {
+      "fcov_fm_tx_byte": {
+        "hit": true,
+        "goal_id": "EQ_TRANSACTION_FM_TX_BYTE",
+        "scenario_id": "SC_001_EQ_TRANSACTION_FM_TX_BYTE"
+      },
+      "function_transmit_byte": {
+        "hit": true,
+        "goal_id": "EQ_TRANSACTION_FM_TX_BYTE",
+        "scenario_id": "SC_001_EQ_TRANSACTION_FM_TX_BYTE"
+      },
+      "fcov_fm_rx_byte": {
+        "hit": true,
+        "goal_id": "EQ_TRANSACTION_FM_RX_BYTE",
+        "scenario_id": "SC_002_EQ_TRANSACTION_FM_RX_BYTE"
+      },
+      "fcov_err_parity": {
+        "hit": true,
+        "goal_id": "EQ_TRANSACTION_FM_RX_BYTE",
+        "scenario_id": "SC_002_EQ_TRANSACTION_FM_RX_BYTE"
+      },
+      "fcov_err_frame": {
+        "hit": true,
+        "goal_id": "EQ_TRANSACTION_FM_RX_BYTE",
+        "scenario_id": "SC_002_EQ_TRANSACTION_FM_RX_BYTE"
+      },
+      "fcov_err_overrun": {
+        "hit": true,
+        "goal_id": "EQ_TRANSACTION_FM_RX_BYTE",
+        "scenario_id": "SC_002_EQ_TRANSACTION_FM_RX_BYTE"
+      },
+      "function_receive_byte": {
+        "hit": true,
+        "goal_id": "EQ_TRANSACTION_FM_RX_BYTE",
+        "scenario_id": "SC_002_EQ_TRANSACTION_FM_RX_BYTE"
+      },
+      "fcov_fm_break": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC10",
+        "scenario_id": "SC_014_EQ_SCENARIO_SC10"
+      },
+      "function_send_break": {
+        "hit": true,
+        "goal_id": "EQ_TRANSACTION_FM_BREAK_SEND",
+        "scenario_id": "SC_003_EQ_TRANSACTION_FM_BREAK_SEND"
+      },
+      "fcov_fm_loopback": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC9",
+        "scenario_id": "SC_013_EQ_SCENARIO_SC9"
+      },
+      "function_loopback_mode": {
+        "hit": true,
+        "goal_id": "EQ_TRANSACTION_FM_LOOPBACK",
+        "scenario_id": "SC_004_EQ_TRANSACTION_FM_LOOPBACK"
+      },
+      "SC1_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC1",
+        "scenario_id": "SC_005_EQ_SCENARIO_SC1"
+      },
+      "SC10_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC10",
+        "scenario_id": "SC_014_EQ_SCENARIO_SC10"
+      },
+      "SC11_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC11",
+        "scenario_id": "SC_015_EQ_SCENARIO_SC11"
+      },
+      "SC12_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC12",
+        "scenario_id": "SC_016_EQ_SCENARIO_SC12"
+      },
+      "SC13_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC13",
+        "scenario_id": "SC_017_EQ_SCENARIO_SC13"
+      },
+      "SC14_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC14",
+        "scenario_id": "SC_018_EQ_SCENARIO_SC14"
+      },
+      "SC15_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC15",
+        "scenario_id": "SC_019_EQ_SCENARIO_SC15"
+      },
+      "SC16_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC16",
+        "scenario_id": "SC_020_EQ_SCENARIO_SC16"
+      },
+      "SC17_executed": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "SC2_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC2",
+        "scenario_id": "SC_006_EQ_SCENARIO_SC2"
+      },
+      "SC3_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC3",
+        "scenario_id": "SC_007_EQ_SCENARIO_SC3"
+      },
+      "SC4_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC4",
+        "scenario_id": "SC_008_EQ_SCENARIO_SC4"
+      },
+      "SC5_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC5",
+        "scenario_id": "SC_009_EQ_SCENARIO_SC5"
+      },
+      "SC6_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC6",
+        "scenario_id": "SC_010_EQ_SCENARIO_SC6"
+      },
+      "SC7_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC7",
+        "scenario_id": "SC_011_EQ_SCENARIO_SC7"
+      },
+      "SC8_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC8",
+        "scenario_id": "SC_012_EQ_SCENARIO_SC8"
+      },
+      "SC9_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC9",
+        "scenario_id": "SC_013_EQ_SCENARIO_SC9"
+      },
+      "ccov_baud_tick": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "cycle_handshake_0": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "cycle_handshake_1": {
+        "hit": true,
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_3",
+        "scenario_id": "SC_025_EQ_PROTOCOL_HANDSHAKE_3"
+      },
+      "cycle_handshake_2": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_DBG_FRAMES_ERR",
+        "scenario_id": "SC_039_EQ_REGISTER_DBG_FRAMES_ERR"
+      },
+      "cycle_handshake_3": {
+        "hit": true,
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_3",
+        "scenario_id": "SC_025_EQ_PROTOCOL_HANDSHAKE_3"
+      },
+      "cycle_ordering_0": {
+        "hit": true,
+        "goal_id": "EQ_TIMING_ORDERING_1",
+        "scenario_id": "SC_027_EQ_TIMING_ORDERING_1"
+      },
+      "cycle_ordering_1": {
+        "hit": true,
+        "goal_id": "EQ_TIMING_ORDERING_1",
+        "scenario_id": "SC_027_EQ_TIMING_ORDERING_1"
+      },
+      "cycle_ordering_2": {
+        "hit": true,
+        "goal_id": "EQ_TIMING_ORDERING_1",
+        "scenario_id": "SC_027_EQ_TIMING_ORDERING_1"
+      },
+      "cycle_latency_register_read": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_DBG_FRAMES_ERR",
+        "scenario_id": "SC_039_EQ_REGISTER_DBG_FRAMES_ERR"
+      },
+      "cycle_latency_register_write": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_DBG_FRAMES_ERR",
+        "scenario_id": "SC_039_EQ_REGISTER_DBG_FRAMES_ERR"
+      },
+      "cycle_latency_tx_byte": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "cycle_latency_rx_byte": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "cycle_pipeline_tx_start": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "cycle_pipeline_tx_data": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "cycle_pipeline_tx_parity": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "cycle_pipeline_tx_stop1": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "cycle_pipeline_tx_stop2": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "cycle_perf_throughput": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "fsm_tx_fsm_tx_idle_to_tx_start_0": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "fsm_tx_fsm_tx_start_to_tx_data_1": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "fsm_tx_fsm_tx_data_to_tx_parity_2": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "fsm_tx_fsm_tx_data_to_tx_stop1_3": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "fsm_tx_fsm_tx_parity_to_tx_stop1_4": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "fsm_tx_fsm_tx_stop1_to_tx_idle_5": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "fsm_tx_fsm_tx_stop1_to_tx_stop2_6": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "fsm_tx_fsm_tx_stop2_to_tx_idle_7": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_BAUD",
+        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+      },
+      "error_error_0": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_DBG_FRAMES_ERR",
+        "scenario_id": "SC_039_EQ_REGISTER_DBG_FRAMES_ERR"
+      }
+    }
+  }
+}

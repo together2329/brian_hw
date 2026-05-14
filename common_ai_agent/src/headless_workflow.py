@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -255,9 +256,23 @@ def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
                 "name": ip,
                 "file": f"rtl/{ip}.sv",
                 "ownership": "manifest",
+                "wiring_only": True,
+                "implements": ["io_list", "integration"],
+                "source_sections": ["io_list", "integration"],
+                "description": "Top wrapper that connects external ports to the SSOT-owned core.",
+            },
+            {
+                "name": f"{ip}_core",
+                "file": f"rtl/{ip}_core.sv",
+                "ownership": "manifest",
                 "implements": ["function_model.transactions", "cycle_model", "rtl_contract"],
-                "source_sections": ["io_list", "function_model", "cycle_model", "rtl_contract"],
-                "description": "Single top RTL block implementing the sampled transaction rule.",
+                "source_sections": ["function_model", "cycle_model", "rtl_contract", "fsm", "dataflow", "registers"],
+                "function_model_refs": ["function_model.transactions.FM_PRIMARY"],
+                "cycle_model_refs": ["cycle_model.pipeline"],
+                "dataflow_refs": ["dataflow.sequence", "dataflow.ordering"],
+                "register_refs": ["registers.architectural_state.accepted_count"],
+                "fsm_refs": ["fsm.control"],
+                "description": "Core RTL block implementing the sampled transaction rule.",
             }
         ],
         "parameters": [
@@ -279,6 +294,14 @@ def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
                 {
                     "name": "rule_io",
                     "type": "custom",
+                    "role": "target",
+                    "clock_domain": "main",
+                    "reset_domain": "rst_n",
+                    "protocol": {
+                        "acceptance": "A request is accepted when valid && ready is true on clk.",
+                        "response": "result and result_valid are driven one cycle after the accepted request.",
+                        "stability": "data_in is sampled only at acceptance; result remains traceable to that sampled value.",
+                    },
                     "ports": [
                         {"name": "valid", "direction": "input", "width": 1},
                         {"name": "data_in", "direction": "input", "width": 8},
@@ -363,6 +386,8 @@ def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
         "cdc_requirements": {"crossings": [], "rationale": "Single clock domain."},
         "rdc_requirements": {"crossings": [], "rationale": "Single reset domain."},
         "registers": {
+            "no_registers": True,
+            "policy": "No firmware-visible CSR/register map is required for this native valid/ready rule IP.",
             "register_list": [],
             "architectural_state": [{"name": "accepted_count", "reset": 0, "source": "function_model.state_variables"}],
         },
@@ -385,6 +410,7 @@ def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
             "transaction": "FM_PRIMARY",
             "sample_condition": "valid && ready",
             "input_map": {"value": "data_in"},
+            "output_map": {"result": "result", "valid": "result_valid"},
             "ready_output": "ready",
             "output_valid": "result_valid",
         },
@@ -416,6 +442,15 @@ def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
         "integration": {
             "bus_attachment": {"type": "native_valid_ready_rule_io", "interfaces": ["rule_io"]},
             "dependencies": {"external_modules": [], "external_clocks": ["clk"], "external_resets": ["rst_n"]},
+            "connections": [
+                {"module": f"{ip}_core", "port": "clk", "signal": "clk"},
+                {"module": f"{ip}_core", "port": "rst_n", "signal": "rst_n"},
+                {"module": f"{ip}_core", "port": "valid", "signal": "valid"},
+                {"module": f"{ip}_core", "port": "data_in", "signal": "data_in"},
+                {"module": f"{ip}_core", "port": "ready", "signal": "ready"},
+                {"module": f"{ip}_core", "port": "result", "signal": "result"},
+                {"module": f"{ip}_core", "port": "result_valid", "signal": "result_valid"},
+            ],
         },
         "dft": {
             "scan_required": False,
@@ -452,7 +487,7 @@ def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
             "lint_dir": "lint/",
         },
         "filelist": {
-            "rtl": [f"rtl/{ip}.sv"],
+            "rtl": [f"rtl/{ip}.sv", f"rtl/{ip}_core.sv"],
             "tb": [f"tb/cocotb/test_{ip}.py"],
             "coverage": ["cov/coverage.json"],
         },
@@ -537,8 +572,8 @@ def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
                         "DUT-only compile/lint and rtl_todo_plan audit pass after the final edit",
                     ],
                     "source_refs": ["function_model.transactions.RULE_DOUBLE", "cycle_model.pipeline"],
-                    "owner_module": ip,
-                    "owner_file": f"rtl/{ip}.sv",
+                    "owner_module": f"{ip}_core",
+                    "owner_file": f"rtl/{ip}_core.sv",
                     "priority": "high",
                     "required": True,
                 }
@@ -608,6 +643,33 @@ module {ip} (
     input  wire       rst_n,
     input  wire       valid,
     input  wire [7:0] data_in,
+    output wire [8:0] result,
+    output wire       ready,
+    output wire       result_valid
+);
+    {ip}_core u_core (
+        .clk(clk),
+        .rst_n(rst_n),
+        .valid(valid),
+        .data_in(data_in),
+        .result(result),
+        .ready(ready),
+        .result_valid(result_valid)
+    );
+endmodule
+
+`default_nettype wire
+'''
+
+
+def _fake_rtl_core_source(ip: str) -> str:
+    return f'''`default_nettype none
+
+module {ip}_core (
+    input  wire       clk,
+    input  wire       rst_n,
+    input  wire       valid,
+    input  wire [7:0] data_in,
     output reg  [8:0] result,
     output reg        ready,
     output reg        result_valid
@@ -667,13 +729,14 @@ def _fake_rtl_artifacts(ip: str, context: dict[str, Any]) -> list[dict[str, str]
         "workflow": "rtl-gen",
         "surface": "headless_common_engine",
         "todo_plan_sha256": todo_hash,
-        "rtl_files": [f"rtl/{ip}.sv"],
+        "rtl_files": [f"rtl/{ip}.sv", f"rtl/{ip}_core.sv"],
         "contract_files": ["rtl/rtl_contract.json"],
         "generation_note": "Fake LLM provider artifact used only for headless TDD.",
     }
     return [
         {"path": f"{ip}/rtl/{ip}.sv", "content": _fake_rtl_source(ip), "kind": "rtl"},
-        {"path": f"{ip}/list/{ip}.f", "content": f"rtl/{ip}.sv\n", "kind": "filelist"},
+        {"path": f"{ip}/rtl/{ip}_core.sv", "content": _fake_rtl_core_source(ip), "kind": "rtl"},
+        {"path": f"{ip}/list/{ip}.f", "content": f"rtl/{ip}.sv\nrtl/{ip}_core.sv\n", "kind": "filelist"},
         {"path": f"{ip}/rtl/rtl_contract.json", "content": _fake_rtl_contract(ip), "kind": "rtl_contract"},
         {
             "path": f"{ip}/rtl/rtl_authoring_provenance.json",
@@ -816,6 +879,9 @@ class RealLLMProvider:
                 from src import config
             except ModuleNotFoundError:
                 import config
+            if getattr(config, "is_cli_backend_model", lambda _name: False)(requested):
+                if config.activate_cli_backend(requested):
+                    return str(config.MODEL_NAME or requested), ""
             if config.set_active_profile(requested):
                 return str(config.MODEL_NAME or requested), requested
         except Exception:
@@ -829,6 +895,10 @@ class RealLLMProvider:
             return "ATLAS_RUN_REAL_LLM_TDD=1 is not set"
         resolved_model, _profile = self._activate_requested_model(model)
         model_l = (resolved_model or "").lower()
+        if model_l in {"cursor-cli", "cursor-agent"} or model_l.startswith("cursor-cli"):
+            return "" if shutil.which("cursor-agent") else "cursor-agent not found in PATH"
+        if model_l in {"claude-cli", "claude"} or model_l.startswith("claude-cli"):
+            return "" if shutil.which("claude") else "claude not found in PATH"
         if model_l.startswith("openai/"):
             model_l = model_l.split("/", 1)[1]
         if model_l.startswith("gpt-5") or ("gpt" in model_l and "codex" in model_l):
@@ -881,6 +951,12 @@ class RealLLMProvider:
             "caller_tag": f"headless.{stage}",
             "max_tokens": stage_max_tokens if stage_max_tokens > 0 else default_max_tokens,
         }
+        if str(resolved_model or model).lower() in {"claude-cli", "claude"}:
+            # Let the Claude backend own timeout cleanup.  If the outer
+            # subprocess timeout fires first, Claude Code can remain as an
+            # orphaned detached child because the backend starts it in a new
+            # process session.
+            request["claude_cli_timeout_sec"] = max(1, self.timeout_s - 30)
         if output_schema and os.getenv("ATLAS_HEADLESS_LLM_JSON_MODE", "1") != "0":
             request["extra_body"] = {"response_format": {"type": "json_object"}}
         child_code = r'''
@@ -904,8 +980,16 @@ try:
         req["model"] = config.MODEL_NAME
     elif config.set_active_profile(req["model"]):
         req["model"] = config.MODEL_NAME
+    elif getattr(config, "is_cli_backend_model", lambda _name: False)(req["model"]):
+        config.activate_cli_backend(req["model"])
+        req["model"] = config.MODEL_NAME
     elif config.is_opencode_model(req["model"]):
         config.activate_opencode_oauth(req["model"])
+    if req.get("claude_cli_timeout_sec") and getattr(config, "CLAUDE_CLI_ENABLE", False):
+        _timeout = int(req["claude_cli_timeout_sec"])
+        config.CLAUDE_CLI_TIMEOUT_SEC = _timeout
+        import os
+        os.environ["CLAUDE_CLI_TIMEOUT_SEC"] = str(_timeout)
     from src.llm_client import call_llm_raw, get_last_usage
     try:
         from lib.model_pricing import get_active_pricing
@@ -1051,6 +1135,13 @@ def _json_from_text(text: str) -> dict[str, Any] | None:
                 data, _ = decoder.raw_decode(candidate.strip())
             except Exception:
                 continue
+        if isinstance(data, dict):
+            return data
+    for match in re.finditer(r"\{", text):
+        try:
+            data, _ = decoder.raw_decode(text[match.start() :].strip())
+        except Exception:
+            continue
         if isinstance(data, dict):
             return data
     return None
@@ -1701,6 +1792,63 @@ class HeadlessWorkflowRunner:
                 )
         return StageResult("ssot-gen", "pass", "SSOT contract valid", artifacts=[str(path.relative_to(self.root)), f"{ip}/logs/llm/ssot-gen.json"])
 
+    def _run_deterministic_ssot_repair(self, ip: str, *, reason: str = "") -> bool:
+        repair = WORKFLOW_ROOT / "ssot-gen" / "scripts" / "repair_ssot_schema.py"
+        if not repair.is_file():
+            return False
+        log = self._ip_dir(ip) / "logs" / "validators" / "repair_ssot_schema.log"
+        log.parent.mkdir(parents=True, exist_ok=True)
+        cmd = [sys.executable, str(repair), ip, "--root", str(self.root)]
+        self._write_progress(ip, "deterministic_repair_start", stage="ssot-gen", reason=reason)
+        try:
+            proc = subprocess.run(
+                cmd,
+                cwd=str(SOURCE_ROOT),
+                text=True,
+                capture_output=True,
+                timeout=60,
+            )
+        except subprocess.TimeoutExpired as exc:
+            log.write_text(
+                "\n".join(
+                    [
+                        "cmd: " + " ".join(cmd),
+                        f"cwd: {SOURCE_ROOT}",
+                        "returncode: timeout",
+                        f"reason: {reason}",
+                        "stdout:\n" + str(exc.stdout or "").strip(),
+                        "stderr:\n" + str(exc.stderr or "").strip(),
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            self._write_progress(ip, "deterministic_repair_end", stage="ssot-gen", status="timeout")
+            return False
+        log.write_text(
+            "\n".join(
+                part
+                for part in [
+                    "cmd: " + " ".join(cmd),
+                    f"cwd: {SOURCE_ROOT}",
+                    f"returncode: {proc.returncode}",
+                    f"reason: {reason}",
+                    "stdout:\n" + proc.stdout.strip() if proc.stdout.strip() else "",
+                    "stderr:\n" + proc.stderr.strip() if proc.stderr.strip() else "",
+                ]
+                if part
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        self._write_progress(
+            ip,
+            "deterministic_repair_end",
+            stage="ssot-gen",
+            status="pass" if proc.returncode == 0 else "fail",
+        )
+        return proc.returncode == 0
+
     def _validate_ssot(self, ip: str) -> StageResult:
         result = self._check_ssot_contract(ip)
         return self._append(
@@ -1755,6 +1903,9 @@ class HeadlessWorkflowRunner:
             return self._append_ssot_llm_gate(ip, response)
         self._apply_artifacts(ip, response.parsed_artifacts)
 
+        deterministic_repair_tried = False
+        if self._run_deterministic_ssot_repair(ip, reason="canonicalize_llm_ssot"):
+            deterministic_repair_tried = True
         for attempt in range(0, self.ssot_repair_attempts + 1):
             validation = self._check_ssot_contract(ip, emit_gate=False)
             if validation.status == "pass":
@@ -1766,6 +1917,19 @@ class HeadlessWorkflowRunner:
                     artifacts=validation.artifacts,
                     blocker=validation.blocker,
                 )
+            if not deterministic_repair_tried and not validation.message.startswith("SSOT contract incomplete"):
+                deterministic_repair_tried = True
+                if self._run_deterministic_ssot_repair(ip, reason=validation.message):
+                    validation = self._check_ssot_contract(ip, emit_gate=False)
+                    if validation.status == "pass":
+                        return self._append(
+                            validation.stage,
+                            validation.status,
+                            validation.message,
+                            returncode=validation.returncode,
+                            artifacts=validation.artifacts,
+                            blocker=validation.blocker,
+                        )
             if attempt >= self.ssot_repair_attempts:
                 validation = self._check_ssot_contract(ip, emit_gate=True)
                 return self._append(

@@ -8,12 +8,12 @@
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 9,
+      "count": 10,
       "enabled": true,
-      "index": 1,
+      "index": 2,
       "key": "parameters",
-      "module_task_count": 98,
-      "rule": "Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 94,
+      "rule": "Owner module cortex_m0lite_core is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "parameters",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -234,28 +234,30 @@
     "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
     "Every task must satisfy content, detail, and criteria before the packet is closed.",
     "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
     "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
   ],
   "schema_version": 1,
   "source_plan": "rtl/rtl_todo_plan.json",
   "summary": {
     "categories": {
-      "parameters.item": 15
+      "parameters.item": 14
     },
     "module_slice": {
-      "count": 9,
+      "count": 10,
       "enabled": true,
-      "index": 1,
+      "index": 2,
       "key": "parameters",
-      "module_task_count": 98,
-      "rule": "Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 94,
+      "rule": "Owner module cortex_m0lite_core is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "parameters",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
     "open_required_count": 0,
-    "required_count": 15,
+    "required_count": 14,
     "source_refs": [
       "parameters.XLEN",
       "parameters.RESET_PC",
@@ -265,7 +267,6 @@
       "parameters.AHB_ADDR_W",
       "parameters.AHB_DATA_W",
       "parameters.CORE_FREQ_MHZ",
-      "parameters.BUS_FREQ_MHZ",
       "parameters.AHB_HTRANS_IDLE",
       "parameters.AHB_HTRANS_BUSY",
       "parameters.AHB_HTRANS_NONSEQ",
@@ -274,9 +275,9 @@
       "parameters.AHB_HBURST_SINGLE"
     ],
     "status_counts": {
-      "pass": 15
+      "pass": 14
     },
-    "task_count": 15
+    "task_count": 14
   },
   "tasks": [
     {
@@ -609,47 +610,6 @@
     },
     {
       "category": "parameters.item",
-      "content": "Implement parameter BUS_FREQ_MHZ",
-      "criteria": [
-        "Parameter default/value matches SSOT",
-        "Parameter-derived widths are implemented outside procedural part-selects",
-        "Compile/lint evidence covers the parameterized form",
-        "Traceability keeps source_ref parameters.BUS_FREQ_MHZ",
-        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
-      ],
-      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.BUS_FREQ_MHZ.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via parameters.\nSSOT item context: name=BUS_FREQ_MHZ.",
-      "evidence_terms": [],
-      "id": "RTL-0038",
-      "owner_file": "rtl/cortex_m0lite_core.sv",
-      "owner_module": "cortex_m0lite_core",
-      "priority": "normal",
-      "required": true,
-      "source_ref": "parameters.BUS_FREQ_MHZ",
-      "ssot_context": {
-        "name": "BUS_FREQ_MHZ"
-      },
-      "ssot_refs": [
-        "parameters.BUS_FREQ_MHZ"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 5,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "parameters.item",
       "content": "Implement parameter AHB_HTRANS_IDLE",
       "criteria": [
         "Parameter default/value matches SSOT",
@@ -895,7 +855,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "67adb8890410a2aeeee9a654b645018e5e9f79eb8ebcffab7e873d9d102687f9",
+  "todo_plan_sha256": "c6dd55ff414292d6cfb25aa90ae64245d5f8618420d87d35c2436677a025d78f",
   "top": "cortex_m0lite",
   "type": "rtl_authoring_packet"
 }

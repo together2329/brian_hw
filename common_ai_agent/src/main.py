@@ -1488,7 +1488,15 @@ def chat_loop():
 
     # ── Multiline input setup ──
     _multiline_prompt = None
-    if config.ENABLE_MULTILINE_INPUT and _textual_input_fn is None:
+    # Headless mode (``--headless`` / ``--prompt-file``) needs builtin ``input()``
+    # because ``PromptSession.prompt()`` does not raise ``EOFError`` reliably when
+    # stdin is a redirected regular file at EOF — the chat loop would then idle
+    # forever after consuming the seed instead of writing ``exit.json`` and
+    # terminating cleanly. Skipping ``PromptSession`` falls through to the
+    # ``_input_fn = _loop_deps.input_fn or input`` branch below, where ``input()``
+    # raises ``EOFError`` on file EOF and the existing handler at the bottom of
+    # ``chat_loop`` writes ``exit.json`` and breaks.
+    if config.ENABLE_MULTILINE_INPUT and _textual_input_fn is None and not bool(getattr(config, "HEADLESS_MODE", False)):
         try:
             # Add vendored packages to path (use resolve() for absolute path on all platforms)
             _vendor_dir = str(Path(__file__).resolve().parent.parent / 'vendor')

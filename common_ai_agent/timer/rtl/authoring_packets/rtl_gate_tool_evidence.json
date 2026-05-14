@@ -135,24 +135,89 @@
   },
   "execution_policy": {
     "blocked_by_locked_truth": [],
-    "blocked_by_tool_evidence": [],
+    "blocked_by_tool_evidence": [
+      {
+        "gate_kind": "common_ai_agent_authoring",
+        "owner_module": "timer_core",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
+        "gate_kind": "dynamic_todo_closure",
+        "owner_module": "timer_core",
+        "reason": "1 required non-closure TODO(s) remain open.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "status": "open",
+        "task_id": "RTL-0019"
+      }
+    ],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": false,
+    "deferred_human_qa_allowed": true,
     "draft_allowed": false,
     "evidence_closure_allowed": true,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
-    "open_required_count": 0,
-    "pass_allowed": true,
+    "open_required_count": 2,
+    "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
       "Never use a fixed RTL template as the implementation."
     ],
-    "tool_evidence_open_count": 0,
-    "tool_evidence_plan": [],
+    "tool_evidence_open_count": 2,
+    "tool_evidence_plan": [
+      {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "artifacts": [
+          "timer/rtl/rtl_authoring_provenance.json",
+          "timer/rtl/rtl_todo_plan.json"
+        ],
+        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+        "commands": [
+          "python3 src/headless_workflow.py --root . --ip timer --stages rtl-gen",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py timer --root . --audit-rtl"
+        ],
+        "gate_kind": "common_ai_agent_authoring",
+        "prerequisites": [
+          "An LLM authoring pass emitted or repaired DUT RTL files."
+        ],
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "stage_sequence": [
+          "ssot-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "artifacts": [
+          "timer/rtl/rtl_todo_plan.json",
+          "timer/rtl/rtl_authoring_status.md"
+        ],
+        "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py timer --root . --audit-rtl"
+        ],
+        "gate_kind": "dynamic_todo_closure",
+        "prerequisites": [
+          "All non-closure required TODOs have pass status."
+        ],
+        "reason": "1 required non-closure TODO(s) remain open.",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "stage_sequence": [
+          "audit-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0019"
+      }
+    ],
     "work_allowed": true
   },
   "ip": "timer",
@@ -165,6 +230,8 @@
     "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
     "Every task must satisfy content, detail, and criteria before the packet is closed.",
     "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
     "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
   ],
   "schema_version": 1,
@@ -174,7 +241,7 @@
       "rtl_gate.rtl_gen": 4
     },
     "module_slice": {},
-    "open_required_count": 0,
+    "open_required_count": 2,
     "required_count": 4,
     "source_refs": [
       "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -183,7 +250,8 @@
       "quality_gates.rtl_gen.dynamic_todo_closure"
     ],
     "status_counts": {
-      "pass": 4
+      "open": 2,
+      "pass": 2
     },
     "task_count": 4
   },
@@ -232,9 +300,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -372,13 +440,13 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Every required non-closure TODO has pass status.",
+        "reason": "1 required non-closure TODO(s) remain open.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     }
   ],
-  "todo_plan_sha256": "165765ecb941a931579eb51e442b504a2dca3a2f95193e4892a808ed0175a192",
+  "todo_plan_sha256": "a23c0543ed9da659d4626892d40fa96fc6db2e7b2fee798c1732638c87cb83d7",
   "top": "timer",
   "type": "rtl_authoring_packet"
 }

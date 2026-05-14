@@ -1,0 +1,565 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "spi",
+  "source": "spi/yaml/spi.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "spi/req/",
+      "spi/yaml/spi.ssot.yaml",
+      "spi/model/functional_model.py",
+      "spi/cov/fcov_plan.json",
+      "spi/yaml/spi.ssot.yaml#io_list",
+      "spi/yaml/spi.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "spi/rtl/",
+      "spi/tb/",
+      "spi/sim/",
+      "spi/vectors/",
+      "spi/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "SC_APB_CONFIG_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC_APB_CONFIG",
+      "description": "APB config/readback"
+    },
+    {
+      "id": "SC_BASIC_TRANSFER_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC_BASIC_TRANSFER",
+      "description": "Basic frame transfer"
+    },
+    {
+      "id": "SC_CPOL_CPHA_SWEEP_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC_CPOL_CPHA_SWEEP",
+      "description": "CPOL/CPHA sweep"
+    },
+    {
+      "id": "SC_LSB_FIRST_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC_LSB_FIRST",
+      "description": "LSB-first ordering"
+    },
+    {
+      "id": "SC_WIDTH_SWEEP_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC_WIDTH_SWEEP",
+      "description": "Frame width sweep"
+    },
+    {
+      "id": "SC_FIFO_LIMITS_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC_FIFO_LIMITS",
+      "description": "FIFO boundary behavior"
+    },
+    {
+      "id": "SC_IRQ_W1C_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC_IRQ_W1C",
+      "description": "Interrupt mask and W1C"
+    },
+    {
+      "id": "SC_ERROR_PATHS_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC_ERROR_PATHS",
+      "description": "Error paths"
+    },
+    {
+      "id": "SC_PRESCALE_TIMING_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[8]",
+      "scenario": "SC_PRESCALE_TIMING",
+      "description": "Prescale timing"
+    },
+    {
+      "id": "SC_LOOPBACK_DEBUG_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[9]",
+      "scenario": "SC_LOOPBACK_DEBUG",
+      "description": "Loopback and debug observability"
+    },
+    {
+      "id": "fcov_tx_push_ok",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_APB_TX_PUSH",
+      "source_ref": "function_model.transactions.FM_APB_TX_PUSH",
+      "description": "TXDATA accepted path"
+    },
+    {
+      "id": "fcov_tx_push_overrun",
+      "class": "error_case",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_APB_TX_PUSH",
+      "source_ref": "function_model.transactions.FM_APB_TX_PUSH",
+      "description": "TX full drop path"
+    },
+    {
+      "id": "fcov_launch_suppress",
+      "class": "error_case",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_FRAME_LAUNCH",
+      "source_ref": "function_model.transactions.FM_FRAME_LAUNCH",
+      "description": "Launch suppression paths"
+    },
+    {
+      "id": "fcov_frame_complete",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_FRAME_COMPLETE",
+      "source_ref": "function_model.transactions.FM_FRAME_COMPLETE",
+      "description": "Normal frame completion"
+    },
+    {
+      "id": "ccov_apb_handshake",
+      "class": "handshake",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules",
+      "source_ref": "cycle_model.handshake_rules",
+      "description": "APB transfer and PSLVERR timing"
+    },
+    {
+      "id": "ccov_spi_pipeline",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline",
+      "source_ref": "cycle_model.pipeline",
+      "description": "All SPI pipeline stages observed"
+    },
+    {
+      "id": "ccov_fsm_transitions",
+      "class": "fsm",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_level.transitions",
+      "source_ref": "fsm.channel_level.transitions",
+      "description": "Legal transitions covered"
+    },
+    {
+      "id": "function_apb_write_txdata",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm_apb_tx_push",
+      "description": "apb_write_txdata"
+    },
+    {
+      "id": "function_launch_frame",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[1]",
+      "source_ref": "function_model.transactions.fm_frame_launch",
+      "description": "launch_frame"
+    },
+    {
+      "id": "function_shift_and_sample_bits",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[2]",
+      "source_ref": "function_model.transactions.fm_shift_sample",
+      "description": "shift_and_sample_bits"
+    },
+    {
+      "id": "function_complete_frame_and_store_rx",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[3]",
+      "source_ref": "function_model.transactions.fm_frame_complete",
+      "description": "complete_frame_and_store_rx"
+    },
+    {
+      "id": "function_apb_read_rxdata",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[4]",
+      "source_ref": "function_model.transactions.fm_apb_rx_pop",
+      "description": "apb_read_rxdata"
+    },
+    {
+      "id": "function_w1c_interrupt_and_status_clear",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[5]",
+      "source_ref": "function_model.transactions.fm_int_clear",
+      "description": "w1c_interrupt_and_status_clear"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'signal': 'APB', 'rule': 'Transfer occurs when PSEL && PENABLE && PREADY; PSLVERR valid in same transfer.'}"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "{'signal': 'CTRL.start', 'rule': 'Sampled as pulse request; hardware may auto-clear start bit after acceptance.'}"
+    },
+    {
+      "id": "cycle_handshake_2",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[2]",
+      "source_ref": "cycle_model.handshake_rules[2]",
+      "description": "{'signal': 'launch_gate', 'rule': 'Shift FSM leaves IDLE only when all launch preconditions are simultaneously true.'}"
+    },
+    {
+      "id": "cycle_handshake_3",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[3]",
+      "source_ref": "cycle_model.handshake_rules[3]",
+      "description": "{'signal': 'sclk_o', 'rule': 'Half-period equals (PRESCALE.divisor+1) PCLK cycles; CPOL controls idle level.'}"
+    },
+    {
+      "id": "cycle_handshake_4",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[4]",
+      "source_ref": "cycle_model.handshake_rules[4]",
+      "description": "{'signal': 'sample_edge', 'rule': 'CPHA selects whether first active edge launches then samples or samples then launches.'}"
+    },
+    {
+      "id": "cycle_latency_apb_read",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.apb_read",
+      "source_ref": "cycle_model.latency.apb_read",
+      "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'PRDATA/PREADY returned in same or next cycle; no multi-cycle wait-state required'}"
+    },
+    {
+      "id": "cycle_latency_apb_write",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.apb_write",
+      "source_ref": "cycle_model.latency.apb_write",
+      "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'Register writes accepted in same or next cycle'}"
+    },
+    {
+      "id": "cycle_latency_frame_launch_to_first_sclk_toggle",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.frame_launch_to_first_sclk_toggle",
+      "source_ref": "cycle_model.latency.frame_launch_to_first_sclk_toggle",
+      "description": "{'min_cycles': 1, 'max_cycles': None, 'description': 'Depends on prescale divisor'}"
+    },
+    {
+      "id": "cycle_latency_frame_total",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.frame_total",
+      "source_ref": "cycle_model.latency.frame_total",
+      "description": "{'min_cycles': 2, 'max_cycles': None, 'description': 'Proportional to frame_bits and prescale, plus APB/control overhead'}"
+    },
+    {
+      "id": "cycle_pipeline_s0_apb_cfg",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "Program mode/prescale/CS and push TX words"
+    },
+    {
+      "id": "cycle_pipeline_s1_launch_check",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "Evaluate launch preconditions and latch frame context"
+    },
+    {
+      "id": "cycle_pipeline_s2_assert_cs",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[2]",
+      "source_ref": "cycle_model.pipeline[2]",
+      "description": "Drive selected chip select active-low"
+    },
+    {
+      "id": "cycle_pipeline_s3_shift",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[3]",
+      "source_ref": "cycle_model.pipeline[3]",
+      "description": "Generate sclk_o edges and launch MOSI bits"
+    },
+    {
+      "id": "cycle_pipeline_s4_sample",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[4]",
+      "source_ref": "cycle_model.pipeline[4]",
+      "description": "Sample MISO/loopback bit and advance bit_index"
+    },
+    {
+      "id": "cycle_pipeline_s5_complete",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[5]",
+      "source_ref": "cycle_model.pipeline[5]",
+      "description": "Push RX word if possible, update done/errors/pending, manage CS hold/deassert"
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "For each frame, TX dequeue precedes first MOSI launch edge."
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[1]",
+      "source_ref": "cycle_model.ordering[1]",
+      "description": "Final RX sample precedes done event and interrupt pending update for completion."
+    },
+    {
+      "id": "cycle_ordering_2",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[2]",
+      "source_ref": "cycle_model.ordering[2]",
+      "description": "INT_CLEAR W1C effects apply after the write transfer edge and before next irq_o observation edge."
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "TX backpressure appears as tx_full; writes are dropped with tx_overrun when full."
+    },
+    {
+      "id": "cycle_backpressure_1",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[1]",
+      "source_ref": "cycle_model.backpressure[1]",
+      "description": "RX backpressure appears as rx_full at completion; received frame is dropped with rx_overrun when full."
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "One frame every frame_bits*2*(divisor+1) PCLK cycles in steady state, excluding optional inter-frame gap"
+    },
+    {
+      "id": "fsm_channel_level_idle_to_check_launch_0",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_level.transitions[0]",
+      "source_ref": "fsm.channel_level.transitions[0]",
+      "description": "start_pulse"
+    },
+    {
+      "id": "fsm_channel_level_check_launch_to_assert_cs_1",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_level.transitions[1]",
+      "source_ref": "fsm.channel_level.transitions[1]",
+      "description": "launch_gate_true"
+    },
+    {
+      "id": "fsm_channel_level_check_launch_to_error_suppress_2",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_level.transitions[2]",
+      "source_ref": "fsm.channel_level.transitions[2]",
+      "description": "illegal_cs_or_width"
+    },
+    {
+      "id": "fsm_channel_level_check_launch_to_idle_3",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_level.transitions[3]",
+      "source_ref": "fsm.channel_level.transitions[3]",
+      "description": "launch_gate_false_without_fault"
+    },
+    {
+      "id": "fsm_channel_level_assert_cs_to_shift_edge_4",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_level.transitions[4]",
+      "source_ref": "fsm.channel_level.transitions[4]",
+      "description": "prescale_tick"
+    },
+    {
+      "id": "fsm_channel_level_shift_edge_to_sample_edge_5",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_level.transitions[5]",
+      "source_ref": "fsm.channel_level.transitions[5]",
+      "description": "mode_edge_progress"
+    },
+    {
+      "id": "fsm_channel_level_sample_edge_to_shift_edge_6",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_level.transitions[6]",
+      "source_ref": "fsm.channel_level.transitions[6]",
+      "description": "bit_index_not_last"
+    },
+    {
+      "id": "fsm_channel_level_sample_edge_to_complete_7",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_level.transitions[7]",
+      "source_ref": "fsm.channel_level.transitions[7]",
+      "description": "bit_index_last"
+    },
+    {
+      "id": "fsm_channel_level_complete_to_assert_cs_8",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_level.transitions[8]",
+      "source_ref": "fsm.channel_level.transitions[8]",
+      "description": "continuous_cs_and_next_launch_ready"
+    },
+    {
+      "id": "fsm_channel_level_complete_to_idle_9",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_level.transitions[9]",
+      "source_ref": "fsm.channel_level.transitions[9]",
+      "description": "otherwise"
+    },
+    {
+      "id": "fsm_channel_level_error_suppress_to_idle_10",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.channel_level.transitions[10]",
+      "source_ref": "fsm.channel_level.transitions[10]",
+      "description": "one_cycle_report_done"
+    },
+    {
+      "id": "error_illegal_apb_address",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
+      "description": "{'name': 'illegal_apb_address', 'detect': 'decode miss', 'effect': 'PSLVERR=1 for transfer; STATUS.illegal_access sticky set; INT_PENDING.illegal_access_pend sticky set'}"
+    },
+    {
+      "id": "error_unsupported_write_strobe",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[1]",
+      "source_ref": "error_handling.error_sources[1]",
+      "description": "{'name': 'unsupported_write_strobe', 'detect': 'PSTRB mismatch for accessed register policy', 'effect': 'PSLVERR=1; STATUS.illegal_access set'}"
+    },
+    {
+      "id": "error_access_policy_violation",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[2]",
+      "source_ref": "error_handling.error_sources[2]",
+      "description": "{'name': 'access_policy_violation', 'detect': 'write RO or read side-effect misuse policy', 'effect': 'PSLVERR=1; STATUS.illegal_access set'}"
+    },
+    {
+      "id": "error_tx_overrun",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[3]",
+      "source_ref": "error_handling.error_sources[3]",
+      "description": "{'name': 'tx_overrun', 'detect': 'TXDATA write when tx_full=1', 'effect': 'drop write data; set STATUS.tx_overrun and INT pending'}"
+    },
+    {
+      "id": "error_rx_overrun",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[4]",
+      "source_ref": "error_handling.error_sources[4]",
+      "description": "{'name': 'rx_overrun', 'detect': 'frame completion when rx_full=1', 'effect': 'drop received frame; set STATUS.rx_overrun and INT pending'}"
+    },
+    {
+      "id": "error_rx_underrun",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[5]",
+      "source_ref": "error_handling.error_sources[5]",
+      "description": "{'name': 'rx_underrun', 'detect': 'RXDATA read when rx_empty=1', 'effect': 'return zero; set STATUS.rx_underrun and INT pending'}"
+    },
+    {
+      "id": "error_mode_fault",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[6]",
+      "source_ref": "error_handling.error_sources[6]",
+      "description": "{'name': 'mode_fault', 'detect': 'launch attempt with illegal cs_sel or data_width', 'effect': 'suppress frame launch; set STATUS.mode_fault and INT pending'}"
+    }
+  ],
+  "summary": {
+    "total_bins": 62,
+    "scenario_bins": 10,
+    "transaction_bins": 6,
+    "protocol_bins": 5,
+    "state_transition_bins": 11,
+    "error_bins": 7
+  }
+}

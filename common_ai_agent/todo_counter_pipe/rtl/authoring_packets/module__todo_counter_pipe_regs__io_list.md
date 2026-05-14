@@ -133,7 +133,7 @@ SSOT item context: name=core_rst_n; width=1; direction=input.
 - Source ref: io_list.interfaces.apb_slave.ports.paddr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.paddr.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=paddr; width=8; direction=input.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -155,7 +155,7 @@ SSOT item context: name=paddr; width=8; direction=input.
 - Source ref: io_list.interfaces.apb_slave.ports.psel
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.psel.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=psel; width=1; direction=input.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -177,7 +177,7 @@ SSOT item context: name=psel; width=1; direction=input.
 - Source ref: io_list.interfaces.apb_slave.ports.penable
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.penable.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=penable; width=1; direction=input.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -199,7 +199,7 @@ SSOT item context: name=penable; width=1; direction=input.
 - Source ref: io_list.interfaces.apb_slave.ports.pwrite
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pwrite.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pwrite; width=1; direction=input.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -221,7 +221,7 @@ SSOT item context: name=pwrite; width=1; direction=input.
 - Source ref: io_list.interfaces.apb_slave.ports.pwdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pwdata.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pwdata; width=32; direction=input.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -243,7 +243,7 @@ SSOT item context: name=pwdata; width=32; direction=input.
 - Source ref: io_list.interfaces.apb_slave.ports.pstrb
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pstrb.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pstrb; width=4; direction=input.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -265,7 +265,7 @@ SSOT item context: name=pstrb; width=4; direction=input.
 - Source ref: io_list.interfaces.apb_slave.ports.prdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.prdata.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=prdata; width=32; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -287,7 +287,7 @@ SSOT item context: name=prdata; width=32; direction=output.
 - Source ref: io_list.interfaces.apb_slave.ports.pready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pready.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pready; width=1; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:

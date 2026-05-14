@@ -1,0 +1,248 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 6,
+      "enabled": true,
+      "index": 6,
+      "key": "workflow_todo",
+      "module_task_count": 65,
+      "rule": "Owner module spi_regs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "workflow_todo",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/spi_regs.sv",
+      "name": "spi_regs",
+      "refs": [
+        "error_handling",
+        "interrupts",
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/spi_regs.sv",
+        "name": "spi_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_fifo.sv",
+        "name": "spi_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_clkgen.sv",
+        "name": "spi_clkgen",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_shift.sv",
+        "name": "spi_shift",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_int.sv",
+        "name": "spi_int",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi.sv",
+        "name": "spi",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "spi peripheral complexity",
+      "min_behavior_owner_logic_modules": 3,
+      "min_depth_score": 40,
+      "min_logic_modules": 4,
+      "min_modules": 6,
+      "min_procedural_blocks": 20,
+      "min_source_files": 6,
+      "min_state_updates": 25,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 1,
+    "open_required_count": 1,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "spi",
+  "kind": "module",
+  "owner_file": "rtl/spi_regs.sv",
+  "owner_module": "spi_regs",
+  "packet_id": "module__spi_regs__workflow_todo",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 6,
+      "enabled": true,
+      "index": 6,
+      "key": "workflow_todo",
+      "module_task_count": 65,
+      "rule": "Owner module spi_regs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "workflow_todo",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 1,
+    "required_count": 1,
+    "source_refs": [
+      "workflow_todos.rtl-gen[1]"
+    ],
+    "status_counts": {
+      "open": 1
+    },
+    "task_count": 1
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement APB decode and access policy",
+      "criteria": [
+        "Register map offsets/fields match SSOT",
+        "Error handling semantics match error_handling",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[1]",
+        "Primary implementation evidence is in rtl/spi_regs.sv",
+        "Semantic source_refs covered: error_handling.error_sources, io_list.interfaces.apb_slave, registers.register_list"
+      ],
+      "detail": "Decode CSR map, enforce RO/WO and PSTRB policy, assert PSLVERR on illegal access, and update illegal_access sticky bits.\nSSOT ref: workflow_todos.rtl-gen[1].\nOwner: spi_regs in rtl/spi_regs.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SPI_APB_POLICY.",
+      "evidence_terms": [
+        "APB",
+        "POLICY",
+        "RTL_SPI_APB_POLICY",
+        "SPI",
+        "apb",
+        "apb_slave",
+        "error_handling",
+        "error_sources",
+        "handling",
+        "io",
+        "io_list",
+        "list",
+        "regs",
+        "slave",
+        "sources",
+        "spi"
+      ],
+      "id": "RTL-0028",
+      "owner_file": "rtl/spi_regs.sv",
+      "owner_module": "spi_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[1]",
+      "ssot_context": {
+        "id": "RTL_SPI_APB_POLICY"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources",
+        "io_list.interfaces.apb_slave",
+        "registers.register_list",
+        "workflow_todos.rtl-gen[1]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "APB",
+          "POLICY",
+          "RTL_SPI_APB_POLICY",
+          "SPI",
+          "apb",
+          "apb_slave",
+          "error_handling",
+          "error_sources",
+          "handling",
+          "io",
+          "io_list",
+          "list",
+          "regs",
+          "slave",
+          "sources",
+          "spi"
+        ],
+        "source_scope": "rtl/spi_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_regs.sv.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_SPI_APB_POLICY",
+        "source_refs": [
+          "error_handling.error_sources",
+          "io_list.interfaces.apb_slave",
+          "registers.register_list"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    }
+  ],
+  "todo_plan_sha256": "2a60bf453550d0ce8554eb62210062c7cf9b821cfd849f3ea1217a035cfae11d",
+  "top": "spi",
+  "type": "rtl_authoring_packet"
+}

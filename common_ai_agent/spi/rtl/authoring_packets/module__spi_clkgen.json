@@ -1,0 +1,1107 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 21,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/spi_clkgen.sv",
+      "name": "spi_clkgen",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.pipeline",
+        "parameters",
+        "parameters.PRESCALE_WIDTH",
+        "timing"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/spi_regs.sv",
+        "name": "spi_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_fifo.sv",
+        "name": "spi_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_clkgen.sv",
+        "name": "spi_clkgen",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_shift.sv",
+        "name": "spi_shift",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_int.sv",
+        "name": "spi_int",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi.sv",
+        "name": "spi",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "spi peripheral complexity",
+      "min_behavior_owner_logic_modules": 3,
+      "min_depth_score": 40,
+      "min_logic_modules": 4,
+      "min_modules": 6,
+      "min_procedural_blocks": 20,
+      "min_source_files": 6,
+      "min_state_updates": 25,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 21,
+    "open_required_count": 21,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "spi",
+  "kind": "module",
+  "owner_file": "rtl/spi_clkgen.sv",
+  "owner_module": "spi_clkgen",
+  "packet_id": "module__spi_clkgen",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.handshake_rules": 5,
+      "cycle_model.pipeline": 5,
+      "equivalence.module": 1,
+      "parameters.item": 10
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 21,
+      "task_limit": 48
+    },
+    "open_required_count": 21,
+    "required_count": 21,
+    "source_refs": [
+      "cycle_model.handshake_rules.APB",
+      "cycle_model.handshake_rules.CTRL_start",
+      "cycle_model.handshake_rules.launch_gate",
+      "cycle_model.handshake_rules.sclk_o",
+      "cycle_model.handshake_rules.sample_edge",
+      "cycle_model.pipeline.S0_APB_CFG",
+      "cycle_model.pipeline.S1_LAUNCH_CHECK",
+      "cycle_model.pipeline.S2_ASSERT_CS",
+      "cycle_model.pipeline.S4_SAMPLE",
+      "cycle_model.pipeline.S5_COMPLETE",
+      "sub_modules.spi_clkgen.module_equivalence",
+      "parameters.APB_ADDR_WIDTH",
+      "parameters.APB_DATA_WIDTH",
+      "parameters.DATA_WIDTH",
+      "parameters.FIFO_DEPTH",
+      "parameters.NUM_CS",
+      "parameters.PRESCALE_WIDTH",
+      "parameters.CPOL_RESET",
+      "parameters.CPHA_RESET",
+      "parameters.LSB_FIRST_RESET",
+      "parameters.PCLK_FREQ_MHZ"
+    ],
+    "status_counts": {
+      "open": 21
+    },
+    "task_count": 21
+  },
+  "tasks": [
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: APB",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.APB",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv",
+        "cycle_model.handshake_rules.APB appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.APB.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.\nSSOT item context: signal=APB.",
+      "evidence_terms": [],
+      "id": "RTL-0119",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.APB",
+      "ssot_context": {
+        "signal": "APB"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.APB"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: CTRL.start",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.CTRL_start",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv",
+        "cycle_model.handshake_rules.CTRL_start appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.CTRL_start.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.\nSSOT item context: signal=CTRL.start.",
+      "evidence_terms": [],
+      "id": "RTL-0120",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.CTRL_start",
+      "ssot_context": {
+        "signal": "CTRL.start"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.CTRL_start"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: launch_gate",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.launch_gate",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv",
+        "cycle_model.handshake_rules.launch_gate appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.launch_gate.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.\nSSOT item context: signal=launch_gate.",
+      "evidence_terms": [
+        "gate",
+        "launch",
+        "launch_gate"
+      ],
+      "id": "RTL-0121",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.launch_gate",
+      "ssot_context": {
+        "signal": "launch_gate"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.launch_gate"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "gate",
+          "launch",
+          "launch_gate"
+        ],
+        "source_scope": "rtl/spi_clkgen.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: sclk_o",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.sclk_o",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv",
+        "cycle_model.handshake_rules.sclk_o appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.sclk_o.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.\nSSOT item context: signal=sclk_o.",
+      "evidence_terms": [
+        "sclk",
+        "sclk_o"
+      ],
+      "id": "RTL-0122",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.sclk_o",
+      "ssot_context": {
+        "signal": "sclk_o"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.sclk_o"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "sclk",
+          "sclk_o"
+        ],
+        "source_scope": "rtl/spi_clkgen.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: sample_edge",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.sample_edge",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv",
+        "cycle_model.handshake_rules.sample_edge appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.sample_edge.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.handshake_rules.\nSSOT item context: signal=sample_edge.",
+      "evidence_terms": [
+        "edge",
+        "sample",
+        "sample_edge"
+      ],
+      "id": "RTL-0123",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.sample_edge",
+      "ssot_context": {
+        "signal": "sample_edge"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.sample_edge"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "edge",
+          "sample",
+          "sample_edge"
+        ],
+        "source_scope": "rtl/spi_clkgen.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S0_APB_CFG",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S0_APB_CFG",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv",
+        "cycle_model.pipeline.S0_APB_CFG timing uses SSOT cycle/latency t",
+        "cycle_model.pipeline.S0_APB_CFG appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S0_APB_CFG.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.\nSSOT item context: stage=S0_APB_CFG; action=Program mode/prescale/CS and push TX words; cycle=t.",
+      "evidence_terms": [],
+      "id": "RTL-0124",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S0_APB_CFG",
+      "ssot_context": {
+        "action": "Program mode/prescale/CS and push TX words",
+        "cycle": "t",
+        "stage": "S0_APB_CFG"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S0_APB_CFG"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S1_LAUNCH_CHECK",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S1_LAUNCH_CHECK",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv",
+        "cycle_model.pipeline.S1_LAUNCH_CHECK timing uses SSOT cycle/latency t+0..t+1",
+        "cycle_model.pipeline.S1_LAUNCH_CHECK appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S1_LAUNCH_CHECK.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.\nSSOT item context: stage=S1_LAUNCH_CHECK; action=Evaluate launch preconditions and latch frame context; cycle=t+0..t+1.",
+      "evidence_terms": [],
+      "id": "RTL-0125",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S1_LAUNCH_CHECK",
+      "ssot_context": {
+        "action": "Evaluate launch preconditions and latch frame context",
+        "cycle": "t+0..t+1",
+        "stage": "S1_LAUNCH_CHECK"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S1_LAUNCH_CHECK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S2_ASSERT_CS",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S2_ASSERT_CS",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv",
+        "cycle_model.pipeline.S2_ASSERT_CS timing uses SSOT cycle/latency next",
+        "cycle_model.pipeline.S2_ASSERT_CS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S2_ASSERT_CS.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.\nSSOT item context: stage=S2_ASSERT_CS; action=Drive selected chip select active-low; cycle=next.",
+      "evidence_terms": [],
+      "id": "RTL-0126",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S2_ASSERT_CS",
+      "ssot_context": {
+        "action": "Drive selected chip select active-low",
+        "cycle": "next",
+        "stage": "S2_ASSERT_CS"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S2_ASSERT_CS"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S4_SAMPLE",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S4_SAMPLE",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv",
+        "cycle_model.pipeline.S4_SAMPLE timing uses SSOT cycle/latency repeating",
+        "cycle_model.pipeline.S4_SAMPLE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S4_SAMPLE.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.\nSSOT item context: stage=S4_SAMPLE; action=Sample MISO/loopback bit and advance bit_index; cycle=repeating.",
+      "evidence_terms": [
+        "bit",
+        "bit_index",
+        "index"
+      ],
+      "id": "RTL-0128",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S4_SAMPLE",
+      "ssot_context": {
+        "action": "Sample MISO/loopback bit and advance bit_index",
+        "cycle": "repeating",
+        "stage": "S4_SAMPLE"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S4_SAMPLE"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "bit",
+          "bit_index",
+          "index"
+        ],
+        "source_scope": "rtl/spi_clkgen.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S5_COMPLETE",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S5_COMPLETE",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv",
+        "cycle_model.pipeline.S5_COMPLETE timing uses SSOT cycle/latency terminal",
+        "cycle_model.pipeline.S5_COMPLETE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S5_COMPLETE.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via cycle_model.pipeline.\nSSOT item context: stage=S5_COMPLETE; action=Push RX word if possible, update done/errors/pending, manage CS hold/deassert; cycle=terminal.",
+      "evidence_terms": [],
+      "id": "RTL-0129",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S5_COMPLETE",
+      "ssot_context": {
+        "action": "Push RX word if possible, update done/errors/pending, manage CS hold/deassert",
+        "cycle": "terminal",
+        "stage": "S5_COMPLETE"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S5_COMPLETE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module spi_clkgen is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.spi_clkgen.module_equivalence",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.spi_clkgen.module_equivalence.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0245",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.spi_clkgen.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.spi_clkgen.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter APB_ADDR_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.APB_ADDR_WIDTH",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.APB_ADDR_WIDTH.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via parameters.\nSSOT item context: name=APB_ADDR_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0029",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.APB_ADDR_WIDTH",
+      "ssot_context": {
+        "name": "APB_ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.APB_ADDR_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter APB_DATA_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.APB_DATA_WIDTH",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.APB_DATA_WIDTH.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via parameters.\nSSOT item context: name=APB_DATA_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0030",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.APB_DATA_WIDTH",
+      "ssot_context": {
+        "name": "APB_DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.APB_DATA_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter DATA_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.DATA_WIDTH",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.DATA_WIDTH.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via parameters.\nSSOT item context: name=DATA_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0031",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.DATA_WIDTH",
+      "ssot_context": {
+        "name": "DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.DATA_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter FIFO_DEPTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.FIFO_DEPTH",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.FIFO_DEPTH.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via parameters.\nSSOT item context: name=FIFO_DEPTH.",
+      "evidence_terms": [],
+      "id": "RTL-0032",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.FIFO_DEPTH",
+      "ssot_context": {
+        "name": "FIFO_DEPTH"
+      },
+      "ssot_refs": [
+        "parameters.FIFO_DEPTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter NUM_CS",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.NUM_CS",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.NUM_CS.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via parameters.\nSSOT item context: name=NUM_CS.",
+      "evidence_terms": [],
+      "id": "RTL-0033",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.NUM_CS",
+      "ssot_context": {
+        "name": "NUM_CS"
+      },
+      "ssot_refs": [
+        "parameters.NUM_CS"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter PRESCALE_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.PRESCALE_WIDTH",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.PRESCALE_WIDTH.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via parameters.PRESCALE_WIDTH.\nSSOT item context: name=PRESCALE_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.PRESCALE_WIDTH",
+      "ssot_context": {
+        "name": "PRESCALE_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.PRESCALE_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter CPOL_RESET",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.CPOL_RESET",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.CPOL_RESET.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via parameters.\nSSOT item context: name=CPOL_RESET.",
+      "evidence_terms": [],
+      "id": "RTL-0035",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.CPOL_RESET",
+      "ssot_context": {
+        "name": "CPOL_RESET"
+      },
+      "ssot_refs": [
+        "parameters.CPOL_RESET"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter CPHA_RESET",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.CPHA_RESET",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.CPHA_RESET.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via parameters.\nSSOT item context: name=CPHA_RESET.",
+      "evidence_terms": [],
+      "id": "RTL-0036",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.CPHA_RESET",
+      "ssot_context": {
+        "name": "CPHA_RESET"
+      },
+      "ssot_refs": [
+        "parameters.CPHA_RESET"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter LSB_FIRST_RESET",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.LSB_FIRST_RESET",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.LSB_FIRST_RESET.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via parameters.\nSSOT item context: name=LSB_FIRST_RESET.",
+      "evidence_terms": [],
+      "id": "RTL-0037",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.LSB_FIRST_RESET",
+      "ssot_context": {
+        "name": "LSB_FIRST_RESET"
+      },
+      "ssot_refs": [
+        "parameters.LSB_FIRST_RESET"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter PCLK_FREQ_MHZ",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.PCLK_FREQ_MHZ",
+        "Primary implementation evidence is in rtl/spi_clkgen.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.PCLK_FREQ_MHZ.\nOwner: spi_clkgen in rtl/spi_clkgen.sv via parameters.\nSSOT item context: name=PCLK_FREQ_MHZ.",
+      "evidence_terms": [],
+      "id": "RTL-0038",
+      "owner_file": "rtl/spi_clkgen.sv",
+      "owner_module": "spi_clkgen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.PCLK_FREQ_MHZ",
+      "ssot_context": {
+        "name": "PCLK_FREQ_MHZ"
+      },
+      "ssot_refs": [
+        "parameters.PCLK_FREQ_MHZ"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_clkgen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "2a60bf453550d0ce8554eb62210062c7cf9b821cfd849f3ea1217a035cfae11d",
+  "top": "spi",
+  "type": "rtl_authoring_packet"
+}

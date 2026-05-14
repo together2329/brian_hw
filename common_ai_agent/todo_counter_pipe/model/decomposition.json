@@ -1,0 +1,1836 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_decomposition",
+  "ip": "todo_counter_pipe",
+  "source": "todo_counter_pipe/yaml/todo_counter_pipe.ssot.yaml",
+  "units": [
+    {
+      "name": "todo_counter_pipe_regs",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "decomposition",
+        "function_model",
+        "interrupts",
+        "io_list",
+        "registers"
+      ],
+      "rtl_candidates": [
+        "todo_counter_pipe_regs"
+      ],
+      "rtl_file": "rtl/todo_counter_pipe_regs.sv",
+      "ssot_refs": [
+        "cycle_model.handshake_rules.counter_irq",
+        "cycle_model.handshake_rules.prdata",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.pipeline.S0_APB_ACCESS",
+        "cycle_model.pipeline.S4_STATUS_UPDATE",
+        "cycle_model.pipeline.s0_apb_access",
+        "cycle_model.pipeline.s4_status_update",
+        "decomposition.units.apb_decode",
+        "function_model.transactions.FM10",
+        "function_model.transactions.fm10",
+        "interrupts",
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.CNT",
+        "registers.register_list.CTRL",
+        "registers.register_list.DBGCNT",
+        "registers.register_list.INTCLR",
+        "registers.register_list.INTEN",
+        "registers.register_list.INTSTAT",
+        "registers.register_list.LOAD",
+        "registers.register_list.STATUS",
+        "registers.register_list.TERM",
+        "registers.register_list.cnt",
+        "registers.register_list.ctrl",
+        "registers.register_list.dbgcnt",
+        "registers.register_list.intclr",
+        "registers.register_list.inten",
+        "registers.register_list.intstat",
+        "registers.register_list.load",
+        "registers.register_list.status",
+        "registers.register_list.term"
+      ],
+      "function_model_refs": [
+        "function_model.transactions.fm10"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.handshake_rules.counter_irq",
+        "cycle_model.handshake_rules.prdata",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.pipeline.s0_apb_access",
+        "cycle_model.pipeline.s4_status_update"
+      ],
+      "structural_refs": [
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list.cnt",
+        "registers.register_list.ctrl",
+        "registers.register_list.dbgcnt",
+        "registers.register_list.intclr",
+        "registers.register_list.inten",
+        "registers.register_list.intstat",
+        "registers.register_list.load",
+        "registers.register_list.status",
+        "registers.register_list.term"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "todo_counter_pipe_core",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "decomposition",
+        "features",
+        "fsm",
+        "function_model",
+        "memory"
+      ],
+      "rtl_candidates": [
+        "todo_counter_pipe_core"
+      ],
+      "rtl_file": "rtl/todo_counter_pipe_core.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.backpressure.backpressure_1",
+        "cycle_model.backpressure.backpressure_2",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.event_i",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.observability.observability_1",
+        "cycle_model.observability.observability_2",
+        "cycle_model.observability.observability_3",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.pipeline.S2_COUNT_EVAL",
+        "cycle_model.pipeline.s2_count_eval",
+        "cycle_model.reset",
+        "decomposition.units.counter_datapath",
+        "features",
+        "features.Clear_Load_Control",
+        "features.Debug_Cycle_Counter",
+        "features.Saturating_Mode",
+        "features.Terminal_Count_Interrupt",
+        "features.Up_Down_Counting",
+        "features.Wrap_Mode",
+        "features.saturating_mode",
+        "features.terminal_count_interrupt",
+        "features.up_down_counting",
+        "features.wrap_mode",
+        "fsm",
+        "fsm.core_fsm",
+        "fsm.internal_control",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.invariants.invariant_5",
+        "function_model.invariants.invariant_6",
+        "function_model.invariants.invariant_7",
+        "function_model.state_variables",
+        "function_model.state_variables.cnt",
+        "function_model.state_variables.dbg_cycle_count",
+        "function_model.state_variables.enable",
+        "function_model.state_variables.inten_ovf",
+        "function_model.state_variables.inten_tc",
+        "function_model.state_variables.inten_unf",
+        "function_model.state_variables.load_value",
+        "function_model.state_variables.mode",
+        "function_model.state_variables.overflow",
+        "function_model.state_variables.ovf_pending",
+        "function_model.state_variables.tc_pending",
+        "function_model.state_variables.term",
+        "function_model.state_variables.underflow",
+        "function_model.state_variables.unf_pending",
+        "function_model.state_variables.up_down",
+        "function_model.transactions",
+        "function_model.transactions.fm1",
+        "function_model.transactions.fm1.inputs.input_0",
+        "function_model.transactions.fm1.output_rules.interrupt",
+        "function_model.transactions.fm1.outputs.output_0",
+        "function_model.transactions.fm1.preconditions.precondition_0",
+        "function_model.transactions.fm1.preconditions.precondition_1",
+        "function_model.transactions.fm1.preconditions.precondition_2",
+        "function_model.transactions.fm1.preconditions.precondition_3",
+        "function_model.transactions.fm1.side_effects.side_effect_0",
+        "function_model.transactions.fm1.side_effects.side_effect_1",
+        "function_model.transactions.fm10.inputs.input_0",
+        "function_model.transactions.fm10.outputs.output_0",
+        "function_model.transactions.fm10.outputs.output_1",
+        "function_model.transactions.fm10.outputs.output_2",
+        "function_model.transactions.fm10.preconditions.precondition_0",
+        "function_model.transactions.fm10.side_effects.side_effect_0",
+        "function_model.transactions.fm2",
+        "function_model.transactions.fm2.inputs.input_0",
+        "function_model.transactions.fm2.outputs.output_0",
+        "function_model.transactions.fm2.outputs.output_1",
+        "function_model.transactions.fm2.outputs.output_2",
+        "function_model.transactions.fm2.preconditions.precondition_0",
+        "function_model.transactions.fm2.preconditions.precondition_1",
+        "function_model.transactions.fm2.preconditions.precondition_2",
+        "function_model.transactions.fm2.preconditions.precondition_3",
+        "function_model.transactions.fm2.side_effects.side_effect_0",
+        "function_model.transactions.fm2.side_effects.side_effect_1",
+        "function_model.transactions.fm2.side_effects.side_effect_2",
+        "function_model.transactions.fm3",
+        "function_model.transactions.fm3.inputs.input_0",
+        "function_model.transactions.fm3.outputs.output_0",
+        "function_model.transactions.fm3.preconditions.precondition_0",
+        "function_model.transactions.fm3.preconditions.precondition_1",
+        "function_model.transactions.fm3.preconditions.precondition_2",
+        "function_model.transactions.fm3.preconditions.precondition_3",
+        "function_model.transactions.fm3.side_effects.side_effect_0",
+        "function_model.transactions.fm4",
+        "function_model.transactions.fm4.inputs.input_0",
+        "function_model.transactions.fm4.outputs.output_0",
+        "function_model.transactions.fm4.outputs.output_1",
+        "function_model.transactions.fm4.outputs.output_2",
+        "function_model.transactions.fm4.preconditions.precondition_0",
+        "function_model.transactions.fm4.preconditions.precondition_1",
+        "function_model.transactions.fm4.preconditions.precondition_2",
+        "function_model.transactions.fm4.preconditions.precondition_3",
+        "function_model.transactions.fm4.side_effects.side_effect_0",
+        "function_model.transactions.fm4.side_effects.side_effect_1",
+        "function_model.transactions.fm4.side_effects.side_effect_2",
+        "function_model.transactions.fm5",
+        "function_model.transactions.fm5.inputs.input_0",
+        "function_model.transactions.fm5.outputs.output_0",
+        "function_model.transactions.fm5.outputs.output_1",
+        "function_model.transactions.fm5.outputs.output_2",
+        "function_model.transactions.fm5.preconditions.precondition_0",
+        "function_model.transactions.fm5.preconditions.precondition_1",
+        "function_model.transactions.fm5.preconditions.precondition_2",
+        "function_model.transactions.fm5.preconditions.precondition_3",
+        "function_model.transactions.fm5.side_effects.side_effect_0",
+        "function_model.transactions.fm5.side_effects.side_effect_1",
+        "function_model.transactions.fm5.side_effects.side_effect_2",
+        "function_model.transactions.fm6",
+        "function_model.transactions.fm6.inputs.input_0",
+        "function_model.transactions.fm6.outputs.output_0",
+        "function_model.transactions.fm6.outputs.output_1",
+        "function_model.transactions.fm6.outputs.output_2",
+        "function_model.transactions.fm6.preconditions.precondition_0",
+        "function_model.transactions.fm6.preconditions.precondition_1",
+        "function_model.transactions.fm6.preconditions.precondition_2",
+        "function_model.transactions.fm6.preconditions.precondition_3",
+        "function_model.transactions.fm6.side_effects.side_effect_0",
+        "function_model.transactions.fm6.side_effects.side_effect_1",
+        "function_model.transactions.fm6.side_effects.side_effect_2",
+        "function_model.transactions.fm7",
+        "function_model.transactions.fm7.inputs.input_0",
+        "function_model.transactions.fm7.outputs.output_0",
+        "function_model.transactions.fm7.preconditions.precondition_0",
+        "function_model.transactions.fm7.side_effects.side_effect_0",
+        "function_model.transactions.fm7.side_effects.side_effect_1",
+        "function_model.transactions.fm7.side_effects.side_effect_2",
+        "function_model.transactions.fm8",
+        "function_model.transactions.fm8.inputs.input_0",
+        "function_model.transactions.fm8.outputs.output_0",
+        "function_model.transactions.fm8.preconditions.precondition_0",
+        "function_model.transactions.fm8.side_effects.side_effect_0",
+        "function_model.transactions.fm8.side_effects.side_effect_1",
+        "function_model.transactions.fm8.side_effects.side_effect_2",
+        "function_model.transactions.fm8.side_effects.side_effect_3",
+        "function_model.transactions.fm9",
+        "function_model.transactions.fm9.inputs.input_0",
+        "function_model.transactions.fm9.outputs.output_0",
+        "function_model.transactions.fm9.preconditions.precondition_0",
+        "function_model.transactions.fm9.side_effects.side_effect_0",
+        "function_model.transactions.fm9.side_effects.side_effect_1",
+        "memory",
+        "memory.instances.cnt_reg",
+        "memory.instances.dbg_cycle_reg"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.invariants.invariant_5",
+        "function_model.invariants.invariant_6",
+        "function_model.invariants.invariant_7",
+        "function_model.state_variables.cnt",
+        "function_model.state_variables.dbg_cycle_count",
+        "function_model.state_variables.enable",
+        "function_model.state_variables.inten_ovf",
+        "function_model.state_variables.inten_tc",
+        "function_model.state_variables.inten_unf",
+        "function_model.state_variables.load_value",
+        "function_model.state_variables.mode",
+        "function_model.state_variables.overflow",
+        "function_model.state_variables.ovf_pending",
+        "function_model.state_variables.tc_pending",
+        "function_model.state_variables.term",
+        "function_model.state_variables.underflow",
+        "function_model.state_variables.unf_pending",
+        "function_model.state_variables.up_down",
+        "function_model.transactions.fm1",
+        "function_model.transactions.fm1.inputs.input_0",
+        "function_model.transactions.fm1.output_rules.interrupt",
+        "function_model.transactions.fm1.outputs.output_0",
+        "function_model.transactions.fm1.preconditions.precondition_0",
+        "function_model.transactions.fm1.preconditions.precondition_1",
+        "function_model.transactions.fm1.preconditions.precondition_2",
+        "function_model.transactions.fm1.preconditions.precondition_3",
+        "function_model.transactions.fm1.side_effects.side_effect_0",
+        "function_model.transactions.fm1.side_effects.side_effect_1",
+        "function_model.transactions.fm10.inputs.input_0",
+        "function_model.transactions.fm10.outputs.output_0",
+        "function_model.transactions.fm10.outputs.output_1",
+        "function_model.transactions.fm10.outputs.output_2",
+        "function_model.transactions.fm10.preconditions.precondition_0",
+        "function_model.transactions.fm10.side_effects.side_effect_0",
+        "function_model.transactions.fm2",
+        "function_model.transactions.fm2.inputs.input_0",
+        "function_model.transactions.fm2.outputs.output_0",
+        "function_model.transactions.fm2.outputs.output_1",
+        "function_model.transactions.fm2.outputs.output_2",
+        "function_model.transactions.fm2.preconditions.precondition_0",
+        "function_model.transactions.fm2.preconditions.precondition_1",
+        "function_model.transactions.fm2.preconditions.precondition_2",
+        "function_model.transactions.fm2.preconditions.precondition_3",
+        "function_model.transactions.fm2.side_effects.side_effect_0",
+        "function_model.transactions.fm2.side_effects.side_effect_1",
+        "function_model.transactions.fm2.side_effects.side_effect_2",
+        "function_model.transactions.fm3",
+        "function_model.transactions.fm3.inputs.input_0",
+        "function_model.transactions.fm3.outputs.output_0",
+        "function_model.transactions.fm3.preconditions.precondition_0",
+        "function_model.transactions.fm3.preconditions.precondition_1",
+        "function_model.transactions.fm3.preconditions.precondition_2",
+        "function_model.transactions.fm3.preconditions.precondition_3",
+        "function_model.transactions.fm3.side_effects.side_effect_0",
+        "function_model.transactions.fm4",
+        "function_model.transactions.fm4.inputs.input_0",
+        "function_model.transactions.fm4.outputs.output_0",
+        "function_model.transactions.fm4.outputs.output_1",
+        "function_model.transactions.fm4.outputs.output_2",
+        "function_model.transactions.fm4.preconditions.precondition_0",
+        "function_model.transactions.fm4.preconditions.precondition_1",
+        "function_model.transactions.fm4.preconditions.precondition_2",
+        "function_model.transactions.fm4.preconditions.precondition_3",
+        "function_model.transactions.fm4.side_effects.side_effect_0",
+        "function_model.transactions.fm4.side_effects.side_effect_1",
+        "function_model.transactions.fm4.side_effects.side_effect_2",
+        "function_model.transactions.fm5",
+        "function_model.transactions.fm5.inputs.input_0",
+        "function_model.transactions.fm5.outputs.output_0",
+        "function_model.transactions.fm5.outputs.output_1",
+        "function_model.transactions.fm5.outputs.output_2",
+        "function_model.transactions.fm5.preconditions.precondition_0",
+        "function_model.transactions.fm5.preconditions.precondition_1",
+        "function_model.transactions.fm5.preconditions.precondition_2",
+        "function_model.transactions.fm5.preconditions.precondition_3",
+        "function_model.transactions.fm5.side_effects.side_effect_0",
+        "function_model.transactions.fm5.side_effects.side_effect_1",
+        "function_model.transactions.fm5.side_effects.side_effect_2",
+        "function_model.transactions.fm6",
+        "function_model.transactions.fm6.inputs.input_0",
+        "function_model.transactions.fm6.outputs.output_0",
+        "function_model.transactions.fm6.outputs.output_1",
+        "function_model.transactions.fm6.outputs.output_2",
+        "function_model.transactions.fm6.preconditions.precondition_0",
+        "function_model.transactions.fm6.preconditions.precondition_1",
+        "function_model.transactions.fm6.preconditions.precondition_2",
+        "function_model.transactions.fm6.preconditions.precondition_3",
+        "function_model.transactions.fm6.side_effects.side_effect_0",
+        "function_model.transactions.fm6.side_effects.side_effect_1",
+        "function_model.transactions.fm6.side_effects.side_effect_2",
+        "function_model.transactions.fm7",
+        "function_model.transactions.fm7.inputs.input_0",
+        "function_model.transactions.fm7.outputs.output_0",
+        "function_model.transactions.fm7.preconditions.precondition_0",
+        "function_model.transactions.fm7.side_effects.side_effect_0",
+        "function_model.transactions.fm7.side_effects.side_effect_1",
+        "function_model.transactions.fm7.side_effects.side_effect_2",
+        "function_model.transactions.fm8",
+        "function_model.transactions.fm8.inputs.input_0",
+        "function_model.transactions.fm8.outputs.output_0",
+        "function_model.transactions.fm8.preconditions.precondition_0",
+        "function_model.transactions.fm8.side_effects.side_effect_0",
+        "function_model.transactions.fm8.side_effects.side_effect_1",
+        "function_model.transactions.fm8.side_effects.side_effect_2",
+        "function_model.transactions.fm8.side_effects.side_effect_3",
+        "function_model.transactions.fm9",
+        "function_model.transactions.fm9.inputs.input_0",
+        "function_model.transactions.fm9.outputs.output_0",
+        "function_model.transactions.fm9.preconditions.precondition_0",
+        "function_model.transactions.fm9.side_effects.side_effect_0",
+        "function_model.transactions.fm9.side_effects.side_effect_1"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.backpressure.backpressure_1",
+        "cycle_model.backpressure.backpressure_2",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.event_i",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.observability.observability_1",
+        "cycle_model.observability.observability_2",
+        "cycle_model.observability.observability_3",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.pipeline.s2_count_eval",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.saturating_mode",
+        "features.terminal_count_interrupt",
+        "features.up_down_counting",
+        "features.wrap_mode",
+        "memory.instances.cnt_reg",
+        "memory.instances.dbg_cycle_reg"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "todo_counter_pipe_cdc",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cdc_requirements",
+        "clock_reset_domains",
+        "cycle_model",
+        "decomposition",
+        "features",
+        "fsm",
+        "integration",
+        "parameters",
+        "registers"
+      ],
+      "rtl_candidates": [
+        "todo_counter_pipe_cdc"
+      ],
+      "rtl_file": "rtl/todo_counter_pipe_cdc.sv",
+      "ssot_refs": [
+        "cdc_requirements",
+        "cdc_requirements.crossings.control_bus_to_core",
+        "cdc_requirements.crossings.status_core_to_bus",
+        "cdc_requirements.synchronizers.sync_ctrl",
+        "cdc_requirements.synchronizers.sync_pulse_clear",
+        "cdc_requirements.synchronizers.sync_status",
+        "clock_reset_domains",
+        "clock_reset_domains.domains.bus_clk",
+        "clock_reset_domains.domains.core_clk",
+        "clock_reset_domains.reset_scheme",
+        "clock_reset_domains.reset_scheme.bus_domain",
+        "clock_reset_domains.reset_scheme.core_domain",
+        "cycle_model",
+        "cycle_model.clock",
+        "cycle_model.latency.control_cdc_bus_to_core",
+        "cycle_model.latency.status_cdc_core_to_bus",
+        "cycle_model.pipeline.S1_CDC_CTRL",
+        "cycle_model.pipeline.S3_CDC_STATUS",
+        "cycle_model.pipeline.s1_cdc_ctrl",
+        "cycle_model.pipeline.s3_cdc_status",
+        "cycle_model.reset",
+        "decomposition.units.cdc_sync",
+        "features.Clear_Load_Control",
+        "features.Debug_Cycle_Counter",
+        "features.clear_load_control",
+        "features.debug_cycle_counter",
+        "fsm.core_fsm",
+        "integration",
+        "integration.connections",
+        "parameters",
+        "parameters.bus_clk_freq_mhz",
+        "parameters.cdc_sync_stages",
+        "parameters.core_clk_freq_mhz",
+        "parameters.reset_polarity",
+        "parameters.width",
+        "registers",
+        "registers.register_list.CNT",
+        "registers.register_list.CTRL",
+        "registers.register_list.DBGCNT",
+        "registers.register_list.INTSTAT",
+        "registers.register_list.LOAD",
+        "registers.register_list.STATUS"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [
+        "cycle_model.pipeline.s1_cdc_ctrl",
+        "cycle_model.pipeline.s3_cdc_status"
+      ],
+      "structural_refs": [
+        "features.clear_load_control",
+        "features.debug_cycle_counter",
+        "parameters.bus_clk_freq_mhz",
+        "parameters.cdc_sync_stages",
+        "parameters.core_clk_freq_mhz",
+        "parameters.reset_polarity",
+        "parameters.width"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "todo_counter_pipe_protocol_model",
+      "kind": "protocol",
+      "source_sections": [
+        "io_list",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "todo_counter_pipe_axi_slv",
+        "todo_counter_pipe_protocol"
+      ],
+      "verification_impact": [
+        "driver",
+        "monitor",
+        "protocol coverage"
+      ]
+    },
+    {
+      "name": "todo_counter_pipe_register_model",
+      "kind": "register",
+      "source_sections": [
+        "registers",
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "todo_counter_pipe_regs",
+        "todo_counter_pipe_apb_regs"
+      ],
+      "verification_impact": [
+        "register sequences",
+        "readback scoreboard"
+      ]
+    },
+    {
+      "name": "todo_counter_pipe_memory_model",
+      "kind": "memory",
+      "source_sections": [
+        "memory",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "todo_counter_pipe_mem",
+        "todo_counter_pipe_core"
+      ],
+      "verification_impact": [
+        "address retention",
+        "byte strobes",
+        "boundary coverage"
+      ]
+    },
+    {
+      "name": "todo_counter_pipe_datapath_model",
+      "kind": "datapath",
+      "source_sections": [
+        "features",
+        "dataflow",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "todo_counter_pipe_core",
+        "todo_counter_pipe_datapath"
+      ],
+      "verification_impact": [
+        "functional scoreboard",
+        "transaction coverage"
+      ]
+    },
+    {
+      "name": "todo_counter_pipe_fsm_model",
+      "kind": "fsm",
+      "source_sections": [
+        "fsm",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "todo_counter_pipe_core"
+      ],
+      "verification_impact": [
+        "state transition coverage",
+        "waveform debug"
+      ]
+    },
+    {
+      "name": "todo_counter_pipe_error_model",
+      "kind": "error",
+      "source_sections": [
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "todo_counter_pipe_core",
+        "todo_counter_pipe_error"
+      ],
+      "verification_impact": [
+        "negative tests",
+        "mismatch classification"
+      ]
+    },
+    {
+      "name": "todo_counter_pipe_security_model",
+      "kind": "security",
+      "source_sections": [
+        "security",
+        "debug_observability"
+      ],
+      "rtl_candidates": [
+        "todo_counter_pipe_security",
+        "todo_counter_pipe_core"
+      ],
+      "verification_impact": [
+        "security bins",
+        "debug observability checks"
+      ]
+    }
+  ],
+  "module_contracts": [
+    {
+      "name": "todo_counter_pipe_regs",
+      "kind": "rtl_module",
+      "rtl_module": "todo_counter_pipe_regs",
+      "rtl_file": "rtl/todo_counter_pipe_regs.sv",
+      "source_sections": [
+        "cycle_model",
+        "decomposition",
+        "function_model",
+        "interrupts",
+        "io_list",
+        "registers"
+      ],
+      "ssot_refs": [
+        "cycle_model.handshake_rules.counter_irq",
+        "cycle_model.handshake_rules.prdata",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.pipeline.S0_APB_ACCESS",
+        "cycle_model.pipeline.S4_STATUS_UPDATE",
+        "cycle_model.pipeline.s0_apb_access",
+        "cycle_model.pipeline.s4_status_update",
+        "decomposition.units.apb_decode",
+        "function_model.transactions.FM10",
+        "function_model.transactions.fm10",
+        "interrupts",
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.CNT",
+        "registers.register_list.CTRL",
+        "registers.register_list.DBGCNT",
+        "registers.register_list.INTCLR",
+        "registers.register_list.INTEN",
+        "registers.register_list.INTSTAT",
+        "registers.register_list.LOAD",
+        "registers.register_list.STATUS",
+        "registers.register_list.TERM",
+        "registers.register_list.cnt",
+        "registers.register_list.ctrl",
+        "registers.register_list.dbgcnt",
+        "registers.register_list.intclr",
+        "registers.register_list.inten",
+        "registers.register_list.intstat",
+        "registers.register_list.load",
+        "registers.register_list.status",
+        "registers.register_list.term"
+      ],
+      "function_model_refs": [
+        "function_model.transactions.fm10"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.handshake_rules.counter_irq",
+        "cycle_model.handshake_rules.prdata",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.pipeline.s0_apb_access",
+        "cycle_model.pipeline.s4_status_update"
+      ],
+      "structural_refs": [
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list.cnt",
+        "registers.register_list.ctrl",
+        "registers.register_list.dbgcnt",
+        "registers.register_list.intclr",
+        "registers.register_list.inten",
+        "registers.register_list.intstat",
+        "registers.register_list.load",
+        "registers.register_list.status",
+        "registers.register_list.term"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.transactions.fm10",
+          "matched_ref": "function_model.transactions.FM10"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.pready",
+          "matched_ref": "cycle_model.handshake_rules.pready"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.prdata",
+          "matched_ref": "cycle_model.handshake_rules.prdata"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.counter_irq",
+          "matched_ref": "cycle_model.handshake_rules.counter_irq"
+        },
+        {
+          "ref": "cycle_model.pipeline.s0_apb_access",
+          "matched_ref": "cycle_model.pipeline.S0_APB_ACCESS"
+        },
+        {
+          "ref": "cycle_model.pipeline.s4_status_update",
+          "matched_ref": "cycle_model.pipeline.S4_STATUS_UPDATE"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "registers.register_list.ctrl",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.cnt",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.load",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.term",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.status",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.inten",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.intstat",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.intclr",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.dbgcnt",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.register_width",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.addr_width",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.byte_addressable",
+          "matched_ref": "registers"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "todo_counter_pipe_core",
+      "kind": "rtl_module",
+      "rtl_module": "todo_counter_pipe_core",
+      "rtl_file": "rtl/todo_counter_pipe_core.sv",
+      "source_sections": [
+        "cycle_model",
+        "decomposition",
+        "features",
+        "fsm",
+        "function_model",
+        "memory"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.backpressure.backpressure_1",
+        "cycle_model.backpressure.backpressure_2",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.event_i",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.observability.observability_1",
+        "cycle_model.observability.observability_2",
+        "cycle_model.observability.observability_3",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.pipeline.S2_COUNT_EVAL",
+        "cycle_model.pipeline.s2_count_eval",
+        "cycle_model.reset",
+        "decomposition.units.counter_datapath",
+        "features",
+        "features.Clear_Load_Control",
+        "features.Debug_Cycle_Counter",
+        "features.Saturating_Mode",
+        "features.Terminal_Count_Interrupt",
+        "features.Up_Down_Counting",
+        "features.Wrap_Mode",
+        "features.saturating_mode",
+        "features.terminal_count_interrupt",
+        "features.up_down_counting",
+        "features.wrap_mode",
+        "fsm",
+        "fsm.core_fsm",
+        "fsm.internal_control",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.invariants.invariant_5",
+        "function_model.invariants.invariant_6",
+        "function_model.invariants.invariant_7",
+        "function_model.state_variables",
+        "function_model.state_variables.cnt",
+        "function_model.state_variables.dbg_cycle_count",
+        "function_model.state_variables.enable",
+        "function_model.state_variables.inten_ovf",
+        "function_model.state_variables.inten_tc",
+        "function_model.state_variables.inten_unf",
+        "function_model.state_variables.load_value",
+        "function_model.state_variables.mode",
+        "function_model.state_variables.overflow",
+        "function_model.state_variables.ovf_pending",
+        "function_model.state_variables.tc_pending",
+        "function_model.state_variables.term",
+        "function_model.state_variables.underflow",
+        "function_model.state_variables.unf_pending",
+        "function_model.state_variables.up_down",
+        "function_model.transactions",
+        "function_model.transactions.fm1",
+        "function_model.transactions.fm1.inputs.input_0",
+        "function_model.transactions.fm1.output_rules.interrupt",
+        "function_model.transactions.fm1.outputs.output_0",
+        "function_model.transactions.fm1.preconditions.precondition_0",
+        "function_model.transactions.fm1.preconditions.precondition_1",
+        "function_model.transactions.fm1.preconditions.precondition_2",
+        "function_model.transactions.fm1.preconditions.precondition_3",
+        "function_model.transactions.fm1.side_effects.side_effect_0",
+        "function_model.transactions.fm1.side_effects.side_effect_1",
+        "function_model.transactions.fm10.inputs.input_0",
+        "function_model.transactions.fm10.outputs.output_0",
+        "function_model.transactions.fm10.outputs.output_1",
+        "function_model.transactions.fm10.outputs.output_2",
+        "function_model.transactions.fm10.preconditions.precondition_0",
+        "function_model.transactions.fm10.side_effects.side_effect_0",
+        "function_model.transactions.fm2",
+        "function_model.transactions.fm2.inputs.input_0",
+        "function_model.transactions.fm2.outputs.output_0",
+        "function_model.transactions.fm2.outputs.output_1",
+        "function_model.transactions.fm2.outputs.output_2",
+        "function_model.transactions.fm2.preconditions.precondition_0",
+        "function_model.transactions.fm2.preconditions.precondition_1",
+        "function_model.transactions.fm2.preconditions.precondition_2",
+        "function_model.transactions.fm2.preconditions.precondition_3",
+        "function_model.transactions.fm2.side_effects.side_effect_0",
+        "function_model.transactions.fm2.side_effects.side_effect_1",
+        "function_model.transactions.fm2.side_effects.side_effect_2",
+        "function_model.transactions.fm3",
+        "function_model.transactions.fm3.inputs.input_0",
+        "function_model.transactions.fm3.outputs.output_0",
+        "function_model.transactions.fm3.preconditions.precondition_0",
+        "function_model.transactions.fm3.preconditions.precondition_1",
+        "function_model.transactions.fm3.preconditions.precondition_2",
+        "function_model.transactions.fm3.preconditions.precondition_3",
+        "function_model.transactions.fm3.side_effects.side_effect_0",
+        "function_model.transactions.fm4",
+        "function_model.transactions.fm4.inputs.input_0",
+        "function_model.transactions.fm4.outputs.output_0",
+        "function_model.transactions.fm4.outputs.output_1",
+        "function_model.transactions.fm4.outputs.output_2",
+        "function_model.transactions.fm4.preconditions.precondition_0",
+        "function_model.transactions.fm4.preconditions.precondition_1",
+        "function_model.transactions.fm4.preconditions.precondition_2",
+        "function_model.transactions.fm4.preconditions.precondition_3",
+        "function_model.transactions.fm4.side_effects.side_effect_0",
+        "function_model.transactions.fm4.side_effects.side_effect_1",
+        "function_model.transactions.fm4.side_effects.side_effect_2",
+        "function_model.transactions.fm5",
+        "function_model.transactions.fm5.inputs.input_0",
+        "function_model.transactions.fm5.outputs.output_0",
+        "function_model.transactions.fm5.outputs.output_1",
+        "function_model.transactions.fm5.outputs.output_2",
+        "function_model.transactions.fm5.preconditions.precondition_0",
+        "function_model.transactions.fm5.preconditions.precondition_1",
+        "function_model.transactions.fm5.preconditions.precondition_2",
+        "function_model.transactions.fm5.preconditions.precondition_3",
+        "function_model.transactions.fm5.side_effects.side_effect_0",
+        "function_model.transactions.fm5.side_effects.side_effect_1",
+        "function_model.transactions.fm5.side_effects.side_effect_2",
+        "function_model.transactions.fm6",
+        "function_model.transactions.fm6.inputs.input_0",
+        "function_model.transactions.fm6.outputs.output_0",
+        "function_model.transactions.fm6.outputs.output_1",
+        "function_model.transactions.fm6.outputs.output_2",
+        "function_model.transactions.fm6.preconditions.precondition_0",
+        "function_model.transactions.fm6.preconditions.precondition_1",
+        "function_model.transactions.fm6.preconditions.precondition_2",
+        "function_model.transactions.fm6.preconditions.precondition_3",
+        "function_model.transactions.fm6.side_effects.side_effect_0",
+        "function_model.transactions.fm6.side_effects.side_effect_1",
+        "function_model.transactions.fm6.side_effects.side_effect_2",
+        "function_model.transactions.fm7",
+        "function_model.transactions.fm7.inputs.input_0",
+        "function_model.transactions.fm7.outputs.output_0",
+        "function_model.transactions.fm7.preconditions.precondition_0",
+        "function_model.transactions.fm7.side_effects.side_effect_0",
+        "function_model.transactions.fm7.side_effects.side_effect_1",
+        "function_model.transactions.fm7.side_effects.side_effect_2",
+        "function_model.transactions.fm8",
+        "function_model.transactions.fm8.inputs.input_0",
+        "function_model.transactions.fm8.outputs.output_0",
+        "function_model.transactions.fm8.preconditions.precondition_0",
+        "function_model.transactions.fm8.side_effects.side_effect_0",
+        "function_model.transactions.fm8.side_effects.side_effect_1",
+        "function_model.transactions.fm8.side_effects.side_effect_2",
+        "function_model.transactions.fm8.side_effects.side_effect_3",
+        "function_model.transactions.fm9",
+        "function_model.transactions.fm9.inputs.input_0",
+        "function_model.transactions.fm9.outputs.output_0",
+        "function_model.transactions.fm9.preconditions.precondition_0",
+        "function_model.transactions.fm9.side_effects.side_effect_0",
+        "function_model.transactions.fm9.side_effects.side_effect_1",
+        "memory",
+        "memory.instances.cnt_reg",
+        "memory.instances.dbg_cycle_reg"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.invariants.invariant_5",
+        "function_model.invariants.invariant_6",
+        "function_model.invariants.invariant_7",
+        "function_model.state_variables.cnt",
+        "function_model.state_variables.dbg_cycle_count",
+        "function_model.state_variables.enable",
+        "function_model.state_variables.inten_ovf",
+        "function_model.state_variables.inten_tc",
+        "function_model.state_variables.inten_unf",
+        "function_model.state_variables.load_value",
+        "function_model.state_variables.mode",
+        "function_model.state_variables.overflow",
+        "function_model.state_variables.ovf_pending",
+        "function_model.state_variables.tc_pending",
+        "function_model.state_variables.term",
+        "function_model.state_variables.underflow",
+        "function_model.state_variables.unf_pending",
+        "function_model.state_variables.up_down",
+        "function_model.transactions.fm1",
+        "function_model.transactions.fm1.inputs.input_0",
+        "function_model.transactions.fm1.output_rules.interrupt",
+        "function_model.transactions.fm1.outputs.output_0",
+        "function_model.transactions.fm1.preconditions.precondition_0",
+        "function_model.transactions.fm1.preconditions.precondition_1",
+        "function_model.transactions.fm1.preconditions.precondition_2",
+        "function_model.transactions.fm1.preconditions.precondition_3",
+        "function_model.transactions.fm1.side_effects.side_effect_0",
+        "function_model.transactions.fm1.side_effects.side_effect_1",
+        "function_model.transactions.fm10.inputs.input_0",
+        "function_model.transactions.fm10.outputs.output_0",
+        "function_model.transactions.fm10.outputs.output_1",
+        "function_model.transactions.fm10.outputs.output_2",
+        "function_model.transactions.fm10.preconditions.precondition_0",
+        "function_model.transactions.fm10.side_effects.side_effect_0",
+        "function_model.transactions.fm2",
+        "function_model.transactions.fm2.inputs.input_0",
+        "function_model.transactions.fm2.outputs.output_0",
+        "function_model.transactions.fm2.outputs.output_1",
+        "function_model.transactions.fm2.outputs.output_2",
+        "function_model.transactions.fm2.preconditions.precondition_0",
+        "function_model.transactions.fm2.preconditions.precondition_1",
+        "function_model.transactions.fm2.preconditions.precondition_2",
+        "function_model.transactions.fm2.preconditions.precondition_3",
+        "function_model.transactions.fm2.side_effects.side_effect_0",
+        "function_model.transactions.fm2.side_effects.side_effect_1",
+        "function_model.transactions.fm2.side_effects.side_effect_2",
+        "function_model.transactions.fm3",
+        "function_model.transactions.fm3.inputs.input_0",
+        "function_model.transactions.fm3.outputs.output_0",
+        "function_model.transactions.fm3.preconditions.precondition_0",
+        "function_model.transactions.fm3.preconditions.precondition_1",
+        "function_model.transactions.fm3.preconditions.precondition_2",
+        "function_model.transactions.fm3.preconditions.precondition_3",
+        "function_model.transactions.fm3.side_effects.side_effect_0",
+        "function_model.transactions.fm4",
+        "function_model.transactions.fm4.inputs.input_0",
+        "function_model.transactions.fm4.outputs.output_0",
+        "function_model.transactions.fm4.outputs.output_1",
+        "function_model.transactions.fm4.outputs.output_2",
+        "function_model.transactions.fm4.preconditions.precondition_0",
+        "function_model.transactions.fm4.preconditions.precondition_1",
+        "function_model.transactions.fm4.preconditions.precondition_2",
+        "function_model.transactions.fm4.preconditions.precondition_3",
+        "function_model.transactions.fm4.side_effects.side_effect_0",
+        "function_model.transactions.fm4.side_effects.side_effect_1",
+        "function_model.transactions.fm4.side_effects.side_effect_2",
+        "function_model.transactions.fm5",
+        "function_model.transactions.fm5.inputs.input_0",
+        "function_model.transactions.fm5.outputs.output_0",
+        "function_model.transactions.fm5.outputs.output_1",
+        "function_model.transactions.fm5.outputs.output_2",
+        "function_model.transactions.fm5.preconditions.precondition_0",
+        "function_model.transactions.fm5.preconditions.precondition_1",
+        "function_model.transactions.fm5.preconditions.precondition_2",
+        "function_model.transactions.fm5.preconditions.precondition_3",
+        "function_model.transactions.fm5.side_effects.side_effect_0",
+        "function_model.transactions.fm5.side_effects.side_effect_1",
+        "function_model.transactions.fm5.side_effects.side_effect_2",
+        "function_model.transactions.fm6",
+        "function_model.transactions.fm6.inputs.input_0",
+        "function_model.transactions.fm6.outputs.output_0",
+        "function_model.transactions.fm6.outputs.output_1",
+        "function_model.transactions.fm6.outputs.output_2",
+        "function_model.transactions.fm6.preconditions.precondition_0",
+        "function_model.transactions.fm6.preconditions.precondition_1",
+        "function_model.transactions.fm6.preconditions.precondition_2",
+        "function_model.transactions.fm6.preconditions.precondition_3",
+        "function_model.transactions.fm6.side_effects.side_effect_0",
+        "function_model.transactions.fm6.side_effects.side_effect_1",
+        "function_model.transactions.fm6.side_effects.side_effect_2",
+        "function_model.transactions.fm7",
+        "function_model.transactions.fm7.inputs.input_0",
+        "function_model.transactions.fm7.outputs.output_0",
+        "function_model.transactions.fm7.preconditions.precondition_0",
+        "function_model.transactions.fm7.side_effects.side_effect_0",
+        "function_model.transactions.fm7.side_effects.side_effect_1",
+        "function_model.transactions.fm7.side_effects.side_effect_2",
+        "function_model.transactions.fm8",
+        "function_model.transactions.fm8.inputs.input_0",
+        "function_model.transactions.fm8.outputs.output_0",
+        "function_model.transactions.fm8.preconditions.precondition_0",
+        "function_model.transactions.fm8.side_effects.side_effect_0",
+        "function_model.transactions.fm8.side_effects.side_effect_1",
+        "function_model.transactions.fm8.side_effects.side_effect_2",
+        "function_model.transactions.fm8.side_effects.side_effect_3",
+        "function_model.transactions.fm9",
+        "function_model.transactions.fm9.inputs.input_0",
+        "function_model.transactions.fm9.outputs.output_0",
+        "function_model.transactions.fm9.preconditions.precondition_0",
+        "function_model.transactions.fm9.side_effects.side_effect_0",
+        "function_model.transactions.fm9.side_effects.side_effect_1"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.backpressure.backpressure_1",
+        "cycle_model.backpressure.backpressure_2",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.event_i",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.observability.observability_1",
+        "cycle_model.observability.observability_2",
+        "cycle_model.observability.observability_3",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.pipeline.s2_count_eval",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.saturating_mode",
+        "features.terminal_count_interrupt",
+        "features.up_down_counting",
+        "features.wrap_mode",
+        "memory.instances.cnt_reg",
+        "memory.instances.dbg_cycle_reg"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.cnt",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.enable",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.up_down",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.mode",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.load_value",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.term",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.overflow",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.underflow",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.tc_pending",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.ovf_pending",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.unf_pending",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.inten_tc",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.inten_ovf",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.inten_unf",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.dbg_cycle_count",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm1.preconditions.precondition_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm1.preconditions.precondition_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm1.preconditions.precondition_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm1.preconditions.precondition_3",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm1.inputs.input_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm1.outputs.output_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm1.output_rules.interrupt",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm1.side_effects.side_effect_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm1.side_effects.side_effect_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm2.preconditions.precondition_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm2.preconditions.precondition_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm2.preconditions.precondition_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm2.preconditions.precondition_3",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm2.inputs.input_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm2.outputs.output_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm2.outputs.output_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm2.outputs.output_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm2.side_effects.side_effect_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm2.side_effects.side_effect_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm2.side_effects.side_effect_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm3",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm3.preconditions.precondition_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm3.preconditions.precondition_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm3.preconditions.precondition_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm3.preconditions.precondition_3",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm3.inputs.input_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm3.outputs.output_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm3.side_effects.side_effect_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm4",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm4.preconditions.precondition_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm4.preconditions.precondition_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm4.preconditions.precondition_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm4.preconditions.precondition_3",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm4.inputs.input_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm4.outputs.output_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm4.outputs.output_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm4.outputs.output_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm4.side_effects.side_effect_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm4.side_effects.side_effect_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm4.side_effects.side_effect_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm5",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm5.preconditions.precondition_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm5.preconditions.precondition_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm5.preconditions.precondition_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm5.preconditions.precondition_3",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm5.inputs.input_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm5.outputs.output_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm5.outputs.output_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm5.outputs.output_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm5.side_effects.side_effect_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm5.side_effects.side_effect_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm5.side_effects.side_effect_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm6",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm6.preconditions.precondition_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm6.preconditions.precondition_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm6.preconditions.precondition_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm6.preconditions.precondition_3",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm6.inputs.input_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm6.outputs.output_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm6.outputs.output_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm6.outputs.output_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm6.side_effects.side_effect_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm6.side_effects.side_effect_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm6.side_effects.side_effect_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm7",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm7.preconditions.precondition_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm7.inputs.input_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm7.outputs.output_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm7.side_effects.side_effect_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm7.side_effects.side_effect_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm7.side_effects.side_effect_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm8",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm8.preconditions.precondition_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm8.inputs.input_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm8.outputs.output_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm8.side_effects.side_effect_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm8.side_effects.side_effect_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm8.side_effects.side_effect_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm8.side_effects.side_effect_3",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm9",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm9.preconditions.precondition_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm9.inputs.input_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm9.outputs.output_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm9.side_effects.side_effect_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm9.side_effects.side_effect_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm10.preconditions.precondition_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm10.inputs.input_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm10.outputs.output_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm10.outputs.output_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm10.outputs.output_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm10.side_effects.side_effect_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_3",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_4",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_5",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_6",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_7",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "cycle_model.clock",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.reset",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.latency",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.event_i",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.s2_count_eval",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_0",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_1",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_2",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_3",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.backpressure.backpressure_0",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.backpressure.backpressure_1",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.backpressure.backpressure_2",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.observability.observability_0",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.observability.observability_1",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.observability.observability_2",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.observability.observability_3",
+          "matched_ref": "cycle_model"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "memory.instances.cnt_reg",
+          "matched_ref": "memory"
+        },
+        {
+          "ref": "memory.instances.dbg_cycle_reg",
+          "matched_ref": "memory"
+        },
+        {
+          "ref": "features.up_down_counting",
+          "matched_ref": "features"
+        },
+        {
+          "ref": "features.saturating_mode",
+          "matched_ref": "features"
+        },
+        {
+          "ref": "features.wrap_mode",
+          "matched_ref": "features"
+        },
+        {
+          "ref": "features.terminal_count_interrupt",
+          "matched_ref": "features"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "todo_counter_pipe_cdc",
+      "kind": "rtl_module",
+      "rtl_module": "todo_counter_pipe_cdc",
+      "rtl_file": "rtl/todo_counter_pipe_cdc.sv",
+      "source_sections": [
+        "cdc_requirements",
+        "clock_reset_domains",
+        "cycle_model",
+        "decomposition",
+        "features",
+        "fsm",
+        "integration",
+        "parameters",
+        "registers"
+      ],
+      "ssot_refs": [
+        "cdc_requirements",
+        "cdc_requirements.crossings.control_bus_to_core",
+        "cdc_requirements.crossings.status_core_to_bus",
+        "cdc_requirements.synchronizers.sync_ctrl",
+        "cdc_requirements.synchronizers.sync_pulse_clear",
+        "cdc_requirements.synchronizers.sync_status",
+        "clock_reset_domains",
+        "clock_reset_domains.domains.bus_clk",
+        "clock_reset_domains.domains.core_clk",
+        "clock_reset_domains.reset_scheme",
+        "clock_reset_domains.reset_scheme.bus_domain",
+        "clock_reset_domains.reset_scheme.core_domain",
+        "cycle_model",
+        "cycle_model.clock",
+        "cycle_model.latency.control_cdc_bus_to_core",
+        "cycle_model.latency.status_cdc_core_to_bus",
+        "cycle_model.pipeline.S1_CDC_CTRL",
+        "cycle_model.pipeline.S3_CDC_STATUS",
+        "cycle_model.pipeline.s1_cdc_ctrl",
+        "cycle_model.pipeline.s3_cdc_status",
+        "cycle_model.reset",
+        "decomposition.units.cdc_sync",
+        "features.Clear_Load_Control",
+        "features.Debug_Cycle_Counter",
+        "features.clear_load_control",
+        "features.debug_cycle_counter",
+        "fsm.core_fsm",
+        "integration",
+        "integration.connections",
+        "parameters",
+        "parameters.bus_clk_freq_mhz",
+        "parameters.cdc_sync_stages",
+        "parameters.core_clk_freq_mhz",
+        "parameters.reset_polarity",
+        "parameters.width",
+        "registers",
+        "registers.register_list.CNT",
+        "registers.register_list.CTRL",
+        "registers.register_list.DBGCNT",
+        "registers.register_list.INTSTAT",
+        "registers.register_list.LOAD",
+        "registers.register_list.STATUS"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [
+        "cycle_model.pipeline.s1_cdc_ctrl",
+        "cycle_model.pipeline.s3_cdc_status"
+      ],
+      "structural_refs": [
+        "features.clear_load_control",
+        "features.debug_cycle_counter",
+        "parameters.bus_clk_freq_mhz",
+        "parameters.cdc_sync_stages",
+        "parameters.core_clk_freq_mhz",
+        "parameters.reset_polarity",
+        "parameters.width"
+      ],
+      "owner_matches": [
+        {
+          "ref": "cycle_model.pipeline.s1_cdc_ctrl",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.s3_cdc_status",
+          "matched_ref": "cycle_model"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "parameters.width",
+          "matched_ref": "parameters"
+        },
+        {
+          "ref": "parameters.bus_clk_freq_mhz",
+          "matched_ref": "parameters"
+        },
+        {
+          "ref": "parameters.core_clk_freq_mhz",
+          "matched_ref": "parameters"
+        },
+        {
+          "ref": "parameters.cdc_sync_stages",
+          "matched_ref": "parameters"
+        },
+        {
+          "ref": "parameters.reset_polarity",
+          "matched_ref": "parameters"
+        },
+        {
+          "ref": "features.clear_load_control",
+          "matched_ref": "features.Clear_Load_Control"
+        },
+        {
+          "ref": "features.debug_cycle_counter",
+          "matched_ref": "features.Debug_Cycle_Counter"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    }
+  ],
+  "orphan_function_cycle_refs": [],
+  "function_cycle_ref_count": 140,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "todo_counter_pipe/req/",
+      "todo_counter_pipe/yaml/todo_counter_pipe.ssot.yaml",
+      "todo_counter_pipe/model/functional_model.py",
+      "todo_counter_pipe/cov/fcov_plan.json",
+      "todo_counter_pipe/yaml/todo_counter_pipe.ssot.yaml#io_list",
+      "todo_counter_pipe/yaml/todo_counter_pipe.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "todo_counter_pipe/rtl/",
+      "todo_counter_pipe/tb/",
+      "todo_counter_pipe/sim/",
+      "todo_counter_pipe/vectors/",
+      "todo_counter_pipe/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "drives": [
+    "rtl_module_plan",
+    "tb_environment_plan",
+    "functional_coverage_plan"
+  ],
+  "complete": true
+}

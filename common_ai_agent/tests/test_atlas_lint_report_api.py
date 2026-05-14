@@ -127,6 +127,26 @@ def test_dut_lint_policy_allows_project_logic_subset(tmp_path):
     assert dut_lint_report._style_violations(ip_dir, entries) == []
 
 
+def test_dut_lint_report_entries_include_generated_param_headers(tmp_path):
+    from workflow.lint.scripts import dut_lint_report
+
+    ip_dir = tmp_path / "param_header_ip"
+    (ip_dir / "rtl").mkdir(parents=True)
+    (ip_dir / "rtl" / "param_header_ip.sv").write_text(
+        "module param_header_ip(input logic clk, output logic done); assign done = clk; endmodule\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / "param_header_ip_param.vh").write_text(
+        "`ifndef PARAM_HEADER_IP_PARAM_VH\n`define PARAM_HEADER_IP_PARAM_VH\n`define PARAM_WIDTH 8\n`endif\n",
+        encoding="utf-8",
+    )
+
+    entries = dut_lint_report._report_rtl_entries(ip_dir, ["rtl/param_header_ip.sv"])
+
+    assert entries == ["rtl/param_header_ip.sv", "rtl/param_header_ip_param.vh"]
+    assert dut_lint_report._style_violations(ip_dir, entries) == []
+
+
 def test_dut_lint_policy_still_rejects_nonportable_sv_constructs(tmp_path):
     from workflow.lint.scripts import dut_lint_report
 

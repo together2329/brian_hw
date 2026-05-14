@@ -12,6 +12,8 @@
 - Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.
 - Every task must satisfy content, detail, and criteria before the packet is closed.
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
+- Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
+- Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
@@ -20,7 +22,7 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: True
+- PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
@@ -105,7 +107,7 @@ SSOT item context: name=done_q; width=1; reset=0.
 - Source ref: function_model.transactions.FM_TICK
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_TICK.
-Owner: timer_core in rtl/timer.sv via function_model.
+Owner: timer_core in rtl/timer.sv via function_model.transactions.FM_TICK.
 SSOT item context: id=FM_TICK; name=timer_control_tick.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -125,7 +127,7 @@ SSOT item context: id=FM_TICK; name=timer_control_tick.
 - Source ref: function_model.transactions.FM_TICK.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_TICK.preconditions.precondition_0.
-Owner: timer_core in rtl/timer.sv via function_model.
+Owner: timer_core in rtl/timer.sv via function_model.transactions.FM_TICK.
 SSOT item context: value=rst_n is deasserted.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -145,7 +147,7 @@ SSOT item context: value=rst_n is deasserted.
 - Source ref: function_model.transactions.FM_TICK.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_TICK.preconditions.precondition_1.
-Owner: timer_core in rtl/timer.sv via function_model.
+Owner: timer_core in rtl/timer.sv via function_model.transactions.FM_TICK.
 SSOT item context: value=load is in the range 0 to 2**COUNT_WIDTH-1.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -165,7 +167,7 @@ SSOT item context: value=load is in the range 0 to 2**COUNT_WIDTH-1.
 - Source ref: function_model.transactions.FM_TICK.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_TICK.outputs.output_0.
-Owner: timer_core in rtl/timer.sv via function_model.
+Owner: timer_core in rtl/timer.sv via function_model.transactions.FM_TICK.
 SSOT item context: value=count.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -185,7 +187,7 @@ SSOT item context: value=count.
 - Source ref: function_model.transactions.FM_TICK.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_TICK.outputs.output_1.
-Owner: timer_core in rtl/timer.sv via function_model.
+Owner: timer_core in rtl/timer.sv via function_model.transactions.FM_TICK.
 SSOT item context: value=running.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -205,7 +207,7 @@ SSOT item context: value=running.
 - Source ref: function_model.transactions.FM_TICK.outputs.output_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_TICK.outputs.output_2.
-Owner: timer_core in rtl/timer.sv via function_model.
+Owner: timer_core in rtl/timer.sv via function_model.transactions.FM_TICK.
 SSOT item context: value=done.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -225,7 +227,7 @@ SSOT item context: value=done.
 - Source ref: function_model.transactions.FM_TICK.output_rules.count_next
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_TICK.output_rules.count_next.
-Owner: timer_core in rtl/timer.sv via function_model.
+Owner: timer_core in rtl/timer.sv via function_model.transactions.FM_TICK.
 SSOT item context: name=count_next; port=count; expr=0 if clear else (load if start else ((count_q - 1) if (enable and running_q and (count_q > 0)) else count_q)); width=16.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -249,7 +251,7 @@ SSOT item context: name=count_next; port=count; expr=0 if clear else (load if st
 - Source ref: function_model.transactions.FM_TICK.output_rules.running_next
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_TICK.output_rules.running_next.
-Owner: timer_core in rtl/timer.sv via function_model.
+Owner: timer_core in rtl/timer.sv via function_model.transactions.FM_TICK.
 SSOT item context: name=running_next; port=running; expr=0 if clear else ((load > 0) if start else (0 if (enable and running_q and (count_q <= 1)) else running_q)); width=1.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -273,7 +275,7 @@ SSOT item context: name=running_next; port=running; expr=0 if clear else ((load 
 - Source ref: function_model.transactions.FM_TICK.output_rules.done_pulse
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_TICK.output_rules.done_pulse.
-Owner: timer_core in rtl/timer.sv via function_model.
+Owner: timer_core in rtl/timer.sv via function_model.transactions.FM_TICK.
 SSOT item context: name=done_pulse; port=done; expr=0 if clear else (0 if start else (1 if (enable and running_q and (count_q == 1)) else 0)); width=1.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -297,7 +299,7 @@ SSOT item context: name=done_pulse; port=done; expr=0 if clear else (0 if start 
 - Source ref: function_model.transactions.FM_TICK.state_updates.count_q
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_TICK.state_updates.count_q.
-Owner: timer_core in rtl/timer.sv via function_model.
+Owner: timer_core in rtl/timer.sv via function_model.transactions.FM_TICK.
 SSOT item context: name=count_q; expr=0 if clear else (load if start else ((count_q - 1) if (enable and running_q and (count_q > 0)) else count_q)); width=16; reset=0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -321,7 +323,7 @@ SSOT item context: name=count_q; expr=0 if clear else (load if start else ((coun
 - Source ref: function_model.transactions.FM_TICK.state_updates.running_q
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_TICK.state_updates.running_q.
-Owner: timer_core in rtl/timer.sv via function_model.
+Owner: timer_core in rtl/timer.sv via function_model.transactions.FM_TICK.
 SSOT item context: name=running_q; expr=0 if clear else ((load > 0) if start else (0 if (enable and running_q and (count_q <= 1)) else running_q)); width=1; reset=0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -345,7 +347,7 @@ SSOT item context: name=running_q; expr=0 if clear else ((load > 0) if start els
 - Source ref: function_model.transactions.FM_TICK.state_updates.done_q
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_TICK.state_updates.done_q.
-Owner: timer_core in rtl/timer.sv via function_model.
+Owner: timer_core in rtl/timer.sv via function_model.transactions.FM_TICK.
 SSOT item context: name=done_q; expr=0 if clear else (0 if start else (1 if (enable and running_q and (count_q == 1)) else 0)); width=1; reset=0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -369,7 +371,7 @@ SSOT item context: name=done_q; expr=0 if clear else (0 if start else (1 if (ena
 - Source ref: function_model.transactions.FM_TICK.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_TICK.side_effects.side_effect_0.
-Owner: timer_core in rtl/timer.sv via function_model.
+Owner: timer_core in rtl/timer.sv via function_model.transactions.FM_TICK.
 SSOT item context: value=count updates according to start, clear, and enable priority..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -389,7 +391,7 @@ SSOT item context: value=count updates according to start, clear, and enable pri
 - Source ref: function_model.transactions.FM_TICK.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_TICK.side_effects.side_effect_1.
-Owner: timer_core in rtl/timer.sv via function_model.
+Owner: timer_core in rtl/timer.sv via function_model.transactions.FM_TICK.
 SSOT item context: value=running drops when the countdown consumes the final count..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -409,7 +411,7 @@ SSOT item context: value=running drops when the countdown consumes the final cou
 - Source ref: function_model.transactions.FM_TICK.side_effects.side_effect_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_TICK.side_effects.side_effect_2.
-Owner: timer_core in rtl/timer.sv via function_model.
+Owner: timer_core in rtl/timer.sv via function_model.transactions.FM_TICK.
 SSOT item context: value=done pulses for the terminal countdown tick..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -429,7 +431,7 @@ SSOT item context: value=done pulses for the terminal countdown tick..
 - Source ref: function_model.transactions.FM_TICK.error_cases.error_case_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_TICK.error_cases.error_case_0.
-Owner: timer_core in rtl/timer.sv via function_model.
+Owner: timer_core in rtl/timer.sv via function_model.transactions.FM_TICK.
 SSOT item context: value=No protocol error is generated; out-of-range load values are impossible after port truncation..
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:

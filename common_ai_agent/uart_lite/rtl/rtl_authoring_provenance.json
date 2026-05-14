@@ -1,0 +1,30 @@
+{
+  "agent": "common_ai_agent",
+  "filelist": "list/uart_lite.f",
+  "generated_at": "2026-05-14T12:58:00Z",
+  "header_files": [
+    "rtl/uart_lite_param.vh"
+  ],
+  "ip": "uart_lite",
+  "note": "All RTL files were authored by common_ai_agent rtl-gen from uart_lite/yaml/uart_lite.ssot.yaml using the canonical SSOT-driven RTL generation path.",
+  "refresh_reason": "SSOT metadata gate update refreshed rtl_todo_plan hash without changing RTL files.",
+  "rtl_files": [
+    "rtl/uart_lite_regs.sv",
+    "rtl/uart_lite_tx.sv",
+    "rtl/uart_lite_rx.sv",
+    "rtl/uart_lite_baud_gen.sv",
+    "rtl/uart_lite_tx_fifo.sv",
+    "rtl/uart_lite_rx_fifo.sv",
+    "rtl/uart_lite_core.sv",
+    "rtl/uart_lite.sv"
+  ],
+  "schema_version": 1,
+  "ssot": "uart_lite/yaml/uart_lite.ssot.yaml",
+  "surface": "atlas_ui",
+  "todo_plan": "rtl/rtl_todo_plan.json",
+  "todo_plan_sha256": "572e9e2859bf43dde0408e248938767935874add81ec7f951af6d7c8f7901fb4",
+  "toolchain": "atlas rtl-gen via common_ai_agent",
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-05-14T13:02:56Z",
+  "workflow": "rtl-gen"
+}

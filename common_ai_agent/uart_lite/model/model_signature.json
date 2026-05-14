@@ -1,0 +1,9 @@
+{
+  "expressions_hash": "bd73093add4e042b4354eb273f83b2e681f5a751f65187452f333fa36d157cea",
+  "invariants_hash": "35237518ec5f40c69e369eacaccf847564d9225d267e0fa1a656ee757a160176",
+  "ip": "uart_lite",
+  "schema_version": 1,
+  "ssot_hash": "7d1545914b676e58ce6cc0a5f8cd17c180bae0afc1cb440c41b1f7f65575f40c",
+  "transactions_hash": "a5561d78dedd671f1b8b5986ba34b3ab4c08d61a4a0a81c7c943d4462b94128f",
+  "type": "model_signature"
+}

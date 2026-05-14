@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: todo_counter_pipe_core
 - Owner file: rtl/todo_counter_pipe_core.sv
-- Task count: 4
-- Required tasks: 4
+- Task count: 6
+- Required tasks: 6
 
 ## Rules
 
@@ -27,8 +27,8 @@
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.clock, cycle_model.handshake_rules.event_i, cycle_model.pipeline.S2_COUNT_EVAL, cycle_model.reset, decomposition.units.counter_datapath, features, features.Clear_Load_Control, features.Debug_Cycle_Counter, features.Saturating_Mode, features.Terminal_Count_Interrupt, features.Up_Down_Counting, features.Wrap_Mode, fsm, fsm.core_fsm, fsm.internal_control
-- Module slice: 6/8 section=features task_limit=48
-- Slice rule: Owner module todo_counter_pipe_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Module slice: 7/9 section=features task_limit=48
+- Slice rule: Owner module todo_counter_pipe_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT connection contracts:
   - todo_counter_pipe_core.core_clk <= core_clk (integration.connections[3])
   - todo_counter_pipe_core.core_rst_n <= core_rst_n (integration.connections[4])
@@ -45,7 +45,7 @@
 - Source ref: features.Up_Down_Counting
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Up_Down_Counting.
-Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.
+Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.Up_Down_Counting.
 SSOT item context: name=Up/Down Counting; output=Updated cnt value reflected in CNT register.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -65,7 +65,7 @@ SSOT item context: name=Up/Down Counting; output=Updated cnt value reflected in 
 - Source ref: features.Saturating_Mode
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Saturating_Mode.
-Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.
+Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.Saturating_Mode.
 SSOT item context: name=Saturating Mode; output=cnt held at limit; STATUS.overflow/underflow asserted.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -85,7 +85,7 @@ SSOT item context: name=Saturating Mode; output=cnt held at limit; STATUS.overfl
 - Source ref: features.Wrap_Mode
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Wrap_Mode.
-Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.
+Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.Wrap_Mode.
 SSOT item context: name=Wrap Mode; output=cnt wraps to opposite extreme; STATUS flags asserted.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -96,6 +96,26 @@ SSOT item context: name=Wrap Mode; output=cnt wraps to opposite extreme; STATUS 
   - Primary implementation evidence is in rtl/todo_counter_pipe_core.sv
 - SSOT refs: features.Wrap_Mode
 
+### RTL-0230: Implement feature Clear/Load Control
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: features.item
+- Source ref: features.Clear_Load_Control
+- Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
+SSOT ref: features.Clear_Load_Control.
+Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.Clear_Load_Control.
+SSOT item context: name=Clear/Load Control; output=cnt updated on next core_clk edge after CDC convergence.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - Feature trigger/control/data behavior has RTL owner logic
+  - Feature observability and error behavior match SSOT
+  - Feature is covered by function/cycle/coverage tasks or explicitly blocked
+  - Traceability keeps source_ref features.Clear_Load_Control
+  - Primary implementation evidence is in rtl/todo_counter_pipe_core.sv
+- SSOT refs: features.Clear_Load_Control
+
 ### RTL-0231: Implement feature Terminal Count Interrupt
 
 - Priority: high
@@ -105,7 +125,7 @@ SSOT item context: name=Wrap Mode; output=cnt wraps to opposite extreme; STATUS 
 - Source ref: features.Terminal_Count_Interrupt
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Terminal_Count_Interrupt.
-Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.
+Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.Terminal_Count_Interrupt.
 SSOT item context: name=Terminal Count Interrupt; output=INTSTAT.tc_pending; counter_irq.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -115,3 +135,23 @@ SSOT item context: name=Terminal Count Interrupt; output=INTSTAT.tc_pending; cou
   - Traceability keeps source_ref features.Terminal_Count_Interrupt
   - Primary implementation evidence is in rtl/todo_counter_pipe_core.sv
 - SSOT refs: features.Terminal_Count_Interrupt
+
+### RTL-0232: Implement feature Debug Cycle Counter
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: features.item
+- Source ref: features.Debug_Cycle_Counter
+- Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
+SSOT ref: features.Debug_Cycle_Counter.
+Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via features.Debug_Cycle_Counter.
+SSOT item context: name=Debug Cycle Counter; output=DBGCNT.dbg_cycle_count readable via APB after CDC.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - Feature trigger/control/data behavior has RTL owner logic
+  - Feature observability and error behavior match SSOT
+  - Feature is covered by function/cycle/coverage tasks or explicitly blocked
+  - Traceability keeps source_ref features.Debug_Cycle_Counter
+  - Primary implementation evidence is in rtl/todo_counter_pipe_core.sv
+- SSOT refs: features.Debug_Cycle_Counter

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "type": "cl_model_check",
+  "ip": "uart_lite",
+  "source": "model/cycle_model.py",
+  "backend": "pymtl3",
+  "pymtl3_available": true,
+  "timestamp": "2026-05-14T12:55:56Z",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "backend": "pymtl3",
+    "pymtl3_available": true,
+    "transactions": 4,
+    "results_observed": 3,
+    "coverage_bins": 11,
+    "coverage_hit": 11,
+    "performance_targets": {
+      "frequency_mhz": 50,
+      "throughput": {
+        "max_baud": "PCLK / (OVERSAMPLE * 1) = 3.125 Mbaud at baud_div=0",
+        "sustained_bytes_per_second": "baud_rate / (1 + DATA_WIDTH + parity_en + stop_bits)"
+      },
+      "outstanding": {
+        "description": "FIFO depth bounds maximum queued TX/RX bytes"
+      },
+      "pipeline_stages": null,
+      "queue_depth": null
+    }
+  },
+  "performance_targets": {
+    "frequency_mhz": 50,
+    "throughput": {
+      "max_baud": "PCLK / (OVERSAMPLE * 1) = 3.125 Mbaud at baud_div=0",
+      "sustained_bytes_per_second": "baud_rate / (1 + DATA_WIDTH + parity_en + stop_bits)"
+    },
+    "outstanding": {
+      "description": "FIFO depth bounds maximum queued TX/RX bytes"
+    },
+    "pipeline_stages": null,
+    "queue_depth": null
+  },
+  "decomposition_units": 7,
+  "fcov_bins": 11
+}

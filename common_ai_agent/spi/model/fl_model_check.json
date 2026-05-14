@@ -1,0 +1,238 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "spi",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 7,
+    "failed": 0,
+    "transactions": 6,
+    "transaction_results": [
+      {
+        "id": "FM_APB_TX_PUSH",
+        "name": "apb_write_txdata",
+        "kind": "FM_APB_TX_PUSH",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_APB_TX_PUSH",
+          "transaction_name": "apb_write_txdata",
+          "outputs_spec": [
+            "TX FIFO occupancy increments by one when not full"
+          ],
+          "side_effects_spec": [
+            "If tx_fifo full, payload is discarded and STATUS.tx_overrun set",
+            "tx_empty/tx_full level indicators update"
+          ],
+          "ssot_question": "[SSOT QUESTION] structured output_rules/state_updates undefined for transaction FM_APB_TX_PUSH",
+          "fabricated_state": false
+        }
+      },
+      {
+        "id": "FM_FRAME_LAUNCH",
+        "name": "launch_frame",
+        "kind": "FM_FRAME_LAUNCH",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_FRAME_LAUNCH",
+          "transaction_name": "launch_frame",
+          "outputs_spec": [
+            "busy transitions to 1",
+            "One TX word is consumed from TX FIFO for shift register load"
+          ],
+          "side_effects_spec": [
+            "csn_o drives exactly one active-low bit at selected CS",
+            "SCLK idle level driven per CPOL before first active edge"
+          ],
+          "ssot_question": "[SSOT QUESTION] structured output_rules/state_updates undefined for transaction FM_FRAME_LAUNCH",
+          "fabricated_state": false
+        }
+      },
+      {
+        "id": "FM_SHIFT_SAMPLE",
+        "name": "shift_and_sample_bits",
+        "kind": "FM_SHIFT_SAMPLE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_SHIFT_SAMPLE",
+          "transaction_name": "shift_and_sample_bits",
+          "outputs_spec": [
+            "mosi_o presents serialized transmit bits with configured bit order",
+            "rx_shift_reg accumulates sampled bits"
+          ],
+          "side_effects_spec": [
+            "bit_index progresses from 0 to frame_bits-1",
+            "done asserted when terminal sample edge occurs"
+          ],
+          "ssot_question": "[SSOT QUESTION] structured output_rules/state_updates undefined for transaction FM_SHIFT_SAMPLE",
+          "fabricated_state": false
+        }
+      },
+      {
+        "id": "FM_FRAME_COMPLETE",
+        "name": "complete_frame_and_store_rx",
+        "kind": "FM_FRAME_COMPLETE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_FRAME_COMPLETE",
+          "transaction_name": "complete_frame_and_store_rx",
+          "outputs_spec": [
+            "busy transitions to 0",
+            "STATUS.done pulse/latched event generated"
+          ],
+          "side_effects_spec": [
+            "If RX FIFO has space, received frame pushed; else discard and STATUS.rx_overrun set",
+            "CS deasserts to CS_IDLE unless continuous_cs holds across back-to-back frame",
+            "Interrupt pending bits update for done and FIFO level"
+          ],
+          "ssot_question": "[SSOT QUESTION] structured output_rules/state_updates undefined for transaction FM_FRAME_COMPLETE",
+          "fabricated_state": false
+        }
+      },
+      {
+        "id": "FM_APB_RX_POP",
+        "name": "apb_read_rxdata",
+        "kind": "FM_APB_RX_POP",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_APB_RX_POP",
+          "transaction_name": "apb_read_rxdata",
+          "outputs_spec": [
+            "Returns oldest RX word when FIFO non-empty"
+          ],
+          "side_effects_spec": [
+            "RX FIFO occupancy decrements on successful pop"
+          ],
+          "ssot_question": "[SSOT QUESTION] structured output_rules/state_updates undefined for transaction FM_APB_RX_POP",
+          "fabricated_state": false
+        }
+      },
+      {
+        "id": "FM_INT_CLEAR",
+        "name": "w1c_interrupt_and_status_clear",
+        "kind": "FM_INT_CLEAR",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_INT_CLEAR",
+          "transaction_name": "w1c_interrupt_and_status_clear",
+          "outputs_spec": [
+            "Selected sticky pending/status bits cleared"
+          ],
+          "side_effects_spec": [
+            "FIFO level-derived pending bits remain level-sensitive and unaffected by W1C"
+          ],
+          "ssot_question": "[SSOT QUESTION] structured output_rules/state_updates undefined for transaction FM_INT_CLEAR",
+          "fabricated_state": false
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 7,
+    "coverage_bins": 62,
+    "invariants_total": 5,
+    "invariants_evaluated": 0,
+    "invariants_failed": [],
+    "invariants_skipped": [
+      {
+        "name": "Only one csn_o bit may be active-low dur",
+        "expr": "Only one csn_o bit may be active-low during an active frame.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "No frame launch consumes TX FIFO unless ",
+        "expr": "No frame launch consumes TX FIFO unless all launch preconditions are true.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "irq_o equals OR(INT_PENDING & INT_MASK) ",
+        "expr": "irq_o equals OR(INT_PENDING & INT_MASK) at all times.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "sclk_o is a generated output waveform; n",
+        "expr": "sclk_o is a generated output waveform; no internal sequential process is clocked by sclk_o.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "Sticky bits clear only via reset or INT_",
+        "expr": "Sticky bits clear only via reset or INT_CLEAR W1C semantics.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      }
+    ],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 7,
+    "error_cases_planned": 7
+  },
+  "decomposition_units": 12,
+  "fcov_bins": 62,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "spi/req/",
+      "spi/yaml/spi.ssot.yaml",
+      "spi/model/functional_model.py",
+      "spi/cov/fcov_plan.json",
+      "spi/yaml/spi.ssot.yaml#io_list",
+      "spi/yaml/spi.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "spi/rtl/",
+      "spi/tb/",
+      "spi/sim/",
+      "spi/vectors/",
+      "spi/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

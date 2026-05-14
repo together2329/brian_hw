@@ -8,12 +8,12 @@
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 9,
+      "count": 10,
       "enabled": true,
-      "index": 9,
+      "index": 10,
       "key": "dataflow",
-      "module_task_count": 98,
-      "rule": "Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 94,
+      "rule": "Owner module cortex_m0lite_core is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "dataflow",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -234,6 +234,8 @@
     "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
     "Every task must satisfy content, detail, and criteria before the packet is closed.",
     "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
     "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
   ],
   "schema_version": 1,
@@ -244,12 +246,12 @@
       "dataflow.sequence": 4
     },
     "module_slice": {
-      "count": 9,
+      "count": 10,
       "enabled": true,
-      "index": 9,
+      "index": 10,
       "key": "dataflow",
-      "module_task_count": 98,
-      "rule": "Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 94,
+      "rule": "Owner module cortex_m0lite_core is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "dataflow",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -282,7 +284,7 @@
         "Traceability keeps source_ref dataflow.sequence.sequence_0",
         "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
       ],
-      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_0.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.\nSSOT item context: value=IF issues instruction fetch request and captures instruction when i_hready is high..",
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_0.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.sequence.\nSSOT item context: value=IF issues instruction fetch request and captures instruction when i_hready is high..",
       "evidence_terms": [
         "hready",
         "i_hready"
@@ -338,7 +340,7 @@
         "Traceability keeps source_ref dataflow.sequence.sequence_1",
         "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
       ],
-      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_1.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.\nSSOT item context: value=ID decodes instruction, reads regfile, and computes immediate/control..",
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_1.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.sequence.\nSSOT item context: value=ID decodes instruction, reads regfile, and computes immediate/control..",
       "evidence_terms": [],
       "id": "RTL-0148",
       "owner_file": "rtl/cortex_m0lite_core.sv",
@@ -379,7 +381,7 @@
         "Traceability keeps source_ref dataflow.sequence.sequence_2",
         "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
       ],
-      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_2.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.\nSSOT item context: value=EX executes ALU/branch/address generation and launches data AHB for LDR/STR..",
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_2.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.sequence.\nSSOT item context: value=EX executes ALU/branch/address generation and launches data AHB for LDR/STR..",
       "evidence_terms": [],
       "id": "RTL-0149",
       "owner_file": "rtl/cortex_m0lite_core.sv",
@@ -420,7 +422,7 @@
         "Traceability keeps source_ref dataflow.sequence.sequence_3",
         "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
       ],
-      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_3.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.\nSSOT item context: value=WB commits architectural state and emits retire pulse..",
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_3.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.sequence.\nSSOT item context: value=WB commits architectural state and emits retire pulse..",
       "evidence_terms": [],
       "id": "RTL-0150",
       "owner_file": "rtl/cortex_m0lite_core.sv",
@@ -461,7 +463,7 @@
         "Traceability keeps source_ref dataflow.ordering.ordering_0",
         "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
       ],
-      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.ordering.ordering_0.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.\nSSOT item context: value=Reset dominates all control..",
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.ordering.ordering_0.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.ordering.\nSSOT item context: value=Reset dominates all control..",
       "evidence_terms": [],
       "id": "RTL-0151",
       "owner_file": "rtl/cortex_m0lite_core.sv",
@@ -502,7 +504,7 @@
         "Traceability keeps source_ref dataflow.ordering.ordering_1",
         "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
       ],
-      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.ordering.ordering_1.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.\nSSOT item context: value=Trap dominates writeback and starts flush sequence..",
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.ordering.ordering_1.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.ordering.\nSSOT item context: value=Trap dominates writeback and starts flush sequence..",
       "evidence_terms": [],
       "id": "RTL-0152",
       "owner_file": "rtl/cortex_m0lite_core.sv",
@@ -543,7 +545,7 @@
         "Traceability keeps source_ref dataflow.ordering.ordering_2",
         "Primary implementation evidence is in rtl/cortex_m0lite_core.sv"
       ],
-      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.ordering.ordering_2.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.\nSSOT item context: value=Branch taken flushes IF/ID before next fetch..",
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.ordering.ordering_2.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via dataflow.ordering.\nSSOT item context: value=Branch taken flushes IF/ID before next fetch..",
       "evidence_terms": [],
       "id": "RTL-0153",
       "owner_file": "rtl/cortex_m0lite_core.sv",
@@ -575,7 +577,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "67adb8890410a2aeeee9a654b645018e5e9f79eb8ebcffab7e873d9d102687f9",
+  "todo_plan_sha256": "c6dd55ff414292d6cfb25aa90ae64245d5f8618420d87d35c2436677a025d78f",
   "top": "cortex_m0lite",
   "type": "rtl_authoring_packet"
 }

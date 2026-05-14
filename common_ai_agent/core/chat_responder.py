@@ -227,21 +227,32 @@ def _llm_completion(system_prompt: str,
 class Responder:
     def __init__(self, room: str,
                  db: Optional[AtlasDB] = None,
+                 bridge: Optional[object] = None,
                  model: Optional[str] = None,
                  poll_seconds: Optional[float] = None,
                  min_interval_seconds: Optional[float] = None,
                  max_output_tokens: Optional[int] = None):
         self.room = room
         self.db = db or AtlasDB()
+        # bridge enables real-time WS push of bot replies. When the
+        # responder runs in-process with atlas_ui (autostart), pass the
+        # live _MultiUserBridge; standalone CLI runs leave it None and
+        # WS clients receive the message on next refresh.
+        self.bridge = bridge
         self.model = model or _env("CHAT_RESPONDER_MODEL", _DEFAULT_MODEL)
-        self.poll_seconds = poll_seconds or _envf("CHAT_RESPONDER_POLL_SECONDS",
-                                                    _DEFAULT_POLL_SECONDS)
-        self.min_interval = (min_interval_seconds
-                             or _envf("CHAT_RESPONDER_MIN_INTERVAL_SECONDS",
-                                      _DEFAULT_MIN_INTERVAL_SECONDS))
-        self.max_output_tokens = (max_output_tokens
-                                   or _envi("CHAT_RESPONDER_MAX_OUTPUT_TOKENS",
-                                            _DEFAULT_MAX_OUTPUT_TOKENS))
+        # Explicit None checks instead of `or` so explicit 0 / 0.0 from
+        # tests (and operators who want NO throttle) are honored. Using
+        # `or` here treats 0 as falsy and silently falls back to the env
+        # default, which masked a throttle in unit tests for hours.
+        self.poll_seconds = (poll_seconds if poll_seconds is not None
+                             else _envf("CHAT_RESPONDER_POLL_SECONDS",
+                                          _DEFAULT_POLL_SECONDS))
+        self.min_interval = (min_interval_seconds if min_interval_seconds is not None
+                             else _envf("CHAT_RESPONDER_MIN_INTERVAL_SECONDS",
+                                          _DEFAULT_MIN_INTERVAL_SECONDS))
+        self.max_output_tokens = (max_output_tokens if max_output_tokens is not None
+                                   else _envi("CHAT_RESPONDER_MAX_OUTPUT_TOKENS",
+                                                _DEFAULT_MAX_OUTPUT_TOKENS))
 
         # Resolve room → ip_id (None for global) and prompt variant.
         if room == _GLOBAL_ROOM:
@@ -284,12 +295,35 @@ class Responder:
     def _post_reply(self, reply: str) -> Optional[dict]:
         if not reply.strip():
             return None
-        return self.db.record_chat_message(
+        row = self.db.record_chat_message(
             ip_id=self.ip_id,
             user_id=self.agent_uid,
             content=reply.strip(),
             display_name=_AGENT_DISPLAY,
         )
+        # Push to WS clients in real time. Without this, browser tabs
+        # only see the bot reply on the next refresh. Best-effort —
+        # bridge is None in standalone CLI mode and that path falls
+        # back to client-side polling.
+        if self.bridge is not None and hasattr(self.bridge, "broadcast_all"):
+            try:
+                payload = row.get("payload") or {}
+                if isinstance(payload, str):
+                    import json as _json
+                    payload = _json.loads(payload) if payload else {}
+                self.bridge.broadcast_all(
+                    "chat_message",
+                    room=self.room,
+                    id=row["id"],
+                    ip_id=row.get("ip_id") or None,
+                    user_id=row.get("actor_user_id"),
+                    display_name=payload.get("display_name") or _AGENT_DISPLAY,
+                    content=payload.get("content") or reply.strip(),
+                    created_at=row.get("created_at"),
+                )
+            except Exception:  # pragma: no cover — broadcast is best-effort
+                pass
+        return row
 
     def _mark_consumed(self, msgs: list[dict]) -> None:
         for m in msgs:
@@ -421,8 +455,11 @@ def main(argv: Optional[list[str]] = None) -> int:
     return 0
 
 
-def autostart_all(db: Optional[AtlasDB] = None) -> list["Responder"]:
-    """Start daemon-threaded responders for every IP in the DB plus the
+def autostart_all(
+    db: Optional[AtlasDB] = None,
+    bridge: Optional[object] = None,
+) -> list["Responder"]:
+    r"""Start daemon-threaded responders for every IP in the DB plus the
     \_global room. Returns the list of Responder instances so callers can
     inspect health.
 
@@ -430,11 +467,22 @@ def autostart_all(db: Optional[AtlasDB] = None) -> list["Responder"]:
     the UI is enough to bring up all per-room bots — no separate terminals,
     no manual process management. Daemons die with the parent process.
 
+    `bridge` (a _MultiUserBridge) lets each responder fan its reply out
+    to every connected WS client in real time. When omitted, the function
+    looks it up from `core.orchestrator_inject.get_registered_bridge()`
+    which atlas_ui populates at boot.
+
     Idempotent against repeated calls only in the sense that fresh threads
     are spawned each time; callers should call this exactly once per
     ATLAS UI boot."""
     import threading
     db = db or AtlasDB()
+    if bridge is None:
+        try:
+            from core.orchestrator_inject import get_registered_bridge
+            bridge = get_registered_bridge()
+        except Exception:  # pragma: no cover
+            bridge = None
     rooms: list[str] = ["_global"]
     try:
         for ws in db._fetchall("SELECT id FROM workspaces"):
@@ -446,7 +494,7 @@ def autostart_all(db: Optional[AtlasDB] = None) -> list["Responder"]:
     started: list[Responder] = []
     for room in rooms:
         try:
-            r = Responder(room=room, db=db)
+            r = Responder(room=room, db=db, bridge=bridge)
         except SystemExit:
             continue   # unknown room name — skip gracefully
         t = threading.Thread(

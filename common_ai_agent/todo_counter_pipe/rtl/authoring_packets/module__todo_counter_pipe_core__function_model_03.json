@@ -8,12 +8,12 @@
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 8,
+      "count": 9,
       "enabled": true,
       "index": 3,
       "key": "function_model_03",
-      "module_task_count": 136,
-      "rule": "Owner module todo_counter_pipe_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 140,
+      "rule": "Owner module todo_counter_pipe_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "function_model",
       "section_chunk_count": 3,
       "section_chunk_index": 3,
@@ -156,12 +156,12 @@
       "function_model.transaction": 1
     },
     "module_slice": {
-      "count": 8,
+      "count": 9,
       "enabled": true,
       "index": 3,
       "key": "function_model_03",
-      "module_task_count": 136,
-      "rule": "Owner module todo_counter_pipe_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 140,
+      "rule": "Owner module todo_counter_pipe_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "function_model",
       "section_chunk_count": 3,
       "section_chunk_index": 3,
@@ -201,7 +201,7 @@
         "Traceability keeps source_ref function_model.transactions.FM9",
         "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
       ],
-      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM9.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.\nSSOT item context: id=FM9; name=no_count_disabled.",
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM9.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.transactions.\nSSOT item context: id=FM9; name=no_count_disabled.",
       "evidence_terms": [],
       "id": "RTL-0139",
       "owner_file": "rtl/todo_counter_pipe_core.sv",
@@ -243,7 +243,7 @@
         "Traceability keeps source_ref function_model.transactions.FM9.preconditions.precondition_0",
         "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM9.preconditions.precondition_0.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.\nSSOT item context: value=enable == 0.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM9.preconditions.precondition_0.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.transactions.\nSSOT item context: value=enable == 0.",
       "evidence_terms": [],
       "id": "RTL-0140",
       "owner_file": "rtl/todo_counter_pipe_core.sv",
@@ -284,7 +284,7 @@
         "Traceability keeps source_ref function_model.transactions.FM9.inputs.input_0",
         "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM9.inputs.input_0.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.\nSSOT item context: value=event_i may toggle.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM9.inputs.input_0.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.transactions.\nSSOT item context: value=event_i may toggle.",
       "evidence_terms": [
         "event_i"
       ],
@@ -337,7 +337,7 @@
         "Traceability keeps source_ref function_model.transactions.FM9.outputs.output_0",
         "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM9.outputs.output_0.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.\nSSOT item context: value=cnt unchanged.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM9.outputs.output_0.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.transactions.\nSSOT item context: value=cnt unchanged.",
       "evidence_terms": [],
       "id": "RTL-0142",
       "owner_file": "rtl/todo_counter_pipe_core.sv",
@@ -378,7 +378,7 @@
         "Traceability keeps source_ref function_model.transactions.FM9.side_effects.side_effect_0",
         "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM9.side_effects.side_effect_0.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.\nSSOT item context: value=cnt is preserved.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM9.side_effects.side_effect_0.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.transactions.\nSSOT item context: value=cnt is preserved.",
       "evidence_terms": [],
       "id": "RTL-0143",
       "owner_file": "rtl/todo_counter_pipe_core.sv",
@@ -419,7 +419,7 @@
         "Traceability keeps source_ref function_model.transactions.FM9.side_effects.side_effect_1",
         "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM9.side_effects.side_effect_1.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.\nSSOT item context: value=dbg_cycle_count continues incrementing.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM9.side_effects.side_effect_1.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.transactions.\nSSOT item context: value=dbg_cycle_count continues incrementing.",
       "evidence_terms": [
         "count",
         "dbg",
@@ -842,7 +842,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "b329388dc9f0734e5afc3107218760f4ee5baf3a53ad32d151a73aac2ea551a4",
+  "todo_plan_sha256": "284e0f7f0d06ac8c9019d0745aa7784b4c39904e7e6e52262786b16e9bc5844c",
   "top": "todo_counter_pipe",
   "type": "rtl_authoring_packet"
 }

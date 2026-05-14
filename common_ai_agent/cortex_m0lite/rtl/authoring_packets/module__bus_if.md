@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: bus_if
 - Owner file: rtl/cortex_m0lite_bus_if.sv
-- Task count: 3
-- Required tasks: 3
+- Task count: 7
+- Required tasks: 7
 
 ## Rules
 
@@ -12,6 +12,8 @@
 - Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.
 - Every task must satisfy content, detail, and criteria before the packet is closed.
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
+- Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
+- Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
@@ -96,3 +98,89 @@ Owner: bus_if in rtl/cortex_m0lite_bus_if.sv via module_equivalence.
   - Traceability keeps source_ref sub_modules.bus_if.module_equivalence
   - Primary implementation evidence is in rtl/cortex_m0lite_bus_if.sv
 - SSOT refs: sub_modules.bus_if.module_equivalence
+
+### RTL-0038: Implement parameter BUS_FREQ_MHZ
+
+- Priority: normal
+- Required: True
+- Status: pass
+- Category: parameters.item
+- Source ref: parameters.BUS_FREQ_MHZ
+- Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
+SSOT ref: parameters.BUS_FREQ_MHZ.
+Owner: bus_if in rtl/cortex_m0lite_bus_if.sv via parameters.
+SSOT item context: name=BUS_FREQ_MHZ.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - Parameter default/value matches SSOT
+  - Parameter-derived widths are implemented outside procedural part-selects
+  - Compile/lint evidence covers the parameterized form
+  - Traceability keeps source_ref parameters.BUS_FREQ_MHZ
+  - Primary implementation evidence is in rtl/cortex_m0lite_bus_if.sv
+- SSOT refs: parameters.BUS_FREQ_MHZ
+
+### RTL-0046: Implement and connect port hclk
+
+- Priority: normal
+- Required: True
+- Status: pass
+- Category: io_list.port
+- Source ref: io_list.clock_domains.bus_clk.ports.hclk
+- Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
+SSOT ref: io_list.clock_domains.bus_clk.ports.hclk.
+Owner: bus_if in rtl/cortex_m0lite_bus_if.sv via io_list.
+SSOT item context: name=hclk; width=1; direction=input.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL declaration matches SSOT direction and width
+  - Active input controls are consumed by behavior or explicitly justified
+  - Active outputs are driven by implemented logic, not placeholder constants
+  - Traceability keeps source_ref io_list.clock_domains.bus_clk.ports.hclk
+  - Primary implementation evidence is in rtl/cortex_m0lite_bus_if.sv
+  - hclk width matches SSOT value 1
+  - hclk port direction remains input
+- SSOT refs: io_list.clock_domains.bus_clk.ports.hclk
+
+### RTL-0048: Implement and connect port hresetn
+
+- Priority: normal
+- Required: True
+- Status: pass
+- Category: io_list.port
+- Source ref: io_list.resets.bus_rst_n.ports.hresetn
+- Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
+SSOT ref: io_list.resets.bus_rst_n.ports.hresetn.
+Owner: bus_if in rtl/cortex_m0lite_bus_if.sv via io_list.
+SSOT item context: name=hresetn; width=1; direction=input.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL declaration matches SSOT direction and width
+  - Active input controls are consumed by behavior or explicitly justified
+  - Active outputs are driven by implemented logic, not placeholder constants
+  - Traceability keeps source_ref io_list.resets.bus_rst_n.ports.hresetn
+  - Primary implementation evidence is in rtl/cortex_m0lite_bus_if.sv
+  - hresetn width matches SSOT value 1
+  - hresetn port direction remains input
+- SSOT refs: io_list.resets.bus_rst_n.ports.hresetn
+
+### RTL-0067: Implement and connect port irq
+
+- Priority: normal
+- Required: True
+- Status: pass
+- Category: io_list.port
+- Source ref: io_list.interfaces.irq_if.ports.irq
+- Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
+SSOT ref: io_list.interfaces.irq_if.ports.irq.
+Owner: bus_if in rtl/cortex_m0lite_bus_if.sv via io_list.interfaces.
+SSOT item context: name=irq; width=1; direction=input.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL declaration matches SSOT direction and width
+  - Active input controls are consumed by behavior or explicitly justified
+  - Active outputs are driven by implemented logic, not placeholder constants
+  - Traceability keeps source_ref io_list.interfaces.irq_if.ports.irq
+  - Primary implementation evidence is in rtl/cortex_m0lite_bus_if.sv
+  - irq width matches SSOT value 1
+  - irq port direction remains input
+- SSOT refs: io_list.interfaces.irq_if.ports.irq

@@ -1,0 +1,14 @@
+===== pyslang =====
+command: pyslang rtl/uart_lite_param.vh rtl/uart_lite_regs.sv rtl/uart_lite_tx.sv rtl/uart_lite_rx.sv rtl/uart_lite_baud_gen.sv rtl/uart_lite_tx_fifo.sv rtl/uart_lite_rx_fifo.sv rtl/uart_lite_core.sv rtl/uart_lite.sv
+returncode: 0
+errors: 0 warnings: 0
+pyslang files: 9
+errors=0 warnings=0
+
+===== verilator =====
+command: verilator --lint-only -Wall -Irtl -f list/uart_lite.f --top-module uart_lite
+returncode: 0
+errors: 0 warnings: 0
+- V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
+- Verilator: Built from 0.438 MB sources in 9 modules, into 0.101 MB in 3 C++ files needing 0.000 MB
+- Verilator: Walltime 0.040 s (elab=0.005, cvt=0.018, bld=0.000); cpu 0.036 s on 1 threads; allocated 12.375 MB

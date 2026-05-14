@@ -8,12 +8,12 @@
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 9,
+      "count": 10,
       "enabled": true,
-      "index": 3,
+      "index": 4,
       "key": "cycle_model",
-      "module_task_count": 98,
-      "rule": "Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 94,
+      "rule": "Owner module cortex_m0lite_core is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "cycle_model",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -234,6 +234,8 @@
     "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
     "Every task must satisfy content, detail, and criteria before the packet is closed.",
     "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
     "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
   ],
   "schema_version": 1,
@@ -244,23 +246,23 @@
       "cycle_model.handshake_rules": 3,
       "cycle_model.latency": 1,
       "cycle_model.ordering": 5,
-      "cycle_model.pipeline": 3,
+      "cycle_model.pipeline": 2,
       "cycle_model.reset": 1
     },
     "module_slice": {
-      "count": 9,
+      "count": 10,
       "enabled": true,
-      "index": 3,
+      "index": 4,
       "key": "cycle_model",
-      "module_task_count": 98,
-      "rule": "Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 94,
+      "rule": "Owner module cortex_m0lite_core is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "cycle_model",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
     "open_required_count": 0,
-    "required_count": 14,
+    "required_count": 13,
     "source_refs": [
       "cycle_model.clock",
       "cycle_model.reset",
@@ -268,7 +270,6 @@
       "cycle_model.handshake_rules.if_wait",
       "cycle_model.handshake_rules.dmem_wait",
       "cycle_model.handshake_rules.hazard_stall",
-      "cycle_model.pipeline.IF",
       "cycle_model.pipeline.ID",
       "cycle_model.pipeline.EX_WB",
       "cycle_model.ordering.ordering_rule_0",
@@ -278,9 +279,9 @@
       "cycle_model.ordering.ordering_rule_4"
     ],
     "status_counts": {
-      "pass": 14
+      "pass": 13
     },
-    "task_count": 14
+    "task_count": 13
   },
   "tasks": [
     {
@@ -552,50 +553,6 @@
     },
     {
       "category": "cycle_model.pipeline",
-      "content": "Implement pipeline stage: IF",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.pipeline.IF",
-        "Primary implementation evidence is in rtl/cortex_m0lite_core.sv",
-        "cycle_model.pipeline.IF timing uses SSOT cycle/latency 0",
-        "cycle_model.pipeline.IF appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.IF.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via cycle_model.\nSSOT item context: stage=IF; cycle=0.",
-      "evidence_terms": [],
-      "id": "RTL-0106",
-      "owner_file": "rtl/cortex_m0lite_core.sv",
-      "owner_module": "cortex_m0lite_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.pipeline.IF",
-      "ssot_context": {
-        "cycle": "0",
-        "stage": "IF"
-      },
-      "ssot_refs": [
-        "cycle_model.pipeline.IF"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 7,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.pipeline",
       "content": "Implement pipeline stage: ID",
       "criteria": [
         "RTL contains the control/state/handshake logic for this cycle rule",
@@ -606,7 +563,7 @@
         "cycle_model.pipeline.ID timing uses SSOT cycle/latency 1",
         "cycle_model.pipeline.ID appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.ID.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via cycle_model.\nSSOT item context: stage=ID; cycle=1.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.ID.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via cycle_model.pipeline.\nSSOT item context: stage=ID; action=Decode + regfile read + hazard decision.; cycle=1.",
       "evidence_terms": [],
       "id": "RTL-0107",
       "owner_file": "rtl/cortex_m0lite_core.sv",
@@ -615,6 +572,7 @@
       "required": true,
       "source_ref": "cycle_model.pipeline.ID",
       "ssot_context": {
+        "action": "Decode + regfile read + hazard decision.",
         "cycle": "1",
         "stage": "ID"
       },
@@ -650,12 +608,8 @@
         "cycle_model.pipeline.EX_WB timing uses SSOT cycle/latency 2",
         "cycle_model.pipeline.EX_WB appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.EX_WB.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via cycle_model.\nSSOT item context: stage=EX_WB; cycle=2.",
-      "evidence_terms": [
-        "EX",
-        "EX_WB",
-        "WB"
-      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.EX_WB.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via cycle_model.pipeline.\nSSOT item context: stage=EX_WB; action=Execute/memory response/writeback/retire.; cycle=2.",
+      "evidence_terms": [],
       "id": "RTL-0108",
       "owner_file": "rtl/cortex_m0lite_core.sv",
       "owner_module": "cortex_m0lite_core",
@@ -663,6 +617,7 @@
       "required": true,
       "source_ref": "cycle_model.pipeline.EX_WB",
       "ssot_context": {
+        "action": "Execute/memory response/writeback/retire.",
         "cycle": "2",
         "stage": "EX_WB"
       },
@@ -670,22 +625,8 @@
         "cycle_model.pipeline.EX_WB"
       ],
       "static_evidence": {
-        "matched_count": 3,
-        "matched_terms": [
-          "EX",
-          "EX_WB",
-          "WB"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "EX",
-          "EX_WB",
-          "WB"
-        ],
-        "source_scope": "rtl/cortex_m0lite_core.sv",
-        "status": "pass"
+        "required": false,
+        "status": "not_required"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -838,12 +779,7 @@
         "cycle_model.ordering.ordering_rule_3 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_3.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via cycle_model.\nSSOT item context: value=Load/store bus completion gates retire; no LDR/STR commits before d_hready && !d_hresp..",
-      "evidence_terms": [
-        "d_hready",
-        "d_hresp",
-        "hready",
-        "hresp"
-      ],
+      "evidence_terms": [],
       "id": "RTL-0112",
       "owner_file": "rtl/cortex_m0lite_core.sv",
       "owner_module": "cortex_m0lite_core",
@@ -857,24 +793,8 @@
         "cycle_model.ordering.ordering_rule_3"
       ],
       "static_evidence": {
-        "matched_count": 4,
-        "matched_terms": [
-          "d_hready",
-          "d_hresp",
-          "hready",
-          "hresp"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "d_hready",
-          "d_hresp",
-          "hready",
-          "hresp"
-        ],
-        "source_scope": "rtl/cortex_m0lite_core.sv",
-        "status": "pass"
+        "required": false,
+        "status": "not_required"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -901,13 +821,7 @@
         "cycle_model.ordering.ordering_rule_4 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_4.\nOwner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via cycle_model.\nSSOT item context: value=core_clk:bus_clk is a synchronous 2:1 relationship; bus boundary logic samples requests only on aligned bus_clk cycles..",
-      "evidence_terms": [
-        "bus",
-        "bus_clk",
-        "clk",
-        "core",
-        "core_clk"
-      ],
+      "evidence_terms": [],
       "id": "RTL-0113",
       "owner_file": "rtl/cortex_m0lite_core.sv",
       "owner_module": "cortex_m0lite_core",
@@ -921,24 +835,8 @@
         "cycle_model.ordering.ordering_rule_4"
       ],
       "static_evidence": {
-        "matched_count": 3,
-        "matched_terms": [
-          "bus",
-          "clk",
-          "core"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "bus",
-          "bus_clk",
-          "clk",
-          "core",
-          "core_clk"
-        ],
-        "source_scope": "rtl/cortex_m0lite_core.sv",
-        "status": "pass"
+        "required": false,
+        "status": "not_required"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -954,7 +852,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "67adb8890410a2aeeee9a654b645018e5e9f79eb8ebcffab7e873d9d102687f9",
+  "todo_plan_sha256": "c6dd55ff414292d6cfb25aa90ae64245d5f8618420d87d35c2436677a025d78f",
   "top": "cortex_m0lite",
   "type": "rtl_authoring_packet"
 }

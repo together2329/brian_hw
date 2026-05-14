@@ -12,6 +12,8 @@
 - Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.
 - Every task must satisfy content, detail, and criteria before the packet is closed.
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
+- Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
+- Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
@@ -26,13 +28,11 @@
 - Human-locked open tasks: 0
 - Owner refs: top_module, function_model, cycle_model
 - Tool-evidence blockers:
-  - common_ai_agent_authoring: RTL audit has not run yet.
-  - dut_compile: RTL audit has not run yet.
-  - dut_lint: RTL audit has not run yet.
-  - dynamic_todo_closure: RTL audit has not run yet.
+  - common_ai_agent_authoring: Missing common_ai_agent RTL authoring provenance.
+  - dut_lint: DUT lint artifact is not clean.
+  - dynamic_todo_closure: 5 required non-closure TODO(s) remain open.
 - Tool-evidence runbook:
   - common_ai_agent_authoring: stages=ssot-rtl; artifact=todo_demo_ip/rtl/rtl_authoring_provenance.json
-  - dut_compile: stages=ssot-rtl, dut_compile; artifact=todo_demo_ip/rtl/rtl_compile.json
   - dut_lint: stages=lint, dut_lint; artifact=todo_demo_ip/lint/dut_lint.json
   - dynamic_todo_closure: stages=audit-rtl; artifact=todo_demo_ip/rtl/rtl_todo_plan.json
 
@@ -42,13 +42,13 @@
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.common_ai_agent_authoring
 - Detail: RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.
 SSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.
 Owner: todo_demo_ip in rtl/todo_demo_ip.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: Missing common_ai_agent RTL authoring provenance.
 - Criteria:
   - rtl/rtl_authoring_provenance.json exists
   - provenance agent is common_ai_agent
@@ -65,13 +65,13 @@ Owner: todo_demo_ip in rtl/todo_demo_ip.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_compile
 - Detail: Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.
 SSOT ref: quality_gates.rtl_gen.dut_compile.
 Owner: todo_demo_ip in rtl/todo_demo_ip.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: DUT-only compile artifact passed with zero errors, diagnostics, and style violations.
 - Criteria:
   - rtl/rtl_compile.json exists
   - rtl_compile.json reports dut_only=true
@@ -86,13 +86,13 @@ Owner: todo_demo_ip in rtl/todo_demo_ip.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_lint
 - Detail: Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.
 SSOT ref: quality_gates.rtl_gen.dut_lint.
 Owner: todo_demo_ip in rtl/todo_demo_ip.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: DUT lint artifact is not clean.
 - Criteria:
   - lint/dut_lint.json exists
   - dut_lint.json reports dut_only=true
@@ -108,13 +108,13 @@ Owner: todo_demo_ip in rtl/todo_demo_ip.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dynamic_todo_closure
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: todo_demo_ip in rtl/todo_demo_ip.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: 5 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

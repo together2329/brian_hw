@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: todo_counter_pipe_cdc
 - Owner file: rtl/todo_counter_pipe_cdc.sv
-- Task count: 27
-- Required tasks: 27
+- Task count: 23
+- Required tasks: 23
 
 ## Rules
 
@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 4
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cdc_requirements, cdc_requirements.crossings.control_bus_to_core, cdc_requirements.crossings.status_core_to_bus, cdc_requirements.synchronizers.sync_ctrl, cdc_requirements.synchronizers.sync_pulse_clear, cdc_requirements.synchronizers.sync_status, clock_reset_domains, clock_reset_domains.domains.bus_clk, clock_reset_domains.domains.core_clk, clock_reset_domains.reset_scheme, clock_reset_domains.reset_scheme.bus_domain, clock_reset_domains.reset_scheme.core_domain, cycle_model, cycle_model.clock, cycle_model.latency.control_cdc_bus_to_core, cycle_model.latency.status_cdc_core_to_bus
 - SSOT connection contracts:
@@ -65,153 +65,69 @@ SSOT item context: id=RTL_TODO_CDC_SYNC.
   - Semantic source_refs covered: cdc_requirements.crossings, cdc_requirements.synchronizers
 - SSOT refs: cdc_requirements.crossings, cdc_requirements.synchronizers, workflow_todos.rtl-gen[2]
 
-### RTL-0222: Implement FSM state core_fsm.state_0
-
-- Priority: high
-- Required: True
-- Status: open
-- Category: fsm.state
-- Source ref: fsm.core_fsm.states.state_0
-- Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
-SSOT ref: fsm.core_fsm.states.state_0.
-Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via fsm.core_fsm.
-SSOT item context: value=IDLE.
-- Current reason: Required RTL static evidence is missing.
-- Criteria:
-  - State is encoded/reachable or explicitly replaced by equivalent logic
-  - Reset/entry/exit behavior matches SSOT
-  - FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure
-  - Coverage can observe the state or equivalent condition
-  - Traceability keeps source_ref fsm.core_fsm.states.state_0
-  - Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv
-- SSOT refs: fsm.core_fsm.states.state_0
-
-### RTL-0223: Implement FSM state core_fsm.state_1
+### RTL-0162: Implement cycle-model latency
 
 - Priority: high
 - Required: True
 - Status: pass
-- Category: fsm.state
-- Source ref: fsm.core_fsm.states.state_1
-- Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
-SSOT ref: fsm.core_fsm.states.state_1.
-Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via fsm.core_fsm.
-SSOT item context: value=COUNT.
+- Category: cycle_model.latency
+- Source ref: cycle_model.latency
+- Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
+SSOT ref: cycle_model.latency.
+Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via cycle_model.latency.control_cdc_bus_to_core.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
-  - State is encoded/reachable or explicitly replaced by equivalent logic
-  - Reset/entry/exit behavior matches SSOT
-  - FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure
-  - Coverage can observe the state or equivalent condition
-  - Traceability keeps source_ref fsm.core_fsm.states.state_1
+  - RTL sequential logic uses the SSOT clock/reset phase
+  - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
+  - Downstream scoreboard samples the same acceptance/result phase
+  - Traceability keeps source_ref cycle_model.latency
   - Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv
-- SSOT refs: fsm.core_fsm.states.state_1
+  - cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
+- SSOT refs: cycle_model.latency
 
-### RTL-0224: Implement FSM transition core_fsm.transition_0
-
-- Priority: high
-- Required: True
-- Status: open
-- Category: fsm.transition
-- Source ref: fsm.core_fsm.transitions.transition_0
-- Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
-SSOT ref: fsm.core_fsm.transitions.transition_0.
-Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via fsm.core_fsm.
-SSOT item context: from=IDLE; to=COUNT; condition=enable=1 and event_i=1.
-- Current reason: Required RTL static evidence is missing.
-- Criteria:
-  - Transition condition is present in RTL control logic
-  - Transition action/state update is implemented
-  - Illegal/missing transition behavior is handled per SSOT
-  - Traceability keeps source_ref fsm.core_fsm.transitions.transition_0
-  - Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv
-  - fsm.core_fsm.transitions.transition_0 condition is implemented as RTL control logic: enable=1 and event_i=1
-  - fsm.core_fsm.transitions.transition_0 transition path IDLE -> COUNT is encoded or explicitly proven equivalent
-- SSOT refs: fsm.core_fsm.transitions.transition_0
-
-### RTL-0225: Implement FSM transition core_fsm.transition_1
-
-- Priority: high
-- Required: True
-- Status: open
-- Category: fsm.transition
-- Source ref: fsm.core_fsm.transitions.transition_1
-- Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
-SSOT ref: fsm.core_fsm.transitions.transition_1.
-Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via fsm.core_fsm.
-SSOT item context: from=COUNT; to=IDLE; condition=enable=0.
-- Current reason: Required RTL static evidence is missing.
-- Criteria:
-  - Transition condition is present in RTL control logic
-  - Transition action/state update is implemented
-  - Illegal/missing transition behavior is handled per SSOT
-  - Traceability keeps source_ref fsm.core_fsm.transitions.transition_1
-  - Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv
-  - fsm.core_fsm.transitions.transition_1 condition is implemented as RTL control logic: enable=0
-  - fsm.core_fsm.transitions.transition_1 transition path COUNT -> IDLE is encoded or explicitly proven equivalent
-- SSOT refs: fsm.core_fsm.transitions.transition_1
-
-### RTL-0226: Implement FSM transition core_fsm.transition_2
-
-- Priority: high
-- Required: True
-- Status: open
-- Category: fsm.transition
-- Source ref: fsm.core_fsm.transitions.transition_2
-- Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
-SSOT ref: fsm.core_fsm.transitions.transition_2.
-Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via fsm.core_fsm.
-SSOT item context: from=COUNT; to=COUNT; condition=enable=1 and event_i=1 (next count).
-- Current reason: Required RTL static evidence is missing.
-- Criteria:
-  - Transition condition is present in RTL control logic
-  - Transition action/state update is implemented
-  - Illegal/missing transition behavior is handled per SSOT
-  - Traceability keeps source_ref fsm.core_fsm.transitions.transition_2
-  - Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv
-  - fsm.core_fsm.transitions.transition_2 condition is implemented as RTL control logic: enable=1 and event_i=1 (next count)
-  - fsm.core_fsm.transitions.transition_2 transition path COUNT -> COUNT is encoded or explicitly proven equivalent
-- SSOT refs: fsm.core_fsm.transitions.transition_2
-
-### RTL-0230: Implement feature Clear/Load Control
+### RTL-0168: Implement pipeline stage: S1_CDC_CTRL
 
 - Priority: high
 - Required: True
 - Status: pass
-- Category: features.item
-- Source ref: features.Clear_Load_Control
-- Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
-SSOT ref: features.Clear_Load_Control.
-Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via features.Clear_Load_Control.
-SSOT item context: name=Clear/Load Control; output=cnt updated on next core_clk edge after CDC convergence.
+- Category: cycle_model.pipeline
+- Source ref: cycle_model.pipeline.S1_CDC_CTRL
+- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
+SSOT ref: cycle_model.pipeline.S1_CDC_CTRL.
+Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via cycle_model.pipeline.S1_CDC_CTRL.
+SSOT item context: stage=S1_CDC_CTRL; action=2-stage synchronizer: CTRL fields (enable, up_down, mode, clear pulse, load pulse), LOAD value cross bus→core; cycle=0..4.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
-  - Feature trigger/control/data behavior has RTL owner logic
-  - Feature observability and error behavior match SSOT
-  - Feature is covered by function/cycle/coverage tasks or explicitly blocked
-  - Traceability keeps source_ref features.Clear_Load_Control
+  - RTL contains the control/state/handshake logic for this cycle rule
+  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
+  - TB scoreboard/coverage can observe the rule at the declared phase
+  - Traceability keeps source_ref cycle_model.pipeline.S1_CDC_CTRL
   - Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv
-- SSOT refs: features.Clear_Load_Control
+  - cycle_model.pipeline.S1_CDC_CTRL timing uses SSOT cycle/latency 0..4
+  - cycle_model.pipeline.S1_CDC_CTRL appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
+- SSOT refs: cycle_model.pipeline.S1_CDC_CTRL
 
-### RTL-0232: Implement feature Debug Cycle Counter
+### RTL-0170: Implement pipeline stage: S3_CDC_STATUS
 
 - Priority: high
 - Required: True
 - Status: pass
-- Category: features.item
-- Source ref: features.Debug_Cycle_Counter
-- Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
-SSOT ref: features.Debug_Cycle_Counter.
-Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via features.Debug_Cycle_Counter.
-SSOT item context: name=Debug Cycle Counter; output=DBGCNT.dbg_cycle_count readable via APB after CDC.
+- Category: cycle_model.pipeline
+- Source ref: cycle_model.pipeline.S3_CDC_STATUS
+- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
+SSOT ref: cycle_model.pipeline.S3_CDC_STATUS.
+Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via cycle_model.pipeline.S3_CDC_STATUS.
+SSOT item context: stage=S3_CDC_STATUS; action=2-stage synchronizer: cnt_value, overflow, underflow, tc_pending, ovf_pending, unf_pending, dbg_cycle_count cross cor...; cycle=0..5.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
-  - Feature trigger/control/data behavior has RTL owner logic
-  - Feature observability and error behavior match SSOT
-  - Feature is covered by function/cycle/coverage tasks or explicitly blocked
-  - Traceability keeps source_ref features.Debug_Cycle_Counter
+  - RTL contains the control/state/handshake logic for this cycle rule
+  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
+  - TB scoreboard/coverage can observe the rule at the declared phase
+  - Traceability keeps source_ref cycle_model.pipeline.S3_CDC_STATUS
   - Primary implementation evidence is in rtl/todo_counter_pipe_cdc.sv
-- SSOT refs: features.Debug_Cycle_Counter
+  - cycle_model.pipeline.S3_CDC_STATUS timing uses SSOT cycle/latency 0..5
+  - cycle_model.pipeline.S3_CDC_STATUS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
+- SSOT refs: cycle_model.pipeline.S3_CDC_STATUS
 
 ### RTL-0238: Implement integration item external_modules
 
@@ -282,7 +198,7 @@ SSOT item context: name=external_resets; value=["bus_rst_n", "core_rst_n"].
 - Source ref: integration.connections.bus_clk
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.bus_clk.
-Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.
+Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.connections.
 SSOT item context: port=bus_clk; signal=bus_clk.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -303,7 +219,7 @@ SSOT item context: port=bus_clk; signal=bus_clk.
 - Source ref: integration.connections.bus_rst_n
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.bus_rst_n.
-Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.
+Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.connections.
 SSOT item context: port=bus_rst_n; signal=bus_rst_n.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -324,7 +240,7 @@ SSOT item context: port=bus_rst_n; signal=bus_rst_n.
 - Source ref: integration.connections.counter_irq
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.counter_irq.
-Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.
+Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.connections.
 SSOT item context: port=irq_o; signal=counter_irq.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -345,7 +261,7 @@ SSOT item context: port=irq_o; signal=counter_irq.
 - Source ref: integration.connections.core_clk
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.core_clk.
-Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.
+Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.connections.
 SSOT item context: port=core_clk; signal=core_clk.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -366,7 +282,7 @@ SSOT item context: port=core_clk; signal=core_clk.
 - Source ref: integration.connections.core_rst_n
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.core_rst_n.
-Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.
+Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.connections.
 SSOT item context: port=core_rst_n; signal=core_rst_n.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -387,7 +303,7 @@ SSOT item context: port=core_rst_n; signal=core_rst_n.
 - Source ref: integration.connections.event_i
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.event_i.
-Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.
+Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.connections.
 SSOT item context: port=event_i; signal=event_i.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -408,7 +324,7 @@ SSOT item context: port=event_i; signal=event_i.
 - Source ref: integration.connections.bus_clk
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.bus_clk.
-Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.
+Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.connections.
 SSOT item context: port=bus_clk; signal=bus_clk.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -429,7 +345,7 @@ SSOT item context: port=bus_clk; signal=bus_clk.
 - Source ref: integration.connections.core_clk
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.core_clk.
-Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.
+Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.connections.
 SSOT item context: port=core_clk; signal=core_clk.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -450,7 +366,7 @@ SSOT item context: port=core_clk; signal=core_clk.
 - Source ref: integration.connections.bus_rst_n
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.bus_rst_n.
-Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.
+Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.connections.
 SSOT item context: port=bus_rst_n; signal=bus_rst_n.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -471,7 +387,7 @@ SSOT item context: port=bus_rst_n; signal=bus_rst_n.
 - Source ref: integration.connections.core_rst_n
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.core_rst_n.
-Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.
+Owner: todo_counter_pipe_cdc in rtl/todo_counter_pipe_cdc.sv via integration.connections.
 SSOT item context: port=core_rst_n; signal=core_rst_n.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:

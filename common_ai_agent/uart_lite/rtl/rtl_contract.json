@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "type": "generic_ssot_rule_rtl_contract",
+  "ip": "uart_lite",
+  "top": "uart_lite",
+  "generated_at": "2026-05-14T13:30:00Z",
+  "contract": {
+    "top": "uart_lite",
+    "transaction": "FM_TX_BYTE",
+    "clock": "PCLK",
+    "reset": "PRESETn",
+    "reset_active": "low",
+    "sample_condition": "1",
+    "outputs": [
+      {
+        "name": "tx_serial",
+        "port": "tx",
+        "expr": "((tx) != 0)",
+        "width": 1,
+        "source": {
+          "name": "tx_serial",
+          "port": "tx",
+          "width": 1,
+          "expr": "tx"
+        }
+      },
+      {
+        "name": "uart_irq",
+        "port": "uart_irq",
+        "expr": "((uart_irq) != 0)",
+        "width": 1,
+        "source": {
+          "name": "uart_irq",
+          "port": "uart_irq",
+          "width": 1,
+          "expr": "uart_irq"
+        }
+      },
+      {
+        "name": "pslverr",
+        "port": "PSLVERR",
+        "expr": "((PSLVERR) != 0)",
+        "width": 1,
+        "source": {
+          "name": "pslverr",
+          "port": "PSLVERR",
+          "width": 1,
+          "expr": "PSLVERR"
+        }
+      },
+      {
+        "name": "pready",
+        "port": "PREADY",
+        "expr": "((PREADY) != 0)",
+        "width": 1,
+        "source": {
+          "name": "pready",
+          "port": "PREADY",
+          "width": 1,
+          "expr": "PREADY"
+        }
+      },
+      {
+        "name": "prdata",
+        "port": "PRDATA",
+        "expr": "((PRDATA) != 0)",
+        "width": 32,
+        "source": {
+          "name": "prdata",
+          "port": "PRDATA",
+          "width": 32,
+          "expr": "PRDATA"
+        }
+      }
+    ],
+    "state_updates": [],
+    "rule_outputs": [],
+    "input_map": {
+      "tx": "tx",
+      "uart_irq": "uart_irq",
+      "PRDATA": "PRDATA"
+    }
+  },
+  "transactions": [
+    {
+      "id": "FM_TX_BYTE",
+      "name": "tx_byte"
+    },
+    {
+      "id": "FM_RX_BYTE",
+      "name": "rx_byte"
+    }
+  ],
+  "evidence": {
+    "ssot": "uart_lite/yaml/uart_lite.ssot.yaml",
+    "rtl_files": [
+      "rtl/uart_lite_regs.sv",
+      "rtl/uart_lite_tx.sv",
+      "rtl/uart_lite_rx.sv",
+      "rtl/uart_lite_baud_gen.sv",
+      "rtl/uart_lite_tx_fifo.sv",
+      "rtl/uart_lite_rx_fifo.sv",
+      "rtl/uart_lite_core.sv",
+      "rtl/uart_lite.sv"
+    ]
+  }
+}

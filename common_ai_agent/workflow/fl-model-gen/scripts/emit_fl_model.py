@@ -478,10 +478,35 @@ def _owner_for_leaf(
     single_owner: bool,
 ) -> dict[str, str]:
     ref = str(item.get("ref") or "")
+    matches: list[tuple[dict[str, Any], str]] = []
     for module in modules:
         matched_ref = _covered_by_module(ref, module, single_owner=single_owner)
         if matched_ref:
-            return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": matched_ref}
+            matches.append((module, matched_ref))
+    if matches:
+        # Same tie-breaker pattern used by derive_rtl_todos._owner_for: when
+        # two modules share the same most-specific owner_ref (e.g. both
+        # ``uart_lite_tx`` and ``uart_lite_rx`` carry ``cycle_model.pipeline``),
+        # decide ownership by name-vs-ref token overlap so leaf tokens like
+        # ``RX_IDLE`` route to the matching module.
+        def _specificity(entry: tuple[dict[str, Any], str]) -> tuple[int, int]:
+            return (len(str(entry[1]).split(".")), len(str(entry[1])))
+        best = _specificity(max(matches, key=_specificity))
+        top_tier = [entry for entry in matches if _specificity(entry) == best]
+        if len(top_tier) > 1:
+            ref_tokens = _owner_token_set(ref)
+            top_tokens = _owner_token_set(top)
+            scored: list[tuple[int, dict[str, Any], str]] = []
+            for module, matched_ref in top_tier:
+                name_tokens = _owner_token_set(module.get("name", "")) - top_tokens
+                hits = len(ref_tokens & name_tokens)
+                scored.append((hits, module, matched_ref))
+            scored.sort(key=lambda row: row[0], reverse=True)
+            if scored[0][0] > scored[1][0]:
+                _, module, matched_ref = scored[0]
+                return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": matched_ref}
+        module, matched_ref = top_tier[0]
+        return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": matched_ref}
     semantic_owner = _semantic_owner_match(item, modules, top)
     if semantic_owner is not None:
         return semantic_owner
@@ -638,7 +663,23 @@ def _module_contracts(ssot: dict[str, Any], ip: str) -> tuple[list[dict[str, Any
         module_leaf_refs = sorted(set(refs_by_module[str(module["name"])]))
         module_structural_refs = sorted(set(structural_refs_by_module[str(module["name"])]))
         refs = module.get("refs") if isinstance(module.get("refs"), list) else []
-        blocked = not bool(module_leaf_refs or module_structural_refs)
+        raw_module = module.get("raw") if isinstance(module.get("raw"), dict) else {}
+        if raw_module.get("wiring_only"):
+            wiring_refs = [
+                str(ref)
+                for ref in refs
+                if str(ref).split(".", 1)[0] in {"top_module", "io_list", "integration"}
+            ]
+            module_structural_refs = sorted({*module_structural_refs, *wiring_refs})
+        # ``_cycle_model_leaf_refs`` only extracts a fixed list of generic
+        # cycle_model categories (pipeline, handshake_rules, …) so IP-specific
+        # sections such as ``cycle_model.baud_generator`` never produce leaf
+        # refs. When the SSOT manifest still lists those sections as
+        # explicit owner refs (depth >= 2 — not just the bare top-level
+        # section name) the module is correctly attributing semantic
+        # ownership and should not be reported as blocked.
+        specific_owner_refs = [r for r in refs if "." in str(r)]
+        blocked = not bool(module_leaf_refs or module_structural_refs or specific_owner_refs)
         contracts.append({
             "name": module["name"],
             "kind": "rtl_module",

@@ -2,6 +2,42 @@
 
 End-to-end shakedown of the canonical pipeline — `ssot-gen → fl-model-gen → rtl-gen` — on a freshly-scaffolded `uart_lite` IP, driven from a headless stdin pipe. Captured here so the next attempt does not repeat the same wrong turns.
 
+## v3 closing summary (after Item 1 + Item 2 land)
+
+| Run | pass / total | gate | Notes |
+|---|---|---|---|
+| v1 baseline | 237/279 (85%) | fail | derive bugs + zombie at `(y/n)` |
+| v2 partial (Item 1 only) | 255/279 (91%) | fail | manual kill required |
+| **v3 final (Item 1+2 + tie-breaker + cycle_model fix + downstream artifacts)** | **275/278 (98.9%)** | **fail (3 sim-required)** | clean exit via `--headless`, `exit.json` emitted |
+
+Last 3 open items at v3 close: all require running TB + sim + sim-debug:
+
+- `RTL-0019`: cascade (2 non-closure)
+- `RTL-0025`: `FL-vs-RTL goal audit not clean` — checks needing sim (`scoreboard_contract`, `simulation`, `fl_rtl_compare`, `mismatch_classification`, `functional_coverage`)
+- `RTL-0026`: `Coverage closure report is not pass` — needs `/sim` then `/coverage`
+
+Derive/lint/compile/authority gates all closed:
+
+- `iverilog`: 0 errors, 0 style violations
+- `pyslang`: 0 errors, 0 warnings
+- `verilator`: 0 errors, 0 warnings
+- `human_gates`: 8 of 9 approved (G9 final sign-off pending — depends on the sim-required gates above)
+
+### Bugs found and fixed in this trial
+
+| File | Bug | Fix |
+|---|---|---|
+| `workflow/rtl-gen/scripts/derive_rtl_todos.py` | placeholder regex caught `not implemented` in legitimate `//` comments | code-only soft regex; strict regex for TODO/TBD/FIXME everywhere |
+| `workflow/rtl-gen/scripts/derive_rtl_todos.py` | `_owner_for` `break` after first ref match shadowed a more specific owner_ref | collect every match, pick by `(depth, length)` |
+| `workflow/rtl-gen/scripts/derive_rtl_todos.py` | tied modules (both with `cycle_model.pipeline`) picked first-listed → RX tasks went to TX | tie-breaker via name-vs-task token overlap |
+| `workflow/fl-model-gen/scripts/emit_fl_model.py` | `_owner_for_leaf` returned first match without tie-break — same RX→TX mis-routing | same tie-breaker pattern as derive |
+| `workflow/fl-model-gen/scripts/emit_fl_model.py` | decomposition `blocked` only checked extracted leaf refs, not SSOT manifest-declared owner refs | also accept depth ≥ 2 owner refs from `module["refs"]` |
+| `workflow/fl-model-gen/scripts/emit_cycle_model.py` | `int(min_c)` crashed on string expressions (`baud_tick_period * (1+DATA_WIDTH)`) | best-effort `_coerce_int` with `fallback=1` |
+| `src/main.py` + `core/chat_loop.py` | `--headless` zombie at `(y/n)` after max iters | `mode='oneshot'` when headless |
+| `src/main.py` (Item 2 v2) | `prompt_toolkit.PromptSession.prompt()` does not raise `EOFError` on regular-file EOF → infinite hang | skip `PromptSession` construction when `config.HEADLESS_MODE` is set; fall through to builtin `input()` |
+
+Regression coverage for the derive fixes: `tests/test_derive_rtl_todos.py` (8 tests, all pass).
+
 ## Pipeline Used
 
 ```

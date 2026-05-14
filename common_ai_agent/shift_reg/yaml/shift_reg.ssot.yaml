@@ -1,0 +1,769 @@
+ip: shift_reg
+version: draft
+top_module:
+  name: "shift_reg"
+  file: "rtl/shift_reg.sv"
+  version: "1.0"
+  type: "peripheral"
+  description: "Configurable shift register with APB-lite CSR, parameterized width, single-cycle barrel or multi-cycle serial shift modes"
+  reference_spec: "user-defined"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 50
+    area_um2: null
+    power_mw: null
+sub_modules:
+  - { name: "shift_reg_regs",    file: "rtl/shift_reg_regs.sv",    ownership: "manifest", ssot_gen: true,  implements: ["registers.register_list"], source_sections: ["registers"], register_refs: ["registers.register_list"], description: "APB-lite register block" }
+  - { name: "shift_reg_core",    file: "rtl/shift_reg_core.sv",    ownership: "manifest", ssot_gen: false, implements: ["function_model", "cycle_model", "fsm", "dataflow"], source_sections: ["function_model", "cycle_model", "fsm", "dataflow"], function_model_refs: ["function_model.transactions", "function_model.state_variables"], cycle_model_refs: ["cycle_model.pipeline"], fsm_refs: ["fsm.core_fsm"], dataflow_refs: ["dataflow.sequence"], description: "Core shift datapath and FSM" }
+  - { name: "shift_reg_wrapper", file: "rtl/shift_reg_wrapper.sv", ownership: "manifest", ssot_gen: true,  wiring_only: true, source_sections: ["io_list", "integration"], ports: ["top-level io_list ports"], connections: "instance wiring from top-level ports to shift_reg_regs and shift_reg_core", description: "Top-level integration wrapper" }
+decomposition:
+  units:
+    - { id: "decode", kind: "control", source_refs: ["registers.register_list"], rtl_candidates: ["shift_reg_regs"], verification_impact: ["test_requirements.scenarios.SC7"] }
+    - { id: "execute", kind: "datapath/control", source_refs: ["function_model.transactions", "cycle_model.pipeline"], rtl_candidates: ["shift_reg_core"], verification_impact: ["coverage_plan.functional"] }
+parameters:
+  - name: "WIDTH"
+    default: 8
+    type: int
+    description: "Shift register width in bits"
+    drives: ["shift_reg_core.sv", "shift_reg_regs.sv", "shift_reg_wrapper.sv"]
+  - name: "APB_ADDR_WIDTH"
+    default: 12
+    type: int
+    description: "APB address width"
+    drives: ["shift_reg_regs.sv", "shift_reg_wrapper.sv"]
+  - name: "CLOCK_FREQ_MHZ"
+    default: 50
+    type: int
+    description: "Target clock frequency in MHz"
+    drives: ["tb_top.sv", "docs/README.md"]
+  - name: "RESET_POLARITY"
+    default: "active_low"
+    type: enum
+    values: ["active_low", "active_high"]
+    drives: ["ALL .sv files"]
+  - name: "SHIFT_AMOUNT_MAX"
+    default: 16
+    type: int
+    description: "Maximum encodable shift amount (shift_amount field width)"
+    drives: ["shift_reg_core.sv", "shift_reg_regs.sv"]
+io_list:
+  clock_domains:
+    - name: "PCLK"
+      frequency_mhz: 50
+      description: "APB and core clock"
+      ports:
+        - { name: "PCLK", width: 1, direction: "input", description: "System clock" }
+  resets:
+    - name: "PRESETn"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "Main reset"
+      ports:
+        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low asynchronous reset" }
+  interfaces:
+    - name: "apb_slave"
+      type: "APB4"
+      role: "slave"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "Register access interface"
+      protocol:
+        setup_phase: "psel=1, penable=0 captures address/control."
+        access_phase: "psel=1, penable=1 completes when pready=1."
+        read_rule: "prdata is valid in the completing access phase for reads."
+        write_rule: "pwdata/pstrb are sampled in the completing access phase for writes."
+        error_rule: "pslverr is asserted only with pready=1 for illegal or unsupported access."
+      ports:
+        - { name: "paddr",   width: 12, direction: "input",  description: "APB address" }
+        - { name: "psel",    width: 1,  direction: "input",  description: "APB select" }
+        - { name: "penable", width: 1,  direction: "input",  description: "APB enable" }
+        - { name: "pwrite",  width: 1,  direction: "input",  description: "APB write" }
+        - { name: "pwdata",  width: 32, direction: "input",  description: "APB write data" }
+        - { name: "pstrb",   width: 4,  direction: "input",  description: "APB strobes" }
+        - { name: "prdata",  width: 32, direction: "output", description: "APB read data" }
+        - { name: "pready",  width: 1,  direction: "output", description: "APB ready" }
+        - { name: "pslverr", width: 1,  direction: "output", description: "APB error" }
+    - name: "shift_data"
+      type: "custom"
+      description: "Shift register data ports"
+      ports:
+        - { name: "shift_in",    width: 1,            direction: "input",  description: "Serial shift input bit" }
+        - { name: "shift_out",   width: 1,            direction: "output", description: "Serial shift output bit" }
+        - { name: "data_in",     width: "WIDTH",      direction: "input",  description: "Parallel load data" }
+        - { name: "data_out",    width: "WIDTH",      direction: "output", description: "Parallel read data" }
+features:
+  - name: "Parallel load"
+    trigger: "Software writes DATA register with busy=0"
+    datapath: "pwdata[DATA] → internal reg_value"
+    control: "IDLE state"
+    output: "data_out updates to new reg_value, shift_out = LSB or MSB per direction"
+  - name: "Barrel shift (single-cycle)"
+    trigger: "CTRL.go=1 with shift_mode=0 and busy=0"
+    datapath: "reg_value shifted by shift_amount+1 bits in configured direction in 1 cycle"
+    control: "IDLE → BARREL_SHIFT → DONE → IDLE"
+    output: "data_out = shifted reg_value, shift_out = last bit shifted out"
+  - name: "Serial shift (multi-cycle)"
+    trigger: "CTRL.go=1 with shift_mode=1 and busy=0"
+    datapath: "reg_value shifted 1 bit/cycle; shift_in provides new LSB/MSB; repeats shift_count times"
+    control: "IDLE → SERIAL_SHIFT (loops) → DONE → IDLE"
+    output: "data_out updates per cycle, shift_out = bit shifted out each cycle"
+  - name: "Direction control"
+    trigger: "CTRL.direction sampled at go=1"
+    datapath: "Left: MSB shifted out, shift_in fed into LSB. Right: LSB shifted out, shift_in fed into MSB"
+    control: "Same states as barrel or serial shift"
+    output: "Shift direction affects shift_out bit position and new-bit insertion point"
+dataflow:
+  load_path:
+    source: "DATA register (APB-writable) or data_in port"
+    trigger: "Software write to DATA when busy=0"
+    destination: "internal reg_value"
+    sequence: "APB write → reg_value latched at next PCLK edge"
+  barrel_shift_path:
+    source: "reg_value"
+    trigger: "go=1 with shift_mode=0"
+    operation: "reg_value logically/arithmetically/rotate shifted by shift_amount+1"
+    destination: "data_out, shift_out"
+    sequence: "reg_value → barrel shifter → data_out/shift_out (1 cycle)"
+  serial_shift_path:
+    source: "reg_value"
+    trigger: "go=1 with shift_mode=1"
+    operation: "reg_value shifted 1 bit/cycle; shift_in fills new bit"
+    destination: "data_out, shift_out (per cycle)"
+    sequence: "reg_value → 1-bit shifter → reg_value (loops shift_count+1 times)"
+  control_flow:
+    go_detect: "Rising edge of CTRL.go with busy=0 starts operation"
+    busy_set: "busy=1 during shift operation"
+    busy_clear: "busy=0 when DONE → IDLE transition"
+    shift_count: "Loaded from CTRL.shift_amount at start; decremented each serial shift cycle"
+function_model:
+  purpose: "Executable behavioral contract for rtl-gen and tb-gen; describes what the shift register computes independent of cycle timing."
+  state_variables:
+    - { name: "reg_value", width: "WIDTH", source: "registers.DATA", reset: 0, description: "Current shift register value" }
+    - { name: "busy", width: 1, source: "registers.STATUS.busy", reset: 0, description: "Shift operation in progress" }
+    - { name: "shift_count", width: "log2(SHIFT_AMOUNT_MAX)", source: "registers.STATUS.shift_count", reset: 0, description: "Remaining shift steps in serial mode" }
+    - { name: "direction", width: 1, source: "registers.CTRL.direction", reset: 0, description: "Latched shift direction (0=left, 1=right)" }
+    - { name: "shift_mode", width: 2, source: "registers.CTRL.shift_mode", reset: 0, description: "Latched shift mode (0=barrel, 1=serial)" }
+    - { name: "shift_amount", width: "log2(SHIFT_AMOUNT_MAX)", source: "registers.CTRL.shift_amount", reset: 0, description: "Latched shift amount (N+1 bits)" }
+  transactions:
+    - id: "FM1"
+      name: "parallel_load"
+      preconditions:
+        - "busy == 0"
+        - "APB write to DATA register"
+      inputs:
+        - "APB pwdata[WIDTH-1:0] or data_in[WIDTH-1:0]"
+      outputs:
+        - "data_out = written value"
+        - "shift_out = bit 0 of written value if direction=1, else bit WIDTH-1"
+      side_effects:
+        - "reg_value := pwdata[WIDTH-1:0]"
+      invariants:
+        - "busy remains 0"
+        - "shift_count remains 0"
+      error_cases: []
+      output_rules:
+        - { name: "data_out_load", expr: "pwdata[WIDTH-1:0]", width: "WIDTH", port: "data_out" }
+        - { name: "shift_out_load", expr: "direction ? pwdata[0] : pwdata[WIDTH-1]", width: 1, port: "shift_out" }
+    - id: "FM2"
+      name: "barrel_shift"
+      preconditions:
+        - "busy == 0"
+        - "CTRL.go written 1"
+        - "CTRL.shift_mode == 0"
+      inputs:
+        - "reg_value (current)"
+        - "CTRL.direction"
+        - "CTRL.shift_amount"
+      outputs:
+        - "data_out = reg_value shifted by (shift_amount+1) in direction"
+        - "shift_out = last bit shifted out"
+      side_effects:
+        - "busy := 0 (single-cycle; operation completes immediately)"
+        - "shift_count := 0"
+      invariants:
+        - "reg_value is updated to shifted value"
+        - "go self-clears"
+      error_cases: []
+      output_rules:
+        - { name: "data_out_barrel_left",  expr: "(reg_value << (shift_amount+1)) | (shift_in_padded & ((1<<(shift_amount+1))-1))", width: "WIDTH", port: "data_out", condition: "direction==0" }
+        - { name: "data_out_barrel_right", expr: "(reg_value >> (shift_amount+1)) | (shift_in_padded << (WIDTH-(shift_amount+1)))", width: "WIDTH", port: "data_out", condition: "direction==1" }
+        - { name: "shift_out_barrel_left",  expr: "(reg_value >> (WIDTH-(shift_amount+1))) & 1", width: 1, port: "shift_out", condition: "direction==0" }
+        - { name: "shift_out_barrel_right", expr: "reg_value[shift_amount]", width: 1, port: "shift_out", condition: "direction==1" }
+    - id: "FM3"
+      name: "serial_shift"
+      preconditions:
+        - "busy == 0"
+        - "CTRL.go written 1"
+        - "CTRL.shift_mode == 1"
+      inputs:
+        - "reg_value (current)"
+        - "shift_in"
+        - "CTRL.direction"
+        - "CTRL.shift_amount (N → N+1 cycles)"
+      outputs:
+        - "data_out = reg_value after each 1-bit shift"
+        - "shift_out = bit shifted out each cycle"
+        - "busy = 1 while shifting, 0 when done"
+      side_effects:
+        - "shift_count := shift_amount+1 loaded at start, decremented each shift cycle"
+        - "reg_value updated each cycle: left={reg_value[WIDTH-2:0], shift_in}, right={shift_in, reg_value[WIDTH-1:1]}"
+        - "busy := 0 when shift_count reaches 0"
+        - "go self-clears after first cycle"
+      invariants:
+        - "shift_count decrements exactly once per PCLK cycle while in SERIAL_SHIFT"
+        - "serial shift takes exactly shift_amount+1 cycles"
+      error_cases: []
+      output_rules:
+        - { name: "data_out_serial", expr: "reg_value after each 1-bit shift", width: "WIDTH", port: "data_out", per_cycle: true }
+        - { name: "shift_out_serial_left",  expr: "reg_value[WIDTH-1]", width: 1, port: "shift_out", condition: "direction==0", per_cycle: true }
+        - { name: "shift_out_serial_right", expr: "reg_value[0]", width: 1, port: "shift_out", condition: "direction==1", per_cycle: true }
+        - { name: "busy_serial", expr: "1 while shift_count > 0 else 0", width: 1, port: "internal", note: "Observable via STATUS.busy register field read" }
+  state_updates:
+    - { name: "reg_value", reset: 0, expr: "FM1: pwdata[WIDTH-1:0]; FM2: barrel-shifted reg_value; FM3: {shift_in, reg_value[WIDTH-1:1]} or {reg_value[WIDTH-2:0], shift_in}" }
+    - { name: "busy", reset: 0, expr: "1 during shift operation (FM3 only), 0 otherwise" }
+    - { name: "shift_count", reset: 0, expr: "FM2: 0; FM3: loaded with shift_amount+1, then decremented each cycle" }
+    - { name: "direction", reset: 0, expr: "latched from CTRL.direction at go=1" }
+    - { name: "shift_mode", reset: 0, expr: "latched from CTRL.shift_mode at go=1" }
+    - { name: "shift_amount", reset: 0, expr: "latched from CTRL.shift_amount at go=1" }
+  invariants:
+    - "No shift_out change occurs while busy=0 unless a parallel load triggers it."
+    - "Register read side effects are exactly those listed in registers.register_list."
+    - "CTRL.go self-clears to 0 one cycle after being written to 1."
+  assumptions:
+    - "shift_in is sampled on each PCLK edge during SERIAL_SHIFT for the new bit inserted."
+    - "Barrel shift mode inserts shift_in into vacated bit positions (logical shift with external fill)."
+    - "Shift amount of 0 means 1 bit shifted."
+    - "FM2 barrel shift completes in 1 PCLK cycle; FM3 serial shift completes in shift_amount+1 PCLK cycles."
+  reference_model_hint: "tb-gen should implement a Python scoreboard model from this section and compare expected/got for every scenario."
+cycle_model:
+  purpose: "Cycle/handshake contract for rtl-gen; describes when state, valid/ready, outputs, and status may change."
+  clock: "PCLK"
+  reset:
+    assertion: "PRESETn low asynchronously clears all architectural state"
+    deassertion: "state is usable on the first rising edge after synchronized deassertion"
+  latency:
+    register_read: { min_cycles: 0, max_cycles: 1, description: "APB read data and pready timing" }
+    register_write: { min_cycles: 0, max_cycles: 1, description: "APB write acceptance timing" }
+    barrel_shift: { min_cycles: 1, max_cycles: 1, description: "Single-cycle barrel shift from go=1 to DONE" }
+    serial_shift: { min_cycles: "shift_amount+1", max_cycles: "shift_amount+1", description: "Multi-cycle serial shift; deterministic cycle count" }
+  handshake_rules:
+    - { signal: "pready", rule: "Assert no later than 1 cycle after psel && penable for valid register addresses; hold until access phase completes." }
+    - { signal: "pslverr", rule: "Assert with pready only for accesses to unimplemented register offsets." }
+    - { signal: "prdata", rule: "Valid in the same cycle pready=1 for reads." }
+  pipeline:
+    - { stage: "S0_IDLE",            cycle: 0, action: "Wait for go=1; accept parallel load writes; hold data_out/reg_value stable" }
+    - { stage: "S1_BARREL_EXECUTE",  cycle: "0→1", action: "Compute barrel-shifted reg_value; update data_out/shift_out; transition to DONE", condition: "shift_mode=0" }
+    - { stage: "S1_SERIAL_INIT",     cycle: "0→1", action: "Latch shift_amount into shift_count; perform first 1-bit shift; update data_out/shift_out", condition: "shift_mode=1" }
+    - { stage: "S2_SERIAL_LOOP",     cycle: "1→N", action: "Shift 1 bit/cycle; decrement shift_count; stay until shift_count=0", condition: "shift_mode=1 && shift_count>0" }
+    - { stage: "S3_DONE",            cycle: "N→N+1", action: "Clear busy; final data_out/shift_out update; return to IDLE" }
+  ordering:
+    - "Barrel shift: data_out and shift_out update exactly 1 PCLK cycle after go is sampled high."
+    - "Serial shift: data_out and shift_out update on each PCLK edge while in SERIAL_SHIFT/SERIAL_LOOP; final update in DONE cycle."
+    - "CTRL.go self-clears exactly 1 PCLK cycle after being sampled high."
+    - "STATUS.busy asserts on the same cycle go is sampled (if preconditions met)."
+  backpressure:
+    - "APB pready may be deasserted for up to 1 cycle; shift operation is not stalled by APB backpressure."
+    - "No output flow control on data_out/shift_out; downstream must sample on PCLK edge."
+  performance:
+    frequency_mhz: 50
+    throughput:
+      barrel_mode_beats_per_cycle: 1
+      serial_mode_cycles_per_shift: "shift_amount+1"
+    depth: { pipeline_stages: 3, description: "IDLE → EXECUTE → DONE (barrel); IDLE → INIT → LOOP → DONE (serial)" }
+  observability:
+    - "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
+clock_reset_domains:
+  domains:
+    - { name: "PCLK", frequency_mhz: 50, description: "APB/peripheral clock" }
+  reset_scheme:
+    signal: "PRESETn"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain — no CDC required"
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "No reset domain crossings"
+registers:
+  config:
+    register_width: 32
+    addr_width: 12
+    byte_addressable: true
+  bit_order: "lsb0"
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: "ignore"
+    rtl_requirement: "Reserved fields read as zero and do not allocate storage."
+  register_list:
+    - name: "CTRL"
+      offset: 0x00
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "control"
+      description: "Control Register"
+      write_side_effects:
+        - "Writing go=1 with busy=0 initiates shift operation; go self-clears to 0 on next cycle."
+        - "direction selects shift direction: 0=left (toward MSB), 1=right (toward LSB)."
+        - "shift_mode selects operation: 0=single-cycle barrel, 1=serial (1 bit/cycle)."
+        - "shift_amount encodes N+1 bits to shift (0=1 bit, up to SHIFT_AMOUNT_MAX=16 bits)."
+      fields:
+        - { name: "go",           bits: [0, 0], access: "rw", reset: 0x0, write_effect: "1=start shift, self-clearing", description: "Start shift operation" }
+        - { name: "direction",    bits: [1, 1], access: "rw", reset: 0x0, write_effect: "0=left, 1=right", description: "Shift direction" }
+        - { name: "shift_mode",   bits: [3, 2], access: "rw", reset: 0x0, write_effect: "0=barrel, 1=serial, 2=reserved, 3=reserved", description: "Shift mode" }
+        - { name: "shift_amount", bits: [7, 4], access: "rw", reset: 0x0, write_effect: "Encoded amount N+1", description: "Shift amount (0=1 bit, 15=16 bits)" }
+        - { name: "reserved_31_8", bits: [31, 8], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+    - name: "DATA"
+      offset: 0x04
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "data"
+      description: "Data Register — parallel load source and current shift value"
+      write_side_effects:
+        - "Write loads data_in-like value into internal shift register when busy=0."
+        - "Read returns current shift register value (low WIDTH bits)."
+      fields:
+        - { name: "data", bits: ["WIDTH-1", 0], access: "rw", reset: 0x0, write_effect: "Parallel load when busy=0", description: "Shift register data value" }
+        - { name: "reserved_31_W", bits: [31, "WIDTH"], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+    - name: "STATUS"
+      offset: 0x08
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "status"
+      description: "Status Register"
+      fields:
+        - { name: "busy", bits: [0, 0], access: "ro", reset: 0x0, description: "1=shift operation in progress" }
+        - { name: "shift_count", bits: [7, 4], access: "ro", reset: 0x0, description: "Remaining shift steps (serial mode); 0 when idle or barrel mode" }
+        - { name: "reserved_31_8", bits: [31, 8], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+memory:
+  instances:
+    - { name: "reg_value", type: "register", depth: 1, width: "WIDTH", read_ports: 1, write_ports: 1, latency: 0, description: "Shift register value storage" }
+  note: "Register-based storage only; no SRAM/FIFO required"
+interrupts:
+  sources: []
+  output:
+    signal: "none"
+    polarity: "active_high"
+    type: "level"
+  note: "No interrupts for this IP; status is polled via STATUS register"
+fsm:
+  core_fsm:
+    states:
+      - "IDLE"
+      - "BARREL_SHIFT"
+      - "SERIAL_SHIFT"
+      - "DONE"
+    transitions:
+      - { from: "IDLE",           to: "BARREL_SHIFT",  condition: "CTRL.go=1 and busy=0 and shift_mode=0" }
+      - { from: "IDLE",           to: "SERIAL_SHIFT",  condition: "CTRL.go=1 and busy=0 and shift_mode=1" }
+      - { from: "BARREL_SHIFT",   to: "DONE",          condition: "1 cycle completion" }
+      - { from: "SERIAL_SHIFT",   to: "SERIAL_SHIFT",  condition: "shift_count > 0" }
+      - { from: "SERIAL_SHIFT",   to: "DONE",          condition: "shift_count == 0" }
+      - { from: "DONE",           to: "IDLE",          condition: "1 cycle automatic" }
+rtl_contract:
+  transactions: ["FM1", "FM2", "FM3"]
+  sample_condition: "transaction starts on PCLK rising edge when CTRL.go=1 sampled high with busy=0"
+  input_map:
+    load_data: "APB pwdata or data_in port"
+    shift_in_bit: "shift_in port"
+    go: "CTRL.go field"
+    direction: "CTRL.direction field"
+    shift_mode: "CTRL.shift_mode field"
+    shift_amount: "CTRL.shift_amount field"
+  output_map:
+    parallel_out: "data_out port"
+    serial_out: "shift_out port"
+    busy: "STATUS.busy"
+    shift_count: "STATUS.shift_count"
+  state_updates:
+    - { name: "reg_value", reset: 0, expr: "FM1: pwdata; FM2: barrel-shifted; FM3: 1-bit shifted with shift_in" }
+    - { name: "busy", reset: 0, expr: "1 during shift operation, 0 otherwise" }
+    - { name: "shift_count", reset: 0, expr: "FM2: 0; FM3: loaded shift_amount+1, decrement to 0" }
+timing:
+  target_clocks:
+    - { name: "PCLK", frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.5 }
+  latency_budget:
+    register_access_cycles: { min: 1, max: 2, measured_from: "psel && penable", measured_to: "pready" }
+    barrel_shift_cycles: { min: 1, max: 1, note: "Single-cycle barrel shift" }
+    serial_shift_cycles: { min: "shift_amount+1", max: "shift_amount+1", note: "Deterministic multi-cycle serial shift" }
+  throughput:
+    barrel_mode: "1 shift per cycle"
+    serial_mode: "1 bit per cycle"
+  timing_exceptions: []
+  io_delays:
+    inputs:
+      - { ports: "all_inputs_except_clocks_resets", clock: "PCLK", delay_ns: 1.0, source: "system-level timing budget" }
+    outputs:
+      - { ports: "all_outputs", clock: "PCLK", delay_ns: 1.0, source: "system-level timing budget" }
+  false_paths:
+    - { from: "PRESETn", to: "all_registers", reason: "async reset assertion" }
+  multicycle_paths: []
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt"]
+power:
+  domains:
+    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["PCLK"], isolation: "not_required_single_domain" }
+  clock_gating:
+    required: false
+    rationale: "Simple peripheral; no low-power clock gating"
+  reset_retention:
+    retention_required: false
+    reset_value_source: "registers and function_model state_variables"
+  power_states:
+    - { name: "ON", entry: "reset deasserted", exit: "reset asserted", guarantees: ["All architectural behavior active"] }
+  upf_required: false
+security:
+  classification: "non_secure_peripheral"
+  assets:
+    - { name: "register_map", protection: "APB access control is external to this IP" }
+  threat_model:
+    - { threat: "illegal register write", mitigation: "RO fields ignore writes; reserved fields ignore writes" }
+  privilege_model: "External bus fabric enforces privilege; this IP implements no internal privilege levels"
+  safety_goals:
+    - "Reset restores all state to defined defaults"
+error_handling:
+  error_sources:
+    - { id: "ERR_APB_ADDR", condition: "APB access to unimplemented register offset", architectural_effect: "pslverr=1 with pready=1; no internal state change" }
+    - { id: "ERR_GO_WHILE_BUSY", condition: "CTRL.go written 1 while busy=1", architectural_effect: "go is ignored; current operation continues uninterrupted" }
+  propagation:
+    - "pslverr is asserted only in the completing access phase."
+  recovery:
+    - { action: "APB master retry or ignore", clears: ["pslverr deasserts on next legal access"], preserves: ["all internal state"] }
+debug_observability:
+  waveform_must_probe:
+    - "fsm_state"
+    - "function_model.state_variables"
+    - "cycle_model.handshake_rules signals"
+    - "data_out"
+    - "shift_out"
+  status_outputs:
+    - "STATUS.busy"
+    - "STATUS.shift_count"
+  trace_events:
+    - { name: "shift_start", trigger: "go=1 accepted" }
+    - { name: "shift_done", trigger: "busy falling edge (DONE→IDLE)" }
+  debug_registers:
+    - "STATUS (busy/shift_count)"
+integration:
+  bus_attachment:
+    control: "APB4 slave"
+  connections:
+    - { module: "shift_reg_core", port: "clk_i", signal: "PCLK" }
+    - { module: "shift_reg_core", port: "rst_ni", signal: "PRESETn" }
+    - { module: "shift_reg_regs", port: "clk_i", signal: "PCLK" }
+    - { module: "shift_reg_regs", port: "rst_ni", signal: "PRESETn" }
+  address_map_requirements:
+    alignment_bytes: 4
+    decode_owner: "SoC interconnect"
+    illegal_access_response: "pslverr for unsupported APB access"
+  dependencies:
+    external_modules: []
+    external_clocks: ["PCLK"]
+    external_resets: ["PRESETn"]
+  integration_notes:
+    - "SoC must provide APB-compliant psel/penable/pready protocol."
+    - "shift_in/data_in must be synchronous to PCLK."
+    - "data_out/shift_out updated on PCLK rising edge."
+dft:
+  scan_required: false
+  scan_ports: []
+  test_mode_ports: []
+  controllability:
+    reset: "PRESETn must be controllable in test mode"
+    clocks: ["PCLK"]
+  observability:
+    required_internal_points: ["reg_value", "busy", "shift_count", "fsm_state"]
+  mbist_required: false
+  notes: "No SRAM macro — scan insertion optional; register-based design is fully observable through APB"
+synthesis:
+  dialect: "systemverilog_2012"
+  top_module: "shift_reg"
+  technology:
+    pdk: "sky130"
+    standard_cell_library: "sky130_fd_sc_hd"
+    liberty_corner: "ss_100C_1v40"
+    liberty_env: "SKY130_LIB"
+    lef_env: "SKY130_LEF"
+    tech_lef_env: "SKY130_TLEF"
+    rcx_rules_env: "SKY130_RCX_RULES"
+  constraints:
+    - "No inferred latches"
+    - "All flops reset per clock_reset_domains.reset_scheme"
+    - "No package/interface/modport/function/task/for/while constructs in generated RTL"
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 50
+  required_outputs:
+    - "syn/out/shift_reg.json"
+    - "syn/out/area.rpt"
+    - "syn/out/timing_summary.rpt"
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: "met3"
+    vertical: "met2"
+  placement:
+    density_target: 0.65
+    max_displacement_um: null
+  cts:
+    buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"]
+    functional_mode_case_analysis: []
+  routing:
+    signal_layers: { min: "met1", max: "met5" }
+    clock_layers: { min: "met3", max: "met5" }
+    drc_waivers: []
+  required_outputs:
+    - "pnr/out/floorplan.def"
+    - "pnr/out/placed.def"
+    - "pnr/out/routed.def"
+    - "pnr/out/routed.v"
+    - "pnr/out/pnr.report.md"
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/shift_reg_param.vh"
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge clk …)"
+    - "blocking (=) in combinational always @(*)"
+    - "No latches: every combinational branch assigns all outputs"
+    - "Active-low async reset: always @(posedge clk or negedge rst_n) with if (!rst_n)"
+    - "Parameterize widths (no hardcoded numbers)"
+    - "Use rtl/shift_reg_param.vh for shared parameter declarations when needed"
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+    - "Use localparam state encoding with logic state/next_state signals"
+  lint_waivers:
+    - "UNUSEDSIGNAL: explicit approved tie-offs only"
+    - "WIDTHEXPAND: shift_in indexing"
+reuse_modules: []
+custom:
+  note: "No custom extensions"
+  assumptions:
+    - "shift_in is sampled on PCLK rising edge during serial shift mode and inserted at the vacated bit position."
+    - "Barrel shift mode inserts shift_in into all vacated bit positions (logical shift with external fill)."
+    - "Shift amount encoding: register value N means N+1 bits shifted (0=1 bit, 15=16 bits)."
+    - "CTRL.go is self-clearing: written 1 by software, auto-clears to 0 one cycle after acceptance."
+    - "WIDTH parameter default is 8 bits; all WIDTH-dependent bit ranges use parameter-derived bounds."
+    - "No interrupt output; status is polled via STATUS register."
+    - "APB-lite pslverr asserted only for accesses to unimplemented register offsets beyond 0x0C."
+    - "Shift register width WIDTH ≤ 32 to fit in a single APB DATA register; wider widths require register map extension."
+    - "data_out reflects reg_value combinatorially; shift_out also combinatorial from reg_value per direction."
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "docs/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+filelist:
+  headers:
+    - "rtl/shift_reg_param.vh"
+  rtl:
+    - "rtl/shift_reg_regs.sv"
+    - "rtl/shift_reg_core.sv"
+    - "rtl/shift_reg_wrapper.sv"
+    - "rtl/shift_reg.sv"
+  sim:
+    - "sim/tb_top.sv"
+    - "sim/tb_program.sv"
+    - "sim/shift_reg_model.sv"
+  firmware:
+    - "firmware/shift_reg_regs.h"
+  docs:
+    - "docs/register_map.md"
+    - "docs/fsm_diagram.md"
+    - "docs/README.md"
+test_requirements:
+  scenarios:
+    - id: "SC1"
+      name: "Parallel load"
+      stimulus: "APB write to DATA register with arbitrary value while busy=0"
+      expected: "data_out reflects written value on next cycle; shift_out reflects bit0 or bit WIDTH-1 per direction"
+      checker: "Scoreboard compares prdata readback and data_out port against expected"
+      coverage: ["FM1", "S0_IDLE"]
+    - id: "SC2"
+      name: "Barrel shift left"
+      stimulus: "Load DATA=0xA5 (WIDTH=8), set direction=0, shift_amount=3, shift_mode=0, write go=1"
+      expected: "data_out = (0xA5 << 4) | (shift_in repeated 4 times in low bits); shift_out = bit 4 of 0xA5"
+      checker: "Scoreboard computes expected barrel-left output from function_model.output_rules"
+      coverage: ["FM2", "S1_BARREL_EXECUTE", "FCOV_FM2_BARREL"]
+    - id: "SC3"
+      name: "Barrel shift right"
+      stimulus: "Load DATA=0xA5, set direction=1, shift_amount=2, shift_mode=0, write go=1"
+      expected: "data_out per barrel-right rule; shift_out = 0xA5[2]"
+      checker: "Scoreboard computes expected barrel-right output"
+      coverage: ["FM2", "S1_BARREL_EXECUTE", "FCOV_FM2_BARREL"]
+    - id: "SC4"
+      name: "Serial shift left"
+      stimulus: "Load DATA=0x01, set direction=0, shift_amount=3, shift_mode=1, shift_in=1, write go=1"
+      expected: "4 cycles of serial shift; data_out = 0x1F final; shift_out tracks MSB each cycle"
+      checker: "Cycle checker verifies each intermediate data_out/shift_out and shift_count decrement"
+      coverage: ["FM3", "S1_SERIAL_INIT", "S2_SERIAL_LOOP", "FCOV_FM3_SERIAL"]
+    - id: "SC5"
+      name: "Serial shift right"
+      stimulus: "Load DATA=0x80, set direction=1, shift_amount=3, shift_mode=1, shift_in=1, write go=1"
+      expected: "4 cycles of serial shift; data_out = 0xF8 final; shift_out tracks LSB each cycle"
+      checker: "Cycle checker per cycle"
+      coverage: ["FM3", "S1_SERIAL_INIT", "S2_SERIAL_LOOP", "FCOV_FM3_SERIAL"]
+    - id: "SC6"
+      name: "Busy gating"
+      stimulus: "Write go=1 while busy=1"
+      expected: "go is ignored; operation continues; no re-trigger"
+      checker: "Monitor busy and ensure reg_value/shift_count unchanged by second go"
+      coverage: ["FM3 invariants"]
+    - id: "SC7"
+      name: "APB error on invalid address"
+      stimulus: "APB read/write to unimplemented offset (e.g. 0x10)"
+      expected: "pslverr=1 with pready=1; no internal state change"
+      checker: "Check pslverr assertion and register state stability"
+      coverage: ["APB error path"]
+    - id: "SC8"
+      name: "Reset during shift"
+      stimulus: "Assert PRESETn low during serial shift"
+      expected: "All state resets; data_out=0, shift_out=0, busy=0, shift_count=0"
+      checker: "Scoreboard checks all state_variables reset values"
+      coverage: ["reset deassertion"]
+  scoreboard_checks: 14
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Behavioral coverage for what the shift register computes."
+      bins:
+        - { id: "FCOV_FM1_LOAD", source_ref: "function_model.transactions.FM1", class: "transaction", description: "FM1 parallel load observed by scoreboard" }
+        - { id: "FCOV_FM2_BARREL", source_ref: "function_model.transactions.FM2", class: "transaction", description: "FM2 barrel shift observed (both left/right)" }
+        - { id: "FCOV_FM3_SERIAL", source_ref: "function_model.transactions.FM3", class: "transaction", description: "FM3 serial shift observed (both left/right)" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle/handshake/latency/FSM coverage."
+      bins:
+        - { id: "CCOV_STAGE_IDLE", source_ref: "cycle_model.pipeline.S0_IDLE", class: "pipeline_stage", description: "IDLE stage observed" }
+        - { id: "CCOV_STAGE_BARREL", source_ref: "cycle_model.pipeline.S1_BARREL_EXECUTE", class: "pipeline_stage", description: "Barrel execute stage observed" }
+        - { id: "CCOV_STAGE_SERIAL_LOOP", source_ref: "cycle_model.pipeline.S2_SERIAL_LOOP", class: "pipeline_stage", description: "Serial loop stage with shift_count>0 observed" }
+        - { id: "CCOV_STAGE_DONE", source_ref: "cycle_model.pipeline.S3_DONE", class: "pipeline_stage", description: "DONE stage with busy clear observed" }
+        - { id: "CCOV_FSM_TRANSITIONS", source_ref: "fsm.core_fsm.transitions", class: "state_transition", description: "All declared FSM transitions covered" }
+        - { id: "CCOV_PREADY_HANDSHAKE", source_ref: "cycle_model.handshake_rules.pready", class: "handshake", description: "pready/p enable handshake observed" }
+    functional: "Legacy alias: function + cycle coverage must both close."
+    line: ">= 90%"
+    branch: ">= 85%"
+    fsm: "100% declared FSM states and transitions covered"
+    assertions: "All APB protocol assertions pass"
+quality_gates:
+  ssot:
+    pass: "All canonical sections are present, substantive, internally consistent, and have no live TBD placeholders."
+    evidence: ["check_ssot_disk.sh PASS", "traceability covers function_model/cycle_model/test_requirements"]
+  rtl_gen:
+    profile: "standard"
+    target_scale:
+      basis: "small peripheral IP; no structural depth minima enforced"
+      source_files_min: 0
+      modules_min: 0
+      procedural_blocks_min: 0
+      state_updates_min: 0
+      depth_score_min: 0
+      logic_modules_min: 0
+      behavior_owner_logic_modules_min: 0
+    target_scale_waiver:
+      approved: false
+      reason: ""
+      owner: ""
+    pass: "Every SSOT-derived RTL TODO and rtl_gate.rtl_gen gate closes with fresh evidence."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json", "sim/fl_rtl_goal_audit.json", "cov/coverage.json"]
+  rtl:
+    pass: "RTL implements function_model and cycle_model, compiles, lints, and matches function/cycle authority."
+    evidence: ["rtl compile report", "dut lint report"]
+  dv:
+    pass: "Every test_requirements scenario has an executable test, expected/got checker, and coverage bin."
+    evidence: ["results.xml", "coverage.json", "VCD/FST waveform"]
+  coverage:
+    pass: "Functional and cycle coverage goals close; code/FSM coverage meets thresholds."
+    evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+  eda:
+    pass: "Synthesis, STA, PnR, and post-route STA meet SSOT timing/area/power targets or have approved waivers."
+    evidence: ["syn report", "sta reports", "pnr report"]
+  signoff:
+    pass: "SSOT, RTL, DV, coverage, and required EDA gates pass with fresh evidence."
+    evidence: ["ATLAS progress signoff pass"]
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "ALL files (module name)" }
+    - { yaml: "parameters", output: "shift_reg_param.vh" }
+    - { yaml: "io_list.interfaces", output: "shift_reg_wrapper.sv (port list)" }
+    - { yaml: "registers.register_list", output: "shift_reg_regs.sv + firmware + docs" }
+    - { yaml: "function_model", output: "shift_reg_core.sv + tb/cocotb scoreboard/reference model" }
+    - { yaml: "cycle_model", output: "shift_reg_core.sv pipeline/handshake logic + waveform checks" }
+    - { yaml: "fsm", output: "shift_reg_core.sv + docs/fsm_diagram.md" }
+    - { yaml: "test_requirements.scenarios", output: "sim/tb_program.sv" }
+workflow_todos:
+  fl-model-gen: []
+  rtl-gen:
+    - id: "RTL_TODO_SHIFT_CORE"
+      content: "Implement the SSOT-declared shift register core behavior"
+      detail: "Translate function_model transactions FM1/FM2/FM3, FSM states and transitions, and cycle_model pipeline into RTL datapath and control logic in shift_reg_core.sv."
+      criteria:
+        - "RTL owner logic is present in shift_reg_core.sv"
+        - "FunctionalModel expected result and RTL observed result can be compared for function_model.transactions[FM1,FM2,FM3]"
+        - "DUT-only compile/lint evidence is fresh after the final edit"
+      source_refs: ["function_model.transactions", "cycle_model.pipeline", "fsm.core_fsm"]
+      owner_module: "shift_reg_core"
+      owner_file: "rtl/shift_reg_core.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_REGS"
+      content: "Implement the APB-lite register block"
+      detail: "Translate registers.register_list into APB-lite read/write logic in shift_reg_regs.sv, including reserved field handling, go self-clear, and pslverr for illegal addresses."
+      criteria:
+        - "All registers from register_list are addressable via APB"
+        - "Reserved fields read as zero and ignore writes"
+        - "CTRL.go self-clears after acceptance"
+        - "pslverr asserted for offsets beyond 0x0C"
+      source_refs: ["registers.register_list"]
+      owner_module: "shift_reg_regs"
+      owner_file: "rtl/shift_reg_regs.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_WRAPPER"
+      content: "Implement the top-level integration wrapper"
+      detail: "Wire shift_reg_wrapper.sv to instantiate shift_reg_regs and shift_reg_core with all SSOT-declared io_list ports and integration.connections."
+      criteria:
+        - "Wrapper instantiates shift_reg_regs and shift_reg_core with correct port maps"
+        - "All io_list ports are present at the wrapper boundary"
+        - "shift_reg.sv is the synthesizable top module"
+      source_refs: ["io_list", "integration.connections"]
+      owner_module: "shift_reg_wrapper"
+      owner_file: "rtl/shift_reg_wrapper.sv"
+      priority: "medium"
+      required: true
+  tb-gen: []
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh shift_reg", description: "Validate production SSOT structure and quality gates" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model shift_reg", description: "FunctionalModel, decomposition, coverage plan, and equivalence goals from validated SSOT" }
+    - { name: "handoff_rtl", command: "/ssot-rtl shift_reg", description: "Downstream RTL generation from validated SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb shift_reg", description: "Downstream pyuvm/cocotb verification from validated SSOT" }
+    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Downstream waveform, failure, and coverage inspection after sim exists" }
+    - { name: "handoff_coverage", command: "/coverage shift_reg", description: "Measure SSOT-declared coverage goals" }
+    - { name: "handoff_eda", command: "/syn shift_reg && /sta shift_reg && /pnr shift_reg && /sta-post shift_reg", description: "Produce SSOT-declared synthesis, STA, PnR, and post-route STA evidence" }

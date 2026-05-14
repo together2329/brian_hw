@@ -1,0 +1,22 @@
+===== pyslang =====
+command: pyslang rtl/todo_demo_ip.sv
+returncode: 0
+errors: 0 warnings: 0
+pyslang files: 1
+errors=0 warnings=0
+
+===== verilator =====
+command: verilator --lint-only -Wall -Irtl -f list/todo_demo_ip.f --top-module todo_demo_ip
+returncode: 1
+errors: 0 warnings: 2
+%Warning-UNUSEDSIGNAL: rtl/todo_demo_ip.sv:4:15: Signal is not used: 'clk'
+                                               : ... note: In instance 'todo_demo_ip'
+    4 |   input  wire clk,
+      |               ^~~
+                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
+                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
+%Warning-UNUSEDSIGNAL: rtl/todo_demo_ip.sv:5:15: Signal is not used: 'rst_n'
+                                               : ... note: In instance 'todo_demo_ip'
+    5 |   input  wire rst_n
+      |               ^~~~~
+%Error: Exiting due to 2 warning(s)

@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "uart_lite",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 5,
+    "failed": 0,
+    "transactions": 4,
+    "transaction_results": [
+      {
+        "id": "FM_TX_BYTE",
+        "name": "transmit_byte",
+        "kind": "FM_TX_BYTE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_TX_BYTE",
+          "transaction_name": "transmit_byte",
+          "sample_accepted": 1,
+          "tx_serial": 1,
+          "tx": 1,
+          "state_updates": {
+            "tx": 1
+          }
+        }
+      },
+      {
+        "id": "FM_RX_BYTE",
+        "name": "receive_byte",
+        "kind": "FM_RX_BYTE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_RX_BYTE",
+          "transaction_name": "receive_byte",
+          "sample_accepted": 1,
+          "rx_irq": 0,
+          "uart_irq": 0,
+          "state_updates": {
+            "uart_irq": 0
+          }
+        }
+      },
+      {
+        "id": "FM_BREAK_SEND",
+        "name": "send_break",
+        "kind": "FM_BREAK_SEND",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_BREAK_SEND",
+          "transaction_name": "send_break",
+          "sample_accepted": 1,
+          "tx_serial": 1,
+          "tx": 1,
+          "state_updates": {
+            "tx": 0
+          }
+        }
+      },
+      {
+        "id": "FM_LOOPBACK",
+        "name": "loopback_mode",
+        "kind": "FM_LOOPBACK",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_LOOPBACK",
+          "transaction_name": "loopback_mode",
+          "sample_accepted": 1,
+          "loopback_tx": 1,
+          "tx": 1,
+          "state_updates": {
+            "tx": 1
+          }
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 5,
+    "coverage_bins": 86,
+    "invariants_total": 5,
+    "invariants_evaluated": 0,
+    "invariants_failed": [],
+    "invariants_skipped": [
+      {
+        "name": "TX FIFO never underflows during a valid ",
+        "expr": "TX FIFO never underflows during a valid frame \u2014 underrun terminates frame early.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "RX FIFO never overflows without sticky o",
+        "expr": "RX FIFO never overflows without sticky overrun_err flag.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "Register read side effects are exactly t",
+        "expr": "Register read side effects are exactly those listed in registers.register_list.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "Sticky status flags remain set until exp",
+        "expr": "Sticky status flags remain set until explicitly cleared via CLR_STAT W1C.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "Debug counters are free-running, read-on",
+        "expr": "Debug counters are free-running, read-only, and wrap at 0xFFFFFFFF.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      }
+    ],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 5,
+    "error_cases_planned": 5
+  },
+  "decomposition_units": 14,
+  "fcov_bins": 86,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "uart_lite/req/",
+      "uart_lite/yaml/uart_lite.ssot.yaml",
+      "uart_lite/model/functional_model.py",
+      "uart_lite/cov/fcov_plan.json",
+      "uart_lite/yaml/uart_lite.ssot.yaml#io_list",
+      "uart_lite/yaml/uart_lite.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "uart_lite/rtl/",
+      "uart_lite/tb/",
+      "uart_lite/sim/",
+      "uart_lite/vectors/",
+      "uart_lite/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

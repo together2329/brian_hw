@@ -1,0 +1,1285 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 4,
+      "key": "fsm",
+      "module_task_count": 88,
+      "rule": "Owner module spi_shift is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/spi_shift.sv",
+      "name": "spi_shift",
+      "refs": [
+        "cycle_model",
+        "cycle_model.ordering",
+        "cycle_model.pipeline",
+        "features",
+        "fsm",
+        "fsm.channel_level",
+        "function_model",
+        "function_model.transactions"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/spi_regs.sv",
+        "name": "spi_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_fifo.sv",
+        "name": "spi_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_clkgen.sv",
+        "name": "spi_clkgen",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_shift.sv",
+        "name": "spi_shift",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi_int.sv",
+        "name": "spi_int",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/spi.sv",
+        "name": "spi",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "spi_shift",
+        "port": "start_req",
+        "signal": "start_req",
+        "signal_terms": [
+          "start_req"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "spi_shift",
+        "port": "ctrl_cfg",
+        "signal": "ctrl_cfg",
+        "signal_terms": [
+          "ctrl_cfg"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "spi_shift",
+        "port": "tx_word",
+        "signal": "tx_word",
+        "signal_terms": [
+          "tx_word"
+        ],
+        "source_ref": "integration.connections[2]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "spi peripheral complexity",
+      "min_behavior_owner_logic_modules": 3,
+      "min_depth_score": 40,
+      "min_logic_modules": 4,
+      "min_modules": 6,
+      "min_procedural_blocks": 20,
+      "min_source_files": 6,
+      "min_state_updates": 25,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 18,
+    "open_required_count": 18,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "spi",
+  "kind": "module",
+  "owner_file": "rtl/spi_shift.sv",
+  "owner_module": "spi_shift",
+  "packet_id": "module__spi_shift__fsm",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "fsm.state": 7,
+      "fsm.transition": 11
+    },
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 4,
+      "key": "fsm",
+      "module_task_count": 88,
+      "rule": "Owner module spi_shift is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 18,
+    "required_count": 18,
+    "source_refs": [
+      "fsm.channel_level.states.state_0",
+      "fsm.channel_level.states.state_1",
+      "fsm.channel_level.states.state_2",
+      "fsm.channel_level.states.state_3",
+      "fsm.channel_level.states.state_4",
+      "fsm.channel_level.states.state_5",
+      "fsm.channel_level.states.state_6",
+      "fsm.channel_level.transitions.transition_0",
+      "fsm.channel_level.transitions.transition_1",
+      "fsm.channel_level.transitions.transition_2",
+      "fsm.channel_level.transitions.transition_3",
+      "fsm.channel_level.transitions.transition_4",
+      "fsm.channel_level.transitions.transition_5",
+      "fsm.channel_level.transitions.transition_6",
+      "fsm.channel_level.transitions.transition_7",
+      "fsm.channel_level.transitions.transition_8",
+      "fsm.channel_level.transitions.transition_9",
+      "fsm.channel_level.transitions.transition_10"
+    ],
+    "status_counts": {
+      "open": 18
+    },
+    "task_count": 18
+  },
+  "tasks": [
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state channel_level.state_0",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.channel_level.states.state_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.channel_level.states.state_0.\nOwner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.\nSSOT item context: value=IDLE.",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "id": "RTL-0203",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.channel_level.states.state_0",
+      "ssot_context": {
+        "value": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.channel_level.states.state_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IDLE"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state channel_level.state_1",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.channel_level.states.state_1",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.channel_level.states.state_1.\nOwner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.\nSSOT item context: value=CHECK_LAUNCH.",
+      "evidence_terms": [
+        "CHECK_LAUNCH"
+      ],
+      "id": "RTL-0204",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.channel_level.states.state_1",
+      "ssot_context": {
+        "value": "CHECK_LAUNCH"
+      },
+      "ssot_refs": [
+        "fsm.channel_level.states.state_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "CHECK_LAUNCH"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state channel_level.state_2",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.channel_level.states.state_2",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.channel_level.states.state_2.\nOwner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.\nSSOT item context: value=ASSERT_CS.",
+      "evidence_terms": [
+        "ASSERT_CS"
+      ],
+      "id": "RTL-0205",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.channel_level.states.state_2",
+      "ssot_context": {
+        "value": "ASSERT_CS"
+      },
+      "ssot_refs": [
+        "fsm.channel_level.states.state_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ASSERT_CS"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state channel_level.state_3",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.channel_level.states.state_3",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.channel_level.states.state_3.\nOwner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.\nSSOT item context: value=SHIFT_EDGE.",
+      "evidence_terms": [
+        "SHIFT_EDGE"
+      ],
+      "id": "RTL-0206",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.channel_level.states.state_3",
+      "ssot_context": {
+        "value": "SHIFT_EDGE"
+      },
+      "ssot_refs": [
+        "fsm.channel_level.states.state_3"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "SHIFT_EDGE"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state channel_level.state_4",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.channel_level.states.state_4",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.channel_level.states.state_4.\nOwner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.\nSSOT item context: value=SAMPLE_EDGE.",
+      "evidence_terms": [
+        "SAMPLE_EDGE"
+      ],
+      "id": "RTL-0207",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.channel_level.states.state_4",
+      "ssot_context": {
+        "value": "SAMPLE_EDGE"
+      },
+      "ssot_refs": [
+        "fsm.channel_level.states.state_4"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "SAMPLE_EDGE"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state channel_level.state_5",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.channel_level.states.state_5",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.channel_level.states.state_5.\nOwner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.\nSSOT item context: value=COMPLETE.",
+      "evidence_terms": [
+        "COMPLETE"
+      ],
+      "id": "RTL-0208",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.channel_level.states.state_5",
+      "ssot_context": {
+        "value": "COMPLETE"
+      },
+      "ssot_refs": [
+        "fsm.channel_level.states.state_5"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "COMPLETE"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state channel_level.state_6",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.channel_level.states.state_6",
+        "Primary implementation evidence is in rtl/spi_shift.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.channel_level.states.state_6.\nOwner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.\nSSOT item context: value=ERROR_SUPPRESS.",
+      "evidence_terms": [
+        "ERROR_SUPPRESS"
+      ],
+      "id": "RTL-0209",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.channel_level.states.state_6",
+      "ssot_context": {
+        "value": "ERROR_SUPPRESS"
+      },
+      "ssot_refs": [
+        "fsm.channel_level.states.state_6"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ERROR_SUPPRESS"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition channel_level.transition_0",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.channel_level.transitions.transition_0",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "fsm.channel_level.transitions.transition_0 condition is implemented as RTL control logic: start_pulse",
+        "fsm.channel_level.transitions.transition_0 transition path IDLE -> CHECK_LAUNCH is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.channel_level.transitions.transition_0.\nOwner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.\nSSOT item context: from=IDLE; to=CHECK_LAUNCH; condition=start_pulse.",
+      "evidence_terms": [
+        "CHECK_LAUNCH",
+        "IDLE",
+        "pulse",
+        "start",
+        "start_pulse"
+      ],
+      "id": "RTL-0210",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.channel_level.transitions.transition_0",
+      "ssot_context": {
+        "condition": "start_pulse",
+        "from": "IDLE",
+        "to": "CHECK_LAUNCH"
+      },
+      "ssot_refs": [
+        "fsm.channel_level.transitions.transition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CHECK_LAUNCH",
+          "IDLE",
+          "pulse",
+          "start",
+          "start_pulse"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition channel_level.transition_1",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.channel_level.transitions.transition_1",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "fsm.channel_level.transitions.transition_1 condition is implemented as RTL control logic: launch_gate_true",
+        "fsm.channel_level.transitions.transition_1 transition path CHECK_LAUNCH -> ASSERT_CS is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.channel_level.transitions.transition_1.\nOwner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.\nSSOT item context: from=CHECK_LAUNCH; to=ASSERT_CS; condition=launch_gate_true.",
+      "evidence_terms": [
+        "ASSERT_CS",
+        "CHECK_LAUNCH",
+        "gate",
+        "launch",
+        "launch_gate_true",
+        "true"
+      ],
+      "id": "RTL-0211",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.channel_level.transitions.transition_1",
+      "ssot_context": {
+        "condition": "launch_gate_true",
+        "from": "CHECK_LAUNCH",
+        "to": "ASSERT_CS"
+      },
+      "ssot_refs": [
+        "fsm.channel_level.transitions.transition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ASSERT_CS",
+          "CHECK_LAUNCH",
+          "gate",
+          "launch",
+          "launch_gate_true",
+          "true"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition channel_level.transition_2",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.channel_level.transitions.transition_2",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "fsm.channel_level.transitions.transition_2 condition is implemented as RTL control logic: illegal_cs_or_width",
+        "fsm.channel_level.transitions.transition_2 transition path CHECK_LAUNCH -> ERROR_SUPPRESS is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.channel_level.transitions.transition_2.\nOwner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.\nSSOT item context: from=CHECK_LAUNCH; to=ERROR_SUPPRESS; condition=illegal_cs_or_width.",
+      "evidence_terms": [
+        "CHECK_LAUNCH",
+        "ERROR_SUPPRESS",
+        "cs",
+        "illegal",
+        "illegal_cs_or_width",
+        "or",
+        "width"
+      ],
+      "id": "RTL-0212",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.channel_level.transitions.transition_2",
+      "ssot_context": {
+        "condition": "illegal_cs_or_width",
+        "from": "CHECK_LAUNCH",
+        "to": "ERROR_SUPPRESS"
+      },
+      "ssot_refs": [
+        "fsm.channel_level.transitions.transition_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CHECK_LAUNCH",
+          "ERROR_SUPPRESS",
+          "cs",
+          "illegal",
+          "illegal_cs_or_width",
+          "or",
+          "width"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition channel_level.transition_3",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.channel_level.transitions.transition_3",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "fsm.channel_level.transitions.transition_3 condition is implemented as RTL control logic: launch_gate_false_without_fault",
+        "fsm.channel_level.transitions.transition_3 transition path CHECK_LAUNCH -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.channel_level.transitions.transition_3.\nOwner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.\nSSOT item context: from=CHECK_LAUNCH; to=IDLE; condition=launch_gate_false_without_fault.",
+      "evidence_terms": [
+        "CHECK_LAUNCH",
+        "IDLE",
+        "false",
+        "fault",
+        "gate",
+        "launch",
+        "launch_gate_false_without_fault",
+        "without"
+      ],
+      "id": "RTL-0213",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.channel_level.transitions.transition_3",
+      "ssot_context": {
+        "condition": "launch_gate_false_without_fault",
+        "from": "CHECK_LAUNCH",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.channel_level.transitions.transition_3"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CHECK_LAUNCH",
+          "IDLE",
+          "false",
+          "fault",
+          "gate",
+          "launch",
+          "launch_gate_false_without_fault",
+          "without"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition channel_level.transition_4",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.channel_level.transitions.transition_4",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "fsm.channel_level.transitions.transition_4 condition is implemented as RTL control logic: prescale_tick",
+        "fsm.channel_level.transitions.transition_4 transition path ASSERT_CS -> SHIFT_EDGE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.channel_level.transitions.transition_4.\nOwner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.\nSSOT item context: from=ASSERT_CS; to=SHIFT_EDGE; condition=prescale_tick.",
+      "evidence_terms": [
+        "ASSERT_CS",
+        "SHIFT_EDGE",
+        "prescale",
+        "prescale_tick",
+        "tick"
+      ],
+      "id": "RTL-0214",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.channel_level.transitions.transition_4",
+      "ssot_context": {
+        "condition": "prescale_tick",
+        "from": "ASSERT_CS",
+        "to": "SHIFT_EDGE"
+      },
+      "ssot_refs": [
+        "fsm.channel_level.transitions.transition_4"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ASSERT_CS",
+          "SHIFT_EDGE",
+          "prescale",
+          "prescale_tick",
+          "tick"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition channel_level.transition_5",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.channel_level.transitions.transition_5",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "fsm.channel_level.transitions.transition_5 condition is implemented as RTL control logic: mode_edge_progress",
+        "fsm.channel_level.transitions.transition_5 transition path SHIFT_EDGE -> SAMPLE_EDGE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.channel_level.transitions.transition_5.\nOwner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.\nSSOT item context: from=SHIFT_EDGE; to=SAMPLE_EDGE; condition=mode_edge_progress.",
+      "evidence_terms": [
+        "SAMPLE_EDGE",
+        "SHIFT_EDGE",
+        "edge",
+        "mode",
+        "mode_edge_progress",
+        "progress"
+      ],
+      "id": "RTL-0215",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.channel_level.transitions.transition_5",
+      "ssot_context": {
+        "condition": "mode_edge_progress",
+        "from": "SHIFT_EDGE",
+        "to": "SAMPLE_EDGE"
+      },
+      "ssot_refs": [
+        "fsm.channel_level.transitions.transition_5"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "SAMPLE_EDGE",
+          "SHIFT_EDGE",
+          "edge",
+          "mode",
+          "mode_edge_progress",
+          "progress"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition channel_level.transition_6",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.channel_level.transitions.transition_6",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "fsm.channel_level.transitions.transition_6 condition is implemented as RTL control logic: bit_index_not_last",
+        "fsm.channel_level.transitions.transition_6 transition path SAMPLE_EDGE -> SHIFT_EDGE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.channel_level.transitions.transition_6.\nOwner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.\nSSOT item context: from=SAMPLE_EDGE; to=SHIFT_EDGE; condition=bit_index_not_last.",
+      "evidence_terms": [
+        "SAMPLE_EDGE",
+        "SHIFT_EDGE",
+        "bit",
+        "bit_index_not_last",
+        "index",
+        "last",
+        "not"
+      ],
+      "id": "RTL-0216",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.channel_level.transitions.transition_6",
+      "ssot_context": {
+        "condition": "bit_index_not_last",
+        "from": "SAMPLE_EDGE",
+        "to": "SHIFT_EDGE"
+      },
+      "ssot_refs": [
+        "fsm.channel_level.transitions.transition_6"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "SAMPLE_EDGE",
+          "SHIFT_EDGE",
+          "bit",
+          "bit_index_not_last",
+          "index",
+          "last",
+          "not"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition channel_level.transition_7",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.channel_level.transitions.transition_7",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "fsm.channel_level.transitions.transition_7 condition is implemented as RTL control logic: bit_index_last",
+        "fsm.channel_level.transitions.transition_7 transition path SAMPLE_EDGE -> COMPLETE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.channel_level.transitions.transition_7.\nOwner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.\nSSOT item context: from=SAMPLE_EDGE; to=COMPLETE; condition=bit_index_last.",
+      "evidence_terms": [
+        "COMPLETE",
+        "SAMPLE_EDGE",
+        "bit",
+        "bit_index_last",
+        "index",
+        "last"
+      ],
+      "id": "RTL-0217",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.channel_level.transitions.transition_7",
+      "ssot_context": {
+        "condition": "bit_index_last",
+        "from": "SAMPLE_EDGE",
+        "to": "COMPLETE"
+      },
+      "ssot_refs": [
+        "fsm.channel_level.transitions.transition_7"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "COMPLETE",
+          "SAMPLE_EDGE",
+          "bit",
+          "bit_index_last",
+          "index",
+          "last"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition channel_level.transition_8",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.channel_level.transitions.transition_8",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "fsm.channel_level.transitions.transition_8 condition is implemented as RTL control logic: continuous_cs_and_next_launch_ready",
+        "fsm.channel_level.transitions.transition_8 transition path COMPLETE -> ASSERT_CS is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.channel_level.transitions.transition_8.\nOwner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.\nSSOT item context: from=COMPLETE; to=ASSERT_CS; condition=continuous_cs_and_next_launch_ready.",
+      "evidence_terms": [
+        "ASSERT_CS",
+        "COMPLETE",
+        "continuous",
+        "continuous_cs_and_next_launch_ready",
+        "cs",
+        "launch",
+        "next",
+        "ready"
+      ],
+      "id": "RTL-0218",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.channel_level.transitions.transition_8",
+      "ssot_context": {
+        "condition": "continuous_cs_and_next_launch_ready",
+        "from": "COMPLETE",
+        "to": "ASSERT_CS"
+      },
+      "ssot_refs": [
+        "fsm.channel_level.transitions.transition_8"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ASSERT_CS",
+          "COMPLETE",
+          "continuous",
+          "continuous_cs_and_next_launch_ready",
+          "cs",
+          "launch",
+          "next",
+          "ready"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition channel_level.transition_9",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.channel_level.transitions.transition_9",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "fsm.channel_level.transitions.transition_9 condition is implemented as RTL control logic: otherwise",
+        "fsm.channel_level.transitions.transition_9 transition path COMPLETE -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.channel_level.transitions.transition_9.\nOwner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.\nSSOT item context: from=COMPLETE; to=IDLE; condition=otherwise.",
+      "evidence_terms": [
+        "COMPLETE",
+        "IDLE"
+      ],
+      "id": "RTL-0219",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.channel_level.transitions.transition_9",
+      "ssot_context": {
+        "condition": "otherwise",
+        "from": "COMPLETE",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.channel_level.transitions.transition_9"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "COMPLETE",
+          "IDLE"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition channel_level.transition_10",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.channel_level.transitions.transition_10",
+        "Primary implementation evidence is in rtl/spi_shift.sv",
+        "fsm.channel_level.transitions.transition_10 condition is implemented as RTL control logic: one_cycle_report_done",
+        "fsm.channel_level.transitions.transition_10 transition path ERROR_SUPPRESS -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.channel_level.transitions.transition_10.\nOwner: spi_shift in rtl/spi_shift.sv via fsm.channel_level.\nSSOT item context: from=ERROR_SUPPRESS; to=IDLE; condition=one_cycle_report_done.",
+      "evidence_terms": [
+        "ERROR_SUPPRESS",
+        "IDLE",
+        "done",
+        "one",
+        "one_cycle_report_done",
+        "report"
+      ],
+      "id": "RTL-0220",
+      "owner_file": "rtl/spi_shift.sv",
+      "owner_module": "spi_shift",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.channel_level.transitions.transition_10",
+      "ssot_context": {
+        "condition": "one_cycle_report_done",
+        "from": "ERROR_SUPPRESS",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.channel_level.transitions.transition_10"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ERROR_SUPPRESS",
+          "IDLE",
+          "done",
+          "one",
+          "one_cycle_report_done",
+          "report"
+        ],
+        "source_scope": "rtl/spi_shift.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/spi_shift.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "2a60bf453550d0ce8554eb62210062c7cf9b821cfd849f3ea1217a035cfae11d",
+  "top": "spi",
+  "type": "rtl_authoring_packet"
+}

@@ -27,8 +27,8 @@
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.clock, cycle_model.handshake_rules.event_i, cycle_model.pipeline.S2_COUNT_EVAL, cycle_model.reset, decomposition.units.counter_datapath, features, features.Clear_Load_Control, features.Debug_Cycle_Counter, features.Saturating_Mode, features.Terminal_Count_Interrupt, features.Up_Down_Counting, features.Wrap_Mode, fsm, fsm.core_fsm, fsm.internal_control
-- Module slice: 3/8 section=function_model task_limit=48
-- Slice rule: Owner module todo_counter_pipe_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Module slice: 3/9 section=function_model task_limit=48
+- Slice rule: Owner module todo_counter_pipe_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT connection contracts:
   - todo_counter_pipe_core.core_clk <= core_clk (integration.connections[3])
   - todo_counter_pipe_core.core_rst_n <= core_rst_n (integration.connections[4])
@@ -45,7 +45,7 @@
 - Source ref: function_model.transactions.FM9
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM9.
-Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.
+Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.transactions.
 SSOT item context: id=FM9; name=no_count_disabled.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -65,7 +65,7 @@ SSOT item context: id=FM9; name=no_count_disabled.
 - Source ref: function_model.transactions.FM9.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM9.preconditions.precondition_0.
-Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.
+Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.transactions.
 SSOT item context: value=enable == 0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -85,7 +85,7 @@ SSOT item context: value=enable == 0.
 - Source ref: function_model.transactions.FM9.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM9.inputs.input_0.
-Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.
+Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.transactions.
 SSOT item context: value=event_i may toggle.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -105,7 +105,7 @@ SSOT item context: value=event_i may toggle.
 - Source ref: function_model.transactions.FM9.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM9.outputs.output_0.
-Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.
+Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.transactions.
 SSOT item context: value=cnt unchanged.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -125,7 +125,7 @@ SSOT item context: value=cnt unchanged.
 - Source ref: function_model.transactions.FM9.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM9.side_effects.side_effect_0.
-Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.
+Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.transactions.
 SSOT item context: value=cnt is preserved.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -145,7 +145,7 @@ SSOT item context: value=cnt is preserved.
 - Source ref: function_model.transactions.FM9.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM9.side_effects.side_effect_1.
-Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.
+Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via function_model.transactions.
 SSOT item context: value=dbg_cycle_count continues incrementing.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:

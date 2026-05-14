@@ -45,7 +45,7 @@
 - Source ref: registers.register_list.CTRL
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.CTRL.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -69,7 +69,7 @@ SSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=0.
 - Source ref: registers.register_list.CTRL.fields.enable
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.enable.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=enable; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -95,7 +95,7 @@ SSOT item context: name=enable; reset=0; access=rw.
 - Source ref: registers.register_list.CTRL.fields.up_down
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.up_down.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=up_down; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -121,7 +121,7 @@ SSOT item context: name=up_down; reset=0; access=rw.
 - Source ref: registers.register_list.CTRL.fields.mode
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.mode.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=mode; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -147,7 +147,7 @@ SSOT item context: name=mode; reset=0; access=rw.
 - Source ref: registers.register_list.CTRL.fields.clear
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.clear.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=clear; reset=0; access=wo.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -173,7 +173,7 @@ SSOT item context: name=clear; reset=0; access=wo.
 - Source ref: registers.register_list.CTRL.fields.load
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.load.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=load; reset=0; access=wo.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -199,7 +199,7 @@ SSOT item context: name=load; reset=0; access=wo.
 - Source ref: registers.register_list.CTRL.fields.reserved_31_5
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.reserved_31_5.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=reserved_31_5; reset=0; access=reserved.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -225,7 +225,7 @@ SSOT item context: name=reserved_31_5; reset=0; access=reserved.
 - Source ref: registers.register_list.CNT
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.CNT.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.CNT.
 SSOT item context: name=CNT; width=32; reset=0; access=ro; offset=4.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -249,7 +249,7 @@ SSOT item context: name=CNT; width=32; reset=0; access=ro; offset=4.
 - Source ref: registers.register_list.CNT.fields.cnt_value
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CNT.fields.cnt_value.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.CNT.
 SSOT item context: name=cnt_value; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -275,7 +275,7 @@ SSOT item context: name=cnt_value; reset=0; access=ro.
 - Source ref: registers.register_list.LOAD
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.LOAD.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.LOAD.
 SSOT item context: name=LOAD; width=32; reset=0; access=rw; offset=8.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -299,7 +299,7 @@ SSOT item context: name=LOAD; width=32; reset=0; access=rw; offset=8.
 - Source ref: registers.register_list.LOAD.fields.load_value
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.LOAD.fields.load_value.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.LOAD.
 SSOT item context: name=load_value; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -325,7 +325,7 @@ SSOT item context: name=load_value; reset=0; access=rw.
 - Source ref: registers.register_list.TERM
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.TERM.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.TERM.
 SSOT item context: name=TERM; width=32; reset=4294967295; access=rw; offset=12.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -349,7 +349,7 @@ SSOT item context: name=TERM; width=32; reset=4294967295; access=rw; offset=12.
 - Source ref: registers.register_list.TERM.fields.term_value
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.TERM.fields.term_value.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.TERM.
 SSOT item context: name=term_value; reset=4294967295; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -375,7 +375,7 @@ SSOT item context: name=term_value; reset=4294967295; access=rw.
 - Source ref: registers.register_list.STATUS
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.STATUS.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=16.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -399,7 +399,7 @@ SSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=16.
 - Source ref: registers.register_list.STATUS.fields.overflow
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.overflow.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=overflow; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -425,7 +425,7 @@ SSOT item context: name=overflow; reset=0; access=ro.
 - Source ref: registers.register_list.STATUS.fields.underflow
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.underflow.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=underflow; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -451,7 +451,7 @@ SSOT item context: name=underflow; reset=0; access=ro.
 - Source ref: registers.register_list.STATUS.fields.reserved_31_2
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.reserved_31_2.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=reserved_31_2; reset=0; access=reserved.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -477,7 +477,7 @@ SSOT item context: name=reserved_31_2; reset=0; access=reserved.
 - Source ref: registers.register_list.INTEN
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.INTEN.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTEN.
 SSOT item context: name=INTEN; width=32; reset=0; access=rw; offset=20.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -501,7 +501,7 @@ SSOT item context: name=INTEN; width=32; reset=0; access=rw; offset=20.
 - Source ref: registers.register_list.INTEN.fields.tc_en
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTEN.fields.tc_en.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTEN.
 SSOT item context: name=tc_en; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -527,7 +527,7 @@ SSOT item context: name=tc_en; reset=0; access=rw.
 - Source ref: registers.register_list.INTEN.fields.ovf_en
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTEN.fields.ovf_en.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTEN.
 SSOT item context: name=ovf_en; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -553,7 +553,7 @@ SSOT item context: name=ovf_en; reset=0; access=rw.
 - Source ref: registers.register_list.INTEN.fields.unf_en
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTEN.fields.unf_en.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTEN.
 SSOT item context: name=unf_en; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -579,7 +579,7 @@ SSOT item context: name=unf_en; reset=0; access=rw.
 - Source ref: registers.register_list.INTEN.fields.reserved_31_3
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTEN.fields.reserved_31_3.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTEN.
 SSOT item context: name=reserved_31_3; reset=0; access=reserved.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -605,7 +605,7 @@ SSOT item context: name=reserved_31_3; reset=0; access=reserved.
 - Source ref: registers.register_list.INTSTAT
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.INTSTAT.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTSTAT.
 SSOT item context: name=INTSTAT; width=32; reset=0; access=ro; offset=24.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -629,7 +629,7 @@ SSOT item context: name=INTSTAT; width=32; reset=0; access=ro; offset=24.
 - Source ref: registers.register_list.INTSTAT.fields.tc_pending
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTSTAT.fields.tc_pending.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTSTAT.
 SSOT item context: name=tc_pending; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -655,7 +655,7 @@ SSOT item context: name=tc_pending; reset=0; access=ro.
 - Source ref: registers.register_list.INTSTAT.fields.ovf_pending
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTSTAT.fields.ovf_pending.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTSTAT.
 SSOT item context: name=ovf_pending; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -681,7 +681,7 @@ SSOT item context: name=ovf_pending; reset=0; access=ro.
 - Source ref: registers.register_list.INTSTAT.fields.unf_pending
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTSTAT.fields.unf_pending.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTSTAT.
 SSOT item context: name=unf_pending; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -707,7 +707,7 @@ SSOT item context: name=unf_pending; reset=0; access=ro.
 - Source ref: registers.register_list.INTSTAT.fields.reserved_31_3
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTSTAT.fields.reserved_31_3.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTSTAT.
 SSOT item context: name=reserved_31_3; reset=0; access=reserved.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -733,7 +733,7 @@ SSOT item context: name=reserved_31_3; reset=0; access=reserved.
 - Source ref: registers.register_list.INTCLR
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.INTCLR.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTCLR.
 SSOT item context: name=INTCLR; width=32; reset=0; access=rw; offset=28.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -757,7 +757,7 @@ SSOT item context: name=INTCLR; width=32; reset=0; access=rw; offset=28.
 - Source ref: registers.register_list.INTCLR.fields.tc_clr
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTCLR.fields.tc_clr.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTCLR.
 SSOT item context: name=tc_clr; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -783,7 +783,7 @@ SSOT item context: name=tc_clr; reset=0; access=rw.
 - Source ref: registers.register_list.INTCLR.fields.ovf_clr
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTCLR.fields.ovf_clr.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTCLR.
 SSOT item context: name=ovf_clr; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -809,7 +809,7 @@ SSOT item context: name=ovf_clr; reset=0; access=rw.
 - Source ref: registers.register_list.INTCLR.fields.unf_clr
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTCLR.fields.unf_clr.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTCLR.
 SSOT item context: name=unf_clr; reset=0; access=rw.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -835,7 +835,7 @@ SSOT item context: name=unf_clr; reset=0; access=rw.
 - Source ref: registers.register_list.INTCLR.fields.reserved_31_3
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTCLR.fields.reserved_31_3.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.INTCLR.
 SSOT item context: name=reserved_31_3; reset=0; access=reserved.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -861,7 +861,7 @@ SSOT item context: name=reserved_31_3; reset=0; access=reserved.
 - Source ref: registers.register_list.DBGCNT
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.DBGCNT.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.DBGCNT.
 SSOT item context: name=DBGCNT; width=32; reset=0; access=ro; offset=32.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -885,7 +885,7 @@ SSOT item context: name=DBGCNT; width=32; reset=0; access=ro; offset=32.
 - Source ref: registers.register_list.DBGCNT.fields.dbg_cycle_count
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DBGCNT.fields.dbg_cycle_count.
-Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.
+Owner: todo_counter_pipe_regs in rtl/todo_counter_pipe_regs.sv via registers.register_list.DBGCNT.
 SSOT item context: name=dbg_cycle_count; reset=0; access=ro.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:

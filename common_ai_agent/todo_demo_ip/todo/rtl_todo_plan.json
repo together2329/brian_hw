@@ -27,7 +27,7 @@
   },
   "gate": {
     "all_required_todos_pass": false,
-    "audit_rtl": false,
+    "audit_rtl": true,
     "blocking_questions": 2,
     "criteria": [
       "Gate: SSOT function_model and cycle_model are present before RTL generation",
@@ -48,29 +48,69 @@
       "Gate: DUT-only lint report passes after the final RTL edit",
       "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
     ],
-    "open_required_todos": 20,
+    "open_required_todos": 6,
     "orphan_tasks": 0,
     "static_missing": 0,
     "status": "blocked"
   },
-  "generated_at": "2026-05-14T01:43:55Z",
+  "generated_at": "2026-05-14T23:06:52Z",
   "ip": "todo_demo_ip",
   "manifest_hierarchy_evidence": {
+    "connection_contract_count": 0,
+    "connection_contract_issues": [],
+    "connection_contract_status": "pass",
+    "declared_modules": [
+      "todo_demo_ip"
+    ],
+    "graph": {
+      "todo_demo_ip": []
+    },
     "issues": [],
-    "sources": [],
-    "status": "not_run"
+    "port_connection_issues": [],
+    "port_connection_status": "pass",
+    "reachable_modules": [
+      "todo_demo_ip"
+    ],
+    "roots": [
+      "todo_demo_ip"
+    ],
+    "sources": [
+      "rtl/todo_demo_ip.sv"
+    ],
+    "status": "pass"
   },
   "manifest_signal_flow_evidence": {
     "checked_inputs": 0,
     "checked_outputs": 0,
     "issues": [],
-    "status": "not_run"
+    "reachable_modules": [
+      "todo_demo_ip"
+    ],
+    "roots": [
+      "todo_demo_ip"
+    ],
+    "status": "pass"
   },
   "orphans": [],
   "owner_logic_evidence": {
-    "checked": 0,
-    "issues": [],
-    "status": "not_run"
+    "checked": 1,
+    "issues": [
+      {
+        "file": "rtl/todo_demo_ip.sv",
+        "issue": "Behavior-owner module has no nonconstant assign, procedural block, state update, or child instance",
+        "metrics": {
+          "control_flow": 0,
+          "instances": 0,
+          "nonconstant_assigns": 0,
+          "placeholder_tokens": false,
+          "procedural_blocks": 0,
+          "state_updates": 0,
+          "storage_decls": 0
+        },
+        "module": "todo_demo_ip"
+      }
+    ],
+    "status": "fail"
   },
   "policy": {
     "dynamic_task_rule": "Use every required task in this file as the authoritative RTL implementation/evidence ledger. Expose Atlas/UI TodoTracker items as a flat one-to-one projection of this ledger so the existing flat TodoTracker executes one SSOT-derived RTL task at a time.",
@@ -88,15 +128,67 @@
   "reference_profile": null,
   "reference_scale_gap": {},
   "rtl_implementation_depth_evidence": {
-    "aggregate": {},
+    "aggregate": {
+      "behavior_owner_logic_modules": 0,
+      "control_flow": 0,
+      "depth_score": 0,
+      "instances": 0,
+      "lines": 6,
+      "logic_modules": 0,
+      "modules": 1,
+      "nonconstant_assigns": 0,
+      "procedural_blocks": 0,
+      "source_files": 1,
+      "state_updates": 0,
+      "storage_decls": 0
+    },
     "issues": [],
-    "status": "not_run",
-    "thresholds": {}
+    "modules": [
+      {
+        "depth_score": 0,
+        "file": "rtl/todo_demo_ip.sv",
+        "metrics": {
+          "control_flow": 0,
+          "instances": 0,
+          "nonconstant_assigns": 0,
+          "placeholder_tokens": false,
+          "procedural_blocks": 0,
+          "state_updates": 0,
+          "storage_decls": 0
+        },
+        "module": "todo_demo_ip"
+      }
+    ],
+    "profile": "standard",
+    "reference_comparison": null,
+    "status": "pass",
+    "target_scale": {},
+    "thresholds": {
+      "behavior_owners": 1,
+      "behavior_tasks": 0,
+      "machine_connection_contracts": 0,
+      "manifest_rtl_files": 1,
+      "min_depth_score": 6,
+      "min_logic_modules": 1
+    }
   },
   "rtl_placeholder_free_evidence": {
-    "checked": 0,
-    "issues": [],
-    "status": "not_run"
+    "checked": 1,
+    "issues": [
+      {
+        "file": "rtl/todo_demo_ip.sv",
+        "issue": "RTL source contains a placeholder implementation marker",
+        "line": 2,
+        "token": "TODO"
+      },
+      {
+        "file": "rtl/todo_demo_ip.sv",
+        "issue": "RTL source contains a placeholder implementation marker",
+        "line": 7,
+        "token": "TBD"
+      }
+    ],
+    "status": "fail"
   },
   "schema_version": 1,
   "source": "todo_demo_ip/yaml/todo_demo_ip.ssot.yaml",
@@ -107,7 +199,9 @@
     "missing": 0,
     "missing_tasks": [],
     "passed": 0,
-    "sources": []
+    "sources": [
+      "rtl/todo_demo_ip.sv"
+    ]
   },
   "summary": {
     "blocking_questions": 2,
@@ -171,6 +265,10 @@
       "ssot_refs": [
         "top_module"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -179,9 +277,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -215,6 +313,10 @@
       "ssot_refs": [
         "io_list"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -223,9 +325,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -259,6 +361,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.ssot_required_sections"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -266,9 +372,9 @@
           "rtl_todo_plan.json task criteria",
           "yaml/<ip>.ssot.yaml"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "SSOT function_model/cycle_model blocker is still open: MISSING_CYCLE_MODEL, MISSING_FUNCTION_MODEL",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -302,6 +408,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.workflow_todo_contract"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -309,9 +419,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "SSOT-authored rtl-gen workflow TODOs are well formed.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -346,6 +456,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.owner_traceability"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -353,9 +467,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Every required SSOT-derived RTL behavior has an owner module.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -393,6 +507,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.common_ai_agent_authoring"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -400,9 +518,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing common_ai_agent RTL authoring provenance.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -437,6 +555,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.static_rtl_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -444,9 +566,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Static DUT RTL evidence audit has no missing required task.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -480,6 +602,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.owner_logic_structure_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -487,9 +613,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "1 owner logic structure issue(s) remain. todo_demo_ip: Behavior-owner module has no nonconstant assign, procedural block, state update, or child instance",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -526,6 +652,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.rtl_placeholder_free_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -533,9 +663,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "2 RTL placeholder/policy issue(s) remain. rtl/todo_demo_ip.sv:2: TODO (RTL source contains a placeholder implementation marker); rtl/todo_demo_ip.sv:7: TBD (RTL source contains a placeholder implementation marker)",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -569,6 +699,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.top_io_contract_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -576,9 +710,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "SSOT top IO contracts match the RTL top declaration.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -612,6 +746,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.top_output_drive_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -619,9 +757,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "SSOT top outputs have non-placeholder RTL drive evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -655,6 +793,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.top_input_consumption_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -662,9 +804,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "SSOT top inputs have RTL consumption evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -698,6 +840,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.manifest_hierarchy_integration"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -705,9 +851,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Every SSOT manifest-owned child module is declared and reachable from the top RTL hierarchy.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -741,6 +887,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.manifest_port_connection_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -748,9 +898,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Every reachable manifest child instance has named, non-empty port connections.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -784,6 +934,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.manifest_signal_flow_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -791,9 +945,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Manifest child port maps carry live non-placeholder RTL signal flow.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -827,6 +981,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.manifest_connection_contract_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -834,9 +992,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "SSOT connection contracts are satisfied by reachable RTL named port maps.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -872,6 +1030,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.dut_compile"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -879,9 +1041,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -918,6 +1080,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.dut_lint"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -925,9 +1091,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "DUT lint artifact is not clean.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -961,6 +1127,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.dynamic_todo_closure"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -968,9 +1138,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "5 required non-closure TODO(s) remain open.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -999,6 +1169,10 @@
       "ssot_refs": [
         "sub_modules.todo_demo_ip.module_equivalence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1007,139 +1181,55 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     }
   ],
   "todo_completion": {
     "all_required_todos_pass": false,
-    "audit_rtl": false,
-    "open_required_tasks": 20,
+    "audit_rtl": true,
+    "open_required_tasks": 6,
     "open_tasks": [
       {
-        "category": "rtl_flow.seed",
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "top_module",
-        "task_id": "RTL-0001"
-      },
-      {
-        "category": "rtl_flow.top",
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "io_list",
-        "task_id": "RTL-0002"
-      },
-      {
         "category": "rtl_gate.rtl_gen",
-        "reason": "RTL audit has not run yet.",
+        "reason": "SSOT function_model/cycle_model blocker is still open: MISSING_CYCLE_MODEL, MISSING_FUNCTION_MODEL",
         "source_ref": "quality_gates.rtl_gen.ssot_required_sections",
         "task_id": "RTL-0003"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "quality_gates.rtl_gen.workflow_todo_contract",
-        "task_id": "RTL-0004"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "quality_gates.rtl_gen.owner_traceability",
-        "task_id": "RTL-0005"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing common_ai_agent RTL authoring provenance.",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "task_id": "RTL-0006"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
-        "task_id": "RTL-0007"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "RTL audit has not run yet.",
+        "reason": "1 owner logic structure issue(s) remain. todo_demo_ip: Behavior-owner module has no nonconstant assign, procedural block, state update, or child instance",
         "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
         "task_id": "RTL-0008"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "RTL audit has not run yet.",
+        "reason": "2 RTL placeholder/policy issue(s) remain. rtl/todo_demo_ip.sv:2: TODO (RTL source contains a placeholder implementation marker); rtl/todo_demo_ip.sv:7: TBD (RTL source contains a placeholder implementation marker)",
         "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
         "task_id": "RTL-0009"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
-        "task_id": "RTL-0010"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
-        "task_id": "RTL-0011"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
-        "task_id": "RTL-0012"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
-        "task_id": "RTL-0013"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "quality_gates.rtl_gen.manifest_port_connection_evidence",
-        "task_id": "RTL-0014"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
-        "task_id": "RTL-0015"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-        "task_id": "RTL-0016"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "task_id": "RTL-0017"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "RTL audit has not run yet.",
+        "reason": "DUT lint artifact is not clean.",
         "source_ref": "quality_gates.rtl_gen.dut_lint",
         "task_id": "RTL-0018"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "RTL audit has not run yet.",
+        "reason": "5 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
-      },
-      {
-        "category": "equivalence.module",
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "sub_modules.todo_demo_ip.module_equivalence",
-        "task_id": "RTL-0020"
       }
     ],
-    "required_passed": 0,
+    "required_passed": 14,
     "required_total": 20,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },
@@ -1148,18 +1238,32 @@
     "checked": 0,
     "consumed": 0,
     "issues": [],
-    "status": "not_run"
+    "roots": [
+      "todo_demo_ip"
+    ],
+    "status": "pass"
   },
   "top_io_contract_evidence": {
     "contracts": 0,
+    "declared_top_ports": [
+      "clk",
+      "rst_n"
+    ],
     "issues": [],
-    "status": "not_run"
+    "roots": [
+      "todo_demo_ip"
+    ],
+    "status": "pass",
+    "top_parameters": {}
   },
   "top_output_drive_evidence": {
     "checked": 0,
     "driven": 0,
     "issues": [],
-    "status": "not_run"
+    "roots": [
+      "todo_demo_ip"
+    ],
+    "status": "pass"
   },
   "type": "ssot_derived_rtl_todo_plan"
 }

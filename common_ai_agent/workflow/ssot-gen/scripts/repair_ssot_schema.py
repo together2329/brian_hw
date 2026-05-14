@@ -207,7 +207,65 @@ def _ensure_top_module(doc: dict[str, Any], state: dict[str, Any], ip: str) -> d
     return top
 
 
+def _filelist_rtl_entries(doc: dict[str, Any]) -> list[str]:
+    filelist = doc.get("filelist") if isinstance(doc.get("filelist"), dict) else {}
+    return [str(item).strip() for item in filelist.get("rtl") or [] if str(item).strip()]
+
+
+def _has_explicit_child_wiring(doc: dict[str, Any]) -> bool:
+    integration = doc.get("integration") if isinstance(doc.get("integration"), dict) else {}
+    if integration.get("connections") or integration.get("internal_interfaces"):
+        return True
+    for item in doc.get("sub_modules") or []:
+        if not isinstance(item, dict):
+            continue
+        if item.get("ports") or item.get("connections") or item.get("internal_interfaces"):
+            return True
+    return False
+
+
+def _decomposition_prefers_top_only(doc: dict[str, Any], ip: str) -> bool:
+    decomp = doc.get("decomposition") if isinstance(doc.get("decomposition"), dict) else {}
+    text = json.dumps(decomp, sort_keys=True, default=str).lower()
+    if "monolithic" in text or "leaf ip" in text or "leaf_ip" in text:
+        return True
+    units = [item for item in decomp.get("units") or [] if isinstance(item, dict)]
+    if not units:
+        return False
+    for unit in units:
+        candidates = [str(item).strip() for item in unit.get("rtl_candidates") or [] if str(item).strip()]
+        if candidates and any(candidate not in {ip, f"rtl/{ip}.sv"} for candidate in candidates):
+            return False
+    return True
+
+
+def _should_collapse_to_top_module(doc: dict[str, Any], ip: str) -> bool:
+    rtl_entries = _filelist_rtl_entries(doc)
+    top_file = f"rtl/{ip}.sv"
+    if rtl_entries and set(rtl_entries) != {top_file}:
+        return False
+    if _has_explicit_child_wiring(doc):
+        return False
+    return _decomposition_prefers_top_only(doc, ip)
+
+
 def _ensure_sub_modules(doc: dict[str, Any], ip: str) -> list[dict[str, Any]]:
+    if _should_collapse_to_top_module(doc, ip):
+        return [{
+            "name": ip,
+            "file": f"rtl/{ip}.sv",
+            "ownership": "manifest",
+            "ssot_gen": True,
+            "description": "Top-level leaf implementation module matching SSOT top_module and monolithic decomposition.",
+            "implements": ["top_module", "io_list", "function_model", "cycle_model", "decomposition"],
+            "source_sections": ["top_module", "io_list", "parameters", "function_model", "cycle_model", "decomposition", "fsm", "features", "dataflow"],
+            "function_model_refs": ["function_model.transactions", "function_model.state_variables"],
+            "cycle_model_refs": ["cycle_model"],
+            "decomposition_refs": ["decomposition"],
+            "feature_refs": ["features"],
+            "dataflow_refs": ["dataflow"],
+            "fsm_refs": ["fsm"],
+        }]
     subs = doc.get("sub_modules")
     if isinstance(subs, list) and subs and not _has_tbd(subs):
         fixed: list[dict[str, Any]] = []
@@ -328,10 +386,19 @@ def _choose_behavior_owner(candidates: list[dict[str, Any]], terms: set[str]) ->
 def _ensure_submodule_behavior_ownership(doc: dict[str, Any], ip: str) -> list[dict[str, Any]]:
     subs = [dict(item) for item in doc.get("sub_modules") or [] if isinstance(item, dict)]
     top_names = {ip, f"{ip}_top", "top", "wrapper"}
-    candidates = [
-        row for row in subs
-        if str(row.get("name") or "") not in top_names and Path(str(row.get("file") or "")).stem not in top_names
-    ]
+    def is_active_owner(row: dict[str, Any]) -> bool:
+        ownership = str(row.get("ownership") or "manifest").lower()
+        if ownership in {"child_ssot", "external", "blackbox", "conceptual", "verification", "coverage"}:
+            return False
+        if row.get("rtl_emit") is False or bool(row.get("wiring_only")):
+            return False
+        return True
+
+    def is_top(row: dict[str, Any]) -> bool:
+        return str(row.get("name") or "") in top_names or Path(str(row.get("file") or "")).stem in top_names
+
+    active = [row for row in subs if is_active_owner(row)]
+    candidates = [row for row in active if not is_top(row)] or [row for row in active if is_top(row)]
     if not candidates:
         owner = {
             "name": f"{ip}_behavior_contract",
@@ -393,6 +460,12 @@ def _ensure_submodule_behavior_ownership(doc: dict[str, Any], ip: str) -> list[d
             _append_unique_ref(owner, "fsm_refs", "fsm")
             _append_unique_ref(owner, "source_sections", "fsm")
 
+    if isinstance(doc.get("decomposition"), dict) and doc["decomposition"]:
+        owner = _choose_behavior_owner(candidates, {"decomposition", "datapath", "control", "core", "top"})
+        if owner is not None:
+            _append_unique_ref(owner, "decomposition_refs", "decomposition")
+            _append_unique_ref(owner, "source_sections", "decomposition")
+
     tests = doc.get("test_requirements") if isinstance(doc.get("test_requirements"), dict) else {}
     if isinstance(tests.get("scenarios"), list) and tests["scenarios"]:
         owner = _choose_behavior_owner(candidates, {"test", "scenario", "coverage", "core"})
@@ -446,6 +519,389 @@ def _ensure_rtl_contract_consistency(doc: dict[str, Any]) -> None:
     contract["sample_condition"] = f"({sample}) and {ready}"
 
 
+def _all_interface_ports(doc: dict[str, Any]) -> list[dict[str, Any]]:
+    io = doc.get("io_list") if isinstance(doc.get("io_list"), dict) else {}
+    ports: list[dict[str, Any]] = []
+    for intf in io.get("interfaces") or []:
+        if not isinstance(intf, dict):
+            continue
+        for port in intf.get("ports") or []:
+            if isinstance(port, dict) and port.get("name"):
+                ports.append(port)
+    return ports
+
+
+def _port_widths(doc: dict[str, Any]) -> dict[str, Any]:
+    return {
+        str(port.get("name")): port.get("width", 1)
+        for port in _all_interface_ports(doc)
+        if str(port.get("name") or "").strip()
+    }
+
+
+def _ports_by_direction(doc: dict[str, Any], direction: str) -> list[str]:
+    return [
+        str(port.get("name"))
+        for port in _all_interface_ports(doc)
+        if str(port.get("direction") or "").lower() == direction
+        and str(port.get("name") or "").strip()
+    ]
+
+
+def _concrete_port_ref(value: Any, valid_ports: set[str]) -> str:
+    raw = str(value or "").strip()
+    if raw in valid_ports:
+        return raw
+    parts = [part for part in re.split(r"[^A-Za-z0-9_]+", raw) if part]
+    for part in reversed(parts):
+        if part in valid_ports:
+            return part
+    return raw
+
+
+def _normalize_contract_port_maps(contract: dict[str, Any], doc: dict[str, Any]) -> None:
+    input_ports = set(_ports_by_direction(doc, "input"))
+    output_ports = set(_ports_by_direction(doc, "output"))
+    all_ports = input_ports | output_ports
+
+    input_map = contract.get("input_map") if isinstance(contract.get("input_map"), dict) else {}
+    normalized_input: dict[str, str] = {}
+    for field, port in input_map.items():
+        normalized_input[str(field)] = _concrete_port_ref(port, all_ports)
+    if normalized_input:
+        contract["input_map"] = normalized_input
+
+    output_map = contract.get("output_map") if isinstance(contract.get("output_map"), dict) else {}
+    normalized_output: dict[str, str] = {}
+    for field, port in output_map.items():
+        normalized_output[str(field)] = _concrete_port_ref(port, output_ports)
+    if normalized_output:
+        contract["output_map"] = normalized_output
+
+
+def _ensure_rtl_contract(doc: dict[str, Any], ip: str) -> dict[str, Any]:
+    contract = dict(doc.get("rtl_contract")) if isinstance(doc.get("rtl_contract"), dict) else {}
+    fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+    txs = [item for item in fm.get("transactions") or [] if isinstance(item, dict)]
+    tx_id = str((txs[0].get("id") if txs else "") or "FM_PRIMARY")
+    clock, _ = _first_clock(doc)
+    reset, polarity, _ = _first_reset(doc)
+    ports = _all_interface_ports(doc)
+    input_names = [
+        str(port.get("name"))
+        for port in ports
+        if str(port.get("direction") or "").lower() == "input"
+        and str(port.get("name")) not in {clock, reset}
+    ]
+    output_names = [
+        str(port.get("name"))
+        for port in ports
+        if str(port.get("direction") or "").lower() == "output"
+    ]
+    ready = next((name for name in output_names if name == "ready" or name.endswith("_ready")), "")
+    valid = next((name for name in input_names if name == "valid" or name.endswith("_valid")), "")
+    start = next((name for name in input_names if name in {"start", "enable", "go"} or name.endswith("_start")), "")
+    output_valid = next((name for name in output_names if name == "result_valid" or name.endswith("_valid")), "")
+    contract.setdefault("owner", "ssot-gen")
+    contract.setdefault("type", "ssot_derived_rule_contract")
+    requested_tx = str(contract.get("transaction") or contract.get("transaction_id") or "").strip()
+    known_txs = {
+        str(tx.get(key) or "").strip().lower()
+        for tx in txs
+        for key in ("id", "name")
+        if str(tx.get(key) or "").strip()
+    }
+    if not requested_tx or requested_tx.lower() not in known_txs:
+        contract["transaction"] = tx_id
+    else:
+        contract.setdefault("transaction", tx_id)
+    contract.setdefault("clock", clock)
+    contract.setdefault("reset", reset)
+    contract.setdefault("reset_active", "low" if "low" in polarity else "high")
+    if valid and ready:
+        contract.setdefault("sample_condition", f"{valid} && {ready}")
+    elif start:
+        contract.setdefault("sample_condition", start)
+    else:
+        contract.setdefault("sample_condition", "legal transaction accepted under cycle_model.handshake_rules")
+    input_map = contract.get("input_map") if isinstance(contract.get("input_map"), dict) else {}
+    for name in input_names:
+        if name not in {valid, ready}:
+            input_map.setdefault(name, name)
+    output_map = contract.get("output_map") if isinstance(contract.get("output_map"), dict) else {}
+    for name in output_names:
+        output_map.setdefault(name, name)
+    contract["input_map"] = input_map or {"request": "declared input ports"}
+    contract["output_map"] = output_map or {"response": "declared output ports"}
+    if ready:
+        contract.setdefault("ready_output", ready)
+    if output_valid:
+        contract.setdefault("output_valid", output_valid)
+    contract.setdefault("contract_invariants", [
+        "RTL-visible behavior implements the referenced function_model transaction.",
+        "Input sampling and output observation follow cycle_model handshake and latency rules.",
+    ])
+    _normalize_contract_port_maps(contract, doc)
+    return contract
+
+
+def _infer_primary_input_port(doc: dict[str, Any], contract: dict[str, Any]) -> str:
+    input_ports = _ports_by_direction(doc, "input")
+    clock, _ = _first_clock(doc)
+    reset, _, _ = _first_reset(doc)
+    excluded = {clock, reset, "valid", "enable", "start", "go"}
+    input_map = contract.get("input_map") if isinstance(contract.get("input_map"), dict) else {}
+    for key in ("data_in", "value", "data", "payload", "req_data", "in_data"):
+        mapped = _concrete_port_ref(input_map.get(key), set(input_ports)) if key in input_map else ""
+        if mapped in input_ports:
+            return mapped
+    for name in input_ports:
+        low = name.lower()
+        if low in excluded or low.endswith("_valid") or low.endswith("_ready"):
+            continue
+        if any(token in low for token in ("data", "payload", "value")):
+            return name
+    return next((name for name in input_ports if name not in {clock, reset}), "")
+
+
+def _infer_primary_output_port(doc: dict[str, Any], contract: dict[str, Any]) -> str:
+    output_ports = _ports_by_direction(doc, "output")
+    output_map = contract.get("output_map") if isinstance(contract.get("output_map"), dict) else {}
+    for key in ("result", "data_out", "out_data", "rsp_data", "response", "value"):
+        mapped = _concrete_port_ref(output_map.get(key), set(output_ports)) if key in output_map else ""
+        if mapped in output_ports:
+            return mapped
+    for name in output_ports:
+        low = name.lower()
+        if low in {"ready", "valid", "result_valid", "done", "error"} or low.endswith("_valid") or low.endswith("_ready"):
+            continue
+        if any(token in low for token in ("result", "data", "payload", "value", "response")):
+            return name
+    return next((name for name in output_ports if not name.endswith("_valid") and not name.endswith("_ready")), "")
+
+
+def _mentions_shift_left_by_one(text: str) -> bool:
+    low = text.lower()
+    return (
+        "shift left by one" in low
+        or "shifted left by one" in low
+        or "left-shift-by-one" in low
+        or "left shift by 1" in low
+        or "<< 1" in low
+        or "multiply by two" in low
+        or "multiplied by two" in low
+        or "times two" in low
+        or "data_in*2" in low.replace(" ", "")
+    )
+
+
+def _verilog_literal_to_int(match: re.Match[str]) -> str:
+    width_text, base_text, value_text = match.group(1), match.group(2).lower(), match.group(3)
+    base = {"b": 2, "o": 8, "d": 10, "h": 16}[base_text]
+    cleaned = value_text.replace("_", "")
+    cleaned = re.sub(r"[xXzZ?]", "0", cleaned)
+    try:
+        return str(int(cleaned or "0", base))
+    except ValueError:
+        return "0"
+
+
+def _normalize_rule_expr(expr: Any) -> Any:
+    if not isinstance(expr, str):
+        return expr
+    text = expr.strip()
+    if not text:
+        return expr
+    text = re.sub(r"\b(\d+)?'[sS]?([bBoOdDhH])([0-9a-fA-F_xXzZ?]+)\b", _verilog_literal_to_int, text)
+    concat_shift = re.fullmatch(r"\(?\s*\{\s*0\s*,\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\s*<<\s*(\d+)\s*\)?", text)
+    if concat_shift:
+        return f"{concat_shift.group(1)} << {concat_shift.group(2)}"
+    wrapped_concat_shift = re.fullmatch(r"\(?\s*\(\s*\{\s*0\s*,\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\s*\)\s*<<\s*(\d+)\s*\)?", text)
+    if wrapped_concat_shift:
+        return f"{wrapped_concat_shift.group(1)} << {wrapped_concat_shift.group(2)}"
+    zero_extend = re.fullmatch(r"\{?\s*0\s*,\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}?", text)
+    if zero_extend:
+        return zero_extend.group(1)
+    return text
+
+
+def _normalize_machine_rule_exprs(doc: dict[str, Any]) -> None:
+    fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+    for tx in fm.get("transactions") or []:
+        if not isinstance(tx, dict):
+            continue
+        if "sample_condition" in tx:
+            tx["sample_condition"] = _normalize_rule_expr(tx.get("sample_condition"))
+        for key in ("output_rules", "state_updates"):
+            for rule in tx.get(key) or []:
+                if not isinstance(rule, dict):
+                    continue
+                for expr_key in ("expr", "expression", "value"):
+                    if expr_key in rule:
+                        rule[expr_key] = _normalize_rule_expr(rule.get(expr_key))
+    contract = doc.get("rtl_contract") if isinstance(doc.get("rtl_contract"), dict) else {}
+    for rule in contract.get("output_rules") or []:
+        if not isinstance(rule, dict):
+            continue
+        for expr_key in ("expr", "expression", "value"):
+            if expr_key in rule:
+                rule[expr_key] = _normalize_rule_expr(rule.get(expr_key))
+
+
+def _ensure_ready_constant_policy(doc: dict[str, Any]) -> None:
+    """Record explicit SSOT allowance for always-ready interfaces.
+
+    rtl-gen rejects constant-driven top outputs unless the SSOT states that the
+    constant is intentional. A valid/ready sink with ready specified HIGH during
+    reset/idle is one such intentional contract.
+    """
+
+    context = json.dumps(
+        {
+            "io_list": doc.get("io_list"),
+            "cycle_model": doc.get("cycle_model"),
+            "features": doc.get("features"),
+            "workflow_todos": doc.get("workflow_todos"),
+        },
+        sort_keys=True,
+        default=str,
+    ).lower()
+    if "ready" not in context or not ("high" in context or "ready=1" in context or "1'b1" in context):
+        return
+    io = doc.get("io_list") if isinstance(doc.get("io_list"), dict) else {}
+    for iface in io.get("interfaces") or []:
+        if not isinstance(iface, dict):
+            continue
+        ports = iface.get("ports") if isinstance(iface.get("ports"), list) else []
+        for port in ports:
+            if not isinstance(port, dict):
+                continue
+            if str(port.get("name") or "").strip() != "ready":
+                continue
+            if str(port.get("direction") or "").strip().lower() != "output":
+                continue
+            port.setdefault("allow_constant", True)
+            port.setdefault("tieoff", "1'b1")
+            port.setdefault("constant_value", "1'b1")
+
+
+def _ensure_function_model_machine_rules(doc: dict[str, Any]) -> None:
+    fm = doc.get("function_model")
+    if not isinstance(fm, dict):
+        return
+    txs = [item for item in fm.get("transactions") or [] if isinstance(item, dict)]
+    if not txs:
+        return
+    contract = doc.get("rtl_contract") if isinstance(doc.get("rtl_contract"), dict) else {}
+    widths = _port_widths(doc)
+    input_port = _infer_primary_input_port(doc, contract)
+    output_port = _infer_primary_output_port(doc, contract)
+    combined_doc_text = json.dumps(
+        {
+            "rtl_contract": contract,
+            "features": doc.get("features"),
+            "dataflow": doc.get("dataflow"),
+            "test_requirements": doc.get("test_requirements"),
+        },
+        sort_keys=True,
+        default=str,
+    )
+
+    for tx in txs:
+        if not isinstance(tx.get("output_rules"), list):
+            tx["output_rules"] = []
+        tx_text = " ".join(
+            [
+                str(tx.get("id") or ""),
+                str(tx.get("name") or ""),
+                json.dumps(tx.get("outputs") or [], sort_keys=True, default=str),
+                json.dumps(tx.get("side_effects") or [], sort_keys=True, default=str),
+                combined_doc_text,
+            ]
+        )
+        if not tx["output_rules"] and input_port and output_port and _mentions_shift_left_by_one(tx_text):
+            tx["output_rules"].append(
+                {
+                    "name": output_port,
+                    "port": output_port,
+                    "expr": f"{input_port} << 1",
+                    "width": widths.get(output_port, 1),
+                    "description": "Unsigned left shift by one; implemented in RTL with shift logic, not a multiplier.",
+                }
+            )
+
+        state_updates = tx.get("state_updates") if isinstance(tx.get("state_updates"), list) else []
+        has_accepted_count = any(
+            isinstance(state, dict) and str(state.get("name") or "") == "accepted_count"
+            for state in fm.get("state_variables") or []
+        )
+        if has_accepted_count and not state_updates and "accepted_count" in tx_text and "increment" in tx_text.lower():
+            width = 32
+            for state in fm.get("state_variables") or []:
+                if isinstance(state, dict) and str(state.get("name") or "") == "accepted_count":
+                    width = state.get("width", width)
+                    break
+            state_updates.append(
+                {
+                    "name": "accepted_count",
+                    "expr": "accepted_count + 1",
+                    "width": width,
+                    "description": "Increment once for each accepted transaction.",
+                }
+            )
+            tx["state_updates"] = state_updates
+
+    output_ports = set(_ports_by_direction(doc, "output"))
+    if not output_ports:
+        return
+    output_map = contract.get("output_map") if isinstance(contract.get("output_map"), dict) else {}
+    contract_rules = contract.get("output_rules") if isinstance(contract.get("output_rules"), list) else []
+    contract_rule_ports = {
+        _concrete_port_ref(rule.get("port") or rule.get("name"), output_ports)
+        for rule in contract_rules
+        if isinstance(rule, dict)
+    }
+
+    for state in fm.get("state_variables") or []:
+        if not isinstance(state, dict):
+            continue
+        name = str(state.get("name") or "").strip()
+        if not name:
+            continue
+        mapped = _concrete_port_ref(output_map.get(name), output_ports) if name in output_map else ""
+        port = mapped if mapped in output_ports else name if name in output_ports else ""
+        if not port:
+            continue
+        width = widths.get(port, state.get("width", 1))
+        state_rule = {
+            "name": name,
+            "port": port,
+            "expr": name,
+            "width": width,
+            "description": "Externally observable function_model state is driven from the RTL state register.",
+        }
+        if port not in contract_rule_ports:
+            contract_rules.append(dict(state_rule))
+            contract_rule_ports.add(port)
+
+        for tx in txs:
+            updates = tx.get("state_updates") if isinstance(tx.get("state_updates"), list) else []
+            if not any(isinstance(update, dict) and str(update.get("name") or "") == name for update in updates):
+                continue
+            tx_rules = tx.get("output_rules") if isinstance(tx.get("output_rules"), list) else []
+            tx_rule_ports = {
+                _concrete_port_ref(rule.get("port") or rule.get("name"), output_ports)
+                for rule in tx_rules
+                if isinstance(rule, dict)
+            }
+            if port not in tx_rule_ports:
+                tx_rules.append(dict(state_rule))
+                tx["output_rules"] = tx_rules
+    if contract_rules:
+        contract["output_rules"] = contract_rules
+    _normalize_machine_rule_exprs(doc)
+
+
 def _ensure_parameters_section(doc: dict[str, Any], state: dict[str, Any]) -> list[dict[str, Any]]:
     params = doc.get("parameters")
     if isinstance(params, list) and params and not _has_tbd(params):
@@ -460,6 +916,27 @@ def _ensure_parameters_section(doc: dict[str, Any], state: dict[str, Any]) -> li
 def _ensure_io_list(doc: dict[str, Any]) -> dict[str, Any]:
     io = doc.get("io_list") if isinstance(doc.get("io_list"), dict) else {}
     if io.get("interfaces") and io.get("clock_domains") and io.get("resets") and not _has_tbd(io):
+        clock = _first_clock(doc)[0]
+        reset = _first_reset(doc)[0]
+        for iface in io.get("interfaces") or []:
+            if not isinstance(iface, dict):
+                continue
+            ports = iface.get("ports") if isinstance(iface.get("ports"), list) else []
+            names = {str(port.get("name") or "") for port in ports if isinstance(port, dict)}
+            has_valid_ready = any(name.endswith("valid") for name in names) and any(name.endswith("ready") for name in names)
+            iface.setdefault("type", "native_valid_ready" if has_valid_ready else "custom")
+            iface.setdefault("role", "target")
+            iface.setdefault("clock_domain", clock)
+            iface.setdefault("reset_domain", reset)
+            iface.setdefault("protocol", {
+                "acceptance": "Transfer acceptance follows the declared valid/ready or protocol phase rule.",
+                "stability": "Payload/control fields remain stable until accepted.",
+                "response": "Observable response timing follows cycle_model latency and ordering.",
+            })
+            for port in ports:
+                if not isinstance(port, dict):
+                    continue
+                port.setdefault("width", 1)
         return io
     return {
         "clock_domains": [{
@@ -479,7 +956,14 @@ def _ensure_io_list(doc: dict[str, Any]) -> dict[str, Any]:
             "name": "control_data",
             "type": "native_valid_ready",
             "role": "target",
+            "clock_domain": "clk",
+            "reset_domain": "rst_n",
             "description": "Generic request/response interface synthesized only as a repair fallback; replace with approved protocol ports before production signoff.",
+            "protocol": {
+                "acceptance": "req_valid && req_ready accepts one request payload.",
+                "response": "rsp_valid marks a response payload, accepted with rsp_ready.",
+                "stability": "Payload/control fields remain stable while valid is high and ready is low.",
+            },
             "ports": [
                 {"name": "req_valid", "width": 1, "direction": "input", "description": "Request/control payload valid"},
                 {"name": "req_ready", "width": 1, "direction": "output", "description": "Request/control payload accepted when high with req_valid"},
@@ -545,8 +1029,13 @@ def _ensure_cdc_rdc(section: str, doc: dict[str, Any]) -> dict[str, Any]:
 def _ensure_registers(doc: dict[str, Any]) -> dict[str, Any]:
     regs = doc.get("registers") if isinstance(doc.get("registers"), dict) else {}
     if regs and not _has_tbd(regs):
-        return _promote_register_note_entries(regs)
+        promoted = _promote_register_note_entries(regs)
+        if not promoted.get("register_list"):
+            promoted.setdefault("no_registers", True)
+            promoted.setdefault("policy", "No firmware-visible registers are declared; add register_list before CSR behavior is implemented.")
+        return promoted
     return {
+        "no_registers": True,
         "policy": "No firmware-visible registers are implied by repair; add explicit register_list entries before rtl-gen implements CSR behavior.",
         "register_list": [],
     }
@@ -824,11 +1313,18 @@ def _fsm_pipeline(doc: dict[str, Any]) -> list[dict[str, Any]]:
 
 def _ensure_cycle_model(doc: dict[str, Any]) -> dict[str, Any]:
     cm = dict(doc.get("cycle_model")) if isinstance(doc.get("cycle_model"), dict) else {}
+    clock, freq = _first_clock(doc)
     cm.setdefault("executable", "pymtl3")
     cm.setdefault(
         "backend_policy",
         "Use PyMTL3 for the clocked cycle model shell; FunctionalModel remains the behavioral oracle.",
     )
+    cm.setdefault("performance", {
+        "frequency_mhz": freq,
+        "throughput": {"sustained_beats_per_cycle": 1, "condition": "No backpressure on the active interface"},
+        "outstanding": {"max": 1, "description": "Default one accepted operation until the SSOT declares deeper buffering"},
+        "depth": {"pipeline_stages": 3, "queue_depth": 1, "description": "Default accept/evaluate/observe cycle model depth"},
+    })
     generic_handshake = (
         isinstance(cm.get("handshake_rules"), list)
         and len(cm.get("handshake_rules") or []) <= 1
@@ -836,7 +1332,6 @@ def _ensure_cycle_model(doc: dict[str, Any]) -> dict[str, Any]:
     )
     if all(cm.get(k) for k in ("clock", "reset", "latency", "handshake_rules", "pipeline", "ordering")) and not generic_handshake:
         return cm
-    clock, freq = _first_clock(doc)
     reset, polarity, sync_async = _first_reset(doc)
     dataflow = doc.get("dataflow") if isinstance(doc.get("dataflow"), dict) else {}
     return {
@@ -1083,7 +1578,12 @@ def _ensure_test_requirements(doc: dict[str, Any]) -> dict[str, Any]:
                 }
             )
     tr["scenarios"] = scenarios
-    tr["scoreboard_checks"] = max(int(tr.get("scoreboard_checks") or 0), len(scenarios))
+    existing_checks = tr.get("scoreboard_checks") or 0
+    if isinstance(existing_checks, list):
+        existing_checks = len(existing_checks)
+    elif isinstance(existing_checks, dict):
+        existing_checks = len(existing_checks)
+    tr["scoreboard_checks"] = max(int(existing_checks or 0), len(scenarios))
     tr["coverage_goals"] = {
         **(
             {
@@ -1138,6 +1638,44 @@ def _ensure_test_requirements(doc: dict[str, Any]) -> dict[str, Any]:
             "description": "Cycle/handshake/latency/FSM coverage from cycle_model.",
             "bins": [],
         })
+        for domain, model in (("function", "function_model"), ("cycle", "cycle_model")):
+            section = goals.get(domain)
+            if not isinstance(section, dict):
+                section = {}
+                goals[domain] = section
+            section.setdefault("target_pct", 100)
+            section.setdefault("model", model)
+            section.setdefault(
+                "description",
+                "Behavioral coverage from function_model." if domain == "function" else "Cycle/performance coverage from cycle_model.",
+            )
+            bins = section.get("bins")
+            normalized_bins: list[dict[str, Any]] = []
+            if isinstance(bins, list):
+                for idx, item in enumerate(bins, start=1):
+                    row = dict(item) if isinstance(item, dict) else {"description": str(item)}
+                    source_ref = str(row.get("source_ref") or "")
+                    if domain == "function" and "function_model" not in source_ref:
+                        source_ref = "function_model.transactions"
+                    if domain == "cycle" and "cycle_model" not in source_ref and not source_ref.startswith("fsm."):
+                        source_ref = "cycle_model.performance"
+                    row["id"] = row.get("id") or f"{domain.upper()}_COV_{idx:02d}"
+                    row["source_ref"] = source_ref or model
+                    row["class"] = row.get("class") or ("transaction" if domain == "function" else "cycle_rule")
+                    row["description"] = row.get("description") or f"{domain} coverage bin derived from {row['source_ref']}"
+                    normalized_bins.append(row)
+            if not normalized_bins:
+                normalized_bins = [{
+                    "id": "FCOV_PRIMARY_TRANSACTION" if domain == "function" else "CCOV_PRIMARY_CYCLE_RULE",
+                    "source_ref": "function_model.transactions" if domain == "function" else "cycle_model",
+                    "class": "transaction" if domain == "function" else "cycle_rule",
+                    "description": (
+                        "Primary function_model transaction observed with RTL scoreboard evidence"
+                        if domain == "function"
+                        else "Primary cycle_model rule observed with RTL waveform/checker evidence"
+                    ),
+                }]
+            section["bins"] = normalized_bins
     return tr
 
 
@@ -1772,6 +2310,9 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     out["function_model"] = _ensure_function_model(out, state)
     out["sub_modules"] = _ensure_submodule_behavior_ownership(out, ip)
     out["cycle_model"] = _ensure_cycle_model(out)
+    _ensure_ready_constant_policy(out)
+    out["rtl_contract"] = _ensure_rtl_contract(out, ip)
+    _ensure_function_model_machine_rules(out)
     out["timing"] = _ensure_timing(out)
     out["power"] = _ensure_power(out)
     out["security"] = _ensure_security(out)
@@ -1804,6 +2345,15 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
             "Line/branch coverage is required when tool-supported; otherwise a waiver must be explicit in coverage evidence",
         ]
     }
+    if "optional" in json.dumps(out, sort_keys=True, default=str).lower():
+        out["custom"].setdefault("optional_behavior_policy", {
+            "resolution": "non_required_optional_items_disabled_unless_ssot_marks_required_or_parameterized",
+            "owner": "ssot-gen deterministic repair",
+            "rule": (
+                "Rows marked required:false or prose-only optional verification aids do not add RTL behavior. "
+                "Any optional functional behavior must be converted by ssot-gen into required behavior or an explicit parameter/register policy before rtl-gen signoff."
+            ),
+        })
     out["dir_structure"] = out.get("dir_structure") if isinstance(out.get("dir_structure"), dict) else {
         "yaml_dir": "yaml/",
         "output_dirs": {"rtl": "rtl/", "list": "list/", "tb": "tb/cocotb/", "sim": "sim/", "lint": "lint/", "cov": "cov/", "doc": "doc/"},
@@ -1811,7 +2361,14 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     }
     filelist = out.get("filelist") if isinstance(out.get("filelist"), dict) else {}
     rtl_filelist = [item["file"] for item in out["sub_modules"] if isinstance(item, dict) and item.get("file")]
-    if not isinstance(filelist.get("rtl"), list) or _has_tbd(filelist.get("rtl")) or f"rtl/{ip}.sv" not in filelist.get("rtl", []):
+    existing_rtl = [str(item).strip() for item in filelist.get("rtl") or [] if str(item).strip()] if isinstance(filelist.get("rtl"), list) else []
+    missing_manifest = [item for item in rtl_filelist if item not in existing_rtl]
+    if (
+        not isinstance(filelist.get("rtl"), list)
+        or _has_tbd(filelist.get("rtl"))
+        or f"rtl/{ip}.sv" not in existing_rtl
+        or missing_manifest
+    ):
         filelist["rtl"] = rtl_filelist
     filelist.setdefault("headers", [f"rtl/{ip}_param.vh"] if out.get("parameters") else [])
     filelist.setdefault("tb", [f"tb/cocotb/test_{ip}.py", "tb/cocotb/test_runner.py", "tb/cocotb/scoreboard.py"])

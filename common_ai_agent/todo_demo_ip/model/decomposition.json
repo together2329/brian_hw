@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_decomposition",
+  "ip": "todo_demo_ip",
+  "source": "todo_demo_ip/yaml/todo_demo_ip.ssot.yaml",
+  "units": [
+    {
+      "name": "todo_demo_ip",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "function_model",
+        "rtl_contract",
+        "top_module"
+      ],
+      "rtl_candidates": [
+        "todo_demo_ip"
+      ],
+      "rtl_file": "rtl/todo_demo_ip.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "function_model",
+        "rtl_contract",
+        "top_module"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": true,
+      "blocker": "module has no function_model, cycle_model, or structural SSOT ownership refs"
+    }
+  ],
+  "module_contracts": [
+    {
+      "name": "todo_demo_ip",
+      "kind": "rtl_module",
+      "rtl_module": "todo_demo_ip",
+      "rtl_file": "rtl/todo_demo_ip.sv",
+      "source_sections": [
+        "cycle_model",
+        "function_model",
+        "rtl_contract",
+        "top_module"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "function_model",
+        "rtl_contract",
+        "top_module"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "owner_matches": [],
+      "structural_owner_matches": [],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": true,
+      "blocker": "module has no function_model, cycle_model, or structural SSOT ownership refs"
+    }
+  ],
+  "orphan_function_cycle_refs": [],
+  "function_cycle_ref_count": 0,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "todo_demo_ip/req/",
+      "todo_demo_ip/yaml/todo_demo_ip.ssot.yaml",
+      "todo_demo_ip/model/functional_model.py",
+      "todo_demo_ip/cov/fcov_plan.json",
+      "todo_demo_ip/yaml/todo_demo_ip.ssot.yaml#io_list",
+      "todo_demo_ip/yaml/todo_demo_ip.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "todo_demo_ip/rtl/",
+      "todo_demo_ip/tb/",
+      "todo_demo_ip/sim/",
+      "todo_demo_ip/vectors/",
+      "todo_demo_ip/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "drives": [
+    "rtl_module_plan",
+    "tb_environment_plan",
+    "functional_coverage_plan"
+  ],
+  "complete": false
+}

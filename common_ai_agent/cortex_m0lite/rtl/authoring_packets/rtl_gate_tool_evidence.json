@@ -845,18 +845,18 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [
       {
-        "gate_kind": "dut_lint",
+        "gate_kind": "common_ai_agent_authoring",
         "owner_module": "cortex_m0lite",
-        "reason": "DUT lint artifact is not clean.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "status": "open",
-        "task_id": "RTL-0018"
+        "task_id": "RTL-0006"
       },
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "cortex_m0lite",
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "14 required non-closure TODO(s) remain open.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -908,27 +908,27 @@
     "tool_evidence_open_count": 5,
     "tool_evidence_plan": [
       {
-        "artifact": "lint/dut_lint.json",
+        "artifact": "rtl/rtl_authoring_provenance.json",
         "artifacts": [
-          "cortex_m0lite/lint/dut_lint.json"
+          "cortex_m0lite/rtl/rtl_authoring_provenance.json",
+          "cortex_m0lite/rtl/rtl_todo_plan.json"
         ],
-        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
         "commands": [
-          "python3 workflow/lint/scripts/dut_lint_report.py cortex_m0lite --top cortex_m0lite",
+          "python3 src/headless_workflow.py --root . --ip cortex_m0lite --stages rtl-gen",
           "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py cortex_m0lite --root . --audit-rtl"
         ],
-        "gate_kind": "dut_lint",
+        "gate_kind": "common_ai_agent_authoring",
         "prerequisites": [
-          "cortex_m0lite/list/cortex_m0lite.f covers the current DUT RTL/header sources."
+          "An LLM authoring pass emitted or repaired DUT RTL files."
         ],
-        "reason": "DUT lint artifact is not clean.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "stage_sequence": [
-          "lint",
-          "dut_lint"
+          "ssot-rtl"
         ],
         "status": "open",
-        "task_id": "RTL-0018"
+        "task_id": "RTL-0006"
       },
       {
         "artifact": "rtl/rtl_todo_plan.json",
@@ -944,7 +944,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "14 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -1040,6 +1040,8 @@
     "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
     "Every task must satisfy content, detail, and criteria before the packet is closed.",
     "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
     "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
   ],
   "schema_version": 1,
@@ -1111,9 +1113,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -1206,9 +1208,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "DUT lint artifact is not clean.",
+        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1251,7 +1253,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "14 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -1405,7 +1407,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "67adb8890410a2aeeee9a654b645018e5e9f79eb8ebcffab7e873d9d102687f9",
+  "todo_plan_sha256": "c6dd55ff414292d6cfb25aa90ae64245d5f8618420d87d35c2436677a025d78f",
   "top": "cortex_m0lite",
   "type": "rtl_authoring_packet"
 }

@@ -112,6 +112,20 @@ def _check_trigger(ssot: dict[str, Any], ip: str) -> tuple[bool, str]:
 
 def _extract_latency(cm: dict[str, Any]) -> dict[str, int]:
     """Build _LATENCY dict: tx_kind -> int cycles. Use max_cycles; fall back to min_cycles; default=1."""
+    def _coerce_int(value: Any, fallback: int = 1) -> int:
+        """Best-effort int coercion: tolerate parameterized expressions
+        ("baud_tick_period * (1 + DATA_WIDTH)") by falling back to *fallback*
+        rather than crashing the entire emit pass. The cycle model is a
+        machine-readable summary; symbolic latency expressions are recorded
+        verbatim in ``custom_notes`` so the SSOT source remains authoritative.
+        """
+        if value is None:
+            return fallback
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return fallback
+
     latency_raw = cm.get("latency") or {}
     result: dict[str, int] = {}
     if isinstance(latency_raw, dict):
@@ -120,9 +134,9 @@ def _extract_latency(cm: dict[str, Any]) -> dict[str, int]:
                 max_c = spec.get("max_cycles")
                 min_c = spec.get("min_cycles")
                 if max_c is None:
-                    cycles = int(min_c) if min_c is not None else 1
+                    cycles = _coerce_int(min_c, fallback=1)
                 else:
-                    cycles = int(max_c)
+                    cycles = _coerce_int(max_c, fallback=_coerce_int(min_c, fallback=1))
             elif isinstance(spec, (int, float)):
                 cycles = int(spec)
             else:

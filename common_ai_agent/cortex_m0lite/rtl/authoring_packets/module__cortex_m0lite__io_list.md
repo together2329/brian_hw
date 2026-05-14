@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: cortex_m0lite
 - Owner file: rtl/cortex_m0lite.sv
-- Task count: 27
-- Required tasks: 27
+- Task count: 22
+- Required tasks: 22
 
 ## Rules
 
@@ -12,6 +12,8 @@
 - Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.
 - Every task must satisfy content, detail, and criteria before the packet is closed.
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
+- Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
+- Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
@@ -45,94 +47,6 @@
 
 ## Tasks
 
-### RTL-0045: Implement and connect port clk
-
-- Priority: normal
-- Required: True
-- Status: pass
-- Category: io_list.port
-- Source ref: io_list.clock_domains.core_clk.ports.clk
-- Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.clock_domains.core_clk.ports.clk.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
-SSOT item context: name=clk; width=1; direction=input.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL declaration matches SSOT direction and width
-  - Active input controls are consumed by behavior or explicitly justified
-  - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.clock_domains.core_clk.ports.clk
-  - Primary implementation evidence is in rtl/cortex_m0lite.sv
-  - clk width matches SSOT value 1
-  - clk port direction remains input
-- SSOT refs: io_list.clock_domains.core_clk.ports.clk
-
-### RTL-0046: Implement and connect port hclk
-
-- Priority: normal
-- Required: True
-- Status: pass
-- Category: io_list.port
-- Source ref: io_list.clock_domains.bus_clk.ports.hclk
-- Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.clock_domains.bus_clk.ports.hclk.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
-SSOT item context: name=hclk; width=1; direction=input.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL declaration matches SSOT direction and width
-  - Active input controls are consumed by behavior or explicitly justified
-  - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.clock_domains.bus_clk.ports.hclk
-  - Primary implementation evidence is in rtl/cortex_m0lite.sv
-  - hclk width matches SSOT value 1
-  - hclk port direction remains input
-- SSOT refs: io_list.clock_domains.bus_clk.ports.hclk
-
-### RTL-0047: Implement and connect port rst_n
-
-- Priority: normal
-- Required: True
-- Status: pass
-- Category: io_list.port
-- Source ref: io_list.resets.core_rst_n.ports.rst_n
-- Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.resets.core_rst_n.ports.rst_n.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
-SSOT item context: name=rst_n; width=1; direction=input.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL declaration matches SSOT direction and width
-  - Active input controls are consumed by behavior or explicitly justified
-  - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.resets.core_rst_n.ports.rst_n
-  - Primary implementation evidence is in rtl/cortex_m0lite.sv
-  - rst_n width matches SSOT value 1
-  - rst_n port direction remains input
-- SSOT refs: io_list.resets.core_rst_n.ports.rst_n
-
-### RTL-0048: Implement and connect port hresetn
-
-- Priority: normal
-- Required: True
-- Status: pass
-- Category: io_list.port
-- Source ref: io_list.resets.bus_rst_n.ports.hresetn
-- Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.resets.bus_rst_n.ports.hresetn.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
-SSOT item context: name=hresetn; width=1; direction=input.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL declaration matches SSOT direction and width
-  - Active input controls are consumed by behavior or explicitly justified
-  - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.resets.bus_rst_n.ports.hresetn
-  - Primary implementation evidence is in rtl/cortex_m0lite.sv
-  - hresetn width matches SSOT value 1
-  - hresetn port direction remains input
-- SSOT refs: io_list.resets.bus_rst_n.ports.hresetn
-
 ### RTL-0049: Implement and connect port i_haddr
 
 - Priority: normal
@@ -142,7 +56,7 @@ SSOT item context: name=hresetn; width=1; direction=input.
 - Source ref: io_list.interfaces.instr_ahb_m.ports.i_haddr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.instr_ahb_m.ports.i_haddr.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=i_haddr; width=AHB_ADDR_W; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -164,7 +78,7 @@ SSOT item context: name=i_haddr; width=AHB_ADDR_W; direction=output.
 - Source ref: io_list.interfaces.instr_ahb_m.ports.i_htrans
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.instr_ahb_m.ports.i_htrans.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=i_htrans; width=2; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -186,7 +100,7 @@ SSOT item context: name=i_htrans; width=2; direction=output.
 - Source ref: io_list.interfaces.instr_ahb_m.ports.i_hwrite
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hwrite.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=i_hwrite; width=1; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -208,7 +122,7 @@ SSOT item context: name=i_hwrite; width=1; direction=output.
 - Source ref: io_list.interfaces.instr_ahb_m.ports.i_hsize
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hsize.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=i_hsize; width=3; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -230,7 +144,7 @@ SSOT item context: name=i_hsize; width=3; direction=output.
 - Source ref: io_list.interfaces.instr_ahb_m.ports.i_hburst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hburst.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=i_hburst; width=3; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -252,7 +166,7 @@ SSOT item context: name=i_hburst; width=3; direction=output.
 - Source ref: io_list.interfaces.instr_ahb_m.ports.i_hwdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hwdata.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=i_hwdata; width=AHB_DATA_W; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -274,7 +188,7 @@ SSOT item context: name=i_hwdata; width=AHB_DATA_W; direction=output.
 - Source ref: io_list.interfaces.instr_ahb_m.ports.i_hrdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hrdata.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=i_hrdata; width=AHB_DATA_W; direction=input.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -296,7 +210,7 @@ SSOT item context: name=i_hrdata; width=AHB_DATA_W; direction=input.
 - Source ref: io_list.interfaces.instr_ahb_m.ports.i_hready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hready.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=i_hready; width=1; direction=input.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -318,7 +232,7 @@ SSOT item context: name=i_hready; width=1; direction=input.
 - Source ref: io_list.interfaces.instr_ahb_m.ports.i_hresp
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hresp.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=i_hresp; width=1; direction=input.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -340,7 +254,7 @@ SSOT item context: name=i_hresp; width=1; direction=input.
 - Source ref: io_list.interfaces.data_ahb_m.ports.d_haddr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.data_ahb_m.ports.d_haddr.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=d_haddr; width=AHB_ADDR_W; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -362,7 +276,7 @@ SSOT item context: name=d_haddr; width=AHB_ADDR_W; direction=output.
 - Source ref: io_list.interfaces.data_ahb_m.ports.d_htrans
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.data_ahb_m.ports.d_htrans.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=d_htrans; width=2; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -384,7 +298,7 @@ SSOT item context: name=d_htrans; width=2; direction=output.
 - Source ref: io_list.interfaces.data_ahb_m.ports.d_hwrite
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.data_ahb_m.ports.d_hwrite.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=d_hwrite; width=1; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -406,7 +320,7 @@ SSOT item context: name=d_hwrite; width=1; direction=output.
 - Source ref: io_list.interfaces.data_ahb_m.ports.d_hsize
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.data_ahb_m.ports.d_hsize.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=d_hsize; width=3; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -428,7 +342,7 @@ SSOT item context: name=d_hsize; width=3; direction=output.
 - Source ref: io_list.interfaces.data_ahb_m.ports.d_hburst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.data_ahb_m.ports.d_hburst.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=d_hburst; width=3; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -450,7 +364,7 @@ SSOT item context: name=d_hburst; width=3; direction=output.
 - Source ref: io_list.interfaces.data_ahb_m.ports.d_hwdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.data_ahb_m.ports.d_hwdata.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=d_hwdata; width=AHB_DATA_W; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -472,7 +386,7 @@ SSOT item context: name=d_hwdata; width=AHB_DATA_W; direction=output.
 - Source ref: io_list.interfaces.data_ahb_m.ports.d_hrdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.data_ahb_m.ports.d_hrdata.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=d_hrdata; width=AHB_DATA_W; direction=input.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -494,7 +408,7 @@ SSOT item context: name=d_hrdata; width=AHB_DATA_W; direction=input.
 - Source ref: io_list.interfaces.data_ahb_m.ports.d_hready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.data_ahb_m.ports.d_hready.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=d_hready; width=1; direction=input.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -516,7 +430,7 @@ SSOT item context: name=d_hready; width=1; direction=input.
 - Source ref: io_list.interfaces.data_ahb_m.ports.d_hresp
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.data_ahb_m.ports.d_hresp.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=d_hresp; width=1; direction=input.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -529,28 +443,6 @@ SSOT item context: name=d_hresp; width=1; direction=input.
   - d_hresp port direction remains input
 - SSOT refs: io_list.interfaces.data_ahb_m.ports.d_hresp
 
-### RTL-0067: Implement and connect port irq
-
-- Priority: normal
-- Required: True
-- Status: pass
-- Category: io_list.port
-- Source ref: io_list.interfaces.irq_if.ports.irq
-- Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.irq_if.ports.irq.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
-SSOT item context: name=irq; width=1; direction=input.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL declaration matches SSOT direction and width
-  - Active input controls are consumed by behavior or explicitly justified
-  - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.irq_if.ports.irq
-  - Primary implementation evidence is in rtl/cortex_m0lite.sv
-  - irq width matches SSOT value 1
-  - irq port direction remains input
-- SSOT refs: io_list.interfaces.irq_if.ports.irq
-
 ### RTL-0068: Implement and connect port pc_dbg
 
 - Priority: normal
@@ -560,7 +452,7 @@ SSOT item context: name=irq; width=1; direction=input.
 - Source ref: io_list.interfaces.debug_status.ports.pc_dbg
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.debug_status.ports.pc_dbg.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=pc_dbg; width=XLEN; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -582,7 +474,7 @@ SSOT item context: name=pc_dbg; width=XLEN; direction=output.
 - Source ref: io_list.interfaces.debug_status.ports.state_dbg
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.debug_status.ports.state_dbg.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=state_dbg; width=3; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -604,7 +496,7 @@ SSOT item context: name=state_dbg; width=3; direction=output.
 - Source ref: io_list.interfaces.debug_status.ports.retire
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.debug_status.ports.retire.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=retire; width=1; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -626,7 +518,7 @@ SSOT item context: name=retire; width=1; direction=output.
 - Source ref: io_list.interfaces.debug_status.ports.trap
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.debug_status.ports.trap.
-Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.
+Owner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.
 SSOT item context: name=trap; width=1; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:

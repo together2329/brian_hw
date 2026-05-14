@@ -1205,13 +1205,32 @@ def _owner_for(ref: str, modules: list[dict[str, Any]], top: str, value: Any = N
             if _ref_is_covered(ref, owner_ref):
                 matches.append((module, owner_ref))
     if matches:
-        module, matched_ref = max(
-            matches,
-            key=lambda item: (
-                len(str(item[1]).split(".")),
-                len(str(item[1])),
-            ),
-        )
+        def _specificity(item):
+            return (len(str(item[1]).split(".")), len(str(item[1])))
+        best = _specificity(max(matches, key=_specificity))
+        top_tier = [item for item in matches if _specificity(item) == best]
+        if len(top_tier) > 1:
+            # Multiple modules share the same most-specific owner_ref (e.g. both
+            # ``uart_lite_tx`` and ``uart_lite_rx`` carry ``cycle_model.pipeline``
+            # in their refs). Break the tie by counting name-vs-task token
+            # overlap — the leaf parts of the ref typically encode which side
+            # owns it (``RX_IDLE`` vs ``TX_DATA``), and the module whose name
+            # shares tokens with the ref is the right owner.
+            ref_tokens = _owner_token_set(ref)
+            scored = []
+            for module, matched_ref in top_tier:
+                name_tokens = _owner_token_set(module.get("name", ""))
+                # Strip top-module tokens so generic shared prefixes like
+                # ``uart`` / ``lite`` do not count toward the hit total.
+                top_tokens = _owner_token_set(top)
+                disc_name_tokens = name_tokens - top_tokens
+                hits = len(ref_tokens & disc_name_tokens)
+                scored.append((hits, module, matched_ref))
+            scored.sort(key=lambda row: row[0], reverse=True)
+            if scored[0][0] > scored[1][0]:
+                _, module, matched_ref = scored[0]
+                return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": matched_ref}
+        module, matched_ref = top_tier[0]
         return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": matched_ref}
     direct_owner = _direct_name_owner_match(ref, modules)
     if direct_owner is not None:

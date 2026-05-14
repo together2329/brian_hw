@@ -1,0 +1,1020 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 2,
+      "key": "cycle_model",
+      "module_task_count": 51,
+      "rule": "Owner module uart_lite_tx is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/uart_lite_tx.sv",
+      "name": "uart_lite_tx",
+      "refs": [
+        "cycle_model",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline[TX_DATA]",
+        "cycle_model.pipeline[TX_IDLE]",
+        "cycle_model.pipeline[TX_PARITY]",
+        "cycle_model.pipeline[TX_START]",
+        "cycle_model.pipeline[TX_STOP1]",
+        "cycle_model.pipeline[TX_STOP2]",
+        "fsm",
+        "fsm.tx_fsm",
+        "function_model",
+        "function_model.transactions.FM_TX_BYTE"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/uart_lite_regs.sv",
+        "name": "uart_lite_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_tx.sv",
+        "name": "uart_lite_tx",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_rx.sv",
+        "name": "uart_lite_rx",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_baud_gen.sv",
+        "name": "uart_lite_baud_gen",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_tx_fifo.sv",
+        "name": "uart_lite_tx_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_rx_fifo.sv",
+        "name": "uart_lite_rx_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_core.sv",
+        "name": "uart_lite_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite.sv",
+        "name": "uart_lite",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "UART peripheral with 7 sub-modules, 2 FIFOs, 2 FSMs, 12 registers",
+      "min_behavior_owner_logic_modules": 2,
+      "min_depth_score": 10,
+      "min_logic_modules": 4,
+      "min_modules": 7,
+      "min_procedural_blocks": 20,
+      "min_source_files": 7,
+      "min_state_updates": 8,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "uart_lite",
+  "kind": "module",
+  "owner_file": "rtl/uart_lite_tx.sv",
+  "owner_module": "uart_lite_tx",
+  "packet_id": "module__uart_lite_tx__cycle_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.backpressure": 2,
+      "cycle_model.clock": 1,
+      "cycle_model.latency": 1,
+      "cycle_model.observability": 2,
+      "cycle_model.ordering": 3,
+      "cycle_model.pipeline": 6,
+      "cycle_model.reset": 1
+    },
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 2,
+      "key": "cycle_model",
+      "module_task_count": 51,
+      "rule": "Owner module uart_lite_tx is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 16,
+    "source_refs": [
+      "cycle_model.clock",
+      "cycle_model.reset",
+      "cycle_model.latency",
+      "cycle_model.pipeline.TX_IDLE",
+      "cycle_model.pipeline.TX_START",
+      "cycle_model.pipeline.TX_DATA",
+      "cycle_model.pipeline.TX_PARITY",
+      "cycle_model.pipeline.TX_STOP1",
+      "cycle_model.pipeline.TX_STOP2",
+      "cycle_model.ordering.ordering_rule_0",
+      "cycle_model.ordering.ordering_rule_1",
+      "cycle_model.ordering.ordering_rule_2",
+      "cycle_model.backpressure.backpressure_rule_0",
+      "cycle_model.backpressure.backpressure_rule_1",
+      "cycle_model.observability.observability_signal_0",
+      "cycle_model.observability.observability_signal_1"
+    ],
+    "status_counts": {
+      "pass": 16
+    },
+    "task_count": 16
+  },
+  "tasks": [
+    {
+      "category": "cycle_model.clock",
+      "content": "Implement cycle-model clock",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.clock",
+        "Primary implementation evidence is in rtl/uart_lite_tx.sv",
+        "cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: uart_lite_tx in rtl/uart_lite_tx.sv via cycle_model.\nSSOT item context: value=PCLK.",
+      "evidence_terms": [],
+      "id": "RTL-0115",
+      "owner_file": "rtl/uart_lite_tx.sv",
+      "owner_module": "uart_lite_tx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.clock",
+      "ssot_context": {
+        "value": "PCLK"
+      },
+      "ssot_refs": [
+        "cycle_model.clock"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.reset",
+      "content": "Implement cycle-model reset",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.reset",
+        "Primary implementation evidence is in rtl/uart_lite_tx.sv",
+        "cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: uart_lite_tx in rtl/uart_lite_tx.sv via cycle_model.",
+      "evidence_terms": [],
+      "id": "RTL-0116",
+      "owner_file": "rtl/uart_lite_tx.sv",
+      "owner_module": "uart_lite_tx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.reset",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.reset"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.latency",
+      "content": "Implement cycle-model latency",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.latency",
+        "Primary implementation evidence is in rtl/uart_lite_tx.sv",
+        "cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: uart_lite_tx in rtl/uart_lite_tx.sv via cycle_model.",
+      "evidence_terms": [],
+      "id": "RTL-0117",
+      "owner_file": "rtl/uart_lite_tx.sv",
+      "owner_module": "uart_lite_tx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.latency",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.latency"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: TX_IDLE",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.TX_IDLE",
+        "Primary implementation evidence is in rtl/uart_lite_tx.sv",
+        "cycle_model.pipeline.TX_IDLE timing uses SSOT cycle/latency 0",
+        "cycle_model.pipeline.TX_IDLE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.TX_IDLE.\nOwner: uart_lite_tx in rtl/uart_lite_tx.sv via cycle_model.pipeline.\nSSOT item context: stage=TX_IDLE; action=Wait for TX FIFO not empty; assert tx_active=false; cycle=0.",
+      "evidence_terms": [
+        "active",
+        "tx",
+        "tx_active"
+      ],
+      "id": "RTL-0122",
+      "owner_file": "rtl/uart_lite_tx.sv",
+      "owner_module": "uart_lite_tx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.TX_IDLE",
+      "ssot_context": {
+        "action": "Wait for TX FIFO not empty; assert tx_active=false",
+        "cycle": "0",
+        "stage": "TX_IDLE"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.TX_IDLE"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "active",
+          "tx",
+          "tx_active"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "active",
+          "tx",
+          "tx_active"
+        ],
+        "source_scope": "rtl/uart_lite_tx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: TX_START",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.TX_START",
+        "Primary implementation evidence is in rtl/uart_lite_tx.sv",
+        "cycle_model.pipeline.TX_START timing uses SSOT cycle/latency 1",
+        "cycle_model.pipeline.TX_START appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.TX_START.\nOwner: uart_lite_tx in rtl/uart_lite_tx.sv via cycle_model.pipeline.\nSSOT item context: stage=TX_START; action=Drive tx=0 for one baud tick period; assert tx_active; cycle=1.",
+      "evidence_terms": [
+        "active",
+        "tx",
+        "tx_active"
+      ],
+      "id": "RTL-0123",
+      "owner_file": "rtl/uart_lite_tx.sv",
+      "owner_module": "uart_lite_tx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.TX_START",
+      "ssot_context": {
+        "action": "Drive tx=0 for one baud tick period; assert tx_active",
+        "cycle": "1",
+        "stage": "TX_START"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.TX_START"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "active",
+          "tx",
+          "tx_active"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "active",
+          "tx",
+          "tx_active"
+        ],
+        "source_scope": "rtl/uart_lite_tx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: TX_DATA",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.TX_DATA",
+        "Primary implementation evidence is in rtl/uart_lite_tx.sv",
+        "cycle_model.pipeline.TX_DATA timing uses SSOT cycle/latency 2..1+DATA_WIDTH",
+        "cycle_model.pipeline.TX_DATA appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.TX_DATA.\nOwner: uart_lite_tx in rtl/uart_lite_tx.sv via cycle_model.pipeline.\nSSOT item context: stage=TX_DATA; action=Shift LSB of tx_shift_reg to tx each baud tick; repeat DATA_WIDTH times. tx_shift_reg loaded from TX FIFO on entry.; cycle=2..1+DATA_WIDTH.",
+      "evidence_terms": [
+        "DATA",
+        "DATA_WIDTH",
+        "WIDTH",
+        "reg",
+        "shift",
+        "tx",
+        "tx_shift_reg"
+      ],
+      "id": "RTL-0124",
+      "owner_file": "rtl/uart_lite_tx.sv",
+      "owner_module": "uart_lite_tx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.TX_DATA",
+      "ssot_context": {
+        "action": "Shift LSB of tx_shift_reg to tx each baud tick; repeat DATA_WIDTH times. tx_shift_reg loaded from TX FIFO on entry.",
+        "cycle": "2..1+DATA_WIDTH",
+        "stage": "TX_DATA"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.TX_DATA"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "DATA",
+          "DATA_WIDTH",
+          "WIDTH",
+          "reg",
+          "shift",
+          "tx",
+          "tx_shift_reg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DATA",
+          "DATA_WIDTH",
+          "WIDTH",
+          "reg",
+          "shift",
+          "tx",
+          "tx_shift_reg"
+        ],
+        "source_scope": "rtl/uart_lite_tx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: TX_PARITY",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.TX_PARITY",
+        "Primary implementation evidence is in rtl/uart_lite_tx.sv",
+        "cycle_model.pipeline.TX_PARITY timing uses SSOT cycle/latency 2+DATA_WIDTH",
+        "cycle_model.pipeline.TX_PARITY appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.TX_PARITY.\nOwner: uart_lite_tx in rtl/uart_lite_tx.sv via cycle_model.pipeline.\nSSOT item context: stage=TX_PARITY; action=Drive computed parity bit to tx for one baud tick (present only if parity_en=1); cycle=2+DATA_WIDTH.",
+      "evidence_terms": [
+        "en",
+        "parity",
+        "parity_en"
+      ],
+      "id": "RTL-0125",
+      "owner_file": "rtl/uart_lite_tx.sv",
+      "owner_module": "uart_lite_tx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.TX_PARITY",
+      "ssot_context": {
+        "action": "Drive computed parity bit to tx for one baud tick (present only if parity_en=1)",
+        "cycle": "2+DATA_WIDTH",
+        "stage": "TX_PARITY"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.TX_PARITY"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "en",
+          "parity",
+          "parity_en"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "en",
+          "parity",
+          "parity_en"
+        ],
+        "source_scope": "rtl/uart_lite_tx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: TX_STOP1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.TX_STOP1",
+        "Primary implementation evidence is in rtl/uart_lite_tx.sv",
+        "cycle_model.pipeline.TX_STOP1 timing uses SSOT cycle/latency 3+DATA_WIDTH",
+        "cycle_model.pipeline.TX_STOP1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.TX_STOP1.\nOwner: uart_lite_tx in rtl/uart_lite_tx.sv via cycle_model.pipeline.\nSSOT item context: stage=TX_STOP1; action=Drive tx=1 for one baud tick; cycle=3+DATA_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0126",
+      "owner_file": "rtl/uart_lite_tx.sv",
+      "owner_module": "uart_lite_tx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.TX_STOP1",
+      "ssot_context": {
+        "action": "Drive tx=1 for one baud tick",
+        "cycle": "3+DATA_WIDTH",
+        "stage": "TX_STOP1"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.TX_STOP1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: TX_STOP2",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.TX_STOP2",
+        "Primary implementation evidence is in rtl/uart_lite_tx.sv",
+        "cycle_model.pipeline.TX_STOP2 timing uses SSOT cycle/latency 4+DATA_WIDTH",
+        "cycle_model.pipeline.TX_STOP2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.TX_STOP2.\nOwner: uart_lite_tx in rtl/uart_lite_tx.sv via cycle_model.pipeline.\nSSOT item context: stage=TX_STOP2; action=Drive tx=1 for one baud tick (present only if stop_bits=1); cycle=4+DATA_WIDTH.",
+      "evidence_terms": [
+        "bits",
+        "stop",
+        "stop_bits"
+      ],
+      "id": "RTL-0127",
+      "owner_file": "rtl/uart_lite_tx.sv",
+      "owner_module": "uart_lite_tx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.TX_STOP2",
+      "ssot_context": {
+        "action": "Drive tx=1 for one baud tick (present only if stop_bits=1)",
+        "cycle": "4+DATA_WIDTH",
+        "stage": "TX_STOP2"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.TX_STOP2"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "bits",
+          "stop",
+          "stop_bits"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "bits",
+          "stop",
+          "stop_bits"
+        ],
+        "source_scope": "rtl/uart_lite_tx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_0",
+        "Primary implementation evidence is in rtl/uart_lite_tx.sv",
+        "cycle_model.ordering.ordering_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_0.\nOwner: uart_lite_tx in rtl/uart_lite_tx.sv via cycle_model.\nSSOT item context: value=TX FSM does not start a new frame until the current frame completes (no pipelining across bytes)..",
+      "evidence_terms": [],
+      "id": "RTL-0135",
+      "owner_file": "rtl/uart_lite_tx.sv",
+      "owner_module": "uart_lite_tx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_0",
+      "ssot_context": {
+        "value": "TX FSM does not start a new frame until the current frame completes (no pipelining across bytes)."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_1",
+        "Primary implementation evidence is in rtl/uart_lite_tx.sv",
+        "cycle_model.ordering.ordering_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_1.\nOwner: uart_lite_tx in rtl/uart_lite_tx.sv via cycle_model.\nSSOT item context: value=RX FSM does not start a new frame until the current frame completes..",
+      "evidence_terms": [],
+      "id": "RTL-0136",
+      "owner_file": "rtl/uart_lite_tx.sv",
+      "owner_module": "uart_lite_tx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_1",
+      "ssot_context": {
+        "value": "RX FSM does not start a new frame until the current frame completes."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_2",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_2",
+        "Primary implementation evidence is in rtl/uart_lite_tx.sv",
+        "cycle_model.ordering.ordering_rule_2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_2.\nOwner: uart_lite_tx in rtl/uart_lite_tx.sv via cycle_model.\nSSOT item context: value=Interrupt pending bits update on the same PCLK edge as the condition (FIFO threshold crossing, error detection, frame....",
+      "evidence_terms": [],
+      "id": "RTL-0137",
+      "owner_file": "rtl/uart_lite_tx.sv",
+      "owner_module": "uart_lite_tx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_2",
+      "ssot_context": {
+        "value": "Interrupt pending bits update on the same PCLK edge as the condition (FIFO threshold crossing, error detection, frame..."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_0",
+        "Primary implementation evidence is in rtl/uart_lite_tx.sv",
+        "cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_0.\nOwner: uart_lite_tx in rtl/uart_lite_tx.sv via cycle_model.\nSSOT item context: value=TX backpressure: TX FSM waits in TX_IDLE when TX FIFO is empty..",
+      "evidence_terms": [
+        "IDLE",
+        "TX",
+        "TX_IDLE"
+      ],
+      "id": "RTL-0138",
+      "owner_file": "rtl/uart_lite_tx.sv",
+      "owner_module": "uart_lite_tx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
+      "ssot_context": {
+        "value": "TX backpressure: TX FSM waits in TX_IDLE when TX FIFO is empty."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "IDLE",
+          "TX",
+          "TX_IDLE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "TX",
+          "TX_IDLE"
+        ],
+        "source_scope": "rtl/uart_lite_tx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_1",
+        "Primary implementation evidence is in rtl/uart_lite_tx.sv",
+        "cycle_model.backpressure.backpressure_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_1.\nOwner: uart_lite_tx in rtl/uart_lite_tx.sv via cycle_model.\nSSOT item context: value=RX backpressure: If RX FIFO is full when a new byte would be pushed, overrun_err is set and the byte is discarded; RX....",
+      "evidence_terms": [
+        "IDLE",
+        "RX",
+        "RX_IDLE",
+        "err",
+        "overrun",
+        "overrun_err"
+      ],
+      "id": "RTL-0139",
+      "owner_file": "rtl/uart_lite_tx.sv",
+      "owner_module": "uart_lite_tx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_1",
+      "ssot_context": {
+        "value": "RX backpressure: If RX FIFO is full when a new byte would be pushed, overrun_err is set and the byte is discarded; RX..."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_1"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "IDLE",
+          "err",
+          "overrun",
+          "overrun_err"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "RX",
+          "RX_IDLE",
+          "err",
+          "overrun",
+          "overrun_err"
+        ],
+        "source_scope": "rtl/uart_lite_tx.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.observability",
+      "content": "Implement observability signal: observability_signal_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.observability.observability_signal_0",
+        "Primary implementation evidence is in rtl/uart_lite_tx.sv",
+        "cycle_model.observability.observability_signal_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_0.\nOwner: uart_lite_tx in rtl/uart_lite_tx.sv via cycle_model.\nSSOT item context: value=Every function_model transaction maps to at least one cycle_model TX or RX stage..",
+      "evidence_terms": [],
+      "id": "RTL-0140",
+      "owner_file": "rtl/uart_lite_tx.sv",
+      "owner_module": "uart_lite_tx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.observability.observability_signal_0",
+      "ssot_context": {
+        "value": "Every function_model transaction maps to at least one cycle_model TX or RX stage."
+      },
+      "ssot_refs": [
+        "cycle_model.observability.observability_signal_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.observability",
+      "content": "Implement observability signal: observability_signal_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.observability.observability_signal_1",
+        "Primary implementation evidence is in rtl/uart_lite_tx.sv",
+        "cycle_model.observability.observability_signal_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_1.\nOwner: uart_lite_tx in rtl/uart_lite_tx.sv via cycle_model.\nSSOT item context: value=Baud tick, oversample counter, TX/RX shift registers, and FIFO pointers are observable in waveform..",
+      "evidence_terms": [],
+      "id": "RTL-0141",
+      "owner_file": "rtl/uart_lite_tx.sv",
+      "owner_module": "uart_lite_tx",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.observability.observability_signal_1",
+      "ssot_context": {
+        "value": "Baud tick, oversample counter, TX/RX shift registers, and FIFO pointers are observable in waveform."
+      },
+      "ssot_refs": [
+        "cycle_model.observability.observability_signal_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3e24fd327d20c227969d80d968a7b1af5638d074f7c4857cee081ef19051e830",
+  "top": "uart_lite",
+  "type": "rtl_authoring_packet"
+}

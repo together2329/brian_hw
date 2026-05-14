@@ -8,12 +8,12 @@
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 8,
+      "count": 9,
       "enabled": true,
       "index": 4,
       "key": "cycle_model",
-      "module_task_count": 136,
-      "rule": "Owner module todo_counter_pipe_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 140,
+      "rule": "Owner module todo_counter_pipe_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "cycle_model",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -151,34 +151,30 @@
       "cycle_model.backpressure": 3,
       "cycle_model.clock": 1,
       "cycle_model.handshake_rules": 1,
-      "cycle_model.latency": 1,
       "cycle_model.observability": 4,
       "cycle_model.ordering": 4,
-      "cycle_model.pipeline": 3,
+      "cycle_model.pipeline": 1,
       "cycle_model.reset": 1
     },
     "module_slice": {
-      "count": 8,
+      "count": 9,
       "enabled": true,
       "index": 4,
       "key": "cycle_model",
-      "module_task_count": 136,
-      "rule": "Owner module todo_counter_pipe_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 140,
+      "rule": "Owner module todo_counter_pipe_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "cycle_model",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
     "open_required_count": 0,
-    "required_count": 18,
+    "required_count": 15,
     "source_refs": [
       "cycle_model.clock",
       "cycle_model.reset",
-      "cycle_model.latency",
       "cycle_model.handshake_rules.event_i",
-      "cycle_model.pipeline.S1_CDC_CTRL",
       "cycle_model.pipeline.S2_COUNT_EVAL",
-      "cycle_model.pipeline.S3_CDC_STATUS",
       "cycle_model.ordering.ordering_rule_0",
       "cycle_model.ordering.ordering_rule_1",
       "cycle_model.ordering.ordering_rule_2",
@@ -192,9 +188,9 @@
       "cycle_model.observability.observability_signal_3"
     ],
     "status_counts": {
-      "pass": 18
+      "pass": 15
     },
-    "task_count": 18
+    "task_count": 15
   },
   "tasks": [
     {
@@ -208,7 +204,7 @@
         "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv",
         "cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.\nSSOT item context: value=core_clk (primary behavioral clock).",
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.clock.\nSSOT item context: value=core_clk (primary behavioral clock).",
       "evidence_terms": [
         "clk",
         "core",
@@ -268,7 +264,7 @@
         "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv",
         "cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.",
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.reset.",
       "evidence_terms": [],
       "id": "RTL-0161",
       "owner_file": "rtl/todo_counter_pipe_core.sv",
@@ -298,46 +294,6 @@
       }
     },
     {
-      "category": "cycle_model.latency",
-      "content": "Implement cycle-model latency",
-      "criteria": [
-        "RTL sequential logic uses the SSOT clock/reset phase",
-        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
-        "Downstream scoreboard samples the same acceptance/result phase",
-        "Traceability keeps source_ref cycle_model.latency",
-        "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv",
-        "cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.",
-      "evidence_terms": [],
-      "id": "RTL-0162",
-      "owner_file": "rtl/todo_counter_pipe_core.sv",
-      "owner_module": "todo_counter_pipe_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.latency",
-      "ssot_context": {},
-      "ssot_refs": [
-        "cycle_model.latency"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
       "category": "cycle_model.handshake_rules",
       "content": "Implement handshake rule: event_i",
       "criteria": [
@@ -348,7 +304,7 @@
         "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv",
         "cycle_model.handshake_rules.event_i appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.event_i.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.\nSSOT item context: signal=event_i.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.event_i.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.handshake_rules.event_i.\nSSOT item context: signal=event_i.",
       "evidence_terms": [
         "event_i"
       ],
@@ -393,78 +349,6 @@
     },
     {
       "category": "cycle_model.pipeline",
-      "content": "Implement pipeline stage: S1_CDC_CTRL",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.pipeline.S1_CDC_CTRL",
-        "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv",
-        "cycle_model.pipeline.S1_CDC_CTRL timing uses SSOT cycle/latency 0..4",
-        "cycle_model.pipeline.S1_CDC_CTRL appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S1_CDC_CTRL.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.\nSSOT item context: stage=S1_CDC_CTRL; action=2-stage synchronizer: CTRL fields (enable, up_down, mode, clear pulse, load pulse), LOAD value cross bus→core; cycle=0..4.",
-      "evidence_terms": [
-        "clk",
-        "core",
-        "core_clk",
-        "down",
-        "up",
-        "up_down"
-      ],
-      "id": "RTL-0168",
-      "owner_file": "rtl/todo_counter_pipe_core.sv",
-      "owner_module": "todo_counter_pipe_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.pipeline.S1_CDC_CTRL",
-      "ssot_context": {
-        "action": "2-stage synchronizer: CTRL fields (enable, up_down, mode, clear pulse, load pulse), LOAD value cross bus→core",
-        "cycle": "0..4",
-        "stage": "S1_CDC_CTRL"
-      },
-      "ssot_refs": [
-        "cycle_model.pipeline.S1_CDC_CTRL"
-      ],
-      "static_evidence": {
-        "matched_count": 6,
-        "matched_terms": [
-          "clk",
-          "core",
-          "core_clk",
-          "down",
-          "up",
-          "up_down"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "clk",
-          "core",
-          "core_clk",
-          "down",
-          "up",
-          "up_down"
-        ],
-        "source_scope": "rtl/todo_counter_pipe_core.sv",
-        "status": "pass"
-      },
-      "todo_completion": {
-        "criteria_total": 7,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.pipeline",
       "content": "Implement pipeline stage: S2_COUNT_EVAL",
       "criteria": [
         "RTL contains the control/state/handshake logic for this cycle rule",
@@ -475,7 +359,7 @@
         "cycle_model.pipeline.S2_COUNT_EVAL timing uses SSOT cycle/latency 0..N",
         "cycle_model.pipeline.S2_COUNT_EVAL appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S2_COUNT_EVAL.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.\nSSOT item context: stage=S2_COUNT_EVAL; action=Sample event_i; if enable && event_i rising edge, evaluate prio (clear>load>count), arithmetic, saturate/wrap, termin...; cycle=0..N.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S2_COUNT_EVAL.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.pipeline.S2_COUNT_EVAL.\nSSOT item context: stage=S2_COUNT_EVAL; action=Sample event_i; if enable && event_i rising edge, evaluate prio (clear>load>count), arithmetic, saturate/wrap, termin...; cycle=0..N.",
       "evidence_terms": [
         "clk",
         "core",
@@ -521,102 +405,6 @@
           "dbg",
           "dbg_cycle_count",
           "event_i"
-        ],
-        "source_scope": "rtl/todo_counter_pipe_core.sv",
-        "status": "pass"
-      },
-      "todo_completion": {
-        "criteria_total": 7,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.pipeline",
-      "content": "Implement pipeline stage: S3_CDC_STATUS",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.pipeline.S3_CDC_STATUS",
-        "Primary implementation evidence is in rtl/todo_counter_pipe_core.sv",
-        "cycle_model.pipeline.S3_CDC_STATUS timing uses SSOT cycle/latency 0..5",
-        "cycle_model.pipeline.S3_CDC_STATUS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S3_CDC_STATUS.\nOwner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.\nSSOT item context: stage=S3_CDC_STATUS; action=2-stage synchronizer: cnt_value, overflow, underflow, tc_pending, ovf_pending, unf_pending, dbg_cycle_count cross cor...; cycle=0..5.",
-      "evidence_terms": [
-        "bus",
-        "bus_clk",
-        "clk",
-        "cnt",
-        "cnt_value",
-        "count",
-        "dbg",
-        "dbg_cycle_count",
-        "ovf",
-        "ovf_pending",
-        "tc",
-        "tc_pending",
-        "unf",
-        "unf_pending",
-        "value"
-      ],
-      "id": "RTL-0170",
-      "owner_file": "rtl/todo_counter_pipe_core.sv",
-      "owner_module": "todo_counter_pipe_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.pipeline.S3_CDC_STATUS",
-      "ssot_context": {
-        "action": "2-stage synchronizer: cnt_value, overflow, underflow, tc_pending, ovf_pending, unf_pending, dbg_cycle_count cross cor...",
-        "cycle": "0..5",
-        "stage": "S3_CDC_STATUS"
-      },
-      "ssot_refs": [
-        "cycle_model.pipeline.S3_CDC_STATUS"
-      ],
-      "static_evidence": {
-        "matched_count": 12,
-        "matched_terms": [
-          "clk",
-          "cnt",
-          "count",
-          "dbg",
-          "dbg_cycle_count",
-          "ovf",
-          "ovf_pending",
-          "tc",
-          "tc_pending",
-          "unf",
-          "unf_pending",
-          "value"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "bus",
-          "bus_clk",
-          "clk",
-          "cnt",
-          "cnt_value",
-          "count",
-          "dbg",
-          "dbg_cycle_count",
-          "ovf",
-          "ovf_pending",
-          "tc",
-          "tc_pending",
-          "unf",
-          "unf_pending",
-          "value"
         ],
         "source_scope": "rtl/todo_counter_pipe_core.sv",
         "status": "pass"
@@ -1109,7 +897,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "b329388dc9f0734e5afc3107218760f4ee5baf3a53ad32d151a73aac2ea551a4",
+  "todo_plan_sha256": "284e0f7f0d06ac8c9019d0745aa7784b4c39904e7e6e52262786b16e9bc5844c",
   "top": "todo_counter_pipe",
   "type": "rtl_authoring_packet"
 }

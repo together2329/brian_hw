@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: todo_counter_pipe_core
 - Owner file: rtl/todo_counter_pipe_core.sv
-- Task count: 18
-- Required tasks: 18
+- Task count: 15
+- Required tasks: 15
 
 ## Rules
 
@@ -27,8 +27,8 @@
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.clock, cycle_model.handshake_rules.event_i, cycle_model.pipeline.S2_COUNT_EVAL, cycle_model.reset, decomposition.units.counter_datapath, features, features.Clear_Load_Control, features.Debug_Cycle_Counter, features.Saturating_Mode, features.Terminal_Count_Interrupt, features.Up_Down_Counting, features.Wrap_Mode, fsm, fsm.core_fsm, fsm.internal_control
-- Module slice: 4/8 section=cycle_model task_limit=48
-- Slice rule: Owner module todo_counter_pipe_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Module slice: 4/9 section=cycle_model task_limit=48
+- Slice rule: Owner module todo_counter_pipe_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT connection contracts:
   - todo_counter_pipe_core.core_clk <= core_clk (integration.connections[3])
   - todo_counter_pipe_core.core_rst_n <= core_rst_n (integration.connections[4])
@@ -45,7 +45,7 @@
 - Source ref: cycle_model.clock
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.clock.
-Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.
+Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.clock.
 SSOT item context: value=core_clk (primary behavioral clock).
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -66,7 +66,7 @@ SSOT item context: value=core_clk (primary behavioral clock).
 - Source ref: cycle_model.reset
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.reset.
-Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.
+Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.reset.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
@@ -77,26 +77,6 @@ Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.
   - cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.reset
 
-### RTL-0162: Implement cycle-model latency
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: cycle_model.latency
-- Source ref: cycle_model.latency
-- Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
-SSOT ref: cycle_model.latency.
-Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL sequential logic uses the SSOT clock/reset phase
-  - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
-  - Downstream scoreboard samples the same acceptance/result phase
-  - Traceability keeps source_ref cycle_model.latency
-  - Primary implementation evidence is in rtl/todo_counter_pipe_core.sv
-  - cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
-- SSOT refs: cycle_model.latency
-
 ### RTL-0165: Implement handshake rule: event_i
 
 - Priority: high
@@ -106,7 +86,7 @@ Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.
 - Source ref: cycle_model.handshake_rules.event_i
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.event_i.
-Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.
+Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.handshake_rules.event_i.
 SSOT item context: signal=event_i.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -118,28 +98,6 @@ SSOT item context: signal=event_i.
   - cycle_model.handshake_rules.event_i appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.handshake_rules.event_i
 
-### RTL-0168: Implement pipeline stage: S1_CDC_CTRL
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: cycle_model.pipeline
-- Source ref: cycle_model.pipeline.S1_CDC_CTRL
-- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
-SSOT ref: cycle_model.pipeline.S1_CDC_CTRL.
-Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.
-SSOT item context: stage=S1_CDC_CTRL; action=2-stage synchronizer: CTRL fields (enable, up_down, mode, clear pulse, load pulse), LOAD value cross bus→core; cycle=0..4.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL contains the control/state/handshake logic for this cycle rule
-  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
-  - TB scoreboard/coverage can observe the rule at the declared phase
-  - Traceability keeps source_ref cycle_model.pipeline.S1_CDC_CTRL
-  - Primary implementation evidence is in rtl/todo_counter_pipe_core.sv
-  - cycle_model.pipeline.S1_CDC_CTRL timing uses SSOT cycle/latency 0..4
-  - cycle_model.pipeline.S1_CDC_CTRL appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
-- SSOT refs: cycle_model.pipeline.S1_CDC_CTRL
-
 ### RTL-0169: Implement pipeline stage: S2_COUNT_EVAL
 
 - Priority: high
@@ -149,7 +107,7 @@ SSOT item context: stage=S1_CDC_CTRL; action=2-stage synchronizer: CTRL fields (
 - Source ref: cycle_model.pipeline.S2_COUNT_EVAL
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S2_COUNT_EVAL.
-Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.
+Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.pipeline.S2_COUNT_EVAL.
 SSOT item context: stage=S2_COUNT_EVAL; action=Sample event_i; if enable && event_i rising edge, evaluate prio (clear>load>count), arithmetic, saturate/wrap, termin...; cycle=0..N.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -161,28 +119,6 @@ SSOT item context: stage=S2_COUNT_EVAL; action=Sample event_i; if enable && even
   - cycle_model.pipeline.S2_COUNT_EVAL timing uses SSOT cycle/latency 0..N
   - cycle_model.pipeline.S2_COUNT_EVAL appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.pipeline.S2_COUNT_EVAL
-
-### RTL-0170: Implement pipeline stage: S3_CDC_STATUS
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: cycle_model.pipeline
-- Source ref: cycle_model.pipeline.S3_CDC_STATUS
-- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
-SSOT ref: cycle_model.pipeline.S3_CDC_STATUS.
-Owner: todo_counter_pipe_core in rtl/todo_counter_pipe_core.sv via cycle_model.
-SSOT item context: stage=S3_CDC_STATUS; action=2-stage synchronizer: cnt_value, overflow, underflow, tc_pending, ovf_pending, unf_pending, dbg_cycle_count cross cor...; cycle=0..5.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL contains the control/state/handshake logic for this cycle rule
-  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
-  - TB scoreboard/coverage can observe the rule at the declared phase
-  - Traceability keeps source_ref cycle_model.pipeline.S3_CDC_STATUS
-  - Primary implementation evidence is in rtl/todo_counter_pipe_core.sv
-  - cycle_model.pipeline.S3_CDC_STATUS timing uses SSOT cycle/latency 0..5
-  - cycle_model.pipeline.S3_CDC_STATUS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
-- SSOT refs: cycle_model.pipeline.S3_CDC_STATUS
 
 ### RTL-0172: Implement ordering rule: ordering_rule_0
 

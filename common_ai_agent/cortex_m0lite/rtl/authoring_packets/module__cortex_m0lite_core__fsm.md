@@ -12,6 +12,8 @@
 - Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.
 - Every task must satisfy content, detail, and criteria before the packet is closed.
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
+- Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
+- Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
@@ -25,8 +27,8 @@
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: coverage_tap, cycle_model, cycle_model.pipeline, dataflow, dataflow.ordering, dataflow.sequence, dataflow.state_flow, decomposition, error_handling, fsm, fsm.control, function_model, function_model.transactions.FM_CPU_STEP, io_list, parameters, registers
-- Module slice: 4/9 section=fsm task_limit=48
-- Slice rule: Owner module cortex_m0lite_core is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Module slice: 5/10 section=fsm task_limit=48
+- Slice rule: Owner module cortex_m0lite_core is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT target scale: min_behavior_owner_logic_modules=6, min_depth_score=120, min_logic_modules=7, min_modules=8, min_procedural_blocks=12, min_source_files=8, min_state_updates=10
 - SSOT connection contracts:
   - cortex_m0lite_core.clk <= clk (integration.connections[0])
@@ -50,7 +52,7 @@
 - Source ref: fsm.control.states.RESET
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.states.RESET.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.control.
 SSOT item context: name=RESET.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -71,7 +73,7 @@ SSOT item context: name=RESET.
 - Source ref: fsm.control.states.FETCH
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.states.FETCH.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.control.
 SSOT item context: name=FETCH.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -92,7 +94,7 @@ SSOT item context: name=FETCH.
 - Source ref: fsm.control.states.DECODE
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.states.DECODE.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.control.
 SSOT item context: name=DECODE.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -113,7 +115,7 @@ SSOT item context: name=DECODE.
 - Source ref: fsm.control.states.EXECUTE
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.states.EXECUTE.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.control.
 SSOT item context: name=EXECUTE.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -134,7 +136,7 @@ SSOT item context: name=EXECUTE.
 - Source ref: fsm.control.states.MEM_WAIT
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.states.MEM_WAIT.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.control.
 SSOT item context: name=MEM_WAIT.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -155,7 +157,7 @@ SSOT item context: name=MEM_WAIT.
 - Source ref: fsm.control.states.TRAP
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.states.TRAP.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.control.
 SSOT item context: name=TRAP.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -176,7 +178,7 @@ SSOT item context: name=TRAP.
 - Source ref: fsm.control.transitions.transition_0
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_0.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.control.
 SSOT item context: value=RESET -> FETCH when rst_n=1.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -196,7 +198,7 @@ SSOT item context: value=RESET -> FETCH when rst_n=1.
 - Source ref: fsm.control.transitions.transition_1
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_1.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.control.
 SSOT item context: value=FETCH -> DECODE when i_hready=1 and instr_valid=1.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -216,7 +218,7 @@ SSOT item context: value=FETCH -> DECODE when i_hready=1 and instr_valid=1.
 - Source ref: fsm.control.transitions.transition_2
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_2.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.control.
 SSOT item context: value=DECODE -> EXECUTE when no stall.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -236,7 +238,7 @@ SSOT item context: value=DECODE -> EXECUTE when no stall.
 - Source ref: fsm.control.transitions.transition_3
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_3.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.control.
 SSOT item context: value=EXECUTE -> MEM_WAIT for load/store with d_hready=0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -256,7 +258,7 @@ SSOT item context: value=EXECUTE -> MEM_WAIT for load/store with d_hready=0.
 - Source ref: fsm.control.transitions.transition_4
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_4.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.control.
 SSOT item context: value=MEM_WAIT -> FETCH when d_hready=1.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -276,7 +278,7 @@ SSOT item context: value=MEM_WAIT -> FETCH when d_hready=1.
 - Source ref: fsm.control.transitions.transition_5
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_5.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.control.
 SSOT item context: value=EXECUTE -> TRAP on trap condition.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -296,7 +298,7 @@ SSOT item context: value=EXECUTE -> TRAP on trap condition.
 - Source ref: fsm.control.transitions.transition_6
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.control.transitions.transition_6.
-Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.
+Owner: cortex_m0lite_core in rtl/cortex_m0lite_core.sv via fsm.control.
 SSOT item context: value=TRAP -> FETCH after trap PC setup.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:

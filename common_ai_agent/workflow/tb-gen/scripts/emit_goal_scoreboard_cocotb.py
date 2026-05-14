@@ -1386,6 +1386,7 @@ def main() -> int:
             waves=waves,
             force_compile=True,
             extra_env=env,
+            includes=[str(ip_dir / "rtl")],
         )
     except BaseException as exc:
         (sim_dir / "sim_report.txt").write_text(

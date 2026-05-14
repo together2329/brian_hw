@@ -763,6 +763,100 @@ def test_real_llm_provider_resolves_profile_model(monkeypatch: pytest.MonkeyPatc
     assert provider.available_reason("deepseek") == ""
 
 
+def test_real_llm_provider_resolves_cli_backend_models(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ATLAS_RUN_REAL_LLM_TDD", "1")
+    monkeypatch.delenv("LLM_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.setattr(
+        "src.headless_workflow.shutil.which",
+        lambda name: f"/usr/bin/{name}" if name in {"claude", "cursor-agent"} else None,
+    )
+
+    try:
+        provider = RealLLMProvider()
+        resolved_model, profile_name = provider._activate_requested_model("claude-cli:sonnet")
+
+        assert resolved_model == "claude-cli"
+        assert profile_name == ""
+        assert os.environ["CLAUDE_CLI_ENABLE"] == "true"
+        assert os.environ["CLAUDE_CLI_MODEL"] == "sonnet"
+        assert provider.available_reason("claude-cli:sonnet") == ""
+
+        resolved_model, profile_name = provider._activate_requested_model("cursor-cli")
+
+        assert resolved_model == "cursor-cli"
+        assert profile_name == ""
+        assert os.environ["CURSOR_AGENT_ENABLE"] == "true"
+        assert os.environ["CURSOR_AGENT_MODEL"]
+        assert provider.available_reason("cursor-cli") == ""
+    finally:
+        try:
+            from src import config
+        except ModuleNotFoundError:
+            import config
+        config.deactivate_cli_backends()
+
+
+def test_real_llm_provider_reports_missing_cli_backend(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ATLAS_RUN_REAL_LLM_TDD", "1")
+    monkeypatch.setattr("src.headless_workflow.shutil.which", lambda _name: None)
+
+    provider = RealLLMProvider()
+
+    try:
+        assert provider.available_reason("claude-cli") == "claude not found in PATH"
+        assert provider.available_reason("cursor-cli") == "cursor-agent not found in PATH"
+    finally:
+        try:
+            from src import config
+        except ModuleNotFoundError:
+            import config
+        config.deactivate_cli_backends()
+
+
+def test_real_llm_provider_sets_inner_claude_timeout_before_outer_timeout(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ATLAS_RUN_REAL_LLM_TDD", "1")
+    monkeypatch.setattr(
+        "src.headless_workflow.shutil.which",
+        lambda name: f"/usr/bin/{name}" if name == "claude" else None,
+    )
+    seen: dict[str, object] = {}
+
+    def fake_run(args, **kwargs) -> subprocess.CompletedProcess[str]:
+        req = json.loads(Path(args[-1]).read_text(encoding="utf-8"))
+        seen.update(req)
+        seen["outer_timeout"] = kwargs.get("timeout")
+        return subprocess.CompletedProcess(
+            args=args,
+            returncode=0,
+            stdout=json.dumps({"raw": '{"files":[]}', "usage": {}, "cost": {}, "error": ""}) + "\n",
+            stderr="",
+        )
+
+    monkeypatch.setattr("src.headless_workflow.subprocess.run", fake_run)
+
+    try:
+        response = RealLLMProvider(timeout_s=45).complete(
+            stage="ssot-gen",
+            model="claude-cli",
+            system_prompt="",
+            prompt="",
+            context={"ip": "claude_timeout_ip"},
+        )
+
+        assert response.status == "blocked"
+        assert seen["model"] == "claude-cli"
+        assert seen["outer_timeout"] == 45
+        assert seen["claude_cli_timeout_sec"] == 15
+    finally:
+        try:
+            from src import config
+        except ModuleNotFoundError:
+            import config
+        config.deactivate_cli_backends()
+
+
 def test_rtl_gen_initial_audit_failure_still_drives_llm_packets(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     ip = "resume_packet_ip"
     runner = HeadlessWorkflowRunner(

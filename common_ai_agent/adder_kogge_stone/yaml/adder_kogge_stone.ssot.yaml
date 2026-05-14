@@ -1,0 +1,562 @@
+top_module:
+  name: "adder_kogge_stone"
+  file: "rtl/adder_kogge_stone.sv"
+  version: "1.0"
+  type: "accelerator"
+  description: "Parameterized Kogge-Stone parallel-prefix adder with APB-lite CSR interface; single-cycle registered latency, async active-low PRESETn with sync deassert"
+  reference_spec: "user-defined — Kogge-Stone 1973 parallel-prefix carry tree"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 50
+    area_um2: null
+    power_mw: null
+sub_modules:
+  - { name: "adder_kogge_stone_regs",  file: "rtl/adder_kogge_stone_regs.sv",  ownership: "manifest", ssot_gen: true,  implements: ["registers.register_list", "error_handling"], source_sections: ["registers", "error_handling"], register_refs: ["registers.register_list"], description: "APB-lite register decode and storage" }
+  - { name: "adder_kogge_stone_core",  file: "rtl/adder_kogge_stone_core.sv",  ownership: "manifest", ssot_gen: false, implements: ["function_model", "cycle_model", "dataflow", "features"], source_sections: ["function_model", "cycle_model", "dataflow", "features"], function_model_refs: ["function_model.transactions", "function_model.state_variables"], cycle_model_refs: ["cycle_model.pipeline", "cycle_model.handshake_rules"], dataflow_refs: ["dataflow.datapath"], feature_refs: ["features"], description: "Kogge-Stone parallel-prefix carry tree and registered output stage" }
+decomposition:
+  units:
+    - { id: "apb_decode", kind: "control", source_refs: ["registers.register_list"], rtl_candidates: ["adder_kogge_stone_regs"], verification_impact: ["test_requirements.scenarios"] }
+    - { id: "ks_tree", kind: "datapath", source_refs: ["function_model.transactions", "cycle_model.pipeline"], rtl_candidates: ["adder_kogge_stone_core"], verification_impact: ["coverage_plan.functional", "coverage_plan.cycle"] }
+rtl_contract:
+  transaction: "FM_ADD"
+  sample_condition: "Operands sampled on PCLK rising edge when CTRL.enable == 1"
+  input_map:
+    operand_a: "CTRL.src_sel ? OP_A : a_i"
+    operand_b: "CTRL.src_sel ? OP_B : b_i"
+    carry_in: "CTRL.src_sel ? CIN : cin_i"
+  output_map:
+    sum: "sum_o"
+    carry_out: "cout_o"
+    valid: "valid_o"
+    apb_read_data: "PRDATA"
+    apb_ready: "PREADY"
+    apb_error: "PSLVERR"
+  state_updates:
+    - { name: "op_a_shadow", reset: 0, expr: "CTRL.enable ? (CTRL.src_sel ? OP_A : a_i) : op_a_shadow" }
+    - { name: "op_b_shadow", reset: 0, expr: "CTRL.enable ? (CTRL.src_sel ? OP_B : b_i) : op_b_shadow" }
+    - { name: "cin_shadow", reset: 0, expr: "CTRL.enable ? (CTRL.src_sel ? CIN : cin_i) : cin_shadow" }
+    - { name: "sum_reg", reset: 0, expr: "op_a_shadow + op_b_shadow + cin_shadow" }
+    - { name: "cout_reg", reset: 0, expr: "carry_out of (op_a_shadow + op_b_shadow + cin_shadow)" }
+    - { name: "valid_reg", reset: 0, expr: "CTRL.enable" }
+parameters:
+  - name: "WIDTH"
+    default: 32
+    type: int
+    description: "Operand width in bits; drives number of Kogge-Stone tree stages = ceil(log2(WIDTH))"
+    drives: ["rtl/adder_kogge_stone_core.sv", "rtl/adder_kogge_stone_regs.sv", "rtl/adder_kogge_stone.sv"]
+  - name: "APB_ADDR_WIDTH"
+    default: 8
+    type: int
+    description: "APB address width in bits"
+    drives: ["rtl/adder_kogge_stone_regs.sv", "rtl/adder_kogge_stone.sv"]
+  - name: "APB_DATA_WIDTH"
+    default: 32
+    type: int
+    description: "APB data width in bits; must be >= WIDTH for full operand access"
+    drives: ["rtl/adder_kogge_stone_regs.sv", "rtl/adder_kogge_stone.sv"]
+  - name: "CLOCK_FREQ_MHZ"
+    default: 50
+    type: int
+    description: "Target PCLK frequency in MHz"
+    drives: ["tb/tb_top.sv", "doc/adder_kogge_stone_mas.md"]
+  - name: "RESET_POLARITY"
+    default: "active_low"
+    type: enum
+    values: ["active_low", "active_high"]
+    description: "Reset polarity"
+    drives: ["ALL .sv files"]
+io_list:
+  clock_domains:
+    - name: "PCLK"
+      frequency_mhz: 50
+      description: "Main peripheral clock"
+      ports:
+        - { name: "PCLK", width: 1, direction: "input", description: "Peripheral clock" }
+
+  resets:
+    - name: "PRESETn"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "Main peripheral reset"
+      ports:
+        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low async reset" }
+
+  interfaces:
+    - name: "apb_slave"
+      type: "APB4-lite"
+      role: "slave"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "APB-lite register access for operand/control/status"
+      protocol:
+        setup_phase: "psel=1, penable=0 captures paddr/pwrite/pwdata/pstrb."
+        access_phase: "psel=1, penable=1 completes when pready=1."
+        read_rule: "prdata is valid in the completing access phase for reads; zero-wait-state (pready=1 in access phase)."
+        write_rule: "pwdata/pstrb are sampled in the completing access phase for writes."
+        error_rule: "pslverr asserted only with pready=1 for accesses to unimplemented register offsets."
+      ports:
+        - { name: "PADDR",   width: "APB_ADDR_WIDTH", direction: "input",  description: "APB address" }
+        - { name: "PSEL",    width: 1,  direction: "input",  description: "APB select" }
+        - { name: "PENABLE", width: 1,  direction: "input",  description: "APB enable" }
+        - { name: "PWRITE",  width: 1,  direction: "input",  description: "APB write" }
+        - { name: "PWDATA",  width: "APB_DATA_WIDTH", direction: "input",  description: "APB write data" }
+        - { name: "PSTRB",   width: "APB_DATA_WIDTH/8", direction: "input",  description: "APB byte strobes" }
+        - { name: "PRDATA",  width: "APB_DATA_WIDTH", direction: "output", description: "APB read data" }
+        - { name: "PREADY",  width: 1,  direction: "output", description: "APB ready" }
+        - { name: "PSLVERR", width: 1,  direction: "output", description: "APB error" }
+
+    - name: "adder_operands"
+      type: "custom"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "Direct operand input ports for datapath integration"
+      protocol:
+        sampling: "a_i, b_i, cin_i are sampled on PCLK rising edge when PRESETn is deasserted."
+        stability: "Operands must be stable around the sampling edge."
+      ports:
+        - { name: "a_i",   width: "WIDTH", direction: "input",  description: "Operand A input" }
+        - { name: "b_i",   width: "WIDTH", direction: "input",  description: "Operand B input" }
+        - { name: "cin_i", width: 1,       direction: "input",  description: "Carry-in input" }
+
+    - name: "adder_result"
+      type: "custom"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "Registered adder result outputs"
+      protocol:
+        assertion: "sum_o, cout_o, valid_o update on the PCLK rising edge one cycle after operands are sampled."
+        reset_value: "sum_o=0, cout_o=0, valid_o=0"
+      ports:
+        - { name: "sum_o",   width: "WIDTH", direction: "output", description: "Sum output (registered)" }
+        - { name: "cout_o",  width: 1,       direction: "output", description: "Carry-out output (registered)" }
+        - { name: "valid_o", width: 1,       direction: "output", description: "Result valid (registered)" }
+features:
+  - name: "Kogge-Stone parallel-prefix addition"
+    trigger: "Operands a_i, b_i, cin_i are sampled on PCLK rising edge when CTRL.enable == 1"
+    datapath: "Stage 0: bitwise g_i = a_i & b_i, p_i = a_i ^ b_i; Stages 1..ceil(log2(WIDTH)): parallel-prefix combine (G_{i:j} = G_{i:k} | (P_{i:k} & G_{k-1:j}), P_{i:j} = P_{i:k} & P_{k-1:j}) at distances 2^stage; Final stage: sum_i = p_i ^ c_{i-1}, cout = c_{WIDTH-1}"
+    control: "CTRL.enable gates operand latching; single-cycle compute with registered output"
+    output: "sum_o[WIDTH-1:0] = (a_i + b_i + cin_i) mod 2^WIDTH, cout_o = carry out of MSB, valid_o = 1"
+  - name: "APB-lite CSR configuration"
+    trigger: "APB write transaction to valid register offset"
+    datapath: "PWDATA → internal register on PCLK edge when PSEL && PENABLE && PWRITE && PREADY"
+    control: "Register decode from PADDR; writes gated by CTRL.enable for runtime reconfiguration"
+    output: "PRDATA reflects read register value in the completing access phase"
+  - name: "Parameterized operand width"
+    trigger: "Compile-time parameter WIDTH"
+    datapath: "Number of Kogge-Stone tree stages = ceil(log2(WIDTH)); generate/propagate bit-width = WIDTH"
+    control: "WIDTH parameter drives all port and internal signal widths"
+    output: "Fully parameterized RTL with no hard-coded bit widths"
+dataflow:
+  datapath:
+    source: "a_i, b_i, cin_i (top-level input ports)"
+    preprocess: "Bitwise generate g[i] = a_i[i] & b_i[i]; propagate p[i] = a_i[i] ^ b_i[i]"
+    tree: "Kogge-Stone log2(WIDTH) stages: each stage k combines nodes at distance 2^k using G_out = G_hi | (P_hi & G_lo), P_out = P_hi & P_lo"
+    postprocess: "sum[i] = p[i] ^ c[i-1] where c[-1]=cin_i; final carry c[WIDTH-1] = G_{WIDTH-1:0} | (P_{WIDTH-1:0} & cin_i)"
+    output_register: "sum_o <= sum; cout_o <= carry_out; valid_o <= 1 (registered on PCLK)"
+  apb_path:
+    write: "APB write → register_file[PADDR] ← PWDATA (when CTRL.enable permits for data registers)"
+    read: "register_file[PADDR] → PRDATA (combinational from register)"
+function_model:
+  purpose: "Executable behavioral contract: defines the Kogge-Stone addition result and APB register access semantics independent of cycle timing."
+  state_variables:
+    - { name: "op_a_shadow", source: "io_list.adder_operands.a_i", reset: 0, description: "Sampled operand A (internal pipeline register)" }
+    - { name: "op_b_shadow", source: "io_list.adder_operands.b_i", reset: 0, description: "Sampled operand B (internal pipeline register)" }
+    - { name: "cin_shadow", source: "io_list.adder_operands.cin_i", reset: 0, description: "Sampled carry-in (internal pipeline register)" }
+    - { name: "ctrl_enable", source: "registers.CTRL.enable", reset: 0, description: "Adder enable from CSR" }
+    - { name: "cfg_operand_a", source: "registers.OP_A", reset: 0, description: "CSR-configured operand A override" }
+    - { name: "cfg_operand_b", source: "registers.OP_B", reset: 0, description: "CSR-configured operand B override" }
+    - { name: "cfg_cin", source: "registers.CIN", reset: 0, description: "CSR-configured carry-in override" }
+    - { name: "src_sel", source: "registers.CTRL.src_sel", reset: 0, description: "0=direct ports, 1=CSR operands" }
+  transactions:
+    - id: "FM_ADD"
+      name: "kogge_stone_add"
+      preconditions:
+        - "ctrl_enable == 1"
+        - "PRESETn deasserted"
+      inputs:
+        - "Effective operand A = src_sel ? cfg_operand_a : a_i"
+        - "Effective operand B = src_sel ? cfg_operand_b : b_i"
+        - "Effective carry-in = src_sel ? cfg_cin : cin_i"
+      outputs:
+        - "sum_o = (eff_a + eff_b + eff_cin) truncated to WIDTH bits"
+        - "cout_o = carry-out of the WIDTH-bit addition"
+        - "valid_o = 1 (asserted one cycle after operand sampling)"
+      output_rules:
+        - { name: "sum", expr: "(eff_a + eff_b + eff_cin) & ((1 << WIDTH) - 1)", width: "WIDTH", port: "sum_o" }
+        - { name: "cout", expr: "((eff_a + eff_b + eff_cin) >> WIDTH) & 1", width: 1, port: "cout_o" }
+        - { name: "valid", expr: "ctrl_enable", width: 1, port: "valid_o" }
+      side_effects:
+        - "STATUS.overflow set if cout_o == 1"
+        - "STATUS.valid set on completion"
+        - "RESULT register updated with sum when src_sel == 1"
+      error_cases:
+        - { condition: "ctrl_enable == 0", result: "valid_o remains 0; sum_o and cout_o hold last value; STATUS unchanged" }
+    - id: "FM_APB_READ"
+      name: "apb_register_read"
+      preconditions:
+        - "PSEL == 1 and PENABLE == 1 and PWRITE == 0"
+        - "PADDR maps to a valid register offset"
+      inputs:
+        - "PADDR decoding to register index"
+      outputs:
+        - "PRDATA = selected register value"
+        - "PREADY = 1"
+        - "PSLVERR = 0"
+      output_rules:
+        - { name: "prdata_out", expr: "register_file[PADDR]", width: "APB_DATA_WIDTH", port: "PRDATA" }
+        - { name: "pready_out", expr: "1", width: 1, port: "PREADY" }
+        - { name: "pslverr_out", expr: "0", width: 1, port: "PSLVERR" }
+      side_effects: []
+      error_cases:
+        - { condition: "PADDR maps to unimplemented offset", result: "PRDATA = 0, PSLVERR = 1, PREADY = 1" }
+    - id: "FM_APB_WRITE"
+      name: "apb_register_write"
+      preconditions:
+        - "PSEL == 1 and PENABLE == 1 and PWRITE == 1"
+        - "PADDR maps to a valid writable register offset"
+      inputs:
+        - "PWDATA, PSTRB, PADDR"
+      outputs:
+        - "PREADY = 1"
+        - "PSLVERR = 0"
+      output_rules:
+        - { name: "pready_wr", expr: "1", width: 1, port: "PREADY" }
+        - { name: "pslverr_wr", expr: "0", width: 1, port: "PSLVERR" }
+      side_effects:
+        - "Target register updated with PWDATA (byte-strobed per PSTRB)"
+      error_cases:
+        - { condition: "PADDR maps to read-only or unimplemented offset", result: "register unchanged, PSLVERR = 1, PREADY = 1" }
+  invariants:
+    - "sum_o always equals (eff_a + eff_b + eff_cin) mod 2^WIDTH when valid_o == 1"
+    - "cout_o always equals the carry-out of (eff_a + eff_b + eff_cin) when valid_o == 1"
+    - "APB register reads have no side effects"
+    - "APB writes to read-only registers are ignored (no update, pslverr asserted)"
+  reference_model_hint: "tb-gen should implement a Python reference model that computes expected sum/cout from operands and compares against RTL sum_o/cout_o/valid_o on every PCLK cycle."
+cycle_model:
+  purpose: "Cycle/handshake contract: defines when operands are sampled, when the Kogge-Stone tree computes, and when outputs update."
+  executable: "pymtl3"
+  backend_policy: "Use PyMTL3 for the clocked cycle model shell; keep FunctionalModel as the behavioral oracle and run direct Python smoke checks."
+  clock: "PCLK"
+  reset:
+    assertion: "PRESETn low asynchronously clears all architectural state: internal pipeline registers = 0, valid_o = 0, all CSR registers at reset values"
+    deassertion: "State is usable on the first PCLK rising edge after synchronized deassertion"
+  latency:
+    operand_to_result: { min_cycles: 1, max_cycles: 1, description: "Operands sampled on cycle N; sum_o/cout_o/valid_o valid on cycle N+1" }
+    apb_read: { min_cycles: 0, max_cycles: 0, description: "Zero-wait-state APB read: PRDATA valid combinatorially in access phase" }
+    apb_write: { min_cycles: 0, max_cycles: 0, description: "Zero-wait-state APB write: register updated on PCLK edge of completing access phase" }
+  handshake_rules:
+    - { signal: "PSEL/PENABLE/PWRITE/PADDR/PWDATA/PSTRB", rule: "APB control/address/write-data must be stable during the access phase (PSEL=1, PENABLE=1)." }
+    - { signal: "PREADY", rule: "Asserted combinatorially in the access phase for all valid register addresses; zero-wait-state." }
+    - { signal: "PSLVERR", rule: "Asserted combinatorially with PREADY for unimplemented or read-only-write addresses." }
+    - { signal: "a_i/b_i/cin_i", rule: "Sampled on PCLK rising edge when CTRL.enable==1; must meet setup/hold around that edge." }
+    - { signal: "sum_o/cout_o/valid_o", rule: "Driven from registered output flops; update on PCLK rising edge one cycle after operand sampling." }
+  pipeline:
+    - { stage: "S0_SAMPLE", cycle: 0, action: "Sample a_i, b_i, cin_i and effective operand selection on PCLK rising edge when enabled; latch into pipeline regs" }
+    - { stage: "S1_COMPUTE", cycle: 1, action: "Kogge-Stone carry tree computes sum and carry-out combinatorially from latched operands; registered outputs update on PCLK edge" }
+  ordering:
+    - "sum_o/cout_o/valid_o update exactly one PCLK cycle after the operands are sampled."
+    - "APB read data reflects the register state at the start of the access phase."
+    - "APB write data is committed on the PCLK edge that completes the access phase."
+  backpressure:
+    - "No output backpressure: sum_o/cout_o/valid_o are always driven with the latest result."
+    - "APB pready is always 1 in the access phase — no wait states."
+  performance:
+    frequency_mhz: 50
+    throughput: { sustained_adds_per_cycle: 1, condition: "Enabled and operands presented every cycle" }
+    outstanding: { read_max: 1, write_max: 1, description: "Single operation per cycle" }
+    depth: { pipeline_stages: 2, queue_depth: 0, description: "S0_SAMPLE and S1_COMPUTE stages with registered output" }
+  observability:
+    - "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
+clock_reset_domains:
+  domains:
+    - { name: "PCLK", frequency_mhz: 50, description: "Main peripheral clock" }
+  reset_scheme:
+    signal: "PRESETn"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single PCLK clock domain — no CDC required"
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single reset domain — no RDC required"
+registers:
+  config:
+    register_width: "APB_DATA_WIDTH"
+    addr_width: "APB_ADDR_WIDTH"
+    byte_addressable: true
+  bit_order: "lsb0"
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: "ignore"
+    rtl_requirement: "Reserved fields read as zero and do not allocate storage."
+
+  register_list:
+    - name: "CTRL"
+      offset: 0x00
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "control"
+      description: "Control Register — enables adder, selects operand source"
+      write_side_effects:
+        - "Writing CTRL.enable=0 gates operand sampling; CTRL.enable=1 allows sampling on next PCLK edge."
+        - "Changing CTRL.src_sel immediately switches operand source on the next PCLK edge."
+      fields:
+        - { name: "enable", bits: [0, 0], access: "rw", reset: 0x0, write_effect: "0=disabled (valid_o stays 0), 1=enabled", description: "Adder enable" }
+        - { name: "src_sel", bits: [1, 1], access: "rw", reset: 0x0, write_effect: "0=direct port operands (a_i/b_i/cin_i), 1=CSR-configured operands (OP_A/OP_B/CIN)", description: "Operand source select" }
+        - { name: "reserved_31_2", bits: [31, 2], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+
+    - name: "STATUS"
+      offset: 0x04
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "status"
+      description: "Status Register — reflects last computation result status"
+      fields:
+        - { name: "valid", bits: [0, 0], access: "ro", reset: 0x0, description: "1=result on sum_o/cout_o is valid from last computation" }
+        - { name: "overflow", bits: [1, 1], access: "ro", reset: 0x0, description: "1=last computation produced carry-out (cout_o=1)" }
+        - { name: "reserved_31_2", bits: [31, 2], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+
+    - name: "OP_A"
+      offset: 0x08
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "data"
+      description: "Operand A Register — CSR-configured operand A value used when CTRL.src_sel=1"
+      write_side_effects:
+        - "Written value used as effective operand A when CTRL.src_sel=1 on next PCLK edge."
+      fields:
+        - { name: "op_a", bits: ["WIDTH-1", 0], access: "rw", reset: 0x0, write_effect: "Stored operand A value", description: "Operand A data" }
+        - { name: "reserved_31_W", bits: [31, "WIDTH"], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved when WIDTH < 32; reads zero" }
+
+    - name: "OP_B"
+      offset: 0x0C
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "data"
+      description: "Operand B Register — CSR-configured operand B value used when CTRL.src_sel=1"
+      write_side_effects:
+        - "Written value used as effective operand B when CTRL.src_sel=1 on next PCLK edge."
+      fields:
+        - { name: "op_b", bits: ["WIDTH-1", 0], access: "rw", reset: 0x0, write_effect: "Stored operand B value", description: "Operand B data" }
+        - { name: "reserved_31_W", bits: [31, "WIDTH"], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved when WIDTH < 32; reads zero" }
+
+    - name: "CIN"
+      offset: 0x10
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "data"
+      description: "Carry-In Register — CSR-configured carry-in used when CTRL.src_sel=1"
+      write_side_effects:
+        - "Written value (bit 0 only) used as effective carry-in when CTRL.src_sel=1 on next PCLK edge."
+      fields:
+        - { name: "cin", bits: [0, 0], access: "rw", reset: 0x0, write_effect: "Stored carry-in value (0 or 1)", description: "Carry-in data" }
+        - { name: "reserved_31_1", bits: [31, 1], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+
+    - name: "RESULT"
+      offset: 0x14
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "status"
+      description: "Result Register — latched sum output from last computation (updated only when src_sel=1)"
+      fields:
+        - { name: "sum", bits: ["WIDTH-1", 0], access: "ro", reset: 0x0, description: "Latched sum value" }
+        - { name: "reserved_31_W", bits: [31, "WIDTH"], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved when WIDTH < 32; reads zero" }
+
+    - name: "COUT"
+      offset: 0x18
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "status"
+      description: "Carry-Out Register — latched carry-out from last computation (updated only when src_sel=1)"
+      fields:
+        - { name: "cout", bits: [0, 0], access: "ro", reset: 0x0, description: "Latched carry-out value" }
+        - { name: "reserved_31_1", bits: [31, 1], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+memory:
+  instances: []
+  note: "No SRAM/FIFO instances; pure register-based datapath and APB register file"
+interrupts:
+  sources: []
+  output:
+    signal: "none"
+    polarity: "none"
+    type: "none"
+  note: "No interrupt output; status polling via APB STATUS register"
+fsm:
+  core_fsm:
+    states:
+      - "IDLE"
+      - "COMPUTE"
+    transitions:
+      - { from: "IDLE", to: "COMPUTE", condition: "CTRL.enable == 1 on PCLK rising edge" }
+      - { from: "COMPUTE", to: "IDLE", condition: "always (single-cycle compute, return to IDLE next cycle)" }
+    note: "Minimal FSM: operand sampling occurs in IDLE→COMPUTE transition; Kogge-Stone tree evaluates combinatorially; registered outputs update on COMPUTE→IDLE edge"
+timing:
+  target_clocks:
+    - { name: "PCLK", frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.5 }
+  latency_budget:
+    operand_to_result_cycles: { min: 1, max: 1, measured_from: "PCLK rising edge sampling a_i/b_i/cin_i", measured_to: "PCLK rising edge updating sum_o/cout_o/valid_o" }
+    apb_read_cycles: { min: 0, max: 0, measured_from: "PSEL && PENABLE", measured_to: "PRDATA valid (combinational)" }
+    apb_write_cycles: { min: 0, max: 0, measured_from: "PSEL && PENABLE", measured_to: "register update on PCLK edge" }
+  throughput:
+    sustained_adds_per_cycle: 1
+    conditions: "CTRL.enable=1 and operands presented every PCLK cycle"
+  timing_exceptions: []
+  io_delays:
+    inputs:
+      - { ports: "all_inputs_except_PCLK_PRESETn", clock: "PCLK", delay_ns: 2.0, source: "system-level timing budget at 50 MHz" }
+    outputs:
+      - { ports: "all_outputs", clock: "PCLK", delay_ns: 2.0, source: "system-level timing budget at 50 MHz" }
+  false_paths:
+    - { from: "PRESETn", to: "all_registers", reason: "async reset assertion path" }
+  multicycle_paths: []
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt", "sta/out/wns.json"]
+power:
+  domains:
+    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["PCLK"], isolation: "not_required_single_domain" }
+  clock_gating:
+    required: false
+    rationale: "No low-power mode; adder continuously computes when enabled"
+  reset_retention:
+    retention_required: false
+    reset_value_source: "registers and function_model state_variables"
+  power_states:
+    - { name: "ON", entry: "PRESETn deasserted", exit: "PRESETn asserted", guarantees: ["All architectural behavior active"] }
+  upf_required: false
+security:
+  classification: "non_secure_datapath_ip"
+  assets:
+    - { name: "register_map", protection: "APB access control is external to this IP" }
+    - { name: "computed_result", protection: "Data visible on sum_o/cout_o and APB RESULT/COUT; no internal confidentiality measures" }
+  threat_model:
+    - { threat: "illegal register write", mitigation: "RO registers (STATUS, RESULT, COUT) ignore writes; pslverr asserted for write to read-only offset" }
+    - { threat: "unimplemented address access", mitigation: "pslverr asserted for unimplemented APB offsets" }
+  privilege_model: "External bus fabric enforces privilege; this IP implements no internal privilege levels"
+  safety_goals:
+    - "valid_o deasserted when CTRL.enable=0"
+    - "RESULT/COUT registers read zero after reset"
+error_handling:
+  error_sources:
+    - { id: "ERR_APB_BAD_ADDR", condition: "APB access to unimplemented register offset", architectural_effect: "PSLVERR=1, PREADY=1, no register update, PRDATA=0" }
+    - { id: "ERR_APB_RO_WRITE", condition: "APB write to read-only register (STATUS, RESULT, COUT)", architectural_effect: "PSLVERR=1, PREADY=1, register unchanged" }
+    - { id: "ERR_DISABLED_COMPUTE", condition: "CTRL.enable == 0 when operands presented", architectural_effect: "valid_o=0, STATUS unchanged, sum_o/cout_o hold last value" }
+  propagation:
+    - "PSLVERR is asserted combinatorially during the access phase and deasserted when PSEL=0."
+    - "No latching of error state across APB transactions."
+  recovery:
+    - { action: "APB master deasserts PSEL after observing PSLVERR", clears: ["PSLVERR"], preserves: ["internal register state"] }
+    - { action: "Set CTRL.enable=1", clears: ["ERR_DISABLED_COMPUTE condition"], preserves: ["CSR configuration"] }
+debug_observability:
+  waveform_must_probe:
+    - "PCLK"
+    - "PRESETn"
+    - "a_i"
+    - "b_i"
+    - "cin_i"
+    - "sum_o"
+    - "cout_o"
+    - "valid_o"
+    - "CTRL.enable"
+    - "CTRL.src_sel"
+    - "STATUS.valid"
+    - "STATUS.overflow"
+    - "FSM state (IDLE/COMPUTE)"
+    - "Kogge-Stone intermediate stage G/P nodes"
+  status_outputs:
+    - "valid_o"
+    - "STATUS.valid"
+    - "STATUS.overflow"
+  trace_events:
+    - { name: "add_start", trigger: "FSM IDLE → COMPUTE transition" }
+    - { name: "add_done", trigger: "FSM COMPUTE → IDLE transition with valid_o=1" }
+    - { name: "add_disabled", trigger: "CTRL.enable=0 with operands presented" }
+  debug_registers:
+    - "STATUS"
+    - "RESULT"
+    - "COUT"
+integration:
+  bus_attachment:
+    control: "APB4-lite slave"
+    data: "Direct operand/result ports (a_i, b_i, cin_i, sum_o, cout_o, valid_o)"
+  connections:
+    - { module: "adder_kogge_stone_regs", port: "PCLK", signal: "PCLK" }
+    - { module: "adder_kogge_stone_regs", port: "PRESETn", signal: "PRESETn" }
+    - { module: "adder_kogge_stone_core", port: "clk_i", signal: "PCLK" }
+    - { module: "adder_kogge_stone_core", port: "rst_ni", signal: "PRESETn" }
+    - { module: "adder_kogge_stone_core", port: "a_i", signal: "a_i" }
+    - { module: "adder_kogge_stone_core", port: "b_i", signal: "b_i" }
+    - { module: "adder_kogge_stone_core", port: "cin_i", signal: "cin_i" }
+    - { module: "adder_kogge_stone_core", port: "sum_o", signal: "sum_o" }
+    - { module: "adder_kogge_stone_core", port: "cout_o", signal: "cout_o" }
+    - { module: "adder_kogge_stone_core", port: "valid_o", signal: "valid_o" }
+  address_map_requirements:
+    alignment_bytes: 4
+    decode_owner: "SoC interconnect"
+    illegal_access_response: "PSLVERR for unimplemented APB offsets and writes to read-only registers"
+  dependencies:
+    external_modules: []
+    external_clocks: ["PCLK"]
+    external_resets: ["PRESETn"]
+  integration_notes:
+    - "SoC must provide APB-compliant PSEL/PENABLE/PADDR/PWRITE/PWDATA timing."
+    - "SoC must drive a_i, b_i, cin_i with valid data meeting setup/hold around PCLK rising edge."
+    - "sum_o, cout_o, valid_o are registered outputs — downstream logic samples on PCLK rising edge."
+dft:
+  scan_required: false
+  scan_ports: []
+  test_mode_ports: []
+  controllability:
+    reset: "PRESETn must be controllable in test mode"
+    clocks: ["PCLK"]
+  observability:
+    required_internal_points: ["FSM state", "STATUS.valid", "sum_o", "cout_o"]
+  mbist_required: false
+  notes: "No SRAM macro; flop-based datapath only"
+synthesis:
+  dialect: "systemverilog_2012"
+  top_module: "adder_kogge_stone"
+  technology:
+    pdk: "sky130"
+    standard_cell_library: "sky130_fd_sc_hd"
+    liberty_corner: "ss_100C_1v40"
+    liberty_env: "SKY130_LIB"
+    lef_env: "SKY130_LEF"
+    tech_lef_env: "SKY130_TLEF"
+    rcx_rules_env: "SKY130_RCX_RULES"
+  constraints:
+    - "No inferred latches"
+    - "All flops reset according to clock_reset_domains.reset_scheme"
+    - "No package/interface/modport/function/task/for/while constructs in generated RTL"
+    - "Kogge-Stone tree combinational depth must meet timing at 50 MHz"
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 50
+  required_outputs:
+    - "syn/out/adder_kogge_stone.json"
+    - "syn/out/area.rpt"
+    - "syn/out/timing_summary.rpt"
+pnr: TBD
+coding_rules: TBD
+reuse_modules: TBD
+custom: TBD
+dir_structure: TBD
+filelist: TBD
+test_requirements: TBD
+quality_gates: TBD
+traceability: TBD
+workflow_todos: TBD
+generation_flow: TBD

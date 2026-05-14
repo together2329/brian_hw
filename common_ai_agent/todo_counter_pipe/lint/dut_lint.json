@@ -14,10 +14,10 @@
     "rtl/todo_counter_pipe_core.sv",
     "rtl/todo_counter_pipe_cdc.sv"
   ],
-  "timestamp": "2026-05-14T04:26:12.756527+00:00",
+  "timestamp": "2026-05-14T23:06:45.159084+00:00",
   "returncode": 1,
   "errors": 0,
-  "warnings": 6,
+  "warnings": 5,
   "waived_warnings": 0,
   "tool_results": [
     {
@@ -36,25 +36,16 @@
       "command": "verilator --lint-only -Wall -Irtl -f list/todo_counter_pipe.f --top-module todo_counter_pipe",
       "returncode": 1,
       "errors": 0,
-      "warnings": 6,
+      "warnings": 5,
       "diagnostics": [
         {
           "severity": "warning",
           "rule": "UNUSEDPARAM",
           "file": "rtl/todo_counter_pipe.sv",
-          "line": 3,
-          "column": 23,
-          "message": "Parameter is not used: 'BUS_CLK_FREQ_MHZ'",
-          "source": "    parameter integer BUS_CLK_FREQ_MHZ = 150,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDPARAM",
-          "file": "rtl/todo_counter_pipe.sv",
-          "line": 4,
-          "column": 23,
-          "message": "Parameter is not used: 'CORE_CLK_FREQ_MHZ'",
-          "source": "    parameter integer CORE_CLK_FREQ_MHZ = 300"
+          "line": 34,
+          "column": 24,
+          "message": "Parameter is not used: 'CLOCK_FREQ_SUM_MHZ'",
+          "source": "    localparam integer CLOCK_FREQ_SUM_MHZ = BUS_CLK_FREQ_MHZ + CORE_CLK_FREQ_MHZ;"
         },
         {
           "severity": "warning",

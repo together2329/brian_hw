@@ -1,0 +1,280 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 2,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/uart_lite_baud_gen.sv",
+      "name": "uart_lite_baud_gen",
+      "refs": [
+        "cycle_model",
+        "cycle_model.baud_generator"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/uart_lite_regs.sv",
+        "name": "uart_lite_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_tx.sv",
+        "name": "uart_lite_tx",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_rx.sv",
+        "name": "uart_lite_rx",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_baud_gen.sv",
+        "name": "uart_lite_baud_gen",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_tx_fifo.sv",
+        "name": "uart_lite_tx_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_rx_fifo.sv",
+        "name": "uart_lite_rx_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_core.sv",
+        "name": "uart_lite_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite.sv",
+        "name": "uart_lite",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "UART peripheral with 7 sub-modules, 2 FIFOs, 2 FSMs, 12 registers",
+      "min_behavior_owner_logic_modules": 2,
+      "min_depth_score": 10,
+      "min_logic_modules": 4,
+      "min_modules": 7,
+      "min_procedural_blocks": 20,
+      "min_source_files": 7,
+      "min_state_updates": 8,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "uart_lite",
+  "kind": "module",
+  "owner_file": "rtl/uart_lite_baud_gen.sv",
+  "owner_module": "uart_lite_baud_gen",
+  "packet_id": "module__uart_lite_baud_gen",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 2,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 2,
+    "source_refs": [
+      "workflow_todos.rtl-gen[3]",
+      "sub_modules.uart_lite_baud_gen.module_equivalence"
+    ],
+    "status_counts": {
+      "pass": 2
+    },
+    "task_count": 2
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement baud rate generator",
+      "criteria": [
+        "Baud tick period = (baud_div + 1) * OVERSAMPLE PCLK cycles",
+        "RX mid-bit detection at oversample count 7",
+        "BAUD register change takes effect at next frame boundary",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[3]",
+        "Primary implementation evidence is in rtl/uart_lite_baud_gen.sv",
+        "Semantic source_refs covered: cycle_model.baud_generator, registers.BAUD"
+      ],
+      "detail": "Counter-based baud tick generator: baud_tick = 1 when counter == (BAUD.baud_div * OVERSAMPLE) - 1. Separate counters for TX (baud tick) and RX (oversample counter 0..OVERSAMPLE-1).\nSSOT ref: workflow_todos.rtl-gen[3].\nOwner: uart_lite_baud_gen in rtl/uart_lite_baud_gen.sv via workflow_todos.owner.\nSSOT item context: id=RTL_IMPL_BAUD_GEN.",
+      "evidence_terms": [
+        "BAUD",
+        "IMPL",
+        "RTL_IMPL_BAUD_GEN",
+        "baud",
+        "baud_generator",
+        "generator",
+        "lite",
+        "uart",
+        "uart_lite_baud_gen"
+      ],
+      "id": "RTL-0030",
+      "owner_file": "rtl/uart_lite_baud_gen.sv",
+      "owner_module": "uart_lite_baud_gen",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[3]",
+      "ssot_context": {
+        "id": "RTL_IMPL_BAUD_GEN"
+      },
+      "ssot_refs": [
+        "cycle_model.baud_generator",
+        "registers.BAUD",
+        "workflow_todos.rtl-gen[3]"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "BAUD",
+          "baud",
+          "lite",
+          "uart",
+          "uart_lite_baud_gen"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "BAUD",
+          "IMPL",
+          "RTL_IMPL_BAUD_GEN",
+          "baud",
+          "baud_generator",
+          "generator",
+          "lite",
+          "uart",
+          "uart_lite_baud_gen"
+        ],
+        "source_scope": "rtl/uart_lite_baud_gen.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_IMPL_BAUD_GEN",
+        "source_refs": [
+          "cycle_model.baud_generator",
+          "registers.BAUD"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module uart_lite_baud_gen is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.uart_lite_baud_gen.module_equivalence",
+        "Primary implementation evidence is in rtl/uart_lite_baud_gen.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.uart_lite_baud_gen.module_equivalence.\nOwner: uart_lite_baud_gen in rtl/uart_lite_baud_gen.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0265",
+      "owner_file": "rtl/uart_lite_baud_gen.sv",
+      "owner_module": "uart_lite_baud_gen",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.uart_lite_baud_gen.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.uart_lite_baud_gen.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3e24fd327d20c227969d80d968a7b1af5638d074f7c4857cee081ef19051e830",
+  "top": "uart_lite",
+  "type": "rtl_authoring_packet"
+}

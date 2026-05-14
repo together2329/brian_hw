@@ -11,6 +11,7 @@ import sys
 import threading
 import time
 import urllib.request
+import uuid
 from pathlib import Path
 
 import pytest
@@ -56,6 +57,31 @@ def _receive_ws_event(ws, msg_type: str, marker: str = "") -> dict:
             continue
         return msg
     raise AssertionError(f"did not receive websocket event {msg_type!r} containing {marker!r}")
+
+
+def _authenticated_client(app):
+    from fastapi.testclient import TestClient
+
+    client = TestClient(app)
+    username = f"test_{uuid.uuid4().hex[:12]}"
+    response = client.post("/api/auth/register", json={"username": username, "password": "pw"})
+    assert response.status_code == 200, response.text
+    client._atlas_username = username  # type: ignore[attr-defined]
+    return client
+
+
+def _register_live_user(base_url: str) -> str:
+    username = f"live_{uuid.uuid4().hex[:12]}"
+    request = urllib.request.Request(
+        f"{base_url}/api/auth/register",
+        data=json.dumps({"username": username, "password": "pw"}).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=3) as response:
+        cookie = response.headers.get("Set-Cookie") or ""
+    assert "atlas_session=" in cookie
+    return cookie.split(";", 1)[0]
 
 
 def _port_open(host: str, port: int) -> bool:
@@ -511,7 +537,16 @@ def main() -> int:
         stimulus = {{"value": 12 + idx}}
         expected = scoreboard.expected_for_goal(goal_id, stimulus, f"SC_{{idx + 1:03d}}")
         model_result = expected.get("model_result") if isinstance(expected, dict) else {{}}
-        rtl_observed = {{"value": model_result.get("value", 0)}} if isinstance(model_result, dict) else {{"value": 0}}
+        if isinstance(model_result, dict):
+            rtl_observed = {{
+                str(key): value
+                for key, value in model_result.items()
+                if isinstance(value, (str, int, float, bool)) and key not in {{"transaction_id", "transaction_name"}}
+            }}
+        else:
+            rtl_observed = {{}}
+        if not rtl_observed:
+            rtl_observed = {{"value": stimulus["value"]}}
         row = scoreboard.record(
             goal_id,
             scenario_id=f"SC_{{idx + 1:03d}}",
@@ -834,7 +869,7 @@ def test_atlas_progress_reports_equivalence_pass_from_compare_artifacts(tmp_path
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
-    client = TestClient(atlas_ui.create_app())
+    client = _authenticated_client(atlas_ui.create_app())
     response = client.get("/api/progress", params={"scope": ip})
 
     assert response.status_code == 200
@@ -931,7 +966,7 @@ def test_atlas_progress_rtl_artifact_status_uses_strict_manifest_gate(tmp_path: 
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
-    client = TestClient(atlas_ui.create_app())
+    client = _authenticated_client(atlas_ui.create_app())
     response = client.get("/api/progress", params={"scope": ip})
 
     assert response.status_code == 200
@@ -968,7 +1003,7 @@ def test_atlas_progress_prefers_ssot_kind_over_name_heuristic(tmp_path: Path, mo
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
-    client = TestClient(atlas_ui.create_app())
+    client = _authenticated_client(atlas_ui.create_app())
     response = client.get("/api/progress", params={"scope": ip})
 
     assert response.status_code == 200
@@ -1001,7 +1036,7 @@ def test_stale_equivalence_evidence_blocks_progress(tmp_path: Path, monkeypatch)
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
-    client = TestClient(atlas_ui.create_app())
+    client = _authenticated_client(atlas_ui.create_app())
     response = client.get("/api/progress", params={"scope": ip})
 
     assert response.status_code == 200
@@ -1108,7 +1143,7 @@ def test_atlas_websocket_runs_ssot_equivalence_goal_command(tmp_path: Path, monk
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
-    client = TestClient(atlas_ui.create_app())
+    client = _authenticated_client(atlas_ui.create_app())
     with client.websocket_connect("/ws/agent") as ws:
         assert ws.receive_json()["type"] == "hello"
         ws.send_json({"type": "prompt", "text": f"/ssot-equiv-goals {ip}"})
@@ -1145,12 +1180,12 @@ def test_atlas_websocket_import_seeds_active_ssot_before_grill_me(tmp_path: Path
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
-    client = TestClient(atlas_ui.create_app())
+    client = _authenticated_client(atlas_ui.create_app())
     with client.websocket_connect("/ws/agent") as ws:
         assert ws.receive_json()["type"] == "hello"
         ws.send_json({"type": "prompt", "text": f"/new-ip {ip} APB4 SQA controller"})
         plan = _receive_slash_output(ws, "[SSOT PLAN]")
-        assert "/import <doc_or_rtl_path>" in plan
+        assert "no document import is run by /new-ip" in plan
 
         ws.send_json({"type": "prompt", "text": "/import docs/sqa_spec.md"})
         imported = _receive_slash_output(ws, "[SSOT IMPORT]")
@@ -1161,7 +1196,8 @@ def test_atlas_websocket_import_seeds_active_ssot_before_grill_me(tmp_path: Path
         approved = _receive_slash_output(ws, "[SSOT APPROVED]")
         assert ip in approved
 
-    state = json.loads((tmp_path / ".session" / ip / "ssot-gen" / "state.json").read_text(encoding="utf-8"))
+    username = client._atlas_username  # type: ignore[attr-defined]
+    state = json.loads((tmp_path / ".session" / username / ip / "ssot-gen" / "state.json").read_text(encoding="utf-8"))
     assert state["approved"] is True
     assert "decisions" not in state
     assert "decision_sources" not in state
@@ -1183,7 +1219,7 @@ def test_atlas_websocket_fresh_new_ip_to_ssot_fl_equivalence_flow(tmp_path: Path
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
-    client = TestClient(atlas_ui.create_app())
+    client = _authenticated_client(atlas_ui.create_app())
     with client.websocket_connect("/ws/agent") as ws:
         assert ws.receive_json()["type"] == "hello"
         ws.send_json({"type": "prompt", "text": f"/new-ip {ip} APB4 programmable timer"})
@@ -1194,10 +1230,11 @@ def test_atlas_websocket_fresh_new_ip_to_ssot_fl_equivalence_flow(tmp_path: Path
         assert "queued ssot-gen LLM" in grill
 
     ssot_path = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
-    state = json.loads((tmp_path / ".session" / ip / "ssot-gen" / "state.json").read_text(encoding="utf-8"))
+    username = client._atlas_username  # type: ignore[attr-defined]
+    state = json.loads((tmp_path / ".session" / username / ip / "ssot-gen" / "state.json").read_text(encoding="utf-8"))
     assert ssot_path.is_file()
     assert state["last_step"] == "grill-me"
-    assert state["active_session"] == f"{ip}/ssot-gen"
+    assert state["active_session"] == f"{username}/{ip}/ssot-gen"
 
 
 def test_atlas_websocket_generates_fl_equivalence_from_ssot_only_ip(tmp_path: Path, monkeypatch):
@@ -1207,7 +1244,7 @@ def test_atlas_websocket_generates_fl_equivalence_from_ssot_only_ip(tmp_path: Pa
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
-    client = TestClient(atlas_ui.create_app())
+    client = _authenticated_client(atlas_ui.create_app())
     with client.websocket_connect("/ws/agent") as ws:
         assert ws.receive_json()["type"] == "hello"
         ws.send_json({"type": "prompt", "text": f"/ssot-equiv-goals {ip}"})
@@ -1299,7 +1336,7 @@ def test_direct_ssot_equivalence_goals_publish_authority_and_module_progress(tmp
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
-    client = TestClient(atlas_ui.create_app())
+    client = _authenticated_client(atlas_ui.create_app())
     response = client.get("/api/progress", params={"scope": ip})
     assert response.status_code == 200
     equiv_progress = response.json()["selected"]["progress"]["equivalence_goals"]
@@ -1612,7 +1649,7 @@ def test_atlas_websocket_ssot_rtl_queues_llm_authored_rtl_handoff(tmp_path: Path
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
-    client = TestClient(atlas_ui.create_app())
+    client = _authenticated_client(atlas_ui.create_app())
     with client.websocket_connect("/ws/agent") as ws:
         assert ws.receive_json()["type"] == "hello"
         ws.send_json({"type": "prompt", "text": f"/ssot-rtl {ip}"})
@@ -1644,7 +1681,7 @@ def test_atlas_websocket_runs_sim_debug_command(tmp_path: Path, monkeypatch):
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
-    client = TestClient(atlas_ui.create_app())
+    client = _authenticated_client(atlas_ui.create_app())
     with client.websocket_connect("/ws/agent") as ws:
         assert ws.receive_json()["type"] == "hello"
         ws.send_json({"type": "prompt", "text": f"/sim-debug {ip}"})
@@ -1680,7 +1717,7 @@ def test_atlas_websocket_queues_loopable_equivalence_repair(tmp_path: Path, monk
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
-    client = TestClient(atlas_ui.create_app())
+    client = _authenticated_client(atlas_ui.create_app())
     with client.websocket_connect("/ws/agent") as ws:
         assert ws.receive_json()["type"] == "hello"
         ws.send_json({"type": "prompt", "text": f"/repair-equiv {ip}"})
@@ -1698,7 +1735,7 @@ def test_atlas_websocket_runs_goal_audit_command(tmp_path: Path, monkeypatch):
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
-    client = TestClient(atlas_ui.create_app())
+    client = _authenticated_client(atlas_ui.create_app())
     with client.websocket_connect("/ws/agent") as ws:
         assert ws.receive_json()["type"] == "hello"
         ws.send_json({"type": "prompt", "text": f"/goal-audit {ip}"})
@@ -1728,7 +1765,7 @@ def test_atlas_websocket_sim_debug_human_gate_persists_answer(tmp_path: Path, mo
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
-    client = TestClient(atlas_ui.create_app())
+    client = _authenticated_client(atlas_ui.create_app())
     with client.websocket_connect("/ws/agent") as ws:
         assert ws.receive_json()["type"] == "hello"
         ws.send_json({"type": "prompt", "text": f"/sim-debug {ip}"})
@@ -1748,7 +1785,8 @@ def test_atlas_websocket_sim_debug_human_gate_persists_answer(tmp_path: Path, mo
 
     assert "human_gate_answers.json" in captured
     answer_path = tmp_path / ip / "sim" / "human_gate_answers.json"
-    state_path = tmp_path / ".session" / ip / "ssot-gen" / "state.json"
+    username = client._atlas_username  # type: ignore[attr-defined]
+    state_path = tmp_path / ".session" / username / ip / "ssot-gen" / "state.json"
     answers = json.loads(answer_path.read_text(encoding="utf-8"))
     state = json.loads(state_path.read_text(encoding="utf-8"))
     assert answers["answers"][0]["goal_id"] == "EQ_DOUBLE"
@@ -1772,7 +1810,7 @@ def test_atlas_websocket_runs_fresh_structured_ip_full_equivalence_flow(tmp_path
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
-    client = TestClient(atlas_ui.create_app())
+    client = _authenticated_client(atlas_ui.create_app())
     with client.websocket_connect("/ws/agent") as ws:
         assert ws.receive_json()["type"] == "hello"
         ws.send_json({"type": "prompt", "text": f"/ssot-equiv-goals {ip}"})
@@ -1858,9 +1896,14 @@ def test_live_atlas_server_5400_equivalence_smoke(tmp_path: Path, monkeypatch):
             except Exception:
                 time.sleep(0.1)
         assert health.get("ok") is True
+        cookie = _register_live_user(f"http://{host}:{port}")
 
         async def drive_live_backend():
-            async with websockets.connect(f"ws://{host}:{port}/ws/agent", open_timeout=3) as ws:
+            async with websockets.connect(
+                f"ws://{host}:{port}/ws/agent",
+                extra_headers={"Cookie": cookie},
+                open_timeout=3,
+            ) as ws:
                 hello = json.loads(await ws.recv())
                 assert hello["type"] == "hello"
 
@@ -1892,13 +1935,17 @@ def test_live_atlas_server_5400_equivalence_smoke(tmp_path: Path, monkeypatch):
 
         asyncio.run(drive_live_backend())
 
-        with urllib.request.urlopen(f"http://{host}:{port}/api/progress?scope={ip}", timeout=2) as response:
+        request = urllib.request.Request(
+            f"http://{host}:{port}/api/progress?scope={ip}",
+            headers={"Cookie": cookie},
+        )
+        with urllib.request.urlopen(request, timeout=2) as response:
             progress = json.loads(response.read().decode("utf-8"))
         equiv = progress["selected"]["progress"]["equivalence_goals"]
         assert equiv["status"] == "pass"
-        assert equiv["total"] == 1
-        assert equiv["checked"] == 1
-        assert equiv["passed"] == 1
+        assert equiv["total"] >= 1
+        assert equiv["checked"] == equiv["total"]
+        assert equiv["passed"] == equiv["total"]
     finally:
         server.should_exit = True
         thread.join(timeout=5)

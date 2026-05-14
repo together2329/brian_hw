@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_manifest",
+  "ip": "uart_lite",
+  "top": "uart_lite",
+  "generated_at": "2026-05-14T13:48:48Z",
+  "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
+  "ssot": "uart_lite/yaml/uart_lite.ssot.yaml",
+  "equivalence_goals": "uart_lite/verify/equivalence_goals.json",
+  "rtl_contract": "uart_lite/rtl/rtl_contract.json",
+  "clock": "PCLK",
+  "reset": "PRESETn",
+  "reset_active": "low",
+  "latency_cycles": 1,
+  "parameters": {
+    "DATA_WIDTH": 8,
+    "FIFO_DEPTH": 16,
+    "OVERSAMPLE": 16,
+    "APB_ADDR_WIDTH": 8,
+    "APB_DATA_WIDTH": 32,
+    "CLOCK_FREQ_MHZ": 50,
+    "RESET_POLARITY": 0
+  },
+  "ports": [
+    {
+      "name": "PCLK",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PRESETn",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PADDR",
+      "direction": "input",
+      "width": 8
+    },
+    {
+      "name": "PSEL",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PENABLE",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PWRITE",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PWDATA",
+      "direction": "input",
+      "width": 32
+    },
+    {
+      "name": "PSTRB",
+      "direction": "input",
+      "width": 4
+    },
+    {
+      "name": "PRDATA",
+      "direction": "output",
+      "width": 32
+    },
+    {
+      "name": "PREADY",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "PSLVERR",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "tx",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "rx",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "uart_irq",
+      "direction": "output",
+      "width": 1
+    }
+  ],
+  "port_widths": {
+    "PCLK": 1,
+    "PRESETn": 1,
+    "PADDR": 8,
+    "PSEL": 1,
+    "PENABLE": 1,
+    "PWRITE": 1,
+    "PWDATA": 32,
+    "PSTRB": 4,
+    "PRDATA": 32,
+    "PREADY": 1,
+    "PSLVERR": 1,
+    "tx": 1,
+    "rx": 1,
+    "uart_irq": 1
+  },
+  "input_ports": [
+    "PADDR",
+    "PCLK",
+    "PENABLE",
+    "PRESETn",
+    "PSEL",
+    "PSTRB",
+    "PWDATA",
+    "PWRITE",
+    "rx"
+  ],
+  "output_ports": [
+    "PRDATA",
+    "PREADY",
+    "PSLVERR",
+    "tx",
+    "uart_irq"
+  ],
+  "input_map": {
+    "psel": "PSEL",
+    "penable": "PENABLE",
+    "pwrite": "PWRITE",
+    "paddr": "PADDR",
+    "pwdata": "PWDATA",
+    "rx": "rx"
+  },
+  "sample_condition": "1",
+  "sample_inputs": [],
+  "outputs": [
+    {
+      "name": "tx_serial",
+      "port": "tx",
+      "width": 1
+    },
+    {
+      "name": "uart_irq",
+      "port": "uart_irq",
+      "width": 1
+    },
+    {
+      "name": "pslverr",
+      "port": "PSLVERR",
+      "width": 1
+    },
+    {
+      "name": "pready",
+      "port": "PREADY",
+      "width": 1
+    },
+    {
+      "name": "prdata",
+      "port": "PRDATA",
+      "width": 32
+    },
+    {
+      "name": "PRDATA",
+      "port": "PRDATA",
+      "width": 32
+    },
+    {
+      "name": "PREADY",
+      "port": "PREADY",
+      "width": 1
+    },
+    {
+      "name": "PSLVERR",
+      "port": "PSLVERR",
+      "width": 1
+    },
+    {
+      "name": "tx",
+      "port": "tx",
+      "width": 1
+    }
+  ],
+  "special_outputs": {},
+  "transaction_kind": "FM_TX_BYTE",
+  "rtl_sources": [
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite/rtl/uart_lite_regs.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite/rtl/uart_lite_tx.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite/rtl/uart_lite_rx.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite/rtl/uart_lite_baud_gen.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite/rtl/uart_lite_tx_fifo.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite/rtl/uart_lite_rx_fifo.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite/rtl/uart_lite_core.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_lite/rtl/uart_lite.sv"
+  ],
+  "goal_count": 68,
+  "module_goal_count": 2,
+  "module_goals": [
+    {
+      "goal_id": "EQ_MODULE_UART_LITE_TX",
+      "rtl_module": "uart_lite_tx",
+      "rtl_file": "rtl/uart_lite_tx.sv"
+    },
+    {
+      "goal_id": "EQ_MODULE_UART_LITE_RX",
+      "rtl_module": "uart_lite_rx",
+      "rtl_file": "rtl/uart_lite_rx.sv"
+    }
+  ]
+}

@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: if_stage
 - Owner file: rtl/cortex_m0lite_if_stage.sv
-- Task count: 1
-- Required tasks: 1
+- Task count: 2
+- Required tasks: 2
 
 ## Rules
 
@@ -12,6 +12,8 @@
 - Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.
 - Every task must satisfy content, detail, and criteria before the packet is closed.
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
+- Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
+- Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
@@ -35,6 +37,28 @@
   - if_stage.if_id_instr <= if_id_instr (integration.connections[1])
 
 ## Tasks
+
+### RTL-0106: Implement pipeline stage: IF
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: cycle_model.pipeline
+- Source ref: cycle_model.pipeline.IF
+- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
+SSOT ref: cycle_model.pipeline.IF.
+Owner: if_stage in rtl/cortex_m0lite_if_stage.sv via cycle_model.pipeline.
+SSOT item context: stage=IF; action=Fetch request/acceptance.; cycle=0.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL contains the control/state/handshake logic for this cycle rule
+  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
+  - TB scoreboard/coverage can observe the rule at the declared phase
+  - Traceability keeps source_ref cycle_model.pipeline.IF
+  - Primary implementation evidence is in rtl/cortex_m0lite_if_stage.sv
+  - cycle_model.pipeline.IF timing uses SSOT cycle/latency 0
+  - cycle_model.pipeline.IF appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
+- SSOT refs: cycle_model.pipeline.IF
 
 ### RTL-0178: Prove module if_stage is functionally equivalent to FL
 

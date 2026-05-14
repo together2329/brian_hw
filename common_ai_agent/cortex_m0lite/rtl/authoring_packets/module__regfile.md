@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: regfile
 - Owner file: rtl/cortex_m0lite_regfile.sv
-- Task count: 2
-- Required tasks: 2
+- Task count: 6
+- Required tasks: 6
 
 ## Rules
 
@@ -12,6 +12,8 @@
 - Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.
 - Every task must satisfy content, detail, and criteria before the packet is closed.
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
+- Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
+- Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
@@ -34,6 +36,94 @@
   - regfile.wb_rf_wdata <= wb_rf_wdata (integration.connections[5])
 
 ## Tasks
+
+### RTL-0072: Implement RTL state owner for FL state pc_q
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.state_variable
+- Source ref: function_model.state_variables.pc_q
+- Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
+SSOT ref: function_model.state_variables.pc_q.
+Owner: regfile in rtl/cortex_m0lite_regfile.sv via function_model.state_variables.
+SSOT item context: name=pc_q; width=XLEN; reset=RESET_PC.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - State has a flop/register/memory owner in RTL
+  - Reset value matches SSOT
+  - Every transaction update occurs at the SSOT-defined acceptance/cycle point
+  - Traceability keeps source_ref function_model.state_variables.pc_q
+  - Primary implementation evidence is in rtl/cortex_m0lite_regfile.sv
+  - pc_q width matches SSOT value XLEN
+  - pc_q reset behavior matches SSOT value RESET_PC
+- SSOT refs: function_model.state_variables.pc_q
+
+### RTL-0073: Implement RTL state owner for FL state rf_q
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.state_variable
+- Source ref: function_model.state_variables.rf_q
+- Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
+SSOT ref: function_model.state_variables.rf_q.
+Owner: regfile in rtl/cortex_m0lite_regfile.sv via function_model.state_variables.
+SSOT item context: name=rf_q; width=32; reset=0.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - State has a flop/register/memory owner in RTL
+  - Reset value matches SSOT
+  - Every transaction update occurs at the SSOT-defined acceptance/cycle point
+  - Traceability keeps source_ref function_model.state_variables.rf_q
+  - Primary implementation evidence is in rtl/cortex_m0lite_regfile.sv
+  - rf_q width matches SSOT value 32
+  - rf_q reset behavior matches SSOT value 0
+- SSOT refs: function_model.state_variables.rf_q
+
+### RTL-0074: Implement RTL state owner for FL state nzcv_q
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.state_variable
+- Source ref: function_model.state_variables.nzcv_q
+- Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
+SSOT ref: function_model.state_variables.nzcv_q.
+Owner: regfile in rtl/cortex_m0lite_regfile.sv via function_model.state_variables.
+SSOT item context: name=nzcv_q; width=4; reset=0.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - State has a flop/register/memory owner in RTL
+  - Reset value matches SSOT
+  - Every transaction update occurs at the SSOT-defined acceptance/cycle point
+  - Traceability keeps source_ref function_model.state_variables.nzcv_q
+  - Primary implementation evidence is in rtl/cortex_m0lite_regfile.sv
+  - nzcv_q width matches SSOT value 4
+  - nzcv_q reset behavior matches SSOT value 0
+- SSOT refs: function_model.state_variables.nzcv_q
+
+### RTL-0075: Implement RTL state owner for FL state trap_q
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.state_variable
+- Source ref: function_model.state_variables.trap_q
+- Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
+SSOT ref: function_model.state_variables.trap_q.
+Owner: regfile in rtl/cortex_m0lite_regfile.sv via function_model.state_variables.
+SSOT item context: name=trap_q; width=1; reset=0.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - State has a flop/register/memory owner in RTL
+  - Reset value matches SSOT
+  - Every transaction update occurs at the SSOT-defined acceptance/cycle point
+  - Traceability keeps source_ref function_model.state_variables.trap_q
+  - Primary implementation evidence is in rtl/cortex_m0lite_regfile.sv
+  - trap_q width matches SSOT value 1
+  - trap_q reset behavior matches SSOT value 0
+- SSOT refs: function_model.state_variables.trap_q
 
 ### RTL-0129: Implement memory item regfile_storage
 

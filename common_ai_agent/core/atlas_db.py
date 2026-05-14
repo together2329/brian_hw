@@ -291,6 +291,12 @@ CREATE INDEX IF NOT EXISTS idx_trace_events_context ON trace_events(workspace_id
 CREATE INDEX IF NOT EXISTS idx_trace_events_run ON trace_events(run_id, stage_id, todo_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_trace_events_correlation ON trace_events(correlation_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_trace_events_session ON trace_events(session_id, created_at);
+-- Chat read path: list_chat_messages and list_chat_unconsumed_for both
+-- filter on (event_type, ip_id) and order by created_at. Without this
+-- index sqlite does a full scan + temp B-tree sort, which becomes the
+-- bottleneck once a room has thousands of chat rows.
+CREATE INDEX IF NOT EXISTS idx_trace_events_chat_room
+  ON trace_events(event_type, ip_id, created_at);
 
 -- llm_calls (canonical token/cost trace)
 CREATE TABLE IF NOT EXISTS llm_calls (
@@ -461,6 +467,13 @@ class AtlasDB:
     def _run_lightweight_migrations(self, conn: sqlite3.Connection) -> None:
         """Apply additive SQLite migrations for existing local databases."""
         self._ensure_column(conn, "workflow_todos", "notes", "TEXT")
+        # Backfill the chat-room index on databases created before
+        # 2026-05-15. CREATE INDEX IF NOT EXISTS is idempotent so this
+        # is safe to re-run on every boot.
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_trace_events_chat_room
+                  ON trace_events(event_type, ip_id, created_at)"""
+        )
 
     @staticmethod
     def _ensure_column(

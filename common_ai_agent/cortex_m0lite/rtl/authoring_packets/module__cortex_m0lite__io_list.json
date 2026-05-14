@@ -12,7 +12,7 @@
       "enabled": true,
       "index": 2,
       "key": "io_list",
-      "module_task_count": 58,
+      "module_task_count": 53,
       "rule": "Owner module cortex_m0lite is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "io_list",
       "section_chunk_count": 1,
@@ -885,20 +885,22 @@
     "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
     "Every task must satisfy content, detail, and criteria before the packet is closed.",
     "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
     "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
   ],
   "schema_version": 1,
   "source_plan": "rtl/rtl_todo_plan.json",
   "summary": {
     "categories": {
-      "io_list.port": 27
+      "io_list.port": 22
     },
     "module_slice": {
       "count": 7,
       "enabled": true,
       "index": 2,
       "key": "io_list",
-      "module_task_count": 58,
+      "module_task_count": 53,
       "rule": "Owner module cortex_m0lite is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "io_list",
       "section_chunk_count": 1,
@@ -906,12 +908,8 @@
       "task_limit": 48
     },
     "open_required_count": 0,
-    "required_count": 27,
+    "required_count": 22,
     "source_refs": [
-      "io_list.clock_domains.core_clk.ports.clk",
-      "io_list.clock_domains.bus_clk.ports.hclk",
-      "io_list.resets.core_rst_n.ports.rst_n",
-      "io_list.resets.bus_rst_n.ports.hresetn",
       "io_list.interfaces.instr_ahb_m.ports.i_haddr",
       "io_list.interfaces.instr_ahb_m.ports.i_htrans",
       "io_list.interfaces.instr_ahb_m.ports.i_hwrite",
@@ -930,195 +928,17 @@
       "io_list.interfaces.data_ahb_m.ports.d_hrdata",
       "io_list.interfaces.data_ahb_m.ports.d_hready",
       "io_list.interfaces.data_ahb_m.ports.d_hresp",
-      "io_list.interfaces.irq_if.ports.irq",
-      "io_list.interfaces.debug_status.ports.pc_dbg"
+      "io_list.interfaces.debug_status.ports.pc_dbg",
+      "io_list.interfaces.debug_status.ports.state_dbg",
+      "io_list.interfaces.debug_status.ports.retire",
+      "io_list.interfaces.debug_status.ports.trap"
     ],
     "status_counts": {
-      "pass": 27
+      "pass": 22
     },
-    "task_count": 27
+    "task_count": 22
   },
   "tasks": [
-    {
-      "category": "io_list.port",
-      "content": "Implement and connect port clk",
-      "criteria": [
-        "RTL declaration matches SSOT direction and width",
-        "Active input controls are consumed by behavior or explicitly justified",
-        "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.clock_domains.core_clk.ports.clk",
-        "Primary implementation evidence is in rtl/cortex_m0lite.sv",
-        "clk width matches SSOT value 1",
-        "clk port direction remains input"
-      ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.core_clk.ports.clk.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=clk; width=1; direction=input.",
-      "evidence_terms": [],
-      "id": "RTL-0045",
-      "owner_file": "rtl/cortex_m0lite.sv",
-      "owner_module": "cortex_m0lite",
-      "priority": "normal",
-      "required": true,
-      "source_ref": "io_list.clock_domains.core_clk.ports.clk",
-      "ssot_context": {
-        "direction": "input",
-        "name": "clk",
-        "width": "1"
-      },
-      "ssot_refs": [
-        "io_list.clock_domains.core_clk.ports.clk"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 7,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "io_list.port",
-      "content": "Implement and connect port hclk",
-      "criteria": [
-        "RTL declaration matches SSOT direction and width",
-        "Active input controls are consumed by behavior or explicitly justified",
-        "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.clock_domains.bus_clk.ports.hclk",
-        "Primary implementation evidence is in rtl/cortex_m0lite.sv",
-        "hclk width matches SSOT value 1",
-        "hclk port direction remains input"
-      ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.bus_clk.ports.hclk.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=hclk; width=1; direction=input.",
-      "evidence_terms": [],
-      "id": "RTL-0046",
-      "owner_file": "rtl/cortex_m0lite.sv",
-      "owner_module": "cortex_m0lite",
-      "priority": "normal",
-      "required": true,
-      "source_ref": "io_list.clock_domains.bus_clk.ports.hclk",
-      "ssot_context": {
-        "direction": "input",
-        "name": "hclk",
-        "width": "1"
-      },
-      "ssot_refs": [
-        "io_list.clock_domains.bus_clk.ports.hclk"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 7,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "io_list.port",
-      "content": "Implement and connect port rst_n",
-      "criteria": [
-        "RTL declaration matches SSOT direction and width",
-        "Active input controls are consumed by behavior or explicitly justified",
-        "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.resets.core_rst_n.ports.rst_n",
-        "Primary implementation evidence is in rtl/cortex_m0lite.sv",
-        "rst_n width matches SSOT value 1",
-        "rst_n port direction remains input"
-      ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.core_rst_n.ports.rst_n.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=rst_n; width=1; direction=input.",
-      "evidence_terms": [],
-      "id": "RTL-0047",
-      "owner_file": "rtl/cortex_m0lite.sv",
-      "owner_module": "cortex_m0lite",
-      "priority": "normal",
-      "required": true,
-      "source_ref": "io_list.resets.core_rst_n.ports.rst_n",
-      "ssot_context": {
-        "direction": "input",
-        "name": "rst_n",
-        "width": "1"
-      },
-      "ssot_refs": [
-        "io_list.resets.core_rst_n.ports.rst_n"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 7,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "io_list.port",
-      "content": "Implement and connect port hresetn",
-      "criteria": [
-        "RTL declaration matches SSOT direction and width",
-        "Active input controls are consumed by behavior or explicitly justified",
-        "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.resets.bus_rst_n.ports.hresetn",
-        "Primary implementation evidence is in rtl/cortex_m0lite.sv",
-        "hresetn width matches SSOT value 1",
-        "hresetn port direction remains input"
-      ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.bus_rst_n.ports.hresetn.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=hresetn; width=1; direction=input.",
-      "evidence_terms": [],
-      "id": "RTL-0048",
-      "owner_file": "rtl/cortex_m0lite.sv",
-      "owner_module": "cortex_m0lite",
-      "priority": "normal",
-      "required": true,
-      "source_ref": "io_list.resets.bus_rst_n.ports.hresetn",
-      "ssot_context": {
-        "direction": "input",
-        "name": "hresetn",
-        "width": "1"
-      },
-      "ssot_refs": [
-        "io_list.resets.bus_rst_n.ports.hresetn"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 7,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
     {
       "category": "io_list.port",
       "content": "Implement and connect port i_haddr",
@@ -1131,7 +951,7 @@
         "i_haddr width matches SSOT value AHB_ADDR_W",
         "i_haddr port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.instr_ahb_m.ports.i_haddr.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=i_haddr; width=AHB_ADDR_W; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.instr_ahb_m.ports.i_haddr.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=i_haddr; width=AHB_ADDR_W; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0049",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -1176,7 +996,7 @@
         "i_htrans width matches SSOT value 2",
         "i_htrans port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.instr_ahb_m.ports.i_htrans.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=i_htrans; width=2; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.instr_ahb_m.ports.i_htrans.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=i_htrans; width=2; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0050",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -1221,7 +1041,7 @@
         "i_hwrite width matches SSOT value 1",
         "i_hwrite port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hwrite.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=i_hwrite; width=1; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hwrite.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=i_hwrite; width=1; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0051",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -1266,7 +1086,7 @@
         "i_hsize width matches SSOT value 3",
         "i_hsize port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hsize.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=i_hsize; width=3; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hsize.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=i_hsize; width=3; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0052",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -1311,7 +1131,7 @@
         "i_hburst width matches SSOT value 3",
         "i_hburst port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hburst.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=i_hburst; width=3; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hburst.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=i_hburst; width=3; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0053",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -1356,7 +1176,7 @@
         "i_hwdata width matches SSOT value AHB_DATA_W",
         "i_hwdata port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hwdata.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=i_hwdata; width=AHB_DATA_W; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hwdata.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=i_hwdata; width=AHB_DATA_W; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0054",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -1401,7 +1221,7 @@
         "i_hrdata width matches SSOT value AHB_DATA_W",
         "i_hrdata port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hrdata.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=i_hrdata; width=AHB_DATA_W; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hrdata.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=i_hrdata; width=AHB_DATA_W; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0055",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -1446,7 +1266,7 @@
         "i_hready width matches SSOT value 1",
         "i_hready port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hready.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=i_hready; width=1; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hready.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=i_hready; width=1; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0056",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -1491,7 +1311,7 @@
         "i_hresp width matches SSOT value 1",
         "i_hresp port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hresp.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=i_hresp; width=1; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.instr_ahb_m.ports.i_hresp.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=i_hresp; width=1; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0057",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -1536,7 +1356,7 @@
         "d_haddr width matches SSOT value AHB_ADDR_W",
         "d_haddr port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_ahb_m.ports.d_haddr.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=d_haddr; width=AHB_ADDR_W; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_ahb_m.ports.d_haddr.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=d_haddr; width=AHB_ADDR_W; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0058",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -1581,7 +1401,7 @@
         "d_htrans width matches SSOT value 2",
         "d_htrans port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_ahb_m.ports.d_htrans.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=d_htrans; width=2; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_ahb_m.ports.d_htrans.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=d_htrans; width=2; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0059",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -1626,7 +1446,7 @@
         "d_hwrite width matches SSOT value 1",
         "d_hwrite port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_ahb_m.ports.d_hwrite.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=d_hwrite; width=1; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_ahb_m.ports.d_hwrite.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=d_hwrite; width=1; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0060",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -1671,7 +1491,7 @@
         "d_hsize width matches SSOT value 3",
         "d_hsize port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_ahb_m.ports.d_hsize.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=d_hsize; width=3; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_ahb_m.ports.d_hsize.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=d_hsize; width=3; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0061",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -1716,7 +1536,7 @@
         "d_hburst width matches SSOT value 3",
         "d_hburst port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_ahb_m.ports.d_hburst.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=d_hburst; width=3; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_ahb_m.ports.d_hburst.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=d_hburst; width=3; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0062",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -1761,7 +1581,7 @@
         "d_hwdata width matches SSOT value AHB_DATA_W",
         "d_hwdata port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_ahb_m.ports.d_hwdata.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=d_hwdata; width=AHB_DATA_W; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_ahb_m.ports.d_hwdata.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=d_hwdata; width=AHB_DATA_W; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0063",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -1806,7 +1626,7 @@
         "d_hrdata width matches SSOT value AHB_DATA_W",
         "d_hrdata port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_ahb_m.ports.d_hrdata.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=d_hrdata; width=AHB_DATA_W; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_ahb_m.ports.d_hrdata.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=d_hrdata; width=AHB_DATA_W; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0064",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -1851,7 +1671,7 @@
         "d_hready width matches SSOT value 1",
         "d_hready port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_ahb_m.ports.d_hready.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=d_hready; width=1; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_ahb_m.ports.d_hready.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=d_hready; width=1; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0065",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -1896,7 +1716,7 @@
         "d_hresp width matches SSOT value 1",
         "d_hresp port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_ahb_m.ports.d_hresp.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=d_hresp; width=1; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.data_ahb_m.ports.d_hresp.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=d_hresp; width=1; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0066",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -1931,51 +1751,6 @@
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port irq",
-      "criteria": [
-        "RTL declaration matches SSOT direction and width",
-        "Active input controls are consumed by behavior or explicitly justified",
-        "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.irq_if.ports.irq",
-        "Primary implementation evidence is in rtl/cortex_m0lite.sv",
-        "irq width matches SSOT value 1",
-        "irq port direction remains input"
-      ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.irq_if.ports.irq.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=irq; width=1; direction=input.",
-      "evidence_terms": [],
-      "id": "RTL-0067",
-      "owner_file": "rtl/cortex_m0lite.sv",
-      "owner_module": "cortex_m0lite",
-      "priority": "normal",
-      "required": true,
-      "source_ref": "io_list.interfaces.irq_if.ports.irq",
-      "ssot_context": {
-        "direction": "input",
-        "name": "irq",
-        "width": "1"
-      },
-      "ssot_refs": [
-        "io_list.interfaces.irq_if.ports.irq"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 7,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "io_list.port",
       "content": "Implement and connect port pc_dbg",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
@@ -1986,7 +1761,7 @@
         "pc_dbg width matches SSOT value XLEN",
         "pc_dbg port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.debug_status.ports.pc_dbg.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=pc_dbg; width=XLEN; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.debug_status.ports.pc_dbg.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=pc_dbg; width=XLEN; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0068",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -2031,7 +1806,7 @@
         "state_dbg width matches SSOT value 3",
         "state_dbg port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.debug_status.ports.state_dbg.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=state_dbg; width=3; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.debug_status.ports.state_dbg.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=state_dbg; width=3; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0069",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -2076,7 +1851,7 @@
         "retire width matches SSOT value 1",
         "retire port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.debug_status.ports.retire.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=retire; width=1; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.debug_status.ports.retire.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=retire; width=1; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0070",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -2121,7 +1896,7 @@
         "trap width matches SSOT value 1",
         "trap port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.debug_status.ports.trap.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.\nSSOT item context: name=trap; width=1; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.debug_status.ports.trap.\nOwner: cortex_m0lite in rtl/cortex_m0lite.sv via io_list.interfaces.\nSSOT item context: name=trap; width=1; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0071",
       "owner_file": "rtl/cortex_m0lite.sv",
@@ -2155,7 +1930,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "67adb8890410a2aeeee9a654b645018e5e9f79eb8ebcffab7e873d9d102687f9",
+  "todo_plan_sha256": "c6dd55ff414292d6cfb25aa90ae64245d5f8618420d87d35c2436677a025d78f",
   "top": "cortex_m0lite",
   "type": "rtl_authoring_packet"
 }

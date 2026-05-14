@@ -1,0 +1,672 @@
+# debouncer.ssot.yaml — Single Source of Truth
+top_module:
+  name: "debouncer"
+  file: "rtl/debouncer.sv"
+  version: "1.0"
+  type: "peripheral"
+  description: "Parametric input debouncer — filters noisy digital inputs by requiring a programmable number of consecutive stable samples before propagating transitions to the output"
+  reference_spec: "user-defined"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 50
+    area_um2: null
+    power_mw: null
+sub_modules:
+  - { name: "debouncer_regs",  file: "rtl/debouncer_regs.sv",  ownership: "manifest", ssot_gen: true,  implements: ["registers.register_list", "io_list.interfaces.apb_slave"], source_sections: ["registers", "io_list"], register_refs: ["registers.register_list"], ssot_refs: ["io_list.interfaces.apb_slave"], description: "APB-lite register file: STATUS, CONFIG, RAW_STATUS" }
+  - { name: "debouncer_core",  file: "rtl/debouncer_core.sv",  ownership: "manifest", ssot_gen: true,  implements: ["function_model.transactions", "function_model.state_variables", "cycle_model.pipeline"], source_sections: ["function_model", "cycle_model"], function_model_refs: ["function_model.transactions", "function_model.state_variables"], cycle_model_refs: ["cycle_model.pipeline", "cycle_model.handshake_rules"], description: "Core debounce counter array and output generation" }
+
+decomposition:
+  units:
+    - { id: "decode", kind: "control", source_refs: ["function_model.transactions"], rtl_candidates: ["debouncer_regs"], verification_impact: ["test_requirements.scenarios"] }
+    - { id: "execute", kind: "datapath", source_refs: ["function_model.transactions", "function_model.state_variables", "cycle_model.pipeline"], rtl_candidates: ["debouncer_core"], verification_impact: ["coverage_plan.functional", "coverage_plan.cycle"] }
+rtl_contract:
+  transaction: "FM_DEBOUNCE"
+  sample_condition: "every PCLK rising edge after PRESETn deassertion"
+  input_map:
+    raw_inputs: "debounce_input_i"
+    apb_write: "APB-lite pwdata for CONFIG register"
+    apb_read: "APB-lite pready/prdata for STATUS/RAW_STATUS reads"
+  output_map:
+    debounced_outputs: "debounce_output_o"
+    apb_read_data: "prdata"
+  state_updates:
+    - { name: "counter", reset: 0, expr: "increment when input != output; reset to 0 when input == output; saturate at DEBOUNCE_COUNT" }
+    - { name: "debounced_output", reset: 0, expr: "update to input value when counter reaches DEBOUNCE_COUNT" }
+    - { name: "debounce_count_cfg", reset: 16, expr: "loaded from CONFIG register on APB write" }
+
+parameters:
+  - name: "NUM_INPUTS"
+    default: 8
+    type: int
+    description: "Number of independent input signals to debounce"
+    drives: ["debouncer_core.sv", "debouncer_regs.sv", "debouncer.sv"]
+  - name: "DEBOUNCE_COUNT"
+    default: 16
+    type: int
+    description: "Default number of consecutive stable PCLK cycles required before an input transition reaches the output"
+    drives: ["debouncer_core.sv", "debouncer_regs.sv"]
+  - name: "COUNTER_WIDTH"
+    default: 8
+    type: int
+    description: "Bit width of the per-channel debounce counter; derived as $clog2(DEBOUNCE_COUNT+1)"
+    drives: ["debouncer_core.sv"]
+  - name: "CLOCK_FREQ_MHZ"
+    default: 50
+    type: int
+    description: "PCLK frequency in MHz"
+    drives: ["tb_top.sv", "docs/README.md"]
+  - name: "RESET_POLARITY"
+    default: "active_low"
+    type: enum
+    values: ["active_low", "active_high"]
+    drives: ["ALL .sv files"]
+io_list:
+  clock_domains:
+    - name: "PCLK"
+      frequency_mhz: 50
+      description: "APB-lite peripheral clock"
+      ports:
+        - { name: "PCLK", width: 1, direction: "input", description: "Peripheral clock" }
+  resets:
+    - name: "PRESETn"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "APB-lite peripheral reset"
+      ports:
+        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low asynchronous reset, synchronous deassertion" }
+  interfaces:
+    - name: "apb_slave"
+      type: "APB4-lite"
+      role: "slave"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "APB-lite register access interface for CONFIG, STATUS, RAW_STATUS"
+      protocol:
+        setup_phase: "psel=1, penable=0 captures paddr, pwrite, pwdata, pstrb on the rising edge of PCLK."
+        access_phase: "psel=1, penable=1 completes when pready=1. prdata is valid for reads in this phase."
+        write_rule: "pwdata and pstrb are sampled in the access phase when pwrite=1."
+        read_rule: "prdata is driven with valid read data in the access phase when pwrite=0."
+        error_rule: "pslverr is asserted with pready=1 only for accesses to unimplemented address regions."
+        ready_policy: "pready is driven high exactly one cycle after the setup phase (zero-wait-state APB)."
+      ports:
+        - { name: "paddr",    width: 12, direction: "input",  description: "APB address" }
+        - { name: "psel",     width: 1,  direction: "input",  description: "APB select" }
+        - { name: "penable",  width: 1,  direction: "input",  description: "APB enable" }
+        - { name: "pwrite",   width: 1,  direction: "input",  description: "APB write" }
+        - { name: "pwdata",   width: 32, direction: "input",  description: "APB write data" }
+        - { name: "pstrb",    width: 4,  direction: "input",  description: "APB strobes" }
+        - { name: "prdata",   width: 32, direction: "output", description: "APB read data" }
+        - { name: "pready",   width: 1,  direction: "output", description: "APB ready" }
+        - { name: "pslverr",  width: 1,  direction: "output", description: "APB error" }
+    - name: "debounce_data"
+      type: "custom"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "Raw digital inputs and debounced outputs"
+      protocol:
+        sampling: "debounce_input_i is sampled every PCLK rising edge after PRESETn deassertion."
+        stability: "debounce_output_o changes at most one PCLK cycle after the debounce counter saturates."
+        skew_tolerance: "Inputs are assumed to be synchronized to PCLK externally; no internal synchronizer."
+      ports:
+        - { name: "debounce_input_i",  width: 8, direction: "input",  description: "Raw (potentially noisy) input signals [NUM_INPUTS-1:0]" }
+        - { name: "debounce_output_o", width: 8, direction: "output", description: "Debounced output signals [NUM_INPUTS-1:0]" }
+features:
+  - name: "Parametric input debounce"
+    trigger: "Any transition on debounce_input_i bits relative to current debounced_output_o"
+    datapath: "Per-channel saturating counter: when input != output, counter increments each PCLK cycle toward CONFIG.debounce_count; when input == output, counter resets to 0; when counter reaches debounce_count, output updates to match input"
+    control: "Counter update and output update logic runs every PCLK cycle after reset deassertion"
+    output: "debounce_output_o reflects the debounced (filtered) value of each input"
+  - name: "Runtime debounce threshold configuration"
+    trigger: "APB write to CONFIG register"
+    datapath: "pwdata[15:0] → debounce_count_cfg register"
+    control: "APB-lite setup+access phase; write accepted when psel && penable && pwrite"
+    output: "Updated debounce_count threshold used by all debounce channels"
+
+dataflow:
+  input_path:
+    source: "debounce_input_i (external pin or logic)"
+    sampling: "Sampled every PCLK rising edge into input_sync register"
+    compare: "input_sync[i] compared to debounced_output_o[i]"
+  counter_path:
+    source: "per-channel counter register"
+    increment: "counter[i]++ when input_sync[i] != debounced_output_o[i] and counter[i] < debounce_count_cfg"
+    reset: "counter[i] = 0 when input_sync[i] == debounced_output_o[i]"
+  output_path:
+    trigger: "counter[i] reaches debounce_count_cfg"
+    update: "debounced_output_o[i] ← input_sync[i]"
+  configuration:
+    source: "APB-lite pwdata[15:0]"
+    update: "debounce_count_cfg ← pwdata[15:0] on APB write to CONFIG offset"
+  latency:
+    total_latency: "1 PCLK cycle from counter saturation to output change, plus debounce_count cycles of stable input"
+function_model:
+  purpose: "Executable behavioral contract for rtl-gen and tb-gen; describes what the debouncer computes independent of cycle timing."
+  state_variables:
+    - { name: "debounced_output", source: "registers.STATUS", reset: 0, description: "Current debounced output for each input channel" }
+    - { name: "counter", source: "internal", reset: "0 for each channel", description: "Saturating stability counter per input channel" }
+    - { name: "debounce_count_cfg", source: "registers.CONFIG", reset: 16, description: "Programmable threshold for consecutive stable samples" }
+  transactions:
+    - id: "FM_DEBOUNCE"
+      name: "input_debounce_filter"
+      preconditions:
+        - "PRESETn deasserted"
+        - "PCLK running"
+      inputs:
+        - "debounce_input_i sampled each PCLK cycle"
+        - "debounce_count_cfg via APB CONFIG register write"
+      outputs:
+        - "debounce_output_o reflects debounce_input_i after debounce_count_cfg consecutive stable cycles"
+      output_rules:
+        - { name: "debounce_output_o", expr: "debounced_output register", width: 8, port: "debounce_output_o" }
+        - { name: "prdata", expr: "register read data per APB address decode", width: 32, port: "prdata" }
+      side_effects:
+        - "counter[i] increments toward debounce_count_cfg when debounce_input_i[i] != debounced_output[i]"
+        - "counter[i] resets to 0 when debounce_input_i[i] == debounced_output[i]"
+        - "debounced_output[i] updates to debounce_input_i[i] when counter[i] reaches debounce_count_cfg"
+        - "debounce_count_cfg updates on APB write to CONFIG offset"
+      error_cases:
+        - { condition: "APB access to unimplemented address", result: "pslverr asserted with pready" }
+  invariants:
+    - "debounce_output_o never changes within debounce_count_cfg cycles of a debounce_input_i transition"
+    - "A single input pulse shorter than debounce_count_cfg cycles does not propagate to the output"
+    - "Register reads have no side effects"
+    - "debounce_count_cfg may be changed at any time and takes effect on the next sampling cycle"
+  reference_model_hint: "tb-gen should implement a Python scoreboard model that mirrors the counter logic per channel and compares expected debounce_output_o against the DUT"
+cycle_model:
+  purpose: "Cycle/handshake contract for rtl-gen; describes when state, valid/ready, outputs change for the debouncer."
+  executable: "pymtl3"
+  backend_policy: "Use PyMTL3 for the clocked cycle model shell; keep FunctionalModel as the behavioral oracle."
+  clock: "PCLK"
+  reset:
+    assertion: "PRESETn low asynchronously clears all counters and output registers to 0"
+    deassertion: "state is usable on the first PCLK rising edge after synchronized deassertion of PRESETn"
+  latency:
+    sample_to_output: { min_cycles: 0, max_cycles: 1, description: "Output updates in the same cycle counter saturates or the next cycle" }
+    register_read: { min_cycles: 0, max_cycles: 1, description: "APB zero-wait-state read; pready asserted one cycle after setup phase" }
+    register_write: { min_cycles: 0, max_cycles: 1, description: "APB zero-wait-state write; pready asserted one cycle after setup phase" }
+  handshake_rules:
+    - { signal: "pready", rule: "Assert high exactly one cycle after psel && !penable (setup phase), held until penable deasserted." }
+    - { signal: "pslverr", rule: "Assert only with pready=1 for accesses to unimplemented offsets." }
+    - { signal: "debounce_input_i", rule: "Sampled on every PCLK rising edge; must be stable from external synchronizer." }
+    - { signal: "debounce_output_o", rule: "Registered output; changes at most once per PCLK cycle after counter saturation." }
+  pipeline:
+    - { stage: "S0_SAMPLE", cycle: 0, action: "Sample debounce_input_i and current debounced_output into compare registers" }
+    - { stage: "S1_UPDATE", cycle: 1, action: "Update per-channel counters, update debounced_output where counter saturates, drive APB pready/prdata" }
+  ordering:
+    - "debounce_input_i sampled in S0 determines counter update in S1."
+    - "Counter saturation in S1 updates debounce_output_o in the same S1 cycle."
+    - "APB register reads reflect the value at the start of the access phase."
+  backpressure:
+    - "No flow control on debounce_input_i/debounce_output_o — pure combinational/registered path."
+    - "APB pready is always asserted in the access phase (zero-wait-state); no backpressure."
+  performance:
+    frequency_mhz: 50
+    throughput: { sustained_inputs_per_cycle: 1, condition: "All NUM_INPUTS channels sampled every PCLK cycle" }
+    outstanding: { read_max: 1, write_max: 1, description: "Single-cycle APB transactions; no pipelining of APB requests" }
+    depth: { pipeline_stages: 2, queue_depth: 0, description: "S0_SAMPLE + S1_UPDATE two-stage pipeline" }
+  observability:
+    - "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
+clock_reset_domains:
+  domains:
+    - { name: "PCLK", frequency_mhz: 50, description: "Single peripheral clock domain" }
+  reset_scheme:
+    signal: "PRESETn"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain — no CDC required. Input signals assumed externally synchronized to PCLK."
+
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "No reset domain crossings"
+registers:
+  config:
+    register_width: 32
+    addr_width: 12
+    byte_addressable: true
+  bit_order: "lsb0"
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: "ignore"
+    rtl_requirement: "Reserved fields read as zero and do not allocate storage."
+  register_list:
+    - name: "STATUS"
+      offset: 0x000
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "status"
+      description: "Debounced Output Status Register — reflects the filtered output state for each input channel"
+      read_side_effects: []
+      fields:
+        - { name: "debounced_output", bits: [NUM_INPUTS-1, 0], width: 8, access: "ro", reset: 0x00, description: "Debounced output value per input channel" }
+        - { name: "reserved_31_N", bits: [31, NUM_INPUTS], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+    - name: "CONFIG"
+      offset: 0x004
+      width: 32
+      access: "rw"
+      reset: 0x00000010
+      category: "control"
+      description: "Configuration Register — sets the debounce stability threshold"
+      write_side_effects:
+        - "Writing debounce_count updates the threshold immediately; active counters continue with the new threshold on the next compare cycle."
+      fields:
+        - { name: "debounce_count", bits: [15, 0], access: "rw", reset: 0x0010, write_effect: "Number of consecutive stable PCLK cycles required before a transition propagates to debounce_output_o", description: "Debounce threshold; reset default 16" }
+        - { name: "reserved_31_16", bits: [31, 16], access: "reserved", reset: 0x0000, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+    - name: "RAW_STATUS"
+      offset: 0x008
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "debug"
+      description: "Raw Input Status Register — reflects the raw (undebounced) input state for observability"
+      read_side_effects: []
+      fields:
+        - { name: "raw_input", bits: [NUM_INPUTS-1, 0], width: 8, access: "ro", reset: 0x00, description: "Raw input value per channel, sampled synchronously" }
+        - { name: "reserved_31_N", bits: [31, NUM_INPUTS], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+memory:
+  instances:
+    - { name: "counter", type: "register_file", depth: 8, width: 8, read_ports: 1, write_ports: 1, latency: 0, description: "Per-channel saturating debounce counter array" }
+  note: "COUNTER_WIDTH is parameterised; 8-bit default supports DEBOUNCE_COUNT up to 255."
+
+interrupts:
+  sources: []
+  output:
+    signal: "none"
+    polarity: "active_high"
+    type: "level"
+  note: "This IP has no interrupt output. If downstream integration requires an edge on output change, add an edge-detector wrapper."
+
+fsm:
+  pipeline_model:
+    stages:
+      - "S0_SAMPLE"
+      - "S1_UPDATE"
+    transitions:
+      - { from: "S0_SAMPLE", to: "S1_UPDATE", condition: "every PCLK rising edge after reset deassertion" }
+      - { from: "S1_UPDATE", to: "S0_SAMPLE", condition: "every PCLK rising edge" }
+  note: "No control FSM — pure dataflow pipeline. S0 samples inputs and compares against current output; S1 updates counters and drives output and APB response."
+timing:
+  target_clocks:
+    - { name: "PCLK", frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.5 }
+  latency_budget:
+    sample_to_output_cycles: { min: 0, max: 1, measured_from: "S1_UPDATE counter saturation", measured_to: "debounce_output_o valid" }
+    apb_access_cycles: { min: 2, max: 2, measured_from: "psel && !penable", measured_to: "psel && penable && pready" }
+  throughput:
+    sustained_inputs_per_cycle: 1
+    conditions: "All NUM_INPUTS channels sampled every PCLK cycle"
+  timing_exceptions: []
+  io_delays:
+    inputs:
+      - { ports: "debounce_input_i[*]", clock: "PCLK", delay_ns: 2.0, source: "external pin IO budget" }
+      - { ports: "paddr, psel, penable, pwrite, pwdata, pstrb", clock: "PCLK", delay_ns: 1.0, source: "APB bus IO budget" }
+    outputs:
+      - { ports: "debounce_output_o[*]", clock: "PCLK", delay_ns: 2.0, source: "external pin IO budget" }
+      - { ports: "prdata, pready, pslverr", clock: "PCLK", delay_ns: 1.0, source: "APB bus IO budget" }
+  false_paths:
+    - { from: "PRESETn", to: "all_registers", reason: "async reset assertion" }
+  multicycle_paths: []
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt", "sta/out/wns.json"]
+
+power:
+  domains:
+    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["PCLK"], isolation: "not_required_single_domain" }
+  clock_gating:
+    required: false
+    rationale: "Simple peripheral — always-on operation assumed"
+  reset_retention:
+    retention_required: false
+    reset_value_source: "registers register_list reset values"
+  power_states:
+    - { name: "ON", entry: "PRESETn deasserted, PCLK running", exit: "PRESETn asserted or PCLK stopped", guarantees: ["All debounce channels active, APB accessible"] }
+  upf_required: false
+
+security:
+  classification: "non_secure_peripheral"
+  assets:
+    - { name: "register_map", protection: "APB-lite access control is external to this IP" }
+    - { name: "debounce_configuration", protection: "CONFIG register controls debounce threshold; no privilege levels internal to IP" }
+  threat_model:
+    - { threat: "illegal register write to CONFIG", mitigation: "Access controlled by SoC APB fabric; IP has no internal authentication" }
+  privilege_model: "External bus fabric enforces privilege; this IP implements no internal privilege levels"
+  safety_goals:
+    - "Debounce counter does not overflow beyond saturation"
+    - "Reset always clears outputs to 0"
+
+error_handling:
+  error_sources:
+    - { id: "ERR_APB_UNIMPLEMENTED", condition: "APB access to address offset not in {0x000, 0x004, 0x008}", architectural_effect: "pslverr asserted with pready=1; prdata returns 0" }
+    - { id: "ERR_APB_WRITE_RO", condition: "APB write to STATUS or RAW_STATUS (read-only registers)", architectural_effect: "pslverr asserted with pready=1; register value unchanged" }
+  propagation:
+    - "pslverr is asserted combinational with pready in the access phase."
+    - "No internal fault state is retained; error is signaled on the bus only."
+  recovery:
+    - { action: "APB bus master observes pslverr and retries or aborts", clears: [], preserves: ["All register values"] }
+debug_observability:
+  waveform_must_probe:
+    - "debounce_input_i"
+    - "debounce_output_o"
+    - "counter[*]"
+    - "debounce_count_cfg"
+    - "PCLK"
+    - "PRESETn"
+  status_outputs: []
+  trace_events:
+    - { name: "input_transition", trigger: "debounce_input_i != previous sample" }
+    - { name: "counter_saturate", trigger: "counter[i] reaches debounce_count_cfg" }
+    - { name: "output_update", trigger: "debounce_output_o bit changes" }
+    - { name: "apb_config_write", trigger: "APB write to CONFIG offset accepted" }
+  debug_registers:
+    - "RAW_STATUS"
+
+integration:
+  bus_attachment:
+    control: "APB4-lite slave"
+    data: "none — purely register-based peripheral, no data bus"
+  connections:
+    - { module: "debouncer_core", port: "clk_i", signal: "PCLK" }
+    - { module: "debouncer_core", port: "rst_ni", signal: "PRESETn" }
+    - { module: "debouncer_core", port: "debounce_input_i", signal: "debounce_input_i" }
+    - { module: "debouncer_core", port: "debounce_output_o", signal: "debounce_output_o" }
+    - { module: "debouncer_core", port: "debounce_count_cfg_i", signal: "debounce_count_cfg" }
+    - { module: "debouncer_core", port: "raw_status_o", signal: "raw_status" }
+    - { module: "debouncer_regs", port: "paddr", signal: "paddr" }
+    - { module: "debouncer_regs", port: "psel", signal: "psel" }
+    - { module: "debouncer_regs", port: "penable", signal: "penable" }
+    - { module: "debouncer_regs", port: "pwrite", signal: "pwrite" }
+    - { module: "debouncer_regs", port: "pwdata", signal: "pwdata" }
+    - { module: "debouncer_regs", port: "pstrb", signal: "pstrb" }
+    - { module: "debouncer_regs", port: "prdata", signal: "prdata" }
+    - { module: "debouncer_regs", port: "pready", signal: "pready" }
+    - { module: "debouncer_regs", port: "pslverr", signal: "pslverr" }
+    - { module: "debouncer_regs", port: "debounced_output_i", signal: "debounce_output_o" }
+    - { module: "debouncer_regs", port: "raw_input_i", signal: "debounce_input_i" }
+    - { module: "debouncer_regs", port: "debounce_count_o", signal: "debounce_count_cfg" }
+  address_map_requirements:
+    alignment_bytes: 4
+    decode_owner: "debouncer_regs"
+    illegal_access_response: "pslverr for off-range APB access"
+  dependencies:
+    external_modules: []
+    external_clocks: ["PCLK"]
+    external_resets: ["PRESETn"]
+  integration_notes:
+    - "SoC must provide APB4-lite-compliant psel/penable sequencing."
+    - "debounce_input_i signals must be synchronized to PCLK by external logic; IP samples them synchronously."
+
+dft:
+  scan_required: false
+  scan_ports: []
+  test_mode_ports: []
+  controllability:
+    reset: "PRESETn must be controllable in test mode"
+    clocks: ["PCLK"]
+  observability:
+    required_internal_points: ["counter", "debounce_count_cfg", "debounced_output"]
+  mbist_required: false
+  notes: "No SRAM macros; register file counters are flop-based."
+synthesis:
+  dialect: "systemverilog_2012"
+  top_module: "debouncer"
+  technology:
+    pdk: "sky130"
+    standard_cell_library: "sky130_fd_sc_hd"
+    liberty_corner: "ss_100C_1v40"
+    liberty_env: "SKY130_LIB"
+    lef_env: "SKY130_LEF"
+    tech_lef_env: "SKY130_TLEF"
+    rcx_rules_env: "SKY130_RCX_RULES"
+  constraints:
+    - "No inferred latches"
+    - "All flops reset according to clock_reset_domains.reset_scheme"
+    - "No package/interface/modport/function/task/for/while constructs in generated RTL"
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 50
+  required_outputs:
+    - "syn/out/debouncer.json or syn/out/debouncer.v"
+    - "syn/out/area.rpt"
+    - "syn/out/timing_summary.rpt"
+
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: "met3"
+    vertical: "met2"
+  placement:
+    density_target: 0.65
+    max_displacement_um: null
+  cts:
+    buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"]
+    functional_mode_case_analysis:
+      - { port: "scan_en", value: 0, when_present: true }
+  routing:
+    signal_layers: { min: "met1", max: "met5" }
+    clock_layers: { min: "met3", max: "met5" }
+    drc_waivers: []
+  required_outputs:
+    - "pnr/out/floorplan.def"
+    - "pnr/out/placed.def"
+    - "pnr/out/cts.def"
+    - "pnr/out/routed.def"
+    - "pnr/out/routed.v"
+    - "pnr/out/routed.spef"
+    - "pnr/out/pnr.report.md"
+
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: null
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge PCLK or negedge PRESETn)"
+    - "blocking (=) in combinational always @(*)"
+    - "No latches: every combinational branch assigns all outputs (use a default)"
+    - "Active-low async reset: always @(posedge PCLK or negedge PRESETn) with if (!PRESETn)"
+    - "Parameterize widths via NUM_INPUTS, DEBOUNCE_COUNT, COUNTER_WIDTH"
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+    - "Use generate for loop to replicate per-channel debounce logic"
+  lint_waivers:
+    - "UNUSEDSIGNAL: reserved register fields tied to 0"
+    - "WIDTHEXPAND: reserved field bit ranges"
+reuse_modules: []
+
+custom:
+  assumptions:
+    - { id: "ASM_INPUT_SYNC", text: "debounce_input_i signals are externally synchronized to PCLK before arriving at the IP boundary. The IP samples them directly with no internal synchronizer chain.", impact: "If inputs are truly asynchronous, a synchronizer must be placed outside this IP." }
+    - { id: "ASM_NO_INTERRUPT", text: "This IP does not produce an interrupt output. If the SoC requires notification on output changes, instantiate an edge-detector wrapper downstream.", impact: "No IRQ port, no interrupt registers." }
+    - { id: "ASM_NUM_INPUTS_DEFAULT_8", text: "NUM_INPUTS defaults to 8. The register bit-fields scale with the parameter but the reserved_31_N field width is computed at elaboration time.", impact: "Software drivers should read NUM_INPUTS from a parameterization table rather than hardcoding." }
+    - { id: "ASM_ZERO_WAIT_APB", text: "All APB accesses complete in 2 cycles (setup + access) with zero wait states. pready is always asserted in the access phase for implemented addresses.", impact: "APB master must not rely on pready deassertion for flow control to this peripheral." }
+    - { id: "ASM_COUNTER_SATURATION", text: "The debounce counter saturates at debounce_count_cfg — it does not overflow or wrap. When input != output, counter increments toward threshold; when input == output, counter resets to 0.", impact: "A stable noisy input oscillating faster than debounce_count_cfg will never propagate to the output." }
+  note: "All assumptions recorded above are design decisions made during SSOT authoring. Pending human review via QA cards."
+
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "docs/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+
+filelist:
+  headers: []
+  rtl:
+    - "rtl/debouncer_regs.sv"
+    - "rtl/debouncer_core.sv"
+    - "rtl/debouncer.sv"
+  sim:
+    - "sim/tb_top.sv"
+    - "sim/tb_program.sv"
+    - "sim/tb_apb_master.sv"
+    - "sim/debouncer_model.sv"
+  firmware:
+    - "firmware/debouncer_regs.h"
+  docs:
+    - "docs/register_map.md"
+    - "docs/README.md"
+test_requirements:
+  scenarios:
+    - id: "SC1"
+      name: "Debounce basic propagation"
+      stimulus: "Drive debounce_input_i with a clean transition (stable for debounce_count_cfg+1 cycles)"
+      expected: "debounce_output_o follows the input after debounce_count_cfg consecutive stable cycles"
+      checker: "Scoreboard compares debounce_output_o against functional model per-channel prediction"
+      coverage: ["FM_DEBOUNCE", "S0_SAMPLE", "S1_UPDATE"]
+    - id: "SC2"
+      name: "Glitch rejection"
+      stimulus: "Drive a pulse on debounce_input_i lasting fewer than debounce_count_cfg cycles"
+      expected: "debounce_output_o does not change; counter resets after glitch ends"
+      checker: "Scoreboard verifies output remains stable throughout glitch"
+      coverage: ["counter_reset", "glitch_rejection"]
+    - id: "SC3"
+      name: "Runtime threshold change"
+      stimulus: "While debouncing is in progress, write a new debounce_count via APB CONFIG"
+      expected: "New threshold takes effect on next sampling cycle; counters reset if input matches output"
+      checker: "APB monitor verifies write acceptance; scoreboard uses updated threshold"
+      coverage: ["CONFIG_write", "threshold_update"]
+    - id: "SC4"
+      name: "APB access and error response"
+      stimulus: "Read STATUS/RAW_STATUS/CONFIG; write CONFIG; access unimplemented offsets; write to STATUS (RO)"
+      expected: "Valid registers read/write correctly; unimplemented/RO-write returns pslverr with pready"
+      checker: "APB protocol checker verifies pready/pslverr/prdata timing and values"
+      coverage: ["apb_read", "apb_write", "ERR_APB_UNIMPLEMENTED", "ERR_APB_WRITE_RO"]
+    - id: "SC5"
+      name: "Reset behavior"
+      stimulus: "Assert PRESETn mid-operation, then deassert"
+      expected: "All counters and debounce_output_o reset to 0; CONFIG returns to default 16; IP resumes normal operation"
+      checker: "Scoreboard verifies all state matches function_model reset values"
+      coverage: ["reset_assert", "reset_deassert", "state_variables_reset"]
+  scoreboard_checks: 8
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Cycle-independent behavioral coverage for debounce filtering correctness."
+      bins:
+        - { id: "FCOV_FM_DEBOUNCE_PROPAGATE", source_ref: "function_model.transactions.FM_DEBOUNCE", class: "transaction", description: "Successful input-to-output propagation after debounce_count_cfg stable cycles" }
+        - { id: "FCOV_FM_DEBOUNCE_REJECT", source_ref: "function_model.transactions.FM_DEBOUNCE", class: "error_case", description: "Glitch/transient rejected — output unchanged, counter reset" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle/handshake/pipeline coverage for debouncer timing."
+      bins:
+        - { id: "CCOV_S0_SAMPLE", source_ref: "cycle_model.pipeline.S0_SAMPLE", class: "pipeline_stage", description: "Input sample stage observed" }
+        - { id: "CCOV_S1_UPDATE", source_ref: "cycle_model.pipeline.S1_UPDATE", class: "pipeline_stage", description: "Counter/output update stage observed" }
+        - { id: "CCOV_APB_READ", source_ref: "cycle_model.handshake_rules.pready", class: "handshake", description: "APB read access with pready handshake" }
+        - { id: "CCOV_APB_WRITE", source_ref: "cycle_model.handshake_rules.pready", class: "handshake", description: "APB write access with pready handshake" }
+        - { id: "CCOV_APB_ERROR", source_ref: "cycle_model.handshake_rules.pslverr", class: "handshake", description: "APB error response with pslverr" }
+        - { id: "CCOV_PERF_THROUGHPUT", source_ref: "cycle_model.performance.throughput", class: "throughput", description: "Declared sustained throughput condition exercised" }
+        - { id: "CCOV_PERF_DEPTH", source_ref: "cycle_model.performance.depth", class: "depth", description: "Declared 2-stage pipeline depth exercised" }
+    functional: "Legacy alias: function + cycle coverage must both close; new flows read coverage_goals.function and coverage_goals.cycle separately."
+    line: ">= 90% instrumented line coverage"
+    branch: ">= 85% instrumented branch coverage"
+    fsm: "100% declared pipeline stages covered"
+    assertions: "All APB protocol assertions pass"
+quality_gates:
+  ssot:
+    pass: "All canonical sections are present, substantive, internally consistent, and have no live TBD placeholders."
+    evidence: ["check_ssot_disk.sh PASS", "traceability covers function_model/cycle_model/test_requirements"]
+  rtl_gen:
+    profile: "standard"
+    pass: "All rtl-gen dynamic TODOs close; files compile and lint."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_compile.json", "lint/dut_lint.json"]
+  rtl:
+    pass: "RTL implements function_model and cycle_model, compiles with pyslang, lints clean."
+    evidence: ["rtl/rtl_compile.json", "lint/dut_lint.json"]
+  dv:
+    pass: "Testbench compiles, all SSOT-declared scenarios pass with scoreboard checks."
+    evidence: ["sim/tb_compile.json", "sim/results.jsonl", "sim/scoreboard_report.md"]
+  coverage:
+    pass: "SSOT-declared functional/code/FSM coverage goals pass or have approved waivers."
+    evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+  eda:
+    pass: "Synthesis, STA meet SSOT timing/area/power targets."
+    evidence: ["syn/out/area.rpt", "sta/out/setup.rpt", "sta/out/hold.rpt"]
+  signoff:
+    pass: "All quality gates pass; signoff authority approves."
+    evidence: ["quality_gates_report.md", "signoff_authority.json"]
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "ALL files (module name)" }
+    - { yaml: "parameters", output: "rtl/debouncer_core.sv, rtl/debouncer_regs.sv (parameter declarations)" }
+    - { yaml: "io_list.interfaces", output: "rtl/debouncer.sv (top port list)" }
+    - { yaml: "registers.register_list", output: "rtl/debouncer_regs.sv + firmware/debouncer_regs.h + docs/register_map.md" }
+    - { yaml: "function_model", output: "rtl/debouncer_core.sv + sim/debouncer_model.sv (scoreboard)" }
+    - { yaml: "cycle_model", output: "rtl/debouncer_core.sv pipeline + sim/tb_program.sv timing checks" }
+    - { yaml: "test_requirements.scenarios", output: "sim/tb_program.sv" }
+
+workflow_todos:
+  fl-model-gen: []
+  rtl-gen:
+    - id: "RTL_DEBOUNCE_CORE"
+      content: "Implement debouncer_core.sv with per-channel counter and output logic"
+      detail: "Translate function_model.transactions.FM_DEBOUNCE state_variables and cycle_model.pipeline into per-channel generate loop with saturating counter, comparator, and output register."
+      criteria:
+        - "Per-channel counter declared per function_model.state_variables.counter"
+        - "Counter increments when input != output, resets when input == output"
+        - "Output updates when counter reaches debounce_count_cfg"
+        - "Two-stage pipeline S0_SAMPLE → S1_UPDATE implemented"
+      source_refs: ["function_model.transactions.FM_DEBOUNCE", "function_model.state_variables", "cycle_model.pipeline"]
+      owner_module: "debouncer_core"
+      owner_file: "rtl/debouncer_core.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_DEBOUNCE_REGS"
+      content: "Implement debouncer_regs.sv with APB-lite interface and register map"
+      detail: "Translate registers.register_list (STATUS, CONFIG, RAW_STATUS) and io_list.interfaces.apb_slave protocol into APB-lite register file with zero-wait-state pready, pslverr for unimplemented/RO-write, and 32-bit register accesses."
+      criteria:
+        - "APB setup/access phase handshake per io_list.interfaces.apb_slave.protocol"
+        - "STATUS read returns debounced_output_i"
+        - "RAW_STATUS read returns raw_input_i"
+        - "CONFIG read/write per registers.register_list.CONFIG"
+        - "pslverr asserted for off-range address or RO write"
+      source_refs: ["registers.register_list", "io_list.interfaces.apb_slave", "cycle_model.handshake_rules"]
+      owner_module: "debouncer_regs"
+      owner_file: "rtl/debouncer_regs.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_DEBOUNCE_TOP"
+      content: "Implement debouncer.sv top-level integration"
+      detail: "Instantiate debouncer_core and debouncer_regs; wire ports per integration.connections; expose all top-level ports per io_list."
+      criteria:
+        - "All integration.connections module/port/signal pairs wired with named port connections"
+        - "Top-level ports match io_list exactly"
+        - "Parameter NUM_INPUTS, DEBOUNCE_COUNT, COUNTER_WIDTH propagate to both submodules"
+      source_refs: ["io_list", "integration.connections", "parameters"]
+      owner_module: "debouncer"
+      owner_file: "rtl/debouncer.sv"
+      priority: "high"
+      required: true
+  tb-gen: []
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh debouncer", description: "Validate production SSOT structure and quality gates" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model debouncer", description: "FunctionalModel from validated SSOT" }
+    - { name: "handoff_rtl", command: "/ssot-rtl debouncer", description: "Downstream RTL generation from validated SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb debouncer", description: "Downstream testbench generation from validated SSOT" }
+    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Downstream waveform and failure inspection" }
+    - { name: "handoff_coverage", command: "/coverage debouncer", description: "Measure SSOT-declared coverage goals" }
+    - { name: "handoff_eda", command: "/syn debouncer && /sta debouncer && /pnr debouncer && /sta-post debouncer", description: "Produce SSOT-declared EDA evidence" }

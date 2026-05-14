@@ -2,6 +2,8 @@
 
 Captured 2026-05-14 after the `uart_lite` end-to-end shakedown. The goal is to make the canonical pipeline (`ssot-gen → fl-model-gen → rtl-gen → tb-gen → sim → sim-debug → goal-audit`) **drive an IP to sign-off without an external supervisor**. Today, even on a "simple" UART, the run stalled with 42 open required gates, and a human had to interpret whether they were real defects, derive-tool false negatives, or budget exhaustion. That is the symptom this document targets.
 
+> **Update 2026-05-15.** After Item 1 + Item 2 landed against `uart_lite`, the audit pattern was measured across six IPs (`timer`, `dma`, `simple_gpio_lite`, `uart_lite`, `todo_counter_pipe`, `cortex_m0lite`). The cross-IP weaknesses **W1 – W7** distilled from that survey live in [`multi_ip_audit_findings.md`](multi_ip_audit_findings.md) and feed directly into the priority list below. The TL;DR: every IP fails `RTL-0006 common_ai_agent_authoring` (provenance auto-emit gap), every IP cascades `RTL-0019 dynamic_todo_closure`, and complex IPs additionally fail `RTL-0007 / 0015 / 0016` (static evidence + manifest connection-contract validator). The fixes are small and IP-agnostic; the multi-IP doc records the projected per-IP closure gain.
+
 ## Operating Principle
 
 The pipeline must terminate in one of three machine-readable states. **No "almost done" allowed.**
@@ -42,6 +44,24 @@ This is a self-driving workflow failure across **four** layers: tool correctness
 | 8 | Escalation contract | rtl-gen / fl-model-gen / ssot-gen system prompts | Auto-routable blockers | 0.5 d |
 
 Bundle 1 + 2 + 3 closes the "0 human touches per IP" gap. The rest tighten and harden.
+
+### Multi-IP-measured items (W1 – W7, sourced from `multi_ip_audit_findings.md`)
+
+These are cross-IP-validated weaknesses observed when the same audit was run against six IPs of different sizes. They are smaller than Items 1-8 individually but each one closes the same class of failure on every IP.
+
+| # | Weakness | Fix point | Where it lives in code | IP scope |
+|---|---|---|---|---|
+| W1 | Provenance auto-emit missing — every IP fails `RTL-0006` | rtl-gen stage emits `rtl_authoring_provenance.json` when absent | `src/workflow_stage_engine.py::_run_rtl` epilogue + new helper | 6/6 |
+| W2 | `dynamic_todo_closure` is a cascade — no separate fix needed | — | — | 6/6 (auto) |
+| W3 | Manifest connection-contract validator over-strict for hierarchical IPs (cortex: 31 issues) | Validate by RTL-side signal tracing, not literal top-port matching | `workflow/rtl-gen/scripts/derive_rtl_todos.py` connection contract block | complex IPs |
+| W4 | Static-evidence tie-breaker not applied to `function_model.state_update / side_effect / output_rule` | Propagate the same tie-breaker landed for `fsm.*` and `cycle_model.pipeline.*` | `derive_rtl_todos._owner_for` (already lands; verify coverage for new categories) | 3/6 |
+| W5 | Compile / lint freshness uses mtime, not content hash — false stale flags | Store hash of (file content + filelist) inside `rtl_compile.json` / `dut_lint.json`; recompare on next audit | `workflow/rtl-gen/scripts/rtl_compile_report.py` + `workflow/lint/scripts/dut_lint_report.py` | as triggered |
+| W6 | `dut_lint_report.py` does not read `SSOT.coding_rules.lint_waivers` even though the schema slot exists | Read waivers, subtract from diagnostic count, recompute `passed` | `workflow/lint/scripts/dut_lint_report.py` | warning-bearing IPs |
+| W7 | rtl-gen does not auto-emit downstream artifacts (authority, cycle_model, protocol_assertions, fl_rtl_goal_audit, coverage) → `RTL-0020 / 0023 / 0024 / 0025 / 0026` all open | Stage epilogue invokes the deterministic emitters before audit | `src/workflow_stage_engine.py::_run_rtl` epilogue | 5/6 |
+
+The full audit table, mismatch detail per IP, and projected per-IP closure gain live in [`multi_ip_audit_findings.md`](multi_ip_audit_findings.md). Aggregate prediction after W1, W3, W4, W5, W6, W7 land: cortex_m0lite 92.1% → ~99%, simple_gpio_lite 94.2% → ~99%, others 98% → ~99.7%.
+
+Suggested merge ordering for W-items: W7 → W1 → W4 → W5 → W6 → W3 (the heaviest is W3 due to a new RTL signal-tracing pass; W7 is the cheapest and unlocks the most cortex-class closure).
 
 ## Item 1 — Derive Tool Correctness
 

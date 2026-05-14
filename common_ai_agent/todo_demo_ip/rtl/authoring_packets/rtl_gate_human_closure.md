@@ -12,6 +12,8 @@
 - Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.
 - Every task must satisfy content, detail, and criteria before the packet is closed.
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
+- Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
+- Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
@@ -23,13 +25,10 @@
 - PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
-- Human-locked open tasks: 4
+- Human-locked open tasks: 1
 - Owner refs: top_module, function_model, cycle_model
 - Locked-truth blockers:
-  - ssot_required_sections: RTL audit has not run yet.
-  - ssot_workflow_todo_format: RTL audit has not run yet.
-  - owner_traceability: RTL audit has not run yet.
-  - manifest_connection_contract_evidence: RTL audit has not run yet.
+  - ssot_required_sections: SSOT function_model/cycle_model blocker is still open: MISSING_CYCLE_MODEL, MISSING_FUNCTION_MODEL
 
 ## Tasks
 
@@ -37,13 +36,13 @@
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.ssot_required_sections
 - Detail: rtl-gen cannot implement production RTL until the SSOT contains both the functional golden behavior and the cycle/handshake contract.
 SSOT ref: quality_gates.rtl_gen.ssot_required_sections.
 Owner: todo_demo_ip in rtl/todo_demo_ip.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: SSOT function_model/cycle_model blocker is still open: MISSING_CYCLE_MODEL, MISSING_FUNCTION_MODEL
 - Criteria:
   - function_model is present and non-empty in the SSOT
   - cycle_model is present and non-empty in the SSOT
@@ -56,13 +55,13 @@ Owner: todo_demo_ip in rtl/todo_demo_ip.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.workflow_todo_contract
 - Detail: Every SSOT workflow_todos.rtl-gen item must be executable by rtl-gen and therefore must carry content, detail, and criteria.
 SSOT ref: quality_gates.rtl_gen.workflow_todo_contract.
 Owner: todo_demo_ip in rtl/todo_demo_ip.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: SSOT-authored rtl-gen workflow TODOs are well formed.
 - Criteria:
   - Every workflow_todos.rtl-gen item has content
   - Every workflow_todos.rtl-gen item has detail
@@ -75,13 +74,13 @@ Owner: todo_demo_ip in rtl/todo_demo_ip.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.owner_traceability
 - Detail: Function-level, cycle-level, register, dataflow, and FSM behavior must map to an RTL owner module before approval.
 SSOT ref: quality_gates.rtl_gen.owner_traceability.
 Owner: todo_demo_ip in rtl/todo_demo_ip.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: Every required SSOT-derived RTL behavior has an owner module.
 - Criteria:
   - No required function_model task is orphaned
   - No required cycle_model task is orphaned
@@ -95,13 +94,13 @@ Owner: todo_demo_ip in rtl/todo_demo_ip.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_connection_contract_evidence
 - Detail: Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.
 SSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.
 Owner: todo_demo_ip in rtl/todo_demo_ip.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: SSOT connection contracts are satisfied by reachable RTL named port maps.
 - Criteria:
   - Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections
   - Each SSOT connection contract resolves to a reachable manifest child module and port

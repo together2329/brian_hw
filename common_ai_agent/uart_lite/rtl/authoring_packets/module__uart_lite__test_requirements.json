@@ -1,0 +1,1160 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 7,
+      "key": "test_requirements",
+      "module_task_count": 58,
+      "rule": "Owner module uart_lite is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "test_requirements",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/uart_lite.sv",
+      "name": "uart_lite",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/uart_lite_regs.sv",
+        "name": "uart_lite_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_tx.sv",
+        "name": "uart_lite_tx",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_rx.sv",
+        "name": "uart_lite_rx",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_baud_gen.sv",
+        "name": "uart_lite_baud_gen",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_tx_fifo.sv",
+        "name": "uart_lite_tx_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_rx_fifo.sv",
+        "name": "uart_lite_rx_fifo",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite_core.sv",
+        "name": "uart_lite_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/uart_lite.sv",
+        "name": "uart_lite",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "uart_lite_core",
+        "port": "PCLK",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "uart_lite_core",
+        "port": "PRESETn",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "uart_lite_regs",
+        "port": "uart_irq_o",
+        "signal": "uart_irq",
+        "signal_terms": [
+          "uart_irq"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "uart_lite_core",
+        "port": "tx_o",
+        "signal": "tx",
+        "signal_terms": [
+          "tx"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "uart_lite_core",
+        "port": "rx_i",
+        "signal": "rx",
+        "signal_terms": [
+          "rx"
+        ],
+        "source_ref": "integration.connections[4]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "PCLK"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PCLK",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PRESETn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PRESETn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PADDR",
+          "apb_slave_PADDR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PADDR",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "PSEL",
+          "apb_slave_PSEL"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSEL",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PENABLE",
+          "apb_slave_PENABLE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PENABLE",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWRITE",
+          "apb_slave_PWRITE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWRITE",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWDATA",
+          "apb_slave_PWDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWDATA",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PSTRB",
+          "apb_slave_PSTRB"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSTRB",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "PRDATA",
+          "apb_slave_PRDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PRDATA",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PREADY",
+          "apb_slave_PREADY"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PREADY",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PSLVERR",
+          "apb_slave_PSLVERR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PSLVERR",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "tx",
+          "uart_serial_tx"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "tx",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rx",
+          "uart_serial_rx"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rx",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "interrupt_uart_irq",
+          "uart_irq"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "uart_irq",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "1"
+      }
+    ],
+    "target_scale": {
+      "basis": "UART peripheral with 7 sub-modules, 2 FIFOs, 2 FSMs, 12 registers",
+      "min_behavior_owner_logic_modules": 2,
+      "min_depth_score": 10,
+      "min_logic_modules": 4,
+      "min_modules": 7,
+      "min_procedural_blocks": 20,
+      "min_source_files": 7,
+      "min_state_updates": 8,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "uart_lite",
+  "kind": "module",
+  "owner_file": "rtl/uart_lite.sv",
+  "owner_module": "uart_lite",
+  "packet_id": "module__uart_lite__test_requirements",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "test_requirements.scenario": 17
+    },
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 7,
+      "key": "test_requirements",
+      "module_task_count": 58,
+      "rule": "Owner module uart_lite is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "test_requirements",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 17,
+    "source_refs": [
+      "test_requirements.scenarios.SC1",
+      "test_requirements.scenarios.SC2",
+      "test_requirements.scenarios.SC3",
+      "test_requirements.scenarios.SC4",
+      "test_requirements.scenarios.SC5",
+      "test_requirements.scenarios.SC6",
+      "test_requirements.scenarios.SC7",
+      "test_requirements.scenarios.SC8",
+      "test_requirements.scenarios.SC9",
+      "test_requirements.scenarios.SC10",
+      "test_requirements.scenarios.SC11",
+      "test_requirements.scenarios.SC12",
+      "test_requirements.scenarios.SC13",
+      "test_requirements.scenarios.SC14",
+      "test_requirements.scenarios.SC15",
+      "test_requirements.scenarios.SC16",
+      "test_requirements.scenarios.SC17"
+    ],
+    "status_counts": {
+      "pass": 17
+    },
+    "task_count": 17
+  },
+  "tasks": [
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC1",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC1",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: tx line shows start=0, DATA_WIDTH data bits LSB-first, 1 stop=1 bit. STAT.tx_empty=1 after frame. bytes_tx increments."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC1.\nOwner: uart_lite in rtl/uart_lite.sv via test_requirements.\nSSOT item context: id=SC1; name=TX single byte no parity 1 stop; expected=tx line shows start=0, DATA_WIDTH data bits LSB-first, 1 stop=1 bit. STAT.tx_empty=1 after frame. bytes_tx increments..",
+      "evidence_terms": [],
+      "id": "RTL-0270",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC1",
+      "ssot_context": {
+        "expected": "tx line shows start=0, DATA_WIDTH data bits LSB-first, 1 stop=1 bit. STAT.tx_empty=1 after frame. bytes_tx increments.",
+        "id": "SC1",
+        "name": "TX single byte no parity 1 stop"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC2",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC2",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Byte pushed to RX FIFO. RXDATA reads correct byte. bytes_rx increments. No error flags."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC2.\nOwner: uart_lite in rtl/uart_lite.sv via test_requirements.\nSSOT item context: id=SC2; name=RX single byte no parity 1 stop; expected=Byte pushed to RX FIFO. RXDATA reads correct byte. bytes_rx increments. No error flags..",
+      "evidence_terms": [],
+      "id": "RTL-0271",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC2",
+      "ssot_context": {
+        "expected": "Byte pushed to RX FIFO. RXDATA reads correct byte. bytes_rx increments. No error flags.",
+        "id": "SC2",
+        "name": "RX single byte no parity 1 stop"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC3",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC3",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Parity bit after data: 0 (even number of 1s: 4 in 0xA5). tx shows start, 8 data, parity=0, 1 stop."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC3.\nOwner: uart_lite in rtl/uart_lite.sv via test_requirements.\nSSOT item context: id=SC3; name=TX with even parity; expected=Parity bit after data: 0 (even number of 1s: 4 in 0xA5). tx shows start, 8 data, parity=0, 1 stop..",
+      "evidence_terms": [],
+      "id": "RTL-0272",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC3",
+      "ssot_context": {
+        "expected": "Parity bit after data: 0 (even number of 1s: 4 in 0xA5). tx shows start, 8 data, parity=0, 1 stop.",
+        "id": "SC3",
+        "name": "TX with even parity"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC4",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC4",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Byte 0xA5 pushed to RX FIFO. No parity_err. parities_errored unchanged."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC4.\nOwner: uart_lite in rtl/uart_lite.sv via test_requirements.\nSSOT item context: id=SC4; name=RX with odd parity match; expected=Byte 0xA5 pushed to RX FIFO. No parity_err. parities_errored unchanged..",
+      "evidence_terms": [],
+      "id": "RTL-0273",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC4",
+      "ssot_context": {
+        "expected": "Byte 0xA5 pushed to RX FIFO. No parity_err. parities_errored unchanged.",
+        "id": "SC4",
+        "name": "RX with odd parity match"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC4"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC5",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC5",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: parity_err sticky flag set. Byte still pushed to RX FIFO. parities_errored increments."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC5.\nOwner: uart_lite in rtl/uart_lite.sv via test_requirements.\nSSOT item context: id=SC5; name=RX parity error; expected=parity_err sticky flag set. Byte still pushed to RX FIFO. parities_errored increments..",
+      "evidence_terms": [],
+      "id": "RTL-0274",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC5",
+      "ssot_context": {
+        "expected": "parity_err sticky flag set. Byte still pushed to RX FIFO. parities_errored increments.",
+        "id": "SC5",
+        "name": "RX parity error"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC5"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC6",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC6",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: frame_err sticky flag set. Byte pushed to RX FIFO. frames_errored increments."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC6.\nOwner: uart_lite in rtl/uart_lite.sv via test_requirements.\nSSOT item context: id=SC6; name=RX framing error; expected=frame_err sticky flag set. Byte pushed to RX FIFO. frames_errored increments..",
+      "evidence_terms": [],
+      "id": "RTL-0275",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC6",
+      "ssot_context": {
+        "expected": "frame_err sticky flag set. Byte pushed to RX FIFO. frames_errored increments.",
+        "id": "SC6",
+        "name": "RX framing error"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC6"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC7",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC7",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: 17th byte discarded. overrun_err sticky flag set. RX FIFO still has 16 bytes."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC7.\nOwner: uart_lite in rtl/uart_lite.sv via test_requirements.\nSSOT item context: id=SC7; name=RX overrun; expected=17th byte discarded. overrun_err sticky flag set. RX FIFO still has 16 bytes..",
+      "evidence_terms": [],
+      "id": "RTL-0276",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC7",
+      "ssot_context": {
+        "expected": "17th byte discarded. overrun_err sticky flag set. RX FIFO still has 16 bytes.",
+        "id": "SC7",
+        "name": "RX overrun"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC7"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC8",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC8",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: No underrun during normal operation. To trigger underrun: disable TX FIFO write while FSM mid-frame (not directly pos..."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC8.\nOwner: uart_lite in rtl/uart_lite.sv via test_requirements.\nSSOT item context: id=SC8; name=TX underrun; expected=No underrun during normal operation. To trigger underrun: disable TX FIFO write while FSM mid-frame (not directly pos....",
+      "evidence_terms": [],
+      "id": "RTL-0277",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC8",
+      "ssot_context": {
+        "expected": "No underrun during normal operation. To trigger underrun: disable TX FIFO write while FSM mid-frame (not directly pos...",
+        "id": "SC8",
+        "name": "TX underrun"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC8"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC9",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC9",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Transmitted bytes appear in RX FIFO. External rx line ignored. TX and RX data match."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC9.\nOwner: uart_lite in rtl/uart_lite.sv via test_requirements.\nSSOT item context: id=SC9; name=Loopback mode; expected=Transmitted bytes appear in RX FIFO. External rx line ignored. TX and RX data match..",
+      "evidence_terms": [],
+      "id": "RTL-0278",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC9",
+      "ssot_context": {
+        "expected": "Transmitted bytes appear in RX FIFO. External rx line ignored. TX and RX data match.",
+        "id": "SC9",
+        "name": "Loopback mode"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC9"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC10",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC10",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: tx line held low for at least one full frame duration. break_send self-clears to 0."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC10.\nOwner: uart_lite in rtl/uart_lite.sv via test_requirements.\nSSOT item context: id=SC10; name=Break send; expected=tx line held low for at least one full frame duration. break_send self-clears to 0..",
+      "evidence_terms": [],
+      "id": "RTL-0279",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC10",
+      "ssot_context": {
+        "expected": "tx line held low for at least one full frame duration. break_send self-clears to 0.",
+        "id": "SC10",
+        "name": "Break send"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC10"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC11",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC11",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: TX sends 2 stop bits. RX accepts 2 stop bits."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC11.\nOwner: uart_lite in rtl/uart_lite.sv via test_requirements.\nSSOT item context: id=SC11; name=2 stop bits TX/RX; expected=TX sends 2 stop bits. RX accepts 2 stop bits..",
+      "evidence_terms": [],
+      "id": "RTL-0280",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC11",
+      "ssot_context": {
+        "expected": "TX sends 2 stop bits. RX accepts 2 stop bits.",
+        "id": "SC11",
+        "name": "2 stop bits TX/RX"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC11"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC12",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC12",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: INTPEND.tx_empty_pend asserts when TX FIFO goes empty. uart_irq asserts. Write 1 to INTPEND.tx_empty_pend clears it; ..."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC12.\nOwner: uart_lite in rtl/uart_lite.sv via test_requirements.\nSSOT item context: id=SC12; name=Interrupts — tx_empty; expected=INTPEND.tx_empty_pend asserts when TX FIFO goes empty. uart_irq asserts. Write 1 to INTPEND.tx_empty_pend clears it; ....",
+      "evidence_terms": [],
+      "id": "RTL-0281",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC12",
+      "ssot_context": {
+        "expected": "INTPEND.tx_empty_pend asserts when TX FIFO goes empty. uart_irq asserts. Write 1 to INTPEND.tx_empty_pend clears it; ...",
+        "id": "SC12",
+        "name": "Interrupts — tx_empty"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC12"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC13",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC13",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: INTPEND.rx_not_empty_pend asserts. uart_irq asserts. Software W1C clears pend."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC13.\nOwner: uart_lite in rtl/uart_lite.sv via test_requirements.\nSSOT item context: id=SC13; name=Interrupts — rx_not_empty + clear via W1C; expected=INTPEND.rx_not_empty_pend asserts. uart_irq asserts. Software W1C clears pend..",
+      "evidence_terms": [],
+      "id": "RTL-0282",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC13",
+      "ssot_context": {
+        "expected": "INTPEND.rx_not_empty_pend asserts. uart_irq asserts. Software W1C clears pend.",
+        "id": "SC13",
+        "name": "Interrupts — rx_not_empty + clear via W1C"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC13"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC14",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC14",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: TX sends 5 data bits. RX receives 5 data bits. Upper bits in TXDATA ignored, RXDATA zero-filled above bit 4."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC14.\nOwner: uart_lite in rtl/uart_lite.sv via test_requirements.\nSSOT item context: id=SC14; name=DATA_WIDTH=5; expected=TX sends 5 data bits. RX receives 5 data bits. Upper bits in TXDATA ignored, RXDATA zero-filled above bit 4..",
+      "evidence_terms": [],
+      "id": "RTL-0283",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC14",
+      "ssot_context": {
+        "expected": "TX sends 5 data bits. RX receives 5 data bits. Upper bits in TXDATA ignored, RXDATA zero-filled above bit 4.",
+        "id": "SC14",
+        "name": "DATA_WIDTH=5"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC14"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC15",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC15",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: STAT.tx_full, tx_empty, rx_full, rx_empty track FIFO levels correctly."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC15.\nOwner: uart_lite in rtl/uart_lite.sv via test_requirements.\nSSOT item context: id=SC15; name=FIFO full/empty flags; expected=STAT.tx_full, tx_empty, rx_full, rx_empty track FIFO levels correctly..",
+      "evidence_terms": [],
+      "id": "RTL-0284",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC15",
+      "ssot_context": {
+        "expected": "STAT.tx_full, tx_empty, rx_full, rx_empty track FIFO levels correctly.",
+        "id": "SC15",
+        "name": "FIFO full/empty flags"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC15"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC16",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC16",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: RX FSM returns to RX_IDLE; no byte captured; no error flag."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC16.\nOwner: uart_lite in rtl/uart_lite.sv via test_requirements.\nSSOT item context: id=SC16; name=Spurious start bit rejection; expected=RX FSM returns to RX_IDLE; no byte captured; no error flag..",
+      "evidence_terms": [],
+      "id": "RTL-0285",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC16",
+      "ssot_context": {
+        "expected": "RX FSM returns to RX_IDLE; no byte captured; no error flag.",
+        "id": "SC16",
+        "name": "Spurious start bit rejection"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC16"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC17",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC17",
+        "Primary implementation evidence is in rtl/uart_lite.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Current frame completes at old rate. Next frame uses new rate."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC17.\nOwner: uart_lite in rtl/uart_lite.sv via test_requirements.\nSSOT item context: id=SC17; name=Baud rate change mid-operation; expected=Current frame completes at old rate. Next frame uses new rate..",
+      "evidence_terms": [],
+      "id": "RTL-0286",
+      "owner_file": "rtl/uart_lite.sv",
+      "owner_module": "uart_lite",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC17",
+      "ssot_context": {
+        "expected": "Current frame completes at old rate. Next frame uses new rate.",
+        "id": "SC17",
+        "name": "Baud rate change mid-operation"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC17"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3e24fd327d20c227969d80d968a7b1af5638d074f7c4857cee081ef19051e830",
+  "top": "uart_lite",
+  "type": "rtl_authoring_packet"
+}
