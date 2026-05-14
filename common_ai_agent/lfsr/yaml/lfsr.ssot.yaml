@@ -390,7 +390,8 @@ security:
   assets:
     - { name: "register_map", protection: "APB access control is external to this IP" }
     - { name: "prbs_sequence", protection: "Observable via lfsr_out; no cryptographic security claim" }
-  threat_model: []
+  threat_model:
+    - { threat: "illegal register write via APB", mitigation: "External APB interconnect enforces access control; this IP trusts incoming APB transactions" }
   privilege_model: "External bus fabric enforces privilege; this IP implements no internal privilege levels"
   safety_goals: []
 error_handling:

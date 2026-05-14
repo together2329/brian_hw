@@ -639,6 +639,9 @@ quality_gates:
   eda:
     pass: "Synthesis and STA meet SSOT timing/area targets"
     evidence: ["syn report", "sta reports"]
+  signoff:
+    pass: "All quality gates (ssot, rtl_gen, rtl, dv, coverage, eda) pass with current evidence"
+    evidence: ["ATLAS signoff checklist complete", "all gate evidence fresh"]
 traceability:
   yaml_to_output:
     - { yaml: "top_module.name", output: "ALL files (module name)" }
