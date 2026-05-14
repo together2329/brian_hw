@@ -23,8 +23,24 @@ def _fresh_config(env: dict, env_file_text: str = ""):
     (no leakage from the real ~/.config or project .env), then forces a
     re-import so module-level globals are recomputed.
     """
+    desired_env = dict(env)
     import config as _cfg
     importlib.reload(_cfg)
+    # config.py loads the real project .env during import. Keep these tests
+    # hermetic by restoring the caller-supplied model/profile environment and
+    # then refreshing module globals from that controlled state.
+    controlled_prefixes = ("LLM_", "PROFILE_", "MODEL_NAME",
+                           "PRIMARY_MODEL", "SECONDARY_MODEL")
+    for key in list(os.environ):
+        if key.startswith(controlled_prefixes) and key not in desired_env:
+            os.environ.pop(key, None)
+    for key, value in desired_env.items():
+        if key.startswith(controlled_prefixes):
+            os.environ[key] = value
+    _cfg._refresh_runtime_globals()
+    active_profile = os.environ.get("LLM_PROFILE", "").strip()
+    if active_profile:
+        _cfg._apply_profile(active_profile)
     return _cfg
 
 
