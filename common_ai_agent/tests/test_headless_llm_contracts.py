@@ -293,6 +293,39 @@ def test_check_ssot_disk_allows_deferred_connection_contract_todo(tmp_path: Path
     assert "[check_ssot_disk] PASS" in result.stdout
 
 
+def test_repair_downgrades_smoke_fixture_from_production_target_scale_gate(tmp_path: Path):
+    ip = "timer"
+    doc = _base_ssot_doc(ip)
+    doc["top_module"]["description"] = "Small countdown timer smoke-test fixture for the SSOT pipeline."
+    doc["quality_gates"]["rtl_gen"] = {
+        "profile": "production",
+        "pass": "production RTL gates close",
+        "evidence": ["rtl/rtl_todo_plan.json"],
+    }
+    doc["workflow_todos"]["rtl-gen"].append(
+        {
+            "id": "RTL_TARGET_SCALE_POLICY",
+            "content": "Lock or waive RTL target-scale policy before production signoff",
+            "detail": "The SSOT is production-profile and needs target_scale.",
+            "criteria": ["quality_gates.rtl_gen.target_scale contains positive structural minima"],
+            "source_refs": ["quality_gates.rtl_gen.target_scale"],
+            "priority": "high",
+            "required": True,
+        }
+    )
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    result = _run_repair_ssot(tmp_path, ip)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    repaired = yaml.safe_load((tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    assert repaired["quality_gates"]["rtl_gen"]["profile"] == "standard"
+    rtl_todos = repaired["workflow_todos"]["rtl-gen"]
+    assert all(item.get("id") != "RTL_TARGET_SCALE_POLICY" for item in rtl_todos)
+    result = _run_check_ssot(tmp_path, ip)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
 def test_check_ssot_disk_requires_executable_function_model_output_rules(tmp_path: Path):
     ip = "missing_output_rules_ip"
     doc = _base_ssot_doc(ip)
@@ -355,6 +388,8 @@ def test_repair_ssot_schema_normalizes_verilog_rule_expressions(tmp_path: Path):
     tx["output_rules"] = [
         {"name": "result", "port": "result", "expr": "({1'b0, data_in} << 1)", "width": 9},
         {"name": "result_valid", "port": "result_valid", "expr": "1'b1", "width": 1},
+        {"name": "running", "port": "running", "expr": "(load_value != 0) ? 1 : 0", "width": 1},
+        {"name": "count", "port": "count", "expr": "(count > 0) ? (count - 1) : 0", "width": 16},
     ]
     doc["rtl_contract"]["output_rules"] = [
         {"name": "result", "port": "result", "expr": "({1'b0, data_in} << 1)", "width": 9}
@@ -368,6 +403,8 @@ def test_repair_ssot_schema_normalizes_verilog_rule_expressions(tmp_path: Path):
     rules = loaded["function_model"]["transactions"][0]["output_rules"]
     assert rules[0]["expr"] == "data_in << 1"
     assert rules[1]["expr"] == "1"
+    assert rules[2]["expr"] == "(1 if load_value != 0 else 0)"
+    assert rules[3]["expr"] == "((count - 1) if count > 0 else 0)"
     assert loaded["rtl_contract"]["output_rules"][0]["expr"] == "data_in << 1"
 
 
@@ -633,6 +670,47 @@ def test_ssot_gen_repairs_invalid_yaml_before_human_gate(tmp_path: Path):
     assert "cycle_model:" in ssot
 
 
+def test_ssot_gen_canonicalizes_unquoted_expression_after_llm_repair(tmp_path: Path):
+    ip = "ssot_repair_expression_quote_ip"
+    req = _write_req(tmp_path, ip)
+    bad_yaml = f"top_module:\n  name: {ip}\n    bad_indent: true\n"
+    repair_yaml = _structured_ssot_yaml(ip, req.read_text(encoding="utf-8")).replace(
+        "condition: valid",
+        "condition: !enable && !clear && !start",
+        1,
+    )
+    provider = SequencedArtifactProvider(
+        [
+            [{"path": f"{ip}/yaml/{ip}.ssot.yaml", "kind": "ssot", "content": bad_yaml}],
+            [{"path": f"{ip}/yaml/{ip}.ssot.yaml", "kind": "ssot", "content": repair_yaml}],
+        ]
+    )
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="gpt-5.5",
+        llm_provider=provider,
+    )
+
+    result = runner.run(ip=ip, requirement_path=req, stages=["ssot-gen"])
+
+    assert result.status == "pass", json.dumps(result.to_dict(), indent=2)
+    assert len(provider.calls) == 2
+    assert not (tmp_path / "work" / ip / "questions" / "ssot_gen_yaml_parse.json").exists()
+    loaded = yaml.safe_load((tmp_path / "work" / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+
+    def values(value):
+        if isinstance(value, dict):
+            for item in value.values():
+                yield from values(item)
+        elif isinstance(value, list):
+            for item in value:
+                yield from values(item)
+        else:
+            yield str(value)
+
+    assert "!enable && !clear && !start" in set(values(loaded))
+
+
 def test_ssot_gen_uses_deterministic_schema_repair_before_llm_retry(tmp_path: Path):
     ip = "ssot_deterministic_repair_ip"
     req = _write_req(tmp_path, ip)
@@ -713,6 +791,23 @@ def test_headless_rtl_prompt_is_focused_to_rtl_artifact_and_todos(tmp_path: Path
     assert provenance["agent"] == "common_ai_agent"
     assert provenance["workflow"] == "rtl-gen"
     assert provenance["todo_plan_sha256"]
+
+
+def test_headless_rtl_prompt_declares_json_no_tool_contract(tmp_path: Path):
+    ip = "rtl_prompt_contract_ip"
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="gpt-5.3-codex",
+        llm_provider=FakeLLMProvider(),
+    )
+
+    system, prompt = runner._stage_prompt("rtl-gen", ip, {"ip": ip, "root": str(tmp_path / "work")})
+
+    assert "HEADLESS PROVIDER CONTRACT" in system
+    assert "Do not emit Action:" in system
+    assert "Return only the machine-readable JSON object" in system
+    assert "Return exactly one JSON object" in prompt
+    assert '"files"' in prompt
 
 
 def test_headless_rtl_gen_can_drive_authoring_packets(tmp_path: Path, monkeypatch):

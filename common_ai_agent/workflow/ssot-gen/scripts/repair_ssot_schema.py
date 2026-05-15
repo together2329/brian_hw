@@ -56,9 +56,78 @@ REQUIRED_ORDER = [
     "generation_flow",
 ]
 
+EXPRESSION_SCALAR_KEYS = {
+    "condition",
+    "detection",
+    "expr",
+    "expression",
+    "guard",
+    "sample_condition",
+    "trigger",
+    "when",
+}
+
+
+def _split_inline_comment(value: str) -> tuple[str, str]:
+    in_single = False
+    in_double = False
+    escaped = False
+    for idx, ch in enumerate(value):
+        if escaped:
+            escaped = False
+            continue
+        if ch == "\\" and in_double:
+            escaped = True
+            continue
+        if ch == "'" and not in_double:
+            in_single = not in_single
+            continue
+        if ch == '"' and not in_single:
+            in_double = not in_double
+            continue
+        if ch == "#" and not in_single and not in_double and (idx == 0 or value[idx - 1].isspace()):
+            return value[:idx].rstrip(), value[idx:].rstrip()
+    return value.rstrip(), ""
+
+
+def _needs_expression_quote(value: str) -> bool:
+    text = value.strip()
+    if not text or text[0] in {"'", '"', "[", "{", "|", ">"}:
+        return False
+    if text.startswith(("!", "&", "*", "@", "`", "%")):
+        return True
+    return any(token in text for token in (" && ", " || ", "==", "!=", "<=", ">=", "<<", ">>"))
+
+
+def _quote_expression_scalars(text: str) -> str:
+    """Quote common expression scalars before YAML parsing.
+
+    LLMs often emit Verilog-like expressions such as ``!enable && !clear`` as
+    plain YAML scalars. YAML interprets leading ``!`` as a tag, so quote only
+    known expression fields and leave ordinary prose untouched.
+    """
+    pattern = re.compile(
+        rf"^(\s*(?:-\s*)?(?:{'|'.join(sorted(EXPRESSION_SCALAR_KEYS))})\s*:\s*)(.+?)\s*$"
+    )
+    out: list[str] = []
+    for line in text.splitlines():
+        match = pattern.match(line)
+        if not match:
+            out.append(line)
+            continue
+        prefix, raw_value = match.groups()
+        value, comment = _split_inline_comment(raw_value)
+        if _needs_expression_quote(value):
+            quoted = json.dumps(value.strip())
+            out.append(prefix + quoted + (f" {comment}" if comment else ""))
+        else:
+            out.append(line)
+    return "\n".join(out) + ("\n" if text.endswith("\n") else "")
+
 
 def _load_yaml(path: Path) -> dict[str, Any]:
-    doc = yaml.safe_load(path.read_text(encoding="utf-8"))
+    raw = path.read_text(encoding="utf-8")
+    doc = yaml.safe_load(_quote_expression_scalars(raw))
     if not isinstance(doc, dict):
         raise SystemExit(f"[repair_ssot_schema] {path} is not a YAML mapping")
     return doc
@@ -140,6 +209,25 @@ def _norm_token(value: Any) -> str:
     return "".join(ch.lower() if ch.isalnum() else "_" for ch in str(value or "")).strip("_")
 
 
+def _smoke_scale_context(doc: dict[str, Any], ip: str) -> bool:
+    """Detect intentionally small pipeline fixtures before applying production gates."""
+    top = doc.get("top_module") if isinstance(doc.get("top_module"), dict) else {}
+    custom = doc.get("custom") if isinstance(doc.get("custom"), dict) else {}
+    text = " ".join(
+        [
+            str(ip),
+            str(top.get("name") or ""),
+            str(top.get("description") or ""),
+            str(top.get("reference_spec") or ""),
+            " ".join(str(item) for item in custom.get("assumptions") or []),
+        ]
+    ).lower()
+    smoke_terms = ("smoke", "fixture", "tiny", "small", "narrow", "unit test", "unit-test", "example")
+    if not any(term in text for term in smoke_terms):
+        return False
+    return not any(term in text for term in ("production", "signoff", "pl330", "dma330", "dma_330"))
+
+
 def _rtl_quality_profile(doc: dict[str, Any], ip: str) -> str:
     qg = doc.get("quality_gates") if isinstance(doc.get("quality_gates"), dict) else {}
     rtl_gen = qg.get("rtl_gen") or qg.get("rtl-gen") if isinstance(qg, dict) else {}
@@ -155,6 +243,8 @@ def _rtl_quality_profile(doc: dict[str, Any], ip: str) -> str:
         or top.get("rtl_quality_profile")
         or ""
     )
+    if _smoke_scale_context(doc, ip):
+        return "standard"
     norm = _norm_token(raw)
     if norm in {"prod", "production", "signoff", "pl330", "pl330_level", "dma330", "dma330_level"}:
         return "production"
@@ -706,6 +796,67 @@ def _verilog_literal_to_int(match: re.Match[str]) -> str:
         return "0"
 
 
+def _strip_outer_parens(text: str) -> str:
+    text = text.strip()
+    if not (text.startswith("(") and text.endswith(")")):
+        return text
+    depth = 0
+    for idx, ch in enumerate(text):
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+            if depth == 0 and idx != len(text) - 1:
+                return text
+        if depth < 0:
+            return text
+    return text[1:-1].strip() if depth == 0 else text
+
+
+def _find_top_level_char(text: str, target: str, start: int = 0) -> int:
+    depth = 0
+    quote = ""
+    escaped = False
+    for idx in range(start, len(text)):
+        ch = text[idx]
+        if escaped:
+            escaped = False
+            continue
+        if quote:
+            if ch == "\\":
+                escaped = True
+            elif ch == quote:
+                quote = ""
+            continue
+        if ch in {"'", '"'}:
+            quote = ch
+            continue
+        if ch in "([{":
+            depth += 1
+            continue
+        if ch in ")]}":
+            depth = max(depth - 1, 0)
+            continue
+        if ch == target and depth == 0:
+            return idx
+    return -1
+
+
+def _convert_c_ternary_expr(text: str) -> str:
+    q_idx = _find_top_level_char(text, "?")
+    if q_idx < 0:
+        return text
+    c_idx = _find_top_level_char(text, ":", q_idx + 1)
+    if c_idx < 0:
+        return text
+    cond = _strip_outer_parens(text[:q_idx])
+    when_true = _convert_c_ternary_expr(text[q_idx + 1:c_idx].strip())
+    when_false = _convert_c_ternary_expr(text[c_idx + 1:].strip())
+    if not cond or not when_true or not when_false:
+        return text
+    return f"({when_true} if {cond} else {when_false})"
+
+
 def _normalize_rule_expr(expr: Any) -> Any:
     if not isinstance(expr, str):
         return expr
@@ -713,6 +864,7 @@ def _normalize_rule_expr(expr: Any) -> Any:
     if not text:
         return expr
     text = re.sub(r"\b(\d+)?'[sS]?([bBoOdDhH])([0-9a-fA-F_xXzZ?]+)\b", _verilog_literal_to_int, text)
+    text = _convert_c_ternary_expr(text)
     concat_shift = re.fullmatch(r"\(?\s*\{\s*0\s*,\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\s*<<\s*(\d+)\s*\)?", text)
     if concat_shift:
         return f"{concat_shift.group(1)} << {concat_shift.group(2)}"
@@ -1763,6 +1915,7 @@ def _merge_quality_gates(doc: dict[str, Any], ip: str) -> dict[str, Any]:
         ),
     )
     rtl_gen.setdefault("evidence", defaults["rtl_gen"]["evidence"])
+    rtl_gen["profile"] = _rtl_quality_profile({**doc, "quality_gates": {**merged, "rtl_gen": rtl_gen}}, ip)
     merged["rtl_gen"] = rtl_gen
     return merged
 
@@ -1926,21 +2079,22 @@ def _production_target_scale_policy_missing(doc: dict[str, Any], ip: str) -> boo
     return True
 
 
+def _is_target_scale_policy_todo(item: dict[str, Any]) -> bool:
+    if not isinstance(item, dict):
+        return False
+    text = " ".join(
+        [
+            str(item.get("id") or ""),
+            str(item.get("content") or ""),
+            str(item.get("detail") or ""),
+            " ".join(str(ref) for ref in item.get("source_refs") or []),
+        ]
+    ).lower()
+    return "target_scale" in text or ("target scale" in text and "quality_gates.rtl_gen" in text)
+
+
 def _has_target_scale_policy_todo(todos: list[dict[str, Any]]) -> bool:
-    for item in todos:
-        if not isinstance(item, dict):
-            continue
-        text = " ".join(
-            [
-                str(item.get("id") or ""),
-                str(item.get("content") or ""),
-                str(item.get("detail") or ""),
-                " ".join(str(ref) for ref in item.get("source_refs") or []),
-            ]
-        ).lower()
-        if "target_scale" in text or ("target scale" in text and "quality_gates.rtl_gen" in text):
-            return True
-    return False
+    return any(_is_target_scale_policy_todo(item) for item in todos if isinstance(item, dict))
 
 
 def _module_owner(doc: dict[str, Any], ip: str, refs: list[str] | None = None) -> tuple[str, str]:
@@ -2219,6 +2373,8 @@ def _ensure_workflow_todos(doc: dict[str, Any], ip: str) -> dict[str, Any]:
     rtl_todos = todos.get("rtl-gen") if isinstance(todos.get("rtl-gen"), list) else []
     if not rtl_todos:
         rtl_todos = _synthesize_rtl_workflow_todos(doc, ip)
+    if _rtl_quality_profile(doc, ip) != "production":
+        rtl_todos = [item for item in rtl_todos if not _is_target_scale_policy_todo(item)]
     if _production_target_scale_policy_missing(doc, ip) and not _has_target_scale_policy_todo(rtl_todos):
         top = doc.get("top_module") if isinstance(doc.get("top_module"), dict) else {}
         top_name = str(top.get("name") or ip)

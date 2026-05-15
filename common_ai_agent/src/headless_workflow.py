@@ -1348,15 +1348,15 @@ class HeadlessWorkflowRunner:
         elif stage == "ssot-gen":
             system_path = WORKFLOW_ROOT / "ssot-gen" / "system_prompt.md"
         system = system_path.read_text(encoding="utf-8", errors="replace") if system_path.is_file() else ""
+        headless_contract = (
+            "HEADLESS PROVIDER CONTRACT.\n"
+            "You are being called by a headless artifact runner, not the interactive ATLAS tool loop. "
+            "Do not emit Action:, write_file, run_command, todo_update, markdown fences, status prose, "
+            "or a plan to create files. Return only the machine-readable JSON object requested by the "
+            "user prompt. This headless JSON contract overrides any interactive tool-use wording below.\n\n"
+        )
         if workflow_stage == "ssot-gen":
-            system = (
-                "HEADLESS PROVIDER CONTRACT.\n"
-                "You are being called by a headless artifact runner, not the interactive ATLAS tool loop. "
-                "Do not emit Action:, write_file, run_command, todo_update, markdown fences, status prose, "
-                "or a plan to create files. Return only the machine-readable JSON object requested by the "
-                "user prompt. This headless JSON contract overrides any interactive tool-use wording below.\n\n"
-                + system
-            )
+            system = headless_contract + system
             prompt = (
                 f"Generate canonical SSOT YAML for {ip} from {ip}/req/{ip}_requirements.md.\n\n"
                 "Return exactly one JSON object and nothing else. Do not wrap it in markdown.\n"
@@ -1417,11 +1417,16 @@ class HeadlessWorkflowRunner:
                 f"Requirements:\n{context.get('requirement_text', '')}"
             )
         elif workflow_stage == "rtl-gen":
+            system = headless_contract + system
             prompt = (
                 f"Prepare rtl-gen for {ip} using only {ip}/yaml/{ip}.ssot.yaml and "
                 f"{context.get('rtl_todo_plan_path') or f'{ip}/rtl/rtl_todo_plan.json'}, "
                 f"{context.get('rtl_authoring_plan_path') or f'{ip}/rtl/rtl_authoring_plan.json'}, "
                 f"and packets under {context.get('rtl_authoring_packet_dir') or f'{ip}/rtl/authoring_packets'}. "
+                "Return exactly one JSON object and nothing else. Success schema: "
+                f'{{"files":[{{"path":"{ip}/rtl/<module>.sv","kind":"rtl","content":"<SystemVerilog>"}},'
+                f'{{"path":"{ip}/rtl/rtl_contract.json","kind":"rtl_contract","content":"<JSON>"}},'
+                f'{{"path":"{ip}/list/{ip}.f","kind":"filelist","content":"<filelist>"}}]}}. '
                 "The script derives the TODO ledger from SSOT; the LLM must generate real RTL-owned "
                 "artifacts that satisfy every TODO content/detail/criteria item and record provenance. "
                 "Process one authoring packet at a time, module packets first, then unowned tasks if present, "
@@ -1443,6 +1448,7 @@ class HeadlessWorkflowRunner:
                 "prevents correct RTL authoring, return a human_gate JSON object instead of inventing semantics."
             )
         elif workflow_stage == "tb-gen":
+            system = headless_contract + system
             prompt = (
                 f"Prepare tb-gen for {ip} using {ip}/verify/equivalence_goals.json, "
                 f"{ip}/model/functional_model.py, and {ip}/rtl/rtl_contract.json. "
@@ -1953,6 +1959,7 @@ class HeadlessWorkflowRunner:
             if repair.status in {"blocked", "human_gate"}:
                 return self._append_ssot_llm_gate(ip, repair, topic=f"repair_{attempt + 1}")
             self._apply_artifacts(ip, repair.parsed_artifacts)
+            self._run_deterministic_ssot_repair(ip, reason=f"canonicalize_llm_repair_{attempt + 1}")
         return self._validate_ssot(ip)
 
     def _append_llm_gate(self, ip: str, stage: str, response: LLMResponse, *, topic: str = "llm") -> StageResult:
