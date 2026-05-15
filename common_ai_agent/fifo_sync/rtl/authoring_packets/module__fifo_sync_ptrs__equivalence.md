@@ -35,7 +35,7 @@
 
 ## Tasks
 
-### RTL-0245: Prove module fifo_sync_ptrs is functionally equivalent to FL
+### RTL-0246: Prove module fifo_sync_ptrs is functionally equivalent to FL
 
 - Priority: high
 - Required: True

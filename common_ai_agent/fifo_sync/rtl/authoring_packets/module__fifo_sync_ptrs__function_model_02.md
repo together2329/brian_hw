@@ -35,7 +35,7 @@
 
 ## Tasks
 
-### RTL-0109: Implement output rule for FM3: count_o
+### RTL-0110: Implement output rule for FM3: count_o
 
 - Priority: high
 - Required: True
@@ -59,7 +59,7 @@ SSOT item context: name=count_o; port=count_o; expr=count; width=$clog2(DEPTH+1)
   - count_o is not implemented only in FunctionalModel or scoreboard code
 - SSOT refs: function_model.transactions.FM3.output_rules.count_o
 
-### RTL-0110: Implement state update for FM3: mem[wr_ptr]
+### RTL-0111: Implement state update for FM3: mem[wr_ptr]
 
 - Priority: high
 - Required: True
@@ -82,7 +82,7 @@ SSOT item context: name=mem[wr_ptr]; expr=wr_data_i; reset=0.
   - mem[wr_ptr] updates exactly once at the SSOT-defined transaction acceptance point
 - SSOT refs: function_model.transactions.FM3.state_updates.mem_wr_ptr
 
-### RTL-0111: Implement state update for FM3: wr_ptr
+### RTL-0112: Implement state update for FM3: wr_ptr
 
 - Priority: high
 - Required: True
@@ -105,7 +105,7 @@ SSOT item context: name=wr_ptr; expr=(wr_ptr + 1) % DEPTH; reset=0.
   - wr_ptr updates exactly once at the SSOT-defined transaction acceptance point
 - SSOT refs: function_model.transactions.FM3.state_updates.wr_ptr
 
-### RTL-0112: Implement state update for FM3: rd_ptr
+### RTL-0113: Implement state update for FM3: rd_ptr
 
 - Priority: high
 - Required: True
@@ -128,7 +128,7 @@ SSOT item context: name=rd_ptr; expr=(rd_ptr + 1) % DEPTH; reset=0.
   - rd_ptr updates exactly once at the SSOT-defined transaction acceptance point
 - SSOT refs: function_model.transactions.FM3.state_updates.rd_ptr
 
-### RTL-0113: Implement state update for FM3: count
+### RTL-0114: Implement state update for FM3: count
 
 - Priority: high
 - Required: True
@@ -151,7 +151,7 @@ SSOT item context: name=count; expr=count; reset=0.
   - count updates exactly once at the SSOT-defined transaction acceptance point
 - SSOT refs: function_model.transactions.FM3.state_updates.count
 
-### RTL-0114: Implement side effect for FM3: side_effect_0
+### RTL-0115: Implement side effect for FM3: side_effect_0
 
 - Priority: high
 - Required: True
@@ -171,7 +171,7 @@ SSOT item context: value=count is unchanged because push and pop cancel.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM3.side_effects.side_effect_0
 
-### RTL-0115: Implement transaction FM4
+### RTL-0116: Implement transaction FM4
 
 - Priority: high
 - Required: True
@@ -191,7 +191,7 @@ SSOT item context: id=FM4; name=overflow_reject.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM4
 
-### RTL-0116: Implement precondition for FM4: precondition_0
+### RTL-0117: Implement precondition for FM4: precondition_0
 
 - Priority: high
 - Required: True
@@ -211,7 +211,7 @@ SSOT item context: value=wr_en_i == 1.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM4.preconditions.precondition_0
 
-### RTL-0117: Implement precondition for FM4: precondition_1
+### RTL-0118: Implement precondition for FM4: precondition_1
 
 - Priority: high
 - Required: True
@@ -231,7 +231,7 @@ SSOT item context: value=full_o == 1 (count == DEPTH).
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM4.preconditions.precondition_1
 
-### RTL-0118: Implement output for FM4: output_0
+### RTL-0119: Implement output for FM4: output_0
 
 - Priority: high
 - Required: True
@@ -251,7 +251,7 @@ SSOT item context: value=full_o = 1.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM4.outputs.output_0
 
-### RTL-0119: Implement output for FM4: output_1
+### RTL-0120: Implement output for FM4: output_1
 
 - Priority: high
 - Required: True
@@ -271,7 +271,7 @@ SSOT item context: value=count_o = DEPTH.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM4.outputs.output_1
 
-### RTL-0120: Implement output rule for FM4: full_o
+### RTL-0121: Implement output rule for FM4: full_o
 
 - Priority: high
 - Required: True
@@ -295,7 +295,7 @@ SSOT item context: name=full_o; port=full_o; expr=1; width=1.
   - full_o is not implemented only in FunctionalModel or scoreboard code
 - SSOT refs: function_model.transactions.FM4.output_rules.full_o
 
-### RTL-0121: Implement output rule for FM4: count_o
+### RTL-0122: Implement output rule for FM4: count_o
 
 - Priority: high
 - Required: True
@@ -319,7 +319,7 @@ SSOT item context: name=count_o; port=count_o; expr=DEPTH; width=$clog2(DEPTH+1)
   - count_o is not implemented only in FunctionalModel or scoreboard code
 - SSOT refs: function_model.transactions.FM4.output_rules.count_o
 
-### RTL-0122: Implement side effect for FM4: side_effect_0
+### RTL-0123: Implement side effect for FM4: side_effect_0
 
 - Priority: high
 - Required: True
@@ -339,7 +339,7 @@ SSOT item context: value=Write rejected silently; no data corruption.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM4.side_effects.side_effect_0
 
-### RTL-0123: Implement transaction FM5
+### RTL-0124: Implement transaction FM5
 
 - Priority: high
 - Required: True
@@ -359,7 +359,7 @@ SSOT item context: id=FM5; name=underflow_reject.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM5
 
-### RTL-0124: Implement precondition for FM5: precondition_0
+### RTL-0125: Implement precondition for FM5: precondition_0
 
 - Priority: high
 - Required: True
@@ -379,7 +379,7 @@ SSOT item context: value=rd_en_i == 1.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM5.preconditions.precondition_0
 
-### RTL-0125: Implement precondition for FM5: precondition_1
+### RTL-0126: Implement precondition for FM5: precondition_1
 
 - Priority: high
 - Required: True
@@ -399,7 +399,7 @@ SSOT item context: value=empty_o == 1 (count == 0).
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM5.preconditions.precondition_1
 
-### RTL-0126: Implement output for FM5: output_0
+### RTL-0127: Implement output for FM5: output_0
 
 - Priority: high
 - Required: True
@@ -419,7 +419,7 @@ SSOT item context: value=empty_o = 1.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM5.outputs.output_0
 
-### RTL-0127: Implement output for FM5: output_1
+### RTL-0128: Implement output for FM5: output_1
 
 - Priority: high
 - Required: True
@@ -439,7 +439,7 @@ SSOT item context: value=rd_data_o = previous_value_or_zero.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM5.outputs.output_1
 
-### RTL-0128: Implement output for FM5: output_2
+### RTL-0129: Implement output for FM5: output_2
 
 - Priority: high
 - Required: True
@@ -459,7 +459,7 @@ SSOT item context: value=count_o = 0.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM5.outputs.output_2
 
-### RTL-0129: Implement output rule for FM5: empty_o
+### RTL-0130: Implement output rule for FM5: empty_o
 
 - Priority: high
 - Required: True
@@ -483,7 +483,7 @@ SSOT item context: name=empty_o; port=empty_o; expr=1; width=1.
   - empty_o is not implemented only in FunctionalModel or scoreboard code
 - SSOT refs: function_model.transactions.FM5.output_rules.empty_o
 
-### RTL-0130: Implement output rule for FM5: rd_data_o
+### RTL-0131: Implement output rule for FM5: rd_data_o
 
 - Priority: high
 - Required: True
@@ -507,7 +507,7 @@ SSOT item context: name=rd_data_o; port=rd_data_o; expr=previous_value_or_zero; 
   - rd_data_o is not implemented only in FunctionalModel or scoreboard code
 - SSOT refs: function_model.transactions.FM5.output_rules.rd_data_o
 
-### RTL-0131: Implement output rule for FM5: count_o
+### RTL-0132: Implement output rule for FM5: count_o
 
 - Priority: high
 - Required: True
@@ -531,7 +531,7 @@ SSOT item context: name=count_o; port=count_o; expr=0; width=$clog2(DEPTH+1).
   - count_o is not implemented only in FunctionalModel or scoreboard code
 - SSOT refs: function_model.transactions.FM5.output_rules.count_o
 
-### RTL-0132: Implement side effect for FM5: side_effect_0
+### RTL-0133: Implement side effect for FM5: side_effect_0
 
 - Priority: high
 - Required: True
@@ -551,7 +551,7 @@ SSOT item context: value=Read rejected silently; rd_data_o holds previous value 
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM5.side_effects.side_effect_0
 
-### RTL-0133: Implement transaction FM6
+### RTL-0134: Implement transaction FM6
 
 - Priority: high
 - Required: True
@@ -571,7 +571,7 @@ SSOT item context: id=FM6; name=flush.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM6
 
-### RTL-0134: Implement precondition for FM6: precondition_0
+### RTL-0135: Implement precondition for FM6: precondition_0
 
 - Priority: high
 - Required: True
@@ -591,7 +591,7 @@ SSOT item context: value=flush_i == 1.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM6.preconditions.precondition_0
 
-### RTL-0135: Implement output for FM6: output_0
+### RTL-0136: Implement output for FM6: output_0
 
 - Priority: high
 - Required: True
@@ -611,7 +611,7 @@ SSOT item context: value=empty_o = 1.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM6.outputs.output_0
 
-### RTL-0136: Implement output for FM6: output_1
+### RTL-0137: Implement output for FM6: output_1
 
 - Priority: high
 - Required: True
@@ -631,7 +631,7 @@ SSOT item context: value=full_o = 0.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM6.outputs.output_1
 
-### RTL-0137: Implement output for FM6: output_2
+### RTL-0138: Implement output for FM6: output_2
 
 - Priority: high
 - Required: True
@@ -651,7 +651,7 @@ SSOT item context: value=almost_full_o = 0.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM6.outputs.output_2
 
-### RTL-0138: Implement output for FM6: output_3
+### RTL-0139: Implement output for FM6: output_3
 
 - Priority: high
 - Required: True
@@ -671,7 +671,7 @@ SSOT item context: value=almost_empty_o = 1.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM6.outputs.output_3
 
-### RTL-0139: Implement output for FM6: output_4
+### RTL-0140: Implement output for FM6: output_4
 
 - Priority: high
 - Required: True
@@ -691,7 +691,7 @@ SSOT item context: value=count_o = 0.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM6.outputs.output_4
 
-### RTL-0140: Implement output rule for FM6: empty_o
+### RTL-0141: Implement output rule for FM6: empty_o
 
 - Priority: high
 - Required: True
@@ -715,7 +715,7 @@ SSOT item context: name=empty_o; port=empty_o; expr=1; width=1.
   - empty_o is not implemented only in FunctionalModel or scoreboard code
 - SSOT refs: function_model.transactions.FM6.output_rules.empty_o
 
-### RTL-0141: Implement output rule for FM6: full_o
+### RTL-0142: Implement output rule for FM6: full_o
 
 - Priority: high
 - Required: True
@@ -739,7 +739,7 @@ SSOT item context: name=full_o; port=full_o; expr=0; width=1.
   - full_o is not implemented only in FunctionalModel or scoreboard code
 - SSOT refs: function_model.transactions.FM6.output_rules.full_o
 
-### RTL-0142: Implement output rule for FM6: almost_full_o
+### RTL-0143: Implement output rule for FM6: almost_full_o
 
 - Priority: high
 - Required: True
@@ -763,7 +763,7 @@ SSOT item context: name=almost_full_o; port=almost_full_o; expr=0; width=1.
   - almost_full_o is not implemented only in FunctionalModel or scoreboard code
 - SSOT refs: function_model.transactions.FM6.output_rules.almost_full_o
 
-### RTL-0143: Implement output rule for FM6: almost_empty_o
+### RTL-0144: Implement output rule for FM6: almost_empty_o
 
 - Priority: high
 - Required: True
@@ -787,7 +787,7 @@ SSOT item context: name=almost_empty_o; port=almost_empty_o; expr=1; width=1.
   - almost_empty_o is not implemented only in FunctionalModel or scoreboard code
 - SSOT refs: function_model.transactions.FM6.output_rules.almost_empty_o
 
-### RTL-0144: Implement output rule for FM6: count_o
+### RTL-0145: Implement output rule for FM6: count_o
 
 - Priority: high
 - Required: True
@@ -811,7 +811,7 @@ SSOT item context: name=count_o; port=count_o; expr=0; width=$clog2(DEPTH+1).
   - count_o is not implemented only in FunctionalModel or scoreboard code
 - SSOT refs: function_model.transactions.FM6.output_rules.count_o
 
-### RTL-0145: Implement state update for FM6: wr_ptr
+### RTL-0146: Implement state update for FM6: wr_ptr
 
 - Priority: high
 - Required: True
@@ -834,7 +834,7 @@ SSOT item context: name=wr_ptr; expr=0; reset=0.
   - wr_ptr updates exactly once at the SSOT-defined transaction acceptance point
 - SSOT refs: function_model.transactions.FM6.state_updates.wr_ptr
 
-### RTL-0146: Implement state update for FM6: rd_ptr
+### RTL-0147: Implement state update for FM6: rd_ptr
 
 - Priority: high
 - Required: True
@@ -857,7 +857,7 @@ SSOT item context: name=rd_ptr; expr=0; reset=0.
   - rd_ptr updates exactly once at the SSOT-defined transaction acceptance point
 - SSOT refs: function_model.transactions.FM6.state_updates.rd_ptr
 
-### RTL-0147: Implement state update for FM6: count
+### RTL-0148: Implement state update for FM6: count
 
 - Priority: high
 - Required: True
@@ -880,7 +880,7 @@ SSOT item context: name=count; expr=0; reset=0.
   - count updates exactly once at the SSOT-defined transaction acceptance point
 - SSOT refs: function_model.transactions.FM6.state_updates.count
 
-### RTL-0148: Implement side effect for FM6: side_effect_0
+### RTL-0149: Implement side effect for FM6: side_effect_0
 
 - Priority: high
 - Required: True
@@ -900,7 +900,7 @@ SSOT item context: value=All FIFO entries invalidated; memory contents become un
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM6.side_effects.side_effect_0
 
-### RTL-0149: Implement side effect for FM6: side_effect_1
+### RTL-0150: Implement side effect for FM6: side_effect_1
 
 - Priority: high
 - Required: True
@@ -920,7 +920,7 @@ SSOT item context: value=Flush takes precedence over concurrent push/pop.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.transactions.FM6.side_effects.side_effect_1
 
-### RTL-0150: Preserve FL invariant invariant_0
+### RTL-0151: Preserve FL invariant invariant_0
 
 - Priority: high
 - Required: True
@@ -940,7 +940,7 @@ SSOT item context: value=count is always in range [0, DEPTH]..
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.invariants.invariant_0
 
-### RTL-0151: Preserve FL invariant invariant_1
+### RTL-0152: Preserve FL invariant invariant_1
 
 - Priority: high
 - Required: True
@@ -960,7 +960,7 @@ SSOT item context: value=full_o == 1 if and only if count == DEPTH..
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.invariants.invariant_1
 
-### RTL-0152: Preserve FL invariant invariant_2
+### RTL-0153: Preserve FL invariant invariant_2
 
 - Priority: high
 - Required: True
@@ -980,7 +980,7 @@ SSOT item context: value=empty_o == 1 if and only if count == 0..
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.invariants.invariant_2
 
-### RTL-0153: Preserve FL invariant invariant_3
+### RTL-0154: Preserve FL invariant invariant_3
 
 - Priority: high
 - Required: True
@@ -1000,7 +1000,7 @@ SSOT item context: value=wr_ptr and rd_ptr are always in range [0, DEPTH-1]..
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.invariants.invariant_3
 
-### RTL-0154: Preserve FL invariant invariant_4
+### RTL-0155: Preserve FL invariant invariant_4
 
 - Priority: high
 - Required: True
@@ -1020,7 +1020,7 @@ SSOT item context: value=No read data changes unless rd_en_i is accepted or flus
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.invariants.invariant_4
 
-### RTL-0155: Preserve FL invariant invariant_5
+### RTL-0156: Preserve FL invariant invariant_5
 
 - Priority: high
 - Required: True
@@ -1040,7 +1040,7 @@ SSOT item context: value=Simultaneous push/pop leaves count unchanged..
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: function_model.invariants.invariant_5
 
-### RTL-0156: Preserve FL invariant invariant_6
+### RTL-0157: Preserve FL invariant invariant_6
 
 - Priority: high
 - Required: True

@@ -406,7 +406,7 @@
         "direction": "output",
         "name": "count_o",
         "source_ref": "io_list.interfaces[2].ports[0]",
-        "width": "$clog2(DEPTH+1)"
+        "width": "COUNT_WIDTH"
       },
       {
         "aliases": [
@@ -617,7 +617,7 @@
       ],
       "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_modules.\nOwner: fifo_sync in rtl/fifo_sync.sv via integration.\nSSOT item context: name=external_modules.",
       "evidence_terms": [],
-      "id": "RTL-0217",
+      "id": "RTL-0218",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -658,7 +658,7 @@
       ],
       "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_clocks.\nOwner: fifo_sync in rtl/fifo_sync.sv via integration.\nSSOT item context: name=external_clocks; value=[\"PCLK\"].",
       "evidence_terms": [],
-      "id": "RTL-0218",
+      "id": "RTL-0219",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -700,7 +700,7 @@
       ],
       "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_resets.\nOwner: fifo_sync in rtl/fifo_sync.sv via integration.\nSSOT item context: name=external_resets; value=[\"PRESETn\"].",
       "evidence_terms": [],
-      "id": "RTL-0219",
+      "id": "RTL-0220",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -746,7 +746,7 @@
         "clk",
         "clk_i"
       ],
-      "id": "RTL-0220",
+      "id": "RTL-0221",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -793,7 +793,7 @@
         "rst",
         "rst_ni"
       ],
-      "id": "RTL-0221",
+      "id": "RTL-0222",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -839,7 +839,7 @@
         "clk",
         "clk_i"
       ],
-      "id": "RTL-0222",
+      "id": "RTL-0223",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -889,7 +889,7 @@
         "wr",
         "wr_en_i"
       ],
-      "id": "RTL-0223",
+      "id": "RTL-0224",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -938,7 +938,7 @@
         "wr_addr_i",
         "wr_ptr"
       ],
-      "id": "RTL-0224",
+      "id": "RTL-0225",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -985,7 +985,7 @@
         "wr",
         "wr_data_i"
       ],
-      "id": "RTL-0225",
+      "id": "RTL-0226",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -1034,7 +1034,7 @@
         "rd_addr_i",
         "rd_ptr"
       ],
-      "id": "RTL-0226",
+      "id": "RTL-0227",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -1083,7 +1083,7 @@
         "rd",
         "rd_data_o"
       ],
-      "id": "RTL-0227",
+      "id": "RTL-0228",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -1129,7 +1129,7 @@
         "count",
         "count_i"
       ],
-      "id": "RTL-0228",
+      "id": "RTL-0229",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -1175,7 +1175,7 @@
         "full",
         "full_o"
       ],
-      "id": "RTL-0229",
+      "id": "RTL-0230",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -1221,7 +1221,7 @@
         "empty",
         "empty_o"
       ],
-      "id": "RTL-0230",
+      "id": "RTL-0231",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -1268,7 +1268,7 @@
         "almost_full_o",
         "full"
       ],
-      "id": "RTL-0231",
+      "id": "RTL-0232",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -1315,7 +1315,7 @@
         "almost_empty_o",
         "empty"
       ],
-      "id": "RTL-0232",
+      "id": "RTL-0233",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -1365,7 +1365,7 @@
         "mem_rd_data",
         "rd"
       ],
-      "id": "RTL-0233",
+      "id": "RTL-0234",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -1414,7 +1414,7 @@
         "pop",
         "pop_accepted"
       ],
-      "id": "RTL-0234",
+      "id": "RTL-0235",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -1463,7 +1463,7 @@
         "rd",
         "rd_data_o"
       ],
-      "id": "RTL-0235",
+      "id": "RTL-0236",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -1509,7 +1509,7 @@
         "clk",
         "clk_i"
       ],
-      "id": "RTL-0236",
+      "id": "RTL-0237",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -1556,7 +1556,7 @@
         "rst",
         "rst_ni"
       ],
-      "id": "RTL-0237",
+      "id": "RTL-0238",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -1587,7 +1587,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "f38558b8207c051bf329000b6ab7b51407ec116bcc6539c945c38594602a92bc",
+  "todo_plan_sha256": "02bb95b65f0ebafb8f8432eadca3fbfd576035bf2f7283bfcd47ace9555afa10",
   "top": "fifo_sync",
   "type": "rtl_authoring_packet"
 }

@@ -46,7 +46,7 @@
 
 ## Tasks
 
-### RTL-0217: Implement integration item external_modules
+### RTL-0218: Implement integration item external_modules
 
 - Priority: high
 - Required: True
@@ -66,7 +66,7 @@ SSOT item context: name=external_modules.
   - Primary implementation evidence is in rtl/fifo_sync.sv
 - SSOT refs: integration.dependencies.external_modules
 
-### RTL-0218: Implement integration item external_clocks
+### RTL-0219: Implement integration item external_clocks
 
 - Priority: high
 - Required: True
@@ -86,7 +86,7 @@ SSOT item context: name=external_clocks; value=["PCLK"].
   - Primary implementation evidence is in rtl/fifo_sync.sv
 - SSOT refs: integration.dependencies.external_clocks
 
-### RTL-0219: Implement integration item external_resets
+### RTL-0220: Implement integration item external_resets
 
 - Priority: high
 - Required: True
@@ -106,7 +106,7 @@ SSOT item context: name=external_resets; value=["PRESETn"].
   - Primary implementation evidence is in rtl/fifo_sync.sv
 - SSOT refs: integration.dependencies.external_resets
 
-### RTL-0220: Implement integration item PCLK
+### RTL-0221: Implement integration item PCLK
 
 - Priority: high
 - Required: True
@@ -127,7 +127,7 @@ SSOT item context: port=clk_i; signal=PCLK.
   - DUT port clk_i is the implementation/observation point for clk_i
 - SSOT refs: integration.connections.PCLK
 
-### RTL-0221: Implement integration item PRESETn
+### RTL-0222: Implement integration item PRESETn
 
 - Priority: high
 - Required: True
@@ -148,7 +148,7 @@ SSOT item context: port=rst_ni; signal=PRESETn.
   - DUT port rst_ni is the implementation/observation point for rst_ni
 - SSOT refs: integration.connections.PRESETn
 
-### RTL-0222: Implement integration item PCLK
+### RTL-0223: Implement integration item PCLK
 
 - Priority: high
 - Required: True
@@ -169,7 +169,7 @@ SSOT item context: port=clk_i; signal=PCLK.
   - DUT port clk_i is the implementation/observation point for clk_i
 - SSOT refs: integration.connections.PCLK
 
-### RTL-0223: Implement integration item push_accepted
+### RTL-0224: Implement integration item push_accepted
 
 - Priority: high
 - Required: True
@@ -190,7 +190,7 @@ SSOT item context: port=wr_en_i; signal=push_accepted.
   - DUT port wr_en_i is the implementation/observation point for wr_en_i
 - SSOT refs: integration.connections.push_accepted
 
-### RTL-0224: Implement integration item wr_ptr
+### RTL-0225: Implement integration item wr_ptr
 
 - Priority: high
 - Required: True
@@ -211,7 +211,7 @@ SSOT item context: port=wr_addr_i; signal=wr_ptr.
   - DUT port wr_addr_i is the implementation/observation point for wr_addr_i
 - SSOT refs: integration.connections.wr_ptr
 
-### RTL-0225: Implement integration item wr_data_i
+### RTL-0226: Implement integration item wr_data_i
 
 - Priority: high
 - Required: True
@@ -232,7 +232,7 @@ SSOT item context: port=wr_data_i; signal=wr_data_i.
   - DUT port wr_data_i is the implementation/observation point for wr_data_i
 - SSOT refs: integration.connections.wr_data_i
 
-### RTL-0226: Implement integration item rd_ptr
+### RTL-0227: Implement integration item rd_ptr
 
 - Priority: high
 - Required: True
@@ -253,7 +253,7 @@ SSOT item context: port=rd_addr_i; signal=rd_ptr.
   - DUT port rd_addr_i is the implementation/observation point for rd_addr_i
 - SSOT refs: integration.connections.rd_ptr
 
-### RTL-0227: Implement integration item mem_rd_data
+### RTL-0228: Implement integration item mem_rd_data
 
 - Priority: high
 - Required: True
@@ -274,7 +274,7 @@ SSOT item context: port=rd_data_o; signal=mem_rd_data.
   - DUT port rd_data_o is the implementation/observation point for rd_data_o
 - SSOT refs: integration.connections.mem_rd_data
 
-### RTL-0228: Implement integration item count
+### RTL-0229: Implement integration item count
 
 - Priority: high
 - Required: True
@@ -295,7 +295,7 @@ SSOT item context: port=count_i; signal=count.
   - DUT port count_i is the implementation/observation point for count_i
 - SSOT refs: integration.connections.count
 
-### RTL-0229: Implement integration item full_o
+### RTL-0230: Implement integration item full_o
 
 - Priority: high
 - Required: True
@@ -316,7 +316,7 @@ SSOT item context: port=full_o; signal=full_o.
   - DUT port full_o is the implementation/observation point for full_o
 - SSOT refs: integration.connections.full_o
 
-### RTL-0230: Implement integration item empty_o
+### RTL-0231: Implement integration item empty_o
 
 - Priority: high
 - Required: True
@@ -337,7 +337,7 @@ SSOT item context: port=empty_o; signal=empty_o.
   - DUT port empty_o is the implementation/observation point for empty_o
 - SSOT refs: integration.connections.empty_o
 
-### RTL-0231: Implement integration item almost_full_o
+### RTL-0232: Implement integration item almost_full_o
 
 - Priority: high
 - Required: True
@@ -358,7 +358,7 @@ SSOT item context: port=almost_full_o; signal=almost_full_o.
   - DUT port almost_full_o is the implementation/observation point for almost_full_o
 - SSOT refs: integration.connections.almost_full_o
 
-### RTL-0232: Implement integration item almost_empty_o
+### RTL-0233: Implement integration item almost_empty_o
 
 - Priority: high
 - Required: True
@@ -379,7 +379,7 @@ SSOT item context: port=almost_empty_o; signal=almost_empty_o.
   - DUT port almost_empty_o is the implementation/observation point for almost_empty_o
 - SSOT refs: integration.connections.almost_empty_o
 
-### RTL-0233: Implement integration item mem_rd_data
+### RTL-0234: Implement integration item mem_rd_data
 
 - Priority: high
 - Required: True
@@ -400,7 +400,7 @@ SSOT item context: port=din_i; signal=mem_rd_data.
   - DUT port din_i is the implementation/observation point for din_i
 - SSOT refs: integration.connections.mem_rd_data
 
-### RTL-0234: Implement integration item pop_accepted
+### RTL-0235: Implement integration item pop_accepted
 
 - Priority: high
 - Required: True
@@ -421,7 +421,7 @@ SSOT item context: port=load_i; signal=pop_accepted.
   - DUT port load_i is the implementation/observation point for load_i
 - SSOT refs: integration.connections.pop_accepted
 
-### RTL-0235: Implement integration item rd_data_o
+### RTL-0236: Implement integration item rd_data_o
 
 - Priority: high
 - Required: True
@@ -442,7 +442,7 @@ SSOT item context: port=dout_o; signal=rd_data_o.
   - DUT port dout_o is the implementation/observation point for dout_o
 - SSOT refs: integration.connections.rd_data_o
 
-### RTL-0236: Implement integration item PCLK
+### RTL-0237: Implement integration item PCLK
 
 - Priority: high
 - Required: True
@@ -463,7 +463,7 @@ SSOT item context: port=clk_i; signal=PCLK.
   - DUT port clk_i is the implementation/observation point for clk_i
 - SSOT refs: integration.connections.PCLK
 
-### RTL-0237: Implement integration item PRESETn
+### RTL-0238: Implement integration item PRESETn
 
 - Priority: high
 - Required: True

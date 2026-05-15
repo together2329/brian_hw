@@ -406,7 +406,7 @@
         "direction": "output",
         "name": "count_o",
         "source_ref": "io_list.interfaces[2].ports[0]",
-        "width": "$clog2(DEPTH+1)"
+        "width": "COUNT_WIDTH"
       },
       {
         "aliases": [
@@ -597,7 +597,7 @@
       ],
       "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.fifo_data.\nOwner: fifo_sync in rtl/fifo_sync.sv via security.\nSSOT item context: name=fifo_data.",
       "evidence_terms": [],
-      "id": "RTL-0215",
+      "id": "RTL-0216",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -638,7 +638,7 @@
       ],
       "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.fifo_config.\nOwner: fifo_sync in rtl/fifo_sync.sv via security.\nSSOT item context: name=fifo_config.",
       "evidence_terms": [],
-      "id": "RTL-0216",
+      "id": "RTL-0217",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -668,7 +668,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "f38558b8207c051bf329000b6ab7b51407ec116bcc6539c945c38594602a92bc",
+  "todo_plan_sha256": "02bb95b65f0ebafb8f8432eadca3fbfd576035bf2f7283bfcd47ace9555afa10",
   "top": "fifo_sync",
   "type": "rtl_authoring_packet"
 }

@@ -10,13 +10,13 @@
   ],
   "fallback_if_no_evidence": "human_review_needed",
   "gate": {
-    "all_required_todos_pass": false,
-    "approval_state": "rejected",
-    "open_required_todos": 2,
-    "status": "fail"
+    "all_required_todos_pass": true,
+    "approval_state": "approved",
+    "open_required_todos": 0,
+    "status": "pass"
   },
-  "generated_at": "2026-05-15T02:35:18Z",
-  "headline": "[ssot-tb-cocotb] FAIL - generated TB needs tb-gen repair",
+  "generated_at": "2026-05-15T02:37:51Z",
+  "headline": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
   "human_review_needed": [],
   "ip": "arbiter_rr",
   "runs": [
@@ -37,19 +37,19 @@
     {
       "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime/equivalence_scoreboard.py arbiter_rr --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent --self-check",
       "label": "equivalence_scoreboard_self_check",
-      "returncode": 1,
+      "returncode": 0,
       "stderr": "",
-      "stdout": "{\n  \"checked\": 34,\n  \"events_path\": \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/arbiter_rr/sim/scoreboard_events.jsonl\",\n  \"generated_at\": \"2026-05-15T02:35:18Z\",\n  \"goals\": 34,\n  \"ip\": \"arbiter_rr\",\n  \"model_errors\": 31,\n  \"passed\": false,\n  \"required_goals\": 34,\n  \"sample\": [\n    {\n      \"goal_id\": \"EQ_COVERAGE_CCOV_1CYCLE_LATENCY\",\n      \"kind\": \"FM1\",\n      \"model_error\": \"unexpected EOF while parsing (<unknown>, line 1)\",\n      \"model_result\": {}\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CCOV_RESET_CLEAN\",\n      \"kind\": \"FM1\",\n      \"model_error\": \"unexpected EOF while parsing (<unknown>, line 1)\",\n      \"model_result\": {}\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CCOV_SAMPLE_STAGE\",\n      \"kind\": \"FM1\",\n      \"model_error\": \"unexpected EOF while parsing (<unknown>, line 1)\",\n      \"model_result\": {}\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ\",\n      \"kind\": \"FM1\",\n      \"model_error\": \"unexpected EOF while parsing (<unknown>, line 1)\",\n      \"model_result\": {}\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PERF_OUTSTANDING\",\n      \"kind\": \"FM1\",\n      \"model_error\": \"unexpected EOF while parsing (<unknown>, line 1)\",\n      \"model_result\": {}\n    },\n    {\n      \"goal_id\": \"EQ_DEBUG_OBSERVABILITY\",\n      \"kind\": \"FM1\",\n      \"model_error\": \"unexpected EOF while parsing (<unknown>, line 1)\",\n      \"model_result\": {}\n    },\n    {\n      \"goal_id\": \"EQ_ERROR_NONE\",\n      \"kind\": \"FM1\",\n      \"model_error\": \"unexpected EOF while parsing (<unknown>, line 1)\",\n      \"model_result\": {}\n    },\n    {\n      \"goal_id\": \"EQ_MODULE_ARBITER_RR_CORE\",\n      \"kind\": \"FM1\",\n      \"model_error\": \"unexpected EOF while parsing (<unknown>, line 1)\",\n      \"model_result\": {}\n    }\n  ],\n  \"unsupported_transactions\": 0\n}"
+      "stdout": "{\n  \"checked\": 34,\n  \"events_path\": \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/arbiter_rr/sim/scoreboard_events.jsonl\",\n  \"generated_at\": \"2026-05-15T02:37:51Z\",\n  \"goals\": 34,\n  \"ip\": \"arbiter_rr\",\n  \"model_errors\": 0,\n  \"passed\": true,\n  \"required_goals\": 34,\n  \"sample\": [\n    {\n      \"goal_id\": \"EQ_COVERAGE_CCOV_1CYCLE_LATENCY\",\n      \"kind\": \"FM1\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"gnt_idx_o\": 0,\n        \"gnt_o\": 1,\n        \"gnt_valid_o\": 1,\n        \"grant\": 1,\n        \"grant_index\": 0,\n        \"grant_valid\": 1,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"last_winner\": 0\n        },\n        \"transaction_id\": \"FM1\",\n        \"transaction_name\": \"arbitrate_grant\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CCOV_RESET_CLEAN\",\n      \"kind\": \"FM1\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"gnt_idx_o\": 0,\n        \"gnt_o\": 1,\n        \"gnt_valid_o\": 1,\n        \"grant\": 1,\n        \"grant_index\": 0,\n        \"grant_valid\": 1,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"last_winner\": 0\n        },\n        \"transaction_id\": \"FM1\",\n        \"transaction_name\": \"arbitrate_grant\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CCOV_SAMPLE_STAGE\",\n      \"kind\": \"FM1\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"gnt_idx_o\": 0,\n        \"gnt_o\": 1,\n        \"gnt_valid_o\": 1,\n        \"grant\": 1,\n        \"grant_index\": 0,\n        \"grant_valid\": 1,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"last_winner\": 0\n        },\n        \"transaction_id\": \"FM1\",\n        \"transaction_name\": \"arbitrate_grant\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ\",\n      \"kind\": \"FM1\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"gnt_idx_o\": 0,\n        \"gnt_o\": 1,\n        \"gnt_valid_o\": 1,\n        \"grant\": 1,\n        \"grant_index\": 0,\n        \"grant_valid\": 1,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"last_winner\": 0\n        },\n        \"transaction_id\": \"FM1\",\n        \"transaction_name\": \"arbitrate_grant\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PERF_OUTSTANDING\",\n      \"kind\": \"FM1\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"gnt_idx_o\": 0,\n        \"gnt_o\": 1,\n        \"gnt_valid_o\": 1,\n        \"grant\": 1,\n        \"grant_index\": 0,\n        \"grant_valid\": 1,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"last_winner\": 0\n        },\n        \"transaction_id\": \"FM1\",\n        \"transaction_name\": \"arbitrate_grant\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_DEBUG_OBSERVABILITY\",\n      \"kind\": \"FM1\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"gnt_idx_o\": 0,\n        \"gnt_o\": 1,\n        \"gnt_valid_o\": 1,\n        \"grant\": 1,\n        \"grant_index\": 0,\n        \"grant_valid\": 1,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"last_winner\": 0\n        },\n        \"transaction_id\": \"FM1\",\n        \"transaction_name\": \"arbitrate_grant\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_ERROR_NONE\",\n      \"kind\": \"FM1\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"gnt_idx_o\": 0,\n        \"gnt_o\": 1,\n        \"gnt_valid_o\": 1,\n        \"grant\": 1,\n        \"grant_index\": 0,\n        \"grant_valid\": 1,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"last_winner\": 0\n        },\n        \"transaction_id\": \"FM1\",\n        \"transaction_name\": \"arbitrate_grant\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_MODULE_ARBITER_RR_CORE\",\n      \"kind\": \"FM1\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"gnt_idx_o\": 0,\n        \"gnt_o\": 1,\n        \"gnt_valid_o\": 1,\n        \"grant\": 1,\n        \"grant_index\": 0,\n        \"grant_valid\": 1,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"last_winner\": 0\n        },\n        \"transaction_id\": \"FM1\",\n        \"transaction_name\": \"arbitrate_grant\"\n      }\n    }\n  ],\n  \"unsupported_transactions\": 0\n}"
     }
   ],
   "schema_version": "golden_todo_stage.v1",
   "stage": "ssot-tb-cocotb",
-  "status": "fail",
+  "status": "pass",
   "summary": {},
   "tasks": [
     {
       "approval_policy": "evidence_required",
-      "approval_state": "rejected",
+      "approval_state": "approved",
       "content": "Generate SSOT-derived pyuvm/cocotb testbench",
       "criteria": "emit_goal_scoreboard_cocotb exits 0 and writes test_<ip>.py, test_runner.py, tb_manifest.json, and tb_generation.json.",
       "detail": "Derive the testbench from SSOT scenarios, equivalence goals, and the RTL contract; do not approve a fixed template fallback.",
@@ -77,13 +77,13 @@
           "check_pyuvm_structure",
           "equivalence_scoreboard_self_check"
         ],
-        "reason": "[ssot-tb-cocotb] FAIL - generated TB needs tb-gen repair",
-        "status": "open"
+        "reason": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+        "status": "pass"
       }
     },
     {
       "approval_policy": "evidence_required",
-      "approval_state": "rejected",
+      "approval_state": "approved",
       "content": "Validate TB structure and scoreboard contract",
       "criteria": "check_pyuvm_structure and equivalence_scoreboard --self-check both exit 0.",
       "detail": "The generated TB must instantiate the common equivalence scoreboard and expose the rows required by SIM and Coverage.",
@@ -107,17 +107,17 @@
           "check_pyuvm_structure",
           "equivalence_scoreboard_self_check"
         ],
-        "reason": "[ssot-tb-cocotb] FAIL - generated TB needs tb-gen repair",
-        "status": "open"
+        "reason": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+        "status": "pass"
       }
     }
   ],
   "todo_completion": {
-    "all_required_todos_pass": false,
-    "open_required_tasks": 2,
+    "all_required_todos_pass": true,
+    "open_required_tasks": 0,
     "status_counts": {
-      "open": 2,
-      "pass": 0
+      "open": 0,
+      "pass": 2
     }
   },
   "type": "stage_todo_evidence_plan",

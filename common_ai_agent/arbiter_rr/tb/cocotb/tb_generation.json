@@ -3,7 +3,7 @@
   "type": "generic_goal_scoreboard_cocotb_generation",
   "status": "pass",
   "ip": "arbiter_rr",
-  "generated_at": "2026-05-15T02:35:14Z",
+  "generated_at": "2026-05-15T02:37:47Z",
   "manifest": "arbiter_rr/tb/cocotb/tb_manifest.json",
   "test": "arbiter_rr/tb/cocotb/test_arbiter_rr.py",
   "runner": "arbiter_rr/tb/cocotb/test_runner.py",

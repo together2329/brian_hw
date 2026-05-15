@@ -29,7 +29,7 @@
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Tool-evidence blockers:
   - common_ai_agent_authoring: Missing common_ai_agent RTL authoring provenance.
-  - dynamic_todo_closure: 7 required non-closure TODO(s) remain open.
+  - dynamic_todo_closure: 6 required non-closure TODO(s) remain open.
   - protocol_assertion_evidence: Missing protocol assertion artifact: verify/protocol_assertions.sva.
   - fl_rtl_goal_audit: FL-vs-RTL goal audit is not clean.
   - coverage_closure: Missing coverage closure artifact: cov/coverage.json.
@@ -132,7 +132,7 @@ Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
-- Current reason: 7 required non-closure TODO(s) remain open.
+- Current reason: 6 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

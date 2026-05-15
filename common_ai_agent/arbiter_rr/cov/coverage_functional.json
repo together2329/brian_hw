@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage",
+  "status": "pass",
+  "timestamp_iso": "2026-05-15T02:37:55Z",
+  "functional": {
+    "hit": 2,
+    "total": 2,
+    "pct": 100.0,
+    "bins": {
+      "fcov_no_grant_idle": {
+        "hit": true,
+        "goal_id": "EQ_TRANSACTION_FM2",
+        "scenario_id": "SC_002_EQ_TRANSACTION_FM2"
+      },
+      "function_no_grant_idle": {
+        "hit": true,
+        "goal_id": "EQ_TRANSACTION_FM2",
+        "scenario_id": "SC_002_EQ_TRANSACTION_FM2"
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+TESTS=1 PASS=1 FAIL=0
+results=arbiter_rr/sim/results.xml
+scoreboard=arbiter_rr/sim/scoreboard_events.jsonl
+coverage_functional=arbiter_rr/cov/coverage_functional.json
+waveforms=arbiter_rr/sim/arbiter_rr.vcd
+0 errors, 0 warnings

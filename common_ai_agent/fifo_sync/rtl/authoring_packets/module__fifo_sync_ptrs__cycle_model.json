@@ -199,7 +199,7 @@
       ],
       "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.\nSSOT item context: value=PCLK.",
       "evidence_terms": [],
-      "id": "RTL-0157",
+      "id": "RTL-0158",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -241,7 +241,7 @@
       ],
       "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.",
       "evidence_terms": [],
-      "id": "RTL-0158",
+      "id": "RTL-0159",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -285,7 +285,7 @@
         "wr",
         "wr_en_i"
       ],
-      "id": "RTL-0160",
+      "id": "RTL-0161",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -345,7 +345,7 @@
         "rd",
         "rd_en_i"
       ],
-      "id": "RTL-0161",
+      "id": "RTL-0162",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -404,7 +404,7 @@
         "full",
         "full_o"
       ],
-      "id": "RTL-0162",
+      "id": "RTL-0163",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -461,7 +461,7 @@
         "empty",
         "empty_o"
       ],
-      "id": "RTL-0163",
+      "id": "RTL-0164",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -518,7 +518,7 @@
         "flush",
         "flush_i"
       ],
-      "id": "RTL-0164",
+      "id": "RTL-0165",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -583,7 +583,7 @@
         "wr_data_i",
         "wr_en_i"
       ],
-      "id": "RTL-0165",
+      "id": "RTL-0166",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -671,7 +671,7 @@
         "wr",
         "wr_en_i"
       ],
-      "id": "RTL-0166",
+      "id": "RTL-0167",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -762,7 +762,7 @@
         "wr",
         "wr_ptr"
       ],
-      "id": "RTL-0167",
+      "id": "RTL-0168",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -834,7 +834,7 @@
         "wr_data_i",
         "wr_ptr"
       ],
-      "id": "RTL-0168",
+      "id": "RTL-0169",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -909,7 +909,7 @@
         "empty",
         "full"
       ],
-      "id": "RTL-0169",
+      "id": "RTL-0170",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -971,7 +971,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_0.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.\nSSOT item context: value=Push data is captured into memory in the same cycle as pointer update..",
       "evidence_terms": [],
-      "id": "RTL-0170",
+      "id": "RTL-0171",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1013,7 +1013,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_1.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.\nSSOT item context: value=Pop data is available combinationally from memory (USE_OUTPUT_REGISTER=0) or one cycle later (USE_OUTPUT_REGISTER=1)..",
       "evidence_terms": [],
-      "id": "RTL-0171",
+      "id": "RTL-0172",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1055,7 +1055,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_2.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.\nSSOT item context: value=Flush clears all state in the cycle it is sampled; concurrent push/pop are ignored..",
       "evidence_terms": [],
-      "id": "RTL-0172",
+      "id": "RTL-0173",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1097,7 +1097,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_3.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.\nSSOT item context: value=Flag updates are visible on the cycle after pointer/count changes..",
       "evidence_terms": [],
-      "id": "RTL-0173",
+      "id": "RTL-0174",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1145,7 +1145,7 @@
         "wr",
         "wr_en_i"
       ],
-      "id": "RTL-0174",
+      "id": "RTL-0175",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1211,7 +1211,7 @@
         "rd",
         "rd_en_i"
       ],
-      "id": "RTL-0175",
+      "id": "RTL-0176",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1271,7 +1271,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_0.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.\nSSOT item context: value=Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario..",
       "evidence_terms": [],
-      "id": "RTL-0176",
+      "id": "RTL-0177",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1301,7 +1301,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "f38558b8207c051bf329000b6ab7b51407ec116bcc6539c945c38594602a92bc",
+  "todo_plan_sha256": "02bb95b65f0ebafb8f8432eadca3fbfd576035bf2f7283bfcd47ace9555afa10",
   "top": "fifo_sync",
   "type": "rtl_authoring_packet"
 }

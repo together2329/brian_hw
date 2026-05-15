@@ -29,11 +29,13 @@
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - SSOT target scale: min_behavior_owner_logic_modules=3, min_depth_score=40, min_logic_modules=4, min_modules=6, min_procedural_blocks=20, min_source_files=6, min_state_updates=25
 - Tool-evidence blockers:
-  - dynamic_todo_closure: 22 required non-closure TODO(s) remain open.
+  - common_ai_agent_authoring: RTL authoring provenance is incomplete: todo_plan_sha256
+  - dynamic_todo_closure: 23 required non-closure TODO(s) remain open.
   - protocol_assertion_evidence: Missing protocol assertion artifact: verify/protocol_assertions.sva.
   - fl_rtl_goal_audit: FL-vs-RTL goal audit is not clean.
   - coverage_closure: Missing coverage closure artifact: cov/coverage.json.
 - Tool-evidence runbook:
+  - common_ai_agent_authoring: stages=ssot-rtl; artifact=spi/rtl/rtl_authoring_provenance.json
   - dynamic_todo_closure: stages=audit-rtl; artifact=spi/rtl/rtl_todo_plan.json
   - protocol_assertion_evidence: stages=ssot-protocol-assertions, sim; artifact=spi/verify/protocol_assertions.sva
   - fl_rtl_goal_audit: stages=ssot-fl-model, ssot-equiv-goals, ssot-tb-cocotb, sim, goal-audit; artifact=spi/sim/fl_rtl_goal_audit.json
@@ -52,13 +54,13 @@
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.common_ai_agent_authoring
 - Detail: RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.
 SSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.
 Owner: spi in rtl/spi.sv via top_module.
-- Current reason: RTL authoring provenance proves common_ai_agent rtl-gen ownership.
+- Current reason: RTL authoring provenance is incomplete: todo_plan_sha256
 - Criteria:
   - rtl/rtl_authoring_provenance.json exists
   - provenance agent is common_ai_agent
@@ -124,7 +126,7 @@ Owner: spi in rtl/spi.sv via top_module.
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: spi in rtl/spi.sv via top_module.
-- Current reason: 22 required non-closure TODO(s) remain open.
+- Current reason: 23 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

@@ -46,7 +46,7 @@
 
 ## Tasks
 
-### RTL-0249: Prove module fifo_sync is functionally equivalent to FL
+### RTL-0250: Prove module fifo_sync is functionally equivalent to FL
 
 - Priority: high
 - Required: True

@@ -406,7 +406,7 @@
         "direction": "output",
         "name": "count_o",
         "source_ref": "io_list.interfaces[2].ports[0]",
-        "width": "$clog2(DEPTH+1)"
+        "width": "COUNT_WIDTH"
       },
       {
         "aliases": [
@@ -607,7 +607,7 @@
         "full",
         "full_o"
       ],
-      "id": "RTL-0206",
+      "id": "RTL-0207",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -670,7 +670,7 @@
         "empty",
         "empty_o"
       ],
-      "id": "RTL-0207",
+      "id": "RTL-0208",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -728,7 +728,7 @@
       ],
       "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Simultaneous_Push_Pop.\nOwner: fifo_sync in rtl/fifo_sync.sv via features.\nSSOT item context: name=Simultaneous Push/Pop; output=All flags remain stable when simultaneous push/pop maintains the same fill level.",
       "evidence_terms": [],
-      "id": "RTL-0208",
+      "id": "RTL-0209",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -770,7 +770,7 @@
       ],
       "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Overflow_Protection.\nOwner: fifo_sync in rtl/fifo_sync.sv via features.\nSSOT item context: name=Overflow Protection; output=No state change; count unchanged.",
       "evidence_terms": [],
-      "id": "RTL-0209",
+      "id": "RTL-0210",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -812,7 +812,7 @@
       ],
       "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Underflow_Protection.\nOwner: fifo_sync in rtl/fifo_sync.sv via features.\nSSOT item context: name=Underflow Protection; output=No state change; count unchanged.",
       "evidence_terms": [],
-      "id": "RTL-0210",
+      "id": "RTL-0211",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -862,7 +862,7 @@
         "full",
         "full_o"
       ],
-      "id": "RTL-0211",
+      "id": "RTL-0212",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -926,7 +926,7 @@
       ],
       "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.APB_CSR_Access.\nOwner: fifo_sync in rtl/fifo_sync.sv via features.\nSSOT item context: name=APB CSR Access; output=prdata/pslverr driven per register decode.",
       "evidence_terms": [],
-      "id": "RTL-0212",
+      "id": "RTL-0213",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -957,7 +957,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "f38558b8207c051bf329000b6ab7b51407ec116bcc6539c945c38594602a92bc",
+  "todo_plan_sha256": "02bb95b65f0ebafb8f8432eadca3fbfd576035bf2f7283bfcd47ace9555afa10",
   "top": "fifo_sync",
   "type": "rtl_authoring_packet"
 }

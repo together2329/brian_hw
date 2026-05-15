@@ -2,7 +2,7 @@
   "schema_version": 1,
   "type": "mismatch_classification",
   "ip": "edge_detector",
-  "generated_at": "2026-05-15T02:37:25Z",
+  "generated_at": "2026-05-15T02:38:30Z",
   "status": "action_required",
   "classifications": [
     {
@@ -69,7 +69,10 @@
               "PREADY": 1,
               "PSLVERR": 0,
               "edge_o": 0,
-              "irq_o": 0
+              "irq_o": 0,
+              "prdata": 2,
+              "pready": 1,
+              "pslverr": 0
             },
             "scenario_id": "SC_011_EQ_SCENARIO_SC10",
             "scope": {
@@ -139,7 +142,10 @@
           "PREADY": 1,
           "PSLVERR": 0,
           "edge_o": 0,
-          "irq_o": 0
+          "irq_o": 0,
+          "prdata": 2,
+          "pready": 1,
+          "pslverr": 0
         },
         "sim_result": "failed"
       },
@@ -229,7 +235,10 @@
               "PREADY": 1,
               "PSLVERR": 0,
               "edge_o": 0,
-              "irq_o": 0
+              "irq_o": 0,
+              "prdata": 0,
+              "pready": 1,
+              "pslverr": 0
             },
             "scenario_id": "SC_012_EQ_SCENARIO_SC11",
             "scope": {
@@ -299,7 +308,10 @@
           "PREADY": 1,
           "PSLVERR": 0,
           "edge_o": 0,
-          "irq_o": 0
+          "irq_o": 0,
+          "prdata": 0,
+          "pready": 1,
+          "pslverr": 0
         },
         "sim_result": "failed"
       },
@@ -323,528 +335,6 @@
         "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
       },
       "repair_prompt": "Repair RTL for EQ_SCENARIO_SC11. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: no comparable RTL observable for FunctionalModel result",
-      "human_question": ""
-    },
-    {
-      "goal_id": "EQ_REGISTER_CONTROL",
-      "classification": "rtl_bug",
-      "owner": "rtl-gen",
-      "llm_loop_allowed": true,
-      "reason": "no comparable RTL observable for FunctionalModel result",
-      "evidence": {
-        "ssot_refs": [
-          "registers.register_list[0]"
-        ],
-        "scoreboard_rows": [
-          {
-            "coverage_refs": [
-              "SC10_executed",
-              "fcov_w1c_clear",
-              "fcov_reserved_mode",
-              "cycle_latency_register_read",
-              "cycle_latency_register_write",
-              "cycle_perf_outstanding",
-              "error_error_0"
-            ],
-            "cycle": 19,
-            "fl_expected": {
-              "error_policy": "",
-              "goal_id": "EQ_REGISTER_CONTROL",
-              "latency": "register access latency from cycle_model/integration",
-              "model_api": "FunctionalModel.apply",
-              "model_error": "",
-              "model_result": {
-                "reg": "0",
-                "resp": 0,
-                "value": 31,
-                "write": true
-              },
-              "observables": [
-                "read data",
-                "write response",
-                "side effects"
-              ],
-              "ssot_refs": [
-                "registers.register_list[0]"
-              ],
-              "state_updates": [
-                "register mirror update when writable"
-              ],
-              "transaction": {
-                "_sample_active": false,
-                "addr": 0,
-                "addr_or_name": 0,
-                "curr_sync": 17,
-                "cycle": 18,
-                "data": 31,
-                "enable": 1,
-                "goal_id": "EQ_REGISTER_CONTROL",
-                "irq_enable": 1,
-                "kind": "DETECT",
-                "mode_mask": 18,
-                "observed_signals": {},
-                "op": "write",
-                "reg": 0,
-                "scenario_id": "SC_019_EQ_REGISTER_CONTROL",
-                "signal_i": 1,
-                "signal_in": 1,
-                "value": 31
-              }
-            },
-            "goal_id": "EQ_REGISTER_CONTROL",
-            "mismatch": "no comparable RTL observable for FunctionalModel result",
-            "passed": false,
-            "rtl_observed": {
-              "PRDATA": 2,
-              "PREADY": 1,
-              "PSLVERR": 0,
-              "edge_o": 0,
-              "irq_o": 0
-            },
-            "scenario_id": "SC_019_EQ_REGISTER_CONTROL",
-            "scope": {
-              "level": "top"
-            },
-            "stimulus": {
-              "_sample_active": false,
-              "addr": 0,
-              "addr_or_name": 0,
-              "cycle": 18,
-              "data": 31,
-              "enable": 1,
-              "irq_enable": 1,
-              "kind": "csr_access",
-              "observed_signals": {},
-              "op": "write",
-              "reg": 0,
-              "scenario_id": "SC_019_EQ_REGISTER_CONTROL",
-              "signal_i": 1,
-              "signal_in": 1,
-              "value": 31
-            }
-          }
-        ],
-        "fl_expected": {
-          "error_policy": "",
-          "goal_id": "EQ_REGISTER_CONTROL",
-          "latency": "register access latency from cycle_model/integration",
-          "model_api": "FunctionalModel.apply",
-          "model_error": "",
-          "model_result": {
-            "reg": "0",
-            "resp": 0,
-            "value": 31,
-            "write": true
-          },
-          "observables": [
-            "read data",
-            "write response",
-            "side effects"
-          ],
-          "ssot_refs": [
-            "registers.register_list[0]"
-          ],
-          "state_updates": [
-            "register mirror update when writable"
-          ],
-          "transaction": {
-            "_sample_active": false,
-            "addr": 0,
-            "addr_or_name": 0,
-            "curr_sync": 17,
-            "cycle": 18,
-            "data": 31,
-            "enable": 1,
-            "goal_id": "EQ_REGISTER_CONTROL",
-            "irq_enable": 1,
-            "kind": "DETECT",
-            "mode_mask": 18,
-            "observed_signals": {},
-            "op": "write",
-            "reg": 0,
-            "scenario_id": "SC_019_EQ_REGISTER_CONTROL",
-            "signal_i": 1,
-            "signal_in": 1,
-            "value": 31
-          }
-        },
-        "rtl_observed": {
-          "PRDATA": 2,
-          "PREADY": 1,
-          "PSLVERR": 0,
-          "edge_o": 0,
-          "irq_o": 0
-        },
-        "sim_result": "failed"
-      },
-      "authority_policy": {
-        "locked_artifacts": [
-          "requirement",
-          "ssot_spec",
-          "functional_model",
-          "coverage_plan",
-          "interface_contract",
-          "performance_target"
-        ],
-        "llm_editable_artifacts": [
-          "rtl",
-          "tb",
-          "test_vector",
-          "scoreboard_implementation",
-          "lint_fix",
-          "report"
-        ],
-        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
-      },
-      "repair_prompt": "Repair RTL for EQ_REGISTER_CONTROL. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: no comparable RTL observable for FunctionalModel result",
-      "human_question": ""
-    },
-    {
-      "goal_id": "EQ_REGISTER_STATUS",
-      "classification": "rtl_bug",
-      "owner": "rtl-gen",
-      "llm_loop_allowed": true,
-      "reason": "no comparable RTL observable for FunctionalModel result",
-      "evidence": {
-        "ssot_refs": [
-          "registers.register_list[1]"
-        ],
-        "scoreboard_rows": [
-          {
-            "coverage_refs": [
-              "SC10_executed",
-              "fcov_sticky_set",
-              "fcov_overflow_set",
-              "fcov_w1c_clear",
-              "cycle_latency_register_read",
-              "cycle_latency_register_write",
-              "cycle_perf_outstanding",
-              "error_error_0"
-            ],
-            "cycle": 20,
-            "fl_expected": {
-              "error_policy": "",
-              "goal_id": "EQ_REGISTER_STATUS",
-              "latency": "register access latency from cycle_model/integration",
-              "model_api": "FunctionalModel.apply",
-              "model_error": "",
-              "model_result": {
-                "reg": "4",
-                "resp": 0,
-                "value": 32,
-                "write": true
-              },
-              "observables": [
-                "read data",
-                "write response",
-                "side effects"
-              ],
-              "ssot_refs": [
-                "registers.register_list[1]"
-              ],
-              "state_updates": [
-                "register mirror update when writable"
-              ],
-              "transaction": {
-                "_sample_active": false,
-                "addr": 4,
-                "addr_or_name": 4,
-                "curr_sync": 17,
-                "cycle": 19,
-                "data": 32,
-                "enable": 0,
-                "goal_id": "EQ_REGISTER_STATUS",
-                "irq_enable": 1,
-                "kind": "DETECT",
-                "mode_mask": 18,
-                "observed_signals": {},
-                "op": "write",
-                "reg": 4,
-                "scenario_id": "SC_020_EQ_REGISTER_STATUS",
-                "signal_i": 0,
-                "signal_in": 0,
-                "value": 32
-              }
-            },
-            "goal_id": "EQ_REGISTER_STATUS",
-            "mismatch": "no comparable RTL observable for FunctionalModel result",
-            "passed": false,
-            "rtl_observed": {
-              "PRDATA": 0,
-              "PREADY": 1,
-              "PSLVERR": 0,
-              "edge_o": 0,
-              "irq_o": 0
-            },
-            "scenario_id": "SC_020_EQ_REGISTER_STATUS",
-            "scope": {
-              "level": "top"
-            },
-            "stimulus": {
-              "_sample_active": false,
-              "addr": 4,
-              "addr_or_name": 4,
-              "cycle": 19,
-              "data": 32,
-              "enable": 0,
-              "irq_enable": 1,
-              "kind": "csr_access",
-              "observed_signals": {},
-              "op": "write",
-              "reg": 4,
-              "scenario_id": "SC_020_EQ_REGISTER_STATUS",
-              "signal_i": 0,
-              "signal_in": 0,
-              "value": 32
-            }
-          }
-        ],
-        "fl_expected": {
-          "error_policy": "",
-          "goal_id": "EQ_REGISTER_STATUS",
-          "latency": "register access latency from cycle_model/integration",
-          "model_api": "FunctionalModel.apply",
-          "model_error": "",
-          "model_result": {
-            "reg": "4",
-            "resp": 0,
-            "value": 32,
-            "write": true
-          },
-          "observables": [
-            "read data",
-            "write response",
-            "side effects"
-          ],
-          "ssot_refs": [
-            "registers.register_list[1]"
-          ],
-          "state_updates": [
-            "register mirror update when writable"
-          ],
-          "transaction": {
-            "_sample_active": false,
-            "addr": 4,
-            "addr_or_name": 4,
-            "curr_sync": 17,
-            "cycle": 19,
-            "data": 32,
-            "enable": 0,
-            "goal_id": "EQ_REGISTER_STATUS",
-            "irq_enable": 1,
-            "kind": "DETECT",
-            "mode_mask": 18,
-            "observed_signals": {},
-            "op": "write",
-            "reg": 4,
-            "scenario_id": "SC_020_EQ_REGISTER_STATUS",
-            "signal_i": 0,
-            "signal_in": 0,
-            "value": 32
-          }
-        },
-        "rtl_observed": {
-          "PRDATA": 0,
-          "PREADY": 1,
-          "PSLVERR": 0,
-          "edge_o": 0,
-          "irq_o": 0
-        },
-        "sim_result": "failed"
-      },
-      "authority_policy": {
-        "locked_artifacts": [
-          "requirement",
-          "ssot_spec",
-          "functional_model",
-          "coverage_plan",
-          "interface_contract",
-          "performance_target"
-        ],
-        "llm_editable_artifacts": [
-          "rtl",
-          "tb",
-          "test_vector",
-          "scoreboard_implementation",
-          "lint_fix",
-          "report"
-        ],
-        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
-      },
-      "repair_prompt": "Repair RTL for EQ_REGISTER_STATUS. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: no comparable RTL observable for FunctionalModel result",
-      "human_question": ""
-    },
-    {
-      "goal_id": "EQ_REGISTER_RAW_STATUS",
-      "classification": "rtl_bug",
-      "owner": "rtl-gen",
-      "llm_loop_allowed": true,
-      "reason": "no comparable RTL observable for FunctionalModel result",
-      "evidence": {
-        "ssot_refs": [
-          "registers.register_list[2]"
-        ],
-        "scoreboard_rows": [
-          {
-            "coverage_refs": [
-              "SC10_executed",
-              "fcov_w1c_clear",
-              "cycle_latency_register_read",
-              "cycle_latency_register_write",
-              "cycle_perf_outstanding",
-              "error_error_0"
-            ],
-            "cycle": 21,
-            "fl_expected": {
-              "error_policy": "",
-              "goal_id": "EQ_REGISTER_RAW_STATUS",
-              "latency": "register access latency from cycle_model/integration",
-              "model_api": "FunctionalModel.apply",
-              "model_error": "",
-              "model_result": {
-                "reg": "8",
-                "resp": 0,
-                "value": 33,
-                "write": true
-              },
-              "observables": [
-                "read data",
-                "write response",
-                "side effects"
-              ],
-              "ssot_refs": [
-                "registers.register_list[2]"
-              ],
-              "state_updates": [
-                "register mirror update when writable"
-              ],
-              "transaction": {
-                "_sample_active": false,
-                "addr": 8,
-                "addr_or_name": 8,
-                "curr_sync": 17,
-                "cycle": 20,
-                "data": 33,
-                "enable": 1,
-                "goal_id": "EQ_REGISTER_RAW_STATUS",
-                "irq_enable": 1,
-                "kind": "DETECT",
-                "mode_mask": 18,
-                "observed_signals": {},
-                "op": "write",
-                "reg": 8,
-                "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS",
-                "signal_i": 1,
-                "signal_in": 1,
-                "value": 33
-              }
-            },
-            "goal_id": "EQ_REGISTER_RAW_STATUS",
-            "mismatch": "no comparable RTL observable for FunctionalModel result",
-            "passed": false,
-            "rtl_observed": {
-              "PRDATA": 2,
-              "PREADY": 1,
-              "PSLVERR": 0,
-              "edge_o": 0,
-              "irq_o": 0
-            },
-            "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS",
-            "scope": {
-              "level": "top"
-            },
-            "stimulus": {
-              "_sample_active": false,
-              "addr": 8,
-              "addr_or_name": 8,
-              "cycle": 20,
-              "data": 33,
-              "enable": 1,
-              "irq_enable": 1,
-              "kind": "csr_access",
-              "observed_signals": {},
-              "op": "write",
-              "reg": 8,
-              "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS",
-              "signal_i": 1,
-              "signal_in": 1,
-              "value": 33
-            }
-          }
-        ],
-        "fl_expected": {
-          "error_policy": "",
-          "goal_id": "EQ_REGISTER_RAW_STATUS",
-          "latency": "register access latency from cycle_model/integration",
-          "model_api": "FunctionalModel.apply",
-          "model_error": "",
-          "model_result": {
-            "reg": "8",
-            "resp": 0,
-            "value": 33,
-            "write": true
-          },
-          "observables": [
-            "read data",
-            "write response",
-            "side effects"
-          ],
-          "ssot_refs": [
-            "registers.register_list[2]"
-          ],
-          "state_updates": [
-            "register mirror update when writable"
-          ],
-          "transaction": {
-            "_sample_active": false,
-            "addr": 8,
-            "addr_or_name": 8,
-            "curr_sync": 17,
-            "cycle": 20,
-            "data": 33,
-            "enable": 1,
-            "goal_id": "EQ_REGISTER_RAW_STATUS",
-            "irq_enable": 1,
-            "kind": "DETECT",
-            "mode_mask": 18,
-            "observed_signals": {},
-            "op": "write",
-            "reg": 8,
-            "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS",
-            "signal_i": 1,
-            "signal_in": 1,
-            "value": 33
-          }
-        },
-        "rtl_observed": {
-          "PRDATA": 2,
-          "PREADY": 1,
-          "PSLVERR": 0,
-          "edge_o": 0,
-          "irq_o": 0
-        },
-        "sim_result": "failed"
-      },
-      "authority_policy": {
-        "locked_artifacts": [
-          "requirement",
-          "ssot_spec",
-          "functional_model",
-          "coverage_plan",
-          "interface_contract",
-          "performance_target"
-        ],
-        "llm_editable_artifacts": [
-          "rtl",
-          "tb",
-          "test_vector",
-          "scoreboard_implementation",
-          "lint_fix",
-          "report"
-        ],
-        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
-      },
-      "repair_prompt": "Repair RTL for EQ_REGISTER_RAW_STATUS. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: no comparable RTL observable for FunctionalModel result",
       "human_question": ""
     }
   ]

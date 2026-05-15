@@ -46,7 +46,7 @@
 
 ## Tasks
 
-### RTL-0250: Keep RTL observable for scenario SC1
+### RTL-0251: Keep RTL observable for scenario SC1
 
 - Priority: normal
 - Required: True
@@ -67,7 +67,7 @@ SSOT item context: id=SC1; name=Push single entry; expected=Data stored; count=1
   - Downstream checker compares RTL-observed behavior against expected result: Data stored; count=1; full_o=0; empty_o=0
 - SSOT refs: test_requirements.scenarios.SC1
 
-### RTL-0251: Keep RTL observable for scenario SC2
+### RTL-0252: Keep RTL observable for scenario SC2
 
 - Priority: normal
 - Required: True
@@ -88,7 +88,7 @@ SSOT item context: id=SC2; name=Pop single entry; expected=rd_data_o=pattern_A; 
   - Downstream checker compares RTL-observed behavior against expected result: rd_data_o=pattern_A; count=0; empty_o=1
 - SSOT refs: test_requirements.scenarios.SC2
 
-### RTL-0252: Keep RTL observable for scenario SC3
+### RTL-0253: Keep RTL observable for scenario SC3
 
 - Priority: normal
 - Required: True
@@ -109,7 +109,7 @@ SSOT item context: id=SC3; name=Fill to full; expected=full_o=1 after DEPTH push
   - Downstream checker compares RTL-observed behavior against expected result: full_o=1 after DEPTH pushes; count_o=DEPTH; all entries stored correctly
 - SSOT refs: test_requirements.scenarios.SC3
 
-### RTL-0253: Keep RTL observable for scenario SC4
+### RTL-0254: Keep RTL observable for scenario SC4
 
 - Priority: normal
 - Required: True
@@ -130,7 +130,7 @@ SSOT item context: id=SC4; name=Overflow rejection; expected=No state change; co
   - Downstream checker compares RTL-observed behavior against expected result: No state change; count unchanged; previously stored data intact
 - SSOT refs: test_requirements.scenarios.SC4
 
-### RTL-0254: Keep RTL observable for scenario SC5
+### RTL-0255: Keep RTL observable for scenario SC5
 
 - Priority: normal
 - Required: True
@@ -151,7 +151,7 @@ SSOT item context: id=SC5; name=Underflow rejection; expected=No state change; c
   - Downstream checker compares RTL-observed behavior against expected result: No state change; count remains 0; rd_data_o holds previous value
 - SSOT refs: test_requirements.scenarios.SC5
 
-### RTL-0255: Keep RTL observable for scenario SC6
+### RTL-0256: Keep RTL observable for scenario SC6
 
 - Priority: normal
 - Required: True
@@ -172,7 +172,7 @@ SSOT item context: id=SC6; name=Simultaneous push and pop; expected=Both accepte
   - Downstream checker compares RTL-observed behavior against expected result: Both accepted; count unchanged; new data pushed; old data popped correctly
 - SSOT refs: test_requirements.scenarios.SC6
 
-### RTL-0256: Keep RTL observable for scenario SC7
+### RTL-0257: Keep RTL observable for scenario SC7
 
 - Priority: normal
 - Required: True
@@ -193,7 +193,7 @@ SSOT item context: id=SC7; name=Simultaneous push and pop at boundary; expected=
   - Downstream checker compares RTL-observed behavior against expected result: Push rejected (full), pop accepted; count decrements to DEPTH-1
 - SSOT refs: test_requirements.scenarios.SC7
 
-### RTL-0257: Keep RTL observable for scenario SC8
+### RTL-0258: Keep RTL observable for scenario SC8
 
 - Priority: normal
 - Required: True
@@ -214,7 +214,7 @@ SSOT item context: id=SC8; name=Flush when partially full; expected=wr_ptr=0; rd
   - Downstream checker compares RTL-observed behavior against expected result: wr_ptr=0; rd_ptr=0; count=0; empty_o=1; full_o=0; all entries invalidated
 - SSOT refs: test_requirements.scenarios.SC8
 
-### RTL-0258: Keep RTL observable for scenario SC9
+### RTL-0259: Keep RTL observable for scenario SC9
 
 - Priority: normal
 - Required: True
@@ -235,7 +235,7 @@ SSOT item context: id=SC9; name=Flush when full; expected=All pointers and count
   - Downstream checker compares RTL-observed behavior against expected result: All pointers and count cleared; full_o deasserts; empty_o asserts
 - SSOT refs: test_requirements.scenarios.SC9
 
-### RTL-0259: Keep RTL observable for scenario SC10
+### RTL-0260: Keep RTL observable for scenario SC10
 
 - Priority: normal
 - Required: True
@@ -256,7 +256,7 @@ SSOT item context: id=SC10; name=Flush during simultaneous push/pop; expected=Fl
   - Downstream checker compares RTL-observed behavior against expected result: Flush takes precedence; push and pop ignored; state reset to empty
 - SSOT refs: test_requirements.scenarios.SC10
 
-### RTL-0260: Keep RTL observable for scenario SC11
+### RTL-0261: Keep RTL observable for scenario SC11
 
 - Priority: normal
 - Required: True
@@ -277,7 +277,7 @@ SSOT item context: id=SC11; name=Almost full threshold; expected=almost_full_o a
   - Downstream checker compares RTL-observed behavior against expected result: almost_full_o asserts at threshold; full_o not yet asserted
 - SSOT refs: test_requirements.scenarios.SC11
 
-### RTL-0261: Keep RTL observable for scenario SC12
+### RTL-0262: Keep RTL observable for scenario SC12
 
 - Priority: normal
 - Required: True
@@ -298,7 +298,7 @@ SSOT item context: id=SC12; name=Almost empty threshold; expected=almost_empty_o
   - Downstream checker compares RTL-observed behavior against expected result: almost_empty_o asserts at threshold; empty_o not yet asserted
 - SSOT refs: test_requirements.scenarios.SC12
 
-### RTL-0262: Keep RTL observable for scenario SC13
+### RTL-0263: Keep RTL observable for scenario SC13
 
 - Priority: normal
 - Required: True
@@ -319,7 +319,7 @@ SSOT item context: id=SC13; name=APB CSR read status; expected=FIFO_STATUS.count
   - Downstream checker compares RTL-observed behavior against expected result: FIFO_STATUS.count=3, full=0, empty=0, almost flags per threshold config
 - SSOT refs: test_requirements.scenarios.SC13
 
-### RTL-0263: Keep RTL observable for scenario SC14
+### RTL-0264: Keep RTL observable for scenario SC14
 
 - Priority: normal
 - Required: True
@@ -340,7 +340,7 @@ SSOT item context: id=SC14; name=APB CSR write config; expected=almost_full_o an
   - Downstream checker compares RTL-observed behavior against expected result: almost_full_o and almost_empty_o reflect updated thresholds
 - SSOT refs: test_requirements.scenarios.SC14
 
-### RTL-0264: Keep RTL observable for scenario SC15
+### RTL-0265: Keep RTL observable for scenario SC15
 
 - Priority: normal
 - Required: True
@@ -361,7 +361,7 @@ SSOT item context: id=SC15; name=APB CSR flush; expected=FIFO flushed; pointers 
   - Downstream checker compares RTL-observed behavior against expected result: FIFO flushed; pointers cleared; FIFO_STATUS reflects empty state
 - SSOT refs: test_requirements.scenarios.SC15
 
-### RTL-0265: Keep RTL observable for scenario SC16
+### RTL-0266: Keep RTL observable for scenario SC16
 
 - Priority: normal
 - Required: True
@@ -382,7 +382,7 @@ SSOT item context: id=SC16; name=APB error response; expected=pslverr=1; prdata=
   - Downstream checker compares RTL-observed behavior against expected result: pslverr=1; prdata=0 for reads; no FIFO state change
 - SSOT refs: test_requirements.scenarios.SC16
 
-### RTL-0266: Keep RTL observable for scenario SC17
+### RTL-0267: Keep RTL observable for scenario SC17
 
 - Priority: normal
 - Required: True
@@ -403,7 +403,7 @@ SSOT item context: id=SC17; name=Wrap-around pointer; expected=Pointers wrap cor
   - Downstream checker compares RTL-observed behavior against expected result: Pointers wrap correctly; data integrity maintained; count accurate
 - SSOT refs: test_requirements.scenarios.SC17
 
-### RTL-0267: Keep RTL observable for scenario SC18
+### RTL-0268: Keep RTL observable for scenario SC18
 
 - Priority: normal
 - Required: True
@@ -424,7 +424,7 @@ SSOT item context: id=SC18; name=Output register mode; expected=rd_data_o valid 
   - Downstream checker compares RTL-observed behavior against expected result: rd_data_o valid 1 cycle after rd_en_i acceptance; not combinationally
 - SSOT refs: test_requirements.scenarios.SC18
 
-### RTL-0268: Keep RTL observable for scenario SC19
+### RTL-0269: Keep RTL observable for scenario SC19
 
 - Priority: normal
 - Required: True
@@ -445,7 +445,7 @@ SSOT item context: id=SC19; name=Reset behavior; expected=All pointers/count cle
   - Downstream checker compares RTL-observed behavior against expected result: All pointers/count cleared; flags reflect empty; rd_data_o undefined
 - SSOT refs: test_requirements.scenarios.SC19
 
-### RTL-0269: Keep RTL observable for scenario SC20
+### RTL-0270: Keep RTL observable for scenario SC20
 
 - Priority: normal
 - Required: True

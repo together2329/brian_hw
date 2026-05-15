@@ -2,7 +2,7 @@
   "schema_version": 1,
   "type": "fl_rtl_goal_audit",
   "ip": "edge_detector",
-  "generated_at": "2026-05-15T02:37:28Z",
+  "generated_at": "2026-05-15T02:38:30Z",
   "status": "fail",
   "source_of_truth": {
     "ssot": "edge_detector/yaml/edge_detector.ssot.yaml",
@@ -149,7 +149,7 @@
       "status": "fail",
       "owner": "sim_debug",
       "evidence": "edge_detector/sim/fl_rtl_compare.json",
-      "detail": "status=fail summary={'total': 38, 'goals_checked': 38, 'goals_passed': 33, 'goals_failed': 5, 'goals_blocked': 0, 'goals_untested': 0, 'scoreboard_events': 38, 'orphan_scoreboard_events': 0, 'missing_evidence': [], 'stale_evidence': [], 'sim_results': {'exists': True, 'total': 1, 'fail': 0, 'errors': 0, 'source': '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_detector/sim/results.xml', 'failures': 0}}",
+      "detail": "status=fail summary={'total': 38, 'goals_checked': 38, 'goals_passed': 36, 'goals_failed': 2, 'goals_blocked': 0, 'goals_untested': 0, 'scoreboard_events': 38, 'orphan_scoreboard_events': 0, 'missing_evidence': [], 'stale_evidence': [], 'sim_results': {'exists': True, 'total': 1, 'fail': 0, 'errors': 0, 'source': '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_detector/sim/results.xml', 'failures': 0}}",
       "next_action": "run /sim-debug edge_detector; repair classified owner or answer human gate"
     },
     {
@@ -158,7 +158,7 @@
       "status": "fail",
       "owner": "sim_debug",
       "evidence": "edge_detector/sim/mismatch_classification.json",
-      "detail": "status=action_required classifications=5 schema_ok=True",
+      "detail": "status=action_required classifications=2 schema_ok=True",
       "next_action": "loopable classifications may repair the owner; human classifications must open ATLAS question and persist answer"
     },
     {

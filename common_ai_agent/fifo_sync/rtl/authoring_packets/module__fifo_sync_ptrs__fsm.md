@@ -35,7 +35,7 @@
 
 ## Tasks
 
-### RTL-0192: Implement FSM state ptr_fsm.state_0
+### RTL-0193: Implement FSM state ptr_fsm.state_0
 
 - Priority: high
 - Required: True
@@ -56,7 +56,7 @@ SSOT item context: value=EMPTY.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: fsm.ptr_fsm.states.state_0
 
-### RTL-0193: Implement FSM state ptr_fsm.state_1
+### RTL-0194: Implement FSM state ptr_fsm.state_1
 
 - Priority: high
 - Required: True
@@ -77,7 +77,7 @@ SSOT item context: value=ALMOST_EMPTY.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: fsm.ptr_fsm.states.state_1
 
-### RTL-0194: Implement FSM state ptr_fsm.state_2
+### RTL-0195: Implement FSM state ptr_fsm.state_2
 
 - Priority: high
 - Required: True
@@ -98,7 +98,7 @@ SSOT item context: value=NORMAL.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: fsm.ptr_fsm.states.state_2
 
-### RTL-0195: Implement FSM state ptr_fsm.state_3
+### RTL-0196: Implement FSM state ptr_fsm.state_3
 
 - Priority: high
 - Required: True
@@ -119,7 +119,7 @@ SSOT item context: value=ALMOST_FULL.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: fsm.ptr_fsm.states.state_3
 
-### RTL-0196: Implement FSM state ptr_fsm.state_4
+### RTL-0197: Implement FSM state ptr_fsm.state_4
 
 - Priority: high
 - Required: True
@@ -140,7 +140,7 @@ SSOT item context: value=FULL.
   - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
 - SSOT refs: fsm.ptr_fsm.states.state_4
 
-### RTL-0197: Implement FSM transition ptr_fsm.transition_0
+### RTL-0198: Implement FSM transition ptr_fsm.transition_0
 
 - Priority: high
 - Required: True
@@ -162,7 +162,7 @@ SSOT item context: from=EMPTY; to=NORMAL; condition=push_accepted && count becom
   - fsm.ptr_fsm.transitions.transition_0 transition path EMPTY -> NORMAL is encoded or explicitly proven equivalent
 - SSOT refs: fsm.ptr_fsm.transitions.transition_0
 
-### RTL-0198: Implement FSM transition ptr_fsm.transition_1
+### RTL-0199: Implement FSM transition ptr_fsm.transition_1
 
 - Priority: high
 - Required: True
@@ -184,7 +184,7 @@ SSOT item context: from=EMPTY; to=ALMOST_EMPTY; condition=push_accepted && count
   - fsm.ptr_fsm.transitions.transition_1 transition path EMPTY -> ALMOST_EMPTY is encoded or explicitly proven equivalent
 - SSOT refs: fsm.ptr_fsm.transitions.transition_1
 
-### RTL-0199: Implement FSM transition ptr_fsm.transition_2
+### RTL-0200: Implement FSM transition ptr_fsm.transition_2
 
 - Priority: high
 - Required: True
@@ -206,7 +206,7 @@ SSOT item context: from=ALMOST_EMPTY; to=EMPTY; condition=pop_accepted && count 
   - fsm.ptr_fsm.transitions.transition_2 transition path ALMOST_EMPTY -> EMPTY is encoded or explicitly proven equivalent
 - SSOT refs: fsm.ptr_fsm.transitions.transition_2
 
-### RTL-0200: Implement FSM transition ptr_fsm.transition_3
+### RTL-0201: Implement FSM transition ptr_fsm.transition_3
 
 - Priority: high
 - Required: True
@@ -228,7 +228,7 @@ SSOT item context: from=ALMOST_EMPTY; to=NORMAL; condition=push_accepted && coun
   - fsm.ptr_fsm.transitions.transition_3 transition path ALMOST_EMPTY -> NORMAL is encoded or explicitly proven equivalent
 - SSOT refs: fsm.ptr_fsm.transitions.transition_3
 
-### RTL-0201: Implement FSM transition ptr_fsm.transition_4
+### RTL-0202: Implement FSM transition ptr_fsm.transition_4
 
 - Priority: high
 - Required: True
@@ -250,7 +250,7 @@ SSOT item context: from=NORMAL; to=ALMOST_FULL; condition=push_accepted && count
   - fsm.ptr_fsm.transitions.transition_4 transition path NORMAL -> ALMOST_FULL is encoded or explicitly proven equivalent
 - SSOT refs: fsm.ptr_fsm.transitions.transition_4
 
-### RTL-0202: Implement FSM transition ptr_fsm.transition_5
+### RTL-0203: Implement FSM transition ptr_fsm.transition_5
 
 - Priority: high
 - Required: True
@@ -272,7 +272,7 @@ SSOT item context: from=NORMAL; to=ALMOST_EMPTY; condition=pop_accepted && count
   - fsm.ptr_fsm.transitions.transition_5 transition path NORMAL -> ALMOST_EMPTY is encoded or explicitly proven equivalent
 - SSOT refs: fsm.ptr_fsm.transitions.transition_5
 
-### RTL-0203: Implement FSM transition ptr_fsm.transition_6
+### RTL-0204: Implement FSM transition ptr_fsm.transition_6
 
 - Priority: high
 - Required: True
@@ -294,7 +294,7 @@ SSOT item context: from=ALMOST_FULL; to=FULL; condition=push_accepted && count =
   - fsm.ptr_fsm.transitions.transition_6 transition path ALMOST_FULL -> FULL is encoded or explicitly proven equivalent
 - SSOT refs: fsm.ptr_fsm.transitions.transition_6
 
-### RTL-0204: Implement FSM transition ptr_fsm.transition_7
+### RTL-0205: Implement FSM transition ptr_fsm.transition_7
 
 - Priority: high
 - Required: True
@@ -316,7 +316,7 @@ SSOT item context: from=ALMOST_FULL; to=NORMAL; condition=pop_accepted && count 
   - fsm.ptr_fsm.transitions.transition_7 transition path ALMOST_FULL -> NORMAL is encoded or explicitly proven equivalent
 - SSOT refs: fsm.ptr_fsm.transitions.transition_7
 
-### RTL-0205: Implement FSM transition ptr_fsm.transition_8
+### RTL-0206: Implement FSM transition ptr_fsm.transition_8
 
 - Priority: high
 - Required: True

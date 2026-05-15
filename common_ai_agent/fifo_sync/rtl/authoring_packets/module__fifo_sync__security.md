@@ -46,7 +46,7 @@
 
 ## Tasks
 
-### RTL-0215: Implement security item fifo_data
+### RTL-0216: Implement security item fifo_data
 
 - Priority: high
 - Required: True
@@ -66,7 +66,7 @@ SSOT item context: name=fifo_data.
   - Primary implementation evidence is in rtl/fifo_sync.sv
 - SSOT refs: security.assets.fifo_data
 
-### RTL-0216: Implement security item fifo_config
+### RTL-0217: Implement security item fifo_config
 
 - Priority: high
 - Required: True

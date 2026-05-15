@@ -46,7 +46,7 @@
 
 ## Tasks
 
-### RTL-0206: Implement feature Synchronous Push
+### RTL-0207: Implement feature Synchronous Push
 
 - Priority: high
 - Required: True
@@ -66,7 +66,7 @@ SSOT item context: name=Synchronous Push; output=full_o and almost_full_o update
   - Primary implementation evidence is in rtl/fifo_sync.sv
 - SSOT refs: features.Synchronous_Push
 
-### RTL-0207: Implement feature Synchronous Pop
+### RTL-0208: Implement feature Synchronous Pop
 
 - Priority: high
 - Required: True
@@ -86,7 +86,7 @@ SSOT item context: name=Synchronous Pop; output=empty_o and almost_empty_o updat
   - Primary implementation evidence is in rtl/fifo_sync.sv
 - SSOT refs: features.Synchronous_Pop
 
-### RTL-0208: Implement feature Simultaneous Push/Pop
+### RTL-0209: Implement feature Simultaneous Push/Pop
 
 - Priority: high
 - Required: True
@@ -106,7 +106,7 @@ SSOT item context: name=Simultaneous Push/Pop; output=All flags remain stable wh
   - Primary implementation evidence is in rtl/fifo_sync.sv
 - SSOT refs: features.Simultaneous_Push_Pop
 
-### RTL-0209: Implement feature Overflow Protection
+### RTL-0210: Implement feature Overflow Protection
 
 - Priority: high
 - Required: True
@@ -126,7 +126,7 @@ SSOT item context: name=Overflow Protection; output=No state change; count uncha
   - Primary implementation evidence is in rtl/fifo_sync.sv
 - SSOT refs: features.Overflow_Protection
 
-### RTL-0210: Implement feature Underflow Protection
+### RTL-0211: Implement feature Underflow Protection
 
 - Priority: high
 - Required: True
@@ -146,7 +146,7 @@ SSOT item context: name=Underflow Protection; output=No state change; count unch
   - Primary implementation evidence is in rtl/fifo_sync.sv
 - SSOT refs: features.Underflow_Protection
 
-### RTL-0211: Implement feature Synchronous Flush
+### RTL-0212: Implement feature Synchronous Flush
 
 - Priority: high
 - Required: True
@@ -166,7 +166,7 @@ SSOT item context: name=Synchronous Flush; output=empty_o=1, full_o=0, almost_fu
   - Primary implementation evidence is in rtl/fifo_sync.sv
 - SSOT refs: features.Synchronous_Flush
 
-### RTL-0212: Implement feature APB CSR Access
+### RTL-0213: Implement feature APB CSR Access
 
 - Priority: high
 - Required: True

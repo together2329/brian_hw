@@ -205,7 +205,7 @@
       ],
       "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.wr_ptr.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.wr_ptr.\nSSOT item context: name=wr_ptr; reset=0.",
       "evidence_terms": [],
-      "id": "RTL-0061",
+      "id": "RTL-0062",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -248,7 +248,7 @@
       ],
       "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.rd_ptr.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.rd_ptr.\nSSOT item context: name=rd_ptr; reset=0.",
       "evidence_terms": [],
-      "id": "RTL-0062",
+      "id": "RTL-0063",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -291,7 +291,7 @@
       ],
       "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.count.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.count.\nSSOT item context: name=count; reset=0.",
       "evidence_terms": [],
-      "id": "RTL-0063",
+      "id": "RTL-0064",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -334,7 +334,7 @@
       ],
       "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.mem.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.\nSSOT item context: name=mem; reset=0x0 per entry.",
       "evidence_terms": [],
-      "id": "RTL-0064",
+      "id": "RTL-0065",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -376,7 +376,7 @@
       ],
       "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM1.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.\nSSOT item context: id=FM1; name=push.",
       "evidence_terms": [],
-      "id": "RTL-0065",
+      "id": "RTL-0066",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -422,7 +422,7 @@
         "wr",
         "wr_en_i"
       ],
-      "id": "RTL-0066",
+      "id": "RTL-0067",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -480,7 +480,7 @@
         "full",
         "full_o"
       ],
-      "id": "RTL-0067",
+      "id": "RTL-0068",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -536,7 +536,7 @@
         "flush",
         "flush_i"
       ],
-      "id": "RTL-0068",
+      "id": "RTL-0069",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -596,7 +596,7 @@
         "wr",
         "wr_data_i"
       ],
-      "id": "RTL-0069",
+      "id": "RTL-0070",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -662,7 +662,7 @@
         "pop",
         "pop_accepted"
       ],
-      "id": "RTL-0070",
+      "id": "RTL-0071",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -732,7 +732,7 @@
         "pop",
         "pop_accepted"
       ],
-      "id": "RTL-0071",
+      "id": "RTL-0072",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -805,7 +805,7 @@
         "pop",
         "pop_accepted"
       ],
-      "id": "RTL-0072",
+      "id": "RTL-0073",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -875,7 +875,7 @@
         "pop",
         "pop_accepted"
       ],
-      "id": "RTL-0073",
+      "id": "RTL-0074",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -954,7 +954,7 @@
         "pop",
         "pop_accepted"
       ],
-      "id": "RTL-0074",
+      "id": "RTL-0075",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1034,7 +1034,7 @@
         "pop",
         "pop_accepted"
       ],
-      "id": "RTL-0075",
+      "id": "RTL-0076",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1103,7 +1103,7 @@
         "wr",
         "wr_data_i"
       ],
-      "id": "RTL-0076",
+      "id": "RTL-0077",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1168,7 +1168,7 @@
         "wr",
         "wr_ptr"
       ],
-      "id": "RTL-0077",
+      "id": "RTL-0078",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1234,7 +1234,7 @@
         "pop",
         "pop_accepted"
       ],
-      "id": "RTL-0078",
+      "id": "RTL-0079",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1291,7 +1291,7 @@
       ],
       "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.side_effects.side_effect_0.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.\nSSOT item context: value=Architectural state updated per output_rules.",
       "evidence_terms": [],
-      "id": "RTL-0079",
+      "id": "RTL-0080",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1332,7 +1332,7 @@
       ],
       "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM2.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.\nSSOT item context: id=FM2; name=pop.",
       "evidence_terms": [],
-      "id": "RTL-0080",
+      "id": "RTL-0081",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1378,7 +1378,7 @@
         "rd",
         "rd_en_i"
       ],
-      "id": "RTL-0081",
+      "id": "RTL-0082",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1436,7 +1436,7 @@
         "empty",
         "empty_o"
       ],
-      "id": "RTL-0082",
+      "id": "RTL-0083",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1492,7 +1492,7 @@
         "flush",
         "flush_i"
       ],
-      "id": "RTL-0083",
+      "id": "RTL-0084",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1549,7 +1549,7 @@
         "rd",
         "rd_ptr"
       ],
-      "id": "RTL-0084",
+      "id": "RTL-0085",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1610,7 +1610,7 @@
         "rd_data_o",
         "rd_ptr"
       ],
-      "id": "RTL-0085",
+      "id": "RTL-0086",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1675,7 +1675,7 @@
         "push",
         "push_accepted"
       ],
-      "id": "RTL-0086",
+      "id": "RTL-0087",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1745,7 +1745,7 @@
         "push",
         "push_accepted"
       ],
-      "id": "RTL-0087",
+      "id": "RTL-0088",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1818,7 +1818,7 @@
         "push",
         "push_accepted"
       ],
-      "id": "RTL-0088",
+      "id": "RTL-0089",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1887,7 +1887,7 @@
         "rd_data_o",
         "rd_ptr"
       ],
-      "id": "RTL-0089",
+      "id": "RTL-0090",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -1959,7 +1959,7 @@
         "push",
         "push_accepted"
       ],
-      "id": "RTL-0090",
+      "id": "RTL-0091",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -2036,7 +2036,7 @@
         "push",
         "push_accepted"
       ],
-      "id": "RTL-0091",
+      "id": "RTL-0092",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -2116,7 +2116,7 @@
         "push",
         "push_accepted"
       ],
-      "id": "RTL-0092",
+      "id": "RTL-0093",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -2186,7 +2186,7 @@
         "rd",
         "rd_ptr"
       ],
-      "id": "RTL-0093",
+      "id": "RTL-0094",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -2252,7 +2252,7 @@
         "push",
         "push_accepted"
       ],
-      "id": "RTL-0094",
+      "id": "RTL-0095",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -2309,7 +2309,7 @@
       ],
       "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.side_effects.side_effect_0.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.\nSSOT item context: value=Popped entry storage is invalidated (no read-again guarantee).",
       "evidence_terms": [],
-      "id": "RTL-0095",
+      "id": "RTL-0096",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -2350,7 +2350,7 @@
       ],
       "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM3.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.\nSSOT item context: id=FM3; name=simultaneous_push_pop.",
       "evidence_terms": [],
-      "id": "RTL-0096",
+      "id": "RTL-0097",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -2398,7 +2398,7 @@
         "wr",
         "wr_en_i"
       ],
-      "id": "RTL-0097",
+      "id": "RTL-0098",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -2462,7 +2462,7 @@
         "full",
         "full_o"
       ],
-      "id": "RTL-0098",
+      "id": "RTL-0099",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -2522,7 +2522,7 @@
         "flush",
         "flush_i"
       ],
-      "id": "RTL-0099",
+      "id": "RTL-0100",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -2582,7 +2582,7 @@
         "wr",
         "wr_data_i"
       ],
-      "id": "RTL-0100",
+      "id": "RTL-0101",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -2646,7 +2646,7 @@
         "rd",
         "rd_ptr"
       ],
-      "id": "RTL-0101",
+      "id": "RTL-0102",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -2707,7 +2707,7 @@
         "rd_data_o",
         "rd_ptr"
       ],
-      "id": "RTL-0102",
+      "id": "RTL-0103",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -2769,7 +2769,7 @@
         "full",
         "full_o"
       ],
-      "id": "RTL-0103",
+      "id": "RTL-0104",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -2825,7 +2825,7 @@
         "empty",
         "empty_o"
       ],
-      "id": "RTL-0104",
+      "id": "RTL-0105",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -2881,7 +2881,7 @@
         "count",
         "count_o"
       ],
-      "id": "RTL-0105",
+      "id": "RTL-0106",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -2944,7 +2944,7 @@
         "rd_data_o",
         "rd_ptr"
       ],
-      "id": "RTL-0106",
+      "id": "RTL-0107",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -3014,7 +3014,7 @@
         "full",
         "full_o"
       ],
-      "id": "RTL-0107",
+      "id": "RTL-0108",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -3079,7 +3079,7 @@
         "empty",
         "empty_o"
       ],
-      "id": "RTL-0108",
+      "id": "RTL-0109",
       "owner_file": "rtl/fifo_sync_ptrs.sv",
       "owner_module": "fifo_sync_ptrs",
       "priority": "high",
@@ -3124,7 +3124,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "f38558b8207c051bf329000b6ab7b51407ec116bcc6539c945c38594602a92bc",
+  "todo_plan_sha256": "02bb95b65f0ebafb8f8432eadca3fbfd576035bf2f7283bfcd47ace9555afa10",
   "top": "fifo_sync",
   "type": "rtl_authoring_packet"
 }

@@ -170,6 +170,15 @@ parameters:
   drives:
   - fifo_sync_flags.sv
   - fifo_sync_regs.sv
+- name: COUNT_WIDTH
+  default: $clog2(DEPTH+1)
+  type: int
+  description: Width of count_o and internal fill counter; derived from DEPTH.
+  drives:
+  - fifo_sync.sv
+  - fifo_sync_ptrs.sv
+  - fifo_sync_flags.sv
+  - fifo_sync_regs.sv
 - name: USE_OUTPUT_REGISTER
   default: 0
   type: int

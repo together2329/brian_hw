@@ -394,7 +394,7 @@
         "direction": "output",
         "name": "count_o",
         "source_ref": "io_list.interfaces[2].ports[0]",
-        "width": "$clog2(DEPTH+1)"
+        "width": "COUNT_WIDTH"
       },
       {
         "aliases": [
@@ -522,7 +522,7 @@
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "fifo_sync",
-        "reason": "7 required non-closure TODO(s) remain open.",
+        "reason": "6 required non-closure TODO(s) remain open.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -610,7 +610,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "7 required non-closure TODO(s) remain open.",
+        "reason": "6 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -919,7 +919,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "7 required non-closure TODO(s) remain open.",
+        "reason": "6 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -1073,7 +1073,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "f38558b8207c051bf329000b6ab7b51407ec116bcc6539c945c38594602a92bc",
+  "todo_plan_sha256": "02bb95b65f0ebafb8f8432eadca3fbfd576035bf2f7283bfcd47ace9555afa10",
   "top": "fifo_sync",
   "type": "rtl_authoring_packet"
 }

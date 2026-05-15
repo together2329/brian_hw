@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: fifo_sync_output_reg
 - Owner file: rtl/fifo_sync_output_reg.sv
-- Task count: 11
-- Required tasks: 11
+- Task count: 12
+- Required tasks: 12
 
 ## Rules
 
@@ -57,7 +57,7 @@ SSOT item context: id=RTL_TODO_FIFO_OUTPUT_REG.
   - Semantic source_refs covered: cycle_model.latency.pop_combinational, cycle_model.latency.pop_registered, parameters.USE_OUTPUT_REGISTER
 - SSOT refs: cycle_model.latency.pop_combinational, cycle_model.latency.pop_registered, parameters.USE_OUTPUT_REGISTER, workflow_todos.rtl-gen[3]
 
-### RTL-0159: Implement cycle-model latency
+### RTL-0160: Implement cycle-model latency
 
 - Priority: high
 - Required: True
@@ -77,7 +77,7 @@ Owner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via cycle_model.laten
   - cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.latency
 
-### RTL-0248: Prove module fifo_sync_output_reg is functionally equivalent to FL
+### RTL-0249: Prove module fifo_sync_output_reg is functionally equivalent to FL
 
 - Priority: high
 - Required: True
@@ -178,7 +178,27 @@ SSOT item context: name=ALMOST_EMPTY_THRESHOLD.
   - Primary implementation evidence is in rtl/fifo_sync_output_reg.sv
 - SSOT refs: parameters.ALMOST_EMPTY_THRESHOLD
 
-### RTL-0037: Implement parameter USE_OUTPUT_REGISTER
+### RTL-0037: Implement parameter COUNT_WIDTH
+
+- Priority: normal
+- Required: True
+- Status: pass
+- Category: parameters.item
+- Source ref: parameters.COUNT_WIDTH
+- Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
+SSOT ref: parameters.COUNT_WIDTH.
+Owner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.
+SSOT item context: name=COUNT_WIDTH.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - Parameter default/value matches SSOT
+  - Parameter-derived widths are implemented outside procedural part-selects
+  - Compile/lint evidence covers the parameterized form
+  - Traceability keeps source_ref parameters.COUNT_WIDTH
+  - Primary implementation evidence is in rtl/fifo_sync_output_reg.sv
+- SSOT refs: parameters.COUNT_WIDTH
+
+### RTL-0038: Implement parameter USE_OUTPUT_REGISTER
 
 - Priority: normal
 - Required: True
@@ -198,7 +218,7 @@ SSOT item context: name=USE_OUTPUT_REGISTER.
   - Primary implementation evidence is in rtl/fifo_sync_output_reg.sv
 - SSOT refs: parameters.USE_OUTPUT_REGISTER
 
-### RTL-0038: Implement parameter USE_APB
+### RTL-0039: Implement parameter USE_APB
 
 - Priority: normal
 - Required: True
@@ -218,7 +238,7 @@ SSOT item context: name=USE_APB.
   - Primary implementation evidence is in rtl/fifo_sync_output_reg.sv
 - SSOT refs: parameters.USE_APB
 
-### RTL-0039: Implement parameter USE_ECC
+### RTL-0040: Implement parameter USE_ECC
 
 - Priority: normal
 - Required: True
@@ -238,7 +258,7 @@ SSOT item context: name=USE_ECC.
   - Primary implementation evidence is in rtl/fifo_sync_output_reg.sv
 - SSOT refs: parameters.USE_ECC
 
-### RTL-0040: Implement parameter CLOCK_FREQ_MHZ
+### RTL-0041: Implement parameter CLOCK_FREQ_MHZ
 
 - Priority: normal
 - Required: True

@@ -46,7 +46,7 @@
 
 ## Tasks
 
-### RTL-0238: Implement synthesis item constraint_0
+### RTL-0239: Implement synthesis item constraint_0
 
 - Priority: high
 - Required: True
@@ -66,7 +66,7 @@ SSOT item context: value=No inferred latches.
   - Primary implementation evidence is in rtl/fifo_sync.sv
 - SSOT refs: synthesis.constraints.constraint_0
 
-### RTL-0239: Implement synthesis item constraint_1
+### RTL-0240: Implement synthesis item constraint_1
 
 - Priority: high
 - Required: True
@@ -86,7 +86,7 @@ SSOT item context: value=All flops reset according to clock_reset_domains.reset_
   - Primary implementation evidence is in rtl/fifo_sync.sv
 - SSOT refs: synthesis.constraints.constraint_1
 
-### RTL-0240: Implement synthesis item constraint_2
+### RTL-0241: Implement synthesis item constraint_2
 
 - Priority: high
 - Required: True
@@ -106,7 +106,7 @@ SSOT item context: value=No package/interface/modport/function/task/for/while co
   - Primary implementation evidence is in rtl/fifo_sync.sv
 - SSOT refs: synthesis.constraints.constraint_2
 
-### RTL-0241: Implement synthesis item area_um2_max
+### RTL-0242: Implement synthesis item area_um2_max
 
 - Priority: high
 - Required: True
@@ -126,7 +126,7 @@ SSOT item context: name=area_um2_max.
   - Primary implementation evidence is in rtl/fifo_sync.sv
 - SSOT refs: synthesis.ppa_targets.area_um2_max
 
-### RTL-0242: Implement synthesis item power_mw_max
+### RTL-0243: Implement synthesis item power_mw_max
 
 - Priority: high
 - Required: True
@@ -146,7 +146,7 @@ SSOT item context: name=power_mw_max.
   - Primary implementation evidence is in rtl/fifo_sync.sv
 - SSOT refs: synthesis.ppa_targets.power_mw_max
 
-### RTL-0243: Implement synthesis item frequency_mhz_min
+### RTL-0244: Implement synthesis item frequency_mhz_min
 
 - Priority: high
 - Required: True

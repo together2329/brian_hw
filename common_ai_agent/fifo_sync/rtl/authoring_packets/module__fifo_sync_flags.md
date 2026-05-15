@@ -59,7 +59,7 @@ SSOT item context: id=RTL_TODO_FIFO_FLAGS.
   - Semantic source_refs covered: function_model.transactions.FM1.output_rules, function_model.transactions.FM2.output_rules
 - SSOT refs: function_model.transactions.FM1.output_rules, function_model.transactions.FM2.output_rules, workflow_todos.rtl-gen[2]
 
-### RTL-0246: Prove module fifo_sync_flags is functionally equivalent to FL
+### RTL-0247: Prove module fifo_sync_flags is functionally equivalent to FL
 
 - Priority: high
 - Required: True

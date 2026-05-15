@@ -4,7 +4,7 @@
 
 - Top: fifo_sync
 - Packets: 22
-- LLM-actionable tasks: 1
+- LLM-actionable tasks: 0
 - Human-locked tasks: 2
 - Tool-evidence tasks: 5
 - Deferred human QA allowed: True
@@ -12,10 +12,6 @@
 - Target scale locked: False
 - Pending connection-contract suggestions: 0
 - Recommended packet batch limit: 4
-
-## Next LLM Packets
-
-- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=1, human_locked=0)
 
 ## Tool Evidence Queue
 

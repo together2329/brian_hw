@@ -172,11 +172,89 @@ module arbiter_rr_core #(
             state <= next_state;
             if (arb_enabled) begin
                 req_masked_q <= req_masked_now;
-                if (selected_valid) begin
-                    gnt_o <= selected_oh;
-                    gnt_valid_o <= 1'b1;
-                    gnt_idx_o <= selected_index;
-                    last_winner <= selected_index;
+                // For latency-1, compute the registered grant from the current accepted request vector.
+                if (req_masked_now != {NUM_REQ{1'b0}}) begin
+                    if ((last_winner == IDX_0) && req_masked_now[1]) begin
+                        gnt_o <= 4'b0010;
+                        gnt_valid_o <= 1'b1;
+                        gnt_idx_o <= IDX_1;
+                        last_winner <= IDX_1;
+                    end else if ((last_winner == IDX_0) && req_masked_now[2]) begin
+                        gnt_o <= 4'b0100;
+                        gnt_valid_o <= 1'b1;
+                        gnt_idx_o <= IDX_2;
+                        last_winner <= IDX_2;
+                    end else if ((last_winner == IDX_0) && req_masked_now[3]) begin
+                        gnt_o <= 4'b1000;
+                        gnt_valid_o <= 1'b1;
+                        gnt_idx_o <= IDX_3;
+                        last_winner <= IDX_3;
+                    end else if ((last_winner == IDX_0) && req_masked_now[0]) begin
+                        gnt_o <= 4'b0001;
+                        gnt_valid_o <= 1'b1;
+                        gnt_idx_o <= IDX_0;
+                        last_winner <= IDX_0;
+                    end else if ((last_winner == IDX_1) && req_masked_now[2]) begin
+                        gnt_o <= 4'b0100;
+                        gnt_valid_o <= 1'b1;
+                        gnt_idx_o <= IDX_2;
+                        last_winner <= IDX_2;
+                    end else if ((last_winner == IDX_1) && req_masked_now[3]) begin
+                        gnt_o <= 4'b1000;
+                        gnt_valid_o <= 1'b1;
+                        gnt_idx_o <= IDX_3;
+                        last_winner <= IDX_3;
+                    end else if ((last_winner == IDX_1) && req_masked_now[0]) begin
+                        gnt_o <= 4'b0001;
+                        gnt_valid_o <= 1'b1;
+                        gnt_idx_o <= IDX_0;
+                        last_winner <= IDX_0;
+                    end else if ((last_winner == IDX_1) && req_masked_now[1]) begin
+                        gnt_o <= 4'b0010;
+                        gnt_valid_o <= 1'b1;
+                        gnt_idx_o <= IDX_1;
+                        last_winner <= IDX_1;
+                    end else if ((last_winner == IDX_2) && req_masked_now[3]) begin
+                        gnt_o <= 4'b1000;
+                        gnt_valid_o <= 1'b1;
+                        gnt_idx_o <= IDX_3;
+                        last_winner <= IDX_3;
+                    end else if ((last_winner == IDX_2) && req_masked_now[0]) begin
+                        gnt_o <= 4'b0001;
+                        gnt_valid_o <= 1'b1;
+                        gnt_idx_o <= IDX_0;
+                        last_winner <= IDX_0;
+                    end else if ((last_winner == IDX_2) && req_masked_now[1]) begin
+                        gnt_o <= 4'b0010;
+                        gnt_valid_o <= 1'b1;
+                        gnt_idx_o <= IDX_1;
+                        last_winner <= IDX_1;
+                    end else if ((last_winner == IDX_2) && req_masked_now[2]) begin
+                        gnt_o <= 4'b0100;
+                        gnt_valid_o <= 1'b1;
+                        gnt_idx_o <= IDX_2;
+                        last_winner <= IDX_2;
+                    end else if (req_masked_now[0]) begin
+                        gnt_o <= 4'b0001;
+                        gnt_valid_o <= 1'b1;
+                        gnt_idx_o <= IDX_0;
+                        last_winner <= IDX_0;
+                    end else if (req_masked_now[1]) begin
+                        gnt_o <= 4'b0010;
+                        gnt_valid_o <= 1'b1;
+                        gnt_idx_o <= IDX_1;
+                        last_winner <= IDX_1;
+                    end else if (req_masked_now[2]) begin
+                        gnt_o <= 4'b0100;
+                        gnt_valid_o <= 1'b1;
+                        gnt_idx_o <= IDX_2;
+                        last_winner <= IDX_2;
+                    end else begin
+                        gnt_o <= 4'b1000;
+                        gnt_valid_o <= 1'b1;
+                        gnt_idx_o <= IDX_3;
+                        last_winner <= IDX_3;
+                    end
                 end else begin
                     gnt_o <= {NUM_REQ{1'b0}};
                     gnt_valid_o <= 1'b0;

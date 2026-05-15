@@ -35,7 +35,7 @@
 
 ## Tasks
 
-### RTL-0157: Implement cycle-model clock
+### RTL-0158: Implement cycle-model clock
 
 - Priority: high
 - Required: True
@@ -56,7 +56,7 @@ SSOT item context: value=PCLK.
   - cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.clock
 
-### RTL-0158: Implement cycle-model reset
+### RTL-0159: Implement cycle-model reset
 
 - Priority: high
 - Required: True
@@ -76,7 +76,7 @@ Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.
   - cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.reset
 
-### RTL-0160: Implement handshake rule: wr_en_i
+### RTL-0161: Implement handshake rule: wr_en_i
 
 - Priority: high
 - Required: True
@@ -97,7 +97,7 @@ SSOT item context: signal=wr_en_i.
   - cycle_model.handshake_rules.wr_en_i appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.handshake_rules.wr_en_i
 
-### RTL-0161: Implement handshake rule: rd_en_i
+### RTL-0162: Implement handshake rule: rd_en_i
 
 - Priority: high
 - Required: True
@@ -118,7 +118,7 @@ SSOT item context: signal=rd_en_i.
   - cycle_model.handshake_rules.rd_en_i appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.handshake_rules.rd_en_i
 
-### RTL-0162: Implement handshake rule: full_o
+### RTL-0163: Implement handshake rule: full_o
 
 - Priority: high
 - Required: True
@@ -139,7 +139,7 @@ SSOT item context: signal=full_o.
   - cycle_model.handshake_rules.full_o appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.handshake_rules.full_o
 
-### RTL-0163: Implement handshake rule: empty_o
+### RTL-0164: Implement handshake rule: empty_o
 
 - Priority: high
 - Required: True
@@ -160,7 +160,7 @@ SSOT item context: signal=empty_o.
   - cycle_model.handshake_rules.empty_o appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.handshake_rules.empty_o
 
-### RTL-0164: Implement handshake rule: flush_i
+### RTL-0165: Implement handshake rule: flush_i
 
 - Priority: high
 - Required: True
@@ -181,7 +181,7 @@ SSOT item context: signal=flush_i.
   - cycle_model.handshake_rules.flush_i appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.handshake_rules.flush_i
 
-### RTL-0165: Implement pipeline stage: S0_SAMPLE_INPUTS
+### RTL-0166: Implement pipeline stage: S0_SAMPLE_INPUTS
 
 - Priority: high
 - Required: True
@@ -203,7 +203,7 @@ SSOT item context: stage=S0_SAMPLE_INPUTS; action=Sample wr_en_i, rd_en_i, flush
   - cycle_model.pipeline.S0_SAMPLE_INPUTS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.pipeline.S0_SAMPLE_INPUTS
 
-### RTL-0166: Implement pipeline stage: S1_EVAL_ACCEPT
+### RTL-0167: Implement pipeline stage: S1_EVAL_ACCEPT
 
 - Priority: high
 - Required: True
@@ -225,7 +225,7 @@ SSOT item context: stage=S1_EVAL_ACCEPT; action=Combinational: determine push_ac
   - cycle_model.pipeline.S1_EVAL_ACCEPT appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.pipeline.S1_EVAL_ACCEPT
 
-### RTL-0167: Implement pipeline stage: S2_UPDATE_PTRS
+### RTL-0168: Implement pipeline stage: S2_UPDATE_PTRS
 
 - Priority: high
 - Required: True
@@ -247,7 +247,7 @@ SSOT item context: stage=S2_UPDATE_PTRS; action=Update wr_ptr, rd_ptr, count reg
   - cycle_model.pipeline.S2_UPDATE_PTRS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.pipeline.S2_UPDATE_PTRS
 
-### RTL-0168: Implement pipeline stage: S3_WRITE_MEM
+### RTL-0169: Implement pipeline stage: S3_WRITE_MEM
 
 - Priority: high
 - Required: True
@@ -269,7 +269,7 @@ SSOT item context: stage=S3_WRITE_MEM; action=Write wr_data_i to mem[wr_ptr] whe
   - cycle_model.pipeline.S3_WRITE_MEM appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.pipeline.S3_WRITE_MEM
 
-### RTL-0169: Implement pipeline stage: S4_UPDATE_FLAGS
+### RTL-0170: Implement pipeline stage: S4_UPDATE_FLAGS
 
 - Priority: high
 - Required: True
@@ -291,7 +291,7 @@ SSOT item context: stage=S4_UPDATE_FLAGS; action=Flags (full, empty, almost_full
   - cycle_model.pipeline.S4_UPDATE_FLAGS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.pipeline.S4_UPDATE_FLAGS
 
-### RTL-0170: Implement ordering rule: ordering_rule_0
+### RTL-0171: Implement ordering rule: ordering_rule_0
 
 - Priority: high
 - Required: True
@@ -312,7 +312,7 @@ SSOT item context: value=Push data is captured into memory in the same cycle as 
   - cycle_model.ordering.ordering_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.ordering.ordering_rule_0
 
-### RTL-0171: Implement ordering rule: ordering_rule_1
+### RTL-0172: Implement ordering rule: ordering_rule_1
 
 - Priority: high
 - Required: True
@@ -333,7 +333,7 @@ SSOT item context: value=Pop data is available combinationally from memory (USE_
   - cycle_model.ordering.ordering_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.ordering.ordering_rule_1
 
-### RTL-0172: Implement ordering rule: ordering_rule_2
+### RTL-0173: Implement ordering rule: ordering_rule_2
 
 - Priority: high
 - Required: True
@@ -354,7 +354,7 @@ SSOT item context: value=Flush clears all state in the cycle it is sampled; conc
   - cycle_model.ordering.ordering_rule_2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.ordering.ordering_rule_2
 
-### RTL-0173: Implement ordering rule: ordering_rule_3
+### RTL-0174: Implement ordering rule: ordering_rule_3
 
 - Priority: high
 - Required: True
@@ -375,7 +375,7 @@ SSOT item context: value=Flag updates are visible on the cycle after pointer/cou
   - cycle_model.ordering.ordering_rule_3 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.ordering.ordering_rule_3
 
-### RTL-0174: Implement backpressure rule: backpressure_rule_0
+### RTL-0175: Implement backpressure rule: backpressure_rule_0
 
 - Priority: high
 - Required: True
@@ -396,7 +396,7 @@ SSOT item context: value=full_o provides natural backpressure to the writer; the
   - cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.backpressure.backpressure_rule_0
 
-### RTL-0175: Implement backpressure rule: backpressure_rule_1
+### RTL-0176: Implement backpressure rule: backpressure_rule_1
 
 - Priority: high
 - Required: True
@@ -417,7 +417,7 @@ SSOT item context: value=empty_o provides natural backpressure to the reader; th
   - cycle_model.backpressure.backpressure_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.backpressure.backpressure_rule_1
 
-### RTL-0176: Implement observability signal: observability_signal_0
+### RTL-0177: Implement observability signal: observability_signal_0
 
 - Priority: high
 - Required: True

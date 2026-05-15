@@ -2,7 +2,7 @@
   "schema_version": 1,
   "type": "fl_rtl_compare",
   "ip": "edge_detector",
-  "generated_at": "2026-05-15T02:37:25Z",
+  "generated_at": "2026-05-15T02:38:30Z",
   "status": "fail",
   "sources": {
     "equivalence_goals": "edge_detector/verify/equivalence_goals.json",
@@ -14,8 +14,8 @@
   "summary": {
     "total": 38,
     "goals_checked": 38,
-    "goals_passed": 33,
-    "goals_failed": 5,
+    "goals_passed": 36,
+    "goals_failed": 2,
     "goals_blocked": 0,
     "goals_untested": 0,
     "scoreboard_events": 38,
@@ -224,7 +224,7 @@
     },
     {
       "goal_id": "EQ_REGISTER_CONTROL",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "SC10_executed",
@@ -239,7 +239,7 @@
     },
     {
       "goal_id": "EQ_REGISTER_STATUS",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "SC10_executed",
@@ -255,7 +255,7 @@
     },
     {
       "goal_id": "EQ_REGISTER_RAW_STATUS",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "SC10_executed",

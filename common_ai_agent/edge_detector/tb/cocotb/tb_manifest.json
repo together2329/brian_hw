@@ -3,7 +3,7 @@
   "type": "generic_goal_scoreboard_cocotb_manifest",
   "ip": "edge_detector",
   "top": "edge_detector",
-  "generated_at": "2026-05-15T02:37:10Z",
+  "generated_at": "2026-05-15T02:38:15Z",
   "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
   "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
   "ssot": "edge_detector/yaml/edge_detector.ssot.yaml",
@@ -143,6 +143,21 @@
     {
       "name": "irq_o",
       "port": "irq_o",
+      "width": 1
+    },
+    {
+      "name": "prdata",
+      "port": "PRDATA",
+      "width": 32
+    },
+    {
+      "name": "pready",
+      "port": "PREADY",
+      "width": 1
+    },
+    {
+      "name": "pslverr",
+      "port": "PSLVERR",
       "width": 1
     },
     {

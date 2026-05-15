@@ -61,7 +61,7 @@ SSOT item context: id=RTL_TODO_FIFO_MEM.
   - Semantic source_refs covered: dataflow.read_path, dataflow.write_path, memory.instances.fifo_ram
 - SSOT refs: dataflow.read_path, dataflow.write_path, memory.instances.fifo_ram, workflow_todos.rtl-gen[1]
 
-### RTL-0191: Implement memory item fifo_ram
+### RTL-0192: Implement memory item fifo_ram
 
 - Priority: high
 - Required: True
@@ -84,7 +84,7 @@ SSOT item context: name=fifo_ram; width=DATA_WIDTH; depth=DEPTH; latency=0.
   - fifo_ram storage depth matches SSOT value DEPTH
 - SSOT refs: memory.instances.fifo_ram
 
-### RTL-0244: Prove module fifo_sync_mem is functionally equivalent to FL
+### RTL-0245: Prove module fifo_sync_mem is functionally equivalent to FL
 
 - Priority: high
 - Required: True

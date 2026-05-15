@@ -318,7 +318,7 @@
       ],
       "detail": "This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: memory.instances.fifo_ram.\nOwner: fifo_sync_mem in rtl/fifo_sync_mem.sv via memory.instances.\nSSOT item context: name=fifo_ram; width=DATA_WIDTH; depth=DEPTH; latency=0.",
       "evidence_terms": [],
-      "id": "RTL-0191",
+      "id": "RTL-0192",
       "owner_file": "rtl/fifo_sync_mem.sv",
       "owner_module": "fifo_sync_mem",
       "priority": "high",
@@ -364,7 +364,7 @@
       ],
       "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.fifo_sync_mem.module_equivalence.\nOwner: fifo_sync_mem in rtl/fifo_sync_mem.sv via module_equivalence.",
       "evidence_terms": [],
-      "id": "RTL-0244",
+      "id": "RTL-0245",
       "owner_file": "rtl/fifo_sync_mem.sv",
       "owner_module": "fifo_sync_mem",
       "priority": "high",
@@ -392,7 +392,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "f38558b8207c051bf329000b6ab7b51407ec116bcc6539c945c38594602a92bc",
+  "todo_plan_sha256": "02bb95b65f0ebafb8f8432eadca3fbfd576035bf2f7283bfcd47ace9555afa10",
   "top": "fifo_sync",
   "type": "rtl_authoring_packet"
 }

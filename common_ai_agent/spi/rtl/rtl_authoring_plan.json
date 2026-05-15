@@ -56,9 +56,18 @@
     ],
     "blocked_by_tool_evidence": [
       {
+        "gate_kind": "common_ai_agent_authoring",
+        "owner_module": "spi",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "spi",
-        "reason": "22 required non-closure TODO(s) remain open.",
+        "reason": "23 required non-closure TODO(s) remain open.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -113,7 +122,7 @@
     "draft_allowed": true,
     "gate_status": "fail",
     "hard_blockers": [],
-    "open_required_todos": 23,
+    "open_required_todos": 24,
     "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
@@ -122,6 +131,29 @@
       "Do not sign off top integration while required connection contracts are missing."
     ],
     "tool_evidence_plan": [
+      {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "artifacts": [
+          "spi/rtl/rtl_authoring_provenance.json",
+          "spi/rtl/rtl_todo_plan.json"
+        ],
+        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+        "commands": [
+          "python3 src/headless_workflow.py --root . --ip spi --stages rtl-gen",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py spi --root . --audit-rtl"
+        ],
+        "gate_kind": "common_ai_agent_authoring",
+        "prerequisites": [
+          "An LLM authoring pass emitted or repaired DUT RTL files."
+        ],
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "stage_sequence": [
+          "ssot-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
       {
         "artifact": "rtl/rtl_todo_plan.json",
         "artifacts": [
@@ -136,7 +168,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "22 required non-closure TODO(s) remain open.",
+        "reason": "23 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -735,9 +767,18 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [
           {
+            "gate_kind": "common_ai_agent_authoring",
+            "owner_module": "spi",
+            "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+            "status": "open",
+            "task_id": "RTL-0006"
+          },
+          {
             "gate_kind": "dynamic_todo_closure",
             "owner_module": "spi",
-            "reason": "22 required non-closure TODO(s) remain open.",
+            "reason": "23 required non-closure TODO(s) remain open.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "status": "open",
@@ -779,15 +820,38 @@
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 4,
+        "open_required_count": 5,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
           "Never use a fixed RTL template as the implementation."
         ],
-        "tool_evidence_open_count": 4,
+        "tool_evidence_open_count": 5,
         "tool_evidence_plan": [
+          {
+            "artifact": "rtl/rtl_authoring_provenance.json",
+            "artifacts": [
+              "spi/rtl/rtl_authoring_provenance.json",
+              "spi/rtl/rtl_todo_plan.json"
+            ],
+            "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+            "commands": [
+              "python3 src/headless_workflow.py --root . --ip spi --stages rtl-gen",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py spi --root . --audit-rtl"
+            ],
+            "gate_kind": "common_ai_agent_authoring",
+            "prerequisites": [
+              "An LLM authoring pass emitted or repaired DUT RTL files."
+            ],
+            "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+            "stage_sequence": [
+              "ssot-rtl"
+            ],
+            "status": "open",
+            "task_id": "RTL-0006"
+          },
           {
             "artifact": "rtl/rtl_todo_plan.json",
             "artifacts": [
@@ -802,7 +866,7 @@
             "prerequisites": [
               "All non-closure required TODOs have pass status."
             ],
-            "reason": "22 required non-closure TODO(s) remain open.",
+            "reason": "23 required non-closure TODO(s) remain open.",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "stage_sequence": [
               "audit-rtl"
@@ -899,7 +963,7 @@
           "rtl_gate.rtl_gen": 7
         },
         "module_slice": {},
-        "open_required_count": 4,
+        "open_required_count": 5,
         "required_count": 7,
         "source_refs": [
           "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -911,8 +975,8 @@
           "quality_gates.rtl_gen.coverage_closure"
         ],
         "status_counts": {
-          "open": 4,
-          "pass": 3
+          "open": 5,
+          "pass": 2
         },
         "task_count": 7
       }
@@ -1667,7 +1731,7 @@
     "sliced_module_packets": 11,
     "target_scale_present": true,
     "tool_evidence_packets": 1,
-    "tool_evidence_tasks": 4,
+    "tool_evidence_tasks": 5,
     "total_tasks": 258,
     "unowned_packets": 0
   },

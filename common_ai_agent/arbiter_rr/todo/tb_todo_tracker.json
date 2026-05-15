@@ -19,7 +19,7 @@
       ],
       "source_id": "TB-0001",
       "source_plan": "tb/tb_todo_plan.json",
-      "status": "rejected",
+      "status": "approved",
       "todo_completion": {
         "evidence_basis": [
           "arbiter_rr/tb/cocotb/test_arbiter_rr.py",
@@ -30,8 +30,8 @@
           "check_pyuvm_structure",
           "equivalence_scoreboard_self_check"
         ],
-        "reason": "[ssot-tb-cocotb] FAIL - generated TB needs tb-gen repair",
-        "status": "open"
+        "reason": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+        "status": "pass"
       }
     },
     {
@@ -47,7 +47,7 @@
       ],
       "source_id": "TB-0002",
       "source_plan": "tb/tb_todo_plan.json",
-      "status": "rejected",
+      "status": "approved",
       "todo_completion": {
         "evidence_basis": [
           "check_pyuvm_structure returncode 0",
@@ -56,8 +56,8 @@
           "check_pyuvm_structure",
           "equivalence_scoreboard_self_check"
         ],
-        "reason": "[ssot-tb-cocotb] FAIL - generated TB needs tb-gen repair",
-        "status": "open"
+        "reason": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+        "status": "pass"
       }
     }
   ],

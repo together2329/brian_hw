@@ -46,7 +46,7 @@
 
 ## Tasks
 
-### RTL-0213: Implement error/fault item recovery_0
+### RTL-0214: Implement error/fault item recovery_0
 
 - Priority: high
 - Required: True
@@ -66,7 +66,7 @@ SSOT item context: action=none required for overflow/underflow.
   - Primary implementation evidence is in rtl/fifo_sync.sv
 - SSOT refs: error_handling.recovery.recovery_0
 
-### RTL-0214: Implement error/fault item recovery_1
+### RTL-0215: Implement error/fault item recovery_1
 
 - Priority: high
 - Required: True

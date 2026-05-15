@@ -406,7 +406,7 @@
         "direction": "output",
         "name": "count_o",
         "source_ref": "io_list.interfaces[2].ports[0]",
-        "width": "$clog2(DEPTH+1)"
+        "width": "COUNT_WIDTH"
       },
       {
         "aliases": [
@@ -602,7 +602,7 @@
       ],
       "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_0.\nOwner: fifo_sync in rtl/fifo_sync.sv via synthesis.\nSSOT item context: value=No inferred latches.",
       "evidence_terms": [],
-      "id": "RTL-0238",
+      "id": "RTL-0239",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -650,7 +650,7 @@
         "reset_scheme",
         "scheme"
       ],
-      "id": "RTL-0239",
+      "id": "RTL-0240",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -691,7 +691,7 @@
       ],
       "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_2.\nOwner: fifo_sync in rtl/fifo_sync.sv via synthesis.\nSSOT item context: value=No package/interface/modport/function/task/for/while constructs in generated RTL.",
       "evidence_terms": [],
-      "id": "RTL-0240",
+      "id": "RTL-0241",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -732,7 +732,7 @@
       ],
       "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.area_um2_max.\nOwner: fifo_sync in rtl/fifo_sync.sv via synthesis.\nSSOT item context: name=area_um2_max.",
       "evidence_terms": [],
-      "id": "RTL-0241",
+      "id": "RTL-0242",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -773,7 +773,7 @@
       ],
       "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.power_mw_max.\nOwner: fifo_sync in rtl/fifo_sync.sv via synthesis.\nSSOT item context: name=power_mw_max.",
       "evidence_terms": [],
-      "id": "RTL-0242",
+      "id": "RTL-0243",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -814,7 +814,7 @@
       ],
       "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.frequency_mhz_min.\nOwner: fifo_sync in rtl/fifo_sync.sv via synthesis.\nSSOT item context: name=frequency_mhz_min; value=50.",
       "evidence_terms": [],
-      "id": "RTL-0243",
+      "id": "RTL-0244",
       "owner_file": "rtl/fifo_sync.sv",
       "owner_module": "fifo_sync",
       "priority": "high",
@@ -845,7 +845,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "f38558b8207c051bf329000b6ab7b51407ec116bcc6539c945c38594602a92bc",
+  "todo_plan_sha256": "02bb95b65f0ebafb8f8432eadca3fbfd576035bf2f7283bfcd47ace9555afa10",
   "top": "fifo_sync",
   "type": "rtl_authoring_packet"
 }

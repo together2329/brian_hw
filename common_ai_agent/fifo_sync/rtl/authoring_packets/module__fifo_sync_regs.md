@@ -59,7 +59,7 @@ SSOT item context: id=RTL_TODO_FIFO_REGS_APB.
   - Semantic source_refs covered: io_list.interfaces.apb_csr, registers.register_list
 - SSOT refs: io_list.interfaces.apb_csr, registers.register_list, workflow_todos.rtl-gen[4]
 
-### RTL-0177: Implement CSR/register FIFO_STATUS
+### RTL-0178: Implement CSR/register FIFO_STATUS
 
 - Priority: high
 - Required: True
@@ -83,7 +83,7 @@ SSOT item context: name=FIFO_STATUS; width=32; reset=5; access=ro; offset=0.
   - FIFO_STATUS decode uses SSOT address/offset 0
 - SSOT refs: registers.register_list.FIFO_STATUS
 
-### RTL-0178: Implement field FIFO_STATUS.empty
+### RTL-0179: Implement field FIFO_STATUS.empty
 
 - Priority: high
 - Required: True
@@ -109,7 +109,7 @@ SSOT item context: name=empty; reset=1; access=ro.
   - empty write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.FIFO_STATUS.fields.empty
 
-### RTL-0179: Implement field FIFO_STATUS.full
+### RTL-0180: Implement field FIFO_STATUS.full
 
 - Priority: high
 - Required: True
@@ -135,7 +135,7 @@ SSOT item context: name=full; reset=0; access=ro.
   - full write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.FIFO_STATUS.fields.full
 
-### RTL-0180: Implement field FIFO_STATUS.almost_empty
+### RTL-0181: Implement field FIFO_STATUS.almost_empty
 
 - Priority: high
 - Required: True
@@ -161,7 +161,7 @@ SSOT item context: name=almost_empty; reset=1; access=ro.
   - almost_empty write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.FIFO_STATUS.fields.almost_empty
 
-### RTL-0181: Implement field FIFO_STATUS.almost_full
+### RTL-0182: Implement field FIFO_STATUS.almost_full
 
 - Priority: high
 - Required: True
@@ -187,7 +187,7 @@ SSOT item context: name=almost_full; reset=0; access=ro.
   - almost_full write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.FIFO_STATUS.fields.almost_full
 
-### RTL-0182: Implement field FIFO_STATUS.count
+### RTL-0183: Implement field FIFO_STATUS.count
 
 - Priority: high
 - Required: True
@@ -213,7 +213,7 @@ SSOT item context: name=count; reset=0; access=ro.
   - count write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.FIFO_STATUS.fields.count
 
-### RTL-0183: Implement field FIFO_STATUS.reserved_31_12
+### RTL-0184: Implement field FIFO_STATUS.reserved_31_12
 
 - Priority: high
 - Required: True
@@ -239,7 +239,7 @@ SSOT item context: name=reserved_31_12; reset=0; access=reserved.
   - reserved_31_12 write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.FIFO_STATUS.fields.reserved_31_12
 
-### RTL-0184: Implement CSR/register FIFO_CONFIG
+### RTL-0185: Implement CSR/register FIFO_CONFIG
 
 - Priority: high
 - Required: True
@@ -263,7 +263,7 @@ SSOT item context: name=FIFO_CONFIG; width=32; reset=0; access=rw; offset=4.
   - FIFO_CONFIG decode uses SSOT address/offset 4
 - SSOT refs: registers.register_list.FIFO_CONFIG
 
-### RTL-0185: Implement field FIFO_CONFIG.almost_full_thresh
+### RTL-0186: Implement field FIFO_CONFIG.almost_full_thresh
 
 - Priority: high
 - Required: True
@@ -289,7 +289,7 @@ SSOT item context: name=almost_full_thresh; reset=0; access=rw.
   - almost_full_thresh write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.FIFO_CONFIG.fields.almost_full_thresh
 
-### RTL-0186: Implement field FIFO_CONFIG.almost_empty_thresh
+### RTL-0187: Implement field FIFO_CONFIG.almost_empty_thresh
 
 - Priority: high
 - Required: True
@@ -315,7 +315,7 @@ SSOT item context: name=almost_empty_thresh; reset=0; access=rw.
   - almost_empty_thresh write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.FIFO_CONFIG.fields.almost_empty_thresh
 
-### RTL-0187: Implement field FIFO_CONFIG.reserved_31_16
+### RTL-0188: Implement field FIFO_CONFIG.reserved_31_16
 
 - Priority: high
 - Required: True
@@ -341,7 +341,7 @@ SSOT item context: name=reserved_31_16; reset=0; access=reserved.
   - reserved_31_16 write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.FIFO_CONFIG.fields.reserved_31_16
 
-### RTL-0188: Implement CSR/register FIFO_CONTROL
+### RTL-0189: Implement CSR/register FIFO_CONTROL
 
 - Priority: high
 - Required: True
@@ -365,7 +365,7 @@ SSOT item context: name=FIFO_CONTROL; width=32; reset=0; access=wo; offset=8.
   - FIFO_CONTROL decode uses SSOT address/offset 8
 - SSOT refs: registers.register_list.FIFO_CONTROL
 
-### RTL-0189: Implement field FIFO_CONTROL.flush
+### RTL-0190: Implement field FIFO_CONTROL.flush
 
 - Priority: high
 - Required: True
@@ -391,7 +391,7 @@ SSOT item context: name=flush; reset=0; access=wo.
   - flush write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.FIFO_CONTROL.fields.flush
 
-### RTL-0190: Implement field FIFO_CONTROL.reserved_31_1
+### RTL-0191: Implement field FIFO_CONTROL.reserved_31_1
 
 - Priority: high
 - Required: True
@@ -417,7 +417,7 @@ SSOT item context: name=reserved_31_1; reset=0; access=reserved.
   - reserved_31_1 write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.FIFO_CONTROL.fields.reserved_31_1
 
-### RTL-0247: Prove module fifo_sync_regs is functionally equivalent to FL
+### RTL-0248: Prove module fifo_sync_regs is functionally equivalent to FL
 
 - Priority: high
 - Required: True
@@ -438,7 +438,7 @@ Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via module_equivalence.
   - Primary implementation evidence is in rtl/fifo_sync_regs.sv
 - SSOT refs: sub_modules.fifo_sync_regs.module_equivalence
 
-### RTL-0041: Implement and connect port PCLK
+### RTL-0042: Implement and connect port PCLK
 
 - Priority: normal
 - Required: True
@@ -460,7 +460,7 @@ SSOT item context: name=PCLK; width=1; direction=input.
   - PCLK port direction remains input
 - SSOT refs: io_list.clock_domains.pclk.ports.PCLK
 
-### RTL-0042: Implement and connect port PRESETn
+### RTL-0043: Implement and connect port PRESETn
 
 - Priority: normal
 - Required: True
@@ -482,7 +482,7 @@ SSOT item context: name=PRESETn; width=1; direction=input.
   - PRESETn port direction remains input
 - SSOT refs: io_list.resets.PRESETn.ports.PRESETn
 
-### RTL-0043: Implement and connect port wr_en_i
+### RTL-0044: Implement and connect port wr_en_i
 
 - Priority: normal
 - Required: True
@@ -504,7 +504,7 @@ SSOT item context: name=wr_en_i; width=1; direction=input.
   - wr_en_i port direction remains input
 - SSOT refs: io_list.interfaces.fifo_write.ports.wr_en_i
 
-### RTL-0044: Implement and connect port wr_data_i
+### RTL-0045: Implement and connect port wr_data_i
 
 - Priority: normal
 - Required: True
@@ -526,7 +526,7 @@ SSOT item context: name=wr_data_i; width=DATA_WIDTH; direction=input.
   - wr_data_i port direction remains input
 - SSOT refs: io_list.interfaces.fifo_write.ports.wr_data_i
 
-### RTL-0045: Implement and connect port full_o
+### RTL-0046: Implement and connect port full_o
 
 - Priority: normal
 - Required: True
@@ -548,7 +548,7 @@ SSOT item context: name=full_o; width=1; direction=output.
   - full_o port direction remains output
 - SSOT refs: io_list.interfaces.fifo_write.ports.full_o
 
-### RTL-0046: Implement and connect port almost_full_o
+### RTL-0047: Implement and connect port almost_full_o
 
 - Priority: normal
 - Required: True
@@ -570,7 +570,7 @@ SSOT item context: name=almost_full_o; width=1; direction=output.
   - almost_full_o port direction remains output
 - SSOT refs: io_list.interfaces.fifo_write.ports.almost_full_o
 
-### RTL-0047: Implement and connect port rd_en_i
+### RTL-0048: Implement and connect port rd_en_i
 
 - Priority: normal
 - Required: True
@@ -592,7 +592,7 @@ SSOT item context: name=rd_en_i; width=1; direction=input.
   - rd_en_i port direction remains input
 - SSOT refs: io_list.interfaces.fifo_read.ports.rd_en_i
 
-### RTL-0048: Implement and connect port rd_data_o
+### RTL-0049: Implement and connect port rd_data_o
 
 - Priority: normal
 - Required: True
@@ -614,7 +614,7 @@ SSOT item context: name=rd_data_o; width=DATA_WIDTH; direction=output.
   - rd_data_o port direction remains output
 - SSOT refs: io_list.interfaces.fifo_read.ports.rd_data_o
 
-### RTL-0049: Implement and connect port empty_o
+### RTL-0050: Implement and connect port empty_o
 
 - Priority: normal
 - Required: True
@@ -636,7 +636,7 @@ SSOT item context: name=empty_o; width=1; direction=output.
   - empty_o port direction remains output
 - SSOT refs: io_list.interfaces.fifo_read.ports.empty_o
 
-### RTL-0050: Implement and connect port almost_empty_o
+### RTL-0051: Implement and connect port almost_empty_o
 
 - Priority: normal
 - Required: True
@@ -658,7 +658,7 @@ SSOT item context: name=almost_empty_o; width=1; direction=output.
   - almost_empty_o port direction remains output
 - SSOT refs: io_list.interfaces.fifo_read.ports.almost_empty_o
 
-### RTL-0051: Implement and connect port count_o
+### RTL-0052: Implement and connect port count_o
 
 - Priority: normal
 - Required: True
@@ -668,7 +668,7 @@ SSOT item context: name=almost_empty_o; width=1; direction=output.
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.fifo_status.ports.count_o.
 Owner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.
-SSOT item context: name=count_o; width=$clog2(DEPTH+1); direction=output.
+SSOT item context: name=count_o; width=COUNT_WIDTH; direction=output.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
@@ -676,11 +676,11 @@ SSOT item context: name=count_o; width=$clog2(DEPTH+1); direction=output.
   - Active outputs are driven by implemented logic, not placeholder constants
   - Traceability keeps source_ref io_list.interfaces.fifo_status.ports.count_o
   - Primary implementation evidence is in rtl/fifo_sync_regs.sv
-  - count_o width matches SSOT value $clog2(DEPTH+1)
+  - count_o width matches SSOT value COUNT_WIDTH
   - count_o port direction remains output
 - SSOT refs: io_list.interfaces.fifo_status.ports.count_o
 
-### RTL-0052: Implement and connect port flush_i
+### RTL-0053: Implement and connect port flush_i
 
 - Priority: normal
 - Required: True
@@ -702,7 +702,7 @@ SSOT item context: name=flush_i; width=1; direction=input.
   - flush_i port direction remains input
 - SSOT refs: io_list.interfaces.fifo_control.ports.flush_i
 
-### RTL-0053: Implement and connect port paddr
+### RTL-0054: Implement and connect port paddr
 
 - Priority: normal
 - Required: True
@@ -724,7 +724,7 @@ SSOT item context: name=paddr; width=4; direction=input.
   - paddr port direction remains input
 - SSOT refs: io_list.interfaces.apb_csr.ports.paddr
 
-### RTL-0054: Implement and connect port psel
+### RTL-0055: Implement and connect port psel
 
 - Priority: normal
 - Required: True
@@ -746,7 +746,7 @@ SSOT item context: name=psel; width=1; direction=input.
   - psel port direction remains input
 - SSOT refs: io_list.interfaces.apb_csr.ports.psel
 
-### RTL-0055: Implement and connect port penable
+### RTL-0056: Implement and connect port penable
 
 - Priority: normal
 - Required: True
@@ -768,7 +768,7 @@ SSOT item context: name=penable; width=1; direction=input.
   - penable port direction remains input
 - SSOT refs: io_list.interfaces.apb_csr.ports.penable
 
-### RTL-0056: Implement and connect port pwrite
+### RTL-0057: Implement and connect port pwrite
 
 - Priority: normal
 - Required: True
@@ -790,7 +790,7 @@ SSOT item context: name=pwrite; width=1; direction=input.
   - pwrite port direction remains input
 - SSOT refs: io_list.interfaces.apb_csr.ports.pwrite
 
-### RTL-0057: Implement and connect port pwdata
+### RTL-0058: Implement and connect port pwdata
 
 - Priority: normal
 - Required: True
@@ -812,7 +812,7 @@ SSOT item context: name=pwdata; width=32; direction=input.
   - pwdata port direction remains input
 - SSOT refs: io_list.interfaces.apb_csr.ports.pwdata
 
-### RTL-0058: Implement and connect port prdata
+### RTL-0059: Implement and connect port prdata
 
 - Priority: normal
 - Required: True
@@ -834,7 +834,7 @@ SSOT item context: name=prdata; width=32; direction=output.
   - prdata port direction remains output
 - SSOT refs: io_list.interfaces.apb_csr.ports.prdata
 
-### RTL-0059: Implement and connect port pready
+### RTL-0060: Implement and connect port pready
 
 - Priority: normal
 - Required: True
@@ -856,7 +856,7 @@ SSOT item context: name=pready; width=1; direction=output.
   - pready port direction remains output
 - SSOT refs: io_list.interfaces.apb_csr.ports.pready
 
-### RTL-0060: Implement and connect port pslverr
+### RTL-0061: Implement and connect port pslverr
 
 - Priority: normal
 - Required: True

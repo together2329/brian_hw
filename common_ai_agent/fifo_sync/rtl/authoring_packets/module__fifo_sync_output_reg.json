@@ -12,7 +12,7 @@
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 11,
+      "module_task_count": 12,
       "task_limit": 48
     },
     "owner": {
@@ -141,7 +141,7 @@
     "categories": {
       "cycle_model.latency": 1,
       "equivalence.module": 1,
-      "parameters.item": 8,
+      "parameters.item": 9,
       "workflow_todo.rtl_gen": 1
     },
     "module_slice": {
@@ -149,11 +149,11 @@
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 11,
+      "module_task_count": 12,
       "task_limit": 48
     },
     "open_required_count": 0,
-    "required_count": 11,
+    "required_count": 12,
     "source_refs": [
       "workflow_todos.rtl-gen[3]",
       "cycle_model.latency",
@@ -162,15 +162,16 @@
       "parameters.DEPTH",
       "parameters.ALMOST_FULL_THRESHOLD",
       "parameters.ALMOST_EMPTY_THRESHOLD",
+      "parameters.COUNT_WIDTH",
       "parameters.USE_OUTPUT_REGISTER",
       "parameters.USE_APB",
       "parameters.USE_ECC",
       "parameters.CLOCK_FREQ_MHZ"
     ],
     "status_counts": {
-      "pass": 11
+      "pass": 12
     },
-    "task_count": 11
+    "task_count": 12
   },
   "tasks": [
     {
@@ -293,7 +294,7 @@
       ],
       "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via cycle_model.latency.registered_read.",
       "evidence_terms": [],
-      "id": "RTL-0159",
+      "id": "RTL-0160",
       "owner_file": "rtl/fifo_sync_output_reg.sv",
       "owner_module": "fifo_sync_output_reg",
       "priority": "high",
@@ -334,7 +335,7 @@
       ],
       "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.fifo_sync_output_reg.module_equivalence.\nOwner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via module_equivalence.",
       "evidence_terms": [],
-      "id": "RTL-0248",
+      "id": "RTL-0249",
       "owner_file": "rtl/fifo_sync_output_reg.sv",
       "owner_module": "fifo_sync_output_reg",
       "priority": "high",
@@ -527,6 +528,47 @@
     },
     {
       "category": "parameters.item",
+      "content": "Implement parameter COUNT_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.COUNT_WIDTH",
+        "Primary implementation evidence is in rtl/fifo_sync_output_reg.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.COUNT_WIDTH.\nOwner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.\nSSOT item context: name=COUNT_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0037",
+      "owner_file": "rtl/fifo_sync_output_reg.sv",
+      "owner_module": "fifo_sync_output_reg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.COUNT_WIDTH",
+      "ssot_context": {
+        "name": "COUNT_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.COUNT_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
       "content": "Implement parameter USE_OUTPUT_REGISTER",
       "criteria": [
         "Parameter default/value matches SSOT",
@@ -537,7 +579,7 @@
       ],
       "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.USE_OUTPUT_REGISTER.\nOwner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.USE_OUTPUT_REGISTER.\nSSOT item context: name=USE_OUTPUT_REGISTER.",
       "evidence_terms": [],
-      "id": "RTL-0037",
+      "id": "RTL-0038",
       "owner_file": "rtl/fifo_sync_output_reg.sv",
       "owner_module": "fifo_sync_output_reg",
       "priority": "normal",
@@ -578,7 +620,7 @@
       ],
       "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.USE_APB.\nOwner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.\nSSOT item context: name=USE_APB.",
       "evidence_terms": [],
-      "id": "RTL-0038",
+      "id": "RTL-0039",
       "owner_file": "rtl/fifo_sync_output_reg.sv",
       "owner_module": "fifo_sync_output_reg",
       "priority": "normal",
@@ -619,7 +661,7 @@
       ],
       "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.USE_ECC.\nOwner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.\nSSOT item context: name=USE_ECC.",
       "evidence_terms": [],
-      "id": "RTL-0039",
+      "id": "RTL-0040",
       "owner_file": "rtl/fifo_sync_output_reg.sv",
       "owner_module": "fifo_sync_output_reg",
       "priority": "normal",
@@ -660,7 +702,7 @@
       ],
       "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.CLOCK_FREQ_MHZ.\nOwner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.\nSSOT item context: name=CLOCK_FREQ_MHZ.",
       "evidence_terms": [],
-      "id": "RTL-0040",
+      "id": "RTL-0041",
       "owner_file": "rtl/fifo_sync_output_reg.sv",
       "owner_module": "fifo_sync_output_reg",
       "priority": "normal",
@@ -690,7 +732,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "f38558b8207c051bf329000b6ab7b51407ec116bcc6539c945c38594602a92bc",
+  "todo_plan_sha256": "02bb95b65f0ebafb8f8432eadca3fbfd576035bf2f7283bfcd47ace9555afa10",
   "top": "fifo_sync",
   "type": "rtl_authoring_packet"
 }

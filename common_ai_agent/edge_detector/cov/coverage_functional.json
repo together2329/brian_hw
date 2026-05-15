@@ -2,10 +2,10 @@
   "schema_version": 1,
   "type": "functional_coverage",
   "status": "pass",
-  "timestamp_iso": "2026-05-15T02:37:19Z",
+  "timestamp_iso": "2026-05-15T02:38:27Z",
   "functional": {
-    "hit": 43,
-    "total": 43,
+    "hit": 48,
+    "total": 48,
     "pct": 100.0,
     "bins": {
       "SC1_executed": {
@@ -55,8 +55,8 @@
       },
       "SC10_executed": {
         "hit": true,
-        "goal_id": "EQ_SCENARIO_SC1",
-        "scenario_id": "SC_002_EQ_SCENARIO_SC1"
+        "goal_id": "EQ_REGISTER_RAW_STATUS",
+        "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS"
       },
       "SC11_executed": {
         "hit": true,
@@ -85,8 +85,8 @@
       },
       "fcov_w1c_clear": {
         "hit": true,
-        "goal_id": "EQ_SCENARIO_SC6",
-        "scenario_id": "SC_007_EQ_SCENARIO_SC6"
+        "goal_id": "EQ_REGISTER_RAW_STATUS",
+        "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS"
       },
       "SC7_executed": {
         "hit": true,
@@ -148,10 +148,35 @@
         "goal_id": "EQ_ERROR_NONE",
         "scenario_id": "SC_022_EQ_ERROR_NONE"
       },
+      "cycle_latency_register_read": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_RAW_STATUS",
+        "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS"
+      },
+      "cycle_latency_register_write": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_RAW_STATUS",
+        "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS"
+      },
+      "cycle_perf_outstanding": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_RAW_STATUS",
+        "scenario_id": "SC_021_EQ_REGISTER_RAW_STATUS"
+      },
       "error_error_0": {
         "hit": true,
         "goal_id": "EQ_ERROR_NONE",
         "scenario_id": "SC_022_EQ_ERROR_NONE"
+      },
+      "fcov_sticky_set": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_STATUS",
+        "scenario_id": "SC_020_EQ_REGISTER_STATUS"
+      },
+      "fcov_overflow_set": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_STATUS",
+        "scenario_id": "SC_020_EQ_REGISTER_STATUS"
       },
       "ccov_sync_latency": {
         "hit": true,

@@ -3,7 +3,7 @@
   "type": "generic_goal_scoreboard_cocotb_manifest",
   "ip": "arbiter_rr",
   "top": "arbiter_rr",
-  "generated_at": "2026-05-15T02:35:14Z",
+  "generated_at": "2026-05-15T02:37:47Z",
   "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
   "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
   "ssot": "arbiter_rr/yaml/arbiter_rr.ssot.yaml",
