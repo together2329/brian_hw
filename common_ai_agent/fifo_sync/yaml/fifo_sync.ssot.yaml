@@ -6,7 +6,7 @@
 
 ip: fifo_sync
 version: "1.0"
-purpose: TBD
+purpose: "Parameterized synchronous FIFO with APB-lite CSR interface for status/config, single PCLK clock domain, active-low async assert sync deassert reset, 1-cycle latency push/pop, full/empty flags, overflow/underflow error detection."
 type: TBD
 io_list: TBD
 registers: TBD

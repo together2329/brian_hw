@@ -1,87 +1,979 @@
 # =============================================================================
-# pulse_gen SSOT — Single Source of Truth
+# SSOT — pulse_gen: One-Shot Pulse Generator
 # =============================================================================
-# IP: pulse_gen (One-Shot Pulse Generator)
-# Flow: User Input -> Requirements -> Production SSOT(YAML) -> Validation -> SSOT HANDOFF
+# IP Type    : peripheral
+# Clock      : PCLK 50 MHz, single domain
+# Reset      : PRESETn (active-low, async assert, sync deassert)
+# Interface  : APB-Lite CSR (zero-wait-state)
+# Output     : Parameterized pulse_out bus, irq_o
+# Latency    : 1 cycle trigger-to-pulse
 # =============================================================================
 
-ip: pulse_gen
-version: draft
-purpose: "Generate a single, parameterized-width output pulse on trigger with 1-cycle latency, controllable via APB-lite CSR."
-type: "peripheral"
-description: "One-shot pulse generator with software-triggered single pulse output, programmable pulse width and polarity, APB-lite register interface, single 50 MHz PCLK domain."
+# =============================================================================
+# SECTION 0: Top Module Identity
+# =============================================================================
 top_module:
   name: "pulse_gen"
   file: "rtl/pulse_gen.sv"
   version: "1.0"
   type: "peripheral"
-  description: "One-shot pulse generator with APB-lite CSR"
+  description: "One-shot pulse generator with parameterized width, APB-Lite CSR configuration, and single-cycle trigger-to-output latency."
+  reference_spec: "user-defined"
   target:
     technology: "generic"
     clock_freq_mhz: 50
     area_um2: null
     power_mw: null
-sub_modules: TBD
-parameters: TBD
+
+# =============================================================================
+# SECTION 1: Sub-Module List (Hierarchy)
+# =============================================================================
+sub_modules:
+  - { name: "pulse_gen_regs", file: "rtl/pulse_gen_regs.sv", ownership: "manifest", ssot_gen: true, implements: ["registers.register_list", "interrupts", "integration.bus_attachment"], source_sections: ["registers", "interrupts", "integration"], register_refs: ["registers.register_list"], description: "APB-Lite register decode, storage, and interrupt generation" }
+  - { name: "pulse_gen_core", file: "rtl/pulse_gen_core.sv", ownership: "manifest", ssot_gen: false, implements: ["function_model.transactions", "cycle_model.pipeline", "fsm.pulse_fsm", "features.pulse_fire", "dataflow"], source_sections: ["function_model", "cycle_model", "fsm", "features", "dataflow"], function_model_refs: ["function_model.transactions.FM_FIRE", "function_model.state_variables"], cycle_model_refs: ["cycle_model.pipeline"], fsm_refs: ["fsm.pulse_fsm"], description: "Pulse generation FSM, counter, and output driver — LLM-authored" }
+
+decomposition:
+  units:
+    - { id: "register_decode", kind: "control", source_refs: ["registers.register_list"], rtl_candidates: ["pulse_gen_regs"], description: "APB-Lite address decode, register read/write, W1C clear, interrupt enable/mask" }
+    - { id: "pulse_generation", kind: "datapath_control", source_refs: ["function_model.transactions.FM_FIRE", "cycle_model.pipeline", "fsm.pulse_fsm"], rtl_candidates: ["pulse_gen_core"], description: "Pulse FSM, counter, and output driver" }
+
+# =============================================================================
+# SECTION 2: Parameters
+# =============================================================================
+parameters:
+  - name: "PULSE_WIDTH_CYCLES"
+    default: 1
+    type: int
+    description: "Pulse output assertion duration in PCLK cycles (1 = single-cycle pulse)"
+    drives: ["pulse_gen_core.sv", "pulse_gen_regs.sv"]
+  - name: "PULSE_POLARITY"
+    default: "active_high"
+    type: enum
+    values: ["active_high", "active_low"]
+    description: "Polarity of the pulse_out signal"
+    drives: ["pulse_gen_core.sv"]
+  - name: "PULSE_OUT_WIDTH"
+    default: 1
+    type: int
+    description: "Number of independent pulse output channels"
+    drives: ["pulse_gen_core.sv", "pulse_gen.sv"]
+  - name: "APB_ADDR_WIDTH"
+    default: 8
+    type: int
+    description: "APB address bus width in bits"
+    drives: ["pulse_gen_regs.sv", "pulse_gen.sv"]
+  - name: "CLOCK_FREQ_MHZ"
+    default: 50
+    type: int
+    description: "Target PCLK frequency in MHz"
+    drives: ["pulse_gen_core.sv", "sim/tb_top.sv"]
+  - name: "RESET_POLARITY"
+    default: "active_low"
+    type: enum
+    values: ["active_low", "active_high"]
+    description: "Reset polarity (PRESETn is active-low by default)"
+    drives: ["ALL .sv files"]
+
+# =============================================================================
+# SECTION 3: IO List (Ports)
+# =============================================================================
 io_list:
   clock_domains:
     - name: "pclk"
       frequency_mhz: 50
-      description: "Main peripheral clock"
+      description: "Single system clock"
       ports:
-        - { name: "PCLK", width: 1, direction: "input", description: "Peripheral clock" }
+        - { name: "PCLK", width: 1, direction: "input", description: "System clock" }
   resets:
     - name: "presetn"
       polarity: "active_low"
       sync_async: "async_assert_sync_deassert"
-      description: "Main active-low reset, async assert, sync deassert"
+      description: "System reset — asynchronous assertion, synchronous deassertion"
       ports:
-        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low reset" }
+        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low async reset" }
   interfaces:
-    - name: "apb_csr"
-      type: "APB4-lite"
+    - name: "apb_lite_slave"
+      type: "APB-Lite"
       role: "slave"
-      description: "APB-lite register access interface"
+      clock_domain: "pclk"
+      reset_domain: "presetn"
+      description: "CSR register access interface for pulse configuration and status"
+      protocol:
+        setup_phase: "PSEL=1, PENABLE=0 captures PADDR/PWRITE/PWDATA."
+        access_phase: "PSEL=1, PENABLE=1 completes when PREADY=1."
+        read_rule: "PRDATA is valid in the completing access phase for reads (pwrite=0)."
+        write_rule: "PWDATA is sampled in the completing access phase for writes (pwrite=1)."
+        error_rule: "PSLVERR is asserted only with PREADY=1 for illegal or unsupported access."
       ports:
-        - { name: "PADDR",   width: 12, direction: "input",  description: "APB address" }
+        - { name: "PADDR",   width: 8,  direction: "input",  description: "APB address" }
         - { name: "PSEL",    width: 1,  direction: "input",  description: "APB select" }
         - { name: "PENABLE", width: 1,  direction: "input",  description: "APB enable" }
-        - { name: "PWRITE",  width: 1,  direction: "input",  description: "APB write" }
+        - { name: "PWRITE",  width: 1,  direction: "input",  description: "APB write (1=write, 0=read)" }
         - { name: "PWDATA",  width: 32, direction: "input",  description: "APB write data" }
+        - { name: "PSTRB",   width: 4,  direction: "input",  description: "APB write strobes" }
         - { name: "PRDATA",  width: 32, direction: "output", description: "APB read data" }
-        - { name: "PREADY",  width: 1,  direction: "output", description: "APB ready" }
+        - { name: "PREADY",  width: 1,  direction: "output", description: "APB ready (always 1 = zero-wait-state)" }
         - { name: "PSLVERR", width: 1,  direction: "output", description: "APB slave error" }
-    - name: "pulse_out"
+    - name: "pulse_output"
       type: "custom"
-      description: "Pulse output"
+      clock_domain: "pclk"
+      reset_domain: "presetn"
+      description: "Parameterized one-shot pulse output bus"
+      protocol:
+        assertion: "Each bit asserts for PULSE_WIDTH_CYCLES consecutive PCLK cycles after trigger."
+        deassertion: "Pulse deasserts automatically after the programmed width elapses."
+        reset_value: "0 when PULSE_POLARITY=active_high; 1 when PULSE_POLARITY=active_low"
+        non_reentrancy: "A new trigger while busy is ignored until the current pulse completes."
       ports:
-        - { name: "pulse_out", width: "PULSE_WIDTH", direction: "output", description: "Generated pulse output" }
-features: TBD
-dataflow: TBD
-function_model: TBD
-cycle_model: TBD
-clock_reset_domains: TBD
-cdc_requirements: TBD
-rdc_requirements: TBD
-registers: TBD
-memory: TBD
-interrupts: TBD
-fsm: TBD
-timing: TBD
-power: TBD
-security: TBD
-error_handling: TBD
-debug_observability: TBD
-integration: TBD
-dft: TBD
-synthesis: TBD
-coding_rules: TBD
-reuse_modules: TBD
-custom: TBD
-dir_structure: TBD
-filelist: TBD
-test_requirements: TBD
-quality_gates: TBD
-traceability: TBD
-workflow_todos: TBD
-generation_flow: TBD
+        - { name: "pulse_out", width: "PULSE_OUT_WIDTH", direction: "output", description: "One-shot pulse output(s)" }
+    - name: "trigger_input"
+      type: "custom"
+      clock_domain: "pclk"
+      reset_domain: "presetn"
+      description: "Hardware trigger input for external pulse initiation"
+      protocol:
+        sampling: "Sampled on PCLK rising edge when PRESETn is deasserted."
+        edge: "Level-sensitive high — trigger_i must be held for at least one PCLK cycle."
+        conflict: "If trigger_i and software trigger (CTRL.fire) coincide, only one pulse fires."
+      ports:
+        - { name: "trigger_i", width: 1, direction: "input", description: "External hardware trigger (active-high level)" }
+    - name: "interrupt"
+      type: "custom"
+      clock_domain: "pclk"
+      reset_domain: "presetn"
+      description: "Pulse-completion interrupt output"
+      protocol:
+        assertion: "IRQ asserted when pulse completes and INT_ENABLE.done_ie is set."
+        deassertion: "IRQ deasserts after STATUS.done is cleared via W1C write."
+        reset_value: 0
+      ports:
+        - { name: "irq_o", width: 1, direction: "output", description: "Pulse-done interrupt (active-high level)" }
+
+# =============================================================================
+# SECTION 4: Main Features
+# =============================================================================
+features:
+  - name: "pulse_fire"
+    trigger: "Software write of CTRL.fire=1 or hardware trigger_i assertion while enabled and idle"
+    datapath: "Latch pulse_width and polarity → assert pulse_out for width cycles → deassert → set STATUS.done"
+    control: "FSM: IDLE → PULSE → DONE → IDLE"
+    output: "pulse_out[PULSE_OUT_WIDTH-1:0] driven to active level for exactly PULSE_WIDTH_CYCLES PCLK cycles"
+  - name: "runtime_width_config"
+    trigger: "APB write to PULSE_WIDTH register while IDLE"
+    datapath: "Register storage → latched into counter at trigger time"
+    control: "Width is captured at trigger edge; mid-pulse writes do not affect in-progress pulse"
+    output: "Next pulse uses updated width"
+  - name: "interrupt_on_done"
+    trigger: "Pulse completion (FSM transition PULSE→DONE) when INT_ENABLE.done_ie=1"
+    datapath: "STATUS.done=1 → irq_o=1 until W1C clear of STATUS.done"
+    control: "Level-sensitive interrupt, W1C clear"
+    output: "irq_o asserted for exactly the interval between pulse completion and software STATUS.done W1C write"
+
+# =============================================================================
+# SECTION 5: Data Flow
+# =============================================================================
+dataflow:
+  trigger_path:
+    source: "CTRL.fire (software) or trigger_i (hardware)"
+    sequence: "trigger accepted → FSM IDLE→PULSE → latch width/polarity"
+  pulse_path:
+    counter: "pulse_counter (counts from 0 to latched_width-1)"
+    output: "pulse_out driven to active_level during count"
+    sequence: "trigger → latch width → assert pulse_out → increment counter per cycle → deassert when counter == latched_width-1 → STATUS.done=1"
+  interrupt_path:
+    source: "STATUS.done set at pulse completion"
+    gate: "INT_ENABLE.done_ie"
+    output: "irq_o = STATUS.done & INT_ENABLE.done_ie"
+    clear: "W1C write to STATUS.done"
+
+# =============================================================================
+# SECTION 6: Function Model
+# =============================================================================
+function_model:
+  purpose: "Executable behavioral contract for rtl-gen and tb-gen; describes what the IP computes independent of cycle timing."
+  state_variables:
+    - { name: "fsm_state", source: "fsm.pulse_fsm", reset: "IDLE", description: "Current FSM state" }
+    - { name: "pulse_counter", source: "internal counter", reset: 0, description: "Elapsed pulse cycles in current pulse" }
+    - { name: "latched_width", source: "registers.PULSE_WIDTH.width", reset: 1, description: "Pulse width captured at trigger time" }
+    - { name: "latched_polarity", source: "registers.CTRL.polarity", reset: 0, description: "Polarity captured at trigger time (0=active_high)" }
+    - { name: "ctrl_fire", source: "registers.CTRL.fire", reset: 0, description: "Software trigger — self-clearing" }
+    - { name: "ctrl_enable", source: "registers.CTRL.enable", reset: 1, description: "Global enable gate" }
+    - { name: "ctrl_hw_trig_en", source: "registers.CTRL.hw_trig_en", reset: 0, description: "Hardware trigger enable" }
+    - { name: "status_busy", source: "registers.STATUS.busy", reset: 0, description: "Pulse in progress" }
+    - { name: "status_done", source: "registers.STATUS.done", reset: 0, description: "Pulse completed (W1C clearable)" }
+    - { name: "fired_count", source: "registers.STATUS.fired_count", reset: 0, description: "Monotonic count of completed pulses" }
+  transactions:
+    - id: "FM_FIRE"
+      name: "fire_pulse"
+      preconditions:
+        - "ctrl_enable == 1"
+        - "status_busy == 0"
+        - "(ctrl_fire == 1) or (trigger_i == 1 and ctrl_hw_trig_en == 1)"
+      inputs:
+        - "trigger event: ctrl_fire or trigger_i level"
+        - "latched_width = max(registers.PULSE_WIDTH.width, 1)"
+        - "latched_polarity = registers.CTRL.polarity"
+      output_rules:
+        - { name: "pulse_out_active", expr: "latched_polarity ? 1'b0 : 1'b1", width: "PULSE_OUT_WIDTH", port: "pulse_out", description: "Active-level assertion during PULSE state" }
+        - { name: "pulse_out_idle", expr: "latched_polarity ? 1'b1 : 1'b0", width: "PULSE_OUT_WIDTH", port: "pulse_out", description: "Idle-level when not in PULSE state" }
+        - { name: "irq_o", expr: "status_done & INT_ENABLE.done_ie", width: 1, port: "irq_o", description: "Interrupt output driven by done status AND enable" }
+        - { name: "status_busy_out", expr: "fsm_state == PULSE ? 1 : 0", width: 1, port: "STATUS.busy", description: "Busy flag mirrors PULSE state" }
+        - { name: "status_done_set", expr: "fsm_state transitions PULSE→DONE ? set : unchanged", width: 1, port: "STATUS.done", description: "Done flag set at pulse completion, cleared by W1C" }
+      side_effects:
+        - "fsm_state transitions: IDLE → PULSE → DONE → IDLE"
+        - "pulse_counter increments each PCLK cycle while in PULSE state"
+        - "fired_count increments by 1 at PULSE→DONE transition"
+        - "ctrl_fire auto-clears to 0 after one PCLK cycle (self-clearing trigger)"
+      state_updates:
+        - { name: "fsm_state", reset: "IDLE", expr: "IDLE→PULSE on trigger; PULSE→DONE when counter==width-1; DONE→IDLE after 1 cycle or W1C" }
+        - { name: "pulse_counter", reset: 0, expr: "0 in IDLE/DONE; increments each cycle in PULSE" }
+        - { name: "latched_width", reset: 1, expr: "captured from PULSE_WIDTH register at trigger; held constant during PULSE" }
+        - { name: "latched_polarity", reset: 0, expr: "captured from CTRL.polarity at trigger; held constant during PULSE" }
+        - { name: "status_busy", reset: 0, expr: "1 while fsm_state==PULSE; 0 otherwise" }
+        - { name: "status_done", reset: 0, expr: "set to 1 at PULSE→DONE transition; cleared by W1C write to STATUS.done" }
+        - { name: "fired_count", reset: 0, expr: "fired_count + 1 at PULSE→DONE transition; wraps at 2^16" }
+        - { name: "ctrl_fire", reset: 0, expr: "set to 1 by APB write; auto-clears to 0 after one PCLK" }
+      error_cases:
+        - { condition: "trigger while status_busy==1", result: "trigger ignored — non-reentrant; no error status raised" }
+        - { condition: "PULSE_WIDTH.width written as 0", result: "treated as width=1 on next trigger; no error raised" }
+        - { condition: "ctrl_enable==0 when trigger arrives", result: "trigger ignored; no pulse, no status change" }
+  invariants:
+    - "pulse_out is at idle_level whenever fsm_state != PULSE."
+    - "pulse_out is never asserted for more or fewer cycles than latched_width."
+    - "STATUS.busy and pulse_out active are always coincident."
+    - "A new pulse cannot start while STATUS.busy==1 (non-reentrant)."
+    - "irq_o is a pure combinational function of STATUS.done and INT_ENABLE.done_ie."
+    - "ctrl_fire is self-clearing: it is 1 for exactly one PCLK cycle after being written."
+  reference_model_hint: "tb-gen should implement a Python/C++ reference model that tracks fsm_state, pulse_counter, and latched_width, compares pulse_out waveform cycle-by-cycle, and checks irq_o = done & ie every cycle."
+
+# =============================================================================
+# SECTION 7: Cycle Model
+# =============================================================================
+cycle_model:
+  purpose: "Cycle/handshake contract for rtl-gen; describes when state, outputs, and interrupts may change."
+  executable: "pymtl3"
+  backend_policy: "Use PyMTL3 for the clocked cycle model shell; keep FunctionalModel as the behavioral oracle."
+  clock: "PCLK"
+  reset:
+    assertion: "PRESETn low asynchronously clears all state: FSM→IDLE, counter→0, STATUS→0, pulse_out→idle_level."
+    deassertion: "State is usable on the first rising PCLK edge after synchronized deassertion."
+  latency:
+    trigger_to_pulse_assert: { min_cycles: 1, max_cycles: 1, description: "Rising PCLK edge after trigger acceptance drives pulse_out active (1-cycle latency)" }
+    pulse_assert_to_deassert: { min_cycles: 1, max_cycles: 65536, description: "Depends on latched_width: deassert after exactly latched_width cycles" }
+    pulse_done_to_irq: { min_cycles: 0, max_cycles: 0, description: "irq_o is combinational from STATUS.done & INT_ENABLE.done_ie; same cycle as done assertion" }
+    register_read: { min_cycles: 0, max_cycles: 1, description: "Zero-wait-state APB: PRDATA valid in access phase" }
+    register_write: { min_cycles: 0, max_cycles: 1, description: "Zero-wait-state APB: PWRITE accepted in access phase" }
+  handshake_rules:
+    - { signal: "PREADY", rule: "Always 1 — zero-wait-state APB-Lite slave; no backpressure." }
+    - { signal: "PSLVERR", rule: "Asserted only for unsupported address offsets; tied low for legal addresses." }
+    - { signal: "pulse_out", rule: "Changes only on PCLK rising edges; glitch-free between edges." }
+    - { signal: "trigger_i", rule: "Sampled on PCLK rising edge; must be stable at setup/hold time." }
+  pipeline:
+    - { stage: "S0_IDLE", cycle: 0, action: "Sample trigger (CTRL.fire or trigger_i); if accepted, latch width/polarity and transition to PULSE" }
+    - { stage: "S1_PULSE_COUNT", cycle: "1..W", action: "Assert pulse_out at active level; increment pulse_counter each cycle; W = latched_width" }
+    - { stage: "S2_DONE", cycle: "W+1", action: "Deassert pulse_out; set STATUS.done=1; increment fired_count; irq_o asserts if enabled; transition to IDLE" }
+  ordering:
+    - "Trigger acceptance and pulse_out assertion are separated by exactly 1 PCLK cycle."
+    - "STATUS.done is set on the same rising edge that pulse_out deasserts."
+    - "irq_o reflects STATUS.done combinational — no extra cycle of interrupt latency."
+    - "ctrl_fire auto-clears on the rising edge after it was written (1-cycle self-clear)."
+  backpressure:
+    - "No backpressure possible: zero-wait-state APB and no data-path handshake on pulse_out."
+  performance:
+    frequency_mhz: 50
+    throughput: { sustained_pulses_per_cycle: "1/max(latched_width+1, 2)", condition: "Back-to-back triggers with no W1C clear delay" }
+    outstanding: { pulse_max: 1, description: "Non-reentrant: only one pulse at a time" }
+    depth: { pipeline_stages: 1, queue_depth: 1, description: "Single-pulse FSM; no buffering" }
+  observability:
+    - "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
+    - "STATUS.busy directly observable via APB read; pulse_out directly observable on output port."
+
+# =============================================================================
+# SECTION 8: Clock & Reset Domain
+# =============================================================================
+clock_reset_domains:
+  domains:
+    - { name: "pclk", frequency_mhz: 50, description: "Single system clock domain" }
+  reset_scheme:
+    signal: "PRESETn"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+
+# =============================================================================
+# SECTION 9: CDC Requirements
+# =============================================================================
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain (PCLK) — no CDC required"
+
+# =============================================================================
+# SECTION 10: RDC Requirements
+# =============================================================================
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "No reset domain crossings — single PRESETn reset"
+
+# =============================================================================
+# SECTION 11: Registers
+# =============================================================================
+registers:
+  config:
+    register_width: 32
+    addr_width: 8
+    byte_addressable: true
+    channel_stride: 0
+    channel_base: 0
+    num_channels: 1
+  bit_order: "lsb0"
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: "ignore"
+    rtl_requirement: "Reserved fields read as zero and do not allocate storage."
+
+  register_list:
+    - name: "CTRL"
+      offset: 0x00
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "control"
+      description: "Pulse control register — trigger fire and polarity select"
+      write_side_effects:
+        - "Writing fire=1 when STATUS.busy=0 initiates a new pulse (software trigger)."
+        - "Writing fire=1 when STATUS.busy=1 is silently ignored (non-reentrant)."
+        - "Polarity change takes effect on the next pulse; ongoing pulse is unaffected."
+      fields:
+        - { name: "fire", bits: [0, 0], access: "rw", reset: 0x0, write_effect: "self-clearing trigger pulse; write 1 to fire", description: "Software trigger (auto-clears after one PCLK)" }
+        - { name: "polarity", bits: [1, 1], access: "rw", reset: 0x0, write_effect: "0=active_high, 1=active_low; applies to next pulse", description: "Pulse polarity override" }
+        - { name: "enable", bits: [2, 2], access: "rw", reset: 0x1, write_effect: "0=generator disabled (triggers ignored), 1=enabled", description: "Global enable" }
+        - { name: "hw_trig_en", bits: [3, 3], access: "rw", reset: 0x0, write_effect: "0=hardware trigger disabled, 1=trigger_i sampled", description: "Hardware trigger enable" }
+        - { name: "reserved_31_4", bits: [31, 4], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+
+    - name: "STATUS"
+      offset: 0x04
+      width: 32
+      access: "mixed"
+      reset: 0x00000000
+      category: "status"
+      description: "Pulse generator status — busy flag and done indicator"
+      write_side_effects:
+        - "Writing 1 to done (W1C) clears the done flag and deasserts irq_o if no other pending source."
+      fields:
+        - { name: "busy", bits: [0, 0], access: "ro", reset: 0x0, description: "1 = pulse output is currently asserted (pulse in progress)" }
+        - { name: "done", bits: [1, 1], access: "w1c", reset: 0x0, write_effect: "W1C: writing 1 clears this bit and deasserts irq_o", description: "Pulse completed flag" }
+        - { name: "fired_count", bits: [17, 2], access: "ro", reset: 0x0, description: "Monotonically increasing count of completed pulses (wraps at 2^16)" }
+        - { name: "reserved_31_18", bits: [31, 18], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+
+    - name: "PULSE_WIDTH"
+      offset: 0x08
+      width: 32
+      access: "rw"
+      reset: 0x00000001
+      category: "config"
+      description: "Pulse width in PCLK cycles — overrides PULSE_WIDTH_CYCLES parameter at runtime"
+      write_side_effects:
+        - "New width applies to the next pulse; an in-progress pulse uses the width latched at its trigger time."
+        - "Value 0 is illegal and maps to 1 cycle (minimum pulse width is 1 PCLK)."
+      fields:
+        - { name: "width", bits: [15, 0], access: "rw", reset: 0x0001, write_effect: "Set pulse width in PCLK cycles (min 1)", description: "Pulse width in PCLK cycles" }
+        - { name: "reserved_31_16", bits: [31, 16], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+
+    - name: "INT_ENABLE"
+      offset: 0x0C
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "control"
+      description: "Interrupt enable mask"
+      fields:
+        - { name: "done_ie", bits: [0, 0], access: "rw", reset: 0x0, write_effect: "0=disable done interrupt, 1=enable", description: "Pulse-done interrupt enable" }
+        - { name: "reserved_31_1", bits: [31, 1], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+
+    - name: "ID"
+      offset: 0x10
+      width: 32
+      access: "ro"
+      reset: 0x00010020
+      category: "debug"
+      description: "IP identification register"
+      fields:
+        - { name: "revision", bits: [7, 0], access: "ro", reset: 0x20, description: "Minor revision (0x20 = v0.32)" }
+        - { name: "id", bits: [31, 8], access: "ro", reset: 0x000100, description: "IP identifier (0x100 = pulse_gen)" }
+
+# =============================================================================
+# SECTION 12: Memory Requirements
+# =============================================================================
+memory:
+  instances: []
+  note: "No SRAM/FIFO/Register-file storage — all state held in flip-flops (FSM state, counter, config registers)."
+
+# =============================================================================
+# SECTION 13: Interrupt
+# =============================================================================
+interrupts:
+  sources:
+    - { name: "PULSE_DONE", bit: 0, type: "level", enable_reg: "INT_ENABLE.done_ie", status_reg: "STATUS.done", clear: "W1C via STATUS.done", description: "Pulse completion interrupt" }
+  output:
+    signal: "irq_o"
+    polarity: "active_high"
+    type: "level"
+    equation: "irq_o = STATUS.done & INT_ENABLE.done_ie"
+
+# =============================================================================
+# SECTION 14: FSM
+# =============================================================================
+fsm:
+  pulse_fsm:
+    description: "Main one-shot pulse generation FSM"
+    encoding: "one_hot"
+    states:
+      - "IDLE"
+      - "PULSE"
+      - "DONE"
+    transitions:
+      - { from: "IDLE",  to: "PULSE", condition: "(CTRL.fire==1 || (trigger_i==1 && CTRL.hw_trig_en==1)) && CTRL.enable==1 && STATUS.busy==0" }
+      - { from: "PULSE", to: "PULSE", condition: "pulse_counter < latched_width - 1" }
+      - { from: "PULSE", to: "DONE",  condition: "pulse_counter == latched_width - 1" }
+      - { from: "DONE",  to: "IDLE",  condition: "STATUS.done cleared via W1C write or auto-clear after 1 cycle" }
+    state_output_encoding:
+      IDLE:  "pulse_out = idle_level; STATUS.busy = 0"
+      PULSE: "pulse_out = active_level; STATUS.busy = 1"
+      DONE:  "pulse_out = idle_level; STATUS.busy = 0; STATUS.done = 1 (self-clears or W1C)"
+
+# =============================================================================
+# SECTION 15: RTL Contract
+# =============================================================================
+rtl_contract:
+  transaction: "FM_FIRE"
+  sample_condition: "PCLK rising edge when PRESETn is deasserted"
+  input_map:
+    sw_trigger: "CTRL.fire (APB write, self-clearing)"
+    hw_trigger: "trigger_i (level-sensitive, sampled on PCLK edge)"
+    width: "PULSE_WIDTH.width (latched at trigger time)"
+    polarity: "CTRL.polarity (latched at trigger time)"
+    enable: "CTRL.enable"
+  output_map:
+    pulse: "pulse_out[PULSE_OUT_WIDTH-1:0]"
+    busy: "STATUS.busy"
+    done: "STATUS.done (W1C)"
+    irq: "irq_o"
+  output_rules:
+    - { name: "pulse_out_active", expr: "latched_polarity ? ~1 : 1", width: "PULSE_OUT_WIDTH", port: "pulse_out" }
+    - { name: "pulse_out_idle", expr: "latched_polarity ? 1 : ~1", width: "PULSE_OUT_WIDTH", port: "pulse_out" }
+  state_updates:
+    - { name: "fsm_state", reset: "IDLE", expr: "IDLE→PULSE on accepted trigger; PULSE→DONE when counter==width-1; DONE→IDLE after 1 cycle" }
+    - { name: "pulse_counter", reset: 0, expr: "0 in IDLE; increments in PULSE; 0 in DONE" }
+    - { name: "latched_width", reset: 1, expr: "captured from PULSE_WIDTH.width at IDLE→PULSE transition" }
+    - { name: "latched_polarity", reset: 0, expr: "captured from CTRL.polarity at IDLE→PULSE transition" }
+    - { name: "status_done", reset: 0, expr: "set at PULSE→DONE; cleared by W1C write to STATUS.done" }
+    - { name: "fired_count", reset: 0, expr: "incremented at PULSE→DONE; wraps at 2^16" }
+    - { name: "ctrl_fire", reset: 0, expr: "1 for one PCLK after APB write; auto-clears" }
+
+# =============================================================================
+# SECTION 16: Timing & Performance
+# =============================================================================
+timing:
+  target_clocks:
+    - { name: "PCLK", frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.2 }
+  latency_budget:
+    trigger_to_pulse_cycles: { min: 1, max: 1, measured_from: "trigger accepted (PCLK edge)", measured_to: "pulse_out assertion (next PCLK edge)", note: "Fixed 1-cycle latency" }
+    pulse_width_cycles: { min: 1, max: 65536, measured_from: "pulse_out assertion", measured_to: "pulse_out deassertion", note: "Programmable via PULSE_WIDTH register" }
+    register_access_cycles: { min: 1, max: 2, measured_from: "PSEL && !PENABLE", measured_to: "PSEL && PENABLE && PREADY", note: "Standard APB 2-phase access" }
+    interrupt_latency_cycles: { min: 0, max: 0, measured_from: "STATUS.done set", measured_to: "irq_o assertion", note: "Combinational — zero latency" }
+  throughput:
+    sustained_pulses_per_cycle: "1/(latched_width+1)"
+    conditions: "Back-to-back trigger after previous pulse DONE→IDLE transition"
+  timing_exceptions: []
+  io_delays:
+    inputs:
+      - { ports: "PADDR,PSEL,PENABLE,PWRITE,PWDATA,PSTRB,trigger_i", clock: "PCLK", delay_ns: 2.0, source: "system-level timing budget at 50MHz (20ns period)" }
+    outputs:
+      - { ports: "pulse_out,irq_o,PRDATA,PREADY,PSLVERR", clock: "PCLK", delay_ns: 5.0, source: "system-level timing budget at 50MHz" }
+  false_paths:
+    - { from: "PRESETn", to: "all_registers", reason: "async reset assertion path" }
+  multicycle_paths: []
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports: ["sdc/setup.rpt", "sdc/hold.rpt", "sdc/wns.json"]
+
+# =============================================================================
+# SECTION 17: Power Intent
+# =============================================================================
+power:
+  domains:
+    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["pclk"], isolation: "not_required_single_domain" }
+  clock_gating:
+    required: false
+    rationale: "Simple peripheral with no idle power-down mode in this revision"
+  reset_retention:
+    retention_required: false
+    reset_value_source: "registers and function_model state_variables reset values"
+  power_states:
+    - { name: "ON", entry: "PRESETn deasserted", exit: "PRESETn asserted", guarantees: ["All behavior active"] }
+  upf_required: false
+
+# =============================================================================
+# SECTION 18: Security & Safety
+# =============================================================================
+security:
+  classification: "non_secure_control_ip"
+  assets:
+    - { name: "register_map", protection: "APB access control is external to this IP" }
+    - { name: "pulse_output", protection: "No data sensitivity; pulse timing is the functional asset" }
+  threat_model:
+    - { threat: "spurious trigger via glitch on trigger_i", mitigation: "trigger_i is synchronously sampled; glitch must meet setup/hold to cause false trigger" }
+    - { threat: "unauthorized pulse width change during active pulse", mitigation: "Width is latched at trigger; mid-pulse writes are ignored until next trigger" }
+  privilege_model: "No internal privilege levels — external APB fabric enforces access control"
+  safety_goals:
+    - "Pulse width is deterministic: exactly latched_width cycles, no more, no less"
+    - "Non-reentrancy guarantees no double-fire"
+
+# =============================================================================
+# SECTION 19: Error Handling
+# =============================================================================
+error_handling:
+  error_sources:
+    - { id: "ERR_WIDTH_ZERO", condition: "PULSE_WIDTH.width == 0", architectural_effect: "Treated as width=1; no error status; functional behavior preserved by min-clamp" }
+    - { id: "ERR_TRIG_WHILE_BUSY", condition: "Trigger asserted while STATUS.busy==1", architectural_effect: "Ignored silently — non-reentrant; no error raised" }
+    - { id: "ERR_DISABLED_TRIGGER", condition: "Trigger while CTRL.enable==0", architectural_effect: "Ignored; no state change" }
+    - { id: "ERR_APB_ILLEGAL_ADDR", condition: "APB access to unsupported offset", architectural_effect: "PSLVERR=1, PRDATA=0" }
+  propagation:
+    - "All error conditions are handled locally — no error escalation or fault state."
+    - "PSLVERR is the only externally visible error indicator (APB illegal address)."
+  recovery:
+    - { action: "PRESETn assertion", clears: ["all state"], preserves: [] }
+    - { action: "CTRL.enable=0", clears: ["pending triggers"], preserves: ["configuration registers"] }
+
+# =============================================================================
+# SECTION 20: Debug & Observability
+# =============================================================================
+debug_observability:
+  waveform_must_probe:
+    - "fsm_state"
+    - "pulse_counter"
+    - "pulse_out"
+    - "trigger_i"
+    - "ctrl_fire"
+    - "STATUS.busy"
+    - "STATUS.done"
+    - "irq_o"
+  status_outputs:
+    - "STATUS.busy (real-time pulse-in-progress indicator)"
+    - "STATUS.done (pulse completion flag)"
+    - "STATUS.fired_count (cumulative pulse count)"
+  trace_events:
+    - { name: "pulse_start", trigger: "FSM IDLE→PULSE transition" }
+    - { name: "pulse_end", trigger: "FSM PULSE→DONE transition" }
+    - { name: "trigger_ignored", trigger: "Trigger while busy or disabled" }
+  debug_registers:
+    - "STATUS (busy, done, fired_count)"
+    - "ID (revision/identification)"
+
+# =============================================================================
+# SECTION 21: Integration Contract
+# =============================================================================
+integration:
+  bus_attachment:
+    control: "APB-Lite slave (zero-wait-state)"
+    data: "none — output-only pulse port"
+  connections:
+    - { module: "pulse_gen_core", port: "clk_i", signal: "PCLK" }
+    - { module: "pulse_gen_core", port: "rst_ni", signal: "PRESETn" }
+    - { module: "pulse_gen_core", port: "trigger_i", signal: "trigger_i" }
+    - { module: "pulse_gen_core", port: "pulse_out", signal: "pulse_out" }
+    - { module: "pulse_gen_core", port: "irq_o", signal: "irq_o" }
+    - { module: "pulse_gen_regs", port: "clk_i", signal: "PCLK" }
+    - { module: "pulse_gen_regs", port: "rst_ni", signal: "PRESETn" }
+    - { module: "pulse_gen", port: "PRDATA", signal: "pulse_gen_regs.PRDATA" }
+    - { module: "pulse_gen", port: "PREADY", signal: "1'b1 (zero-wait-state)" }
+    - { module: "pulse_gen", port: "PSLVERR", signal: "pulse_gen_regs.PSLVERR" }
+    - { module: "pulse_gen_regs", port: "ctrl_fire_o", signal: "pulse_gen_core.ctrl_fire" }
+    - { module: "pulse_gen_regs", port: "ctrl_enable_o", signal: "pulse_gen_core.ctrl_enable" }
+    - { module: "pulse_gen_regs", port: "ctrl_hw_trig_en_o", signal: "pulse_gen_core.ctrl_hw_trig_en" }
+    - { module: "pulse_gen_regs", port: "pulse_width_o", signal: "pulse_gen_core.pulse_width_i" }
+    - { module: "pulse_gen_core", port: "status_busy_i", signal: "pulse_gen_regs.status_busy" }
+    - { module: "pulse_gen_core", port: "status_done_o", signal: "pulse_gen_regs.status_done" }
+    - { module: "pulse_gen_regs", port: "fired_count_i", signal: "pulse_gen_core.fired_count" }
+    - { module: "pulse_gen_regs", port: "int_enable_o", signal: "pulse_gen_core.int_enable_i" }
+  address_map_requirements:
+    alignment_bytes: 4
+    decode_owner: "SoC interconnect"
+    illegal_access_response: "PSLVERR=1, PRDATA=0"
+    address_range: "0x00..0x10 (5 registers, 8-bit address space)"
+  dependencies:
+    external_modules: []
+    external_clocks: ["PCLK"]
+    external_resets: ["PRESETn"]
+  integration_notes:
+    - "pulse_out is a synchronous output referenced to PCLK."
+    - "irq_o is a level-sensitive active-high interrupt; SoC interrupt controller must sample it."
+    - "trigger_i must meet PCLK setup/hold timing; no internal synchronizer is provided (assumed synchronous to PCLK domain)."
+
+# =============================================================================
+# SECTION 22: DFT / DFD
+# =============================================================================
+dft:
+  scan_required: false
+  scan_ports: []
+  test_mode_ports: []
+  controllability:
+    reset: "PRESETn must be controllable in test mode"
+    clocks: ["PCLK"]
+    trigger: "Software trigger via APB provides full controllability"
+  observability:
+    required_internal_points: ["fsm_state", "pulse_counter", "STATUS.busy", "STATUS.done"]
+  mbist_required: false
+  notes: "No SRAM macro — all state is flip-flop based."
+
+# =============================================================================
+# SECTION 23: Synthesis / Implementation Constraints
+# =============================================================================
+synthesis:
+  dialect: "systemverilog_2012"
+  top_module: "pulse_gen"
+  technology:
+    pdk: "generic"
+    standard_cell_library: "generic"
+    liberty_corner: "typical"
+  constraints:
+    - "No inferred latches"
+    - "All flops reset via async_assert_sync_deassert on PRESETn"
+    - "No package/interface/modport/function/task/for/while constructs"
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 50
+  required_outputs:
+    - "syn/out/pulse_gen.v"
+    - "syn/out/area.rpt"
+    - "syn/out/timing_summary.rpt"
+
+# =============================================================================
+# SECTION 24: Physical Implementation / PnR
+# =============================================================================
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers: { horizontal: "met3", vertical: "met2" }
+  cts: { buf_list: ["clkbuf_4", "clkbuf_8"] }
+  routing: { signal_layers: { min: "met1", max: "met5" }, drc_waivers: [] }
+
+# =============================================================================
+# SECTION 25: Coding Rules
+# =============================================================================
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/pulse_gen_param.vh"
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge PCLK or negedge PRESETn)"
+    - "blocking (=) in combinational always @(*)"
+    - "No latches: every combinational branch assigns all outputs"
+    - "Active-low async reset: always @(posedge PCLK or negedge PRESETn) with if (!PRESETn)"
+    - "Parameterize widths (no hardcoded numbers except localparam state encoding)"
+    - "Use rtl/pulse_gen_param.vh for shared parameter declarations when needed"
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+    - "Use localparam state encoding with logic state/next_state signals"
+  lint_waivers:
+    - "UNUSEDSIGNAL: explicit approved tie-offs only"
+    - "WIDTHEXPAND: fired_count counter width promotion"
+
+# =============================================================================
+# SECTION 26: Reuse Modules
+# =============================================================================
+reuse_modules: []
+
+# =============================================================================
+# SECTION 27: Custom Extensions
+# =============================================================================
+custom:
+  assumptions:
+    - { id: "ASM_01", category: "clock", description: "PCLK is a free-running 50 MHz clock with 50% duty cycle, stable before and after PRESETn deassertion." }
+    - { id: "ASM_02", category: "reset", description: "PRESETn uses async-assert/sync-deassert; the synchronizer is inside this IP (2-stage flop chain)." }
+    - { id: "ASM_03", category: "trigger", description: "trigger_i is synchronous to PCLK domain; no external synchronizer required. If the SoC routes a cross-domain signal, a synchronizer must be added externally." }
+    - { id: "ASM_04", category: "apb", description: "APB-Lite protocol: PSEL/PENABLE/PWRITE/PADDR/PWDATA follow AMBA APB spec; PREADY is tied to 1 (zero-wait-state)." }
+    - { id: "ASM_05", category: "pulse_out", description: "pulse_out load is assumed to be a single flip-flop or low-skew clock-domain input; no output driver strength specification at this IP boundary." }
+    - { id: "ASM_06", category: "back_to_back", description: "Back-to-back pulses are supported: DONE→IDLE occurs in 1 cycle, so a new trigger on the very next cycle is accepted." }
+    - { id: "ASM_07", category: "PULSE_OUT_WIDTH", description: "PULSE_OUT_WIDTH > 1 generates multiple independent pulse outputs sharing the same FSM. All channels fire simultaneously. Per-channel gating is not supported in this revision." }
+    - { id: "ASM_08", category: "polarity_runtime", description: "CTRL.polarity allows runtime polarity override of the PULSE_POLARITY parameter. The parameter sets the reset default; the register overrides it for the next pulse." }
+  deferred_questions:
+    - { section: "io_list.trigger_input", question: "Should trigger_i include an internal 2-stage synchronizer for cross-domain use, or remain purely synchronous?", assumed_answer: "Purely synchronous (ASM_03); external synchronizer is the caller's responsibility." }
+    - { section: "features.pulse_fire", question: "Should DONE state auto-clear to IDLE after 1 cycle, or wait for explicit W1C STATUS.done clear before returning to IDLE?", assumed_answer: "Auto-clear DONE→IDLE after 1 cycle (ASM_06); STATUS.done remains latched until W1C." }
+    - { section: "registers.PULSE_WIDTH", question: "Should writing PULSE_WIDTH.width while STATUS.busy==1 be rejected with PSLVERR, or silently accepted (applied to next pulse)?", assumed_answer: "Silently accepted — latched at next trigger, not applied to in-progress pulse." }
+  note: "Pipeline mode: assumptions recorded per user request; deferred_questions will be resolved if user revisits or rtl-gen raises TBD."
+
+# =============================================================================
+# SECTION 28: Dir Structure
+# =============================================================================
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "docs/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+
+# =============================================================================
+# SECTION 29: Filelist
+# =============================================================================
+filelist:
+  headers:
+    - "rtl/pulse_gen_param.vh"
+  rtl:
+    - "rtl/pulse_gen_regs.sv"
+    - "rtl/pulse_gen_core.sv"
+    - "rtl/pulse_gen.sv"
+  sim:
+    - "sim/tb_top.sv"
+    - "sim/tb_program.sv"
+  firmware:
+    - "firmware/pulse_gen_regs.h"
+  docs:
+    - "docs/register_map.md"
+    - "docs/fsm_diagram.md"
+    - "docs/README.md"
+
+# =============================================================================
+# SECTION 30: Test Requirements / DV Plan
+# =============================================================================
+test_requirements:
+  scenarios:
+    - id: "SC1"
+      name: "Software single-cycle pulse"
+      stimulus: "APB write CTRL.fire=1 with default PULSE_WIDTH=1, CTRL.enable=1"
+      expected: "pulse_out asserts for exactly 1 PCLK cycle, STATUS.busy=1 during pulse, STATUS.done=1 after, fired_count increments"
+      checker: "Scoreboard checks pulse_out cycle count, STATUS transitions, irq_o assertion when INT_ENABLE.done_ie=1"
+      coverage: ["FM_FIRE", "S0_IDLE", "S1_PULSE_COUNT", "S2_DONE"]
+    - id: "SC2"
+      name: "Hardware trigger pulse"
+      stimulus: "Assert trigger_i with CTRL.hw_trig_en=1, CTRL.enable=1"
+      expected: "Identical to software trigger: pulse_out asserts for PULSE_WIDTH cycles"
+      checker: "Scoreboard verifies trigger_i path produces same output as software trigger"
+      coverage: ["trigger_i", "hw_trig_en"]
+    - id: "SC3"
+      name: "Multi-cycle pulse width"
+      stimulus: "Set PULSE_WIDTH=10, fire via CTRL.fire=1"
+      expected: "pulse_out asserts for exactly 10 consecutive PCLK cycles"
+      checker: "Cycle counter tracks pulse_out assertion duration; must equal PULSE_WIDTH exactly"
+      coverage: ["pulse_width_configurable", "multi_cycle"]
+    - id: "SC4"
+      name: "Back-to-back pulses"
+      stimulus: "Fire pulse, wait for DONE→IDLE (1 cycle), immediately fire again"
+      expected: "Both pulses complete with correct width; fired_count increments by 2"
+      checker: "Scoreboard verifies no dead cycle between pulses beyond the 1-cycle DONE state"
+      coverage: ["back_to_back", "fired_count_wrap"]
+    - id: "SC5"
+      name: "Non-reentrant rejection"
+      stimulus: "Fire pulse (STATUS.busy=1), immediately fire again before completion"
+      expected: "Second trigger ignored; only one pulse completes; fired_count increments by 1 only"
+      checker: "Scoreboard verifies no double-fire and correct rejection behavior"
+      coverage: ["trigger_while_busy"]
+    - id: "SC6"
+      name: "Disabled trigger rejection"
+      stimulus: "Set CTRL.enable=0, fire via CTRL.fire=1 or trigger_i"
+      expected: "No pulse output; STATUS unchanged; fired_count unchanged"
+      checker: "Scoreboard verifies enable gate"
+      coverage: ["enable_disable"]
+    - id: "SC7"
+      name: "Polarity inversion"
+      stimulus: "Set CTRL.polarity=1 (active_low), fire pulse"
+      expected: "pulse_out is low during pulse and high when idle (inverted from default)"
+      checker: "Scoreboard checks idle_level and active_level match polarity setting"
+      coverage: ["polarity_active_low"]
+    - id: "SC8"
+      name: "Interrupt enable/disable"
+      stimulus: "Fire pulse with INT_ENABLE.done_ie=0, verify irq_o stays low; then set done_ie=1 and fire again"
+      expected: "First pulse: no irq_o. Second pulse: irq_o asserts at completion."
+      checker: "IRQ checker verifies irq_o = STATUS.done & INT_ENABLE.done_ie every cycle"
+      coverage: ["interrupt_enable", "interrupt_disable"]
+    - id: "SC9"
+      name: "W1C STATUS.done clear"
+      stimulus: "Fire pulse, wait for STATUS.done=1, write STATUS with done=1 (W1C)"
+      expected: "STATUS.done clears to 0; irq_o deasserts if no other pending source"
+      checker: "Scoreboard verifies W1C clearing and irq_o deassertion"
+      coverage: ["w1c_clear", "irq_deassert"]
+    - id: "SC10"
+      name: "Runtime width change"
+      stimulus: "Set PULSE_WIDTH=5, fire pulse, during pulse write PULSE_WIDTH=3, wait for completion, fire again"
+      expected: "First pulse is 5 cycles; second pulse is 3 cycles; mid-pulse write ignored for current pulse"
+      checker: "Scoreboard verifies latched_width at trigger time vs runtime register value"
+      coverage: ["runtime_width_change", "mid_pulse_width_write"]
+    - id: "SC11"
+      name: "Reset clears all state"
+      stimulus: "During active pulse, assert PRESETn low"
+      expected: "pulse_out returns to idle_level, FSM→IDLE, STATUS→0, counter→0, irq_o→0"
+      checker: "Scoreboard verifies async reset clears all observable state"
+      coverage: ["reset_during_pulse", "reset_clears_irq"]
+    - id: "SC12"
+      name: "APB illegal address"
+      stimulus: "APB read to unsupported offset (e.g. 0x14)"
+      expected: "PSLVERR=1, PRDATA=0"
+      checker: "APB checker verifies error response for unmapped addresses"
+      coverage: ["apb_illegal_addr", "pslverr"]
+    - id: "SC13"
+      name: "PULSE_WIDTH=0 clamp"
+      stimulus: "Write PULSE_WIDTH=0, fire pulse"
+      expected: "Pulse width is treated as 1 (minimum clamp); no error"
+      checker: "Scoreboard verifies pulse_out asserts for exactly 1 cycle"
+      coverage: ["width_zero_clamp"]
+    - id: "SC14"
+      name: "fired_count wrap"
+      stimulus: "Fire 2^16 pulses and verify fired_count wraps from 0xFFFF to 0x0000"
+      expected: "fired_count wraps cleanly; no overflow error"
+      checker: "Scoreboard tracks fired_count modulo 2^16"
+      coverage: ["fired_count_wrap"]
+    - id: "SC15"
+      name: "Simultaneous SW+HW trigger"
+      stimulus: "Assert CTRL.fire=1 and trigger_i=1 on the same PCLK edge"
+      expected: "Exactly one pulse fires (not double); no error"
+      checker: "Scoreboard verifies single pulse and no double-count"
+      coverage: ["simultaneous_trigger"]
+  scoreboard_checks: 15
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Cycle-independent behavioral intent coverage for pulse_gen"
+      bins:
+        - { id: "FCOV_FM_FIRE", source_ref: "function_model.transactions.FM_FIRE", class: "transaction", description: "Legal FM_FIRE pulse observed by scoreboard" }
+        - { id: "FCOV_SW_TRIGGER", source_ref: "function_model.transactions.FM_FIRE.preconditions[ctrl_fire]", class: "trigger_source", description: "Software trigger path exercised" }
+        - { id: "FCOV_HW_TRIGGER", source_ref: "function_model.transactions.FM_FIRE.preconditions[trigger_i]", class: "trigger_source", description: "Hardware trigger path exercised" }
+        - { id: "FCOV_POLARITY_HIGH", source_ref: "function_model.transactions.FM_FIRE.output_rules[pulse_out_active]", class: "output_polarity", description: "Active-high pulse observed" }
+        - { id: "FCOV_POLARITY_LOW", source_ref: "function_model.transactions.FM_FIRE.output_rules[pulse_out_idle]", class: "output_polarity", description: "Active-low pulse observed" }
+        - { id: "FCOV_WIDTH_VAR", source_ref: "function_model.state_variables[latched_width]", class: "config", description: "Runtime width change across pulses observed" }
+        - { id: "FCOV_ERR_BUSY_REJECT", source_ref: "function_model.transactions.FM_FIRE.error_cases[trigger while busy]", class: "error_case", description: "Non-reentrant trigger rejection observed" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle/handshake/latency/FSM coverage for pulse_gen"
+      bins:
+        - { id: "CCOV_IDLE_TO_PULSE", source_ref: "cycle_model.pipeline.S0_IDLE", class: "pipeline_stage", description: "Trigger acceptance stage observed" }
+        - { id: "CCOV_PULSE_COUNT", source_ref: "cycle_model.pipeline.S1_PULSE_COUNT", class: "pipeline_stage", description: "Pulse counting stage observed" }
+        - { id: "CCOV_DONE", source_ref: "cycle_model.pipeline.S2_DONE", class: "pipeline_stage", description: "Completion stage observed" }
+        - { id: "CCOV_1CYCLE_LATENCY", source_ref: "cycle_model.latency.trigger_to_pulse_assert", class: "latency", description: "1-cycle trigger-to-pulse latency confirmed" }
+        - { id: "CCOV_FSM_ALL_STATES", source_ref: "fsm.pulse_fsm.states", class: "state", description: "All FSM states visited: IDLE, PULSE, DONE" }
+        - { id: "CCOV_FSM_ALL_TRANSITIONS", source_ref: "fsm.pulse_fsm.transitions", class: "state_transition", description: "All FSM transitions exercised" }
+        - { id: "CCOV_IRQ_COMBINATIONAL", source_ref: "cycle_model.latency.pulse_done_to_irq", class: "latency", description: "Zero-cycle irq_o latency confirmed (combinational)" }
+    functional: "Legacy alias: function + cycle coverage must both close."
+    line: ">= 90% instrumented line coverage"
+    branch: ">= 85% instrumented branch coverage"
+    fsm: "100% declared FSM states and legal transitions covered"
+    assertions: "All protocol/order assertions pass"
+
+# =============================================================================
+# SECTION 31: Quality Gates / Pass Criteria
+# =============================================================================
+quality_gates:
+  ssot:
+    pass: "All canonical sections present, substantive, internally consistent, no live TBD placeholders."
+    evidence: ["check_ssot_disk.sh PASS"]
+  rtl_gen:
+    profile: "standard"
+    pass: "SSOT-derived rtl_todo_plan has no blockers; compile and lint pass; function_model and cycle_model implemented."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_compile.json", "lint/dut_lint.json"]
+  rtl:
+    pass: "RTL implements function_model and cycle_model, compiles, lints clean."
+    evidence: ["rtl compile report", "dut lint report"]
+  coverage:
+    pass: "SSOT-declared functional/code/toggle/FSM/assertion coverage goals pass or have approved waivers."
+    evidence: ["cov/coverage.json"]
+  eda:
+    pass: "Synthesis meets 50 MHz timing at generic technology; no negative slack."
+    evidence: ["syn report", "sta reports"]
+
+# =============================================================================
+# SECTION 32: Traceability
+# =============================================================================
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "ALL files (module name pulse_gen)" }
+    - { yaml: "parameters", output: "rtl/pulse_gen_param.vh (shared parameter include)" }
+    - { yaml: "io_list.interfaces", output: "rtl/pulse_gen.sv (top-level port list)" }
+    - { yaml: "registers.register_list", output: "rtl/pulse_gen_regs.sv + firmware/pulse_gen_regs.h + docs/register_map.md" }
+    - { yaml: "function_model", output: "rtl/pulse_gen_core.sv + sim reference model" }
+    - { yaml: "cycle_model", output: "rtl/pulse_gen_core.sv FSM/counter logic + waveform checks" }
+    - { yaml: "fsm.pulse_fsm", output: "rtl/pulse_gen_core.sv FSM encoding + docs/fsm_diagram.md" }
+    - { yaml: "timing", output: "sdc/pulse_gen.sdc (STA constraints)" }
+    - { yaml: "interrupts", output: "rtl/pulse_gen_regs.sv interrupt logic + irq_o port" }
+    - { yaml: "error_handling", output: "RTL error paths + DV error scenarios (SC6, SC12, SC13)" }
+    - { yaml: "test_requirements.scenarios", output: "sim/tb_program.sv (15 test scenarios)" }
+    - { yaml: "integration.connections", output: "rtl/pulse_gen.sv internal wiring" }
+
+# =============================================================================
+# SECTION 33: Workflow TODOs / Downstream Task Contract
+# =============================================================================
+workflow_todos:
+  fl-model-gen: []
+  rtl-gen:
+    - id: "RTL_TODO_PULSE_CORE"
+      content: "Implement pulse_gen_core FSM, counter, and output driver"
+      detail: "Translate function_model FM_FIRE transaction, cycle_model pipeline, and fsm.pulse_fsm into RTL state machine with pulse counter, latched width/polarity capture, and pulse_out driver. ctrl_fire auto-clears after 1 cycle. irq_o = status_done & int_enable combinational."
+      criteria:
+        - "FSM has exactly 3 states: IDLE, PULSE, DONE with transitions matching fsm.pulse_fsm"
+        - "pulse_out asserts for exactly latched_width cycles (1-cycle latency from trigger)"
+        - "STATUS.busy mirrors PULSE state"
+        - "STATUS.done set at PULSE→DONE transition, cleared by W1C"
+        - "fired_count increments at PULSE→DONE, wraps at 2^16"
+        - "ctrl_fire self-clears after 1 PCLK cycle"
+        - "Non-reentrant: triggers ignored while busy"
+      source_refs: ["function_model.transactions.FM_FIRE", "cycle_model.pipeline", "fsm.pulse_fsm"]
+      owner_module: "pulse_gen_core"
+      owner_file: "rtl/pulse_gen_core.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_REGS"
+      content: "Implement pulse_gen_regs APB-Lite register decode and interrupt logic"
+      detail: "Implement APB-Lite slave with zero-wait-state (PREADY=1), address decode for CTRL/STATUS/PULSE_WIDTH/INT_ENABLE/ID, W1C clear for STATUS.done, PSLVERR for illegal addresses, and interrupt output irq_o = STATUS.done & INT_ENABLE.done_ie."
+      criteria:
+        - "All 5 registers accessible at correct offsets with correct access policy"
+        - "PREADY tied to 1 (zero-wait-state)"
+        - "PSLVERR asserted for unsupported addresses"
+        - "W1C clear for STATUS.done works correctly"
+        - "irq_o = STATUS.done & INT_ENABLE.done_ie combinational"
+      source_refs: ["registers.register_list", "interrupts"]
+      owner_module: "pulse_gen_regs"
+      owner_file: "rtl/pulse_gen_regs.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_TOP"
+      content: "Implement pulse_gen top-level wiring"
+      detail: "Instantiate pulse_gen_regs and pulse_gen_core in pulse_gen.sv top module. Wire APB signals to regs, wire register outputs to core inputs, wire core outputs (pulse_out, irq_o, status signals) to top-level ports."
+      criteria:
+        - "Top module port list matches io_list.interfaces exactly"
+        - "Internal connections match integration.connections"
+        - "No undriven or unconnected signals"
+      source_refs: ["io_list.interfaces", "integration.connections"]
+      owner_module: "pulse_gen"
+      owner_file: "rtl/pulse_gen.sv"
+      priority: "high"
+      required: true
+  tb-gen: []
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+
+# =============================================================================
+# SECTION 34: Generation Flow
+# =============================================================================
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh pulse_gen", description: "Validate production SSOT structure and quality gates" }
+    - { name: "handoff_rtl", command: "/ssot-rtl pulse_gen", description: "Downstream RTL generation from validated SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb pulse_gen", description: "Downstream testbench generation from validated SSOT" }
+    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Downstream waveform/failure inspection after sim" }
+    - { name: "handoff_coverage", command: "/coverage pulse_gen", description: "Measure SSOT-declared coverage goals" }
+    - { name: "handoff_eda", command: "/syn pulse_gen && /sta pulse_gen", description: "Synthesis and STA evidence" }

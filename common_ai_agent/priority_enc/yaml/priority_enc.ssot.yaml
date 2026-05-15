@@ -171,12 +171,16 @@ function_model:
       inputs:
         - "req_i[NUM_INPUTS-1:0] — raw request vector"
         - "req_mask[NUM_INPUTS-1:0] — mask from REQ_MASK register"
+      outputs:
+        - "enc_o = encoded index of highest-priority active unmasked request"
+        - "valid_o = 1 if any unmasked request is active, else 0"
+        - "irq_o = irq_enabled & irq_pending (level interrupt)"
+        - "CSR.active_count = popcount(masked_req)"
+        - "CSR.thresh_met = popcount(masked_req) >= threshold"
       output_rules:
-        - { name: "masked_req",  expr: "req_i & req_mask",                                      width: "NUM_INPUTS", port: "internal",     description: "Masked request vector" }
-        - { name: "enc_o",       expr: "index of highest-order 1 in masked_req",                 width: "OUTPUT_WIDTH", port: "enc_o",      description: "Encoded index of highest-priority active unmasked request" }
-        - { name: "valid_o",     expr: "(masked_req != 0) ? 1 : 0",                             width: 1,             port: "valid_o",     description: "At least one unmasked request is active" }
-        - { name: "thresh_met",  expr: "(popcount(masked_req) >= thresh_val) ? 1 : 0",           width: 1,             port: "CSR.thresh_met", description: "Active unmasked request count meets threshold" }
-        - { name: "irq_o",       expr: "irq_enabled & irq_pending",                             width: 1,             port: "irq_o",       description: "Level interrupt output" }
+        - { name: "enc_o",       expr: "index of highest-order 1 in (req_i & req_mask)",          width: "OUTPUT_WIDTH", port: "enc_o",      description: "Encoded index of highest-priority active unmasked request" }
+        - { name: "valid_o",     expr: "((req_i & req_mask) != 0) ? 1 : 0",                      width: 1,             port: "valid_o",     description: "At least one unmasked request is active" }
+        - { name: "irq_o",       expr: "irq_enabled & irq_pending",                              width: 1,             port: "irq_o",       description: "Level interrupt output" }
       state_updates:
         - { name: "enc_out",     reset: 0,          expr: "enc_o from current cycle priority resolve" }
         - { name: "valid_out",   reset: 0,          expr: "valid_o from current cycle mask+resolve" }
@@ -195,6 +199,10 @@ function_model:
         - "paddr maps to a valid register offset"
       inputs:
         - "paddr[APB_ADDR_WIDTH-1:0]"
+      outputs:
+        - "prdata = register value at paddr"
+        - "pready = 1 (always)"
+        - "pslverr = 1 if unsupported address"
       output_rules:
         - { name: "prdata",  expr: "register_value_at(paddr)",  width: "APB_DATA_WIDTH", port: "prdata",   description: "Register read data" }
         - { name: "pready",  expr: "1",                         width: 1,                port: "pready",   description: "Always ready (0 wait states)" }

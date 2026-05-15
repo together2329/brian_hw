@@ -1,12 +1,89 @@
 ip: arbiter_rr
 version: "1.0"
-purpose: TBD
-type: TBD
-top_module: TBD
+purpose: "4-input parameterized round-robin arbiter with APB-lite CSR interface and 1-cycle grant latency"
+type: "bus"
+top_module:
+  name: "arbiter_rr"
+  file: "rtl/arbiter_rr.sv"
+  version: "1.0"
+  description: "4-input round-robin arbiter with APB-lite CSR"
+  reference_spec: "user-defined"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 50
+    area_um2: null
+    power_mw: null
 sub_modules: TBD
 decomposition: TBD
-parameters: TBD
-io_list: TBD
+parameters:
+  - name: "NUM_REQ"
+    default: 4
+    type: int
+    description: "Number of request inputs (must be >= 2)"
+    drives: ["arbiter_rr.sv", "arbiter_rr_core.sv"]
+  - name: "DATA_WIDTH"
+    default: 32
+    type: int
+    description: "Data width in bits for optional data bypass"
+    drives: ["arbiter_rr.sv"]
+  - name: "CLOCK_FREQ_MHZ"
+    default: 50
+    type: int
+    description: "Target clock frequency in MHz"
+    drives: ["tb_top.sv", "docs/README.md"]
+  - name: "RESET_POLARITY"
+    default: "active_low"
+    type: enum
+    values: ["active_low", "active_high"]
+    drives: ["ALL .sv files"]
+io_list:
+  clock_domains:
+    - name: "PCLK"
+      frequency_mhz: 50
+      description: "Main peripheral clock"
+      ports:
+        - { name: "PCLK", width: 1, direction: "input", description: "System clock" }
+  resets:
+    - name: "PRESETn"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "Active-low reset, async assert, sync deassert"
+      ports:
+        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low reset" }
+  interfaces:
+    - name: "apb_csr"
+      type: "APB4_LITE"
+      role: "slave"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "APB-lite register access interface"
+      protocol:
+        setup_phase: "PSEL=1, PENABLE=0 captures address/control."
+        access_phase: "PSEL=1, PENABLE=1 completes when PREADY=1."
+        read_rule: "PRDATA is valid in the completing access phase for reads."
+        write_rule: "PWDATA is sampled in the completing access phase for writes."
+        error_rule: "PSLVERR is asserted only with PREADY=1 for illegal or unsupported access."
+      ports:
+        - { name: "PADDR",   width: 12, direction: "input",  description: "APB address" }
+        - { name: "PSEL",    width: 1,  direction: "input",  description: "APB select" }
+        - { name: "PENABLE", width: 1,  direction: "input",  description: "APB enable" }
+        - { name: "PWRITE",  width: 1,  direction: "input",  description: "APB write" }
+        - { name: "PWDATA",  width: 32, direction: "input",  description: "APB write data" }
+        - { name: "PRDATA",  width: 32, direction: "output", description: "APB read data" }
+        - { name: "PREADY",  width: 1,  direction: "output", description: "APB ready" }
+        - { name: "PSLVERR", width: 1,  direction: "output", description: "APB error" }
+    - name: "req_grant"
+      type: "custom"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "Request/grant arbitration interface"
+      protocol:
+        request_rule: "REQ[i] may be asserted asynchronously to PCLK; sampled on rising edge."
+        grant_rule: "GNT[i] is asserted for one cycle when request i wins arbitration."
+        valid_rule: "GNT is mutually exclusive (one-hot)."
+      ports:
+        - { name: "REQ",  width: "NUM_REQ", direction: "input",  description: "Request inputs" }
+        - { name: "GNT",  width: "NUM_REQ", direction: "output", description: "Grant outputs (one-hot)" }
 features: TBD
 dataflow: TBD
 function_model: TBD
