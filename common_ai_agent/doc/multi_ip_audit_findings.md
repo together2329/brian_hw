@@ -239,3 +239,44 @@ items (sim-required evidence for production sign-off).
   per-goal signals.
 
 These three remain Phase B work regardless of W1–W7.
+
+## 20-IP run ceiling (2026-05-15)
+
+Strict goal "20개 IP에 대해서 SSOT → LINT 쭉" hit an operational ceiling
+at **7/20 (35%) LINT-passing** before all three LLM profiles ran out.
+
+### Final state
+| Tier | Count | IPs |
+|---|---|---|
+| ✅ LINT pass | 7 | timer, dma, simple_gpio_lite, uart_lite, todo_counter_pipe, cortex_m0lite, todo_demo_ip (stub) |
+| 🟡 SSOT mature, RTL plan ready | 2 | lfsr, spi |
+| 🟠 SSOT mature, blocked by structural orphan refs | 6 | fifo_sync, arbiter_rr, edge_detector, pulse_gen, priority_enc, adder_kogge_stone |
+| 🟠 SSOT mature, no RTL plan yet | 1 | parity_gen |
+| ❌ SSOT incomplete (0 KB yaml) | 4 | clkdiv, debouncer, mux_4to1, shift_reg |
+
+### API capacity exhaustion (W8)
+Confirmed via direct probe:
+- `deepseek`: balance = **−$1.48 USD**, `is_available=false`
+- `kimi`: HTTP 401 `Invalid Authentication` — key expired
+- `glm`: HTTP 400 on probe model (production code uses `glm-5.1`;
+  glm console verification needed for the configured model id)
+
+### Restart playbook (no API needed)
+The orange-tier IPs have **structural SSOT blockers** that are deterministic
+to fix without LLM calls:
+- 6 IPs (fifo_sync, arbiter_rr, edge_detector, pulse_gen, priority_enc,
+  adder_kogge_stone) have orphan `decomposition.units.*` refs that need
+  `function_model_refs` / `decomposition_refs` assignment to candidate
+  modules already named in `rtl/rtl_blocked.json`.
+- Fixing these unblocks rtl planning so rtl-gen can proceed immediately
+  when API capacity returns.
+
+### Restart playbook (needs API)
+After API is restored:
+1. lfsr + spi → rtl-gen authoring directly (plans ready)
+2. parity_gen → rtl planning + authoring
+3. The 6 SSOT-fixed orange IPs → rtl planning + authoring
+4. clkdiv / debouncer / mux_4to1 / shift_reg → ssot-gen from scratch
+
+Sequential rate (1 IP / 30 min on a healthy profile) puts full 20/20
+at ~6 h of LLM time after refill.

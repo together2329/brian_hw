@@ -1,0 +1,536 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "pulse_gen",
+  "source": "pulse_gen/yaml/pulse_gen.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "pulse_gen/req/",
+      "pulse_gen/yaml/pulse_gen.ssot.yaml",
+      "pulse_gen/model/functional_model.py",
+      "pulse_gen/cov/fcov_plan.json",
+      "pulse_gen/yaml/pulse_gen.ssot.yaml#io_list",
+      "pulse_gen/yaml/pulse_gen.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "pulse_gen/rtl/",
+      "pulse_gen/tb/",
+      "pulse_gen/sim/",
+      "pulse_gen/vectors/",
+      "pulse_gen/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "SC1_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC1",
+      "description": "Software single-cycle pulse"
+    },
+    {
+      "id": "SC2_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC2",
+      "description": "Hardware trigger pulse"
+    },
+    {
+      "id": "SC3_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC3",
+      "description": "Multi-cycle pulse width"
+    },
+    {
+      "id": "SC4_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC4",
+      "description": "Back-to-back pulses"
+    },
+    {
+      "id": "SC5_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC5",
+      "description": "Non-reentrant rejection"
+    },
+    {
+      "id": "SC6_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC6",
+      "description": "Disabled trigger rejection"
+    },
+    {
+      "id": "SC7_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC7",
+      "description": "Polarity inversion"
+    },
+    {
+      "id": "SC8_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC8",
+      "description": "Interrupt enable/disable"
+    },
+    {
+      "id": "SC9_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[8]",
+      "scenario": "SC9",
+      "description": "W1C STATUS.done clear"
+    },
+    {
+      "id": "SC10_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[9]",
+      "scenario": "SC10",
+      "description": "Runtime width change"
+    },
+    {
+      "id": "SC11_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[10]",
+      "scenario": "SC11",
+      "description": "Reset clears all state"
+    },
+    {
+      "id": "SC12_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[11]",
+      "scenario": "SC12",
+      "description": "APB illegal address"
+    },
+    {
+      "id": "SC13_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[12]",
+      "scenario": "SC13",
+      "description": "PULSE_WIDTH=0 clamp"
+    },
+    {
+      "id": "SC14_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[13]",
+      "scenario": "SC14",
+      "description": "fired_count wrap"
+    },
+    {
+      "id": "SC15_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[14]",
+      "scenario": "SC15",
+      "description": "Simultaneous SW+HW trigger"
+    },
+    {
+      "id": "fcov_fm_fire",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_FIRE",
+      "source_ref": "function_model.transactions.FM_FIRE",
+      "description": "Legal FM_FIRE pulse observed by scoreboard"
+    },
+    {
+      "id": "fcov_sw_trigger",
+      "class": "trigger_source",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_FIRE.preconditions[ctrl_fire]",
+      "source_ref": "function_model.transactions.FM_FIRE.preconditions[ctrl_fire]",
+      "description": "Software trigger path exercised"
+    },
+    {
+      "id": "fcov_hw_trigger",
+      "class": "trigger_source",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_FIRE.preconditions[trigger_i]",
+      "source_ref": "function_model.transactions.FM_FIRE.preconditions[trigger_i]",
+      "description": "Hardware trigger path exercised"
+    },
+    {
+      "id": "fcov_polarity_high",
+      "class": "output_polarity",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_FIRE.output_rules[pulse_out_active]",
+      "source_ref": "function_model.transactions.FM_FIRE.output_rules[pulse_out_active]",
+      "description": "Active-high pulse observed"
+    },
+    {
+      "id": "fcov_polarity_low",
+      "class": "output_polarity",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_FIRE.output_rules[pulse_out_idle]",
+      "source_ref": "function_model.transactions.FM_FIRE.output_rules[pulse_out_idle]",
+      "description": "Active-low pulse observed"
+    },
+    {
+      "id": "fcov_width_var",
+      "class": "config",
+      "coverage_domain": "function",
+      "source": "function_model.state_variables[latched_width]",
+      "source_ref": "function_model.state_variables[latched_width]",
+      "description": "Runtime width change across pulses observed"
+    },
+    {
+      "id": "fcov_err_busy_reject",
+      "class": "error_case",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_FIRE.error_cases[trigger while busy]",
+      "source_ref": "function_model.transactions.FM_FIRE.error_cases[trigger while busy]",
+      "description": "Non-reentrant trigger rejection observed"
+    },
+    {
+      "id": "ccov_idle_to_pulse",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.S0_IDLE",
+      "source_ref": "cycle_model.pipeline.S0_IDLE",
+      "description": "Trigger acceptance stage observed"
+    },
+    {
+      "id": "ccov_pulse_count",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.S1_PULSE_COUNT",
+      "source_ref": "cycle_model.pipeline.S1_PULSE_COUNT",
+      "description": "Pulse counting stage observed"
+    },
+    {
+      "id": "ccov_done",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.S2_DONE",
+      "source_ref": "cycle_model.pipeline.S2_DONE",
+      "description": "Completion stage observed"
+    },
+    {
+      "id": "ccov_1cycle_latency",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.trigger_to_pulse_assert",
+      "source_ref": "cycle_model.latency.trigger_to_pulse_assert",
+      "description": "1-cycle trigger-to-pulse latency confirmed"
+    },
+    {
+      "id": "ccov_fsm_all_states",
+      "class": "state",
+      "coverage_domain": "cycle",
+      "source": "fsm.pulse_fsm.states",
+      "source_ref": "fsm.pulse_fsm.states",
+      "description": "All FSM states visited: IDLE, PULSE, DONE"
+    },
+    {
+      "id": "ccov_fsm_all_transitions",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.pulse_fsm.transitions",
+      "source_ref": "fsm.pulse_fsm.transitions",
+      "description": "All FSM transitions exercised"
+    },
+    {
+      "id": "ccov_irq_combinational",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.pulse_done_to_irq",
+      "source_ref": "cycle_model.latency.pulse_done_to_irq",
+      "description": "Zero-cycle irq_o latency confirmed (combinational)"
+    },
+    {
+      "id": "function_fire_pulse",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm_fire",
+      "description": "fire_pulse"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'signal': 'PREADY', 'rule': 'Always 1 \u2014 zero-wait-state APB-Lite slave; no backpressure.'}"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "{'signal': 'PSLVERR', 'rule': 'Asserted only for unsupported address offsets; tied low for legal addresses.'}"
+    },
+    {
+      "id": "cycle_handshake_2",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[2]",
+      "source_ref": "cycle_model.handshake_rules[2]",
+      "description": "{'signal': 'pulse_out', 'rule': 'Changes only on PCLK rising edges; glitch-free between edges.'}"
+    },
+    {
+      "id": "cycle_handshake_3",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[3]",
+      "source_ref": "cycle_model.handshake_rules[3]",
+      "description": "{'signal': 'trigger_i', 'rule': 'Sampled on PCLK rising edge; must be stable at setup/hold time.'}"
+    },
+    {
+      "id": "cycle_latency_trigger_to_pulse_assert",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.trigger_to_pulse_assert",
+      "source_ref": "cycle_model.latency.trigger_to_pulse_assert",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'Rising PCLK edge after trigger acceptance drives pulse_out active (1-cycle latency)'}"
+    },
+    {
+      "id": "cycle_latency_pulse_assert_to_deassert",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.pulse_assert_to_deassert",
+      "source_ref": "cycle_model.latency.pulse_assert_to_deassert",
+      "description": "{'min_cycles': 1, 'max_cycles': 65536, 'description': 'Depends on latched_width: deassert after exactly latched_width cycles'}"
+    },
+    {
+      "id": "cycle_latency_pulse_done_to_irq",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.pulse_done_to_irq",
+      "source_ref": "cycle_model.latency.pulse_done_to_irq",
+      "description": "{'min_cycles': 0, 'max_cycles': 0, 'description': 'irq_o is combinational from STATUS.done & INT_ENABLE.done_ie; same cycle as done assertion'}"
+    },
+    {
+      "id": "cycle_latency_register_read",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_read",
+      "source_ref": "cycle_model.latency.register_read",
+      "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'Zero-wait-state APB: PRDATA valid in access phase'}"
+    },
+    {
+      "id": "cycle_latency_register_write",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_write",
+      "source_ref": "cycle_model.latency.register_write",
+      "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'Zero-wait-state APB: PWRITE accepted in access phase'}"
+    },
+    {
+      "id": "cycle_pipeline_s0_idle",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "Sample trigger (CTRL.fire or trigger_i); if accepted, latch width/polarity and transition to PULSE"
+    },
+    {
+      "id": "cycle_pipeline_s1_pulse_count",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "Assert pulse_out at active level; increment pulse_counter each cycle; W = latched_width"
+    },
+    {
+      "id": "cycle_pipeline_s2_done",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[2]",
+      "source_ref": "cycle_model.pipeline[2]",
+      "description": "Deassert pulse_out; set STATUS.done=1; increment fired_count; irq_o asserts if enabled; transition to IDLE"
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "Trigger acceptance and pulse_out assertion are separated by exactly 1 PCLK cycle."
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[1]",
+      "source_ref": "cycle_model.ordering[1]",
+      "description": "STATUS.done is set on the same rising edge that pulse_out deasserts."
+    },
+    {
+      "id": "cycle_ordering_2",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[2]",
+      "source_ref": "cycle_model.ordering[2]",
+      "description": "irq_o reflects STATUS.done combinational \u2014 no extra cycle of interrupt latency."
+    },
+    {
+      "id": "cycle_ordering_3",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[3]",
+      "source_ref": "cycle_model.ordering[3]",
+      "description": "ctrl_fire auto-clears on the rising edge after it was written (1-cycle self-clear)."
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "No backpressure possible: zero-wait-state APB and no data-path handshake on pulse_out."
+    },
+    {
+      "id": "cycle_perf_outstanding",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.outstanding",
+      "source_ref": "cycle_model.performance.outstanding",
+      "description": "{'pulse_max': 1, 'description': 'Non-reentrant: only one pulse at a time'}"
+    },
+    {
+      "id": "cycle_perf_depth",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.depth",
+      "source_ref": "cycle_model.performance.depth",
+      "description": "{'pipeline_stages': 1, 'queue_depth': 1, 'description': 'Single-pulse FSM; no buffering'}"
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "50"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'sustained_pulses_per_cycle': '1/max(latched_width+1, 2)', 'condition': 'Back-to-back triggers with no W1C clear delay'}"
+    },
+    {
+      "id": "fsm_pulse_fsm_idle_to_pulse_0",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.pulse_fsm.transitions[0]",
+      "source_ref": "fsm.pulse_fsm.transitions[0]",
+      "description": "(CTRL.fire==1 || (trigger_i==1 && CTRL.hw_trig_en==1)) && CTRL.enable==1 && STATUS.busy==0"
+    },
+    {
+      "id": "fsm_pulse_fsm_pulse_to_pulse_1",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.pulse_fsm.transitions[1]",
+      "source_ref": "fsm.pulse_fsm.transitions[1]",
+      "description": "pulse_counter < latched_width - 1"
+    },
+    {
+      "id": "fsm_pulse_fsm_pulse_to_done_2",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.pulse_fsm.transitions[2]",
+      "source_ref": "fsm.pulse_fsm.transitions[2]",
+      "description": "pulse_counter == latched_width - 1"
+    },
+    {
+      "id": "fsm_pulse_fsm_done_to_idle_3",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.pulse_fsm.transitions[3]",
+      "source_ref": "fsm.pulse_fsm.transitions[3]",
+      "description": "STATUS.done cleared via W1C write or auto-clear after 1 cycle"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_WIDTH_ZERO', 'condition': 'PULSE_WIDTH.width == 0', 'architectural_effect': 'Treated as width=1; no error status; functional behavior preserved by min-clamp'}"
+    },
+    {
+      "id": "error_error_1",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[1]",
+      "source_ref": "error_handling.error_sources[1]",
+      "description": "{'id': 'ERR_TRIG_WHILE_BUSY', 'condition': 'Trigger asserted while STATUS.busy==1', 'architectural_effect': 'Ignored silently \u2014 non-reentrant; no error raised'}"
+    },
+    {
+      "id": "error_error_2",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[2]",
+      "source_ref": "error_handling.error_sources[2]",
+      "description": "{'id': 'ERR_DISABLED_TRIGGER', 'condition': 'Trigger while CTRL.enable==0', 'architectural_effect': 'Ignored; no state change'}"
+    },
+    {
+      "id": "error_error_3",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[3]",
+      "source_ref": "error_handling.error_sources[3]",
+      "description": "{'id': 'ERR_APB_ILLEGAL_ADDR', 'condition': 'APB access to unsupported offset', 'architectural_effect': 'PSLVERR=1, PRDATA=0'}"
+    }
+  ],
+  "summary": {
+    "total_bins": 59,
+    "scenario_bins": 15,
+    "transaction_bins": 1,
+    "protocol_bins": 4,
+    "state_transition_bins": 5,
+    "error_bins": 4
+  }
+}

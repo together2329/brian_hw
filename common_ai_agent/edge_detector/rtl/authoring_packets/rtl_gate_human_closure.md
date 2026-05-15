@@ -29,7 +29,7 @@
 - Owner refs: cycle_model, cycle_model.latency, cycle_model.pipeline, dataflow, features, function_model, function_model.output_rules, function_model.state_variables, function_model.transactions
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=2, min_procedural_blocks=4, min_source_files=2, min_state_updates=4
 - Locked-truth blockers:
-  - golden_authority_artifacts: Missing production golden authority artifact(s): governance/authority.json, model/functional_model.py, model/fl_model_check.json, model/model_signature.json, model/decomposition.json, cov/fcov_plan.json, verify/equivalence_goals.json
+  - golden_authority_artifacts: Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json
   - cycle_model_artifacts: Missing executable cycle model: model/cycle_model.py.
 - SSOT connection contracts:
   - edge_detector.PCLK <= PCLK (integration.connections[0])
@@ -128,7 +128,7 @@ Owner: edge_detector in rtl/edge_detector.sv via single_owner.
 - Detail: PL330-level RTL cannot proceed from prose alone. It must carry machine-readable authority artifacts that separate human-owned truth from LLM-editable implementation.
 SSOT ref: quality_gates.rtl_gen.golden_authority_artifacts.
 Owner: edge_detector in rtl/edge_detector.sv via single_owner.
-- Current reason: Missing production golden authority artifact(s): governance/authority.json, model/functional_model.py, model/fl_model_check.json, model/model_signature.json, model/decomposition.json, cov/fcov_plan.json, verify/equivalence_goals.json
+- Current reason: Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json
 - Criteria:
   - governance/authority.json exists
   - authority.json is the current IP human_llm_authority_manifest

@@ -3,6 +3,13 @@
 This is the canonical flow for hardware IP generation in common_ai_agent.
 ATLAS Web UI, Textual UI, and headless TDD must call the same engine path.
 
+Todo approval and cross-stage evidence policy are defined in
+[`doc/golden_todo_evidence_flow.md`](../doc/golden_todo_evidence_flow.md).
+In short: LLMs author artifacts, TodoTracker owns execution state, validators
+approve evidence, and human review owns product/spec decisions.
+The user-facing end-to-end operating model is
+[`doc/ai_driven_ip_development_guide.md`](../doc/ai_driven_ip_development_guide.md).
+
 ## Control Surfaces
 
 | Surface | Responsibility | Must not own |
@@ -121,6 +128,11 @@ LLM-editable artifacts:
 Hard rule: if RTL does not match FL, the loop repairs RTL or reports a human gate.
 It must not change FL, coverage goals, interface rules, or performance targets just
 to make the run pass.
+
+Approval rule: default todo approval is evidence-based across pipeline, CI, and
+interactive chat. LLM `reason` explains the attempted work; it is not the
+default authority for `approved`. If deterministic evidence cannot exist for a
+semantic decision, the item should move to `human_review_needed`, not `rejected`.
 
 ## TDD Contract
 

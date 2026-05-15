@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "adder_kogge_stone",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 2,
+    "failed": 0,
+    "transactions": 1,
+    "transaction_results": [
+      {
+        "id": "FM_ADD",
+        "name": "kogge_stone_addition",
+        "kind": "FM_ADD",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_ADD",
+          "transaction_name": "kogge_stone_addition",
+          "outputs_spec": [
+            {
+              "name": "sum_o",
+              "expr": "a_reg ^ b_reg ^ carry_chain",
+              "width": "DATA_WIDTH",
+              "port": "sum_o"
+            },
+            {
+              "name": "cout_o",
+              "expr": "final_group_generate | (final_group_propagate & cin_reg)",
+              "width": 1,
+              "port": "cout_o"
+            },
+            {
+              "name": "sum_apb",
+              "expr": "sum_reg",
+              "width": 32,
+              "port": "SUM_RESULT"
+            },
+            {
+              "name": "cout_apb",
+              "expr": "cout_reg",
+              "width": 1,
+              "port": "COUT_RESULT"
+            }
+          ],
+          "side_effects_spec": [
+            "STATUS.busy set on start, cleared after output registered",
+            "STATUS.done set on completion, persists until clr_done",
+            "STATUS.overflow reflects cout_reg of last operation"
+          ],
+          "ssot_question": "[SSOT QUESTION] structured output_rules/state_updates undefined for transaction FM_ADD",
+          "fabricated_state": false
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 2,
+    "coverage_bins": 39,
+    "invariants_total": 2,
+    "invariants_evaluated": 0,
+    "invariants_failed": [],
+    "invariants_skipped": [
+      {
+        "name": "sum_o[DATA_WIDTH-1:0] + (cout_o << DATA_",
+        "expr": "sum_o[DATA_WIDTH-1:0] + (cout_o << DATA_WIDTH) == a_reg + b_reg + cin_reg for all legal inputs.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "Output registers only update on posedge ",
+        "expr": "Output registers only update on posedge PCLK when start=1 or hold_mode=0.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      }
+    ],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 2,
+    "error_cases_planned": 2
+  },
+  "decomposition_units": 8,
+  "fcov_bins": 39,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "adder_kogge_stone/req/",
+      "adder_kogge_stone/yaml/adder_kogge_stone.ssot.yaml",
+      "adder_kogge_stone/model/functional_model.py",
+      "adder_kogge_stone/cov/fcov_plan.json",
+      "adder_kogge_stone/yaml/adder_kogge_stone.ssot.yaml#io_list",
+      "adder_kogge_stone/yaml/adder_kogge_stone.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "adder_kogge_stone/rtl/",
+      "adder_kogge_stone/tb/",
+      "adder_kogge_stone/sim/",
+      "adder_kogge_stone/vectors/",
+      "adder_kogge_stone/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

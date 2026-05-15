@@ -1,0 +1,2448 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 4,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 46,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/adder_kogge_stone.sv",
+      "name": "adder_kogge_stone",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/adder_kogge_stone_regs.sv",
+        "name": "adder_kogge_stone_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/adder_kogge_stone_core.sv",
+        "name": "adder_kogge_stone_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/adder_kogge_stone.sv",
+        "name": "adder_kogge_stone",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "adder_kogge_stone_core",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "adder_kogge_stone_core",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "adder_kogge_stone_regs",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "adder_kogge_stone_regs",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[3]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "PCLK"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PCLK",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PRESETn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PRESETn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_paddr",
+          "paddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "paddr",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "apb_csr_psel",
+          "psel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "psel",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_penable",
+          "penable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "penable",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_pwrite",
+          "pwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwrite",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_pwdata",
+          "pwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwdata",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_csr_prdata",
+          "prdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prdata",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_csr_pready",
+          "pready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pready",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_pslverr",
+          "pslverr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pslverr",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "a_i",
+          "adder_datapath_a_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "a_i",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "adder_datapath_b_i",
+          "b_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "b_i",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "adder_datapath_cin_i",
+          "cin_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "cin_i",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "adder_datapath_sum_o",
+          "sum_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sum_o",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "adder_datapath_cout_o",
+          "cout_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "cout_o",
+        "source_ref": "io_list.interfaces[1].ports[4]",
+        "width": "1"
+      }
+    ],
+    "target_scale": {
+      "basis": "calibrated from user requirements; small parameterized accelerator",
+      "min_behavior_owner_logic_modules": 1,
+      "min_logic_modules": 1,
+      "min_modules": 3,
+      "min_procedural_blocks": 6,
+      "min_source_files": 3,
+      "min_state_updates": 8,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": false,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 45,
+    "open_required_count": 45,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": false
+  },
+  "ip": "adder_kogge_stone",
+  "kind": "module",
+  "owner_file": "rtl/adder_kogge_stone.sv",
+  "owner_module": "adder_kogge_stone",
+  "packet_id": "module__adder_kogge_stone",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "error_handling.recovery": 1,
+      "integration.connections": 4,
+      "integration.dependencies": 3,
+      "io_list.port": 15,
+      "parameters.item": 5,
+      "rtl_flow.seed": 1,
+      "rtl_flow.top": 1,
+      "security.assets": 2,
+      "synthesis.constraints": 3,
+      "synthesis.ppa_targets": 3,
+      "test_requirements.scenario": 6,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 46,
+      "task_limit": 48
+    },
+    "open_required_count": 45,
+    "required_count": 46,
+    "source_refs": [
+      "top_module",
+      "io_list",
+      "workflow_todos.rtl-gen[2]",
+      "error_handling.recovery.recovery_0",
+      "security.assets.register_map",
+      "security.assets.adder_result",
+      "integration.dependencies.external_modules",
+      "integration.dependencies.external_clocks",
+      "integration.dependencies.external_resets",
+      "integration.connections.PCLK",
+      "integration.connections.PRESETn",
+      "integration.connections.PCLK",
+      "integration.connections.PRESETn",
+      "synthesis.constraints.constraint_0",
+      "synthesis.constraints.constraint_1",
+      "synthesis.constraints.constraint_2",
+      "synthesis.ppa_targets.area_um2_max",
+      "synthesis.ppa_targets.power_mw_max",
+      "synthesis.ppa_targets.frequency_mhz_min",
+      "sub_modules.adder_kogge_stone.module_equivalence",
+      "parameters.DATA_WIDTH",
+      "parameters.ADDR_WIDTH",
+      "parameters.APB_DATA_WIDTH",
+      "parameters.CLOCK_FREQ_MHZ"
+    ],
+    "status_counts": {
+      "open": 45,
+      "pass": 1
+    },
+    "task_count": 46
+  },
+  "tasks": [
+    {
+      "category": "rtl_flow.seed",
+      "content": "Read SSOT and build dynamic RTL implementation ledger",
+      "criteria": [
+        "rtl_todo_plan.json was regenerated from the current SSOT",
+        "Every required task in the plan is either implemented, evidenced, or escalated",
+        "No IP-specific fixed template is used as the source of truth",
+        "Traceability keeps source_ref top_module",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.\nSSOT ref: top_module.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via top_module.",
+      "evidence_terms": [],
+      "id": "RTL-0001",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "top_module",
+      "ssot_context": {},
+      "ssot_refs": [
+        "top_module"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_flow.top",
+      "content": "Implement top-level ports, reset, and filelist integration",
+      "criteria": [
+        "Top module name matches SSOT top_module",
+        "Every SSOT top-level port appears with matching direction and width",
+        "Filelist contains all LLM-authored RTL sources and no stale sources",
+        "Traceability keeps source_ref io_list",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.\nSSOT ref: io_list.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via top_module.\nSSOT item context: value=adder_kogge_stone.",
+      "evidence_terms": [
+        "adder",
+        "adder_kogge_stone",
+        "kogge",
+        "stone"
+      ],
+      "id": "RTL-0002",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "io_list",
+      "ssot_context": {
+        "value": "adder_kogge_stone"
+      },
+      "ssot_refs": [
+        "io_list"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement top-level wrapper adder_kogge_stone.sv",
+      "criteria": [
+        "Top-level module name matches top_module.name",
+        "All IO list ports present and connected",
+        "Manifest hierarchy evidence passes",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[2]",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "Semantic source_refs covered: integration, io_list, sub_modules"
+      ],
+      "detail": "Instantiate regs and core modules. Wire APB ports to regs. Wire datapath ports to core. Tie or mux top-level a_i/b_i/cin_i with APB shadow per custom.assumptions.\nSSOT ref: workflow_todos.rtl-gen[2].\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_TOP.",
+      "evidence_terms": [
+        "RTL_TODO_TOP",
+        "TODO",
+        "TOP",
+        "adder",
+        "adder_kogge_stone",
+        "io",
+        "io_list",
+        "kogge",
+        "list",
+        "modules",
+        "stone",
+        "sub",
+        "sub_modules"
+      ],
+      "id": "RTL-0029",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[2]",
+      "ssot_context": {
+        "id": "RTL_TODO_TOP"
+      },
+      "ssot_refs": [
+        "integration",
+        "io_list",
+        "sub_modules",
+        "workflow_todos.rtl-gen[2]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "RTL_TODO_TOP",
+          "TODO",
+          "TOP",
+          "adder",
+          "adder_kogge_stone",
+          "io",
+          "io_list",
+          "kogge",
+          "list",
+          "modules",
+          "stone",
+          "sub",
+          "sub_modules"
+        ],
+        "source_scope": "rtl/adder_kogge_stone.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_TOP",
+        "source_refs": [
+          "integration",
+          "io_list",
+          "sub_modules"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "error_handling.recovery",
+      "content": "Implement error/fault item recovery_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref error_handling.recovery.recovery_0",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_0.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via error_handling.\nSSOT item context: action=retry APB access with valid address.",
+      "evidence_terms": [],
+      "id": "RTL-0122",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "error_handling.recovery.recovery_0",
+      "ssot_context": {
+        "action": "retry APB access with valid address"
+      },
+      "ssot_refs": [
+        "error_handling.recovery.recovery_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item register_map",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.register_map",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.register_map.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via security.\nSSOT item context: name=register_map.",
+      "evidence_terms": [],
+      "id": "RTL-0123",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.register_map",
+      "ssot_context": {
+        "name": "register_map"
+      },
+      "ssot_refs": [
+        "security.assets.register_map"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item adder_result",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.adder_result",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.adder_result.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via security.\nSSOT item context: name=adder_result.",
+      "evidence_terms": [],
+      "id": "RTL-0124",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.adder_result",
+      "ssot_context": {
+        "name": "adder_result"
+      },
+      "ssot_refs": [
+        "security.assets.adder_result"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_modules",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_modules",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_modules.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via integration.\nSSOT item context: name=external_modules.",
+      "evidence_terms": [],
+      "id": "RTL-0125",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_modules",
+      "ssot_context": {
+        "name": "external_modules"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_modules"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_clocks",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_clocks",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_clocks.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via integration.\nSSOT item context: name=external_clocks; value=[\"PCLK\"].",
+      "evidence_terms": [],
+      "id": "RTL-0126",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_clocks",
+      "ssot_context": {
+        "name": "external_clocks",
+        "value": "[\"PCLK\"]"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_clocks"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_resets",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_resets",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_resets.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via integration.\nSSOT item context: name=external_resets; value=[\"PRESETn\"].",
+      "evidence_terms": [],
+      "id": "RTL-0127",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_resets",
+      "ssot_context": {
+        "name": "external_resets",
+        "value": "[\"PRESETn\"]"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_resets"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item PCLK",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.PCLK",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "DUT port clk_i is the implementation/observation point for clk_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.PCLK.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via integration.\nSSOT item context: port=clk_i; signal=PCLK.",
+      "evidence_terms": [
+        "clk",
+        "clk_i"
+      ],
+      "id": "RTL-0128",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.PCLK",
+      "ssot_context": {
+        "port": "clk_i",
+        "signal": "PCLK"
+      },
+      "ssot_refs": [
+        "integration.connections.PCLK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item PRESETn",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.PRESETn",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "DUT port rst_ni is the implementation/observation point for rst_ni"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.PRESETn.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via integration.\nSSOT item context: port=rst_ni; signal=PRESETn.",
+      "evidence_terms": [
+        "ni",
+        "rst",
+        "rst_ni"
+      ],
+      "id": "RTL-0129",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.PRESETn",
+      "ssot_context": {
+        "port": "rst_ni",
+        "signal": "PRESETn"
+      },
+      "ssot_refs": [
+        "integration.connections.PRESETn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item PCLK",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.PCLK",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "DUT port clk_i is the implementation/observation point for clk_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.PCLK.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via integration.\nSSOT item context: port=clk_i; signal=PCLK.",
+      "evidence_terms": [
+        "clk",
+        "clk_i"
+      ],
+      "id": "RTL-0130",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.PCLK",
+      "ssot_context": {
+        "port": "clk_i",
+        "signal": "PCLK"
+      },
+      "ssot_refs": [
+        "integration.connections.PCLK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item PRESETn",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.PRESETn",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "DUT port rst_ni is the implementation/observation point for rst_ni"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.PRESETn.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via integration.\nSSOT item context: port=rst_ni; signal=PRESETn.",
+      "evidence_terms": [
+        "ni",
+        "rst",
+        "rst_ni"
+      ],
+      "id": "RTL-0131",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.PRESETn",
+      "ssot_context": {
+        "port": "rst_ni",
+        "signal": "PRESETn"
+      },
+      "ssot_refs": [
+        "integration.connections.PRESETn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_0",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_0.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via synthesis.\nSSOT item context: value=No inferred latches.",
+      "evidence_terms": [],
+      "id": "RTL-0132",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_0",
+      "ssot_context": {
+        "value": "No inferred latches"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_1",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_1.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via synthesis.\nSSOT item context: value=All flops reset according to clock_reset_domains.reset_scheme.",
+      "evidence_terms": [
+        "clock",
+        "clock_reset_domains",
+        "domains",
+        "reset",
+        "reset_scheme",
+        "scheme"
+      ],
+      "id": "RTL-0133",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_1",
+      "ssot_context": {
+        "value": "All flops reset according to clock_reset_domains.reset_scheme"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_2",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_2",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_2.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via synthesis.\nSSOT item context: value=No package/interface/modport/function/task/for/while constructs in generated RTL.",
+      "evidence_terms": [],
+      "id": "RTL-0134",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_2",
+      "ssot_context": {
+        "value": "No package/interface/modport/function/task/for/while constructs in generated RTL"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item area_um2_max",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.area_um2_max",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.area_um2_max.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via synthesis.\nSSOT item context: name=area_um2_max.",
+      "evidence_terms": [],
+      "id": "RTL-0135",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.area_um2_max",
+      "ssot_context": {
+        "name": "area_um2_max"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.area_um2_max"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item power_mw_max",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.power_mw_max",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.power_mw_max.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via synthesis.\nSSOT item context: name=power_mw_max.",
+      "evidence_terms": [],
+      "id": "RTL-0136",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.power_mw_max",
+      "ssot_context": {
+        "name": "power_mw_max"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.power_mw_max"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item frequency_mhz_min",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.frequency_mhz_min",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.frequency_mhz_min.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via synthesis.\nSSOT item context: name=frequency_mhz_min; value=50.",
+      "evidence_terms": [],
+      "id": "RTL-0137",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.frequency_mhz_min",
+      "ssot_context": {
+        "name": "frequency_mhz_min",
+        "value": "50"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.frequency_mhz_min"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module adder_kogge_stone is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.adder_kogge_stone.module_equivalence",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.adder_kogge_stone.module_equivalence.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0140",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.adder_kogge_stone.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.adder_kogge_stone.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter DATA_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.DATA_WIDTH",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.DATA_WIDTH.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via parameters.\nSSOT item context: name=DATA_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0030",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.DATA_WIDTH",
+      "ssot_context": {
+        "name": "DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.DATA_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter ADDR_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.ADDR_WIDTH",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.ADDR_WIDTH.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via parameters.\nSSOT item context: name=ADDR_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0031",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.ADDR_WIDTH",
+      "ssot_context": {
+        "name": "ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.ADDR_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter APB_DATA_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.APB_DATA_WIDTH",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.APB_DATA_WIDTH.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via parameters.\nSSOT item context: name=APB_DATA_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0032",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.APB_DATA_WIDTH",
+      "ssot_context": {
+        "name": "APB_DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.APB_DATA_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter CLOCK_FREQ_MHZ",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.CLOCK_FREQ_MHZ",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.CLOCK_FREQ_MHZ.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via parameters.\nSSOT item context: name=CLOCK_FREQ_MHZ.",
+      "evidence_terms": [],
+      "id": "RTL-0033",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.CLOCK_FREQ_MHZ",
+      "ssot_context": {
+        "name": "CLOCK_FREQ_MHZ"
+      },
+      "ssot_refs": [
+        "parameters.CLOCK_FREQ_MHZ"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter RESET_POLARITY",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.RESET_POLARITY",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.RESET_POLARITY.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via parameters.\nSSOT item context: name=RESET_POLARITY.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.RESET_POLARITY",
+      "ssot_context": {
+        "name": "RESET_POLARITY"
+      },
+      "ssot_refs": [
+        "parameters.RESET_POLARITY"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PCLK",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.PCLK.ports.PCLK",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "PCLK width matches SSOT value 1",
+        "PCLK port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.PCLK.ports.PCLK.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.\nSSOT item context: name=PCLK; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0035",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.PCLK.ports.PCLK",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PCLK",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.PCLK.ports.PCLK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PRESETn",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.PRESETn.ports.PRESETn",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "PRESETn width matches SSOT value 1",
+        "PRESETn port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.PRESETn.ports.PRESETn.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.\nSSOT item context: name=PRESETn; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0036",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.PRESETn.ports.PRESETn",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PRESETn",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.PRESETn.ports.PRESETn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port paddr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.paddr",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "paddr width matches SSOT value 8",
+        "paddr port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.paddr.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.\nSSOT item context: name=paddr; width=8; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0037",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.paddr",
+      "ssot_context": {
+        "direction": "input",
+        "name": "paddr",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.paddr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port psel",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.psel",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "psel width matches SSOT value 1",
+        "psel port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.psel.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.\nSSOT item context: name=psel; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0038",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.psel",
+      "ssot_context": {
+        "direction": "input",
+        "name": "psel",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.psel"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port penable",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.penable",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "penable width matches SSOT value 1",
+        "penable port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.penable.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.\nSSOT item context: name=penable; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0039",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.penable",
+      "ssot_context": {
+        "direction": "input",
+        "name": "penable",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.penable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pwrite",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.pwrite",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "pwrite width matches SSOT value 1",
+        "pwrite port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.pwrite.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.\nSSOT item context: name=pwrite; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0040",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.pwrite",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pwrite",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.pwrite"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pwdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.pwdata",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "pwdata width matches SSOT value 32",
+        "pwdata port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.pwdata.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.\nSSOT item context: name=pwdata; width=32; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0041",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.pwdata",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pwdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.pwdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port prdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.prdata",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "prdata width matches SSOT value 32",
+        "prdata port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.prdata.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.\nSSOT item context: name=prdata; width=32; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0042",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.prdata",
+      "ssot_context": {
+        "direction": "output",
+        "name": "prdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.prdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.pready",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "pready width matches SSOT value 1",
+        "pready port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.pready.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.\nSSOT item context: name=pready; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0043",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.pready",
+      "ssot_context": {
+        "direction": "output",
+        "name": "pready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.pready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pslverr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.pslverr",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "pslverr width matches SSOT value 1",
+        "pslverr port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.pslverr.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.\nSSOT item context: name=pslverr; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0044",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.pslverr",
+      "ssot_context": {
+        "direction": "output",
+        "name": "pslverr",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.pslverr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port a_i",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.adder_datapath.ports.a_i",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "a_i width matches SSOT value DATA_WIDTH",
+        "a_i port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.adder_datapath.ports.a_i.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.\nSSOT item context: name=a_i; width=DATA_WIDTH; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0045",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.adder_datapath.ports.a_i",
+      "ssot_context": {
+        "direction": "input",
+        "name": "a_i",
+        "width": "DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.adder_datapath.ports.a_i"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port b_i",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.adder_datapath.ports.b_i",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "b_i width matches SSOT value DATA_WIDTH",
+        "b_i port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.adder_datapath.ports.b_i.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.\nSSOT item context: name=b_i; width=DATA_WIDTH; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0046",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.adder_datapath.ports.b_i",
+      "ssot_context": {
+        "direction": "input",
+        "name": "b_i",
+        "width": "DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.adder_datapath.ports.b_i"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port cin_i",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.adder_datapath.ports.cin_i",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "cin_i width matches SSOT value 1",
+        "cin_i port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.adder_datapath.ports.cin_i.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.\nSSOT item context: name=cin_i; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0047",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.adder_datapath.ports.cin_i",
+      "ssot_context": {
+        "direction": "input",
+        "name": "cin_i",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.adder_datapath.ports.cin_i"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sum_o",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.adder_datapath.ports.sum_o",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "sum_o width matches SSOT value DATA_WIDTH",
+        "sum_o port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.adder_datapath.ports.sum_o.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.\nSSOT item context: name=sum_o; width=DATA_WIDTH; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0048",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.adder_datapath.ports.sum_o",
+      "ssot_context": {
+        "direction": "output",
+        "name": "sum_o",
+        "width": "DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.adder_datapath.ports.sum_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port cout_o",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.adder_datapath.ports.cout_o",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "cout_o width matches SSOT value 1",
+        "cout_o port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.adder_datapath.ports.cout_o.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via io_list.\nSSOT item context: name=cout_o; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0049",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.adder_datapath.ports.cout_o",
+      "ssot_context": {
+        "direction": "output",
+        "name": "cout_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.adder_datapath.ports.cout_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_BASIC",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_BASIC",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: SUM_RESULT=0x99999999, COUT_RESULT=0, STATUS.done=1"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_BASIC.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via test_requirements.\nSSOT item context: id=SC_BASIC; name=Basic addition; expected=SUM_RESULT=0x99999999, COUT_RESULT=0, STATUS.done=1.",
+      "evidence_terms": [],
+      "id": "RTL-0141",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_BASIC",
+      "ssot_context": {
+        "expected": "SUM_RESULT=0x99999999, COUT_RESULT=0, STATUS.done=1",
+        "id": "SC_BASIC",
+        "name": "Basic addition"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_BASIC"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_CARRY",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_CARRY",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: SUM_RESULT=0x00000001, COUT_RESULT=1, STATUS.overflow=1"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_CARRY.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via test_requirements.\nSSOT item context: id=SC_CARRY; name=Carry propagation; expected=SUM_RESULT=0x00000001, COUT_RESULT=1, STATUS.overflow=1.",
+      "evidence_terms": [],
+      "id": "RTL-0142",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_CARRY",
+      "ssot_context": {
+        "expected": "SUM_RESULT=0x00000001, COUT_RESULT=1, STATUS.overflow=1",
+        "id": "SC_CARRY",
+        "name": "Carry propagation"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_CARRY"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_APB_ERR",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_APB_ERR",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: pslverr=1, prdata=0, no register change"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_APB_ERR.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via test_requirements.\nSSOT item context: id=SC_APB_ERR; name=APB out-of-bounds; expected=pslverr=1, prdata=0, no register change.",
+      "evidence_terms": [],
+      "id": "RTL-0143",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_APB_ERR",
+      "ssot_context": {
+        "expected": "pslverr=1, prdata=0, no register change",
+        "id": "SC_APB_ERR",
+        "name": "APB out-of-bounds"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_APB_ERR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_HOLD_MODE",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_HOLD_MODE",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Output registers hold previous result; new operands do not affect sum until next start"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_HOLD_MODE.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via test_requirements.\nSSOT item context: id=SC_HOLD_MODE; name=Hold mode operation; expected=Output registers hold previous result; new operands do not affect sum until next start.",
+      "evidence_terms": [],
+      "id": "RTL-0144",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_HOLD_MODE",
+      "ssot_context": {
+        "expected": "Output registers hold previous result; new operands do not affect sum until next start",
+        "id": "SC_HOLD_MODE",
+        "name": "Hold mode operation"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_HOLD_MODE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_CLR_DONE",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_CLR_DONE",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: STATUS.done transitions 1->0 on next cycle"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_CLR_DONE.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via test_requirements.\nSSOT item context: id=SC_CLR_DONE; name=Clear done flag; expected=STATUS.done transitions 1->0 on next cycle.",
+      "evidence_terms": [],
+      "id": "RTL-0145",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_CLR_DONE",
+      "ssot_context": {
+        "expected": "STATUS.done transitions 1->0 on next cycle",
+        "id": "SC_CLR_DONE",
+        "name": "Clear done flag"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_CLR_DONE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_RESET",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_RESET",
+        "Primary implementation evidence is in rtl/adder_kogge_stone.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: All registers reset to 0; STATUS.busy=0, STATUS.done=0"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_RESET.\nOwner: adder_kogge_stone in rtl/adder_kogge_stone.sv via test_requirements.\nSSOT item context: id=SC_RESET; name=Reset behavior; expected=All registers reset to 0; STATUS.busy=0, STATUS.done=0.",
+      "evidence_terms": [],
+      "id": "RTL-0146",
+      "owner_file": "rtl/adder_kogge_stone.sv",
+      "owner_module": "adder_kogge_stone",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_RESET",
+      "ssot_context": {
+        "expected": "All registers reset to 0; STATUS.busy=0, STATUS.done=0",
+        "id": "SC_RESET",
+        "name": "Reset behavior"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_RESET"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "823deab5644f20ba72fd9abaaf5c7b5d9c4a81e40edbded03fc45d4cf5d81ff7",
+  "top": "adder_kogge_stone",
+  "type": "rtl_authoring_packet"
+}

@@ -1,0 +1,774 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 3,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 13,
+      "enabled": true,
+      "index": 7,
+      "key": "fsm",
+      "module_task_count": 107,
+      "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/lfsr.sv",
+      "name": "lfsr",
+      "refs": [
+        "top_module",
+        "function_model",
+        "cycle_model"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/lfsr.sv",
+        "name": "lfsr",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "lfsr",
+        "port": "PCLK",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "lfsr",
+        "port": "PRESETn",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "lfsr_regs",
+        "port": "apb_slave",
+        "signal": "APB4",
+        "signal_terms": [
+          "APB4"
+        ],
+        "source_ref": "integration.connections[2]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "PCLK"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PCLK",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PRESETn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PRESETn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PADDR",
+          "apb_slave_PADDR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PADDR",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "APB_ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "PSEL",
+          "apb_slave_PSEL"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSEL",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PENABLE",
+          "apb_slave_PENABLE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PENABLE",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWRITE",
+          "apb_slave_PWRITE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWRITE",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWDATA",
+          "apb_slave_PWDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWDATA",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "APB_DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "PRDATA",
+          "apb_slave_PRDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PRDATA",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "APB_DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "PREADY",
+          "apb_slave_PREADY"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PREADY",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PSLVERR",
+          "apb_slave_PSLVERR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PSLVERR",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "prbs_out",
+          "prbs_output_prbs_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prbs_out",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "LFSR_WIDTH"
+      },
+      {
+        "aliases": [
+          "prbs_bit",
+          "prbs_output_prbs_bit"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prbs_bit",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "prbs_valid",
+          "status_prbs_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prbs_valid",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 8,
+    "open_required_count": 8,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "lfsr",
+  "kind": "module",
+  "owner_file": "rtl/lfsr.sv",
+  "owner_module": "lfsr",
+  "packet_id": "module__lfsr__fsm",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "fsm.state": 3,
+      "fsm.transition": 5
+    },
+    "module_slice": {
+      "count": 13,
+      "enabled": true,
+      "index": 7,
+      "key": "fsm",
+      "module_task_count": 107,
+      "rule": "Owner module lfsr is split into 13 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 8,
+    "required_count": 8,
+    "source_refs": [
+      "fsm.lfsr_control.states.state_0",
+      "fsm.lfsr_control.states.state_1",
+      "fsm.lfsr_control.states.state_2",
+      "fsm.lfsr_control.transitions.transition_0",
+      "fsm.lfsr_control.transitions.transition_1",
+      "fsm.lfsr_control.transitions.transition_2",
+      "fsm.lfsr_control.transitions.transition_3",
+      "fsm.lfsr_control.transitions.transition_4"
+    ],
+    "status_counts": {
+      "open": 8
+    },
+    "task_count": 8
+  },
+  "tasks": [
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state lfsr_control.state_0",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.lfsr_control.states.state_0",
+        "Primary implementation evidence is in rtl/lfsr.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.lfsr_control.states.state_0.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: value=IDLE.",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "id": "RTL-0097",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.lfsr_control.states.state_0",
+      "ssot_context": {
+        "value": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.lfsr_control.states.state_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IDLE"
+        ],
+        "source_scope": "rtl/lfsr.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state lfsr_control.state_1",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.lfsr_control.states.state_1",
+        "Primary implementation evidence is in rtl/lfsr.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.lfsr_control.states.state_1.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: value=RUNNING.",
+      "evidence_terms": [
+        "RUNNING"
+      ],
+      "id": "RTL-0098",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.lfsr_control.states.state_1",
+      "ssot_context": {
+        "value": "RUNNING"
+      },
+      "ssot_refs": [
+        "fsm.lfsr_control.states.state_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RUNNING"
+        ],
+        "source_scope": "rtl/lfsr.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state lfsr_control.state_2",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.lfsr_control.states.state_2",
+        "Primary implementation evidence is in rtl/lfsr.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.lfsr_control.states.state_2.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: value=LOCKUP.",
+      "evidence_terms": [
+        "LOCKUP"
+      ],
+      "id": "RTL-0099",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.lfsr_control.states.state_2",
+      "ssot_context": {
+        "value": "LOCKUP"
+      },
+      "ssot_refs": [
+        "fsm.lfsr_control.states.state_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "LOCKUP"
+        ],
+        "source_scope": "rtl/lfsr.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition lfsr_control.transition_0",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.lfsr_control.transitions.transition_0",
+        "Primary implementation evidence is in rtl/lfsr.sv",
+        "fsm.lfsr_control.transitions.transition_0 condition is implemented as RTL control logic: CTRL.enable == 1 && lfsr_state != 0",
+        "fsm.lfsr_control.transitions.transition_0 transition path IDLE -> RUNNING is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.lfsr_control.transitions.transition_0.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: from=IDLE; to=RUNNING; condition=CTRL.enable == 1 && lfsr_state != 0.",
+      "evidence_terms": [
+        "CTRL",
+        "IDLE",
+        "RUNNING",
+        "lfsr",
+        "lfsr_state"
+      ],
+      "id": "RTL-0100",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.lfsr_control.transitions.transition_0",
+      "ssot_context": {
+        "condition": "CTRL.enable == 1 && lfsr_state != 0",
+        "from": "IDLE",
+        "to": "RUNNING"
+      },
+      "ssot_refs": [
+        "fsm.lfsr_control.transitions.transition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CTRL",
+          "IDLE",
+          "RUNNING",
+          "lfsr",
+          "lfsr_state"
+        ],
+        "source_scope": "rtl/lfsr.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition lfsr_control.transition_1",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.lfsr_control.transitions.transition_1",
+        "Primary implementation evidence is in rtl/lfsr.sv",
+        "fsm.lfsr_control.transitions.transition_1 condition is implemented as RTL control logic: CTRL.enable == 0",
+        "fsm.lfsr_control.transitions.transition_1 transition path RUNNING -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.lfsr_control.transitions.transition_1.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: from=RUNNING; to=IDLE; condition=CTRL.enable == 0.",
+      "evidence_terms": [
+        "CTRL",
+        "IDLE",
+        "RUNNING"
+      ],
+      "id": "RTL-0101",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.lfsr_control.transitions.transition_1",
+      "ssot_context": {
+        "condition": "CTRL.enable == 0",
+        "from": "RUNNING",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.lfsr_control.transitions.transition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CTRL",
+          "IDLE",
+          "RUNNING"
+        ],
+        "source_scope": "rtl/lfsr.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition lfsr_control.transition_2",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.lfsr_control.transitions.transition_2",
+        "Primary implementation evidence is in rtl/lfsr.sv",
+        "fsm.lfsr_control.transitions.transition_2 condition is implemented as RTL control logic: lfsr_state == 0",
+        "fsm.lfsr_control.transitions.transition_2 transition path RUNNING -> LOCKUP is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.lfsr_control.transitions.transition_2.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: from=RUNNING; to=LOCKUP; condition=lfsr_state == 0.",
+      "evidence_terms": [
+        "LOCKUP",
+        "RUNNING",
+        "lfsr",
+        "lfsr_state"
+      ],
+      "id": "RTL-0102",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.lfsr_control.transitions.transition_2",
+      "ssot_context": {
+        "condition": "lfsr_state == 0",
+        "from": "RUNNING",
+        "to": "LOCKUP"
+      },
+      "ssot_refs": [
+        "fsm.lfsr_control.transitions.transition_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "LOCKUP",
+          "RUNNING",
+          "lfsr",
+          "lfsr_state"
+        ],
+        "source_scope": "rtl/lfsr.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition lfsr_control.transition_3",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.lfsr_control.transitions.transition_3",
+        "Primary implementation evidence is in rtl/lfsr.sv",
+        "fsm.lfsr_control.transitions.transition_3 condition is implemented as RTL control logic: CTRL.enable == 0",
+        "fsm.lfsr_control.transitions.transition_3 transition path LOCKUP -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.lfsr_control.transitions.transition_3.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: from=LOCKUP; to=IDLE; condition=CTRL.enable == 0.",
+      "evidence_terms": [
+        "CTRL",
+        "IDLE",
+        "LOCKUP"
+      ],
+      "id": "RTL-0103",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.lfsr_control.transitions.transition_3",
+      "ssot_context": {
+        "condition": "CTRL.enable == 0",
+        "from": "LOCKUP",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.lfsr_control.transitions.transition_3"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CTRL",
+          "IDLE",
+          "LOCKUP"
+        ],
+        "source_scope": "rtl/lfsr.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition lfsr_control.transition_4",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.lfsr_control.transitions.transition_4",
+        "Primary implementation evidence is in rtl/lfsr.sv",
+        "fsm.lfsr_control.transitions.transition_4 condition is implemented as RTL control logic: CTRL.enable == 1 && CTRL.auto_reload == 1",
+        "fsm.lfsr_control.transitions.transition_4 transition path LOCKUP -> RUNNING is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.lfsr_control.transitions.transition_4.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: from=LOCKUP; to=RUNNING; condition=CTRL.enable == 1 && CTRL.auto_reload == 1.",
+      "evidence_terms": [
+        "CTRL",
+        "LOCKUP",
+        "RUNNING",
+        "auto",
+        "auto_reload",
+        "reload"
+      ],
+      "id": "RTL-0104",
+      "owner_file": "rtl/lfsr.sv",
+      "owner_module": "lfsr",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.lfsr_control.transitions.transition_4",
+      "ssot_context": {
+        "condition": "CTRL.enable == 1 && CTRL.auto_reload == 1",
+        "from": "LOCKUP",
+        "to": "RUNNING"
+      },
+      "ssot_refs": [
+        "fsm.lfsr_control.transitions.transition_4"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CTRL",
+          "LOCKUP",
+          "RUNNING",
+          "auto",
+          "auto_reload",
+          "reload"
+        ],
+        "source_scope": "rtl/lfsr.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/lfsr.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "338b9a1c7eaaafc2cd5df5724772728092783c959656b88a14ebc06419dfbf12",
+  "top": "lfsr",
+  "type": "rtl_authoring_packet"
+}

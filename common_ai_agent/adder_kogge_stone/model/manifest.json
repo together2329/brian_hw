@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "ip": "adder_kogge_stone",
+  "generated_at": "2026-05-15T01:19:54Z",
+  "emitter": "fl-model-gen",
+  "produced": [
+    "model/functional_model.py",
+    "model/decomposition.json",
+    "model/fl_model_check.json",
+    "cov/fcov_plan.json"
+  ]
+}

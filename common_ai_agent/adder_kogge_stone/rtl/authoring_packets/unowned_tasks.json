@@ -1,0 +1,492 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 4,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "owner": {
+      "file": "",
+      "name": "",
+      "refs": [],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/adder_kogge_stone_regs.sv",
+        "name": "adder_kogge_stone_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/adder_kogge_stone_core.sv",
+        "name": "adder_kogge_stone_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/adder_kogge_stone.sv",
+        "name": "adder_kogge_stone",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "adder_kogge_stone_core",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "adder_kogge_stone_core",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "adder_kogge_stone_regs",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "adder_kogge_stone_regs",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[3]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "calibrated from user requirements; small parameterized accelerator",
+      "min_behavior_owner_logic_modules": 1,
+      "min_logic_modules": 1,
+      "min_modules": 3,
+      "min_procedural_blocks": 6,
+      "min_source_files": 3,
+      "min_state_updates": 8,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": false,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 6,
+    "open_required_count": 6,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": false
+  },
+  "ip": "adder_kogge_stone",
+  "kind": "unowned",
+  "owner_file": "",
+  "owner_module": "",
+  "packet_id": "unowned_tasks",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "fsm.state": 3,
+      "fsm.transition": 3
+    },
+    "module_slice": {},
+    "open_required_count": 6,
+    "required_count": 6,
+    "source_refs": [
+      "fsm.adder_fsm.states.state_0",
+      "fsm.adder_fsm.states.state_1",
+      "fsm.adder_fsm.states.state_2",
+      "fsm.adder_fsm.transitions.transition_0",
+      "fsm.adder_fsm.transitions.transition_1",
+      "fsm.adder_fsm.transitions.transition_2"
+    ],
+    "status_counts": {
+      "open": 6
+    },
+    "task_count": 6
+  },
+  "tasks": [
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state adder_fsm.state_0",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.adder_fsm.states.state_0"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.adder_fsm.states.state_0.\nSSOT item context: value=IDLE.",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "id": "RTL-0114",
+      "owner_file": "",
+      "owner_module": "",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.adder_fsm.states.state_0",
+      "ssot_context": {
+        "value": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.adder_fsm.states.state_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": false,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IDLE"
+        ],
+        "source_scope": "all_sources_without_owner",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task has no RTL owner file.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state adder_fsm.state_1",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.adder_fsm.states.state_1"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.adder_fsm.states.state_1.\nSSOT item context: value=COMPUTE.",
+      "evidence_terms": [
+        "COMPUTE"
+      ],
+      "id": "RTL-0115",
+      "owner_file": "",
+      "owner_module": "",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.adder_fsm.states.state_1",
+      "ssot_context": {
+        "value": "COMPUTE"
+      },
+      "ssot_refs": [
+        "fsm.adder_fsm.states.state_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": false,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "COMPUTE"
+        ],
+        "source_scope": "all_sources_without_owner",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task has no RTL owner file.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state adder_fsm.state_2",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.adder_fsm.states.state_2"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.adder_fsm.states.state_2.\nSSOT item context: value=DONE.",
+      "evidence_terms": [
+        "DONE"
+      ],
+      "id": "RTL-0116",
+      "owner_file": "",
+      "owner_module": "",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.adder_fsm.states.state_2",
+      "ssot_context": {
+        "value": "DONE"
+      },
+      "ssot_refs": [
+        "fsm.adder_fsm.states.state_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": false,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "DONE"
+        ],
+        "source_scope": "all_sources_without_owner",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task has no RTL owner file.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition adder_fsm.transition_0",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.adder_fsm.transitions.transition_0",
+        "fsm.adder_fsm.transitions.transition_0 condition is implemented as RTL control logic: CONTROL.start=1 or (hold_mode=0 and shadow_valid=1)",
+        "fsm.adder_fsm.transitions.transition_0 transition path IDLE -> COMPUTE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.adder_fsm.transitions.transition_0.\nSSOT item context: from=IDLE; to=COMPUTE; condition=CONTROL.start=1 or (hold_mode=0 and shadow_valid=1).",
+      "evidence_terms": [
+        "COMPUTE",
+        "IDLE",
+        "hold",
+        "hold_mode",
+        "mode",
+        "shadow",
+        "shadow_valid",
+        "valid"
+      ],
+      "id": "RTL-0117",
+      "owner_file": "",
+      "owner_module": "",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.adder_fsm.transitions.transition_0",
+      "ssot_context": {
+        "condition": "CONTROL.start=1 or (hold_mode=0 and shadow_valid=1)",
+        "from": "IDLE",
+        "to": "COMPUTE"
+      },
+      "ssot_refs": [
+        "fsm.adder_fsm.transitions.transition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": false,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "COMPUTE",
+          "IDLE",
+          "hold",
+          "hold_mode",
+          "mode",
+          "shadow",
+          "shadow_valid",
+          "valid"
+        ],
+        "source_scope": "all_sources_without_owner",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task has no RTL owner file.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition adder_fsm.transition_1",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.adder_fsm.transitions.transition_1",
+        "fsm.adder_fsm.transitions.transition_1 condition is implemented as RTL control logic: posedge PCLK (combinational tree result captured)",
+        "fsm.adder_fsm.transitions.transition_1 transition path COMPUTE -> DONE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.adder_fsm.transitions.transition_1.\nSSOT item context: from=COMPUTE; to=DONE; condition=posedge PCLK (combinational tree result captured).",
+      "evidence_terms": [
+        "COMPUTE",
+        "DONE",
+        "PCLK"
+      ],
+      "id": "RTL-0118",
+      "owner_file": "",
+      "owner_module": "",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.adder_fsm.transitions.transition_1",
+      "ssot_context": {
+        "condition": "posedge PCLK (combinational tree result captured)",
+        "from": "COMPUTE",
+        "to": "DONE"
+      },
+      "ssot_refs": [
+        "fsm.adder_fsm.transitions.transition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": false,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "COMPUTE",
+          "DONE",
+          "PCLK"
+        ],
+        "source_scope": "all_sources_without_owner",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task has no RTL owner file.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition adder_fsm.transition_2",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.adder_fsm.transitions.transition_2",
+        "fsm.adder_fsm.transitions.transition_2 condition is implemented as RTL control logic: automatic after one cycle or next start",
+        "fsm.adder_fsm.transitions.transition_2 transition path DONE -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.adder_fsm.transitions.transition_2.\nSSOT item context: from=DONE; to=IDLE; condition=automatic after one cycle or next start.",
+      "evidence_terms": [
+        "DONE",
+        "IDLE"
+      ],
+      "id": "RTL-0119",
+      "owner_file": "",
+      "owner_module": "",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.adder_fsm.transitions.transition_2",
+      "ssot_context": {
+        "condition": "automatic after one cycle or next start",
+        "from": "DONE",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.adder_fsm.transitions.transition_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": false,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DONE",
+          "IDLE"
+        ],
+        "source_scope": "all_sources_without_owner",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task has no RTL owner file.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "823deab5644f20ba72fd9abaaf5c7b5d9c4a81e40edbded03fc45d4cf5d81ff7",
+  "top": "adder_kogge_stone",
+  "type": "rtl_authoring_packet"
+}

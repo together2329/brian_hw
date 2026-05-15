@@ -1,0 +1,1675 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "missing"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 29,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/priority_enc_core.sv",
+      "name": "priority_enc_core",
+      "refs": [
+        "cycle_model",
+        "cycle_model.pipeline",
+        "function_model",
+        "function_model.state_updates",
+        "function_model.transactions"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/priority_enc_regs.sv",
+        "name": "priority_enc_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/priority_enc_core.sv",
+        "name": "priority_enc_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/priority_enc.sv",
+        "name": "priority_enc",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "Small peripheral IP: 3 RTL files, priority logic + APB regs",
+      "min_behavior_owner_logic_modules": 2,
+      "min_logic_modules": 2,
+      "min_modules": 3,
+      "min_procedural_blocks": 4,
+      "min_source_files": 3,
+      "min_state_updates": 4,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": false,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 29,
+    "open_required_count": 29,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": false
+  },
+  "ip": "priority_enc",
+  "kind": "module",
+  "owner_file": "rtl/priority_enc_core.sv",
+  "owner_module": "priority_enc_core",
+  "packet_id": "module__priority_enc_core",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.backpressure": 1,
+      "cycle_model.clock": 1,
+      "cycle_model.handshake_rules": 1,
+      "cycle_model.latency": 1,
+      "cycle_model.observability": 1,
+      "cycle_model.ordering": 2,
+      "cycle_model.pipeline": 2,
+      "cycle_model.reset": 1,
+      "equivalence.module": 1,
+      "function_model.error_case": 2,
+      "function_model.input": 1,
+      "function_model.invariant": 2,
+      "function_model.output": 2,
+      "function_model.output_rule": 2,
+      "function_model.precondition": 1,
+      "function_model.side_effect": 2,
+      "function_model.state_variable": 4,
+      "function_model.transaction": 1,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 29,
+      "task_limit": 48
+    },
+    "open_required_count": 29,
+    "required_count": 29,
+    "source_refs": [
+      "workflow_todos.rtl-gen[1]",
+      "function_model.state_variables.enable",
+      "function_model.state_variables.mask",
+      "function_model.state_variables.index",
+      "function_model.state_variables.valid",
+      "function_model.transactions.FM_ENCODE",
+      "function_model.transactions.FM_ENCODE.preconditions.precondition_0",
+      "function_model.transactions.FM_ENCODE.inputs.input_0",
+      "function_model.transactions.FM_ENCODE.outputs.index_out",
+      "function_model.transactions.FM_ENCODE.outputs.valid_out",
+      "function_model.transactions.FM_ENCODE.output_rules.index_out",
+      "function_model.transactions.FM_ENCODE.output_rules.valid_out",
+      "function_model.transactions.FM_ENCODE.side_effects.side_effect_0",
+      "function_model.transactions.FM_ENCODE.side_effects.side_effect_1",
+      "function_model.transactions.FM_ENCODE.error_cases.error_case_0",
+      "function_model.transactions.FM_ENCODE.error_cases.error_case_1",
+      "function_model.invariants.invariant_0",
+      "function_model.invariants.invariant_1",
+      "cycle_model.clock",
+      "cycle_model.reset",
+      "cycle_model.latency",
+      "cycle_model.handshake_rules.apb_csr",
+      "cycle_model.pipeline.S0_COMB",
+      "cycle_model.pipeline.S1_REG"
+    ],
+    "status_counts": {
+      "open": 29
+    },
+    "task_count": 29
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement priority encoder datapath",
+      "criteria": [
+        "Core implements function_model.state_updates.index and valid",
+        "1-cycle registered latency verified in sim",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[1]",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "Semantic source_refs covered: cycle_model.pipeline, function_model.state_updates"
+      ],
+      "detail": "Combinational priority encoder tree finding highest set bit of masked data_in. Registered outputs index_out and valid_out, gated by CTRL.enable.\nSSOT ref: workflow_todos.rtl-gen[1].\nOwner: priority_enc_core in rtl/priority_enc_core.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_CORE.",
+      "evidence_terms": [
+        "CORE",
+        "RTL_TODO_CORE",
+        "TODO",
+        "core",
+        "enc",
+        "priority",
+        "priority_enc_core"
+      ],
+      "id": "RTL-0028",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[1]",
+      "ssot_context": {
+        "id": "RTL_TODO_CORE"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline",
+        "function_model.state_updates",
+        "workflow_todos.rtl-gen[1]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "CORE",
+          "RTL_TODO_CORE",
+          "TODO",
+          "core",
+          "enc",
+          "priority",
+          "priority_enc_core"
+        ],
+        "source_scope": "rtl/priority_enc_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_CORE",
+        "source_refs": [
+          "cycle_model.pipeline",
+          "function_model.state_updates"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state enable",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.enable",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "enable reset behavior matches SSOT value 1"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.enable.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via function_model.\nSSOT item context: name=enable; reset=1.",
+      "evidence_terms": [],
+      "id": "RTL-0047",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.enable",
+      "ssot_context": {
+        "name": "enable",
+        "reset": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.enable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state mask",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.mask",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "mask reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.mask.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via function_model.\nSSOT item context: name=mask; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0048",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.mask",
+      "ssot_context": {
+        "name": "mask",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.mask"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state index",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.index",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "index reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.index.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via function_model.\nSSOT item context: name=index; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0049",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.index",
+      "ssot_context": {
+        "name": "index",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.index"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state valid",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.valid",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "valid reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.valid.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via function_model.\nSSOT item context: name=valid; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0050",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.valid",
+      "ssot_context": {
+        "name": "valid",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.valid"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_ENCODE",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_ENCODE",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_ENCODE.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.\nSSOT item context: id=FM_ENCODE; name=priority_encode.",
+      "evidence_terms": [],
+      "id": "RTL-0051",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ENCODE",
+      "ssot_context": {
+        "id": "FM_ENCODE",
+        "name": "priority_encode"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ENCODE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_ENCODE: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ENCODE.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ENCODE.preconditions.precondition_0.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.\nSSOT item context: value=CTRL.enable == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0052",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ENCODE.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "CTRL.enable == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ENCODE.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_ENCODE: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ENCODE.inputs.input_0",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ENCODE.inputs.input_0.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.\nSSOT item context: value=data_in[N-1:0].",
+      "evidence_terms": [
+        "data",
+        "data_in",
+        "in"
+      ],
+      "id": "RTL-0053",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ENCODE.inputs.input_0",
+      "ssot_context": {
+        "value": "data_in[N-1:0]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ENCODE.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "data",
+          "data_in",
+          "in"
+        ],
+        "source_scope": "rtl/priority_enc_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ENCODE: index_out",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ENCODE.outputs.index_out",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "index_out width matches SSOT value INDEX_WIDTH",
+        "index_out RTL expression implements SSOT expression priority_index(data_in & ~MASK.mask)",
+        "DUT port index_out is the implementation/observation point for index_out"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ENCODE.outputs.index_out.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.\nSSOT item context: name=index_out; port=index_out; expr=priority_index(data_in & ~MASK.mask); width=INDEX_WIDTH.",
+      "evidence_terms": [
+        "MASK",
+        "data",
+        "data_in",
+        "in",
+        "index",
+        "index_out",
+        "out",
+        "priority",
+        "priority_index"
+      ],
+      "id": "RTL-0054",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ENCODE.outputs.index_out",
+      "ssot_context": {
+        "expr": "priority_index(data_in & ~MASK.mask)",
+        "name": "index_out",
+        "port": "index_out",
+        "width": "INDEX_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ENCODE.outputs.index_out"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "MASK",
+          "data",
+          "data_in",
+          "in",
+          "index",
+          "index_out",
+          "out",
+          "priority",
+          "priority_index"
+        ],
+        "source_scope": "rtl/priority_enc_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ENCODE: valid_out",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ENCODE.outputs.valid_out",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "valid_out width matches SSOT value 1",
+        "valid_out RTL expression implements SSOT expression |(data_in & ~MASK.mask)",
+        "DUT port valid_out is the implementation/observation point for valid_out"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ENCODE.outputs.valid_out.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.\nSSOT item context: name=valid_out; port=valid_out; expr=|(data_in & ~MASK.mask); width=1.",
+      "evidence_terms": [
+        "MASK",
+        "data",
+        "data_in",
+        "in",
+        "out",
+        "valid",
+        "valid_out"
+      ],
+      "id": "RTL-0055",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ENCODE.outputs.valid_out",
+      "ssot_context": {
+        "expr": "|(data_in & ~MASK.mask)",
+        "name": "valid_out",
+        "port": "valid_out",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ENCODE.outputs.valid_out"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "MASK",
+          "data",
+          "data_in",
+          "in",
+          "out",
+          "valid",
+          "valid_out"
+        ],
+        "source_scope": "rtl/priority_enc_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_ENCODE: index_out",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ENCODE.output_rules.index_out",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "index_out width matches SSOT value INDEX_WIDTH",
+        "index_out RTL expression implements SSOT expression for i=N-1 downto 0: if ((data_in[i] & ~mask[i]) == 1) return i; return 0",
+        "DUT port index_out is the implementation/observation point for index_out",
+        "index_out is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ENCODE.output_rules.index_out.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.\nSSOT item context: name=index_out; port=index_out; expr=for i=N-1 downto 0: if ((data_in[i] & ~mask[i]) == 1) return i; return 0; width=INDEX_WIDTH.",
+      "evidence_terms": [
+        "data",
+        "data_in",
+        "in",
+        "index",
+        "index_out",
+        "out"
+      ],
+      "id": "RTL-0056",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ENCODE.output_rules.index_out",
+      "ssot_context": {
+        "expr": "for i=N-1 downto 0: if ((data_in[i] & ~mask[i]) == 1) return i; return 0",
+        "name": "index_out",
+        "port": "index_out",
+        "width": "INDEX_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ENCODE.output_rules.index_out"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "data",
+          "data_in",
+          "in",
+          "index",
+          "index_out",
+          "out"
+        ],
+        "source_scope": "rtl/priority_enc_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_ENCODE: valid_out",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ENCODE.output_rules.valid_out",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "valid_out width matches SSOT value 1",
+        "valid_out RTL expression implements SSOT expression |(data_in & ~mask)",
+        "DUT port valid_out is the implementation/observation point for valid_out",
+        "valid_out is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ENCODE.output_rules.valid_out.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.\nSSOT item context: name=valid_out; port=valid_out; expr=|(data_in & ~mask); width=1.",
+      "evidence_terms": [
+        "data",
+        "data_in",
+        "in",
+        "out",
+        "valid",
+        "valid_out"
+      ],
+      "id": "RTL-0057",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ENCODE.output_rules.valid_out",
+      "ssot_context": {
+        "expr": "|(data_in & ~mask)",
+        "name": "valid_out",
+        "port": "valid_out",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ENCODE.output_rules.valid_out"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "data",
+          "data_in",
+          "in",
+          "out",
+          "valid",
+          "valid_out"
+        ],
+        "source_scope": "rtl/priority_enc_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_ENCODE: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ENCODE.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ENCODE.side_effects.side_effect_0.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.\nSSOT item context: value=STATUS.index updates to current index_out.",
+      "evidence_terms": [
+        "index",
+        "index_out",
+        "out"
+      ],
+      "id": "RTL-0058",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ENCODE.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "STATUS.index updates to current index_out"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ENCODE.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "index",
+          "index_out",
+          "out"
+        ],
+        "source_scope": "rtl/priority_enc_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_ENCODE: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ENCODE.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ENCODE.side_effects.side_effect_1.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.\nSSOT item context: value=STATUS.valid updates to current valid_out.",
+      "evidence_terms": [
+        "out",
+        "valid",
+        "valid_out"
+      ],
+      "id": "RTL-0059",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ENCODE.side_effects.side_effect_1",
+      "ssot_context": {
+        "value": "STATUS.valid updates to current valid_out"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ENCODE.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "valid",
+          "valid_out"
+        ],
+        "source_scope": "rtl/priority_enc_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_ENCODE: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ENCODE.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "function_model.transactions.FM_ENCODE.error_cases.error_case_0 condition is implemented as RTL control logic: PADDR accesses undefined register offset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ENCODE.error_cases.error_case_0.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.\nSSOT item context: condition=PADDR accesses undefined register offset.",
+      "evidence_terms": [
+        "PADDR"
+      ],
+      "id": "RTL-0060",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ENCODE.error_cases.error_case_0",
+      "ssot_context": {
+        "condition": "PADDR accesses undefined register offset"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ENCODE.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "PADDR"
+        ],
+        "source_scope": "rtl/priority_enc_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_ENCODE: error_case_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ENCODE.error_cases.error_case_1",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "function_model.transactions.FM_ENCODE.error_cases.error_case_1 condition is implemented as RTL control logic: Write to read-only STATUS field"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ENCODE.error_cases.error_case_1.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via function_model.transactions.\nSSOT item context: condition=Write to read-only STATUS field.",
+      "evidence_terms": [
+        "STATUS",
+        "Write"
+      ],
+      "id": "RTL-0061",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ENCODE.error_cases.error_case_1",
+      "ssot_context": {
+        "condition": "Write to read-only STATUS field"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ENCODE.error_cases.error_case_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "STATUS",
+          "Write"
+        ],
+        "source_scope": "rtl/priority_enc_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_0",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_0",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via function_model.\nSSOT item context: value=When enable==0, index_out and valid_out are both 0 regardless of inputs..",
+      "evidence_terms": [
+        "index",
+        "index_out",
+        "out",
+        "valid",
+        "valid_out"
+      ],
+      "id": "RTL-0062",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_0",
+      "ssot_context": {
+        "value": "When enable==0, index_out and valid_out are both 0 regardless of inputs."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "index",
+          "index_out",
+          "out",
+          "valid",
+          "valid_out"
+        ],
+        "source_scope": "rtl/priority_enc_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_1",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_1",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via function_model.\nSSOT item context: value=When multiple inputs are asserted, index_out always reflects the highest-numbered (highest-priority) bit..",
+      "evidence_terms": [
+        "index",
+        "index_out",
+        "out"
+      ],
+      "id": "RTL-0063",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_1",
+      "ssot_context": {
+        "value": "When multiple inputs are asserted, index_out always reflects the highest-numbered (highest-priority) bit."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "index",
+          "index_out",
+          "out"
+        ],
+        "source_scope": "rtl/priority_enc_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.clock",
+      "content": "Implement cycle-model clock",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.clock",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.\nSSOT item context: value=PCLK.",
+      "evidence_terms": [],
+      "id": "RTL-0064",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.clock",
+      "ssot_context": {
+        "value": "PCLK"
+      },
+      "ssot_refs": [
+        "cycle_model.clock"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.reset",
+      "content": "Implement cycle-model reset",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.reset",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.",
+      "evidence_terms": [],
+      "id": "RTL-0065",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.reset",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.reset"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.latency",
+      "content": "Implement cycle-model latency",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.latency",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.",
+      "evidence_terms": [],
+      "id": "RTL-0066",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.latency",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.latency"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: apb_csr",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.apb_csr",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "cycle_model.handshake_rules.apb_csr appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.apb_csr.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.\nSSOT item context: signal=apb_csr.",
+      "evidence_terms": [
+        "apb",
+        "apb_csr",
+        "csr"
+      ],
+      "id": "RTL-0067",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.apb_csr",
+      "ssot_context": {
+        "signal": "apb_csr"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.apb_csr"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "apb",
+          "apb_csr",
+          "csr"
+        ],
+        "source_scope": "rtl/priority_enc_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S0_COMB",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S0_COMB",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "cycle_model.pipeline.S0_COMB timing uses SSOT cycle/latency 0",
+        "cycle_model.pipeline.S0_COMB appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S0_COMB.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.pipeline.\nSSOT item context: stage=S0_COMB; action=Combinational priority encode: masked_data = data_in & ~MASK; find highest set bit; cycle=0.",
+      "evidence_terms": [
+        "data",
+        "data_in",
+        "in",
+        "masked",
+        "masked_data"
+      ],
+      "id": "RTL-0068",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S0_COMB",
+      "ssot_context": {
+        "action": "Combinational priority encode: masked_data = data_in & ~MASK; find highest set bit",
+        "cycle": "0",
+        "stage": "S0_COMB"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S0_COMB"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "data",
+          "data_in",
+          "in",
+          "masked",
+          "masked_data"
+        ],
+        "source_scope": "rtl/priority_enc_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S1_REG",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S1_REG",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "cycle_model.pipeline.S1_REG timing uses SSOT cycle/latency 1",
+        "cycle_model.pipeline.S1_REG appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S1_REG.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.pipeline.\nSSOT item context: stage=S1_REG; action=Register index_out and valid_out on PCLK rising edge when CTRL.enable==1; cycle=1.",
+      "evidence_terms": [
+        "index",
+        "index_out",
+        "out",
+        "valid",
+        "valid_out"
+      ],
+      "id": "RTL-0069",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S1_REG",
+      "ssot_context": {
+        "action": "Register index_out and valid_out on PCLK rising edge when CTRL.enable==1",
+        "cycle": "1",
+        "stage": "S1_REG"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S1_REG"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "index",
+          "index_out",
+          "out",
+          "valid",
+          "valid_out"
+        ],
+        "source_scope": "rtl/priority_enc_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_0",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "cycle_model.ordering.ordering_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_0.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.\nSSOT item context: value=Output register update occurs on PCLK rising edge after combinational priority logic settles..",
+      "evidence_terms": [],
+      "id": "RTL-0070",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_0",
+      "ssot_context": {
+        "value": "Output register update occurs on PCLK rising edge after combinational priority logic settles."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_1",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "cycle_model.ordering.ordering_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_1.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.\nSSOT item context: value=APB register writes take effect on the PCLK cycle after PENABLE handshake completes..",
+      "evidence_terms": [],
+      "id": "RTL-0071",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_1",
+      "ssot_context": {
+        "value": "APB register writes take effect on the PCLK cycle after PENABLE handshake completes."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_0",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_0.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.\nSSOT item context: value=No backpressure on priority inputs; outputs are always valid or zero..",
+      "evidence_terms": [],
+      "id": "RTL-0072",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
+      "ssot_context": {
+        "value": "No backpressure on priority inputs; outputs are always valid or zero."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.observability",
+      "content": "Implement observability signal: observability_signal_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.observability.observability_signal_0",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv",
+        "cycle_model.observability.observability_signal_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_0.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via cycle_model.\nSSOT item context: value=Every function_model transaction maps to cycle_model pipeline stages S0_COMB and S1_REG..",
+      "evidence_terms": [],
+      "id": "RTL-0073",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.observability.observability_signal_0",
+      "ssot_context": {
+        "value": "Every function_model transaction maps to cycle_model pipeline stages S0_COMB and S1_REG."
+      },
+      "ssot_refs": [
+        "cycle_model.observability.observability_signal_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module priority_enc_core is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.priority_enc_core.module_equivalence",
+        "Primary implementation evidence is in rtl/priority_enc_core.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.priority_enc_core.module_equivalence.\nOwner: priority_enc_core in rtl/priority_enc_core.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0100",
+      "owner_file": "rtl/priority_enc_core.sv",
+      "owner_module": "priority_enc_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.priority_enc_core.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.priority_enc_core.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "2b9a35fd3e966b1920ee4faef1bd87236f4b185ca6d2360d3f99daadce69230a",
+  "top": "priority_enc",
+  "type": "rtl_authoring_packet"
+}

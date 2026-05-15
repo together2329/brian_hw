@@ -1,0 +1,568 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_decomposition",
+  "ip": "priority_enc",
+  "source": "priority_enc/yaml/priority_enc.ssot.yaml",
+  "units": [
+    {
+      "name": "priority_enc_regs",
+      "kind": "rtl_module",
+      "source_sections": [
+        "features",
+        "registers"
+      ],
+      "rtl_candidates": [
+        "priority_enc_regs"
+      ],
+      "rtl_file": "rtl/priority_enc_regs.sv",
+      "ssot_refs": [
+        "features.enable_gating",
+        "features.runtime_masking",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.ctrl",
+        "registers.register_list.mask",
+        "registers.register_list.status"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "features.enable_gating",
+        "features.runtime_masking",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list.ctrl",
+        "registers.register_list.mask",
+        "registers.register_list.status"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "priority_enc_core",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "priority_enc_core"
+      ],
+      "rtl_file": "rtl/priority_enc_core.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.apb_csr",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.s0_comb",
+        "cycle_model.pipeline.s1_reg",
+        "cycle_model.reset",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.state_updates",
+        "function_model.state_variables.enable",
+        "function_model.state_variables.index",
+        "function_model.state_variables.mask",
+        "function_model.state_variables.valid",
+        "function_model.transactions",
+        "function_model.transactions.fm_encode",
+        "function_model.transactions.fm_encode.error_cases.error_case_0",
+        "function_model.transactions.fm_encode.error_cases.error_case_1",
+        "function_model.transactions.fm_encode.inputs.input_0",
+        "function_model.transactions.fm_encode.output_rules.index_out",
+        "function_model.transactions.fm_encode.output_rules.valid_out",
+        "function_model.transactions.fm_encode.outputs.index_out",
+        "function_model.transactions.fm_encode.outputs.valid_out",
+        "function_model.transactions.fm_encode.preconditions.precondition_0",
+        "function_model.transactions.fm_encode.side_effects.side_effect_0",
+        "function_model.transactions.fm_encode.side_effects.side_effect_1"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.state_variables.enable",
+        "function_model.state_variables.index",
+        "function_model.state_variables.mask",
+        "function_model.state_variables.valid",
+        "function_model.transactions.fm_encode",
+        "function_model.transactions.fm_encode.error_cases.error_case_0",
+        "function_model.transactions.fm_encode.error_cases.error_case_1",
+        "function_model.transactions.fm_encode.inputs.input_0",
+        "function_model.transactions.fm_encode.output_rules.index_out",
+        "function_model.transactions.fm_encode.output_rules.valid_out",
+        "function_model.transactions.fm_encode.outputs.index_out",
+        "function_model.transactions.fm_encode.outputs.valid_out",
+        "function_model.transactions.fm_encode.preconditions.precondition_0",
+        "function_model.transactions.fm_encode.side_effects.side_effect_0",
+        "function_model.transactions.fm_encode.side_effects.side_effect_1"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.apb_csr",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.pipeline.s0_comb",
+        "cycle_model.pipeline.s1_reg",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "priority_enc_protocol_model",
+      "kind": "protocol",
+      "source_sections": [
+        "io_list",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "priority_enc_axi_slv",
+        "priority_enc_protocol"
+      ],
+      "verification_impact": [
+        "driver",
+        "monitor",
+        "protocol coverage"
+      ]
+    },
+    {
+      "name": "priority_enc_register_model",
+      "kind": "register",
+      "source_sections": [
+        "registers",
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "priority_enc_regs",
+        "priority_enc_apb_regs"
+      ],
+      "verification_impact": [
+        "register sequences",
+        "readback scoreboard"
+      ]
+    },
+    {
+      "name": "priority_enc_datapath_model",
+      "kind": "datapath",
+      "source_sections": [
+        "features",
+        "dataflow",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "priority_enc_core",
+        "priority_enc_datapath"
+      ],
+      "verification_impact": [
+        "functional scoreboard",
+        "transaction coverage"
+      ]
+    },
+    {
+      "name": "priority_enc_fsm_model",
+      "kind": "fsm",
+      "source_sections": [
+        "fsm",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "priority_enc_core"
+      ],
+      "verification_impact": [
+        "state transition coverage",
+        "waveform debug"
+      ]
+    },
+    {
+      "name": "priority_enc_error_model",
+      "kind": "error",
+      "source_sections": [
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "priority_enc_core",
+        "priority_enc_error"
+      ],
+      "verification_impact": [
+        "negative tests",
+        "mismatch classification"
+      ]
+    },
+    {
+      "name": "priority_enc_security_model",
+      "kind": "security",
+      "source_sections": [
+        "security",
+        "debug_observability"
+      ],
+      "rtl_candidates": [
+        "priority_enc_security",
+        "priority_enc_core"
+      ],
+      "verification_impact": [
+        "security bins",
+        "debug observability checks"
+      ]
+    }
+  ],
+  "module_contracts": [
+    {
+      "name": "priority_enc_regs",
+      "kind": "rtl_module",
+      "rtl_module": "priority_enc_regs",
+      "rtl_file": "rtl/priority_enc_regs.sv",
+      "source_sections": [
+        "features",
+        "registers"
+      ],
+      "ssot_refs": [
+        "features.enable_gating",
+        "features.runtime_masking",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.ctrl",
+        "registers.register_list.mask",
+        "registers.register_list.status"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "features.enable_gating",
+        "features.runtime_masking",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list.ctrl",
+        "registers.register_list.mask",
+        "registers.register_list.status"
+      ],
+      "owner_matches": [],
+      "structural_owner_matches": [
+        {
+          "ref": "registers.register_list.ctrl",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.mask",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.status",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.register_width",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.addr_width",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.byte_addressable",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "features.runtime_masking",
+          "matched_ref": "semantic_terms:register"
+        },
+        {
+          "ref": "features.enable_gating",
+          "matched_ref": "semantic_terms:register"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "priority_enc_core",
+      "kind": "rtl_module",
+      "rtl_module": "priority_enc_core",
+      "rtl_file": "rtl/priority_enc_core.sv",
+      "source_sections": [
+        "cycle_model",
+        "function_model"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.apb_csr",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.s0_comb",
+        "cycle_model.pipeline.s1_reg",
+        "cycle_model.reset",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.state_updates",
+        "function_model.state_variables.enable",
+        "function_model.state_variables.index",
+        "function_model.state_variables.mask",
+        "function_model.state_variables.valid",
+        "function_model.transactions",
+        "function_model.transactions.fm_encode",
+        "function_model.transactions.fm_encode.error_cases.error_case_0",
+        "function_model.transactions.fm_encode.error_cases.error_case_1",
+        "function_model.transactions.fm_encode.inputs.input_0",
+        "function_model.transactions.fm_encode.output_rules.index_out",
+        "function_model.transactions.fm_encode.output_rules.valid_out",
+        "function_model.transactions.fm_encode.outputs.index_out",
+        "function_model.transactions.fm_encode.outputs.valid_out",
+        "function_model.transactions.fm_encode.preconditions.precondition_0",
+        "function_model.transactions.fm_encode.side_effects.side_effect_0",
+        "function_model.transactions.fm_encode.side_effects.side_effect_1"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.state_variables.enable",
+        "function_model.state_variables.index",
+        "function_model.state_variables.mask",
+        "function_model.state_variables.valid",
+        "function_model.transactions.fm_encode",
+        "function_model.transactions.fm_encode.error_cases.error_case_0",
+        "function_model.transactions.fm_encode.error_cases.error_case_1",
+        "function_model.transactions.fm_encode.inputs.input_0",
+        "function_model.transactions.fm_encode.output_rules.index_out",
+        "function_model.transactions.fm_encode.output_rules.valid_out",
+        "function_model.transactions.fm_encode.outputs.index_out",
+        "function_model.transactions.fm_encode.outputs.valid_out",
+        "function_model.transactions.fm_encode.preconditions.precondition_0",
+        "function_model.transactions.fm_encode.side_effects.side_effect_0",
+        "function_model.transactions.fm_encode.side_effects.side_effect_1"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.apb_csr",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.pipeline.s0_comb",
+        "cycle_model.pipeline.s1_reg",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.enable",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.mask",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.index",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.valid",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_encode",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_encode.preconditions.precondition_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_encode.inputs.input_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_encode.outputs.index_out",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_encode.outputs.valid_out",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_encode.output_rules.index_out",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_encode.output_rules.valid_out",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_encode.side_effects.side_effect_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_encode.side_effects.side_effect_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_encode.error_cases.error_case_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_encode.error_cases.error_case_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "cycle_model.clock",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.reset",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.latency",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.apb_csr",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.s0_comb",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.s1_reg",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_0",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_1",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.backpressure.backpressure_0",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.observability.observability_0",
+          "matched_ref": "cycle_model"
+        }
+      ],
+      "structural_owner_matches": [],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    }
+  ],
+  "orphan_function_cycle_refs": [],
+  "function_cycle_ref_count": 27,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "priority_enc/req/",
+      "priority_enc/yaml/priority_enc.ssot.yaml",
+      "priority_enc/model/functional_model.py",
+      "priority_enc/cov/fcov_plan.json",
+      "priority_enc/yaml/priority_enc.ssot.yaml#io_list",
+      "priority_enc/yaml/priority_enc.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "priority_enc/rtl/",
+      "priority_enc/tb/",
+      "priority_enc/sim/",
+      "priority_enc/vectors/",
+      "priority_enc/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "drives": [
+    "rtl_module_plan",
+    "tb_environment_plan",
+    "functional_coverage_plan"
+  ],
+  "complete": true
+}

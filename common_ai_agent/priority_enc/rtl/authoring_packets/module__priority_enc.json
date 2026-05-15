@@ -1,0 +1,2080 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "missing"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 39,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/priority_enc.sv",
+      "name": "priority_enc",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/priority_enc_regs.sv",
+        "name": "priority_enc_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/priority_enc_core.sv",
+        "name": "priority_enc_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/priority_enc.sv",
+        "name": "priority_enc",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "PCLK"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PCLK",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PRESETn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PRESETn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "data_in",
+          "priority_inputs_data_in"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "data_in",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "N"
+      },
+      {
+        "aliases": [
+          "index_out",
+          "priority_outputs_index_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "index_out",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "INDEX_WIDTH"
+      },
+      {
+        "aliases": [
+          "priority_outputs_valid_out",
+          "valid_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "valid_out",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PADDR",
+          "apb_csr_PADDR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PADDR",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "12"
+      },
+      {
+        "aliases": [
+          "PSEL",
+          "apb_csr_PSEL"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSEL",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PENABLE",
+          "apb_csr_PENABLE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PENABLE",
+        "source_ref": "io_list.interfaces[2].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWRITE",
+          "apb_csr_PWRITE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWRITE",
+        "source_ref": "io_list.interfaces[2].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWDATA",
+          "apb_csr_PWDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWDATA",
+        "source_ref": "io_list.interfaces[2].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PRDATA",
+          "apb_csr_PRDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PRDATA",
+        "source_ref": "io_list.interfaces[2].ports[5]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PREADY",
+          "apb_csr_PREADY"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PREADY",
+        "source_ref": "io_list.interfaces[2].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PSLVERR",
+          "apb_csr_PSLVERR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PSLVERR",
+        "source_ref": "io_list.interfaces[2].ports[7]",
+        "width": "1"
+      }
+    ],
+    "target_scale": {
+      "basis": "Small peripheral IP: 3 RTL files, priority logic + APB regs",
+      "min_behavior_owner_logic_modules": 2,
+      "min_logic_modules": 2,
+      "min_modules": 3,
+      "min_procedural_blocks": 4,
+      "min_source_files": 3,
+      "min_state_updates": 4,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": false,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": false,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 38,
+    "open_required_count": 38,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": false
+  },
+  "ip": "priority_enc",
+  "kind": "module",
+  "owner_file": "rtl/priority_enc.sv",
+  "owner_module": "priority_enc",
+  "packet_id": "module__priority_enc",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "error_handling.recovery": 1,
+      "features.item": 3,
+      "io_list.port": 13,
+      "parameters.item": 4,
+      "rtl_flow.seed": 1,
+      "rtl_flow.top": 1,
+      "security.assets": 1,
+      "synthesis.constraints": 3,
+      "synthesis.ppa_targets": 3,
+      "test_requirements.scenario": 7,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 39,
+      "task_limit": 48
+    },
+    "open_required_count": 38,
+    "required_count": 39,
+    "source_refs": [
+      "top_module",
+      "io_list",
+      "workflow_todos.rtl-gen[2]",
+      "features.Priority_Encoding",
+      "features.Runtime_Masking",
+      "features.Enable_Gating",
+      "error_handling.recovery.recovery_0",
+      "security.assets.asset_0",
+      "synthesis.constraints.constraint_0",
+      "synthesis.constraints.constraint_1",
+      "synthesis.constraints.constraint_2",
+      "synthesis.ppa_targets.area_um2",
+      "synthesis.ppa_targets.power_mw",
+      "synthesis.ppa_targets.timing_met",
+      "sub_modules.priority_enc.module_equivalence",
+      "parameters.N",
+      "parameters.INDEX_WIDTH",
+      "parameters.PCLK_FREQ_MHZ",
+      "parameters.RESET_POLARITY",
+      "io_list.clock_domains.PCLK.ports.PCLK",
+      "io_list.resets.PRESETn.ports.PRESETn",
+      "io_list.interfaces.priority_inputs.ports.data_in",
+      "io_list.interfaces.priority_outputs.ports.index_out",
+      "io_list.interfaces.priority_outputs.ports.valid_out"
+    ],
+    "status_counts": {
+      "open": 38,
+      "pass": 1
+    },
+    "task_count": 39
+  },
+  "tasks": [
+    {
+      "category": "rtl_flow.seed",
+      "content": "Read SSOT and build dynamic RTL implementation ledger",
+      "criteria": [
+        "rtl_todo_plan.json was regenerated from the current SSOT",
+        "Every required task in the plan is either implemented, evidenced, or escalated",
+        "No IP-specific fixed template is used as the source of truth",
+        "Traceability keeps source_ref top_module",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.\nSSOT ref: top_module.\nOwner: priority_enc in rtl/priority_enc.sv via top_module.",
+      "evidence_terms": [],
+      "id": "RTL-0001",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "top_module",
+      "ssot_context": {},
+      "ssot_refs": [
+        "top_module"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_flow.top",
+      "content": "Implement top-level ports, reset, and filelist integration",
+      "criteria": [
+        "Top module name matches SSOT top_module",
+        "Every SSOT top-level port appears with matching direction and width",
+        "Filelist contains all LLM-authored RTL sources and no stale sources",
+        "Traceability keeps source_ref io_list",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.\nSSOT ref: io_list.\nOwner: priority_enc in rtl/priority_enc.sv via top_module.\nSSOT item context: value=priority_enc.",
+      "evidence_terms": [
+        "enc",
+        "priority",
+        "priority_enc"
+      ],
+      "id": "RTL-0002",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "io_list",
+      "ssot_context": {
+        "value": "priority_enc"
+      },
+      "ssot_refs": [
+        "io_list"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement top-level wrapper",
+      "criteria": [
+        "Top-level connects all submodules per integration spec",
+        "Lint clean",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[2]",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "Semantic source_refs covered: integration, sub_modules"
+      ],
+      "detail": "Instantiate priority_enc_regs and priority_enc_core; connect APB ports to regs, data_in to core, core outputs to top ports and STATUS register feedback.\nSSOT ref: workflow_todos.rtl-gen[2].\nOwner: priority_enc in rtl/priority_enc.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_TOP.",
+      "evidence_terms": [
+        "RTL_TODO_TOP",
+        "TODO",
+        "TOP",
+        "enc",
+        "modules",
+        "priority",
+        "priority_enc",
+        "sub",
+        "sub_modules"
+      ],
+      "id": "RTL-0029",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[2]",
+      "ssot_context": {
+        "id": "RTL_TODO_TOP"
+      },
+      "ssot_refs": [
+        "integration",
+        "sub_modules",
+        "workflow_todos.rtl-gen[2]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "RTL_TODO_TOP",
+          "TODO",
+          "TOP",
+          "enc",
+          "modules",
+          "priority",
+          "priority_enc",
+          "sub",
+          "sub_modules"
+        ],
+        "source_scope": "rtl/priority_enc.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_TOP",
+        "source_refs": [
+          "integration",
+          "sub_modules"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Priority Encoding",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Priority_Encoding",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Priority_Encoding.\nOwner: priority_enc in rtl/priority_enc.sv via features.\nSSOT item context: name=Priority Encoding; output=index_out (encoded index) and valid_out (any bit set).",
+      "evidence_terms": [
+        "index",
+        "index_out",
+        "out",
+        "valid",
+        "valid_out"
+      ],
+      "id": "RTL-0088",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Priority_Encoding",
+      "ssot_context": {
+        "name": "Priority Encoding",
+        "output": "index_out (encoded index) and valid_out (any bit set)"
+      },
+      "ssot_refs": [
+        "features.Priority_Encoding"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "index",
+          "index_out",
+          "out",
+          "valid",
+          "valid_out"
+        ],
+        "source_scope": "rtl/priority_enc.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Runtime Masking",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Runtime_Masking",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Runtime_Masking.\nOwner: priority_enc in rtl/priority_enc.sv via features.\nSSOT item context: name=Runtime Masking; output=Masked inputs ignored in priority computation.",
+      "evidence_terms": [],
+      "id": "RTL-0089",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Runtime_Masking",
+      "ssot_context": {
+        "name": "Runtime Masking",
+        "output": "Masked inputs ignored in priority computation"
+      },
+      "ssot_refs": [
+        "features.Runtime_Masking"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Enable Gating",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Enable_Gating",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Enable_Gating.\nOwner: priority_enc in rtl/priority_enc.sv via features.\nSSOT item context: name=Enable Gating; output=When disabled, index_out=0 and valid_out=0.",
+      "evidence_terms": [
+        "index",
+        "index_out",
+        "out",
+        "valid",
+        "valid_out"
+      ],
+      "id": "RTL-0090",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Enable_Gating",
+      "ssot_context": {
+        "name": "Enable Gating",
+        "output": "When disabled, index_out=0 and valid_out=0"
+      },
+      "ssot_refs": [
+        "features.Enable_Gating"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "index",
+          "index_out",
+          "out",
+          "valid",
+          "valid_out"
+        ],
+        "source_scope": "rtl/priority_enc.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "error_handling.recovery",
+      "content": "Implement error/fault item recovery_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref error_handling.recovery.recovery_0",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_0.\nOwner: priority_enc in rtl/priority_enc.sv via error_handling.\nSSOT item context: value=Software retry with corrected address..",
+      "evidence_terms": [],
+      "id": "RTL-0091",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "error_handling.recovery.recovery_0",
+      "ssot_context": {
+        "value": "Software retry with corrected address."
+      },
+      "ssot_refs": [
+        "error_handling.recovery.recovery_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item asset_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.asset_0",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.asset_0.\nOwner: priority_enc in rtl/priority_enc.sv via security.",
+      "evidence_terms": [],
+      "id": "RTL-0092",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.asset_0",
+      "ssot_context": {},
+      "ssot_refs": [
+        "security.assets.asset_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_0",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_0.\nOwner: priority_enc in rtl/priority_enc.sv via synthesis.\nSSOT item context: value=PCLK period 20ns.",
+      "evidence_terms": [],
+      "id": "RTL-0093",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_0",
+      "ssot_context": {
+        "value": "PCLK period 20ns"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_1",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_1.\nOwner: priority_enc in rtl/priority_enc.sv via synthesis.\nSSOT item context: value=Input delay 2ns.",
+      "evidence_terms": [],
+      "id": "RTL-0094",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_1",
+      "ssot_context": {
+        "value": "Input delay 2ns"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_2",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_2",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_2.\nOwner: priority_enc in rtl/priority_enc.sv via synthesis.\nSSOT item context: value=Output delay 3ns.",
+      "evidence_terms": [],
+      "id": "RTL-0095",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_2",
+      "ssot_context": {
+        "value": "Output delay 3ns"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item area_um2",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.area_um2",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.area_um2.\nOwner: priority_enc in rtl/priority_enc.sv via synthesis.\nSSOT item context: name=area_um2.",
+      "evidence_terms": [],
+      "id": "RTL-0096",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.area_um2",
+      "ssot_context": {
+        "name": "area_um2"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.area_um2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item power_mw",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.power_mw",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.power_mw.\nOwner: priority_enc in rtl/priority_enc.sv via synthesis.\nSSOT item context: name=power_mw.",
+      "evidence_terms": [],
+      "id": "RTL-0097",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.power_mw",
+      "ssot_context": {
+        "name": "power_mw"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.power_mw"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item timing_met",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.timing_met",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.timing_met.\nOwner: priority_enc in rtl/priority_enc.sv via synthesis.\nSSOT item context: name=timing_met; value=True.",
+      "evidence_terms": [],
+      "id": "RTL-0098",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.timing_met",
+      "ssot_context": {
+        "name": "timing_met",
+        "value": "True"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.timing_met"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module priority_enc is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.priority_enc.module_equivalence",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.priority_enc.module_equivalence.\nOwner: priority_enc in rtl/priority_enc.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0101",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.priority_enc.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.priority_enc.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter N",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.N",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.N.\nOwner: priority_enc in rtl/priority_enc.sv via parameters.\nSSOT item context: name=N.",
+      "evidence_terms": [],
+      "id": "RTL-0030",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.N",
+      "ssot_context": {
+        "name": "N"
+      },
+      "ssot_refs": [
+        "parameters.N"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter INDEX_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.INDEX_WIDTH",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.INDEX_WIDTH.\nOwner: priority_enc in rtl/priority_enc.sv via parameters.\nSSOT item context: name=INDEX_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0031",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.INDEX_WIDTH",
+      "ssot_context": {
+        "name": "INDEX_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.INDEX_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter PCLK_FREQ_MHZ",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.PCLK_FREQ_MHZ",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.PCLK_FREQ_MHZ.\nOwner: priority_enc in rtl/priority_enc.sv via parameters.\nSSOT item context: name=PCLK_FREQ_MHZ.",
+      "evidence_terms": [],
+      "id": "RTL-0032",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.PCLK_FREQ_MHZ",
+      "ssot_context": {
+        "name": "PCLK_FREQ_MHZ"
+      },
+      "ssot_refs": [
+        "parameters.PCLK_FREQ_MHZ"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter RESET_POLARITY",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.RESET_POLARITY",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.RESET_POLARITY.\nOwner: priority_enc in rtl/priority_enc.sv via parameters.\nSSOT item context: name=RESET_POLARITY.",
+      "evidence_terms": [],
+      "id": "RTL-0033",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.RESET_POLARITY",
+      "ssot_context": {
+        "name": "RESET_POLARITY"
+      },
+      "ssot_refs": [
+        "parameters.RESET_POLARITY"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PCLK",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.PCLK.ports.PCLK",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "PCLK width matches SSOT value 1",
+        "PCLK port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.PCLK.ports.PCLK.\nOwner: priority_enc in rtl/priority_enc.sv via io_list.\nSSOT item context: name=PCLK; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.PCLK.ports.PCLK",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PCLK",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.PCLK.ports.PCLK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PRESETn",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.PRESETn.ports.PRESETn",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "PRESETn width matches SSOT value 1",
+        "PRESETn port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.PRESETn.ports.PRESETn.\nOwner: priority_enc in rtl/priority_enc.sv via io_list.\nSSOT item context: name=PRESETn; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0035",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.PRESETn.ports.PRESETn",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PRESETn",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.PRESETn.ports.PRESETn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port data_in",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.priority_inputs.ports.data_in",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "data_in width matches SSOT value N",
+        "data_in port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.priority_inputs.ports.data_in.\nOwner: priority_enc in rtl/priority_enc.sv via io_list.\nSSOT item context: name=data_in; width=N; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0036",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.priority_inputs.ports.data_in",
+      "ssot_context": {
+        "direction": "input",
+        "name": "data_in",
+        "width": "N"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.priority_inputs.ports.data_in"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port index_out",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.priority_outputs.ports.index_out",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "index_out width matches SSOT value INDEX_WIDTH",
+        "index_out port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.priority_outputs.ports.index_out.\nOwner: priority_enc in rtl/priority_enc.sv via io_list.\nSSOT item context: name=index_out; width=INDEX_WIDTH; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0037",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.priority_outputs.ports.index_out",
+      "ssot_context": {
+        "direction": "output",
+        "name": "index_out",
+        "width": "INDEX_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.priority_outputs.ports.index_out"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port valid_out",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.priority_outputs.ports.valid_out",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "valid_out width matches SSOT value 1",
+        "valid_out port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.priority_outputs.ports.valid_out.\nOwner: priority_enc in rtl/priority_enc.sv via io_list.\nSSOT item context: name=valid_out; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0038",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.priority_outputs.ports.valid_out",
+      "ssot_context": {
+        "direction": "output",
+        "name": "valid_out",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.priority_outputs.ports.valid_out"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PADDR",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.PADDR",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "PADDR width matches SSOT value 12",
+        "PADDR port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.PADDR.\nOwner: priority_enc in rtl/priority_enc.sv via io_list.\nSSOT item context: name=PADDR; width=12; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0039",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.PADDR",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PADDR",
+        "width": "12"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.PADDR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PSEL",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.PSEL",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "PSEL width matches SSOT value 1",
+        "PSEL port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.PSEL.\nOwner: priority_enc in rtl/priority_enc.sv via io_list.\nSSOT item context: name=PSEL; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0040",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.PSEL",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PSEL",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.PSEL"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PENABLE",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.PENABLE",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "PENABLE width matches SSOT value 1",
+        "PENABLE port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.PENABLE.\nOwner: priority_enc in rtl/priority_enc.sv via io_list.\nSSOT item context: name=PENABLE; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0041",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.PENABLE",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PENABLE",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.PENABLE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PWRITE",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.PWRITE",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "PWRITE width matches SSOT value 1",
+        "PWRITE port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.PWRITE.\nOwner: priority_enc in rtl/priority_enc.sv via io_list.\nSSOT item context: name=PWRITE; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0042",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.PWRITE",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PWRITE",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.PWRITE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PWDATA",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.PWDATA",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "PWDATA width matches SSOT value 32",
+        "PWDATA port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.PWDATA.\nOwner: priority_enc in rtl/priority_enc.sv via io_list.\nSSOT item context: name=PWDATA; width=32; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0043",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.PWDATA",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PWDATA",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.PWDATA"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PRDATA",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.PRDATA",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "PRDATA width matches SSOT value 32",
+        "PRDATA port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.PRDATA.\nOwner: priority_enc in rtl/priority_enc.sv via io_list.\nSSOT item context: name=PRDATA; width=32; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0044",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.PRDATA",
+      "ssot_context": {
+        "direction": "output",
+        "name": "PRDATA",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.PRDATA"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PREADY",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.PREADY",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "PREADY width matches SSOT value 1",
+        "PREADY port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.PREADY.\nOwner: priority_enc in rtl/priority_enc.sv via io_list.\nSSOT item context: name=PREADY; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0045",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.PREADY",
+      "ssot_context": {
+        "direction": "output",
+        "name": "PREADY",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.PREADY"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PSLVERR",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.PSLVERR",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "PSLVERR width matches SSOT value 1",
+        "PSLVERR port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.PSLVERR.\nOwner: priority_enc in rtl/priority_enc.sv via io_list.\nSSOT item context: name=PSLVERR; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0046",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.PSLVERR",
+      "ssot_context": {
+        "direction": "output",
+        "name": "PSLVERR",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.PSLVERR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC1",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC1",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: index_out = bit position, valid_out = 1"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC1.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC1; name=Basic priority encode; expected=index_out = bit position, valid_out = 1.",
+      "evidence_terms": [],
+      "id": "RTL-0102",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC1",
+      "ssot_context": {
+        "expected": "index_out = bit position, valid_out = 1",
+        "id": "SC1",
+        "name": "Basic priority encode"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC2",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC2",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: index_out reflects highest-numbered asserted bit"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC2.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC2; name=Multiple inputs priority resolution; expected=index_out reflects highest-numbered asserted bit.",
+      "evidence_terms": [],
+      "id": "RTL-0103",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC2",
+      "ssot_context": {
+        "expected": "index_out reflects highest-numbered asserted bit",
+        "id": "SC2",
+        "name": "Multiple inputs priority resolution"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC3",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC3",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Masked bits ignored in index_out/valid_out computation"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC3.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC3; name=Mask functionality; expected=Masked bits ignored in index_out/valid_out computation.",
+      "evidence_terms": [],
+      "id": "RTL-0104",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC3",
+      "ssot_context": {
+        "expected": "Masked bits ignored in index_out/valid_out computation",
+        "id": "SC3",
+        "name": "Mask functionality"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC4",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC4",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: index_out=0, valid_out=0 regardless of inputs"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC4.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC4; name=Enable gating; expected=index_out=0, valid_out=0 regardless of inputs.",
+      "evidence_terms": [],
+      "id": "RTL-0105",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC4",
+      "ssot_context": {
+        "expected": "index_out=0, valid_out=0 regardless of inputs",
+        "id": "SC4",
+        "name": "Enable gating"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC4"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC5",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC5",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Register values match writes; STATUS reflects current core output"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC5.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC5; name=APB CSR read/write; expected=Register values match writes; STATUS reflects current core output.",
+      "evidence_terms": [],
+      "id": "RTL-0106",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC5",
+      "ssot_context": {
+        "expected": "Register values match writes; STATUS reflects current core output",
+        "id": "SC5",
+        "name": "APB CSR read/write"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC5"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC6",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC6",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: CTRL=0x1, MASK=0x0, STATUS=0x0, index_out=0, valid_out=0"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC6.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC6; name=Reset behavior; expected=CTRL=0x1, MASK=0x0, STATUS=0x0, index_out=0, valid_out=0.",
+      "evidence_terms": [],
+      "id": "RTL-0107",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC6",
+      "ssot_context": {
+        "expected": "CTRL=0x1, MASK=0x0, STATUS=0x0, index_out=0, valid_out=0",
+        "id": "SC6",
+        "name": "Reset behavior"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC6"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC7",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC7",
+        "Primary implementation evidence is in rtl/priority_enc.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: PSLVERR=1, PRDATA=0, no register state change"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC7.\nOwner: priority_enc in rtl/priority_enc.sv via test_requirements.\nSSOT item context: id=SC7; name=APB bad address; expected=PSLVERR=1, PRDATA=0, no register state change.",
+      "evidence_terms": [],
+      "id": "RTL-0108",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC7",
+      "ssot_context": {
+        "expected": "PSLVERR=1, PRDATA=0, no register state change",
+        "id": "SC7",
+        "name": "APB bad address"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC7"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/priority_enc.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "2b9a35fd3e966b1920ee4faef1bd87236f4b185ca6d2360d3f99daadce69230a",
+  "top": "priority_enc",
+  "type": "rtl_authoring_packet"
+}

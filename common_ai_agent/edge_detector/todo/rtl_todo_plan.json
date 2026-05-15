@@ -47,7 +47,7 @@
     "static_missing": 23,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T00:58:45Z",
+  "generated_at": "2026-05-15T01:19:47Z",
   "ip": "edge_detector",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 5,
@@ -1900,7 +1900,7 @@
           "rtl_todo_plan.json task criteria",
           "governance/authority.json"
         ],
-        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/functional_model.py, model/fl_model_check.json, model/model_signature.json, model/decomposition.json, cov/fcov_plan.json, verify/equivalence_goals.json",
+        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json",
         "required": true,
         "status": "open"
       }
@@ -7384,7 +7384,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/functional_model.py, model/fl_model_check.json, model/model_signature.json, model/decomposition.json, cov/fcov_plan.json, verify/equivalence_goals.json",
+        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json",
         "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
         "task_id": "RTL-0020"
       },

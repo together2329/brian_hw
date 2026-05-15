@@ -1,0 +1,340 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "missing"
+    },
+    "connection_contract_suggestions": {},
+    "owner": {
+      "file": "rtl/priority_enc.sv",
+      "name": "priority_enc",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/priority_enc_regs.sv",
+        "name": "priority_enc_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/priority_enc_core.sv",
+        "name": "priority_enc_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/priority_enc.sv",
+        "name": "priority_enc",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "PCLK"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PCLK",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PRESETn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PRESETn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "data_in",
+          "priority_inputs_data_in"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "data_in",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "N"
+      },
+      {
+        "aliases": [
+          "index_out",
+          "priority_outputs_index_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "index_out",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "INDEX_WIDTH"
+      },
+      {
+        "aliases": [
+          "priority_outputs_valid_out",
+          "valid_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "valid_out",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PADDR",
+          "apb_csr_PADDR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PADDR",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "12"
+      },
+      {
+        "aliases": [
+          "PSEL",
+          "apb_csr_PSEL"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSEL",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PENABLE",
+          "apb_csr_PENABLE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PENABLE",
+        "source_ref": "io_list.interfaces[2].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWRITE",
+          "apb_csr_PWRITE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWRITE",
+        "source_ref": "io_list.interfaces[2].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWDATA",
+          "apb_csr_PWDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWDATA",
+        "source_ref": "io_list.interfaces[2].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PRDATA",
+          "apb_csr_PRDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PRDATA",
+        "source_ref": "io_list.interfaces[2].ports[5]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PREADY",
+          "apb_csr_PREADY"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PREADY",
+        "source_ref": "io_list.interfaces[2].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PSLVERR",
+          "apb_csr_PSLVERR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PSLVERR",
+        "source_ref": "io_list.interfaces[2].ports[7]",
+        "width": "1"
+      }
+    ],
+    "target_scale": {
+      "basis": "Small peripheral IP: 3 RTL files, priority logic + APB regs",
+      "min_behavior_owner_logic_modules": 2,
+      "min_logic_modules": 2,
+      "min_modules": 3,
+      "min_procedural_blocks": 4,
+      "min_source_files": 3,
+      "min_state_updates": 4,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [
+      {
+        "gate_kind": "manifest_connection_contract_evidence",
+        "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+        "source": "ssot_connection_contracts",
+        "status": "missing"
+      },
+      {
+        "gate_kind": "manifest_connection_contract_evidence",
+        "owner_module": "priority_enc",
+        "reason": "1 SSOT connection contract issue(s) remain. connection: Production-profile multi-module RTL has no machine-readable SSOT connection contracts",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+        "status": "open",
+        "task_id": "RTL-0016"
+      }
+    ],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 1,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": false,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 2,
+    "integration_signoff_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 1,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": false
+  },
+  "ip": "priority_enc",
+  "kind": "gate",
+  "owner_file": "rtl/priority_enc.sv",
+  "owner_module": "priority_enc",
+  "packet_id": "rtl_gate_contract_blocked",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "rtl_gate.rtl_gen": 1
+    },
+    "module_slice": {},
+    "open_required_count": 1,
+    "required_count": 1,
+    "source_refs": [
+      "quality_gates.rtl_gen.manifest_connection_contract_evidence"
+    ],
+    "status_counts": {
+      "open": 1
+    },
+    "task_count": 1
+  },
+  "tasks": [
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: SSOT connection contracts match RTL child port maps",
+      "criteria": [
+        "Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections",
+        "Each SSOT connection contract resolves to a reachable manifest child module and port",
+        "RTL named port-map expressions match the SSOT-intended signal terms or carry an explicit SSOT waiver",
+        "Traceability keeps source_ref quality_gates.rtl_gen.manifest_connection_contract_evidence",
+        "Primary implementation evidence is in rtl/priority_enc.sv"
+      ],
+      "detail": "Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.\nSSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.\nOwner: priority_enc in rtl/priority_enc.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "manifest_connection_contract_evidence",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0016",
+      "owner_file": "rtl/priority_enc.sv",
+      "owner_module": "priority_enc",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.manifest_connection_contract_evidence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "1 SSOT connection contract issue(s) remain. connection: Production-profile multi-module RTL has no machine-readable SSOT connection contracts",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "2b9a35fd3e966b1920ee4faef1bd87236f4b185ca6d2360d3f99daadce69230a",
+  "top": "priority_enc",
+  "type": "rtl_authoring_packet"
+}

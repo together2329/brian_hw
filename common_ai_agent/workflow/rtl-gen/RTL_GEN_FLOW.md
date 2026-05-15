@@ -4,6 +4,11 @@ RTL generation is now SSOT/common-engine driven. The old `/new-ip-rtl` and
 `/legacy-ip-rtl` command entry points are removed because they bypassed the
 single source of truth and duplicated stage logic outside the common engine.
 
+The broader AI-driven IP development model is documented in
+[`doc/ai_driven_ip_development_guide.md`](../../doc/ai_driven_ip_development_guide.md).
+The approval policy behind `rtl_todo_plan.json` is documented in
+[`doc/golden_todo_evidence_flow.md`](../../doc/golden_todo_evidence_flow.md).
+
 ```mermaid
 flowchart TD
     A([Start]) --> B["Requirement approved"]

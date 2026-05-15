@@ -1,0 +1,683 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "fifo_sync",
+  "source": "fifo_sync/yaml/fifo_sync.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "fifo_sync/req/",
+      "fifo_sync/yaml/fifo_sync.ssot.yaml",
+      "fifo_sync/model/functional_model.py",
+      "fifo_sync/cov/fcov_plan.json",
+      "fifo_sync/yaml/fifo_sync.ssot.yaml#io_list",
+      "fifo_sync/yaml/fifo_sync.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "fifo_sync/rtl/",
+      "fifo_sync/tb/",
+      "fifo_sync/sim/",
+      "fifo_sync/vectors/",
+      "fifo_sync/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "SC1_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC1",
+      "description": "Push single entry"
+    },
+    {
+      "id": "SC2_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC2",
+      "description": "Pop single entry"
+    },
+    {
+      "id": "SC3_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC3",
+      "description": "Fill to full"
+    },
+    {
+      "id": "SC4_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC4",
+      "description": "Overflow rejection"
+    },
+    {
+      "id": "SC5_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC5",
+      "description": "Underflow rejection"
+    },
+    {
+      "id": "SC6_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC6",
+      "description": "Simultaneous push and pop"
+    },
+    {
+      "id": "SC7_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC7",
+      "description": "Simultaneous push and pop at boundary"
+    },
+    {
+      "id": "SC8_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC8",
+      "description": "Flush when partially full"
+    },
+    {
+      "id": "SC9_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[8]",
+      "scenario": "SC9",
+      "description": "Flush when full"
+    },
+    {
+      "id": "SC10_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[9]",
+      "scenario": "SC10",
+      "description": "Flush during simultaneous push/pop"
+    },
+    {
+      "id": "SC11_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[10]",
+      "scenario": "SC11",
+      "description": "Almost full threshold"
+    },
+    {
+      "id": "SC12_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[11]",
+      "scenario": "SC12",
+      "description": "Almost empty threshold"
+    },
+    {
+      "id": "SC13_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[12]",
+      "scenario": "SC13",
+      "description": "APB CSR read status"
+    },
+    {
+      "id": "SC14_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[13]",
+      "scenario": "SC14",
+      "description": "APB CSR write config"
+    },
+    {
+      "id": "SC15_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[14]",
+      "scenario": "SC15",
+      "description": "APB CSR flush"
+    },
+    {
+      "id": "SC16_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[15]",
+      "scenario": "SC16",
+      "description": "APB error response"
+    },
+    {
+      "id": "SC17_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[16]",
+      "scenario": "SC17",
+      "description": "Wrap-around pointer"
+    },
+    {
+      "id": "SC18_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[17]",
+      "scenario": "SC18",
+      "description": "Output register mode"
+    },
+    {
+      "id": "SC19_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[18]",
+      "scenario": "SC19",
+      "description": "Reset behavior"
+    },
+    {
+      "id": "SC20_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[19]",
+      "scenario": "SC20",
+      "description": "Reset deassertion"
+    },
+    {
+      "id": "fcov_fm1_push",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM1",
+      "source_ref": "function_model.transactions.FM1",
+      "description": "Legal push (FM1) observed by scoreboard with correct output_rules"
+    },
+    {
+      "id": "fcov_fm2_pop",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM2",
+      "source_ref": "function_model.transactions.FM2",
+      "description": "Legal pop (FM2) observed by scoreboard with correct rd_data_o"
+    },
+    {
+      "id": "fcov_fm3_simul",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM3",
+      "source_ref": "function_model.transactions.FM3",
+      "description": "Simultaneous push/pop (FM3) with count unchanged"
+    },
+    {
+      "id": "fcov_fm4_overflow",
+      "class": "error_case",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM4",
+      "source_ref": "function_model.transactions.FM4",
+      "description": "Overflow rejection (FM4) observed"
+    },
+    {
+      "id": "fcov_fm5_underflow",
+      "class": "error_case",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM5",
+      "source_ref": "function_model.transactions.FM5",
+      "description": "Underflow rejection (FM5) observed"
+    },
+    {
+      "id": "fcov_fm6_flush",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM6",
+      "source_ref": "function_model.transactions.FM6",
+      "description": "Flush (FM6) clears all state"
+    },
+    {
+      "id": "ccov_push_1cycle",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.push_accept",
+      "source_ref": "cycle_model.latency.push_accept",
+      "description": "Push acceptance completes in exactly 1 cycle"
+    },
+    {
+      "id": "ccov_pop_comb",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.pop_combinational",
+      "source_ref": "cycle_model.latency.pop_combinational",
+      "description": "Combinational pop read (USE_OUTPUT_REGISTER=0) observed"
+    },
+    {
+      "id": "ccov_pop_reg",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.pop_registered",
+      "source_ref": "cycle_model.latency.pop_registered",
+      "description": "Registered pop read (USE_OUTPUT_REGISTER=1) observed"
+    },
+    {
+      "id": "ccov_flush_1cycle",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.flush",
+      "source_ref": "cycle_model.latency.flush",
+      "description": "Flush completes in exactly 1 cycle"
+    },
+    {
+      "id": "ccov_csr_0wait",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_read",
+      "source_ref": "cycle_model.latency.register_read",
+      "description": "APB CSR read with 0 wait states observed"
+    },
+    {
+      "id": "ccov_simul_same_cycle",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline",
+      "source_ref": "cycle_model.pipeline",
+      "description": "Simultaneous push/pop completes in same cycle"
+    },
+    {
+      "id": "ccov_flush_priority",
+      "class": "handshake",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules.flush_i",
+      "source_ref": "cycle_model.handshake_rules.flush_i",
+      "description": "Flush priority over concurrent push/pop observed"
+    },
+    {
+      "id": "ccov_ptr_wrap",
+      "class": "boundary",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.S2_UPDATE_PTRS",
+      "source_ref": "cycle_model.pipeline.S2_UPDATE_PTRS",
+      "description": "Pointer wrap-around observed at S2_UPDATE_PTRS stage (wr_ptr and rd_ptr)"
+    },
+    {
+      "id": "function_push",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm1",
+      "description": "push"
+    },
+    {
+      "id": "function_pop",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[1]",
+      "source_ref": "function_model.transactions.fm2",
+      "description": "pop"
+    },
+    {
+      "id": "function_simultaneous_push_pop",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[2]",
+      "source_ref": "function_model.transactions.fm3",
+      "description": "simultaneous_push_pop"
+    },
+    {
+      "id": "function_overflow_reject",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[3]",
+      "source_ref": "function_model.transactions.fm4",
+      "description": "overflow_reject"
+    },
+    {
+      "id": "function_underflow_reject",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[4]",
+      "source_ref": "function_model.transactions.fm5",
+      "description": "underflow_reject"
+    },
+    {
+      "id": "function_flush",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[5]",
+      "source_ref": "function_model.transactions.fm6",
+      "description": "flush"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'signal': 'wr_en_i', 'rule': 'Sampled on rising PCLK; data accepted only when full_o=0. Full flag gates write acceptance.'}"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "{'signal': 'rd_en_i', 'rule': 'Sampled on rising PCLK; data consumed only when empty_o=0. Empty flag gates read acceptance.'}"
+    },
+    {
+      "id": "cycle_handshake_2",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[2]",
+      "source_ref": "cycle_model.handshake_rules[2]",
+      "description": "{'signal': 'full_o', 'rule': 'Combinational function of count and push/pop acceptance in the current cycle. Updates after each clock edge.'}"
+    },
+    {
+      "id": "cycle_handshake_3",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[3]",
+      "source_ref": "cycle_model.handshake_rules[3]",
+      "description": "{'signal': 'empty_o', 'rule': 'Combinational function of count and push/pop acceptance in the current cycle. Updates after each clock edge.'}"
+    },
+    {
+      "id": "cycle_handshake_4",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[4]",
+      "source_ref": "cycle_model.handshake_rules[4]",
+      "description": "{'signal': 'flush_i', 'rule': 'Synchronous; takes precedence over push/pop. Clears all pointers and count on the rising edge.'}"
+    },
+    {
+      "id": "cycle_latency_push_accept",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.push_accept",
+      "source_ref": "cycle_model.latency.push_accept",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'Data written on the rising edge when wr_en_i && !full_o; flags update on the same edge.'}"
+    },
+    {
+      "id": "cycle_latency_pop_combinational",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.pop_combinational",
+      "source_ref": "cycle_model.latency.pop_combinational",
+      "description": "{'min_cycles': 0, 'max_cycles': 0, 'description': 'When USE_OUTPUT_REGISTER=0, rd_data_o is combinational from mem[rd_ptr]; flags update 1 cycle after rd_en_i acceptance.'}"
+    },
+    {
+      "id": "cycle_latency_pop_registered",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.pop_registered",
+      "source_ref": "cycle_model.latency.pop_registered",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'When USE_OUTPUT_REGISTER=1, rd_data_o appears 1 cycle after rd_en_i acceptance; flags update on the acceptance edge.'}"
+    },
+    {
+      "id": "cycle_latency_flush",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.flush",
+      "source_ref": "cycle_model.latency.flush",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'All pointers and count cleared on the rising edge when flush_i=1; flags update on the same edge.'}"
+    },
+    {
+      "id": "cycle_latency_register_read",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_read",
+      "source_ref": "cycle_model.latency.register_read",
+      "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR read: pready always 1 (0 wait states).'}"
+    },
+    {
+      "id": "cycle_latency_register_write",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_write",
+      "source_ref": "cycle_model.latency.register_write",
+      "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'APB CSR write: pready always 1 (0 wait states).'}"
+    },
+    {
+      "id": "cycle_pipeline_s0_sample_inputs",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "Sample wr_en_i, rd_en_i, flush_i, wr_data_i on rising PCLK edge"
+    },
+    {
+      "id": "cycle_pipeline_s1_eval_accept",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "Combinational: determine push_accepted = wr_en_i && !full_o && !flush_i; pop_accepted = rd_en_i && !empty_o && !flush_i"
+    },
+    {
+      "id": "cycle_pipeline_s2_update_ptrs",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[2]",
+      "source_ref": "cycle_model.pipeline[2]",
+      "description": "Update wr_ptr, rd_ptr, count registers based on push/pop acceptance"
+    },
+    {
+      "id": "cycle_pipeline_s3_write_mem",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[3]",
+      "source_ref": "cycle_model.pipeline[3]",
+      "description": "Write wr_data_i to mem[wr_ptr] when push_accepted"
+    },
+    {
+      "id": "cycle_pipeline_s4_update_flags",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[4]",
+      "source_ref": "cycle_model.pipeline[4]",
+      "description": "Flags (full, empty, almost_full, almost_empty, count) reflect new pointer state"
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "Push data is captured into memory in the same cycle as pointer update."
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[1]",
+      "source_ref": "cycle_model.ordering[1]",
+      "description": "Pop data is available combinationally from memory (USE_OUTPUT_REGISTER=0) or one cycle later (USE_OUTPUT_REGISTER=1)."
+    },
+    {
+      "id": "cycle_ordering_2",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[2]",
+      "source_ref": "cycle_model.ordering[2]",
+      "description": "Flush clears all state in the cycle it is sampled; concurrent push/pop are ignored."
+    },
+    {
+      "id": "cycle_ordering_3",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[3]",
+      "source_ref": "cycle_model.ordering[3]",
+      "description": "Flag updates are visible on the cycle after pointer/count changes."
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "full_o provides natural backpressure to the writer; the writer must deassert wr_en_i or accept rejection."
+    },
+    {
+      "id": "cycle_backpressure_1",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[1]",
+      "source_ref": "cycle_model.backpressure[1]",
+      "description": "empty_o provides natural backpressure to the reader; the reader must deassert rd_en_i or accept undefined data."
+    },
+    {
+      "id": "cycle_perf_outstanding",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.outstanding",
+      "source_ref": "cycle_model.performance.outstanding",
+      "description": "{'read_max': 1, 'write_max': 1, 'description': 'Single-port push and single-port pop per cycle'}"
+    },
+    {
+      "id": "cycle_perf_depth",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.depth",
+      "source_ref": "cycle_model.performance.depth",
+      "description": "{'pipeline_stages': 1, 'queue_depth': 'DEPTH parameter', 'description': 'Single pipeline stage; storage depth equals DEPTH parameter'}"
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "50"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'sustained_ops_per_cycle': 1, 'condition': 'At least one of push or pop accepted per cycle; simultaneous push/pop sustains 2 ops/cycle'}"
+    },
+    {
+      "id": "fsm_ptr_fsm_empty_to_normal_0",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.ptr_fsm.transitions[0]",
+      "source_ref": "fsm.ptr_fsm.transitions[0]",
+      "description": "push_accepted && count becomes > ALMOST_EMPTY_THRESHOLD"
+    },
+    {
+      "id": "fsm_ptr_fsm_empty_to_almost_empty_1",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.ptr_fsm.transitions[1]",
+      "source_ref": "fsm.ptr_fsm.transitions[1]",
+      "description": "push_accepted && count becomes <= ALMOST_EMPTY_THRESHOLD && count > 0"
+    },
+    {
+      "id": "fsm_ptr_fsm_almost_empty_to_empty_2",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.ptr_fsm.transitions[2]",
+      "source_ref": "fsm.ptr_fsm.transitions[2]",
+      "description": "pop_accepted && count becomes 0"
+    },
+    {
+      "id": "fsm_ptr_fsm_almost_empty_to_normal_3",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.ptr_fsm.transitions[3]",
+      "source_ref": "fsm.ptr_fsm.transitions[3]",
+      "description": "push_accepted && count > ALMOST_EMPTY_THRESHOLD"
+    },
+    {
+      "id": "fsm_ptr_fsm_normal_to_almost_full_4",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.ptr_fsm.transitions[4]",
+      "source_ref": "fsm.ptr_fsm.transitions[4]",
+      "description": "push_accepted && count >= ALMOST_FULL_THRESHOLD"
+    },
+    {
+      "id": "fsm_ptr_fsm_normal_to_almost_empty_5",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.ptr_fsm.transitions[5]",
+      "source_ref": "fsm.ptr_fsm.transitions[5]",
+      "description": "pop_accepted && count <= ALMOST_EMPTY_THRESHOLD"
+    },
+    {
+      "id": "fsm_ptr_fsm_almost_full_to_full_6",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.ptr_fsm.transitions[6]",
+      "source_ref": "fsm.ptr_fsm.transitions[6]",
+      "description": "push_accepted && count == DEPTH"
+    },
+    {
+      "id": "fsm_ptr_fsm_almost_full_to_normal_7",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.ptr_fsm.transitions[7]",
+      "source_ref": "fsm.ptr_fsm.transitions[7]",
+      "description": "pop_accepted && count < ALMOST_FULL_THRESHOLD"
+    },
+    {
+      "id": "fsm_ptr_fsm_full_to_almost_full_8",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.ptr_fsm.transitions[8]",
+      "source_ref": "fsm.ptr_fsm.transitions[8]",
+      "description": "pop_accepted && count == DEPTH-1"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_OVERFLOW', 'condition': 'wr_en_i=1 while full_o=1', 'architectural_effect': 'Write rejected silently; no state change', 'propagation': 'full_o remains 1; no error flag or interrupt'}"
+    },
+    {
+      "id": "error_error_1",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[1]",
+      "source_ref": "error_handling.error_sources[1]",
+      "description": "{'id': 'ERR_UNDERFLOW', 'condition': 'rd_en_i=1 while empty_o=1', 'architectural_effect': 'Read rejected silently; rd_data_o holds previous value (undefined)', 'propagation': 'empty_o remains 1; no error flag or interrupt'}"
+    },
+    {
+      "id": "error_error_2",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[2]",
+      "source_ref": "error_handling.error_sources[2]",
+      "description": "{'id': 'ERR_APB_UNSUPPORTED', 'condition': 'APB access to unmapped offset', 'architectural_effect': 'pslverr=1, prdata=0', 'propagation': 'Single-cycle error response on APB'}"
+    }
+  ],
+  "summary": {
+    "total_bins": 78,
+    "scenario_bins": 20,
+    "transaction_bins": 6,
+    "protocol_bins": 5,
+    "state_transition_bins": 9,
+    "error_bins": 3
+  }
+}

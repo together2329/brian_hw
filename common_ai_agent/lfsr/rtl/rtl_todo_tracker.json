@@ -1,0 +1,1014 @@
+{
+  "name": "lfsr-rtl",
+  "description": "Auto-generated flat TodoTracker list from SSOT RTL plan for lfsr. Each TodoTracker item maps one-to-one to a task in rtl_todo_plan.json so the existing flat TodoTracker can execute ledger items one at a time.",
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "source_task_count": 124,
+  "status_counts": {
+    "pending": 124
+  },
+  "ui_grouping": {
+    "strategy": "flat_ledger_one_todo_per_rtl_task",
+    "target_min": 124,
+    "target_max": 124,
+    "actual_count": 124,
+    "status_counts": {
+      "pending": 124
+    },
+    "detail_policy": "Each TodoTracker item preserves one rtl_todo_plan.json ledger task with source_ref, owner, criteria, and current audit status."
+  },
+  "lock_additions": false,
+  "tasks": [
+    {
+      "content": "RTL-0001: Read SSOT and build dynamic RTL implementation ledger",
+      "activeForm": "RTL-0001: Read SSOT and build dynamic RTL implementation ledger",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0001\nCategory: rtl_flow.seed\nSource ref: top_module\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nUse rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.\nSSOT ref: top_module.\nOwner: lfsr in rtl/lfsr.sv via top_module.\n\nCurrent audit reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "rtl_todo_plan.json was regenerated from the current SSOT\nEvery required task in the plan is either implemented, evidenced, or escalated\nNo IP-specific fixed template is used as the source of truth\nTraceability keeps source_ref top_module\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0001 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref top_module\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0002: Implement top-level ports, reset, and filelist integration",
+      "activeForm": "RTL-0002: Implement top-level ports, reset, and filelist integration",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0002\nCategory: rtl_flow.top\nSource ref: io_list\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThe top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.\nSSOT ref: io_list.\nOwner: lfsr in rtl/lfsr.sv via top_module.\nSSOT item context: value=lfsr.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Top module name matches SSOT top_module\nEvery SSOT top-level port appears with matching direction and width\nFilelist contains all LLM-authored RTL sources and no stale sources\nTraceability keeps source_ref io_list\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0002 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref io_list\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0003: Gate: SSOT function_model and cycle_model are present before RTL generation",
+      "activeForm": "RTL-0003: Gate: SSOT function_model and cycle_model are present before RTL generation",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0003\nCategory: rtl_gate.rtl_gen\nSource ref: quality_gates.rtl_gen.ssot_required_sections\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nrtl-gen cannot implement production RTL until the SSOT contains both the functional golden behavior and the cycle/handshake contract.\nSSOT ref: quality_gates.rtl_gen.ssot_required_sections.\nOwner: lfsr in rtl/lfsr.sv via top_module.\n\nCurrent audit reason: SSOT function_model and cycle_model authority is present.\n\nEvidence basis:\n- rtl_todo_plan.json gate_todo.kind\n- rtl_todo_plan.json task criteria\n- yaml/<ip>.ssot.yaml",
+      "criteria": "function_model is present and non-empty in the SSOT\ncycle_model is present and non-empty in the SSOT\nMissing authority artifacts open a human/ssot-gen gate instead of being bypassed in RTL\nTraceability keeps source_ref quality_gates.rtl_gen.ssot_required_sections\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0003 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref quality_gates.rtl_gen.ssot_required_sections\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "critical"
+    },
+    {
+      "content": "RTL-0004: Gate: SSOT-authored rtl-gen workflow TODOs are well formed",
+      "activeForm": "RTL-0004: Gate: SSOT-authored rtl-gen workflow TODOs are well formed",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0004\nCategory: rtl_gate.rtl_gen\nSource ref: quality_gates.rtl_gen.workflow_todo_contract\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nEvery SSOT workflow_todos.rtl-gen item must be executable by rtl-gen and therefore must carry content, detail, and criteria.\nSSOT ref: quality_gates.rtl_gen.workflow_todo_contract.\nOwner: lfsr in rtl/lfsr.sv via top_module.\n\nCurrent audit reason: SSOT-authored rtl-gen workflow TODOs are well formed.\n\nEvidence basis:\n- rtl_todo_plan.json gate_todo.kind\n- rtl_todo_plan.json task criteria\n- rtl/rtl_todo_plan.json",
+      "criteria": "Every workflow_todos.rtl-gen item has content\nEvery workflow_todos.rtl-gen item has detail\nEvery workflow_todos.rtl-gen item has at least one criteria entry\nTraceability keeps source_ref quality_gates.rtl_gen.workflow_todo_contract\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0004 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref quality_gates.rtl_gen.workflow_todo_contract\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "critical"
+    },
+    {
+      "content": "RTL-0005: Gate: every SSOT-derived RTL behavior has an owner module",
+      "activeForm": "RTL-0005: Gate: every SSOT-derived RTL behavior has an owner module",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0005\nCategory: rtl_gate.rtl_gen\nSource ref: quality_gates.rtl_gen.owner_traceability\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nFunction-level, cycle-level, register, dataflow, and FSM behavior must map to an RTL owner module before approval.\nSSOT ref: quality_gates.rtl_gen.owner_traceability.\nOwner: lfsr in rtl/lfsr.sv via top_module.\n\nCurrent audit reason: Every required SSOT-derived RTL behavior has an owner module.\n\nEvidence basis:\n- rtl_todo_plan.json gate_todo.kind\n- rtl_todo_plan.json task criteria\n- rtl/rtl_todo_plan.json",
+      "criteria": "No required function_model task is orphaned\nNo required cycle_model task is orphaned\nNo required register/dataflow/FSM task is orphaned\nOwner module and owner file are recorded in rtl_todo_plan.json\nTraceability keeps source_ref quality_gates.rtl_gen.owner_traceability\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0005 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref quality_gates.rtl_gen.owner_traceability\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "critical"
+    },
+    {
+      "content": "RTL-0006: Gate: RTL is authored by common_ai_agent rtl-gen, not by direct operator edits",
+      "activeForm": "RTL-0006: Gate: RTL is authored by common_ai_agent rtl-gen, not by direct operator edits",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0006\nCategory: rtl_gate.rtl_gen\nSource ref: quality_gates.rtl_gen.common_ai_agent_authoring\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nRTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.\nSSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.\nOwner: lfsr in rtl/lfsr.sv via top_module.\n\nCurrent audit reason: Missing common_ai_agent RTL authoring provenance.\n\nEvidence basis:\n- rtl_todo_plan.json gate_todo.kind\n- rtl_todo_plan.json task criteria\n- rtl/rtl_authoring_provenance.json",
+      "criteria": "rtl/rtl_authoring_provenance.json exists\nprovenance agent is common_ai_agent\nprovenance workflow is rtl-gen\nprovenance surface is atlas_ui, textual_ui, or headless_common_engine\nprovenance todo_plan_sha256 matches the current rtl_todo_plan.json\nprovenance rtl_files lists every SSOT manifest RTL file\nprovenance rtl_files covers the current DUT filelist sources\nTraceability keeps source_ref quality_gates.rtl_gen.common_ai_agent_authoring\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0006 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref quality_gates.rtl_gen.common_ai_agent_authoring\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "critical"
+    },
+    {
+      "content": "RTL-0007: Gate: required SSOT behavior has static DUT RTL evidence after audit",
+      "activeForm": "RTL-0007: Gate: required SSOT behavior has static DUT RTL evidence after audit",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0007\nCategory: rtl_gate.rtl_gen\nSource ref: quality_gates.rtl_gen.static_rtl_evidence\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nAfter RTL exists, derive_rtl_todos.py --audit-rtl must find concrete DUT source terms for every static-evidence-required task.\nSSOT ref: quality_gates.rtl_gen.static_rtl_evidence.\nOwner: lfsr in rtl/lfsr.sv via top_module.\n\nCurrent audit reason: 33 static-evidence-required task(s) still lack DUT RTL evidence.\n\nEvidence basis:\n- rtl_todo_plan.json gate_todo.kind\n- rtl_todo_plan.json task criteria\n- rtl/rtl_todo_plan.json",
+      "criteria": "derive_rtl_todos.py --audit-rtl ran after the final RTL edit\nrtl_todo_plan.json static_rtl_evidence.missing is zero\nRich SSOT-derived tasks match multiple owner-file RTL evidence terms, not a single incidental token\nNo task requiring DUT evidence is satisfied only by comments, TB, scoreboard, or FunctionalModel code\nTraceability keeps source_ref quality_gates.rtl_gen.static_rtl_evidence\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0007 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref quality_gates.rtl_gen.static_rtl_evidence\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "critical"
+    },
+    {
+      "content": "RTL-0008: Gate: behavior-owner RTL modules contain real implementation structure",
+      "activeForm": "RTL-0008: Gate: behavior-owner RTL modules contain real implementation structure",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0008\nCategory: rtl_gate.rtl_gen\nSource ref: quality_gates.rtl_gen.owner_logic_structure_evidence\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nStatic token evidence is not enough. Each SSOT behavior-owner RTL module must contain real assign/procedural/state structure appropriate for its owned function_model, cycle_model, register, memory, or FSM contract.\nSSOT ref: quality_gates.rtl_gen.owner_logic_structure_evidence.\nOwner: lfsr in rtl/lfsr.sv via top_module.\n\nCurrent audit reason: 1 owner logic structure issue(s) remain. lfsr: Behavior-owner module is not declared in its owner file\n\nEvidence basis:\n- rtl_todo_plan.json gate_todo.kind\n- rtl_todo_plan.json task criteria\n- rtl/rtl_todo_plan.json",
+      "criteria": "Every active behavior-owner module is declared in its owner file\nBehavior-owner modules contain non-placeholder assign/procedural implementation logic\nState/register/memory/FSM owners contain sequential or storage-update evidence, not only token mentions\nTraceability keeps source_ref quality_gates.rtl_gen.owner_logic_structure_evidence\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0008 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref quality_gates.rtl_gen.owner_logic_structure_evidence\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "critical"
+    },
+    {
+      "content": "RTL-0009: Gate: RTL sources contain no placeholder markers or disallowed generated-RTL constructs",
+      "activeForm": "RTL-0009: Gate: RTL sources contain no placeholder markers or disallowed generated-RTL constructs",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0009\nCategory: rtl_gate.rtl_gen\nSource ref: quality_gates.rtl_gen.rtl_placeholder_free_evidence\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nProduction RTL cannot carry TODO/TBD/FIXME/stub/dummy/not-implemented markers in source code or comments. Generated RTL uses the project SystemVerilog subset: ANSI ports default to input/output logic, with no package/import/interface/modport, no function/task, no for/while, and no typedef/enum/always_ff/always_comb. If behavior is intentionally reserved, it must be expressed in the SSOT as a waiver or explicit tieoff/unused contract.\nSSOT ref: quality_gates.rtl_gen.rtl_placeholder_free_evidence.\nOwner: lfsr in rtl/lfsr.sv via top_module.\n\nCurrent audit reason: 1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)\n\nEvidence basis:\n- rtl_todo_plan.json gate_todo.kind\n- rtl_todo_plan.json task criteria\n- rtl/rtl_todo_plan.json",
+      "criteria": "Listed RTL source files contain no TODO/TBD/FIXME/HACK markers\nListed RTL source files contain no placeholder/stub/dummy/not-implemented implementation text\nListed RTL source files and rtl/<ip>_param.vh contain no banned package/function/task/loop constructs\nDefault generated RTL uses input/output logic ports and portable always @ syntax\nFSMs use the conventional explicit style by default, unless SSOT/user specifies another synthesizable style\nIntentional reserved behavior is represented in SSOT contracts instead of RTL placeholder comments\nTraceability keeps source_ref quality_gates.rtl_gen.rtl_placeholder_free_evidence\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0009 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref quality_gates.rtl_gen.rtl_placeholder_free_evidence\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "critical"
+    },
+    {
+      "content": "RTL-0010: Gate: SSOT top IO contracts match the RTL top module",
+      "activeForm": "RTL-0010: Gate: SSOT top IO contracts match the RTL top module",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0010\nCategory: rtl_gate.rtl_gen\nSource ref: quality_gates.rtl_gen.top_io_contract_evidence\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThe top wrapper must expose the SSOT-declared clock/reset and explicit IO ports. A compiling top with missing, renamed, or wrong-direction ports cannot close RTL generation.\nSSOT ref: quality_gates.rtl_gen.top_io_contract_evidence.\nOwner: lfsr in rtl/lfsr.sv via top_module.\n\nCurrent audit reason: 1 top IO contract issue(s) remain. lfsr: SSOT top module is not declared in listed RTL sources\n\nEvidence basis:\n- rtl_todo_plan.json gate_todo.kind\n- rtl_todo_plan.json task criteria\n- rtl/rtl_todo_plan.json",
+      "criteria": "SSOT clock/reset names are declared on the RTL top module\nExplicit io_list ports/signals are declared on the RTL top module\nKnown SSOT directions and simple widths match RTL declarations\nTraceability keeps source_ref quality_gates.rtl_gen.top_io_contract_evidence\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0010 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref quality_gates.rtl_gen.top_io_contract_evidence\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "critical"
+    },
+    {
+      "content": "RTL-0011: Gate: SSOT top outputs are driven by real RTL logic",
+      "activeForm": "RTL-0011: Gate: SSOT top outputs are driven by real RTL logic",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0011\nCategory: rtl_gate.rtl_gen\nSource ref: quality_gates.rtl_gen.top_output_drive_evidence\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nDeclaring output ports is not enough. Each SSOT-declared top output must be driven by nonconstant RTL logic, a procedural assignment, or a declared child-module output connection. Constant tieoffs require an explicit SSOT constant/tieoff allowance.\nSSOT ref: quality_gates.rtl_gen.top_output_drive_evidence.\nOwner: lfsr in rtl/lfsr.sv via top_module.\n\nCurrent audit reason: 1 top output drive issue(s) remain. lfsr: SSOT top module is not declared, so output drive evidence cannot be checked\n\nEvidence basis:\n- rtl_todo_plan.json gate_todo.kind\n- rtl_todo_plan.json task criteria\n- rtl/rtl_todo_plan.json",
+      "criteria": "Every SSOT output/inout top contract has drive evidence in the RTL top\nNon-waived output constants are rejected as placeholder tieoffs\nChild-instance drive evidence uses a declared child output/inout port, not an unknown direction\nTraceability keeps source_ref quality_gates.rtl_gen.top_output_drive_evidence\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0011 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref quality_gates.rtl_gen.top_output_drive_evidence\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "critical"
+    },
+    {
+      "content": "RTL-0012: Gate: SSOT top inputs are consumed by RTL logic or child inputs",
+      "activeForm": "RTL-0012: Gate: SSOT top inputs are consumed by RTL logic or child inputs",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0012\nCategory: rtl_gate.rtl_gen\nSource ref: quality_gates.rtl_gen.top_input_consumption_evidence\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nDeclaring input ports is not enough. Each SSOT-declared non-clock/reset top input must feed real RTL logic, a procedural/control expression, or a declared child-module input/inout connection. Unused inputs require an explicit SSOT unused/reserved allowance.\nSSOT ref: quality_gates.rtl_gen.top_input_consumption_evidence.\nOwner: lfsr in rtl/lfsr.sv via top_module.\n\nCurrent audit reason: 1 top input consumption issue(s) remain. lfsr: SSOT top module is not declared, so input consumption evidence cannot be checked\n\nEvidence basis:\n- rtl_todo_plan.json gate_todo.kind\n- rtl_todo_plan.json task criteria\n- rtl/rtl_todo_plan.json",
+      "criteria": "Every non-clock/reset SSOT input/inout top contract has consumption evidence in the RTL top\nChild-instance consumption evidence uses a declared child input/inout port, not an unknown direction\nUnused or reserved inputs are accepted only when explicitly waived by SSOT\nTraceability keeps source_ref quality_gates.rtl_gen.top_input_consumption_evidence\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0012 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref quality_gates.rtl_gen.top_input_consumption_evidence\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "critical"
+    },
+    {
+      "content": "RTL-0013: Gate: manifest-owned RTL modules are integrated into the top hierarchy",
+      "activeForm": "RTL-0013: Gate: manifest-owned RTL modules are integrated into the top hierarchy",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0013\nCategory: rtl_gate.rtl_gen\nSource ref: quality_gates.rtl_gen.manifest_hierarchy_integration\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nFile existence is not enough for general IP RTL. Every SSOT manifest-owned non-top RTL module must be declared and reachable from the SSOT top through real module instantiation.\nSSOT ref: quality_gates.rtl_gen.manifest_hierarchy_integration.\nOwner: lfsr in rtl/lfsr.sv via top_module.\n\nCurrent audit reason: 1 manifest hierarchy integration issue(s) remain. lfsr: SSOT top module is not declared in listed RTL sources\n\nEvidence basis:\n- rtl_todo_plan.json gate_todo.kind\n- rtl_todo_plan.json task criteria\n- rtl/rtl_todo_plan.json",
+      "criteria": "Every manifest-owned non-top submodule is declared in listed DUT RTL sources\nEach child module is reachable from the SSOT top module through SystemVerilog instantiation\nA disconnected child file or flattened top cannot close the manifest hierarchy gate\nTraceability keeps source_ref quality_gates.rtl_gen.manifest_hierarchy_integration\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0013 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref quality_gates.rtl_gen.manifest_hierarchy_integration\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "critical"
+    },
+    {
+      "content": "RTL-0014: Gate: manifest-owned child instances have machine-checkable port connections",
+      "activeForm": "RTL-0014: Gate: manifest-owned child instances have machine-checkable port connections",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0014\nCategory: rtl_gate.rtl_gen\nSource ref: quality_gates.rtl_gen.manifest_port_connection_evidence\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nReachability alone is not enough. Every reachable SSOT manifest-owned child module with declared ports must be instantiated with named, non-empty port connections so ATLAS can audit wrapper wiring for general IPs.\nSSOT ref: quality_gates.rtl_gen.manifest_port_connection_evidence.\nOwner: lfsr in rtl/lfsr.sv via top_module.\n\nCurrent audit reason: Every reachable manifest child instance has named, non-empty port connections.\n\nEvidence basis:\n- rtl_todo_plan.json gate_todo.kind\n- rtl_todo_plan.json task criteria\n- rtl/rtl_todo_plan.json",
+      "criteria": "Each reachable manifest child instance uses named port mapping\nEvery declared child port is connected by name on at least one reachable instance\nNo child port connection is empty unless represented by an explicit SSOT waiver\nTraceability keeps source_ref quality_gates.rtl_gen.manifest_port_connection_evidence\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0014 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref quality_gates.rtl_gen.manifest_port_connection_evidence\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "critical"
+    },
+    {
+      "content": "RTL-0015: Gate: manifest child port connections carry live RTL signal flow",
+      "activeForm": "RTL-0015: Gate: manifest child port connections carry live RTL signal flow",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0015\nCategory: rtl_gate.rtl_gen\nSource ref: quality_gates.rtl_gen.manifest_signal_flow_evidence\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nNamed port maps prove that ports are connected, but not that the connected signals are useful. Child inputs must not be placeholder constants unless SSOT explicitly allows the tieoff, and child outputs must feed a top output, parent logic, or another declared child input/inout.\nSSOT ref: quality_gates.rtl_gen.manifest_signal_flow_evidence.\nOwner: lfsr in rtl/lfsr.sv via top_module.\n\nCurrent audit reason: Manifest child port maps carry live non-placeholder RTL signal flow.\n\nEvidence basis:\n- rtl_todo_plan.json gate_todo.kind\n- rtl_todo_plan.json task criteria\n- rtl/rtl_todo_plan.json",
+      "criteria": "Reachable manifest child input/inout ports are not tied to constants without an SSOT connection/tieoff allowance\nReachable manifest child output/inout ports are consumed by top outputs, parent RTL logic, or declared child inputs/inouts\nNamed port-map entries reference ports declared by the child module\nTraceability keeps source_ref quality_gates.rtl_gen.manifest_signal_flow_evidence\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0015 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref quality_gates.rtl_gen.manifest_signal_flow_evidence\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "critical"
+    },
+    {
+      "content": "RTL-0016: Gate: SSOT connection contracts match RTL child port maps",
+      "activeForm": "RTL-0016: Gate: SSOT connection contracts match RTL child port maps",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0016\nCategory: rtl_gate.rtl_gen\nSource ref: quality_gates.rtl_gen.manifest_connection_contract_evidence\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nNamed port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.\nSSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.\nOwner: lfsr in rtl/lfsr.sv via top_module.\n\nCurrent audit reason: 1 SSOT connection contract issue(s) remain. lfsr_regs: SSOT connection contract targets a module not declared in RTL\n\nEvidence basis:\n- rtl_todo_plan.json gate_todo.kind\n- rtl_todo_plan.json task criteria\n- rtl/rtl_todo_plan.json",
+      "criteria": "Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections\nEach SSOT connection contract resolves to a reachable manifest child module and port\nRTL named port-map expressions match the SSOT-intended signal terms or carry an explicit SSOT waiver\nTraceability keeps source_ref quality_gates.rtl_gen.manifest_connection_contract_evidence\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0016 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref quality_gates.rtl_gen.manifest_connection_contract_evidence\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "critical"
+    },
+    {
+      "content": "RTL-0017: Gate: DUT-only RTL compile report passes after the final RTL edit",
+      "activeForm": "RTL-0017: Gate: DUT-only RTL compile report passes after the final RTL edit",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0017\nCategory: rtl_gate.rtl_gen\nSource ref: quality_gates.rtl_gen.dut_compile\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nCompile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.\nSSOT ref: quality_gates.rtl_gen.dut_compile.\nOwner: lfsr in rtl/lfsr.sv via top_module.\n\nCurrent audit reason: Missing canonical DUT compile artifact: rtl/rtl_compile.json.\n\nEvidence basis:\n- rtl_todo_plan.json gate_todo.kind\n- rtl_todo_plan.json task criteria\n- rtl/rtl_compile.json",
+      "criteria": "rtl/rtl_compile.json exists\nrtl_compile.json reports dut_only=true\nrtl_compile.json passed=true with zero errors, diagnostics, and style violations\nrtl_compile.json is newer than or equal to every listed DUT RTL source\nrtl_compile.json rtl_files covers the current DUT filelist Verilog/SystemVerilog sources\nTraceability keeps source_ref quality_gates.rtl_gen.dut_compile\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0017 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref quality_gates.rtl_gen.dut_compile\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "critical"
+    },
+    {
+      "content": "RTL-0018: Gate: DUT-only lint report passes after the final RTL edit",
+      "activeForm": "RTL-0018: Gate: DUT-only lint report passes after the final RTL edit",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0018\nCategory: rtl_gate.rtl_gen\nSource ref: quality_gates.rtl_gen.dut_lint\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nLint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.\nSSOT ref: quality_gates.rtl_gen.dut_lint.\nOwner: lfsr in rtl/lfsr.sv via top_module.\n\nCurrent audit reason: Missing canonical DUT lint artifact: lint/dut_lint.json.\n\nEvidence basis:\n- rtl_todo_plan.json gate_todo.kind\n- rtl_todo_plan.json task criteria\n- lint/dut_lint.json",
+      "criteria": "lint/dut_lint.json exists\ndut_lint.json reports dut_only=true\ndut_lint.json passed=true with zero errors and zero warnings\ndut_lint.json is newer than or equal to every listed DUT RTL source\ndut_lint.json rtl_files covers the current DUT filelist RTL/header sources\nNo ad-hoc lint suppression violation remains unless represented by an exact SSOT waiver\nTraceability keeps source_ref quality_gates.rtl_gen.dut_lint\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0018 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref quality_gates.rtl_gen.dut_lint\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "critical"
+    },
+    {
+      "content": "RTL-0019: Gate: every required rtl_todo_plan item is closed before rtl-gen PASS",
+      "activeForm": "RTL-0019: Gate: every required rtl_todo_plan item is closed before rtl-gen PASS",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0019\nCategory: rtl_gate.rtl_gen\nSource ref: quality_gates.rtl_gen.dynamic_todo_closure\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nrtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.\nSSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.\nOwner: lfsr in rtl/lfsr.sv via top_module.\n\nCurrent audit reason: 117 required non-closure TODO(s) remain open.\n\nEvidence basis:\n- rtl_todo_plan.json gate_todo.kind\n- rtl_todo_plan.json task criteria\n- rtl/rtl_todo_plan.json",
+      "criteria": "Every required non-closure task has todo_completion.status=pass\nopen_required_todos is zero\nall_required_todos_pass is true\nTraceability keeps source_ref quality_gates.rtl_gen.dynamic_todo_closure\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0019 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref quality_gates.rtl_gen.dynamic_todo_closure\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "critical"
+    },
+    {
+      "content": "RTL-0020: Implement parameter LFSR_WIDTH",
+      "activeForm": "RTL-0020: Implement parameter LFSR_WIDTH",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0020\nCategory: parameters.item\nSource ref: parameters.LFSR_WIDTH\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nDeclare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.LFSR_WIDTH.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=LFSR_WIDTH.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Parameter default/value matches SSOT\nParameter-derived widths are implemented outside procedural part-selects\nCompile/lint evidence covers the parameterized form\nTraceability keeps source_ref parameters.LFSR_WIDTH\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0020 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref parameters.LFSR_WIDTH\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0021: Implement parameter POLY_DEGREE",
+      "activeForm": "RTL-0021: Implement parameter POLY_DEGREE",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0021\nCategory: parameters.item\nSource ref: parameters.POLY_DEGREE\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nDeclare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.POLY_DEGREE.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=POLY_DEGREE.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Parameter default/value matches SSOT\nParameter-derived widths are implemented outside procedural part-selects\nCompile/lint evidence covers the parameterized form\nTraceability keeps source_ref parameters.POLY_DEGREE\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0021 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref parameters.POLY_DEGREE\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0022: Implement parameter APB_ADDR_WIDTH",
+      "activeForm": "RTL-0022: Implement parameter APB_ADDR_WIDTH",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0022\nCategory: parameters.item\nSource ref: parameters.APB_ADDR_WIDTH\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nDeclare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.APB_ADDR_WIDTH.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=APB_ADDR_WIDTH.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Parameter default/value matches SSOT\nParameter-derived widths are implemented outside procedural part-selects\nCompile/lint evidence covers the parameterized form\nTraceability keeps source_ref parameters.APB_ADDR_WIDTH\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0022 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref parameters.APB_ADDR_WIDTH\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0023: Implement parameter APB_DATA_WIDTH",
+      "activeForm": "RTL-0023: Implement parameter APB_DATA_WIDTH",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0023\nCategory: parameters.item\nSource ref: parameters.APB_DATA_WIDTH\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nDeclare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.APB_DATA_WIDTH.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=APB_DATA_WIDTH.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Parameter default/value matches SSOT\nParameter-derived widths are implemented outside procedural part-selects\nCompile/lint evidence covers the parameterized form\nTraceability keeps source_ref parameters.APB_DATA_WIDTH\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0023 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref parameters.APB_DATA_WIDTH\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0024: Implement parameter DEFAULT_POLY",
+      "activeForm": "RTL-0024: Implement parameter DEFAULT_POLY",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0024\nCategory: parameters.item\nSource ref: parameters.DEFAULT_POLY\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nDeclare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.DEFAULT_POLY.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=DEFAULT_POLY.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Parameter default/value matches SSOT\nParameter-derived widths are implemented outside procedural part-selects\nCompile/lint evidence covers the parameterized form\nTraceability keeps source_ref parameters.DEFAULT_POLY\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0024 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref parameters.DEFAULT_POLY\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0025: Implement parameter DEFAULT_SEED",
+      "activeForm": "RTL-0025: Implement parameter DEFAULT_SEED",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0025\nCategory: parameters.item\nSource ref: parameters.DEFAULT_SEED\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nDeclare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.DEFAULT_SEED.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=DEFAULT_SEED.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Parameter default/value matches SSOT\nParameter-derived widths are implemented outside procedural part-selects\nCompile/lint evidence covers the parameterized form\nTraceability keeps source_ref parameters.DEFAULT_SEED\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0025 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref parameters.DEFAULT_SEED\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0026: Implement parameter CLOCK_FREQ_MHZ",
+      "activeForm": "RTL-0026: Implement parameter CLOCK_FREQ_MHZ",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0026\nCategory: parameters.item\nSource ref: parameters.CLOCK_FREQ_MHZ\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nDeclare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.CLOCK_FREQ_MHZ.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=CLOCK_FREQ_MHZ.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Parameter default/value matches SSOT\nParameter-derived widths are implemented outside procedural part-selects\nCompile/lint evidence covers the parameterized form\nTraceability keeps source_ref parameters.CLOCK_FREQ_MHZ\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0026 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref parameters.CLOCK_FREQ_MHZ\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0027: Implement parameter RESET_POLARITY",
+      "activeForm": "RTL-0027: Implement parameter RESET_POLARITY",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0027\nCategory: parameters.item\nSource ref: parameters.RESET_POLARITY\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nDeclare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.RESET_POLARITY.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=RESET_POLARITY.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Parameter default/value matches SSOT\nParameter-derived widths are implemented outside procedural part-selects\nCompile/lint evidence covers the parameterized form\nTraceability keeps source_ref parameters.RESET_POLARITY\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0027 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref parameters.RESET_POLARITY\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0028: Implement and connect port PCLK",
+      "activeForm": "RTL-0028: Implement and connect port PCLK",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0028\nCategory: io_list.port\nSource ref: io_list.clock_domains.PCLK.ports.PCLK\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThe port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.PCLK.ports.PCLK.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=PCLK; width=1; direction=input.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL declaration matches SSOT direction and width\nActive input controls are consumed by behavior or explicitly justified\nActive outputs are driven by implemented logic, not placeholder constants\nTraceability keeps source_ref io_list.clock_domains.PCLK.ports.PCLK\nPrimary implementation evidence is in rtl/lfsr.sv\nPCLK width matches SSOT value 1\nPCLK port direction remains input\nLedger task RTL-0028 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref io_list.clock_domains.PCLK.ports.PCLK\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0029: Implement and connect port PRESETn",
+      "activeForm": "RTL-0029: Implement and connect port PRESETn",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0029\nCategory: io_list.port\nSource ref: io_list.resets.PRESETn.ports.PRESETn\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThe port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.PRESETn.ports.PRESETn.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=PRESETn; width=1; direction=input.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL declaration matches SSOT direction and width\nActive input controls are consumed by behavior or explicitly justified\nActive outputs are driven by implemented logic, not placeholder constants\nTraceability keeps source_ref io_list.resets.PRESETn.ports.PRESETn\nPrimary implementation evidence is in rtl/lfsr.sv\nPRESETn width matches SSOT value 1\nPRESETn port direction remains input\nLedger task RTL-0029 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref io_list.resets.PRESETn.ports.PRESETn\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0030: Implement and connect port PADDR",
+      "activeForm": "RTL-0030: Implement and connect port PADDR",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0030\nCategory: io_list.port\nSource ref: io_list.interfaces.apb_slave.ports.PADDR\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThe port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PADDR.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=PADDR; width=APB_ADDR_WIDTH; direction=input.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL declaration matches SSOT direction and width\nActive input controls are consumed by behavior or explicitly justified\nActive outputs are driven by implemented logic, not placeholder constants\nTraceability keeps source_ref io_list.interfaces.apb_slave.ports.PADDR\nPrimary implementation evidence is in rtl/lfsr.sv\nPADDR width matches SSOT value APB_ADDR_WIDTH\nPADDR port direction remains input\nLedger task RTL-0030 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref io_list.interfaces.apb_slave.ports.PADDR\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0031: Implement and connect port PSEL",
+      "activeForm": "RTL-0031: Implement and connect port PSEL",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0031\nCategory: io_list.port\nSource ref: io_list.interfaces.apb_slave.ports.PSEL\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThe port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PSEL.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=PSEL; width=1; direction=input.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL declaration matches SSOT direction and width\nActive input controls are consumed by behavior or explicitly justified\nActive outputs are driven by implemented logic, not placeholder constants\nTraceability keeps source_ref io_list.interfaces.apb_slave.ports.PSEL\nPrimary implementation evidence is in rtl/lfsr.sv\nPSEL width matches SSOT value 1\nPSEL port direction remains input\nLedger task RTL-0031 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref io_list.interfaces.apb_slave.ports.PSEL\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0032: Implement and connect port PENABLE",
+      "activeForm": "RTL-0032: Implement and connect port PENABLE",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0032\nCategory: io_list.port\nSource ref: io_list.interfaces.apb_slave.ports.PENABLE\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThe port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PENABLE.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=PENABLE; width=1; direction=input.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL declaration matches SSOT direction and width\nActive input controls are consumed by behavior or explicitly justified\nActive outputs are driven by implemented logic, not placeholder constants\nTraceability keeps source_ref io_list.interfaces.apb_slave.ports.PENABLE\nPrimary implementation evidence is in rtl/lfsr.sv\nPENABLE width matches SSOT value 1\nPENABLE port direction remains input\nLedger task RTL-0032 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref io_list.interfaces.apb_slave.ports.PENABLE\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0033: Implement and connect port PWRITE",
+      "activeForm": "RTL-0033: Implement and connect port PWRITE",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0033\nCategory: io_list.port\nSource ref: io_list.interfaces.apb_slave.ports.PWRITE\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThe port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PWRITE.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=PWRITE; width=1; direction=input.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL declaration matches SSOT direction and width\nActive input controls are consumed by behavior or explicitly justified\nActive outputs are driven by implemented logic, not placeholder constants\nTraceability keeps source_ref io_list.interfaces.apb_slave.ports.PWRITE\nPrimary implementation evidence is in rtl/lfsr.sv\nPWRITE width matches SSOT value 1\nPWRITE port direction remains input\nLedger task RTL-0033 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref io_list.interfaces.apb_slave.ports.PWRITE\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0034: Implement and connect port PWDATA",
+      "activeForm": "RTL-0034: Implement and connect port PWDATA",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0034\nCategory: io_list.port\nSource ref: io_list.interfaces.apb_slave.ports.PWDATA\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThe port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PWDATA.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=PWDATA; width=APB_DATA_WIDTH; direction=input.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL declaration matches SSOT direction and width\nActive input controls are consumed by behavior or explicitly justified\nActive outputs are driven by implemented logic, not placeholder constants\nTraceability keeps source_ref io_list.interfaces.apb_slave.ports.PWDATA\nPrimary implementation evidence is in rtl/lfsr.sv\nPWDATA width matches SSOT value APB_DATA_WIDTH\nPWDATA port direction remains input\nLedger task RTL-0034 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref io_list.interfaces.apb_slave.ports.PWDATA\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0035: Implement and connect port PRDATA",
+      "activeForm": "RTL-0035: Implement and connect port PRDATA",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0035\nCategory: io_list.port\nSource ref: io_list.interfaces.apb_slave.ports.PRDATA\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThe port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PRDATA.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=PRDATA; width=APB_DATA_WIDTH; direction=output.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL declaration matches SSOT direction and width\nActive input controls are consumed by behavior or explicitly justified\nActive outputs are driven by implemented logic, not placeholder constants\nTraceability keeps source_ref io_list.interfaces.apb_slave.ports.PRDATA\nPrimary implementation evidence is in rtl/lfsr.sv\nPRDATA width matches SSOT value APB_DATA_WIDTH\nPRDATA port direction remains output\nLedger task RTL-0035 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref io_list.interfaces.apb_slave.ports.PRDATA\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0036: Implement and connect port PREADY",
+      "activeForm": "RTL-0036: Implement and connect port PREADY",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0036\nCategory: io_list.port\nSource ref: io_list.interfaces.apb_slave.ports.PREADY\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThe port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PREADY.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=PREADY; width=1; direction=output.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL declaration matches SSOT direction and width\nActive input controls are consumed by behavior or explicitly justified\nActive outputs are driven by implemented logic, not placeholder constants\nTraceability keeps source_ref io_list.interfaces.apb_slave.ports.PREADY\nPrimary implementation evidence is in rtl/lfsr.sv\nPREADY width matches SSOT value 1\nPREADY port direction remains output\nLedger task RTL-0036 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref io_list.interfaces.apb_slave.ports.PREADY\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0037: Implement and connect port PSLVERR",
+      "activeForm": "RTL-0037: Implement and connect port PSLVERR",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0037\nCategory: io_list.port\nSource ref: io_list.interfaces.apb_slave.ports.PSLVERR\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThe port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PSLVERR.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=PSLVERR; width=1; direction=output.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL declaration matches SSOT direction and width\nActive input controls are consumed by behavior or explicitly justified\nActive outputs are driven by implemented logic, not placeholder constants\nTraceability keeps source_ref io_list.interfaces.apb_slave.ports.PSLVERR\nPrimary implementation evidence is in rtl/lfsr.sv\nPSLVERR width matches SSOT value 1\nPSLVERR port direction remains output\nLedger task RTL-0037 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref io_list.interfaces.apb_slave.ports.PSLVERR\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0038: Implement and connect port prbs_out",
+      "activeForm": "RTL-0038: Implement and connect port prbs_out",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0038\nCategory: io_list.port\nSource ref: io_list.interfaces.prbs_output.ports.prbs_out\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThe port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.prbs_output.ports.prbs_out.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=prbs_out; width=LFSR_WIDTH; direction=output.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL declaration matches SSOT direction and width\nActive input controls are consumed by behavior or explicitly justified\nActive outputs are driven by implemented logic, not placeholder constants\nTraceability keeps source_ref io_list.interfaces.prbs_output.ports.prbs_out\nPrimary implementation evidence is in rtl/lfsr.sv\nprbs_out width matches SSOT value LFSR_WIDTH\nprbs_out port direction remains output\nLedger task RTL-0038 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref io_list.interfaces.prbs_output.ports.prbs_out\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0039: Implement and connect port prbs_bit",
+      "activeForm": "RTL-0039: Implement and connect port prbs_bit",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0039\nCategory: io_list.port\nSource ref: io_list.interfaces.prbs_output.ports.prbs_bit\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThe port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.prbs_output.ports.prbs_bit.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=prbs_bit; width=1; direction=output.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL declaration matches SSOT direction and width\nActive input controls are consumed by behavior or explicitly justified\nActive outputs are driven by implemented logic, not placeholder constants\nTraceability keeps source_ref io_list.interfaces.prbs_output.ports.prbs_bit\nPrimary implementation evidence is in rtl/lfsr.sv\nprbs_bit width matches SSOT value 1\nprbs_bit port direction remains output\nLedger task RTL-0039 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref io_list.interfaces.prbs_output.ports.prbs_bit\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0040: Implement and connect port prbs_valid",
+      "activeForm": "RTL-0040: Implement and connect port prbs_valid",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0040\nCategory: io_list.port\nSource ref: io_list.interfaces.status.ports.prbs_valid\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThe port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.status.ports.prbs_valid.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=prbs_valid; width=1; direction=output.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL declaration matches SSOT direction and width\nActive input controls are consumed by behavior or explicitly justified\nActive outputs are driven by implemented logic, not placeholder constants\nTraceability keeps source_ref io_list.interfaces.status.ports.prbs_valid\nPrimary implementation evidence is in rtl/lfsr.sv\nprbs_valid width matches SSOT value 1\nprbs_valid port direction remains output\nLedger task RTL-0040 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref io_list.interfaces.status.ports.prbs_valid\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "normal"
+    },
+    {
+      "content": "RTL-0041: Implement RTL state owner for FL state lfsr_state",
+      "activeForm": "RTL-0041: Implement RTL state owner for FL state lfsr_state",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0041\nCategory: function_model.state_variable\nSource ref: function_model.state_variables.lfsr_state\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nEvery FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.lfsr_state.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: name=lfsr_state; reset=DEFAULT_SEED.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "State has a flop/register/memory owner in RTL\nReset value matches SSOT\nEvery transaction update occurs at the SSOT-defined acceptance/cycle point\nTraceability keeps source_ref function_model.state_variables.lfsr_state\nPrimary implementation evidence is in rtl/lfsr.sv\nlfsr_state reset behavior matches SSOT value DEFAULT_SEED\nLedger task RTL-0041 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.state_variables.lfsr_state\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0042: Implement RTL state owner for FL state poly_reg",
+      "activeForm": "RTL-0042: Implement RTL state owner for FL state poly_reg",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0042\nCategory: function_model.state_variable\nSource ref: function_model.state_variables.poly_reg\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nEvery FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.poly_reg.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: name=poly_reg; reset=DEFAULT_POLY.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "State has a flop/register/memory owner in RTL\nReset value matches SSOT\nEvery transaction update occurs at the SSOT-defined acceptance/cycle point\nTraceability keeps source_ref function_model.state_variables.poly_reg\nPrimary implementation evidence is in rtl/lfsr.sv\npoly_reg reset behavior matches SSOT value DEFAULT_POLY\nLedger task RTL-0042 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.state_variables.poly_reg\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0043: Implement RTL state owner for FL state ctrl_reg",
+      "activeForm": "RTL-0043: Implement RTL state owner for FL state ctrl_reg",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0043\nCategory: function_model.state_variable\nSource ref: function_model.state_variables.ctrl_reg\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nEvery FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.ctrl_reg.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: name=ctrl_reg; reset=0.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "State has a flop/register/memory owner in RTL\nReset value matches SSOT\nEvery transaction update occurs at the SSOT-defined acceptance/cycle point\nTraceability keeps source_ref function_model.state_variables.ctrl_reg\nPrimary implementation evidence is in rtl/lfsr.sv\nctrl_reg reset behavior matches SSOT value 0\nLedger task RTL-0043 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.state_variables.ctrl_reg\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0044: Implement RTL state owner for FL state status_reg",
+      "activeForm": "RTL-0044: Implement RTL state owner for FL state status_reg",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0044\nCategory: function_model.state_variable\nSource ref: function_model.state_variables.status_reg\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nEvery FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.status_reg.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: name=status_reg; reset=0.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "State has a flop/register/memory owner in RTL\nReset value matches SSOT\nEvery transaction update occurs at the SSOT-defined acceptance/cycle point\nTraceability keeps source_ref function_model.state_variables.status_reg\nPrimary implementation evidence is in rtl/lfsr.sv\nstatus_reg reset behavior matches SSOT value 0\nLedger task RTL-0044 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.state_variables.status_reg\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0045: Implement transaction FM1",
+      "activeForm": "RTL-0045: Implement transaction FM1",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0045\nCategory: function_model.transaction\nSource ref: function_model.transactions.FM1\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nTransaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM1.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: id=FM1; name=single_step_prbs.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Acceptance/precondition logic is explicit in RTL\nAll outputs and side effects occur exactly once per accepted transaction\nThe transaction is covered by equivalence goals and scoreboard observations downstream\nTraceability keeps source_ref function_model.transactions.FM1\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0045 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM1\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0046: Implement precondition for FM1: precondition_0",
+      "activeForm": "RTL-0046: Implement precondition for FM1: precondition_0",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0046\nCategory: function_model.precondition\nSource ref: function_model.transactions.FM1.preconditions.precondition_0\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.preconditions.precondition_0.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: value=ctrl_reg.enable == 1.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM1.preconditions.precondition_0\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0046 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM1.preconditions.precondition_0\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0047: Implement precondition for FM1: precondition_1",
+      "activeForm": "RTL-0047: Implement precondition for FM1: precondition_1",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0047\nCategory: function_model.precondition\nSource ref: function_model.transactions.FM1.preconditions.precondition_1\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.preconditions.precondition_1.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: value=lfsr_state != 0.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM1.preconditions.precondition_1\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0047 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM1.preconditions.precondition_1\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0048: Implement input for FM1: input_0",
+      "activeForm": "RTL-0048: Implement input for FM1: input_0",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0048\nCategory: function_model.input\nSource ref: function_model.transactions.FM1.inputs.input_0\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.inputs.input_0.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: value=lfsr_state (current).\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM1.inputs.input_0\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0048 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM1.inputs.input_0\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0049: Implement input for FM1: input_1",
+      "activeForm": "RTL-0049: Implement input for FM1: input_1",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0049\nCategory: function_model.input\nSource ref: function_model.transactions.FM1.inputs.input_1\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.inputs.input_1.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: value=poly_reg (tap mask).\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM1.inputs.input_1\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0049 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM1.inputs.input_1\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0050: Implement output for FM1: prbs_out",
+      "activeForm": "RTL-0050: Implement output for FM1: prbs_out",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0050\nCategory: function_model.output\nSource ref: function_model.transactions.FM1.outputs.prbs_out\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.outputs.prbs_out.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: name=prbs_out; port=prbs_out; expr=lfsr_state; width=LFSR_WIDTH.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM1.outputs.prbs_out\nPrimary implementation evidence is in rtl/lfsr.sv\nprbs_out width matches SSOT value LFSR_WIDTH\nprbs_out RTL expression implements SSOT expression lfsr_state\nDUT port prbs_out is the implementation/observation point for prbs_out\nLedger task RTL-0050 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM1.outputs.prbs_out\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0051: Implement output for FM1: prbs_bit",
+      "activeForm": "RTL-0051: Implement output for FM1: prbs_bit",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0051\nCategory: function_model.output\nSource ref: function_model.transactions.FM1.outputs.prbs_bit\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.outputs.prbs_bit.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: name=prbs_bit; port=prbs_bit; expr=lfsr_state[0]; width=1.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM1.outputs.prbs_bit\nPrimary implementation evidence is in rtl/lfsr.sv\nprbs_bit width matches SSOT value 1\nprbs_bit RTL expression implements SSOT expression lfsr_state[0]\nDUT port prbs_bit is the implementation/observation point for prbs_bit\nLedger task RTL-0051 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM1.outputs.prbs_bit\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0052: Implement state update for FM1: lfsr_state",
+      "activeForm": "RTL-0052: Implement state update for FM1: lfsr_state",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0052\nCategory: function_model.state_update\nSource ref: function_model.transactions.FM1.state_updates.lfsr_state\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.state_updates.lfsr_state.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: name=lfsr_state; expr={feedback_bit, lfsr_state[LFSR_WIDTH-1:1]} where feedback_bit = ^(lfsr_state & poly_reg); reset=DEFAULT_SEED.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM1.state_updates.lfsr_state\nPrimary implementation evidence is in rtl/lfsr.sv\nlfsr_state reset behavior matches SSOT value DEFAULT_SEED\nlfsr_state RTL expression implements SSOT expression {feedback_bit, lfsr_state[LFSR_WIDTH-1:1]} where feedback_bit = ^(lfsr_state & poly_reg)\nlfsr_state updates exactly once at the SSOT-defined transaction acceptance point\nLedger task RTL-0052 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM1.state_updates.lfsr_state\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0053: Implement side effect for FM1: side_effect_0",
+      "activeForm": "RTL-0053: Implement side effect for FM1: side_effect_0",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0053\nCategory: function_model.side_effect\nSource ref: function_model.transactions.FM1.side_effects.side_effect_0\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.side_effects.side_effect_0.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: value=status_reg.running set to 1.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM1.side_effects.side_effect_0\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0053 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM1.side_effects.side_effect_0\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0054: Implement transaction FM2",
+      "activeForm": "RTL-0054: Implement transaction FM2",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0054\nCategory: function_model.transaction\nSource ref: function_model.transactions.FM2\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nTransaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM2.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: id=FM2; name=load_seed.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Acceptance/precondition logic is explicit in RTL\nAll outputs and side effects occur exactly once per accepted transaction\nThe transaction is covered by equivalence goals and scoreboard observations downstream\nTraceability keeps source_ref function_model.transactions.FM2\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0054 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM2\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0055: Implement precondition for FM2: precondition_0",
+      "activeForm": "RTL-0055: Implement precondition for FM2: precondition_0",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0055\nCategory: function_model.precondition\nSource ref: function_model.transactions.FM2.preconditions.precondition_0\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.preconditions.precondition_0.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: value=APB write to SEED register (offset 0x08).\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM2.preconditions.precondition_0\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0055 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM2.preconditions.precondition_0\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0056: Implement input for FM2: input_0",
+      "activeForm": "RTL-0056: Implement input for FM2: input_0",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0056\nCategory: function_model.input\nSource ref: function_model.transactions.FM2.inputs.input_0\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.inputs.input_0.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: value=PWDATA[APB_DATA_WIDTH-1:0].\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM2.inputs.input_0\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0056 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM2.inputs.input_0\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0057: Implement state update for FM2: lfsr_state",
+      "activeForm": "RTL-0057: Implement state update for FM2: lfsr_state",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0057\nCategory: function_model.state_update\nSource ref: function_model.transactions.FM2.state_updates.lfsr_state\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.state_updates.lfsr_state.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: name=lfsr_state; expr=PWDATA truncated to LFSR_WIDTH bits; reset=DEFAULT_SEED.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM2.state_updates.lfsr_state\nPrimary implementation evidence is in rtl/lfsr.sv\nlfsr_state reset behavior matches SSOT value DEFAULT_SEED\nlfsr_state RTL expression implements SSOT expression PWDATA truncated to LFSR_WIDTH bits\nlfsr_state updates exactly once at the SSOT-defined transaction acceptance point\nLedger task RTL-0057 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM2.state_updates.lfsr_state\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0058: Implement side effect for FM2: side_effect_0",
+      "activeForm": "RTL-0058: Implement side effect for FM2: side_effect_0",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0058\nCategory: function_model.side_effect\nSource ref: function_model.transactions.FM2.side_effects.side_effect_0\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.side_effects.side_effect_0.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: value=prbs_valid deasserted for one cycle after load.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM2.side_effects.side_effect_0\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0058 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM2.side_effects.side_effect_0\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0059: Implement transaction FM3",
+      "activeForm": "RTL-0059: Implement transaction FM3",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0059\nCategory: function_model.transaction\nSource ref: function_model.transactions.FM3\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nTransaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM3.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: id=FM3; name=load_polynomial.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Acceptance/precondition logic is explicit in RTL\nAll outputs and side effects occur exactly once per accepted transaction\nThe transaction is covered by equivalence goals and scoreboard observations downstream\nTraceability keeps source_ref function_model.transactions.FM3\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0059 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM3\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0060: Implement precondition for FM3: precondition_0",
+      "activeForm": "RTL-0060: Implement precondition for FM3: precondition_0",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0060\nCategory: function_model.precondition\nSource ref: function_model.transactions.FM3.preconditions.precondition_0\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM3.preconditions.precondition_0.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: value=APB write to POLY register (offset 0x04).\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM3.preconditions.precondition_0\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0060 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM3.preconditions.precondition_0\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0061: Implement precondition for FM3: precondition_1",
+      "activeForm": "RTL-0061: Implement precondition for FM3: precondition_1",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0061\nCategory: function_model.precondition\nSource ref: function_model.transactions.FM3.preconditions.precondition_1\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM3.preconditions.precondition_1.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: value=ctrl_reg.enable == 0 (polynomial change only when halted).\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM3.preconditions.precondition_1\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0061 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM3.preconditions.precondition_1\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0062: Implement input for FM3: input_0",
+      "activeForm": "RTL-0062: Implement input for FM3: input_0",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0062\nCategory: function_model.input\nSource ref: function_model.transactions.FM3.inputs.input_0\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM3.inputs.input_0.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: value=PWDATA[APB_DATA_WIDTH-1:0].\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM3.inputs.input_0\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0062 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM3.inputs.input_0\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0063: Implement state update for FM3: poly_reg",
+      "activeForm": "RTL-0063: Implement state update for FM3: poly_reg",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0063\nCategory: function_model.state_update\nSource ref: function_model.transactions.FM3.state_updates.poly_reg\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM3.state_updates.poly_reg.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: name=poly_reg; expr=PWDATA truncated to LFSR_WIDTH bits; reset=DEFAULT_POLY.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM3.state_updates.poly_reg\nPrimary implementation evidence is in rtl/lfsr.sv\npoly_reg reset behavior matches SSOT value DEFAULT_POLY\npoly_reg RTL expression implements SSOT expression PWDATA truncated to LFSR_WIDTH bits\npoly_reg updates exactly once at the SSOT-defined transaction acceptance point\nLedger task RTL-0063 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM3.state_updates.poly_reg\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0064: Implement transaction FM4",
+      "activeForm": "RTL-0064: Implement transaction FM4",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0064\nCategory: function_model.transaction\nSource ref: function_model.transactions.FM4\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nTransaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM4.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: id=FM4; name=lockup_recovery.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Acceptance/precondition logic is explicit in RTL\nAll outputs and side effects occur exactly once per accepted transaction\nThe transaction is covered by equivalence goals and scoreboard observations downstream\nTraceability keeps source_ref function_model.transactions.FM4\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0064 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM4\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0065: Implement precondition for FM4: precondition_0",
+      "activeForm": "RTL-0065: Implement precondition for FM4: precondition_0",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0065\nCategory: function_model.precondition\nSource ref: function_model.transactions.FM4.preconditions.precondition_0\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.preconditions.precondition_0.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: value=lfsr_state == 0 after a step.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM4.preconditions.precondition_0\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0065 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM4.preconditions.precondition_0\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0066: Implement output for FM4: prbs_valid",
+      "activeForm": "RTL-0066: Implement output for FM4: prbs_valid",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0066\nCategory: function_model.output\nSource ref: function_model.transactions.FM4.outputs.prbs_valid\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.outputs.prbs_valid.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: name=prbs_valid; port=prbs_valid; expr=0; width=1.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM4.outputs.prbs_valid\nPrimary implementation evidence is in rtl/lfsr.sv\nprbs_valid width matches SSOT value 1\nprbs_valid RTL expression implements SSOT expression 0\nDUT port prbs_valid is the implementation/observation point for prbs_valid\nLedger task RTL-0066 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM4.outputs.prbs_valid\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0067: Implement state update for FM4: lfsr_state",
+      "activeForm": "RTL-0067: Implement state update for FM4: lfsr_state",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0067\nCategory: function_model.state_update\nSource ref: function_model.transactions.FM4.state_updates.lfsr_state\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.state_updates.lfsr_state.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: name=lfsr_state; expr=DEFAULT_SEED if ctrl_reg.auto_reload else 0; reset=DEFAULT_SEED.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM4.state_updates.lfsr_state\nPrimary implementation evidence is in rtl/lfsr.sv\nlfsr_state reset behavior matches SSOT value DEFAULT_SEED\nlfsr_state RTL expression implements SSOT expression DEFAULT_SEED if ctrl_reg.auto_reload else 0\nlfsr_state updates exactly once at the SSOT-defined transaction acceptance point\nLedger task RTL-0067 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM4.state_updates.lfsr_state\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0068: Implement side effect for FM4: side_effect_0",
+      "activeForm": "RTL-0068: Implement side effect for FM4: side_effect_0",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0068\nCategory: function_model.side_effect\nSource ref: function_model.transactions.FM4.side_effects.side_effect_0\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.side_effects.side_effect_0.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: value=status_reg.lockup set to 1.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM4.side_effects.side_effect_0\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0068 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM4.side_effects.side_effect_0\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0069: Implement side effect for FM4: side_effect_1",
+      "activeForm": "RTL-0069: Implement side effect for FM4: side_effect_1",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0069\nCategory: function_model.side_effect\nSource ref: function_model.transactions.FM4.side_effects.side_effect_1\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.side_effects.side_effect_1.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: value=status_reg.running cleared to 0.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner logic is identifiable for this SSOT leaf\nReset/enable/error behavior is consistent with the parent transaction\nDownstream equivalence/coverage can observe this behavior\nTraceability keeps source_ref function_model.transactions.FM4.side_effects.side_effect_1\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0069 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.transactions.FM4.side_effects.side_effect_1\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0070: Preserve FL invariant invariant_0",
+      "activeForm": "RTL-0070: Preserve FL invariant invariant_0",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0070\nCategory: function_model.invariant\nSource ref: function_model.invariants.invariant_0\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nInvariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: value=LFSR state never changes when ctrl_reg.enable == 0 except via APB write to SEED or reset..\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL behavior cannot violate the invariant in normal operation\nIf the invariant is verification-only, the SSOT names that evidence owner\nCoverage/equivalence references this invariant when observable\nTraceability keeps source_ref function_model.invariants.invariant_0\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0070 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.invariants.invariant_0\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0071: Preserve FL invariant invariant_1",
+      "activeForm": "RTL-0071: Preserve FL invariant invariant_1",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0071\nCategory: function_model.invariant\nSource ref: function_model.invariants.invariant_1\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nInvariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: value=Polynomial register is writable only when enable == 0..\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL behavior cannot violate the invariant in normal operation\nIf the invariant is verification-only, the SSOT names that evidence owner\nCoverage/equivalence references this invariant when observable\nTraceability keeps source_ref function_model.invariants.invariant_1\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0071 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.invariants.invariant_1\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0072: Preserve FL invariant invariant_2",
+      "activeForm": "RTL-0072: Preserve FL invariant invariant_2",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0072\nCategory: function_model.invariant\nSource ref: function_model.invariants.invariant_2\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nInvariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: lfsr in rtl/lfsr.sv via function_model.\nSSOT item context: value=All-zero state is detected and either auto-reloaded or held..\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL behavior cannot violate the invariant in normal operation\nIf the invariant is verification-only, the SSOT names that evidence owner\nCoverage/equivalence references this invariant when observable\nTraceability keeps source_ref function_model.invariants.invariant_2\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0072 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref function_model.invariants.invariant_2\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0073: Implement cycle-model clock",
+      "activeForm": "RTL-0073: Implement cycle-model clock",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0073\nCategory: cycle_model.clock\nSource ref: cycle_model.clock\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nClock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: lfsr in rtl/lfsr.sv via cycle_model.\nSSOT item context: value=PCLK.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL sequential logic uses the SSOT clock/reset phase\nLatency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence\nDownstream scoreboard samples the same acceptance/result phase\nTraceability keeps source_ref cycle_model.clock\nPrimary implementation evidence is in rtl/lfsr.sv\ncycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB\nLedger task RTL-0073 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref cycle_model.clock\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0074: Implement cycle-model reset",
+      "activeForm": "RTL-0074: Implement cycle-model reset",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0074\nCategory: cycle_model.reset\nSource ref: cycle_model.reset\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nClock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: lfsr in rtl/lfsr.sv via cycle_model.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL sequential logic uses the SSOT clock/reset phase\nLatency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence\nDownstream scoreboard samples the same acceptance/result phase\nTraceability keeps source_ref cycle_model.reset\nPrimary implementation evidence is in rtl/lfsr.sv\ncycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB\nLedger task RTL-0074 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref cycle_model.reset\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0075: Implement cycle-model latency",
+      "activeForm": "RTL-0075: Implement cycle-model latency",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0075\nCategory: cycle_model.latency\nSource ref: cycle_model.latency\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nClock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: lfsr in rtl/lfsr.sv via cycle_model.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL sequential logic uses the SSOT clock/reset phase\nLatency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence\nDownstream scoreboard samples the same acceptance/result phase\nTraceability keeps source_ref cycle_model.latency\nPrimary implementation evidence is in rtl/lfsr.sv\ncycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB\nLedger task RTL-0075 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref cycle_model.latency\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0076: Implement handshake rule: PSEL/PENABLE",
+      "activeForm": "RTL-0076: Implement handshake rule: PSEL/PENABLE",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0076\nCategory: cycle_model.handshake_rules\nSource ref: cycle_model.handshake_rules.PSEL_PENABLE\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nCycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.PSEL_PENABLE.\nOwner: lfsr in rtl/lfsr.sv via cycle_model.\nSSOT item context: signal=PSEL/PENABLE.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL contains the control/state/handshake logic for this cycle rule\nRule timing is reflected in sample/hold/ready/valid or FSM behavior\nTB scoreboard/coverage can observe the rule at the declared phase\nTraceability keeps source_ref cycle_model.handshake_rules.PSEL_PENABLE\nPrimary implementation evidence is in rtl/lfsr.sv\ncycle_model.handshake_rules.PSEL_PENABLE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB\nLedger task RTL-0076 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref cycle_model.handshake_rules.PSEL_PENABLE\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0077: Implement pipeline stage: S0_IDLE",
+      "activeForm": "RTL-0077: Implement pipeline stage: S0_IDLE",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0077\nCategory: cycle_model.pipeline\nSource ref: cycle_model.pipeline.S0_IDLE\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nCycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S0_IDLE.\nOwner: lfsr in rtl/lfsr.sv via cycle_model.\nSSOT item context: stage=S0_IDLE; action=Hold state; sample APB decode and enable; cycle=0.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL contains the control/state/handshake logic for this cycle rule\nRule timing is reflected in sample/hold/ready/valid or FSM behavior\nTB scoreboard/coverage can observe the rule at the declared phase\nTraceability keeps source_ref cycle_model.pipeline.S0_IDLE\nPrimary implementation evidence is in rtl/lfsr.sv\ncycle_model.pipeline.S0_IDLE timing uses SSOT cycle/latency 0\ncycle_model.pipeline.S0_IDLE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB\nLedger task RTL-0077 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref cycle_model.pipeline.S0_IDLE\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0078: Implement pipeline stage: S1_STEP",
+      "activeForm": "RTL-0078: Implement pipeline stage: S1_STEP",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0078\nCategory: cycle_model.pipeline\nSource ref: cycle_model.pipeline.S1_STEP\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nCycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S1_STEP.\nOwner: lfsr in rtl/lfsr.sv via cycle_model.\nSSOT item context: stage=S1_STEP; action=Compute next LFSR state if enabled; update prbs_out/prbs_bit/prbs_valid; cycle=1.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL contains the control/state/handshake logic for this cycle rule\nRule timing is reflected in sample/hold/ready/valid or FSM behavior\nTB scoreboard/coverage can observe the rule at the declared phase\nTraceability keeps source_ref cycle_model.pipeline.S1_STEP\nPrimary implementation evidence is in rtl/lfsr.sv\ncycle_model.pipeline.S1_STEP timing uses SSOT cycle/latency 1\ncycle_model.pipeline.S1_STEP appears in RTL sample/hold/FSM/ready-valid timing, not only in TB\nLedger task RTL-0078 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref cycle_model.pipeline.S1_STEP\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0079: Implement ordering rule: ordering_rule_0",
+      "activeForm": "RTL-0079: Implement ordering rule: ordering_rule_0",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0079\nCategory: cycle_model.ordering\nSource ref: cycle_model.ordering.ordering_rule_0\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nCycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_0.\nOwner: lfsr in rtl/lfsr.sv via cycle_model.\nSSOT item context: value=APB write to SEED takes effect on the same cycle as the completing PREADY..\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL contains the control/state/handshake logic for this cycle rule\nRule timing is reflected in sample/hold/ready/valid or FSM behavior\nTB scoreboard/coverage can observe the rule at the declared phase\nTraceability keeps source_ref cycle_model.ordering.ordering_rule_0\nPrimary implementation evidence is in rtl/lfsr.sv\ncycle_model.ordering.ordering_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB\nLedger task RTL-0079 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref cycle_model.ordering.ordering_rule_0\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0080: Implement ordering rule: ordering_rule_1",
+      "activeForm": "RTL-0080: Implement ordering rule: ordering_rule_1",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0080\nCategory: cycle_model.ordering\nSource ref: cycle_model.ordering.ordering_rule_1\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nCycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_1.\nOwner: lfsr in rtl/lfsr.sv via cycle_model.\nSSOT item context: value=LFSR state update occurs on the rising edge after enable is sampled high..\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL contains the control/state/handshake logic for this cycle rule\nRule timing is reflected in sample/hold/ready/valid or FSM behavior\nTB scoreboard/coverage can observe the rule at the declared phase\nTraceability keeps source_ref cycle_model.ordering.ordering_rule_1\nPrimary implementation evidence is in rtl/lfsr.sv\ncycle_model.ordering.ordering_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB\nLedger task RTL-0080 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref cycle_model.ordering.ordering_rule_1\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0081: Implement backpressure rule: backpressure_rule_0",
+      "activeForm": "RTL-0081: Implement backpressure rule: backpressure_rule_0",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0081\nCategory: cycle_model.backpressure\nSource ref: cycle_model.backpressure.backpressure_rule_0\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nCycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_0.\nOwner: lfsr in rtl/lfsr.sv via cycle_model.\nSSOT item context: value=No backpressure on PRBS output; downstream must sample prbs_out/prbs_bit on appropriate cycles..\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL contains the control/state/handshake logic for this cycle rule\nRule timing is reflected in sample/hold/ready/valid or FSM behavior\nTB scoreboard/coverage can observe the rule at the declared phase\nTraceability keeps source_ref cycle_model.backpressure.backpressure_rule_0\nPrimary implementation evidence is in rtl/lfsr.sv\ncycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB\nLedger task RTL-0081 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref cycle_model.backpressure.backpressure_rule_0\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0082: Implement observability signal: observability_signal_0",
+      "activeForm": "RTL-0082: Implement observability signal: observability_signal_0",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0082\nCategory: cycle_model.observability\nSource ref: cycle_model.observability.observability_signal_0\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nCycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_0.\nOwner: lfsr in rtl/lfsr.sv via cycle_model.\nSSOT item context: value=Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario..\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL contains the control/state/handshake logic for this cycle rule\nRule timing is reflected in sample/hold/ready/valid or FSM behavior\nTB scoreboard/coverage can observe the rule at the declared phase\nTraceability keeps source_ref cycle_model.observability.observability_signal_0\nPrimary implementation evidence is in rtl/lfsr.sv\ncycle_model.observability.observability_signal_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB\nLedger task RTL-0082 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref cycle_model.observability.observability_signal_0\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0083: Implement CSR/register CTRL",
+      "activeForm": "RTL-0083: Implement CSR/register CTRL",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0083\nCategory: registers.register\nSource ref: registers.register_list.CTRL\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nDecode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CTRL.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=0.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Address/decode behavior matches SSOT\nReadable fields return RTL state, not a constant placeholder\nWrite semantics and illegal access response match SSOT\nTraceability keeps source_ref registers.register_list.CTRL\nPrimary implementation evidence is in rtl/lfsr.sv\nCTRL width matches SSOT value 32\nCTRL reset behavior matches SSOT value 0\nCTRL access policy rw is implemented without read/write shortcuts\nCTRL decode uses SSOT address/offset 0\nLedger task RTL-0083 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref registers.register_list.CTRL\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0084: Implement field CTRL.enable",
+      "activeForm": "RTL-0084: Implement field CTRL.enable",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0084\nCategory: registers.field\nSource ref: registers.register_list.CTRL.fields.enable\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nEach register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.enable.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=enable; reset=0; access=rw.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Field bit range, mask, and write strobe decode match SSOT\nField reset/access policy matches SSOT\nRead/write/W1C/W0C/RO behavior is implemented or precisely blocked\nReserved fields read as the SSOT value and ignore writes\nField side effects are connected to owning control/status logic\nTraceability keeps source_ref registers.register_list.CTRL.fields.enable\nPrimary implementation evidence is in rtl/lfsr.sv\nenable reset behavior matches SSOT value 0\nenable access policy rw is implemented without read/write shortcuts\nenable readback returns implemented RTL state when readable\nenable write/clear side effects are connected to owning control/status logic\nLedger task RTL-0084 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref registers.register_list.CTRL.fields.enable\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0085: Implement field CTRL.auto_reload",
+      "activeForm": "RTL-0085: Implement field CTRL.auto_reload",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0085\nCategory: registers.field\nSource ref: registers.register_list.CTRL.fields.auto_reload\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nEach register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.auto_reload.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=auto_reload; reset=0; access=rw.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Field bit range, mask, and write strobe decode match SSOT\nField reset/access policy matches SSOT\nRead/write/W1C/W0C/RO behavior is implemented or precisely blocked\nReserved fields read as the SSOT value and ignore writes\nField side effects are connected to owning control/status logic\nTraceability keeps source_ref registers.register_list.CTRL.fields.auto_reload\nPrimary implementation evidence is in rtl/lfsr.sv\nauto_reload reset behavior matches SSOT value 0\nauto_reload access policy rw is implemented without read/write shortcuts\nauto_reload readback returns implemented RTL state when readable\nauto_reload write/clear side effects are connected to owning control/status logic\nLedger task RTL-0085 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref registers.register_list.CTRL.fields.auto_reload\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0086: Implement field CTRL.reserved_31_2",
+      "activeForm": "RTL-0086: Implement field CTRL.reserved_31_2",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0086\nCategory: registers.field\nSource ref: registers.register_list.CTRL.fields.reserved_31_2\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nEach register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.reserved_31_2.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=reserved_31_2; reset=0; access=reserved.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Field bit range, mask, and write strobe decode match SSOT\nField reset/access policy matches SSOT\nRead/write/W1C/W0C/RO behavior is implemented or precisely blocked\nReserved fields read as the SSOT value and ignore writes\nField side effects are connected to owning control/status logic\nTraceability keeps source_ref registers.register_list.CTRL.fields.reserved_31_2\nPrimary implementation evidence is in rtl/lfsr.sv\nreserved_31_2 reset behavior matches SSOT value 0\nreserved_31_2 access policy reserved is implemented without read/write shortcuts\nreserved_31_2 readback returns implemented RTL state when readable\nreserved_31_2 write/clear side effects are connected to owning control/status logic\nLedger task RTL-0086 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref registers.register_list.CTRL.fields.reserved_31_2\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0087: Implement CSR/register POLY",
+      "activeForm": "RTL-0087: Implement CSR/register POLY",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0087\nCategory: registers.register\nSource ref: registers.register_list.POLY\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nDecode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.POLY.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=POLY; width=32; reset=DEFAULT_POLY; access=rw; offset=4.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Address/decode behavior matches SSOT\nReadable fields return RTL state, not a constant placeholder\nWrite semantics and illegal access response match SSOT\nTraceability keeps source_ref registers.register_list.POLY\nPrimary implementation evidence is in rtl/lfsr.sv\nPOLY width matches SSOT value 32\nPOLY reset behavior matches SSOT value DEFAULT_POLY\nPOLY access policy rw is implemented without read/write shortcuts\nPOLY decode uses SSOT address/offset 4\nLedger task RTL-0087 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref registers.register_list.POLY\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0088: Implement field POLY.poly",
+      "activeForm": "RTL-0088: Implement field POLY.poly",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0088\nCategory: registers.field\nSource ref: registers.register_list.POLY.fields.poly\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nEach register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.POLY.fields.poly.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=poly; reset=DEFAULT_POLY; access=rw.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Field bit range, mask, and write strobe decode match SSOT\nField reset/access policy matches SSOT\nRead/write/W1C/W0C/RO behavior is implemented or precisely blocked\nReserved fields read as the SSOT value and ignore writes\nField side effects are connected to owning control/status logic\nTraceability keeps source_ref registers.register_list.POLY.fields.poly\nPrimary implementation evidence is in rtl/lfsr.sv\npoly reset behavior matches SSOT value DEFAULT_POLY\npoly access policy rw is implemented without read/write shortcuts\npoly readback returns implemented RTL state when readable\npoly write/clear side effects are connected to owning control/status logic\nLedger task RTL-0088 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref registers.register_list.POLY.fields.poly\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0089: Implement CSR/register SEED",
+      "activeForm": "RTL-0089: Implement CSR/register SEED",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0089\nCategory: registers.register\nSource ref: registers.register_list.SEED\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nDecode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.SEED.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=SEED; width=32; reset=DEFAULT_SEED; access=rw; offset=8.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Address/decode behavior matches SSOT\nReadable fields return RTL state, not a constant placeholder\nWrite semantics and illegal access response match SSOT\nTraceability keeps source_ref registers.register_list.SEED\nPrimary implementation evidence is in rtl/lfsr.sv\nSEED width matches SSOT value 32\nSEED reset behavior matches SSOT value DEFAULT_SEED\nSEED access policy rw is implemented without read/write shortcuts\nSEED decode uses SSOT address/offset 8\nLedger task RTL-0089 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref registers.register_list.SEED\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0090: Implement field SEED.seed",
+      "activeForm": "RTL-0090: Implement field SEED.seed",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0090\nCategory: registers.field\nSource ref: registers.register_list.SEED.fields.seed\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nEach register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.SEED.fields.seed.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=seed; reset=DEFAULT_SEED; access=rw.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Field bit range, mask, and write strobe decode match SSOT\nField reset/access policy matches SSOT\nRead/write/W1C/W0C/RO behavior is implemented or precisely blocked\nReserved fields read as the SSOT value and ignore writes\nField side effects are connected to owning control/status logic\nTraceability keeps source_ref registers.register_list.SEED.fields.seed\nPrimary implementation evidence is in rtl/lfsr.sv\nseed reset behavior matches SSOT value DEFAULT_SEED\nseed access policy rw is implemented without read/write shortcuts\nseed readback returns implemented RTL state when readable\nseed write/clear side effects are connected to owning control/status logic\nLedger task RTL-0090 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref registers.register_list.SEED.fields.seed\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0091: Implement CSR/register STATUS",
+      "activeForm": "RTL-0091: Implement CSR/register STATUS",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0091\nCategory: registers.register\nSource ref: registers.register_list.STATUS\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nDecode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.STATUS.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=12.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Address/decode behavior matches SSOT\nReadable fields return RTL state, not a constant placeholder\nWrite semantics and illegal access response match SSOT\nTraceability keeps source_ref registers.register_list.STATUS\nPrimary implementation evidence is in rtl/lfsr.sv\nSTATUS width matches SSOT value 32\nSTATUS reset behavior matches SSOT value 0\nSTATUS access policy ro is implemented without read/write shortcuts\nSTATUS decode uses SSOT address/offset 12\nLedger task RTL-0091 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref registers.register_list.STATUS\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0092: Implement field STATUS.running",
+      "activeForm": "RTL-0092: Implement field STATUS.running",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0092\nCategory: registers.field\nSource ref: registers.register_list.STATUS.fields.running\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nEach register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.running.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=running; reset=0; access=ro.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Field bit range, mask, and write strobe decode match SSOT\nField reset/access policy matches SSOT\nRead/write/W1C/W0C/RO behavior is implemented or precisely blocked\nReserved fields read as the SSOT value and ignore writes\nField side effects are connected to owning control/status logic\nTraceability keeps source_ref registers.register_list.STATUS.fields.running\nPrimary implementation evidence is in rtl/lfsr.sv\nrunning reset behavior matches SSOT value 0\nrunning access policy ro is implemented without read/write shortcuts\nrunning readback returns implemented RTL state when readable\nrunning write/clear side effects are connected to owning control/status logic\nLedger task RTL-0092 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref registers.register_list.STATUS.fields.running\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0093: Implement field STATUS.lockup",
+      "activeForm": "RTL-0093: Implement field STATUS.lockup",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0093\nCategory: registers.field\nSource ref: registers.register_list.STATUS.fields.lockup\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nEach register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.lockup.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=lockup; reset=0; access=ro.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Field bit range, mask, and write strobe decode match SSOT\nField reset/access policy matches SSOT\nRead/write/W1C/W0C/RO behavior is implemented or precisely blocked\nReserved fields read as the SSOT value and ignore writes\nField side effects are connected to owning control/status logic\nTraceability keeps source_ref registers.register_list.STATUS.fields.lockup\nPrimary implementation evidence is in rtl/lfsr.sv\nlockup reset behavior matches SSOT value 0\nlockup access policy ro is implemented without read/write shortcuts\nlockup readback returns implemented RTL state when readable\nlockup write/clear side effects are connected to owning control/status logic\nLedger task RTL-0093 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref registers.register_list.STATUS.fields.lockup\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0094: Implement field STATUS.reserved_31_2",
+      "activeForm": "RTL-0094: Implement field STATUS.reserved_31_2",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0094\nCategory: registers.field\nSource ref: registers.register_list.STATUS.fields.reserved_31_2\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nEach register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.reserved_31_2.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=reserved_31_2; reset=0; access=reserved.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Field bit range, mask, and write strobe decode match SSOT\nField reset/access policy matches SSOT\nRead/write/W1C/W0C/RO behavior is implemented or precisely blocked\nReserved fields read as the SSOT value and ignore writes\nField side effects are connected to owning control/status logic\nTraceability keeps source_ref registers.register_list.STATUS.fields.reserved_31_2\nPrimary implementation evidence is in rtl/lfsr.sv\nreserved_31_2 reset behavior matches SSOT value 0\nreserved_31_2 access policy reserved is implemented without read/write shortcuts\nreserved_31_2 readback returns implemented RTL state when readable\nreserved_31_2 write/clear side effects are connected to owning control/status logic\nLedger task RTL-0094 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref registers.register_list.STATUS.fields.reserved_31_2\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0095: Implement CSR/register PRBS",
+      "activeForm": "RTL-0095: Implement CSR/register PRBS",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0095\nCategory: registers.register\nSource ref: registers.register_list.PRBS\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nDecode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.PRBS.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=PRBS; width=32; reset=DEFAULT_SEED; access=ro; offset=16.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Address/decode behavior matches SSOT\nReadable fields return RTL state, not a constant placeholder\nWrite semantics and illegal access response match SSOT\nTraceability keeps source_ref registers.register_list.PRBS\nPrimary implementation evidence is in rtl/lfsr.sv\nPRBS width matches SSOT value 32\nPRBS reset behavior matches SSOT value DEFAULT_SEED\nPRBS access policy ro is implemented without read/write shortcuts\nPRBS decode uses SSOT address/offset 16\nLedger task RTL-0095 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref registers.register_list.PRBS\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0096: Implement field PRBS.prbs",
+      "activeForm": "RTL-0096: Implement field PRBS.prbs",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0096\nCategory: registers.field\nSource ref: registers.register_list.PRBS.fields.prbs\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nEach register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.PRBS.fields.prbs.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=prbs; reset=DEFAULT_SEED; access=ro.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Field bit range, mask, and write strobe decode match SSOT\nField reset/access policy matches SSOT\nRead/write/W1C/W0C/RO behavior is implemented or precisely blocked\nReserved fields read as the SSOT value and ignore writes\nField side effects are connected to owning control/status logic\nTraceability keeps source_ref registers.register_list.PRBS.fields.prbs\nPrimary implementation evidence is in rtl/lfsr.sv\nprbs reset behavior matches SSOT value DEFAULT_SEED\nprbs access policy ro is implemented without read/write shortcuts\nprbs readback returns implemented RTL state when readable\nprbs write/clear side effects are connected to owning control/status logic\nLedger task RTL-0096 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref registers.register_list.PRBS.fields.prbs\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0097: Implement FSM state lfsr_control.state_0",
+      "activeForm": "RTL-0097: Implement FSM state lfsr_control.state_0",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0097\nCategory: fsm.state\nSource ref: fsm.lfsr_control.states.state_0\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nEvery SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.lfsr_control.states.state_0.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: value=IDLE.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "State is encoded/reachable or explicitly replaced by equivalent logic\nReset/entry/exit behavior matches SSOT\nFSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure\nCoverage can observe the state or equivalent condition\nTraceability keeps source_ref fsm.lfsr_control.states.state_0\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0097 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref fsm.lfsr_control.states.state_0\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0098: Implement FSM state lfsr_control.state_1",
+      "activeForm": "RTL-0098: Implement FSM state lfsr_control.state_1",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0098\nCategory: fsm.state\nSource ref: fsm.lfsr_control.states.state_1\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nEvery SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.lfsr_control.states.state_1.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: value=RUNNING.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "State is encoded/reachable or explicitly replaced by equivalent logic\nReset/entry/exit behavior matches SSOT\nFSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure\nCoverage can observe the state or equivalent condition\nTraceability keeps source_ref fsm.lfsr_control.states.state_1\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0098 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref fsm.lfsr_control.states.state_1\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0099: Implement FSM state lfsr_control.state_2",
+      "activeForm": "RTL-0099: Implement FSM state lfsr_control.state_2",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0099\nCategory: fsm.state\nSource ref: fsm.lfsr_control.states.state_2\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nEvery SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.lfsr_control.states.state_2.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: value=LOCKUP.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "State is encoded/reachable or explicitly replaced by equivalent logic\nReset/entry/exit behavior matches SSOT\nFSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure\nCoverage can observe the state or equivalent condition\nTraceability keeps source_ref fsm.lfsr_control.states.state_2\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0099 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref fsm.lfsr_control.states.state_2\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0100: Implement FSM transition lfsr_control.transition_0",
+      "activeForm": "RTL-0100: Implement FSM transition lfsr_control.transition_0",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0100\nCategory: fsm.transition\nSource ref: fsm.lfsr_control.transitions.transition_0\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nTransition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.lfsr_control.transitions.transition_0.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: from=IDLE; to=RUNNING; condition=CTRL.enable == 1 && lfsr_state != 0.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Transition condition is present in RTL control logic\nTransition action/state update is implemented\nIllegal/missing transition behavior is handled per SSOT\nTraceability keeps source_ref fsm.lfsr_control.transitions.transition_0\nPrimary implementation evidence is in rtl/lfsr.sv\nfsm.lfsr_control.transitions.transition_0 condition is implemented as RTL control logic: CTRL.enable == 1 && lfsr_state != 0\nfsm.lfsr_control.transitions.transition_0 transition path IDLE -> RUNNING is encoded or explicitly proven equivalent\nLedger task RTL-0100 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref fsm.lfsr_control.transitions.transition_0\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0101: Implement FSM transition lfsr_control.transition_1",
+      "activeForm": "RTL-0101: Implement FSM transition lfsr_control.transition_1",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0101\nCategory: fsm.transition\nSource ref: fsm.lfsr_control.transitions.transition_1\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nTransition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.lfsr_control.transitions.transition_1.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: from=RUNNING; to=IDLE; condition=CTRL.enable == 0.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Transition condition is present in RTL control logic\nTransition action/state update is implemented\nIllegal/missing transition behavior is handled per SSOT\nTraceability keeps source_ref fsm.lfsr_control.transitions.transition_1\nPrimary implementation evidence is in rtl/lfsr.sv\nfsm.lfsr_control.transitions.transition_1 condition is implemented as RTL control logic: CTRL.enable == 0\nfsm.lfsr_control.transitions.transition_1 transition path RUNNING -> IDLE is encoded or explicitly proven equivalent\nLedger task RTL-0101 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref fsm.lfsr_control.transitions.transition_1\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0102: Implement FSM transition lfsr_control.transition_2",
+      "activeForm": "RTL-0102: Implement FSM transition lfsr_control.transition_2",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0102\nCategory: fsm.transition\nSource ref: fsm.lfsr_control.transitions.transition_2\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nTransition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.lfsr_control.transitions.transition_2.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: from=RUNNING; to=LOCKUP; condition=lfsr_state == 0.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Transition condition is present in RTL control logic\nTransition action/state update is implemented\nIllegal/missing transition behavior is handled per SSOT\nTraceability keeps source_ref fsm.lfsr_control.transitions.transition_2\nPrimary implementation evidence is in rtl/lfsr.sv\nfsm.lfsr_control.transitions.transition_2 condition is implemented as RTL control logic: lfsr_state == 0\nfsm.lfsr_control.transitions.transition_2 transition path RUNNING -> LOCKUP is encoded or explicitly proven equivalent\nLedger task RTL-0102 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref fsm.lfsr_control.transitions.transition_2\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0103: Implement FSM transition lfsr_control.transition_3",
+      "activeForm": "RTL-0103: Implement FSM transition lfsr_control.transition_3",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0103\nCategory: fsm.transition\nSource ref: fsm.lfsr_control.transitions.transition_3\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nTransition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.lfsr_control.transitions.transition_3.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: from=LOCKUP; to=IDLE; condition=CTRL.enable == 0.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Transition condition is present in RTL control logic\nTransition action/state update is implemented\nIllegal/missing transition behavior is handled per SSOT\nTraceability keeps source_ref fsm.lfsr_control.transitions.transition_3\nPrimary implementation evidence is in rtl/lfsr.sv\nfsm.lfsr_control.transitions.transition_3 condition is implemented as RTL control logic: CTRL.enable == 0\nfsm.lfsr_control.transitions.transition_3 transition path LOCKUP -> IDLE is encoded or explicitly proven equivalent\nLedger task RTL-0103 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref fsm.lfsr_control.transitions.transition_3\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0104: Implement FSM transition lfsr_control.transition_4",
+      "activeForm": "RTL-0104: Implement FSM transition lfsr_control.transition_4",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0104\nCategory: fsm.transition\nSource ref: fsm.lfsr_control.transitions.transition_4\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nTransition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.lfsr_control.transitions.transition_4.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: from=LOCKUP; to=RUNNING; condition=CTRL.enable == 1 && CTRL.auto_reload == 1.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Transition condition is present in RTL control logic\nTransition action/state update is implemented\nIllegal/missing transition behavior is handled per SSOT\nTraceability keeps source_ref fsm.lfsr_control.transitions.transition_4\nPrimary implementation evidence is in rtl/lfsr.sv\nfsm.lfsr_control.transitions.transition_4 condition is implemented as RTL control logic: CTRL.enable == 1 && CTRL.auto_reload == 1\nfsm.lfsr_control.transitions.transition_4 transition path LOCKUP -> RUNNING is encoded or explicitly proven equivalent\nLedger task RTL-0104 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref fsm.lfsr_control.transitions.transition_4\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0105: Implement feature PRBS Generation",
+      "activeForm": "RTL-0105: Implement feature PRBS Generation",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0105\nCategory: features.item\nSource ref: features.PRBS_Generation\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nFeatures are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.PRBS_Generation.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=PRBS Generation; output=prbs_out (parallel LFSR_WIDTH word), prbs_bit (serial LSB).\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Feature trigger/control/data behavior has RTL owner logic\nFeature observability and error behavior match SSOT\nFeature is covered by function/cycle/coverage tasks or explicitly blocked\nTraceability keeps source_ref features.PRBS_Generation\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0105 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref features.PRBS_Generation\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0106: Implement feature Polynomial Programming",
+      "activeForm": "RTL-0106: Implement feature Polynomial Programming",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0106\nCategory: features.item\nSource ref: features.Polynomial_Programming\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nFeatures are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Polynomial_Programming.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=Polynomial Programming; output=Updated polynomial drives XOR tap mask in LFSR feedback.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Feature trigger/control/data behavior has RTL owner logic\nFeature observability and error behavior match SSOT\nFeature is covered by function/cycle/coverage tasks or explicitly blocked\nTraceability keeps source_ref features.Polynomial_Programming\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0106 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref features.Polynomial_Programming\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0107: Implement feature Seed Loading",
+      "activeForm": "RTL-0107: Implement feature Seed Loading",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0107\nCategory: features.item\nSource ref: features.Seed_Loading\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nFeatures are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Seed_Loading.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=Seed Loading; output=LFSR state reinitialized; prbs_valid deasserted until next cycle.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Feature trigger/control/data behavior has RTL owner logic\nFeature observability and error behavior match SSOT\nFeature is covered by function/cycle/coverage tasks or explicitly blocked\nTraceability keeps source_ref features.Seed_Loading\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0107 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref features.Seed_Loading\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0108: Implement feature Lock-up Detection",
+      "activeForm": "RTL-0108: Implement feature Lock-up Detection",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0108\nCategory: features.item\nSource ref: features.Lock_up_Detection\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nFeatures are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Lock_up_Detection.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=Lock-up Detection; output=prbs_valid deasserted; STATUS.lockup flagged.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "Feature trigger/control/data behavior has RTL owner logic\nFeature observability and error behavior match SSOT\nFeature is covered by function/cycle/coverage tasks or explicitly blocked\nTraceability keeps source_ref features.Lock_up_Detection\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0108 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref features.Lock_up_Detection\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0109: Implement error/fault item recovery_0",
+      "activeForm": "RTL-0109: Implement error/fault item recovery_0",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0109\nCategory: error_handling.recovery\nSource ref: error_handling.recovery.recovery_0\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_0.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: action=software disable and re-enable or write new SEED.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner/evidence is named for this SSOT item\nBehavior is not represented only by comments or TB code\nDownstream verification can observe or justify the item\nTraceability keeps source_ref error_handling.recovery.recovery_0\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0109 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref error_handling.recovery.recovery_0\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0110: Implement security item register_map",
+      "activeForm": "RTL-0110: Implement security item register_map",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0110\nCategory: security.assets\nSource ref: security.assets.register_map\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.register_map.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=register_map.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner/evidence is named for this SSOT item\nBehavior is not represented only by comments or TB code\nDownstream verification can observe or justify the item\nTraceability keeps source_ref security.assets.register_map\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0110 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref security.assets.register_map\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0111: Implement security item prbs_sequence",
+      "activeForm": "RTL-0111: Implement security item prbs_sequence",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0111\nCategory: security.assets\nSource ref: security.assets.prbs_sequence\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.prbs_sequence.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=prbs_sequence.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner/evidence is named for this SSOT item\nBehavior is not represented only by comments or TB code\nDownstream verification can observe or justify the item\nTraceability keeps source_ref security.assets.prbs_sequence\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0111 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref security.assets.prbs_sequence\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0112: Implement integration item external_modules",
+      "activeForm": "RTL-0112: Implement integration item external_modules",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0112\nCategory: integration.dependencies\nSource ref: integration.dependencies.external_modules\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_modules.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=external_modules.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner/evidence is named for this SSOT item\nBehavior is not represented only by comments or TB code\nDownstream verification can observe or justify the item\nTraceability keeps source_ref integration.dependencies.external_modules\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0112 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref integration.dependencies.external_modules\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0113: Implement integration item external_clocks",
+      "activeForm": "RTL-0113: Implement integration item external_clocks",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0113\nCategory: integration.dependencies\nSource ref: integration.dependencies.external_clocks\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_clocks.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=external_clocks; value=[\"PCLK\"].\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner/evidence is named for this SSOT item\nBehavior is not represented only by comments or TB code\nDownstream verification can observe or justify the item\nTraceability keeps source_ref integration.dependencies.external_clocks\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0113 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref integration.dependencies.external_clocks\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0114: Implement integration item external_resets",
+      "activeForm": "RTL-0114: Implement integration item external_resets",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0114\nCategory: integration.dependencies\nSource ref: integration.dependencies.external_resets\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_resets.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=external_resets; value=[\"PRESETn\"].\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner/evidence is named for this SSOT item\nBehavior is not represented only by comments or TB code\nDownstream verification can observe or justify the item\nTraceability keeps source_ref integration.dependencies.external_resets\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0114 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref integration.dependencies.external_resets\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0115: Implement integration item PCLK",
+      "activeForm": "RTL-0115: Implement integration item PCLK",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0115\nCategory: integration.connections\nSource ref: integration.connections.PCLK\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.PCLK.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: port=PCLK; signal=PCLK.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner/evidence is named for this SSOT item\nBehavior is not represented only by comments or TB code\nDownstream verification can observe or justify the item\nTraceability keeps source_ref integration.connections.PCLK\nPrimary implementation evidence is in rtl/lfsr.sv\nDUT port PCLK is the implementation/observation point for PCLK\nLedger task RTL-0115 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref integration.connections.PCLK\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0116: Implement integration item PRESETn",
+      "activeForm": "RTL-0116: Implement integration item PRESETn",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0116\nCategory: integration.connections\nSource ref: integration.connections.PRESETn\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.PRESETn.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: port=PRESETn; signal=PRESETn.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner/evidence is named for this SSOT item\nBehavior is not represented only by comments or TB code\nDownstream verification can observe or justify the item\nTraceability keeps source_ref integration.connections.PRESETn\nPrimary implementation evidence is in rtl/lfsr.sv\nDUT port PRESETn is the implementation/observation point for PRESETn\nLedger task RTL-0116 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref integration.connections.PRESETn\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0117: Implement integration item APB4",
+      "activeForm": "RTL-0117: Implement integration item APB4",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0117\nCategory: integration.connections\nSource ref: integration.connections.APB4\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.APB4.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: port=apb_slave; signal=APB4.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner/evidence is named for this SSOT item\nBehavior is not represented only by comments or TB code\nDownstream verification can observe or justify the item\nTraceability keeps source_ref integration.connections.APB4\nPrimary implementation evidence is in rtl/lfsr.sv\nDUT port apb_slave is the implementation/observation point for apb_slave\nLedger task RTL-0117 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref integration.connections.APB4\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0118: Implement synthesis item constraint_0",
+      "activeForm": "RTL-0118: Implement synthesis item constraint_0",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0118\nCategory: synthesis.constraints\nSource ref: synthesis.constraints.constraint_0\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_0.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: value=No inferred latches.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner/evidence is named for this SSOT item\nBehavior is not represented only by comments or TB code\nDownstream verification can observe or justify the item\nTraceability keeps source_ref synthesis.constraints.constraint_0\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0118 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref synthesis.constraints.constraint_0\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0119: Implement synthesis item constraint_1",
+      "activeForm": "RTL-0119: Implement synthesis item constraint_1",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0119\nCategory: synthesis.constraints\nSource ref: synthesis.constraints.constraint_1\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_1.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: value=All flops reset according to clock_reset_domains.reset_scheme.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner/evidence is named for this SSOT item\nBehavior is not represented only by comments or TB code\nDownstream verification can observe or justify the item\nTraceability keeps source_ref synthesis.constraints.constraint_1\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0119 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref synthesis.constraints.constraint_1\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0120: Implement synthesis item constraint_2",
+      "activeForm": "RTL-0120: Implement synthesis item constraint_2",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0120\nCategory: synthesis.constraints\nSource ref: synthesis.constraints.constraint_2\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_2.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: value=No package/interface/modport/function/task/for/while constructs in generated RTL.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner/evidence is named for this SSOT item\nBehavior is not represented only by comments or TB code\nDownstream verification can observe or justify the item\nTraceability keeps source_ref synthesis.constraints.constraint_2\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0120 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref synthesis.constraints.constraint_2\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0121: Implement synthesis item area_um2_max",
+      "activeForm": "RTL-0121: Implement synthesis item area_um2_max",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0121\nCategory: synthesis.ppa_targets\nSource ref: synthesis.ppa_targets.area_um2_max\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.area_um2_max.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=area_um2_max.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner/evidence is named for this SSOT item\nBehavior is not represented only by comments or TB code\nDownstream verification can observe or justify the item\nTraceability keeps source_ref synthesis.ppa_targets.area_um2_max\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0121 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref synthesis.ppa_targets.area_um2_max\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0122: Implement synthesis item power_mw_max",
+      "activeForm": "RTL-0122: Implement synthesis item power_mw_max",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0122\nCategory: synthesis.ppa_targets\nSource ref: synthesis.ppa_targets.power_mw_max\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.power_mw_max.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=power_mw_max.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner/evidence is named for this SSOT item\nBehavior is not represented only by comments or TB code\nDownstream verification can observe or justify the item\nTraceability keeps source_ref synthesis.ppa_targets.power_mw_max\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0122 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref synthesis.ppa_targets.power_mw_max\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0123: Implement synthesis item frequency_mhz_min",
+      "activeForm": "RTL-0123: Implement synthesis item frequency_mhz_min",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0123\nCategory: synthesis.ppa_targets\nSource ref: synthesis.ppa_targets.frequency_mhz_min\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.frequency_mhz_min.\nOwner: lfsr in rtl/lfsr.sv via single_owner.\nSSOT item context: name=frequency_mhz_min; value=50.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "RTL owner/evidence is named for this SSOT item\nBehavior is not represented only by comments or TB code\nDownstream verification can observe or justify the item\nTraceability keeps source_ref synthesis.ppa_targets.frequency_mhz_min\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0123 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref synthesis.ppa_targets.frequency_mhz_min\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    },
+    {
+      "content": "RTL-0124: Prove module lfsr is functionally equivalent to FL",
+      "activeForm": "RTL-0124: Prove module lfsr is functionally equivalent to FL",
+      "status": "pending",
+      "detail": "Ledger id: RTL-0124\nCategory: equivalence.module\nSource ref: sub_modules.lfsr.module_equivalence\nOwner module: lfsr\nOwner file: rtl/lfsr.sv\n\nThis is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.lfsr.module_equivalence.\nOwner: lfsr in rtl/lfsr.sv via module_equivalence.\n\nCurrent audit reason: Owner RTL file is missing: rtl/lfsr.sv.\n\nEvidence basis:\n- rtl_todo_plan.json task criteria\n- rtl_traceability.json source_ref mapping\n- owner RTL file/module declaration evidence\n- static RTL evidence audit when evidence_terms are required",
+      "criteria": "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module\ncocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff\nscoreboard row fl_expected.model_api is FunctionalModel.apply\nscoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data\nAny mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong\nTraceability keeps source_ref sub_modules.lfsr.module_equivalence\nPrimary implementation evidence is in rtl/lfsr.sv\nLedger task RTL-0124 is closed in rtl/rtl_todo_plan.json\nTraceability preserves source_ref sub_modules.lfsr.module_equivalence\ntodo_completion.status is pass after derive_rtl_todos.py --audit-rtl",
+      "priority": "high"
+    }
+  ]
+}

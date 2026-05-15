@@ -1,0 +1,271 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "lfsr",
+  "source": "lfsr/yaml/lfsr.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "lfsr/req/",
+      "lfsr/yaml/lfsr.ssot.yaml",
+      "lfsr/model/functional_model.py",
+      "lfsr/cov/fcov_plan.json",
+      "lfsr/yaml/lfsr.ssot.yaml#io_list",
+      "lfsr/yaml/lfsr.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "lfsr/rtl/",
+      "lfsr/tb/",
+      "lfsr/sim/",
+      "lfsr/vectors/",
+      "lfsr/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "function_single_step_prbs",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm1",
+      "description": "single_step_prbs"
+    },
+    {
+      "id": "function_load_seed",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[1]",
+      "source_ref": "function_model.transactions.fm2",
+      "description": "load_seed"
+    },
+    {
+      "id": "function_load_polynomial",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[2]",
+      "source_ref": "function_model.transactions.fm3",
+      "description": "load_polynomial"
+    },
+    {
+      "id": "function_lockup_recovery",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[3]",
+      "source_ref": "function_model.transactions.fm4",
+      "description": "lockup_recovery"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'signal': 'PSEL/PENABLE', 'rule': 'Standard APB4: setup phase (PSEL=1,PENABLE=0) followed by access phase (PSEL=1,PENABLE=1); PREADY completes the transfer.'}"
+    },
+    {
+      "id": "cycle_latency_register_read",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_read",
+      "source_ref": "cycle_model.latency.register_read",
+      "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'APB-lite read data and pready timing'}"
+    },
+    {
+      "id": "cycle_latency_register_write",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_write",
+      "source_ref": "cycle_model.latency.register_write",
+      "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'APB-lite write acceptance timing'}"
+    },
+    {
+      "id": "cycle_latency_prbs_output",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.prbs_output",
+      "source_ref": "cycle_model.latency.prbs_output",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'Single-cycle LFSR step latency'}"
+    },
+    {
+      "id": "cycle_pipeline_s0_idle",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "Hold state; sample APB decode and enable"
+    },
+    {
+      "id": "cycle_pipeline_s1_step",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "Compute next LFSR state if enabled; update prbs_out/prbs_bit/prbs_valid"
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "APB write to SEED takes effect on the same cycle as the completing PREADY."
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[1]",
+      "source_ref": "cycle_model.ordering[1]",
+      "description": "LFSR state update occurs on the rising edge after enable is sampled high."
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "No backpressure on PRBS output; downstream must sample prbs_out/prbs_bit on appropriate cycles."
+    },
+    {
+      "id": "cycle_perf_outstanding",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.outstanding",
+      "source_ref": "cycle_model.performance.outstanding",
+      "description": "{'read_max': 1, 'write_max': 1, 'description': 'Single APB transaction at a time'}"
+    },
+    {
+      "id": "cycle_perf_depth",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.depth",
+      "source_ref": "cycle_model.performance.depth",
+      "description": "{'pipeline_stages': 1, 'queue_depth': 0, 'description': 'Single-stage combinational feedback with registered output'}"
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "50"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'sustained_prbs_per_cycle': 1, 'condition': 'CTRL.enable == 1 and no lockup'}"
+    },
+    {
+      "id": "fsm_lfsr_control_idle_to_running_0",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.lfsr_control.transitions[0]",
+      "source_ref": "fsm.lfsr_control.transitions[0]",
+      "description": "CTRL.enable == 1 && lfsr_state != 0"
+    },
+    {
+      "id": "fsm_lfsr_control_running_to_idle_1",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.lfsr_control.transitions[1]",
+      "source_ref": "fsm.lfsr_control.transitions[1]",
+      "description": "CTRL.enable == 0"
+    },
+    {
+      "id": "fsm_lfsr_control_running_to_lockup_2",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.lfsr_control.transitions[2]",
+      "source_ref": "fsm.lfsr_control.transitions[2]",
+      "description": "lfsr_state == 0"
+    },
+    {
+      "id": "fsm_lfsr_control_lockup_to_idle_3",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.lfsr_control.transitions[3]",
+      "source_ref": "fsm.lfsr_control.transitions[3]",
+      "description": "CTRL.enable == 0"
+    },
+    {
+      "id": "fsm_lfsr_control_lockup_to_running_4",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.lfsr_control.transitions[4]",
+      "source_ref": "fsm.lfsr_control.transitions[4]",
+      "description": "CTRL.enable == 1 && CTRL.auto_reload == 1"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_APB', 'condition': 'APB access to undefined address or write to POLY while enabled', 'architectural_effect': 'PSLVERR asserted with PREADY'}"
+    },
+    {
+      "id": "error_error_1",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[1]",
+      "source_ref": "error_handling.error_sources[1]",
+      "description": "{'id': 'ERR_LOCKUP', 'condition': 'lfsr_state becomes all-zero', 'architectural_effect': 'STATUS.lockup=1, prbs_valid=0, auto-reload or halt per CTRL.auto_reload'}"
+    }
+  ],
+  "summary": {
+    "total_bins": 24,
+    "scenario_bins": 0,
+    "transaction_bins": 4,
+    "protocol_bins": 1,
+    "state_transition_bins": 5,
+    "error_bins": 2
+  }
+}

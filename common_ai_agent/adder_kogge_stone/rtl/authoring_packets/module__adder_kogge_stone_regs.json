@@ -1,0 +1,1530 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 4,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 27,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/adder_kogge_stone_regs.sv",
+      "name": "adder_kogge_stone_regs",
+      "refs": [
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/adder_kogge_stone_regs.sv",
+        "name": "adder_kogge_stone_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/adder_kogge_stone_core.sv",
+        "name": "adder_kogge_stone_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/adder_kogge_stone.sv",
+        "name": "adder_kogge_stone",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "adder_kogge_stone_regs",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "adder_kogge_stone_regs",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[3]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "calibrated from user requirements; small parameterized accelerator",
+      "min_behavior_owner_logic_modules": 1,
+      "min_logic_modules": 1,
+      "min_modules": 3,
+      "min_procedural_blocks": 6,
+      "min_source_files": 3,
+      "min_state_updates": 8,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": false,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 27,
+    "open_required_count": 27,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": false
+  },
+  "ip": "adder_kogge_stone",
+  "kind": "module",
+  "owner_file": "rtl/adder_kogge_stone_regs.sv",
+  "owner_module": "adder_kogge_stone_regs",
+  "packet_id": "module__adder_kogge_stone_regs",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "registers.field": 17,
+      "registers.register": 8,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 27,
+      "task_limit": 48
+    },
+    "open_required_count": 27,
+    "required_count": 27,
+    "source_refs": [
+      "workflow_todos.rtl-gen[1]",
+      "registers.register_list.CONTROL",
+      "registers.register_list.CONTROL.fields.start",
+      "registers.register_list.CONTROL.fields.hold_mode",
+      "registers.register_list.CONTROL.fields.clr_done",
+      "registers.register_list.CONTROL.fields.reserved_31_3",
+      "registers.register_list.STATUS",
+      "registers.register_list.STATUS.fields.busy",
+      "registers.register_list.STATUS.fields.done",
+      "registers.register_list.STATUS.fields.overflow",
+      "registers.register_list.STATUS.fields.reserved_31_3",
+      "registers.register_list.A_DATA",
+      "registers.register_list.A_DATA.fields.a_data",
+      "registers.register_list.B_DATA",
+      "registers.register_list.B_DATA.fields.b_data",
+      "registers.register_list.CIN",
+      "registers.register_list.CIN.fields.cin",
+      "registers.register_list.CIN.fields.reserved_31_1",
+      "registers.register_list.SUM_RESULT",
+      "registers.register_list.SUM_RESULT.fields.sum_result",
+      "registers.register_list.COUT_RESULT",
+      "registers.register_list.COUT_RESULT.fields.cout_result",
+      "registers.register_list.COUT_RESULT.fields.reserved_31_1",
+      "registers.register_list.CONFIG"
+    ],
+    "status_counts": {
+      "open": 27
+    },
+    "task_count": 27
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement APB-lite register block in adder_kogge_stone_regs.sv",
+      "criteria": [
+        "RTL owner logic is present in rtl/adder_kogge_stone_regs.sv",
+        "APB protocol assertions pass",
+        "All register reset values match SSOT",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[1]",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "Semantic source_refs covered: io_list.interfaces.apb_csr, registers.register_list"
+      ],
+      "detail": "Decode paddr to select CONTROL, STATUS, A_DATA, B_DATA, CIN, SUM_RESULT, COUT_RESULT, CONFIG. Implement RW, RO, W1C access policies. Drive pslverr for out-of-bounds. Connect shadow registers to core.\nSSOT ref: workflow_todos.rtl-gen[1].\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_REGS.",
+      "evidence_terms": [
+        "REGS",
+        "RTL_TODO_REGS",
+        "TODO",
+        "adder",
+        "adder_kogge_stone_regs",
+        "apb",
+        "apb_csr",
+        "csr",
+        "io",
+        "io_list",
+        "kogge",
+        "list",
+        "regs",
+        "stone"
+      ],
+      "id": "RTL-0028",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[1]",
+      "ssot_context": {
+        "id": "RTL_TODO_REGS"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr",
+        "registers.register_list",
+        "workflow_todos.rtl-gen[1]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "REGS",
+          "RTL_TODO_REGS",
+          "TODO",
+          "adder",
+          "adder_kogge_stone_regs",
+          "apb",
+          "apb_csr",
+          "csr",
+          "io",
+          "io_list",
+          "kogge",
+          "list",
+          "regs",
+          "stone"
+        ],
+        "source_scope": "rtl/adder_kogge_stone_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_REGS",
+        "source_refs": [
+          "io_list.interfaces.apb_csr",
+          "registers.register_list"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register CONTROL",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.CONTROL",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "CONTROL width matches SSOT value 32",
+        "CONTROL reset behavior matches SSOT value 0",
+        "CONTROL access policy rw is implemented without read/write shortcuts",
+        "CONTROL decode uses SSOT address/offset 0"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CONTROL.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=CONTROL; width=32; reset=0; access=rw; offset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0089",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONTROL",
+      "ssot_context": {
+        "access": "rw",
+        "name": "CONTROL",
+        "offset": "0",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONTROL"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CONTROL.start",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CONTROL.fields.start",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "start reset behavior matches SSOT value 0",
+        "start access policy rw is implemented without read/write shortcuts",
+        "start readback returns implemented RTL state when readable",
+        "start write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CONTROL.fields.start.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=start; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0090",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONTROL.fields.start",
+      "ssot_context": {
+        "access": "rw",
+        "name": "start",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONTROL.fields.start"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CONTROL.hold_mode",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CONTROL.fields.hold_mode",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "hold_mode reset behavior matches SSOT value 0",
+        "hold_mode access policy rw is implemented without read/write shortcuts",
+        "hold_mode readback returns implemented RTL state when readable",
+        "hold_mode write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CONTROL.fields.hold_mode.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=hold_mode; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0091",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONTROL.fields.hold_mode",
+      "ssot_context": {
+        "access": "rw",
+        "name": "hold_mode",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONTROL.fields.hold_mode"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CONTROL.clr_done",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CONTROL.fields.clr_done",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "clr_done reset behavior matches SSOT value 0",
+        "clr_done access policy w1c is implemented without read/write shortcuts",
+        "clr_done readback returns implemented RTL state when readable",
+        "clr_done write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CONTROL.fields.clr_done.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=clr_done; reset=0; access=w1c.",
+      "evidence_terms": [],
+      "id": "RTL-0092",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONTROL.fields.clr_done",
+      "ssot_context": {
+        "access": "w1c",
+        "name": "clr_done",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONTROL.fields.clr_done"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CONTROL.reserved_31_3",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CONTROL.fields.reserved_31_3",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "reserved_31_3 reset behavior matches SSOT value 0",
+        "reserved_31_3 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_3 readback returns implemented RTL state when readable",
+        "reserved_31_3 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CONTROL.fields.reserved_31_3.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_3; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0093",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONTROL.fields.reserved_31_3",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_3",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONTROL.fields.reserved_31_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register STATUS",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.STATUS",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "STATUS width matches SSOT value 32",
+        "STATUS reset behavior matches SSOT value 0",
+        "STATUS access policy ro is implemented without read/write shortcuts",
+        "STATUS decode uses SSOT address/offset 4"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.STATUS.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=4.",
+      "evidence_terms": [],
+      "id": "RTL-0094",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS",
+      "ssot_context": {
+        "access": "ro",
+        "name": "STATUS",
+        "offset": "4",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.busy",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.busy",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "busy reset behavior matches SSOT value 0",
+        "busy access policy ro is implemented without read/write shortcuts",
+        "busy readback returns implemented RTL state when readable",
+        "busy write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.busy.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=busy; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0095",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.busy",
+      "ssot_context": {
+        "access": "ro",
+        "name": "busy",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.busy"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.done",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.done",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "done reset behavior matches SSOT value 0",
+        "done access policy ro is implemented without read/write shortcuts",
+        "done readback returns implemented RTL state when readable",
+        "done write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.done.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=done; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0096",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.done",
+      "ssot_context": {
+        "access": "ro",
+        "name": "done",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.done"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.overflow",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.overflow",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "overflow reset behavior matches SSOT value 0",
+        "overflow access policy ro is implemented without read/write shortcuts",
+        "overflow readback returns implemented RTL state when readable",
+        "overflow write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.overflow.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=overflow; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0097",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.overflow",
+      "ssot_context": {
+        "access": "ro",
+        "name": "overflow",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.overflow"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.reserved_31_3",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.reserved_31_3",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "reserved_31_3 reset behavior matches SSOT value 0",
+        "reserved_31_3 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_3 readback returns implemented RTL state when readable",
+        "reserved_31_3 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.reserved_31_3.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_3; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0098",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.reserved_31_3",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_3",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.reserved_31_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register A_DATA",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.A_DATA",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "A_DATA width matches SSOT value 32",
+        "A_DATA reset behavior matches SSOT value 0",
+        "A_DATA access policy rw is implemented without read/write shortcuts",
+        "A_DATA decode uses SSOT address/offset 8"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.A_DATA.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=A_DATA; width=32; reset=0; access=rw; offset=8.",
+      "evidence_terms": [],
+      "id": "RTL-0099",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.A_DATA",
+      "ssot_context": {
+        "access": "rw",
+        "name": "A_DATA",
+        "offset": "8",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.A_DATA"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field A_DATA.a_data",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.A_DATA.fields.a_data",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "a_data reset behavior matches SSOT value 0",
+        "a_data access policy rw is implemented without read/write shortcuts",
+        "a_data readback returns implemented RTL state when readable",
+        "a_data write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.A_DATA.fields.a_data.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=a_data; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0100",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.A_DATA.fields.a_data",
+      "ssot_context": {
+        "access": "rw",
+        "name": "a_data",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.A_DATA.fields.a_data"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register B_DATA",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.B_DATA",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "B_DATA width matches SSOT value 32",
+        "B_DATA reset behavior matches SSOT value 0",
+        "B_DATA access policy rw is implemented without read/write shortcuts",
+        "B_DATA decode uses SSOT address/offset 12"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.B_DATA.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=B_DATA; width=32; reset=0; access=rw; offset=12.",
+      "evidence_terms": [],
+      "id": "RTL-0101",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.B_DATA",
+      "ssot_context": {
+        "access": "rw",
+        "name": "B_DATA",
+        "offset": "12",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.B_DATA"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field B_DATA.b_data",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.B_DATA.fields.b_data",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "b_data reset behavior matches SSOT value 0",
+        "b_data access policy rw is implemented without read/write shortcuts",
+        "b_data readback returns implemented RTL state when readable",
+        "b_data write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.B_DATA.fields.b_data.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=b_data; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0102",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.B_DATA.fields.b_data",
+      "ssot_context": {
+        "access": "rw",
+        "name": "b_data",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.B_DATA.fields.b_data"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register CIN",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.CIN",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "CIN width matches SSOT value 32",
+        "CIN reset behavior matches SSOT value 0",
+        "CIN access policy rw is implemented without read/write shortcuts",
+        "CIN decode uses SSOT address/offset 16"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CIN.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=CIN; width=32; reset=0; access=rw; offset=16.",
+      "evidence_terms": [],
+      "id": "RTL-0103",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CIN",
+      "ssot_context": {
+        "access": "rw",
+        "name": "CIN",
+        "offset": "16",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CIN"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CIN.cin",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CIN.fields.cin",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "cin reset behavior matches SSOT value 0",
+        "cin access policy rw is implemented without read/write shortcuts",
+        "cin readback returns implemented RTL state when readable",
+        "cin write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CIN.fields.cin.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=cin; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0104",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CIN.fields.cin",
+      "ssot_context": {
+        "access": "rw",
+        "name": "cin",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CIN.fields.cin"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CIN.reserved_31_1",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CIN.fields.reserved_31_1",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "reserved_31_1 reset behavior matches SSOT value 0",
+        "reserved_31_1 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_1 readback returns implemented RTL state when readable",
+        "reserved_31_1 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CIN.fields.reserved_31_1.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_1; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0105",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CIN.fields.reserved_31_1",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_1",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CIN.fields.reserved_31_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register SUM_RESULT",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.SUM_RESULT",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "SUM_RESULT width matches SSOT value 32",
+        "SUM_RESULT reset behavior matches SSOT value 0",
+        "SUM_RESULT access policy ro is implemented without read/write shortcuts",
+        "SUM_RESULT decode uses SSOT address/offset 20"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.SUM_RESULT.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=SUM_RESULT; width=32; reset=0; access=ro; offset=20.",
+      "evidence_terms": [],
+      "id": "RTL-0106",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.SUM_RESULT",
+      "ssot_context": {
+        "access": "ro",
+        "name": "SUM_RESULT",
+        "offset": "20",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.SUM_RESULT"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field SUM_RESULT.sum_result",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.SUM_RESULT.fields.sum_result",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "sum_result reset behavior matches SSOT value 0",
+        "sum_result access policy ro is implemented without read/write shortcuts",
+        "sum_result readback returns implemented RTL state when readable",
+        "sum_result write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.SUM_RESULT.fields.sum_result.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=sum_result; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0107",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.SUM_RESULT.fields.sum_result",
+      "ssot_context": {
+        "access": "ro",
+        "name": "sum_result",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.SUM_RESULT.fields.sum_result"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register COUT_RESULT",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.COUT_RESULT",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "COUT_RESULT width matches SSOT value 32",
+        "COUT_RESULT reset behavior matches SSOT value 0",
+        "COUT_RESULT access policy ro is implemented without read/write shortcuts",
+        "COUT_RESULT decode uses SSOT address/offset 24"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.COUT_RESULT.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=COUT_RESULT; width=32; reset=0; access=ro; offset=24.",
+      "evidence_terms": [],
+      "id": "RTL-0108",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.COUT_RESULT",
+      "ssot_context": {
+        "access": "ro",
+        "name": "COUT_RESULT",
+        "offset": "24",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.COUT_RESULT"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field COUT_RESULT.cout_result",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.COUT_RESULT.fields.cout_result",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "cout_result reset behavior matches SSOT value 0",
+        "cout_result access policy ro is implemented without read/write shortcuts",
+        "cout_result readback returns implemented RTL state when readable",
+        "cout_result write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.COUT_RESULT.fields.cout_result.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=cout_result; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0109",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.COUT_RESULT.fields.cout_result",
+      "ssot_context": {
+        "access": "ro",
+        "name": "cout_result",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.COUT_RESULT.fields.cout_result"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field COUT_RESULT.reserved_31_1",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.COUT_RESULT.fields.reserved_31_1",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "reserved_31_1 reset behavior matches SSOT value 0",
+        "reserved_31_1 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_1 readback returns implemented RTL state when readable",
+        "reserved_31_1 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.COUT_RESULT.fields.reserved_31_1.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_1; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0110",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.COUT_RESULT.fields.reserved_31_1",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_1",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.COUT_RESULT.fields.reserved_31_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register CONFIG",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.CONFIG",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "CONFIG width matches SSOT value 32",
+        "CONFIG reset behavior matches SSOT value depends on parameter DATA_WIDTH",
+        "CONFIG access policy ro is implemented without read/write shortcuts",
+        "CONFIG decode uses SSOT address/offset 28"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CONFIG.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=CONFIG; width=32; reset=depends on parameter DATA_WIDTH; access=ro; offset=28.",
+      "evidence_terms": [],
+      "id": "RTL-0111",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONFIG",
+      "ssot_context": {
+        "access": "ro",
+        "name": "CONFIG",
+        "offset": "28",
+        "reset": "depends on parameter DATA_WIDTH",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONFIG"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CONFIG.data_width",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CONFIG.fields.data_width",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "data_width reset behavior matches SSOT value DATA_WIDTH",
+        "data_width access policy ro is implemented without read/write shortcuts",
+        "data_width readback returns implemented RTL state when readable",
+        "data_width write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CONFIG.fields.data_width.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=data_width; reset=DATA_WIDTH; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0112",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONFIG.fields.data_width",
+      "ssot_context": {
+        "access": "ro",
+        "name": "data_width",
+        "reset": "DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONFIG.fields.data_width"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CONFIG.reserved_31_8",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CONFIG.fields.reserved_31_8",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv",
+        "reserved_31_8 reset behavior matches SSOT value 0",
+        "reserved_31_8 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_8 readback returns implemented RTL state when readable",
+        "reserved_31_8 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CONFIG.fields.reserved_31_8.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_8; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0113",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CONFIG.fields.reserved_31_8",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_8",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CONFIG.fields.reserved_31_8"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module adder_kogge_stone_regs is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.adder_kogge_stone_regs.module_equivalence",
+        "Primary implementation evidence is in rtl/adder_kogge_stone_regs.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.adder_kogge_stone_regs.module_equivalence.\nOwner: adder_kogge_stone_regs in rtl/adder_kogge_stone_regs.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0138",
+      "owner_file": "rtl/adder_kogge_stone_regs.sv",
+      "owner_module": "adder_kogge_stone_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.adder_kogge_stone_regs.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.adder_kogge_stone_regs.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/adder_kogge_stone_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "823deab5644f20ba72fd9abaaf5c7b5d9c4a81e40edbded03fc45d4cf5d81ff7",
+  "top": "adder_kogge_stone",
+  "type": "rtl_authoring_packet"
+}

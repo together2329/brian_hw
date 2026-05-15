@@ -29,7 +29,7 @@
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Locked-truth blockers:
   - manifest_connection_contract_evidence: 18 SSOT connection contract issue(s) remain. fifo_sync_ptrs: SSOT connection contract targets a module not declared in RTL; fifo_sync_ptrs: SSOT connection contract targets a module not declared in RTL; fifo_sync_mem: SSOT connection contract targets a module not declared in RTL
-  - golden_authority_artifacts: Missing production golden authority artifact(s): governance/authority.json, model/functional_model.py, model/fl_model_check.json, model/model_signature.json, model/decomposition.json, cov/fcov_plan.json, verify/equivalence_goals.json
+  - golden_authority_artifacts: Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json
   - cycle_model_artifacts: Missing executable cycle model: model/cycle_model.py.
 - SSOT connection contracts:
   - fifo_sync_ptrs.clk_i <= PCLK (integration.connections[0])
@@ -135,7 +135,7 @@ Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
 - Detail: PL330-level RTL cannot proceed from prose alone. It must carry machine-readable authority artifacts that separate human-owned truth from LLM-editable implementation.
 SSOT ref: quality_gates.rtl_gen.golden_authority_artifacts.
 Owner: fifo_sync in rtl/fifo_sync.sv via top_module.
-- Current reason: Missing production golden authority artifact(s): governance/authority.json, model/functional_model.py, model/fl_model_check.json, model/model_signature.json, model/decomposition.json, cov/fcov_plan.json, verify/equivalence_goals.json
+- Current reason: Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json
 - Criteria:
   - governance/authority.json exists
   - authority.json is the current IP human_llm_authority_manifest

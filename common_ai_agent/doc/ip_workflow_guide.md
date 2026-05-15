@@ -4,6 +4,11 @@ This guide records the intended `common_ai_agent` flow for generating and
 validating IP artifacts from a canonical SSOT. The `todo_counter_pipe` cold run
 is the reference example, but the flow is meant to apply to any IP.
 
+For the approval model behind the flow, see
+[`golden_todo_evidence_flow.md`](golden_todo_evidence_flow.md). That document
+defines the golden todo ledger pattern, evidence-based approval, human review
+queue, and FL/CL coverage trace strategy.
+
 ## Core Rule
 
 The parent operator/Codex should not directly implement downstream artifacts.
@@ -288,6 +293,11 @@ dynamic TodoTracker -> rtl-gen LLM edits RTL -> compile/lint/audit -> close TODO
 The agent should close TODOs one at a time or in a small coherent batch, but the
 closure evidence must come from real RTL and fresh reports. Static evidence is
 not valid when it appears only in comments or dummy aliases.
+
+The long-term policy is stage-wide evidence approval: LLMs may request approval
+with a reason, but `approved` should come from validator/audit evidence by
+default. Human-owned choices should become `human_review_needed` review items
+instead of being guessed by the agent.
 
 ## Downstream Workflow Ownership
 

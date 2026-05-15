@@ -1,0 +1,753 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_decomposition",
+  "ip": "adder_kogge_stone",
+  "source": "adder_kogge_stone/yaml/adder_kogge_stone.ssot.yaml",
+  "units": [
+    {
+      "name": "adder_kogge_stone_regs",
+      "kind": "rtl_module",
+      "source_sections": [
+        "parameters",
+        "registers"
+      ],
+      "rtl_candidates": [
+        "adder_kogge_stone_regs"
+      ],
+      "rtl_file": "rtl/adder_kogge_stone_regs.sv",
+      "ssot_refs": [
+        "parameters.addr_width",
+        "parameters.apb_data_width",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.channel_base",
+        "registers.config.channel_stride",
+        "registers.config.num_channels",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.a_data",
+        "registers.register_list.b_data",
+        "registers.register_list.cin",
+        "registers.register_list.config",
+        "registers.register_list.control",
+        "registers.register_list.cout_result",
+        "registers.register_list.status",
+        "registers.register_list.sum_result"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "parameters.addr_width",
+        "parameters.apb_data_width",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.channel_base",
+        "registers.config.channel_stride",
+        "registers.config.num_channels",
+        "registers.config.register_width",
+        "registers.register_list.a_data",
+        "registers.register_list.b_data",
+        "registers.register_list.cin",
+        "registers.register_list.config",
+        "registers.register_list.control",
+        "registers.register_list.cout_result",
+        "registers.register_list.status",
+        "registers.register_list.sum_result"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "adder_kogge_stone_core",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "features",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "adder_kogge_stone_core"
+      ],
+      "rtl_file": "rtl/adder_kogge_stone_core.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.handshake_rules.psel_penable",
+        "cycle_model.handshake_rules.pslverr",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.s_capture",
+        "cycle_model.pipeline.s_compute",
+        "cycle_model.pipeline.s_idle",
+        "cycle_model.reset",
+        "features",
+        "features.apb_lite_csr",
+        "features.ks_addition",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.state_updates",
+        "function_model.state_variables.a_reg",
+        "function_model.state_variables.b_reg",
+        "function_model.state_variables.busy",
+        "function_model.state_variables.cin_reg",
+        "function_model.state_variables.cout_reg",
+        "function_model.state_variables.done",
+        "function_model.state_variables.overflow",
+        "function_model.state_variables.sum_reg",
+        "function_model.transactions",
+        "function_model.transactions.FM_ADD",
+        "function_model.transactions.fm_add",
+        "function_model.transactions.fm_add.error_cases.error_case_0",
+        "function_model.transactions.fm_add.error_cases.error_case_1",
+        "function_model.transactions.fm_add.inputs.input_0",
+        "function_model.transactions.fm_add.inputs.input_1",
+        "function_model.transactions.fm_add.inputs.input_2",
+        "function_model.transactions.fm_add.outputs.cout_apb",
+        "function_model.transactions.fm_add.outputs.cout_o",
+        "function_model.transactions.fm_add.outputs.sum_apb",
+        "function_model.transactions.fm_add.outputs.sum_o",
+        "function_model.transactions.fm_add.preconditions.precondition_0",
+        "function_model.transactions.fm_add.preconditions.precondition_1",
+        "function_model.transactions.fm_add.side_effects.side_effect_0",
+        "function_model.transactions.fm_add.side_effects.side_effect_1",
+        "function_model.transactions.fm_add.side_effects.side_effect_2"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.state_variables.a_reg",
+        "function_model.state_variables.b_reg",
+        "function_model.state_variables.busy",
+        "function_model.state_variables.cin_reg",
+        "function_model.state_variables.cout_reg",
+        "function_model.state_variables.done",
+        "function_model.state_variables.overflow",
+        "function_model.state_variables.sum_reg",
+        "function_model.transactions.fm_add",
+        "function_model.transactions.fm_add.error_cases.error_case_0",
+        "function_model.transactions.fm_add.error_cases.error_case_1",
+        "function_model.transactions.fm_add.inputs.input_0",
+        "function_model.transactions.fm_add.inputs.input_1",
+        "function_model.transactions.fm_add.inputs.input_2",
+        "function_model.transactions.fm_add.outputs.cout_apb",
+        "function_model.transactions.fm_add.outputs.cout_o",
+        "function_model.transactions.fm_add.outputs.sum_apb",
+        "function_model.transactions.fm_add.outputs.sum_o",
+        "function_model.transactions.fm_add.preconditions.precondition_0",
+        "function_model.transactions.fm_add.preconditions.precondition_1",
+        "function_model.transactions.fm_add.side_effects.side_effect_0",
+        "function_model.transactions.fm_add.side_effects.side_effect_1",
+        "function_model.transactions.fm_add.side_effects.side_effect_2"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.handshake_rules.psel_penable",
+        "cycle_model.handshake_rules.pslverr",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline.s_capture",
+        "cycle_model.pipeline.s_compute",
+        "cycle_model.pipeline.s_idle",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.apb_lite_csr",
+        "features.ks_addition"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "adder_kogge_stone_protocol_model",
+      "kind": "protocol",
+      "source_sections": [
+        "io_list",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "adder_kogge_stone_axi_slv",
+        "adder_kogge_stone_protocol"
+      ],
+      "verification_impact": [
+        "driver",
+        "monitor",
+        "protocol coverage"
+      ]
+    },
+    {
+      "name": "adder_kogge_stone_register_model",
+      "kind": "register",
+      "source_sections": [
+        "registers",
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "adder_kogge_stone_regs",
+        "adder_kogge_stone_apb_regs"
+      ],
+      "verification_impact": [
+        "register sequences",
+        "readback scoreboard"
+      ]
+    },
+    {
+      "name": "adder_kogge_stone_datapath_model",
+      "kind": "datapath",
+      "source_sections": [
+        "features",
+        "dataflow",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "adder_kogge_stone_core",
+        "adder_kogge_stone_datapath"
+      ],
+      "verification_impact": [
+        "functional scoreboard",
+        "transaction coverage"
+      ]
+    },
+    {
+      "name": "adder_kogge_stone_fsm_model",
+      "kind": "fsm",
+      "source_sections": [
+        "fsm",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "adder_kogge_stone_core"
+      ],
+      "verification_impact": [
+        "state transition coverage",
+        "waveform debug"
+      ]
+    },
+    {
+      "name": "adder_kogge_stone_error_model",
+      "kind": "error",
+      "source_sections": [
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "adder_kogge_stone_core",
+        "adder_kogge_stone_error"
+      ],
+      "verification_impact": [
+        "negative tests",
+        "mismatch classification"
+      ]
+    },
+    {
+      "name": "adder_kogge_stone_security_model",
+      "kind": "security",
+      "source_sections": [
+        "security",
+        "debug_observability"
+      ],
+      "rtl_candidates": [
+        "adder_kogge_stone_security",
+        "adder_kogge_stone_core"
+      ],
+      "verification_impact": [
+        "security bins",
+        "debug observability checks"
+      ]
+    }
+  ],
+  "module_contracts": [
+    {
+      "name": "adder_kogge_stone_regs",
+      "kind": "rtl_module",
+      "rtl_module": "adder_kogge_stone_regs",
+      "rtl_file": "rtl/adder_kogge_stone_regs.sv",
+      "source_sections": [
+        "parameters",
+        "registers"
+      ],
+      "ssot_refs": [
+        "parameters.addr_width",
+        "parameters.apb_data_width",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.channel_base",
+        "registers.config.channel_stride",
+        "registers.config.num_channels",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.a_data",
+        "registers.register_list.b_data",
+        "registers.register_list.cin",
+        "registers.register_list.config",
+        "registers.register_list.control",
+        "registers.register_list.cout_result",
+        "registers.register_list.status",
+        "registers.register_list.sum_result"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "parameters.addr_width",
+        "parameters.apb_data_width",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.channel_base",
+        "registers.config.channel_stride",
+        "registers.config.num_channels",
+        "registers.config.register_width",
+        "registers.register_list.a_data",
+        "registers.register_list.b_data",
+        "registers.register_list.cin",
+        "registers.register_list.config",
+        "registers.register_list.control",
+        "registers.register_list.cout_result",
+        "registers.register_list.status",
+        "registers.register_list.sum_result"
+      ],
+      "owner_matches": [],
+      "structural_owner_matches": [
+        {
+          "ref": "parameters.addr_width",
+          "matched_ref": "semantic_terms:adder_kogge_stone_regs,regs"
+        },
+        {
+          "ref": "parameters.apb_data_width",
+          "matched_ref": "semantic_terms:adder_kogge_stone_regs,regs"
+        },
+        {
+          "ref": "registers.register_list.control",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.status",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.a_data",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.b_data",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.cin",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.sum_result",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.cout_result",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.register_list.config",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.register_width",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.addr_width",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.byte_addressable",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.channel_stride",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.channel_base",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.num_channels",
+          "matched_ref": "registers"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "adder_kogge_stone_core",
+      "kind": "rtl_module",
+      "rtl_module": "adder_kogge_stone_core",
+      "rtl_file": "rtl/adder_kogge_stone_core.sv",
+      "source_sections": [
+        "cycle_model",
+        "features",
+        "function_model"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.handshake_rules.psel_penable",
+        "cycle_model.handshake_rules.pslverr",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.s_capture",
+        "cycle_model.pipeline.s_compute",
+        "cycle_model.pipeline.s_idle",
+        "cycle_model.reset",
+        "features",
+        "features.apb_lite_csr",
+        "features.ks_addition",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.state_updates",
+        "function_model.state_variables.a_reg",
+        "function_model.state_variables.b_reg",
+        "function_model.state_variables.busy",
+        "function_model.state_variables.cin_reg",
+        "function_model.state_variables.cout_reg",
+        "function_model.state_variables.done",
+        "function_model.state_variables.overflow",
+        "function_model.state_variables.sum_reg",
+        "function_model.transactions",
+        "function_model.transactions.FM_ADD",
+        "function_model.transactions.fm_add",
+        "function_model.transactions.fm_add.error_cases.error_case_0",
+        "function_model.transactions.fm_add.error_cases.error_case_1",
+        "function_model.transactions.fm_add.inputs.input_0",
+        "function_model.transactions.fm_add.inputs.input_1",
+        "function_model.transactions.fm_add.inputs.input_2",
+        "function_model.transactions.fm_add.outputs.cout_apb",
+        "function_model.transactions.fm_add.outputs.cout_o",
+        "function_model.transactions.fm_add.outputs.sum_apb",
+        "function_model.transactions.fm_add.outputs.sum_o",
+        "function_model.transactions.fm_add.preconditions.precondition_0",
+        "function_model.transactions.fm_add.preconditions.precondition_1",
+        "function_model.transactions.fm_add.side_effects.side_effect_0",
+        "function_model.transactions.fm_add.side_effects.side_effect_1",
+        "function_model.transactions.fm_add.side_effects.side_effect_2"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.state_variables.a_reg",
+        "function_model.state_variables.b_reg",
+        "function_model.state_variables.busy",
+        "function_model.state_variables.cin_reg",
+        "function_model.state_variables.cout_reg",
+        "function_model.state_variables.done",
+        "function_model.state_variables.overflow",
+        "function_model.state_variables.sum_reg",
+        "function_model.transactions.fm_add",
+        "function_model.transactions.fm_add.error_cases.error_case_0",
+        "function_model.transactions.fm_add.error_cases.error_case_1",
+        "function_model.transactions.fm_add.inputs.input_0",
+        "function_model.transactions.fm_add.inputs.input_1",
+        "function_model.transactions.fm_add.inputs.input_2",
+        "function_model.transactions.fm_add.outputs.cout_apb",
+        "function_model.transactions.fm_add.outputs.cout_o",
+        "function_model.transactions.fm_add.outputs.sum_apb",
+        "function_model.transactions.fm_add.outputs.sum_o",
+        "function_model.transactions.fm_add.preconditions.precondition_0",
+        "function_model.transactions.fm_add.preconditions.precondition_1",
+        "function_model.transactions.fm_add.side_effects.side_effect_0",
+        "function_model.transactions.fm_add.side_effects.side_effect_1",
+        "function_model.transactions.fm_add.side_effects.side_effect_2"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.handshake_rules.psel_penable",
+        "cycle_model.handshake_rules.pslverr",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline.s_capture",
+        "cycle_model.pipeline.s_compute",
+        "cycle_model.pipeline.s_idle",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.apb_lite_csr",
+        "features.ks_addition"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.a_reg",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.b_reg",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.cin_reg",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.sum_reg",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.cout_reg",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.busy",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.done",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.overflow",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_add",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_add.preconditions.precondition_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_add.preconditions.precondition_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_add.inputs.input_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_add.inputs.input_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_add.inputs.input_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_add.outputs.sum_o",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_add.outputs.cout_o",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_add.outputs.sum_apb",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_add.outputs.cout_apb",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_add.side_effects.side_effect_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_add.side_effects.side_effect_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_add.side_effects.side_effect_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_add.error_cases.error_case_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.fm_add.error_cases.error_case_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "cycle_model.clock",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.reset",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.latency",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.psel_penable",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.pready",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.pslverr",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.s_idle",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.s_compute",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.s_capture",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_0",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_1",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_2",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.backpressure.backpressure_0",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.observability.observability_0",
+          "matched_ref": "cycle_model"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "features.ks_addition",
+          "matched_ref": "features"
+        },
+        {
+          "ref": "features.apb_lite_csr",
+          "matched_ref": "features"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    }
+  ],
+  "orphan_function_cycle_refs": [],
+  "function_cycle_ref_count": 39,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "adder_kogge_stone/req/",
+      "adder_kogge_stone/yaml/adder_kogge_stone.ssot.yaml",
+      "adder_kogge_stone/model/functional_model.py",
+      "adder_kogge_stone/cov/fcov_plan.json",
+      "adder_kogge_stone/yaml/adder_kogge_stone.ssot.yaml#io_list",
+      "adder_kogge_stone/yaml/adder_kogge_stone.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "adder_kogge_stone/rtl/",
+      "adder_kogge_stone/tb/",
+      "adder_kogge_stone/sim/",
+      "adder_kogge_stone/vectors/",
+      "adder_kogge_stone/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "drives": [
+    "rtl_module_plan",
+    "tb_environment_plan",
+    "functional_coverage_plan"
+  ],
+  "complete": true
+}
