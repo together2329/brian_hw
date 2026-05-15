@@ -27,12 +27,12 @@ module pulse_gen #(
     logic ctrl_polarity;
     logic ctrl_enable;
     logic ctrl_hw_trig_en;
-    logic [15:0] pulse_gen_core_pulse_width_i;
-    logic pulse_gen_core_int_enable_i;
-    logic pulse_gen_regs_status_done;
+    logic [15:0] \pulse_gen_core.pulse_width_i ;
+    logic \pulse_gen_core.int_enable_i ;
+    logic \pulse_gen_regs.status_done ;
     logic pulse_gen_regs_status_done_set;
-    logic pulse_gen_regs_status_busy;
-    logic [15:0] pulse_gen_core_fired_count;
+    logic \pulse_gen_regs.status_busy ;
+    logic [15:0] \pulse_gen_core.fired_count ;
     logic TOP_io_list_live;
     logic PREADY_zero_wait_state;
 

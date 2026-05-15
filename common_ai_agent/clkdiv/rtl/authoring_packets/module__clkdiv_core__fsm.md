@@ -49,14 +49,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.state
 - Source ref: fsm.divider_fsm.states.state_0
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.divider_fsm.states.state_0.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via fsm.divider_fsm.
 SSOT item context: value=DISABLED.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -70,14 +70,14 @@ SSOT item context: value=DISABLED.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.state
 - Source ref: fsm.divider_fsm.states.state_1
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.divider_fsm.states.state_1.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via fsm.divider_fsm.
 SSOT item context: value=RUNNING_LOW.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -91,14 +91,14 @@ SSOT item context: value=RUNNING_LOW.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.state
 - Source ref: fsm.divider_fsm.states.state_2
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.divider_fsm.states.state_2.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via fsm.divider_fsm.
 SSOT item context: value=RUNNING_HIGH.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -112,14 +112,14 @@ SSOT item context: value=RUNNING_HIGH.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.divider_fsm.transitions.transition_0
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.divider_fsm.transitions.transition_0.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via fsm.divider_fsm.
 SSOT item context: from=DISABLED; to=RUNNING_LOW; condition=CTRL.enable=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -134,14 +134,14 @@ SSOT item context: from=DISABLED; to=RUNNING_LOW; condition=CTRL.enable=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.divider_fsm.transitions.transition_1
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.divider_fsm.transitions.transition_1.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via fsm.divider_fsm.
 SSOT item context: from=RUNNING_LOW; to=RUNNING_HIGH; condition=counter reaches terminal count.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -156,14 +156,14 @@ SSOT item context: from=RUNNING_LOW; to=RUNNING_HIGH; condition=counter reaches 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.divider_fsm.transitions.transition_2
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.divider_fsm.transitions.transition_2.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via fsm.divider_fsm.
 SSOT item context: from=RUNNING_HIGH; to=RUNNING_LOW; condition=counter reaches terminal count.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -178,14 +178,14 @@ SSOT item context: from=RUNNING_HIGH; to=RUNNING_LOW; condition=counter reaches 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.divider_fsm.transitions.transition_3
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.divider_fsm.transitions.transition_3.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via fsm.divider_fsm.
 SSOT item context: from=RUNNING_LOW; to=DISABLED; condition=CTRL.enable=0 or reset asserted.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -200,14 +200,14 @@ SSOT item context: from=RUNNING_LOW; to=DISABLED; condition=CTRL.enable=0 or res
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.divider_fsm.transitions.transition_4
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.divider_fsm.transitions.transition_4.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via fsm.divider_fsm.
 SSOT item context: from=RUNNING_HIGH; to=DISABLED; condition=CTRL.enable=0 or reset asserted.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented

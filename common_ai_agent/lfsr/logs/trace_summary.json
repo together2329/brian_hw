@@ -1,5 +1,5 @@
 {
-  "blocked_at_stage": "sim-debug",
+  "blocked_at_stage": "",
   "ip": "lfsr",
   "llm": {
     "by_stage": {
@@ -29,8 +29,13 @@
     }
   },
   "llm_log_files": 1,
-  "run_status": "fail",
+  "run_status": "pass",
   "stage_engine_order": [
+    {
+      "created_at": "2026-05-15T02:25:06Z",
+      "stage_engine": "lint",
+      "status": "pass"
+    },
     {
       "created_at": "2026-05-15T02:24:39Z",
       "stage_engine": "sim-debug",

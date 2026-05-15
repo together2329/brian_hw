@@ -284,7 +284,7 @@
       "fsm.divider_fsm.transitions.transition_4"
     ],
     "status_counts": {
-      "planned": 8
+      "open": 8
     },
     "task_count": 8
   },
@@ -316,6 +316,18 @@
       "ssot_refs": [
         "fsm.divider_fsm.states.state_0"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "DISABLED"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -324,9 +336,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -356,6 +368,18 @@
       "ssot_refs": [
         "fsm.divider_fsm.states.state_1"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RUNNING_LOW"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -364,9 +388,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -396,6 +420,18 @@
       "ssot_refs": [
         "fsm.divider_fsm.states.state_2"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RUNNING_HIGH"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -404,9 +440,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -441,6 +477,20 @@
       "ssot_refs": [
         "fsm.divider_fsm.transitions.transition_0"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CTRL",
+          "DISABLED",
+          "RUNNING_LOW"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -449,9 +499,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -485,6 +535,19 @@
       "ssot_refs": [
         "fsm.divider_fsm.transitions.transition_1"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RUNNING_HIGH",
+          "RUNNING_LOW"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -493,9 +556,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -529,6 +592,19 @@
       "ssot_refs": [
         "fsm.divider_fsm.transitions.transition_2"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RUNNING_HIGH",
+          "RUNNING_LOW"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -537,9 +613,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -574,6 +650,20 @@
       "ssot_refs": [
         "fsm.divider_fsm.transitions.transition_3"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CTRL",
+          "DISABLED",
+          "RUNNING_LOW"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -582,9 +672,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -619,6 +709,20 @@
       "ssot_refs": [
         "fsm.divider_fsm.transitions.transition_4"
       ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CTRL",
+          "DISABLED",
+          "RUNNING_HIGH"
+        ],
+        "source_scope": "rtl/clkdiv_core.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -627,9 +731,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     }
   ],

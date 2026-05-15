@@ -448,10 +448,10 @@
       {
         "gate_kind": "manifest_connection_contract_evidence",
         "owner_module": "priority_enc",
-        "reason": "1 SSOT connection contract issue(s) remain. connection: Production-profile multi-module RTL has no machine-readable SSOT connection contracts",
+        "reason": "RTL audit has not run yet.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-        "status": "open",
+        "status": "planned",
         "task_id": "RTL-0016"
       }
     ],
@@ -502,7 +502,7 @@
       "quality_gates.rtl_gen.manifest_connection_contract_evidence"
     ],
     "status_counts": {
-      "open": 1
+      "planned": 1
     },
     "task_count": 1
   },
@@ -536,10 +536,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.manifest_connection_contract_evidence"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -547,9 +543,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 SSOT connection contract issue(s) remain. connection: Production-profile multi-module RTL has no machine-readable SSOT connection contracts",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     }
   ],

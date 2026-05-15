@@ -441,39 +441,66 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [
       {
+        "gate_kind": "common_ai_agent_authoring",
+        "owner_module": "priority_enc",
+        "reason": "RTL audit has not run yet.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "status": "planned",
+        "task_id": "RTL-0006"
+      },
+      {
+        "gate_kind": "dut_compile",
+        "owner_module": "priority_enc",
+        "reason": "RTL audit has not run yet.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "status": "planned",
+        "task_id": "RTL-0017"
+      },
+      {
+        "gate_kind": "dut_lint",
+        "owner_module": "priority_enc",
+        "reason": "RTL audit has not run yet.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "status": "planned",
+        "task_id": "RTL-0018"
+      },
+      {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "priority_enc",
-        "reason": "11 required non-closure TODO(s) remain open.",
+        "reason": "RTL audit has not run yet.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-        "status": "open",
+        "status": "planned",
         "task_id": "RTL-0019"
       },
       {
         "gate_kind": "protocol_assertion_evidence",
         "owner_module": "priority_enc",
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "RTL audit has not run yet.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
-        "status": "open",
+        "status": "planned",
         "task_id": "RTL-0024"
       },
       {
         "gate_kind": "fl_rtl_goal_audit",
         "owner_module": "priority_enc",
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "RTL audit has not run yet.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
-        "status": "open",
+        "status": "planned",
         "task_id": "RTL-0025"
       },
       {
         "gate_kind": "coverage_closure",
         "owner_module": "priority_enc",
-        "reason": "Missing coverage closure artifact: cov/coverage.json.",
+        "reason": "RTL audit has not run yet.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.coverage_closure",
-        "status": "open",
+        "status": "planned",
         "task_id": "RTL-0026"
       }
     ],
@@ -485,15 +512,85 @@
     "integration_signoff_allowed": false,
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
-    "open_required_count": 4,
+    "open_required_count": 7,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
       "Never use a fixed RTL template as the implementation."
     ],
-    "tool_evidence_open_count": 4,
+    "tool_evidence_open_count": 7,
     "tool_evidence_plan": [
+      {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "artifacts": [
+          "priority_enc/rtl/rtl_authoring_provenance.json",
+          "priority_enc/rtl/rtl_todo_plan.json"
+        ],
+        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+        "commands": [
+          "python3 src/headless_workflow.py --root . --ip priority_enc --stages rtl-gen",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py priority_enc --root . --audit-rtl"
+        ],
+        "gate_kind": "common_ai_agent_authoring",
+        "prerequisites": [
+          "An LLM authoring pass emitted or repaired DUT RTL files."
+        ],
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "stage_sequence": [
+          "ssot-rtl"
+        ],
+        "status": "planned",
+        "task_id": "RTL-0006"
+      },
+      {
+        "artifact": "rtl/rtl_compile.json",
+        "artifacts": [
+          "priority_enc/rtl/rtl_compile.json",
+          "priority_enc/rtl/rtl_compile.log"
+        ],
+        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py priority_enc --top priority_enc --project-root .",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py priority_enc --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_compile",
+        "prerequisites": [
+          "priority_enc/list/priority_enc.f covers the current DUT RTL sources."
+        ],
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "stage_sequence": [
+          "ssot-rtl",
+          "dut_compile"
+        ],
+        "status": "planned",
+        "task_id": "RTL-0017"
+      },
+      {
+        "artifact": "lint/dut_lint.json",
+        "artifacts": [
+          "priority_enc/lint/dut_lint.json"
+        ],
+        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+        "commands": [
+          "python3 workflow/lint/scripts/dut_lint_report.py priority_enc --top priority_enc",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py priority_enc --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_lint",
+        "prerequisites": [
+          "priority_enc/list/priority_enc.f covers the current DUT RTL/header sources."
+        ],
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "stage_sequence": [
+          "lint",
+          "dut_lint"
+        ],
+        "status": "planned",
+        "task_id": "RTL-0018"
+      },
       {
         "artifact": "rtl/rtl_todo_plan.json",
         "artifacts": [
@@ -508,12 +605,12 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "11 required non-closure TODO(s) remain open.",
+        "reason": "RTL audit has not run yet.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
         ],
-        "status": "open",
+        "status": "planned",
         "task_id": "RTL-0019"
       },
       {
@@ -533,13 +630,13 @@
           "SSOT cycle_model/protocol rules are machine-checkable.",
           "Simulation has run after RTL edits."
         ],
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "RTL audit has not run yet.",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
         "stage_sequence": [
           "ssot-protocol-assertions",
           "sim"
         ],
-        "status": "open",
+        "status": "planned",
         "task_id": "RTL-0024"
       },
       {
@@ -556,7 +653,7 @@
         "prerequisites": [
           "FL model, equivalence goals, TB, and simulation evidence are current."
         ],
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "RTL audit has not run yet.",
         "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
         "stage_sequence": [
           "ssot-fl-model",
@@ -565,7 +662,7 @@
           "sim",
           "goal-audit"
         ],
-        "status": "open",
+        "status": "planned",
         "task_id": "RTL-0025"
       },
       {
@@ -582,13 +679,13 @@
         "prerequisites": [
           "Simulation evidence exists and planned coverage bins are observable."
         ],
-        "reason": "Missing coverage closure artifact: cov/coverage.json.",
+        "reason": "RTL audit has not run yet.",
         "source_ref": "quality_gates.rtl_gen.coverage_closure",
         "stage_sequence": [
           "sim",
           "coverage"
         ],
-        "status": "open",
+        "status": "planned",
         "task_id": "RTL-0026"
       }
     ],
@@ -615,7 +712,7 @@
       "rtl_gate.rtl_gen": 7
     },
     "module_slice": {},
-    "open_required_count": 4,
+    "open_required_count": 7,
     "required_count": 7,
     "source_refs": [
       "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -627,8 +724,7 @@
       "quality_gates.rtl_gen.coverage_closure"
     ],
     "status_counts": {
-      "open": 4,
-      "pass": 3
+      "planned": 7
     },
     "task_count": 7
   },
@@ -666,10 +762,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.common_ai_agent_authoring"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -677,9 +769,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -713,10 +805,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.dut_compile"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -724,9 +812,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -761,10 +849,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.dut_lint"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -772,9 +856,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -806,10 +890,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.dynamic_todo_closure"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -817,9 +897,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "11 required non-closure TODO(s) remain open.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -854,10 +934,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.protocol_assertion_evidence"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -865,9 +941,9 @@
           "rtl_todo_plan.json task criteria",
           "verify/protocol_assertions.sva"
         ],
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -903,10 +979,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.fl_rtl_goal_audit"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -914,9 +986,9 @@
           "rtl_todo_plan.json task criteria",
           "sim/fl_rtl_goal_audit.json"
         ],
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -954,10 +1026,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.coverage_closure"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -965,9 +1033,9 @@
           "rtl_todo_plan.json task criteria",
           "cov/coverage.json"
         ],
-        "reason": "Missing coverage closure artifact: cov/coverage.json.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     }
   ],

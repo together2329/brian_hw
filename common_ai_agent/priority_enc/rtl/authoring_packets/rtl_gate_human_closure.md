@@ -25,7 +25,7 @@
 - PASS allowed: False
 - Integration signoff allowed: False
 - LLM-actionable open tasks: 0
-- Human-locked open tasks: 4
+- Human-locked open tasks: 7
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=4
 - Connection contract gap: Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.
@@ -42,9 +42,12 @@
   - priority_enc_regs.PSLVERR <= PSLVERR (observed_named_port_map)
 - Locked-truth blockers:
   - manifest_connection_contract_evidence: Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.
-  - owner_traceability: 4 required SSOT-derived RTL task(s) still have no owner module.
-  - golden_authority_artifacts: Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json
-  - cycle_model_artifacts: Missing executable cycle model: model/cycle_model.py.
+  - ssot_required_sections: RTL audit has not run yet.
+  - ssot_workflow_todo_format: RTL audit has not run yet.
+  - owner_traceability: RTL audit has not run yet.
+  - golden_authority_artifacts: RTL audit has not run yet.
+  - target_scale_policy: RTL audit has not run yet.
+  - cycle_model_artifacts: RTL audit has not run yet.
 - SSOT top IO contracts: 13
 
 ## Tasks
@@ -53,13 +56,13 @@
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: planned
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.ssot_required_sections
 - Detail: rtl-gen cannot implement production RTL until the SSOT contains both the functional golden behavior and the cycle/handshake contract.
 SSOT ref: quality_gates.rtl_gen.ssot_required_sections.
 Owner: priority_enc in rtl/priority_enc.sv via top_module.
-- Current reason: SSOT function_model and cycle_model authority is present.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - function_model is present and non-empty in the SSOT
   - cycle_model is present and non-empty in the SSOT
@@ -72,13 +75,13 @@ Owner: priority_enc in rtl/priority_enc.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: planned
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.workflow_todo_contract
 - Detail: Every SSOT workflow_todos.rtl-gen item must be executable by rtl-gen and therefore must carry content, detail, and criteria.
 SSOT ref: quality_gates.rtl_gen.workflow_todo_contract.
 Owner: priority_enc in rtl/priority_enc.sv via top_module.
-- Current reason: SSOT-authored rtl-gen workflow TODOs are well formed.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Every workflow_todos.rtl-gen item has content
   - Every workflow_todos.rtl-gen item has detail
@@ -91,13 +94,13 @@ Owner: priority_enc in rtl/priority_enc.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: planned
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.owner_traceability
 - Detail: Function-level, cycle-level, register, dataflow, and FSM behavior must map to an RTL owner module before approval.
 SSOT ref: quality_gates.rtl_gen.owner_traceability.
 Owner: priority_enc in rtl/priority_enc.sv via top_module.
-- Current reason: 4 required SSOT-derived RTL task(s) still have no owner module.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - No required function_model task is orphaned
   - No required cycle_model task is orphaned
@@ -111,13 +114,13 @@ Owner: priority_enc in rtl/priority_enc.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: planned
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.golden_authority_artifacts
 - Detail: PL330-level RTL cannot proceed from prose alone. It must carry machine-readable authority artifacts that separate human-owned truth from LLM-editable implementation.
 SSOT ref: quality_gates.rtl_gen.golden_authority_artifacts.
 Owner: priority_enc in rtl/priority_enc.sv via top_module.
-- Current reason: Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - governance/authority.json exists
   - authority.json is the current IP human_llm_authority_manifest
@@ -138,13 +141,13 @@ Owner: priority_enc in rtl/priority_enc.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: planned
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.target_scale
 - Detail: When a calibration reference profile provides target-scale candidates, a human must lock the chosen minimum structural scale in SSOT quality_gates.rtl_gen.target_scale or record an explicit SSOT target_scale_waiver before rtl-gen can claim production signoff.
 SSOT ref: quality_gates.rtl_gen.target_scale.
 Owner: priority_enc in rtl/priority_enc.sv via top_module.
-- Current reason: SSOT quality_gates.rtl_gen.target_scale contains human-locked structural scale minima.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Reference-derived suggested_ssot_target_scale candidates are review inputs only
   - SSOT quality_gates.rtl_gen.target_scale contains human-locked structural depth minima before PL330-level PASS claims
@@ -157,13 +160,13 @@ Owner: priority_enc in rtl/priority_enc.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: planned
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.cycle_model_artifacts
 - Detail: Complex DMA-class RTL needs a cycle-level oracle for latency, handshake, ordering, backpressure, and performance-sensitive behavior.
 SSOT ref: quality_gates.rtl_gen.cycle_model_artifacts.
 Owner: priority_enc in rtl/priority_enc.sv via top_module.
-- Current reason: Missing executable cycle model: model/cycle_model.py.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - model/cycle_model.py exists
   - model/cl_model_check.json passed=true

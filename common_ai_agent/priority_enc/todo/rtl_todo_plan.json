@@ -437,7 +437,7 @@
   },
   "gate": {
     "all_required_todos_pass": false,
-    "audit_rtl": true,
+    "audit_rtl": false,
     "blocking_questions": 0,
     "criteria": [
       "Gate: SSOT function_model and cycle_model are present before RTL generation",
@@ -465,76 +465,23 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 12,
+    "open_required_todos": 108,
     "orphan_tasks": 4,
     "static_missing": 0,
     "status": "blocked"
   },
-  "generated_at": "2026-05-15T02:20:09Z",
+  "generated_at": "2026-05-15T02:24:56Z",
   "ip": "priority_enc",
   "manifest_hierarchy_evidence": {
-    "connection_contract_count": 0,
-    "connection_contract_issues": [
-      {
-        "issue": "Production-profile multi-module RTL has no machine-readable SSOT connection contracts",
-        "required_sources": [
-          "integration.connections",
-          "sub_modules[].connections"
-        ]
-      }
-    ],
-    "connection_contract_status": "fail",
-    "declared_modules": [
-      "priority_enc",
-      "priority_enc_core",
-      "priority_enc_fsm",
-      "priority_enc_regs"
-    ],
-    "graph": {
-      "priority_enc": [
-        "priority_enc_core",
-        "priority_enc_fsm",
-        "priority_enc_regs"
-      ],
-      "priority_enc_core": [],
-      "priority_enc_fsm": [],
-      "priority_enc_regs": []
-    },
     "issues": [],
-    "port_connection_issues": [],
-    "port_connection_status": "pass",
-    "reachable_modules": [
-      "priority_enc",
-      "priority_enc_core",
-      "priority_enc_fsm",
-      "priority_enc_regs"
-    ],
-    "roots": [
-      "priority_enc"
-    ],
-    "sources": [
-      "rtl/priority_enc.sv",
-      "rtl/priority_enc_core.sv",
-      "rtl/priority_enc_fsm.sv",
-      "rtl/priority_enc_param.vh",
-      "rtl/priority_enc_regs.sv"
-    ],
-    "status": "pass"
+    "sources": [],
+    "status": "not_run"
   },
   "manifest_signal_flow_evidence": {
-    "checked_inputs": 16,
-    "checked_outputs": 7,
+    "checked_inputs": 0,
+    "checked_outputs": 0,
     "issues": [],
-    "reachable_modules": [
-      "priority_enc",
-      "priority_enc_core",
-      "priority_enc_fsm",
-      "priority_enc_regs"
-    ],
-    "roots": [
-      "priority_enc"
-    ],
-    "status": "pass"
+    "status": "not_run"
   },
   "orphans": [
     {
@@ -563,9 +510,9 @@
     }
   ],
   "owner_logic_evidence": {
-    "checked": 3,
+    "checked": 0,
     "issues": [],
-    "status": "pass"
+    "status": "not_run"
   },
   "policy": {
     "dynamic_task_rule": "Use every required task in this file as the authoritative RTL implementation/evidence ledger. Expose Atlas/UI TodoTracker items as a flat one-to-one projection of this ledger so the existing flat TodoTracker executes one SSOT-derived RTL task at a time.",
@@ -592,110 +539,15 @@
   "reference_profile": null,
   "reference_scale_gap": {},
   "rtl_implementation_depth_evidence": {
-    "aggregate": {
-      "behavior_owner_logic_modules": 3,
-      "control_flow": 22,
-      "depth_score": 125,
-      "instances": 3,
-      "lines": 270,
-      "logic_modules": 4,
-      "modules": 4,
-      "nonconstant_assigns": 19,
-      "procedural_blocks": 6,
-      "source_files": 4,
-      "state_updates": 16,
-      "storage_decls": 28
-    },
+    "aggregate": {},
     "issues": [],
-    "modules": [
-      {
-        "depth_score": 52,
-        "file": "rtl/priority_enc_regs.sv",
-        "metrics": {
-          "control_flow": 7,
-          "instances": 0,
-          "nonconstant_assigns": 11,
-          "placeholder_tokens": false,
-          "procedural_blocks": 2,
-          "state_updates": 8,
-          "storage_decls": 12
-        },
-        "module": "priority_enc_regs"
-      },
-      {
-        "depth_score": 41,
-        "file": "rtl/priority_enc_core.sv",
-        "metrics": {
-          "control_flow": 11,
-          "instances": 0,
-          "nonconstant_assigns": 5,
-          "placeholder_tokens": false,
-          "procedural_blocks": 2,
-          "state_updates": 6,
-          "storage_decls": 7
-        },
-        "module": "priority_enc_core"
-      },
-      {
-        "depth_score": 18,
-        "file": "rtl/priority_enc_fsm.sv",
-        "metrics": {
-          "control_flow": 4,
-          "instances": 0,
-          "nonconstant_assigns": 1,
-          "placeholder_tokens": false,
-          "procedural_blocks": 2,
-          "state_updates": 2,
-          "storage_decls": 3
-        },
-        "module": "priority_enc_fsm"
-      },
-      {
-        "depth_score": 14,
-        "file": "rtl/priority_enc.sv",
-        "metrics": {
-          "control_flow": 0,
-          "instances": 3,
-          "nonconstant_assigns": 2,
-          "placeholder_tokens": false,
-          "procedural_blocks": 0,
-          "state_updates": 0,
-          "storage_decls": 6
-        },
-        "module": "priority_enc"
-      }
-    ],
-    "profile": "production",
-    "reference_comparison": null,
-    "status": "pass",
-    "target_scale": {
-      "basis": "Small peripheral IP: 3 RTL files, priority logic + APB regs",
-      "min_behavior_owner_logic_modules": 2,
-      "min_logic_modules": 2,
-      "min_modules": 3,
-      "min_procedural_blocks": 4,
-      "min_source_files": 3,
-      "min_state_updates": 4,
-      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
-    },
-    "thresholds": {
-      "behavior_owners": 3,
-      "behavior_tasks": 46,
-      "machine_connection_contracts": 0,
-      "manifest_rtl_files": 3,
-      "min_behavior_owner_logic_modules": 2,
-      "min_depth_score": 28,
-      "min_logic_modules": 3,
-      "min_modules": 3,
-      "min_procedural_blocks": 4,
-      "min_source_files": 3,
-      "min_state_updates": 4
-    }
+    "status": "not_run",
+    "thresholds": {}
   },
   "rtl_placeholder_free_evidence": {
-    "checked": 5,
+    "checked": 0,
     "issues": [],
-    "status": "pass"
+    "status": "not_run"
   },
   "schema_version": 1,
   "source": "priority_enc/yaml/priority_enc.ssot.yaml",
@@ -870,17 +722,11 @@
     }
   ],
   "static_rtl_evidence": {
-    "checked": 23,
+    "checked": 0,
     "missing": 0,
     "missing_tasks": [],
-    "passed": 23,
-    "sources": [
-      "rtl/priority_enc.sv",
-      "rtl/priority_enc_core.sv",
-      "rtl/priority_enc_fsm.sv",
-      "rtl/priority_enc_param.vh",
-      "rtl/priority_enc_regs.sv"
-    ]
+    "passed": 0,
+    "sources": []
   },
   "summary": {
     "blocking_questions": 0,
@@ -1030,10 +876,6 @@
       "ssot_refs": [
         "top_module"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1042,9 +884,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -1077,10 +919,6 @@
       "ssot_refs": [
         "io_list"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1089,9 +927,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -1125,10 +963,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.ssot_required_sections"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1136,9 +970,9 @@
           "rtl_todo_plan.json task criteria",
           "yaml/<ip>.ssot.yaml"
         ],
-        "reason": "SSOT function_model and cycle_model authority is present.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -1172,10 +1006,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.workflow_todo_contract"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1183,9 +1013,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "SSOT-authored rtl-gen workflow TODOs are well formed.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -1220,10 +1050,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.owner_traceability"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1231,9 +1057,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "4 required SSOT-derived RTL task(s) still have no owner module.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -1271,10 +1097,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.common_ai_agent_authoring"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -1282,9 +1104,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -1319,10 +1141,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.static_rtl_evidence"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1330,9 +1148,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Static DUT RTL evidence audit has no missing required task.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -1366,10 +1184,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.owner_logic_structure_evidence"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1377,9 +1191,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Behavior-owner RTL modules contain real implementation structure.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -1416,10 +1230,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.rtl_placeholder_free_evidence"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1427,9 +1237,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL sources contain no placeholder markers or disallowed default-policy constructs.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -1463,10 +1273,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.top_io_contract_evidence"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1474,9 +1280,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "SSOT top IO contracts match the RTL top declaration.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -1510,10 +1316,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.top_output_drive_evidence"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1521,9 +1323,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "SSOT top outputs have non-placeholder RTL drive evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -1557,10 +1359,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.top_input_consumption_evidence"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1568,9 +1366,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "SSOT top inputs have RTL consumption evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -1604,10 +1402,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.manifest_hierarchy_integration"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1615,9 +1409,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Every SSOT manifest-owned child module is declared and reachable from the top RTL hierarchy.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -1651,10 +1445,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.manifest_port_connection_evidence"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1662,9 +1452,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Every reachable manifest child instance has named, non-empty port connections.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -1698,10 +1488,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.manifest_signal_flow_evidence"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1709,9 +1495,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Manifest child port maps carry live non-placeholder RTL signal flow.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -1745,10 +1531,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.manifest_connection_contract_evidence"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1756,9 +1538,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 SSOT connection contract issue(s) remain. connection: Production-profile multi-module RTL has no machine-readable SSOT connection contracts",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -1794,10 +1576,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.dut_compile"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1805,9 +1583,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -1844,10 +1622,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.dut_lint"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1855,9 +1629,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -1891,10 +1665,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.dynamic_todo_closure"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1902,9 +1672,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "11 required non-closure TODO(s) remain open.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -1946,10 +1716,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.golden_authority_artifacts"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 13,
         "evidence_basis": [
@@ -1957,9 +1723,9 @@
           "rtl_todo_plan.json task criteria",
           "governance/authority.json"
         ],
-        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -1993,10 +1759,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.target_scale"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -2004,9 +1766,9 @@
           "rtl_todo_plan.json task criteria",
           "yaml/<ip>.ssot.yaml"
         ],
-        "reason": "SSOT quality_gates.rtl_gen.target_scale contains human-locked structural scale minima.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -2040,10 +1802,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -2051,9 +1809,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=125, required=28).",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -2087,10 +1845,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.cycle_model_artifacts"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -2098,9 +1852,9 @@
           "rtl_todo_plan.json task criteria",
           "model/cycle_model.py"
         ],
-        "reason": "Missing executable cycle model: model/cycle_model.py.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -2137,10 +1891,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.protocol_assertion_evidence"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -2148,9 +1898,9 @@
           "rtl_todo_plan.json task criteria",
           "verify/protocol_assertions.sva"
         ],
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -2188,10 +1938,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.fl_rtl_goal_audit"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -2199,9 +1945,9 @@
           "rtl_todo_plan.json task criteria",
           "sim/fl_rtl_goal_audit.json"
         ],
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -2241,10 +1987,6 @@
         "quality_gates",
         "quality_gates.rtl_gen.coverage_closure"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -2252,9 +1994,9 @@
           "rtl_todo_plan.json task criteria",
           "cov/coverage.json"
         ],
-        "reason": "Missing coverage closure artifact: cov/coverage.json.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -2295,30 +2037,6 @@
         "registers.register_list",
         "workflow_todos.rtl-gen[0]"
       ],
-      "static_evidence": {
-        "matched_count": 5,
-        "matched_terms": [
-          "REGS",
-          "enc",
-          "priority",
-          "priority_enc_regs",
-          "regs"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 3,
-        "required_terms": [
-          "REGS",
-          "RTL_TODO_REGS",
-          "TODO",
-          "enc",
-          "priority",
-          "priority_enc_regs",
-          "regs"
-        ],
-        "source_scope": "rtl/priority_enc_regs.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -2327,9 +2045,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       },
       "workflow_todo": {
         "id": "RTL_TODO_REGS",
@@ -2379,30 +2097,6 @@
         "function_model.state_updates",
         "workflow_todos.rtl-gen[1]"
       ],
-      "static_evidence": {
-        "matched_count": 5,
-        "matched_terms": [
-          "CORE",
-          "core",
-          "enc",
-          "priority",
-          "priority_enc_core"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 3,
-        "required_terms": [
-          "CORE",
-          "RTL_TODO_CORE",
-          "TODO",
-          "core",
-          "enc",
-          "priority",
-          "priority_enc_core"
-        ],
-        "source_scope": "rtl/priority_enc_core.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -2411,9 +2105,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       },
       "workflow_todo": {
         "id": "RTL_TODO_CORE",
@@ -2465,30 +2159,6 @@
         "sub_modules",
         "workflow_todos.rtl-gen[2]"
       ],
-      "static_evidence": {
-        "matched_count": 3,
-        "matched_terms": [
-          "enc",
-          "priority",
-          "priority_enc"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 3,
-        "required_terms": [
-          "RTL_TODO_TOP",
-          "TODO",
-          "TOP",
-          "enc",
-          "modules",
-          "priority",
-          "priority_enc",
-          "sub",
-          "sub_modules"
-        ],
-        "source_scope": "rtl/priority_enc.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -2497,9 +2167,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       },
       "workflow_todo": {
         "id": "RTL_TODO_TOP",
@@ -2537,10 +2207,6 @@
       "ssot_refs": [
         "parameters.N"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -2549,9 +2215,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -2580,10 +2246,6 @@
       "ssot_refs": [
         "parameters.INDEX_WIDTH"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -2592,9 +2254,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -2623,10 +2285,6 @@
       "ssot_refs": [
         "parameters.PCLK_FREQ_MHZ"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -2635,9 +2293,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -2666,10 +2324,6 @@
       "ssot_refs": [
         "parameters.RESET_POLARITY"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -2678,9 +2332,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -2713,10 +2367,6 @@
       "ssot_refs": [
         "io_list.clock_domains.PCLK.ports.PCLK"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -2725,9 +2375,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -2760,10 +2410,6 @@
       "ssot_refs": [
         "io_list.resets.PRESETn.ports.PRESETn"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -2772,9 +2418,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -2807,10 +2453,6 @@
       "ssot_refs": [
         "io_list.interfaces.priority_inputs.ports.data_in"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -2819,9 +2461,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -2854,10 +2496,6 @@
       "ssot_refs": [
         "io_list.interfaces.priority_outputs.ports.index_out"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -2866,9 +2504,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -2901,10 +2539,6 @@
       "ssot_refs": [
         "io_list.interfaces.priority_outputs.ports.valid_out"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -2913,9 +2547,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -2948,10 +2582,6 @@
       "ssot_refs": [
         "io_list.interfaces.apb_csr.ports.PADDR"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -2960,9 +2590,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -2995,10 +2625,6 @@
       "ssot_refs": [
         "io_list.interfaces.apb_csr.ports.PSEL"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -3007,9 +2633,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -3042,10 +2668,6 @@
       "ssot_refs": [
         "io_list.interfaces.apb_csr.ports.PENABLE"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -3054,9 +2676,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -3089,10 +2711,6 @@
       "ssot_refs": [
         "io_list.interfaces.apb_csr.ports.PWRITE"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -3101,9 +2719,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -3136,10 +2754,6 @@
       "ssot_refs": [
         "io_list.interfaces.apb_csr.ports.PWDATA"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -3148,9 +2762,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -3183,10 +2797,6 @@
       "ssot_refs": [
         "io_list.interfaces.apb_csr.ports.PRDATA"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -3195,9 +2805,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -3230,10 +2840,6 @@
       "ssot_refs": [
         "io_list.interfaces.apb_csr.ports.PREADY"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -3242,9 +2848,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -3277,10 +2883,6 @@
       "ssot_refs": [
         "io_list.interfaces.apb_csr.ports.PSLVERR"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -3289,9 +2891,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -3322,10 +2924,6 @@
       "ssot_refs": [
         "function_model.state_variables.enable"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -3334,9 +2932,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -3367,10 +2965,6 @@
       "ssot_refs": [
         "function_model.state_variables.mask"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -3379,9 +2973,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -3412,10 +3006,6 @@
       "ssot_refs": [
         "function_model.state_variables.index"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -3424,9 +3014,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -3457,10 +3047,6 @@
       "ssot_refs": [
         "function_model.state_variables.valid"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -3469,9 +3055,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -3501,10 +3087,6 @@
       "ssot_refs": [
         "function_model.transactions.FM_ENCODE"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -3513,9 +3095,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -3544,10 +3126,6 @@
       "ssot_refs": [
         "function_model.transactions.FM_ENCODE.preconditions.precondition_0"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -3556,9 +3134,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -3591,24 +3169,6 @@
       "ssot_refs": [
         "function_model.transactions.FM_ENCODE.inputs.input_0"
       ],
-      "static_evidence": {
-        "matched_count": 3,
-        "matched_terms": [
-          "data",
-          "data_in",
-          "in"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "data",
-          "data_in",
-          "in"
-        ],
-        "source_scope": "rtl/priority_enc_core.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -3617,9 +3177,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -3664,36 +3224,6 @@
       "ssot_refs": [
         "function_model.transactions.FM_ENCODE.outputs.index_out"
       ],
-      "static_evidence": {
-        "matched_count": 9,
-        "matched_terms": [
-          "MASK",
-          "data",
-          "data_in",
-          "in",
-          "index",
-          "index_out",
-          "out",
-          "priority",
-          "priority_index"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "MASK",
-          "data",
-          "data_in",
-          "in",
-          "index",
-          "index_out",
-          "out",
-          "priority",
-          "priority_index"
-        ],
-        "source_scope": "rtl/priority_enc_core.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -3702,9 +3232,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -3747,32 +3277,6 @@
       "ssot_refs": [
         "function_model.transactions.FM_ENCODE.outputs.valid_out"
       ],
-      "static_evidence": {
-        "matched_count": 7,
-        "matched_terms": [
-          "MASK",
-          "data",
-          "data_in",
-          "in",
-          "out",
-          "valid",
-          "valid_out"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "MASK",
-          "data",
-          "data_in",
-          "in",
-          "out",
-          "valid",
-          "valid_out"
-        ],
-        "source_scope": "rtl/priority_enc_core.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -3781,9 +3285,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -3826,30 +3330,6 @@
       "ssot_refs": [
         "function_model.transactions.FM_ENCODE.output_rules.index_out"
       ],
-      "static_evidence": {
-        "matched_count": 6,
-        "matched_terms": [
-          "data",
-          "data_in",
-          "in",
-          "index",
-          "index_out",
-          "out"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "data",
-          "data_in",
-          "in",
-          "index",
-          "index_out",
-          "out"
-        ],
-        "source_scope": "rtl/priority_enc_core.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -3858,9 +3338,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -3903,30 +3383,6 @@
       "ssot_refs": [
         "function_model.transactions.FM_ENCODE.output_rules.valid_out"
       ],
-      "static_evidence": {
-        "matched_count": 6,
-        "matched_terms": [
-          "data",
-          "data_in",
-          "in",
-          "out",
-          "valid",
-          "valid_out"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "data",
-          "data_in",
-          "in",
-          "out",
-          "valid",
-          "valid_out"
-        ],
-        "source_scope": "rtl/priority_enc_core.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -3935,9 +3391,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -3970,24 +3426,6 @@
       "ssot_refs": [
         "function_model.transactions.FM_ENCODE.side_effects.side_effect_0"
       ],
-      "static_evidence": {
-        "matched_count": 3,
-        "matched_terms": [
-          "index",
-          "index_out",
-          "out"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "index",
-          "index_out",
-          "out"
-        ],
-        "source_scope": "rtl/priority_enc_core.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -3996,9 +3434,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -4031,24 +3469,6 @@
       "ssot_refs": [
         "function_model.transactions.FM_ENCODE.side_effects.side_effect_1"
       ],
-      "static_evidence": {
-        "matched_count": 3,
-        "matched_terms": [
-          "out",
-          "valid",
-          "valid_out"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "out",
-          "valid",
-          "valid_out"
-        ],
-        "source_scope": "rtl/priority_enc_core.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -4057,9 +3477,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -4091,20 +3511,6 @@
       "ssot_refs": [
         "function_model.transactions.FM_ENCODE.error_cases.error_case_0"
       ],
-      "static_evidence": {
-        "matched_count": 1,
-        "matched_terms": [
-          "PADDR"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 1,
-        "required_terms": [
-          "PADDR"
-        ],
-        "source_scope": "rtl/priority_enc_core.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -4113,9 +3519,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -4148,22 +3554,6 @@
       "ssot_refs": [
         "function_model.transactions.FM_ENCODE.error_cases.error_case_1"
       ],
-      "static_evidence": {
-        "matched_count": 2,
-        "matched_terms": [
-          "STATUS",
-          "Write"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "STATUS",
-          "Write"
-        ],
-        "source_scope": "rtl/priority_enc_core.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -4172,9 +3562,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -4209,28 +3599,6 @@
       "ssot_refs": [
         "function_model.invariants.invariant_0"
       ],
-      "static_evidence": {
-        "matched_count": 5,
-        "matched_terms": [
-          "index",
-          "index_out",
-          "out",
-          "valid",
-          "valid_out"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "index",
-          "index_out",
-          "out",
-          "valid",
-          "valid_out"
-        ],
-        "source_scope": "rtl/priority_enc_core.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -4239,9 +3607,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -4274,24 +3642,6 @@
       "ssot_refs": [
         "function_model.invariants.invariant_1"
       ],
-      "static_evidence": {
-        "matched_count": 3,
-        "matched_terms": [
-          "index",
-          "index_out",
-          "out"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "index",
-          "index_out",
-          "out"
-        ],
-        "source_scope": "rtl/priority_enc_core.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -4300,9 +3650,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -4332,10 +3682,6 @@
       "ssot_refs": [
         "cycle_model.clock"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -4344,9 +3690,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -4374,10 +3720,6 @@
       "ssot_refs": [
         "cycle_model.reset"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -4386,9 +3728,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -4416,10 +3758,6 @@
       "ssot_refs": [
         "cycle_model.latency"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -4428,9 +3766,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -4464,24 +3802,6 @@
       "ssot_refs": [
         "cycle_model.handshake_rules.apb_csr"
       ],
-      "static_evidence": {
-        "matched_count": 3,
-        "matched_terms": [
-          "apb",
-          "apb_csr",
-          "csr"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "apb",
-          "apb_csr",
-          "csr"
-        ],
-        "source_scope": "rtl/priority_enc_core.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -4490,9 +3810,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -4531,28 +3851,6 @@
       "ssot_refs": [
         "cycle_model.pipeline.S0_COMB"
       ],
-      "static_evidence": {
-        "matched_count": 5,
-        "matched_terms": [
-          "data",
-          "data_in",
-          "in",
-          "masked",
-          "masked_data"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "data",
-          "data_in",
-          "in",
-          "masked",
-          "masked_data"
-        ],
-        "source_scope": "rtl/priority_enc_core.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -4561,9 +3859,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -4602,28 +3900,6 @@
       "ssot_refs": [
         "cycle_model.pipeline.S1_REG"
       ],
-      "static_evidence": {
-        "matched_count": 5,
-        "matched_terms": [
-          "index",
-          "index_out",
-          "out",
-          "valid",
-          "valid_out"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "index",
-          "index_out",
-          "out",
-          "valid",
-          "valid_out"
-        ],
-        "source_scope": "rtl/priority_enc_core.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -4632,9 +3908,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -4664,10 +3940,6 @@
       "ssot_refs": [
         "cycle_model.ordering.ordering_rule_0"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -4676,9 +3948,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -4708,10 +3980,6 @@
       "ssot_refs": [
         "cycle_model.ordering.ordering_rule_1"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -4720,9 +3988,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -4752,10 +4020,6 @@
       "ssot_refs": [
         "cycle_model.backpressure.backpressure_rule_0"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -4764,9 +4028,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -4796,10 +4060,6 @@
       "ssot_refs": [
         "cycle_model.observability.observability_signal_0"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -4808,9 +4068,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -4847,10 +4107,6 @@
       "ssot_refs": [
         "registers.register_list.CTRL"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -4859,9 +4115,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -4898,10 +4154,6 @@
       "ssot_refs": [
         "registers.register_list.CTRL.fields.enable"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -4910,9 +4162,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -4949,10 +4201,6 @@
       "ssot_refs": [
         "registers.register_list.CTRL.fields.rsvd"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -4961,9 +4209,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -5000,10 +4248,6 @@
       "ssot_refs": [
         "registers.register_list.MASK"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -5012,9 +4256,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -5051,10 +4295,6 @@
       "ssot_refs": [
         "registers.register_list.MASK.fields.mask"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -5063,9 +4303,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -5102,10 +4342,6 @@
       "ssot_refs": [
         "registers.register_list.MASK.fields.rsvd"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -5114,9 +4350,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -5153,10 +4389,6 @@
       "ssot_refs": [
         "registers.register_list.STATUS"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -5165,9 +4397,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -5204,10 +4436,6 @@
       "ssot_refs": [
         "registers.register_list.STATUS.fields.index"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -5216,9 +4444,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -5255,10 +4483,6 @@
       "ssot_refs": [
         "registers.register_list.STATUS.fields.valid"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -5267,9 +4491,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -5306,10 +4530,6 @@
       "ssot_refs": [
         "registers.register_list.STATUS.fields.rsvd"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -5318,9 +4538,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -5351,20 +4571,6 @@
       "ssot_refs": [
         "fsm.encoder_fsm.states.state_0"
       ],
-      "static_evidence": {
-        "matched_count": 1,
-        "matched_terms": [
-          "IDLE"
-        ],
-        "owner_file_scoped": false,
-        "required": true,
-        "required_match_count": 1,
-        "required_terms": [
-          "IDLE"
-        ],
-        "source_scope": "all_sources_without_owner",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -5373,9 +4579,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task has no RTL owner file.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -5406,20 +4612,6 @@
       "ssot_refs": [
         "fsm.encoder_fsm.states.state_1"
       ],
-      "static_evidence": {
-        "matched_count": 1,
-        "matched_terms": [
-          "ACTIVE"
-        ],
-        "owner_file_scoped": false,
-        "required": true,
-        "required_match_count": 1,
-        "required_terms": [
-          "ACTIVE"
-        ],
-        "source_scope": "all_sources_without_owner",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -5428,9 +4620,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task has no RTL owner file.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -5466,24 +4658,6 @@
       "ssot_refs": [
         "fsm.encoder_fsm.transitions.transition_0"
       ],
-      "static_evidence": {
-        "matched_count": 3,
-        "matched_terms": [
-          "ACTIVE",
-          "CTRL",
-          "IDLE"
-        ],
-        "owner_file_scoped": false,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "ACTIVE",
-          "CTRL",
-          "IDLE"
-        ],
-        "source_scope": "all_sources_without_owner",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -5492,9 +4666,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task has no RTL owner file.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -5530,24 +4704,6 @@
       "ssot_refs": [
         "fsm.encoder_fsm.transitions.transition_1"
       ],
-      "static_evidence": {
-        "matched_count": 3,
-        "matched_terms": [
-          "ACTIVE",
-          "CTRL",
-          "IDLE"
-        ],
-        "owner_file_scoped": false,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "ACTIVE",
-          "CTRL",
-          "IDLE"
-        ],
-        "source_scope": "all_sources_without_owner",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -5556,9 +4712,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task has no RTL owner file.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -5594,28 +4750,6 @@
       "ssot_refs": [
         "features.Priority_Encoding"
       ],
-      "static_evidence": {
-        "matched_count": 5,
-        "matched_terms": [
-          "index",
-          "index_out",
-          "out",
-          "valid",
-          "valid_out"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 1,
-        "required_terms": [
-          "index",
-          "index_out",
-          "out",
-          "valid",
-          "valid_out"
-        ],
-        "source_scope": "rtl/priority_enc.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -5624,9 +4758,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -5656,10 +4790,6 @@
       "ssot_refs": [
         "features.Runtime_Masking"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -5668,9 +4798,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -5706,28 +4836,6 @@
       "ssot_refs": [
         "features.Enable_Gating"
       ],
-      "static_evidence": {
-        "matched_count": 5,
-        "matched_terms": [
-          "index",
-          "index_out",
-          "out",
-          "valid",
-          "valid_out"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 1,
-        "required_terms": [
-          "index",
-          "index_out",
-          "out",
-          "valid",
-          "valid_out"
-        ],
-        "source_scope": "rtl/priority_enc.sv",
-        "status": "pass"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -5736,9 +4844,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -5767,10 +4875,6 @@
       "ssot_refs": [
         "error_handling.recovery.recovery_0"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -5779,9 +4883,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -5808,10 +4912,6 @@
       "ssot_refs": [
         "security.assets.asset_0"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -5820,9 +4920,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -5851,10 +4951,6 @@
       "ssot_refs": [
         "synthesis.constraints.constraint_0"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -5863,9 +4959,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -5894,10 +4990,6 @@
       "ssot_refs": [
         "synthesis.constraints.constraint_1"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -5906,9 +4998,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -5937,10 +5029,6 @@
       "ssot_refs": [
         "synthesis.constraints.constraint_2"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -5949,9 +5037,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -5980,10 +5068,6 @@
       "ssot_refs": [
         "synthesis.ppa_targets.area_um2"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -5992,9 +5076,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -6023,10 +5107,6 @@
       "ssot_refs": [
         "synthesis.ppa_targets.power_mw"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -6035,9 +5115,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -6067,10 +5147,6 @@
       "ssot_refs": [
         "synthesis.ppa_targets.timing_met"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -6079,9 +5155,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -6110,10 +5186,6 @@
       "ssot_refs": [
         "sub_modules.priority_enc_regs.module_equivalence"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -6122,9 +5194,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -6153,10 +5225,6 @@
       "ssot_refs": [
         "sub_modules.priority_enc_core.module_equivalence"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -6165,9 +5233,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -6196,10 +5264,6 @@
       "ssot_refs": [
         "sub_modules.priority_enc.module_equivalence"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -6208,9 +5272,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -6242,10 +5306,6 @@
       "ssot_refs": [
         "test_requirements.scenarios.SC1"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -6254,9 +5314,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -6288,10 +5348,6 @@
       "ssot_refs": [
         "test_requirements.scenarios.SC2"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -6300,9 +5356,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -6334,10 +5390,6 @@
       "ssot_refs": [
         "test_requirements.scenarios.SC3"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -6346,9 +5398,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -6380,10 +5432,6 @@
       "ssot_refs": [
         "test_requirements.scenarios.SC4"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -6392,9 +5440,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -6426,10 +5474,6 @@
       "ssot_refs": [
         "test_requirements.scenarios.SC5"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -6438,9 +5482,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -6472,10 +5516,6 @@
       "ssot_refs": [
         "test_requirements.scenarios.SC6"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -6484,9 +5524,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     },
     {
@@ -6518,10 +5558,6 @@
       "ssot_refs": [
         "test_requirements.scenarios.SC7"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -6530,138 +5566,687 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "pass"
+        "status": "planned"
       }
     }
   ],
   "todo_completion": {
     "all_required_todos_pass": false,
-    "audit_rtl": true,
-    "open_required_tasks": 12,
+    "audit_rtl": false,
+    "open_required_tasks": 108,
     "open_tasks": [
       {
+        "category": "rtl_flow.seed",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "top_module",
+        "task_id": "RTL-0001"
+      },
+      {
+        "category": "rtl_flow.top",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "io_list",
+        "task_id": "RTL-0002"
+      },
+      {
         "category": "rtl_gate.rtl_gen",
-        "reason": "4 required SSOT-derived RTL task(s) still have no owner module.",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.ssot_required_sections",
+        "task_id": "RTL-0003"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.workflow_todo_contract",
+        "task_id": "RTL-0004"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "RTL audit has not run yet.",
         "source_ref": "quality_gates.rtl_gen.owner_traceability",
         "task_id": "RTL-0005"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "1 SSOT connection contract issue(s) remain. connection: Production-profile multi-module RTL has no machine-readable SSOT connection contracts",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "task_id": "RTL-0006"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
+        "task_id": "RTL-0007"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
+        "task_id": "RTL-0008"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+        "task_id": "RTL-0009"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
+        "task_id": "RTL-0010"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
+        "task_id": "RTL-0011"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
+        "task_id": "RTL-0012"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
+        "task_id": "RTL-0013"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.manifest_port_connection_evidence",
+        "task_id": "RTL-0014"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
+        "task_id": "RTL-0015"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "RTL audit has not run yet.",
         "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
         "task_id": "RTL-0016"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "11 required non-closure TODO(s) remain open.",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "task_id": "RTL-0017"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "task_id": "RTL-0018"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "RTL audit has not run yet.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/fl_model_check.json, model/model_signature.json, verify/equivalence_goals.json",
+        "reason": "RTL audit has not run yet.",
         "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
         "task_id": "RTL-0020"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing executable cycle model: model/cycle_model.py.",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.target_scale",
+        "task_id": "RTL-0021"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
+        "task_id": "RTL-0022"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "RTL audit has not run yet.",
         "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
         "task_id": "RTL-0023"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "RTL audit has not run yet.",
         "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
         "task_id": "RTL-0024"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "RTL audit has not run yet.",
         "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
         "task_id": "RTL-0025"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing coverage closure artifact: cov/coverage.json.",
+        "reason": "RTL audit has not run yet.",
         "source_ref": "quality_gates.rtl_gen.coverage_closure",
         "task_id": "RTL-0026"
       },
       {
+        "category": "workflow_todo.rtl_gen",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "workflow_todos.rtl-gen[0]",
+        "task_id": "RTL-0027"
+      },
+      {
+        "category": "workflow_todo.rtl_gen",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "workflow_todos.rtl-gen[1]",
+        "task_id": "RTL-0028"
+      },
+      {
+        "category": "workflow_todo.rtl_gen",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "workflow_todos.rtl-gen[2]",
+        "task_id": "RTL-0029"
+      },
+      {
+        "category": "parameters.item",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "parameters.N",
+        "task_id": "RTL-0030"
+      },
+      {
+        "category": "parameters.item",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "parameters.INDEX_WIDTH",
+        "task_id": "RTL-0031"
+      },
+      {
+        "category": "parameters.item",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "parameters.PCLK_FREQ_MHZ",
+        "task_id": "RTL-0032"
+      },
+      {
+        "category": "parameters.item",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "parameters.RESET_POLARITY",
+        "task_id": "RTL-0033"
+      },
+      {
+        "category": "io_list.port",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "io_list.clock_domains.PCLK.ports.PCLK",
+        "task_id": "RTL-0034"
+      },
+      {
+        "category": "io_list.port",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "io_list.resets.PRESETn.ports.PRESETn",
+        "task_id": "RTL-0035"
+      },
+      {
+        "category": "io_list.port",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "io_list.interfaces.priority_inputs.ports.data_in",
+        "task_id": "RTL-0036"
+      },
+      {
+        "category": "io_list.port",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "io_list.interfaces.priority_outputs.ports.index_out",
+        "task_id": "RTL-0037"
+      },
+      {
+        "category": "io_list.port",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "io_list.interfaces.priority_outputs.ports.valid_out",
+        "task_id": "RTL-0038"
+      },
+      {
+        "category": "io_list.port",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "io_list.interfaces.apb_csr.ports.PADDR",
+        "task_id": "RTL-0039"
+      },
+      {
+        "category": "io_list.port",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "io_list.interfaces.apb_csr.ports.PSEL",
+        "task_id": "RTL-0040"
+      },
+      {
+        "category": "io_list.port",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "io_list.interfaces.apb_csr.ports.PENABLE",
+        "task_id": "RTL-0041"
+      },
+      {
+        "category": "io_list.port",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "io_list.interfaces.apb_csr.ports.PWRITE",
+        "task_id": "RTL-0042"
+      },
+      {
+        "category": "io_list.port",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "io_list.interfaces.apb_csr.ports.PWDATA",
+        "task_id": "RTL-0043"
+      },
+      {
+        "category": "io_list.port",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "io_list.interfaces.apb_csr.ports.PRDATA",
+        "task_id": "RTL-0044"
+      },
+      {
+        "category": "io_list.port",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "io_list.interfaces.apb_csr.ports.PREADY",
+        "task_id": "RTL-0045"
+      },
+      {
+        "category": "io_list.port",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "io_list.interfaces.apb_csr.ports.PSLVERR",
+        "task_id": "RTL-0046"
+      },
+      {
+        "category": "function_model.state_variable",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "function_model.state_variables.enable",
+        "task_id": "RTL-0047"
+      },
+      {
+        "category": "function_model.state_variable",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "function_model.state_variables.mask",
+        "task_id": "RTL-0048"
+      },
+      {
+        "category": "function_model.state_variable",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "function_model.state_variables.index",
+        "task_id": "RTL-0049"
+      },
+      {
+        "category": "function_model.state_variable",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "function_model.state_variables.valid",
+        "task_id": "RTL-0050"
+      },
+      {
+        "category": "function_model.transaction",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "function_model.transactions.FM_ENCODE",
+        "task_id": "RTL-0051"
+      },
+      {
+        "category": "function_model.precondition",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "function_model.transactions.FM_ENCODE.preconditions.precondition_0",
+        "task_id": "RTL-0052"
+      },
+      {
+        "category": "function_model.input",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "function_model.transactions.FM_ENCODE.inputs.input_0",
+        "task_id": "RTL-0053"
+      },
+      {
+        "category": "function_model.output",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "function_model.transactions.FM_ENCODE.outputs.index_out",
+        "task_id": "RTL-0054"
+      },
+      {
+        "category": "function_model.output",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "function_model.transactions.FM_ENCODE.outputs.valid_out",
+        "task_id": "RTL-0055"
+      },
+      {
+        "category": "function_model.output_rule",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "function_model.transactions.FM_ENCODE.output_rules.index_out",
+        "task_id": "RTL-0056"
+      },
+      {
+        "category": "function_model.output_rule",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "function_model.transactions.FM_ENCODE.output_rules.valid_out",
+        "task_id": "RTL-0057"
+      },
+      {
+        "category": "function_model.side_effect",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "function_model.transactions.FM_ENCODE.side_effects.side_effect_0",
+        "task_id": "RTL-0058"
+      },
+      {
+        "category": "function_model.side_effect",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "function_model.transactions.FM_ENCODE.side_effects.side_effect_1",
+        "task_id": "RTL-0059"
+      },
+      {
+        "category": "function_model.error_case",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "function_model.transactions.FM_ENCODE.error_cases.error_case_0",
+        "task_id": "RTL-0060"
+      },
+      {
+        "category": "function_model.error_case",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "function_model.transactions.FM_ENCODE.error_cases.error_case_1",
+        "task_id": "RTL-0061"
+      },
+      {
+        "category": "function_model.invariant",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "function_model.invariants.invariant_0",
+        "task_id": "RTL-0062"
+      },
+      {
+        "category": "function_model.invariant",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "function_model.invariants.invariant_1",
+        "task_id": "RTL-0063"
+      },
+      {
+        "category": "cycle_model.clock",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "cycle_model.clock",
+        "task_id": "RTL-0064"
+      },
+      {
+        "category": "cycle_model.reset",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "cycle_model.reset",
+        "task_id": "RTL-0065"
+      },
+      {
+        "category": "cycle_model.latency",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "cycle_model.latency",
+        "task_id": "RTL-0066"
+      },
+      {
+        "category": "cycle_model.handshake_rules",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "cycle_model.handshake_rules.apb_csr",
+        "task_id": "RTL-0067"
+      },
+      {
+        "category": "cycle_model.pipeline",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "cycle_model.pipeline.S0_COMB",
+        "task_id": "RTL-0068"
+      },
+      {
+        "category": "cycle_model.pipeline",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "cycle_model.pipeline.S1_REG",
+        "task_id": "RTL-0069"
+      },
+      {
+        "category": "cycle_model.ordering",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "cycle_model.ordering.ordering_rule_0",
+        "task_id": "RTL-0070"
+      },
+      {
+        "category": "cycle_model.ordering",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "cycle_model.ordering.ordering_rule_1",
+        "task_id": "RTL-0071"
+      },
+      {
+        "category": "cycle_model.backpressure",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "cycle_model.backpressure.backpressure_rule_0",
+        "task_id": "RTL-0072"
+      },
+      {
+        "category": "cycle_model.observability",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "cycle_model.observability.observability_signal_0",
+        "task_id": "RTL-0073"
+      },
+      {
+        "category": "registers.register",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "registers.register_list.CTRL",
+        "task_id": "RTL-0074"
+      },
+      {
+        "category": "registers.field",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "registers.register_list.CTRL.fields.enable",
+        "task_id": "RTL-0075"
+      },
+      {
+        "category": "registers.field",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "registers.register_list.CTRL.fields.rsvd",
+        "task_id": "RTL-0076"
+      },
+      {
+        "category": "registers.register",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "registers.register_list.MASK",
+        "task_id": "RTL-0077"
+      },
+      {
+        "category": "registers.field",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "registers.register_list.MASK.fields.mask",
+        "task_id": "RTL-0078"
+      },
+      {
+        "category": "registers.field",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "registers.register_list.MASK.fields.rsvd",
+        "task_id": "RTL-0079"
+      },
+      {
+        "category": "registers.register",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "registers.register_list.STATUS",
+        "task_id": "RTL-0080"
+      },
+      {
+        "category": "registers.field",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "registers.register_list.STATUS.fields.index",
+        "task_id": "RTL-0081"
+      },
+      {
+        "category": "registers.field",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "registers.register_list.STATUS.fields.valid",
+        "task_id": "RTL-0082"
+      },
+      {
+        "category": "registers.field",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "registers.register_list.STATUS.fields.rsvd",
+        "task_id": "RTL-0083"
+      },
+      {
         "category": "fsm.state",
-        "reason": "Task has no RTL owner file.",
+        "reason": "RTL audit has not run yet.",
         "source_ref": "fsm.encoder_fsm.states.state_0",
         "task_id": "RTL-0084"
       },
       {
         "category": "fsm.state",
-        "reason": "Task has no RTL owner file.",
+        "reason": "RTL audit has not run yet.",
         "source_ref": "fsm.encoder_fsm.states.state_1",
         "task_id": "RTL-0085"
       },
       {
         "category": "fsm.transition",
-        "reason": "Task has no RTL owner file.",
+        "reason": "RTL audit has not run yet.",
         "source_ref": "fsm.encoder_fsm.transitions.transition_0",
         "task_id": "RTL-0086"
       },
       {
         "category": "fsm.transition",
-        "reason": "Task has no RTL owner file.",
+        "reason": "RTL audit has not run yet.",
         "source_ref": "fsm.encoder_fsm.transitions.transition_1",
         "task_id": "RTL-0087"
+      },
+      {
+        "category": "features.item",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "features.Priority_Encoding",
+        "task_id": "RTL-0088"
+      },
+      {
+        "category": "features.item",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "features.Runtime_Masking",
+        "task_id": "RTL-0089"
+      },
+      {
+        "category": "features.item",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "features.Enable_Gating",
+        "task_id": "RTL-0090"
+      },
+      {
+        "category": "error_handling.recovery",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "error_handling.recovery.recovery_0",
+        "task_id": "RTL-0091"
+      },
+      {
+        "category": "security.assets",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "security.assets.asset_0",
+        "task_id": "RTL-0092"
+      },
+      {
+        "category": "synthesis.constraints",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "synthesis.constraints.constraint_0",
+        "task_id": "RTL-0093"
+      },
+      {
+        "category": "synthesis.constraints",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "synthesis.constraints.constraint_1",
+        "task_id": "RTL-0094"
+      },
+      {
+        "category": "synthesis.constraints",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "synthesis.constraints.constraint_2",
+        "task_id": "RTL-0095"
+      },
+      {
+        "category": "synthesis.ppa_targets",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "synthesis.ppa_targets.area_um2",
+        "task_id": "RTL-0096"
+      },
+      {
+        "category": "synthesis.ppa_targets",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "synthesis.ppa_targets.power_mw",
+        "task_id": "RTL-0097"
+      },
+      {
+        "category": "synthesis.ppa_targets",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "synthesis.ppa_targets.timing_met",
+        "task_id": "RTL-0098"
+      },
+      {
+        "category": "equivalence.module",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "sub_modules.priority_enc_regs.module_equivalence",
+        "task_id": "RTL-0099"
+      },
+      {
+        "category": "equivalence.module",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "sub_modules.priority_enc_core.module_equivalence",
+        "task_id": "RTL-0100"
+      },
+      {
+        "category": "equivalence.module",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "sub_modules.priority_enc.module_equivalence",
+        "task_id": "RTL-0101"
+      },
+      {
+        "category": "test_requirements.scenario",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "test_requirements.scenarios.SC1",
+        "task_id": "RTL-0102"
+      },
+      {
+        "category": "test_requirements.scenario",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "test_requirements.scenarios.SC2",
+        "task_id": "RTL-0103"
+      },
+      {
+        "category": "test_requirements.scenario",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "test_requirements.scenarios.SC3",
+        "task_id": "RTL-0104"
+      },
+      {
+        "category": "test_requirements.scenario",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "test_requirements.scenarios.SC4",
+        "task_id": "RTL-0105"
+      },
+      {
+        "category": "test_requirements.scenario",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "test_requirements.scenarios.SC5",
+        "task_id": "RTL-0106"
+      },
+      {
+        "category": "test_requirements.scenario",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "test_requirements.scenarios.SC6",
+        "task_id": "RTL-0107"
+      },
+      {
+        "category": "test_requirements.scenario",
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "test_requirements.scenarios.SC7",
+        "task_id": "RTL-0108"
       }
     ],
-    "required_passed": 96,
+    "required_passed": 0,
     "required_total": 108,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },
   "top": "priority_enc",
   "top_input_consumption_evidence": {
-    "checked": 6,
-    "consumed": 6,
+    "checked": 0,
+    "consumed": 0,
     "issues": [],
-    "roots": [
-      "priority_enc"
-    ],
-    "status": "pass"
+    "status": "not_run"
   },
   "top_io_contract_evidence": {
     "contracts": 13,
-    "declared_top_ports": [
-      "PADDR",
-      "PCLK",
-      "PENABLE",
-      "PRDATA",
-      "PREADY",
-      "PRESETn",
-      "PSEL",
-      "PSLVERR",
-      "PWDATA",
-      "PWRITE",
-      "data_in",
-      "index_out",
-      "valid_out"
-    ],
     "issues": [],
-    "roots": [
-      "priority_enc"
-    ],
-    "status": "pass",
-    "top_parameters": {
-      "N": 8
-    }
+    "status": "not_run"
   },
   "top_output_drive_evidence": {
-    "checked": 5,
-    "driven": 5,
+    "checked": 0,
+    "driven": 0,
     "issues": [],
-    "roots": [
-      "priority_enc"
-    ],
-    "status": "pass"
+    "status": "not_run"
   },
   "type": "ssot_derived_rtl_todo_plan"
 }

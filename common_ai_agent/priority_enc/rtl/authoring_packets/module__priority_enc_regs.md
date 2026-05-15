@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 0
+- LLM-actionable open tasks: 12
 - Human-locked open tasks: 0
 - Owner refs: registers, registers.register_list
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=4
@@ -47,14 +47,14 @@
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[0]
 - Detail: Decode APB addresses 0x000/0x004/0x008; implement CTRL, MASK, STATUS registers with declared fields and reset values. PREADY tied high. PSLVERR on bad addr.
 SSOT ref: workflow_todos.rtl-gen[0].
 Owner: priority_enc_regs in rtl/priority_enc_regs.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_REGS.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Register block compiles and passes APB protocol assertions
   - All register reset values match SSOT
@@ -69,14 +69,14 @@ SSOT item context: id=RTL_TODO_REGS.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: registers.register
 - Source ref: registers.register_list.CTRL
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.CTRL.
 Owner: priority_enc_regs in rtl/priority_enc_regs.sv via registers.register_list.
 SSOT item context: name=CTRL; width=32; reset=1; access=rw; offset=0.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -93,14 +93,14 @@ SSOT item context: name=CTRL; width=32; reset=1; access=rw; offset=0.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: registers.field
 - Source ref: registers.register_list.CTRL.fields.enable
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.enable.
 Owner: priority_enc_regs in rtl/priority_enc_regs.sv via registers.register_list.
 SSOT item context: name=enable; reset=1; access=rw.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -119,14 +119,14 @@ SSOT item context: name=enable; reset=1; access=rw.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: registers.field
 - Source ref: registers.register_list.CTRL.fields.rsvd
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.rsvd.
 Owner: priority_enc_regs in rtl/priority_enc_regs.sv via registers.register_list.
 SSOT item context: name=rsvd; reset=0; access=ro.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -145,14 +145,14 @@ SSOT item context: name=rsvd; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: registers.register
 - Source ref: registers.register_list.MASK
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.MASK.
 Owner: priority_enc_regs in rtl/priority_enc_regs.sv via registers.register_list.
 SSOT item context: name=MASK; width=32; reset=0; access=rw; offset=4.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -169,14 +169,14 @@ SSOT item context: name=MASK; width=32; reset=0; access=rw; offset=4.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: registers.field
 - Source ref: registers.register_list.MASK.fields.mask
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.MASK.fields.mask.
 Owner: priority_enc_regs in rtl/priority_enc_regs.sv via registers.register_list.
 SSOT item context: name=mask; reset=0; access=rw.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -195,14 +195,14 @@ SSOT item context: name=mask; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: registers.field
 - Source ref: registers.register_list.MASK.fields.rsvd
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.MASK.fields.rsvd.
 Owner: priority_enc_regs in rtl/priority_enc_regs.sv via registers.register_list.
 SSOT item context: name=rsvd; reset=0; access=ro.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -221,14 +221,14 @@ SSOT item context: name=rsvd; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: registers.register
 - Source ref: registers.register_list.STATUS
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.STATUS.
 Owner: priority_enc_regs in rtl/priority_enc_regs.sv via registers.register_list.
 SSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=8.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -245,14 +245,14 @@ SSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=8.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.index
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.index.
 Owner: priority_enc_regs in rtl/priority_enc_regs.sv via registers.register_list.
 SSOT item context: name=index; reset=0; access=ro.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -271,14 +271,14 @@ SSOT item context: name=index; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.valid
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.valid.
 Owner: priority_enc_regs in rtl/priority_enc_regs.sv via registers.register_list.
 SSOT item context: name=valid; reset=0; access=ro.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -297,14 +297,14 @@ SSOT item context: name=valid; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.rsvd
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.rsvd.
 Owner: priority_enc_regs in rtl/priority_enc_regs.sv via registers.register_list.
 SSOT item context: name=rsvd; reset=0; access=ro.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -323,13 +323,13 @@ SSOT item context: name=rsvd; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: equivalence.module
 - Source ref: sub_modules.priority_enc_regs.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.priority_enc_regs.module_equivalence.
 Owner: priority_enc_regs in rtl/priority_enc_regs.sv via module_equivalence.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff

@@ -577,67 +577,22 @@
   "execution_policy": {
     "blocked_by_locked_truth": [
       {
-        "gate_kind": "ssot_required_sections",
-        "owner_module": "clkdiv",
-        "reason": "RTL audit has not run yet.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.ssot_required_sections",
-        "status": "planned",
-        "task_id": "RTL-0003"
-      },
-      {
-        "gate_kind": "ssot_workflow_todo_format",
-        "owner_module": "clkdiv",
-        "reason": "RTL audit has not run yet.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.workflow_todo_contract",
-        "status": "planned",
-        "task_id": "RTL-0004"
-      },
-      {
-        "gate_kind": "owner_traceability",
-        "owner_module": "clkdiv",
-        "reason": "RTL audit has not run yet.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.owner_traceability",
-        "status": "planned",
-        "task_id": "RTL-0005"
-      },
-      {
         "gate_kind": "manifest_connection_contract_evidence",
         "owner_module": "clkdiv",
-        "reason": "RTL audit has not run yet.",
+        "reason": "32 SSOT connection contract issue(s) remain. clkdiv_regs: SSOT connection contract targets a module not declared in RTL; clkdiv_regs: SSOT connection contract targets a module not declared in RTL; clkdiv_regs: SSOT connection contract targets a module not declared in RTL",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0016"
       },
       {
         "gate_kind": "golden_authority_artifacts",
         "owner_module": "clkdiv",
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0020"
-      },
-      {
-        "gate_kind": "target_scale_policy",
-        "owner_module": "clkdiv",
-        "reason": "RTL audit has not run yet.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.target_scale",
-        "status": "planned",
-        "task_id": "RTL-0021"
-      },
-      {
-        "gate_kind": "cycle_model_artifacts",
-        "owner_module": "clkdiv",
-        "reason": "RTL audit has not run yet.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
-        "status": "planned",
-        "task_id": "RTL-0023"
       }
     ],
     "blocked_by_tool_evidence": [],
@@ -645,11 +600,11 @@
     "deferred_human_qa_allowed": true,
     "draft_allowed": false,
     "evidence_closure_allowed": true,
-    "human_locked_open_count": 7,
+    "human_locked_open_count": 2,
     "integration_signoff_allowed": true,
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
-    "open_required_count": 7,
+    "open_required_count": 2,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -681,7 +636,7 @@
       "rtl_gate.rtl_gen": 7
     },
     "module_slice": {},
-    "open_required_count": 7,
+    "open_required_count": 2,
     "required_count": 7,
     "source_refs": [
       "quality_gates.rtl_gen.ssot_required_sections",
@@ -693,7 +648,8 @@
       "quality_gates.rtl_gen.cycle_model_artifacts"
     ],
     "status_counts": {
-      "planned": 7
+      "open": 2,
+      "pass": 5
     },
     "task_count": 7
   },
@@ -727,6 +683,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.ssot_required_sections"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -734,9 +694,9 @@
           "rtl_todo_plan.json task criteria",
           "yaml/<ip>.ssot.yaml"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "SSOT function_model and cycle_model authority is present.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -768,6 +728,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.workflow_todo_contract"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -775,9 +739,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "SSOT-authored rtl-gen workflow TODOs are well formed.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -810,6 +774,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.owner_traceability"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -817,9 +785,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Every required SSOT-derived RTL behavior has an owner module.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -851,6 +819,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.manifest_connection_contract_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -858,9 +830,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "32 SSOT connection contract issue(s) remain. clkdiv_regs: SSOT connection contract targets a module not declared in RTL; clkdiv_regs: SSOT connection contract targets a module not declared in RTL; clkdiv_regs: SSOT connection contract targets a module not declared in RTL",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -900,6 +872,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.golden_authority_artifacts"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 13,
         "evidence_basis": [
@@ -907,9 +883,9 @@
           "rtl_todo_plan.json task criteria",
           "governance/authority.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -941,6 +917,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.target_scale"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -948,9 +928,9 @@
           "rtl_todo_plan.json task criteria",
           "yaml/<ip>.ssot.yaml"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "No reference-derived target scale candidate is present, so no target-scale policy lock is required.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -982,6 +962,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.cycle_model_artifacts"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -989,9 +973,9 @@
           "rtl_todo_plan.json task criteria",
           "model/cycle_model.py"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Cycle model artifact and self-check are present.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     }
   ],

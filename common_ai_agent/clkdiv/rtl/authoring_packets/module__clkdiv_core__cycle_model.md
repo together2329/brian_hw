@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 18
+- LLM-actionable open tasks: 6
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.performance, cycle_model.pipeline, dataflow, dataflow.clock_path, dataflow.control_path, fsm, fsm.divider_fsm, function_model, function_model.state_variables, function_model.transactions.FM_DIVIDE
 - Module slice: 2/5 section=cycle_model task_limit=48
@@ -49,14 +49,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.clock
 - Source ref: cycle_model.clock
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.clock.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.
 SSOT item context: value=clk_i.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -70,13 +70,13 @@ SSOT item context: value=clk_i.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.reset
 - Source ref: cycle_model.reset
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.reset.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -90,13 +90,13 @@ Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.latency
 - Source ref: cycle_model.latency
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.latency.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -110,14 +110,14 @@ Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.pready
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.pready.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.handshake_rules.
 SSOT item context: signal=pready.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -131,14 +131,14 @@ SSOT item context: signal=pready.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.pslverr
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.pslverr.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.handshake_rules.
 SSOT item context: signal=pslverr.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -152,14 +152,14 @@ SSOT item context: signal=pslverr.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.prdata
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.prdata.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.handshake_rules.
 SSOT item context: signal=prdata.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -173,14 +173,14 @@ SSOT item context: signal=prdata.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.clk_o
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.clk_o.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.handshake_rules.
 SSOT item context: signal=clk_o.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -194,14 +194,14 @@ SSOT item context: signal=clk_o.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.irq_o
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.irq_o.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.handshake_rules.
 SSOT item context: signal=irq_o.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -215,14 +215,14 @@ SSOT item context: signal=irq_o.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S0_APB_SETUP
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S0_APB_SETUP.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.pipeline.
 SSOT item context: stage=S0_APB_SETUP; action=Capture paddr/pwrite context when psel=1 and penable=0.; cycle=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -237,14 +237,14 @@ SSOT item context: stage=S0_APB_SETUP; action=Capture paddr/pwrite context when 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S1_APB_ACCESS
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S1_APB_ACCESS.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.pipeline.
 SSOT item context: stage=S1_APB_ACCESS; action=Complete APB read/write; update CTRL/DIVISOR/INTCLR effects.; cycle=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -259,14 +259,14 @@ SSOT item context: stage=S1_APB_ACCESS; action=Complete APB read/write; update C
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S2_COUNT
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S2_COUNT.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.pipeline.
 SSOT item context: stage=S2_COUNT; action=Increment counter while counter < active_divisor-1.; cycle=each enabled clk_i edge.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -281,14 +281,14 @@ SSOT item context: stage=S2_COUNT; action=Increment counter while counter < acti
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S3_TERMINAL
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S3_TERMINAL.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.pipeline.
 SSOT item context: stage=S3_TERMINAL; action=Reset counter, toggle clk_o, load pending_divisor, set locked and optional irq_pending.; cycle=terminal edge.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -303,14 +303,14 @@ SSOT item context: stage=S3_TERMINAL; action=Reset counter, toggle clk_o, load p
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S4_DISABLE
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S4_DISABLE.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.pipeline.
 SSOT item context: stage=S4_DISABLE; action=Force counter and clk_o low and clear locked.; cycle=first edge after enable=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -325,14 +325,14 @@ SSOT item context: stage=S4_DISABLE; action=Force counter and clk_o low and clea
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_0.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.
 SSOT item context: value=APB DIVISOR writes update pending_divisor before the next core reload boundary..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -346,14 +346,14 @@ SSOT item context: value=APB DIVISOR writes update pending_divisor before the ne
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_1
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_1.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.
 SSOT item context: value=active_divisor changes only in S3_TERMINAL or reset..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -367,14 +367,14 @@ SSOT item context: value=active_divisor changes only in S3_TERMINAL or reset..
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_2
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_2.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.
 SSOT item context: value=INTCLR.clear_irq write clears irq_pending no later than the completing APB access edge..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -388,14 +388,14 @@ SSOT item context: value=INTCLR.clear_irq write clears irq_pending no later than
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: cycle_model.backpressure
 - Source ref: cycle_model.backpressure.backpressure_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.backpressure.backpressure_rule_0.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.
 SSOT item context: value=No backpressure exists on divided_clock outputs; APB baseline has no wait states..
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -409,14 +409,14 @@ SSOT item context: value=No backpressure exists on divided_clock outputs; APB ba
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.observability
 - Source ref: cycle_model.observability.observability_signal_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.observability.observability_signal_0.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via cycle_model.
 SSOT item context: value=Every function_model transaction maps to S2_COUNT/S3_TERMINAL and a test_requirements scenario..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
