@@ -49,13 +49,13 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: equivalence.module
 - Source ref: sub_modules.clkdiv_core.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.clkdiv_core.module_equivalence.
 Owner: clkdiv_core in rtl/clkdiv_core.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_core.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff

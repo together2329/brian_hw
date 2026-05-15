@@ -4,8 +4,8 @@
 
 - Top: clkdiv
 - Packets: 10
-- LLM-actionable tasks: 147
-- Human-locked tasks: 2
+- LLM-actionable tasks: 149
+- Human-locked tasks: 7
 - Tool-evidence tasks: 7
 - Deferred human QA allowed: True
 - PASS allowed: False
@@ -21,8 +21,8 @@
 - module__clkdiv_core__fsm: rtl/authoring_packets/module__clkdiv_core__fsm.json (llm_open=8, human_locked=0)
 - module__clkdiv_core__equivalence: rtl/authoring_packets/module__clkdiv_core__equivalence.json (llm_open=1, human_locked=0)
 - module__clkdiv_core__workflow_todo: rtl/authoring_packets/module__clkdiv_core__workflow_todo.json (llm_open=1, human_locked=0)
-- module__clkdiv: rtl/authoring_packets/module__clkdiv.json (llm_open=46, human_locked=0)
-- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=9, human_locked=0)
+- module__clkdiv: rtl/authoring_packets/module__clkdiv.json (llm_open=47, human_locked=0)
+- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=10, human_locked=0)
 
 ## Tool Evidence Queue
 
@@ -30,7 +30,7 @@
 
 ## Human-Locked Queue
 
-- rtl_gate_human_closure: human_locked=2, json=rtl/authoring_packets/rtl_gate_human_closure.json
+- rtl_gate_human_closure: human_locked=7, json=rtl/authoring_packets/rtl_gate_human_closure.json
 
 ## Rules
 

@@ -3,27 +3,23 @@
 ## Status
 
 - Top: adder_kogge_stone
-- Packets: 7
-- LLM-actionable tasks: 6
-- Human-locked tasks: 3
-- Tool-evidence tasks: 5
-- Deferred human QA allowed: False
+- Packets: 11
+- LLM-actionable tasks: 0
+- Human-locked tasks: 2
+- Tool-evidence tasks: 4
+- Deferred human QA allowed: True
 - PASS allowed: False
 - Target scale locked: True
 - Pending connection-contract suggestions: 0
 - Recommended packet batch limit: 4
 
-## Next LLM Packets
-
-- unowned_tasks: rtl/authoring_packets/unowned_tasks.json (llm_open=6, human_locked=0)
-
 ## Tool Evidence Queue
 
-- rtl_gate_tool_evidence: tool_evidence=5, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
+- rtl_gate_tool_evidence: tool_evidence=4, next_tool=audit-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
 
 ## Human-Locked Queue
 
-- rtl_gate_human_closure: human_locked=3, json=rtl/authoring_packets/rtl_gate_human_closure.json
+- rtl_gate_human_closure: human_locked=2, json=rtl/authoring_packets/rtl_gate_human_closure.json
 
 ## Rules
 

@@ -1,8 +1,7 @@
 {
-  "log_stage": "ssot-gen-repair-2",
-  "model": "gpt-5.3-codex",
-  "phase": "llm_call",
-  "stage": "ssot-gen",
+  "current_stage": "rtl-gen",
+  "model": "glm-5.1",
+  "phase": "stage",
   "state": "running",
-  "ts": "2026-05-14T05:30:13Z"
+  "ts": "2026-05-15T02:24:22Z"
 }

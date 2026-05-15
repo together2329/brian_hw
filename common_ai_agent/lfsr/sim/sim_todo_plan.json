@@ -1,0 +1,63 @@
+{
+  "approval_policy": "evidence_required",
+  "artifacts": [
+    "lfsr/tb/cocotb/test_runner.py",
+    "lfsr/sim/results.xml"
+  ],
+  "fallback_if_no_evidence": "human_review_needed",
+  "gate": {
+    "all_required_todos_pass": false,
+    "approval_state": "blocked",
+    "open_required_todos": 1,
+    "status": "blocked"
+  },
+  "generated_at": "2026-05-15T02:24:21Z",
+  "headline": "[sim] blocked: no executable TB runner found",
+  "human_review_needed": [],
+  "ip": "lfsr",
+  "runs": [],
+  "schema_version": "golden_todo_stage.v1",
+  "stage": "sim",
+  "status": "blocked",
+  "summary": {},
+  "tasks": [
+    {
+      "approval_policy": "evidence_required",
+      "approval_state": "blocked",
+      "content": "Run generated testbench and collect simulator evidence",
+      "criteria": "A supported TB runner exists and sim.sh produces passing results.xml plus scoreboard_events.jsonl.",
+      "detail": "Simulation cannot start until TB GEN creates an executable runner.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "SIM-0001",
+      "owner_workflow": "sim",
+      "required": true,
+      "required_evidence": [
+        "lfsr/tb/cocotb/test_runner.py",
+        "lfsr/sim/results.xml",
+        "lfsr/sim/scoreboard_events.jsonl"
+      ],
+      "source_refs": [
+        "lfsr/tb/cocotb"
+      ],
+      "todo_completion": {
+        "evidence_basis": [
+          "lfsr/tb/cocotb/test_runner.py",
+          "lfsr/sim/results.xml",
+          "lfsr/sim/scoreboard_events.jsonl"
+        ],
+        "reason": "[sim] blocked: no executable TB runner found",
+        "status": "open"
+      }
+    }
+  ],
+  "todo_completion": {
+    "all_required_todos_pass": false,
+    "open_required_tasks": 1,
+    "status_counts": {
+      "open": 1,
+      "pass": 0
+    }
+  },
+  "type": "stage_todo_evidence_plan",
+  "workflow": "sim"
+}

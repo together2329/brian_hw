@@ -6,7 +6,7 @@
   "surface": "atlas_ui",
   "ip": "arbiter_rr",
   "todo_plan": "rtl/rtl_todo_plan.json",
-  "todo_plan_sha256": "4ac165f4bb0f4cdaea54e5fd8bc4b6645bacbf740279ebb6919fb796423c39ce",
+  "todo_plan_sha256": "2d1561a954904117833c1c46727040b38013287f602cfb9cb5d9d205fa4a83a6",
   "rtl_files": [
     "rtl/arbiter_rr_regs.sv",
     "rtl/arbiter_rr_core.sv",
@@ -18,5 +18,5 @@
   "filelist": "list/arbiter_rr.f",
   "source": "arbiter_rr/yaml/arbiter_rr.ssot.yaml",
   "generated_at": "2026-05-15T02:10:12.762139+00:00",
-  "refreshed_at": "2026-05-15T02:16:40.743947+00:00"
+  "refreshed_at": "2026-05-15T02:23:47.044615+00:00"
 }

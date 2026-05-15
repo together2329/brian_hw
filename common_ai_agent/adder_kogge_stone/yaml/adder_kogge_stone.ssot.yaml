@@ -22,7 +22,7 @@ top_module:
 
 sub_modules:
   - { name: "adder_kogge_stone_regs", file: "rtl/adder_kogge_stone_regs.sv", ownership: "manifest", ssot_gen: true, implements: ["registers.register_list"], source_sections: ["registers"], register_refs: ["registers.register_list"], description: "APB-lite register decode and shadow storage" }
-  - { name: "adder_kogge_stone_core", file: "rtl/adder_kogge_stone_core.sv", ownership: "manifest", ssot_gen: false, implements: ["function_model.transactions", "function_model.state_updates", "cycle_model.pipeline", "features"], source_sections: ["function_model", "cycle_model", "features"], function_model_refs: ["function_model.transactions.FM_ADD", "function_model.state_updates"], cycle_model_refs: ["cycle_model.pipeline"], feature_refs: ["features.ks_addition"], description: "Kogge-Stone parallel prefix adder datapath and registered output" }
+  - { name: "adder_kogge_stone_core", file: "rtl/adder_kogge_stone_core.sv", ownership: "manifest", ssot_gen: false, implements: ["function_model.transactions", "function_model.state_updates", "cycle_model.pipeline", "features", "fsm.adder_fsm"], source_sections: ["function_model", "cycle_model", "features", "fsm"], function_model_refs: ["function_model.transactions.FM_ADD", "function_model.state_updates"], cycle_model_refs: ["cycle_model.pipeline"], feature_refs: ["features.ks_addition"], fsm_refs: ["fsm.adder_fsm"], description: "Kogge-Stone parallel prefix adder datapath, FSM control, and registered output" }
 
 decomposition:
   units:

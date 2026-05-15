@@ -26,7 +26,7 @@
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: cycle_model, cycle_model.latency, cycle_model.pipeline, dataflow, features, function_model, function_model.output_rules, function_model.state_variables, function_model.transactions
+- Owner refs: cycle_model, cycle_model.latency, cycle_model.pipeline, dataflow, decomposition.units.csr_decode, decomposition.units.edge_detect, decomposition.units.sync, features, function_model, function_model.state_variables.control_reg, function_model.state_variables.prev_sync, function_model.state_variables.status_overflow, function_model.state_variables.status_sticky, function_model.state_variables.sync_chain, function_model.transactions.DETECT, function_model.transactions.DETECT.inputs.signal_i_at_PCLK_domain_after_sync
 - Module slice: 16/16 section=workflow_todo task_limit=48
 - Slice rule: Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=2, min_procedural_blocks=4, min_source_files=2, min_state_updates=4

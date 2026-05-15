@@ -276,7 +276,7 @@
       "workflow_todos.rtl-gen[2]"
     ],
     "status_counts": {
-      "open": 1
+      "planned": 1
     },
     "task_count": 1
   },
@@ -325,29 +325,6 @@
         "function_model.transactions.FM_DIVIDE",
         "workflow_todos.rtl-gen[2]"
       ],
-      "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 3,
-        "required_terms": [
-          "CLKDIV",
-          "CORE",
-          "DIVIDE",
-          "FM",
-          "FM_DIVIDE",
-          "RTL_TODO_CLKDIV_CORE",
-          "TODO",
-          "clkdiv",
-          "clkdiv_core",
-          "core",
-          "divider",
-          "divider_fsm"
-        ],
-        "source_scope": "rtl/clkdiv_core.sv",
-        "status": "missing"
-      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -356,9 +333,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       },
       "workflow_todo": {
         "id": "RTL_TODO_CLKDIV_CORE",

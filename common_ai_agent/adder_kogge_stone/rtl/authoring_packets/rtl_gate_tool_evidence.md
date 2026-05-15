@@ -19,9 +19,9 @@
 ## Context
 
 - Quality profile: production
-- Work allowed: False
+- Work allowed: True
 - Draft allowed: False
-- Evidence closure allowed: False
+- Evidence closure allowed: True
 - PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
@@ -29,13 +29,11 @@
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - SSOT target scale: min_behavior_owner_logic_modules=1, min_logic_modules=1, min_modules=3, min_procedural_blocks=6, min_source_files=3, min_state_updates=8
 - Tool-evidence blockers:
-  - common_ai_agent_authoring: RTL authoring provenance is incomplete: todo_plan_sha256
-  - dynamic_todo_closure: 13 required non-closure TODO(s) remain open.
+  - dynamic_todo_closure: 5 required non-closure TODO(s) remain open.
   - protocol_assertion_evidence: Missing protocol assertion artifact: verify/protocol_assertions.sva.
   - fl_rtl_goal_audit: Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
   - coverage_closure: Missing coverage closure artifact: cov/coverage.json.
 - Tool-evidence runbook:
-  - common_ai_agent_authoring: stages=ssot-rtl; artifact=adder_kogge_stone/rtl/rtl_authoring_provenance.json
   - dynamic_todo_closure: stages=audit-rtl; artifact=adder_kogge_stone/rtl/rtl_todo_plan.json
   - protocol_assertion_evidence: stages=ssot-protocol-assertions, sim; artifact=adder_kogge_stone/verify/protocol_assertions.sva
   - fl_rtl_goal_audit: stages=ssot-fl-model, ssot-equiv-goals, ssot-tb-cocotb, sim, goal-audit; artifact=adder_kogge_stone/sim/fl_rtl_goal_audit.json
@@ -53,13 +51,13 @@
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.common_ai_agent_authoring
 - Detail: RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.
 SSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via top_module.
-- Current reason: RTL authoring provenance is incomplete: todo_plan_sha256
+- Current reason: RTL authoring provenance proves common_ai_agent rtl-gen ownership.
 - Criteria:
   - rtl/rtl_authoring_provenance.json exists
   - provenance agent is common_ai_agent
@@ -125,7 +123,7 @@ Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via top_module.
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: adder_kogge_stone in rtl/adder_kogge_stone.sv via top_module.
-- Current reason: 13 required non-closure TODO(s) remain open.
+- Current reason: 5 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

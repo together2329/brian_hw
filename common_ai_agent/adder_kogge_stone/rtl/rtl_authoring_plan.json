@@ -8,15 +8,6 @@
     "blocked_by_llm_work": [],
     "blocked_by_locked_truth": [
       {
-        "gate_kind": "owner_traceability",
-        "owner_module": "adder_kogge_stone",
-        "reason": "6 required SSOT-derived RTL task(s) still have no owner module.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.owner_traceability",
-        "status": "open",
-        "task_id": "RTL-0005"
-      },
-      {
         "gate_kind": "golden_authority_artifacts",
         "owner_module": "adder_kogge_stone",
         "reason": "Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json, verify/equivalence_goals.json",
@@ -37,18 +28,9 @@
     ],
     "blocked_by_tool_evidence": [
       {
-        "gate_kind": "common_ai_agent_authoring",
-        "owner_module": "adder_kogge_stone",
-        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "status": "open",
-        "task_id": "RTL-0006"
-      },
-      {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "adder_kogge_stone",
-        "reason": "13 required non-closure TODO(s) remain open.",
+        "reason": "5 required non-closure TODO(s) remain open.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -99,63 +81,11 @@
         "suggested_rows": 0
       }
     },
-    "deferred_human_qa_allowed": false,
-    "draft_allowed": false,
-    "gate_status": "blocked",
-    "hard_blockers": [
-      {
-        "category": "fsm.state",
-        "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
-        "source": "orphan_task",
-        "source_ref": "fsm.adder_fsm.states.state_0",
-        "task_id": "RTL-0114"
-      },
-      {
-        "category": "fsm.state",
-        "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
-        "source": "orphan_task",
-        "source_ref": "fsm.adder_fsm.states.state_1",
-        "task_id": "RTL-0115"
-      },
-      {
-        "category": "fsm.state",
-        "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
-        "source": "orphan_task",
-        "source_ref": "fsm.adder_fsm.states.state_2",
-        "task_id": "RTL-0116"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
-        "source": "orphan_task",
-        "source_ref": "fsm.adder_fsm.transitions.transition_0",
-        "task_id": "RTL-0117"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
-        "source": "orphan_task",
-        "source_ref": "fsm.adder_fsm.transitions.transition_1",
-        "task_id": "RTL-0118"
-      },
-      {
-        "category": "fsm.transition",
-        "reason": "No RTL owner module could be inferred from SSOT sub_modules contracts.",
-        "source": "orphan_task",
-        "source_ref": "fsm.adder_fsm.transitions.transition_2",
-        "task_id": "RTL-0119"
-      },
-      {
-        "gate_kind": "owner_traceability",
-        "owner_module": "adder_kogge_stone",
-        "reason": "6 required SSOT-derived RTL task(s) still have no owner module.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.owner_traceability",
-        "status": "open",
-        "task_id": "RTL-0005"
-      }
-    ],
-    "open_required_todos": 14,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "gate_status": "fail",
+    "hard_blockers": [],
+    "open_required_todos": 6,
     "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
@@ -164,29 +94,6 @@
       "Do not sign off top integration while required connection contracts are missing."
     ],
     "tool_evidence_plan": [
-      {
-        "artifact": "rtl/rtl_authoring_provenance.json",
-        "artifacts": [
-          "adder_kogge_stone/rtl/rtl_authoring_provenance.json",
-          "adder_kogge_stone/rtl/rtl_todo_plan.json"
-        ],
-        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-        "commands": [
-          "python3 src/headless_workflow.py --root . --ip adder_kogge_stone --stages rtl-gen",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py adder_kogge_stone --root . --audit-rtl"
-        ],
-        "gate_kind": "common_ai_agent_authoring",
-        "prerequisites": [
-          "An LLM authoring pass emitted or repaired DUT RTL files."
-        ],
-        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "stage_sequence": [
-          "ssot-rtl"
-        ],
-        "status": "open",
-        "task_id": "RTL-0006"
-      },
       {
         "artifact": "rtl/rtl_todo_plan.json",
         "artifacts": [
@@ -201,7 +108,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "13 required non-closure TODO(s) remain open.",
+        "reason": "5 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -291,67 +198,7 @@
   "packets": [
     {
       "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 6,
-        "open_required_count": 6,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": false
-      },
-      "json": "rtl/authoring_packets/unowned_tasks.json",
-      "kind": "unowned",
-      "markdown": "rtl/authoring_packets/unowned_tasks.md",
-      "owner_file": "",
-      "owner_module": "",
-      "packet_id": "unowned_tasks",
-      "summary": {
-        "categories": {
-          "fsm.state": 3,
-          "fsm.transition": 3
-        },
-        "module_slice": {},
-        "open_required_count": 6,
-        "required_count": 6,
-        "source_refs": [
-          "fsm.adder_fsm.states.state_0",
-          "fsm.adder_fsm.states.state_1",
-          "fsm.adder_fsm.states.state_2",
-          "fsm.adder_fsm.transitions.transition_0",
-          "fsm.adder_fsm.transitions.transition_1",
-          "fsm.adder_fsm.transitions.transition_2"
-        ],
-        "status_counts": {
-          "open": 6
-        },
-        "task_count": 6
-      }
-    },
-    {
-      "execution_policy": {
         "blocked_by_locked_truth": [
-          {
-            "gate_kind": "owner_traceability",
-            "owner_module": "adder_kogge_stone",
-            "reason": "6 required SSOT-derived RTL task(s) still have no owner module.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.owner_traceability",
-            "status": "open",
-            "task_id": "RTL-0005"
-          },
           {
             "gate_kind": "golden_authority_artifacts",
             "owner_module": "adder_kogge_stone",
@@ -373,14 +220,14 @@
         ],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
+        "deferred_human_qa_allowed": true,
         "draft_allowed": false,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 3,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 2,
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 3,
+        "open_required_count": 2,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -389,7 +236,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/rtl_gate_human_closure.json",
       "kind": "gate",
@@ -402,7 +249,7 @@
           "rtl_gate.rtl_gen": 7
         },
         "module_slice": {},
-        "open_required_count": 3,
+        "open_required_count": 2,
         "required_count": 7,
         "source_refs": [
           "quality_gates.rtl_gen.ssot_required_sections",
@@ -414,8 +261,8 @@
           "quality_gates.rtl_gen.cycle_model_artifacts"
         ],
         "status_counts": {
-          "open": 3,
-          "pass": 4
+          "open": 2,
+          "pass": 5
         },
         "task_count": 7
       }
@@ -425,18 +272,9 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [
           {
-            "gate_kind": "common_ai_agent_authoring",
-            "owner_module": "adder_kogge_stone",
-            "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-            "status": "open",
-            "task_id": "RTL-0006"
-          },
-          {
             "gate_kind": "dynamic_todo_closure",
             "owner_module": "adder_kogge_stone",
-            "reason": "13 required non-closure TODO(s) remain open.",
+            "reason": "5 required non-closure TODO(s) remain open.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "status": "open",
@@ -471,45 +309,22 @@
           }
         ],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
+        "deferred_human_qa_allowed": true,
         "draft_allowed": false,
-        "evidence_closure_allowed": false,
+        "evidence_closure_allowed": true,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
-        "open_required_count": 5,
+        "open_required_count": 4,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
           "Never use a fixed RTL template as the implementation."
         ],
-        "tool_evidence_open_count": 5,
+        "tool_evidence_open_count": 4,
         "tool_evidence_plan": [
-          {
-            "artifact": "rtl/rtl_authoring_provenance.json",
-            "artifacts": [
-              "adder_kogge_stone/rtl/rtl_authoring_provenance.json",
-              "adder_kogge_stone/rtl/rtl_todo_plan.json"
-            ],
-            "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-            "commands": [
-              "python3 src/headless_workflow.py --root . --ip adder_kogge_stone --stages rtl-gen",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py adder_kogge_stone --root . --audit-rtl"
-            ],
-            "gate_kind": "common_ai_agent_authoring",
-            "prerequisites": [
-              "An LLM authoring pass emitted or repaired DUT RTL files."
-            ],
-            "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
-            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-            "stage_sequence": [
-              "ssot-rtl"
-            ],
-            "status": "open",
-            "task_id": "RTL-0006"
-          },
           {
             "artifact": "rtl/rtl_todo_plan.json",
             "artifacts": [
@@ -524,7 +339,7 @@
             "prerequisites": [
               "All non-closure required TODOs have pass status."
             ],
-            "reason": "13 required non-closure TODO(s) remain open.",
+            "reason": "5 required non-closure TODO(s) remain open.",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "stage_sequence": [
               "audit-rtl"
@@ -608,7 +423,7 @@
             "task_id": "RTL-0026"
           }
         ],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
       "kind": "gate",
@@ -621,7 +436,7 @@
           "rtl_gate.rtl_gen": 7
         },
         "module_slice": {},
-        "open_required_count": 5,
+        "open_required_count": 4,
         "required_count": 7,
         "source_refs": [
           "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -633,8 +448,8 @@
           "quality_gates.rtl_gen.coverage_closure"
         ],
         "status_counts": {
-          "open": 5,
-          "pass": 2
+          "open": 4,
+          "pass": 3
         },
         "task_count": 7
       }
@@ -644,8 +459,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -660,7 +475,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/module__adder_kogge_stone_regs.json",
       "kind": "module",
@@ -722,8 +537,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -738,14 +553,14 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__adder_kogge_stone_core.json",
+      "json": "rtl/authoring_packets/module__adder_kogge_stone_core__cycle_model.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__adder_kogge_stone_core.md",
+      "markdown": "rtl/authoring_packets/module__adder_kogge_stone_core__cycle_model.md",
       "owner_file": "rtl/adder_kogge_stone_core.sv",
       "owner_module": "adder_kogge_stone_core",
-      "packet_id": "module__adder_kogge_stone_core",
+      "packet_id": "module__adder_kogge_stone_core__cycle_model",
       "summary": {
         "categories": {
           "cycle_model.backpressure": 1,
@@ -755,9 +570,250 @@
           "cycle_model.observability": 1,
           "cycle_model.ordering": 3,
           "cycle_model.pipeline": 3,
-          "cycle_model.reset": 1,
-          "equivalence.module": 1,
-          "features.item": 2,
+          "cycle_model.reset": 1
+        },
+        "module_slice": {
+          "count": 6,
+          "enabled": true,
+          "index": 2,
+          "key": "cycle_model",
+          "module_task_count": 49,
+          "rule": "Owner module adder_kogge_stone_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "cycle_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 14,
+        "source_refs": [
+          "cycle_model.clock",
+          "cycle_model.reset",
+          "cycle_model.latency",
+          "cycle_model.handshake_rules.psel_penable",
+          "cycle_model.handshake_rules.pready",
+          "cycle_model.handshake_rules.pslverr",
+          "cycle_model.pipeline.S_IDLE",
+          "cycle_model.pipeline.S_COMPUTE",
+          "cycle_model.pipeline.S_CAPTURE",
+          "cycle_model.ordering.ordering_rule_0",
+          "cycle_model.ordering.ordering_rule_1",
+          "cycle_model.ordering.ordering_rule_2",
+          "cycle_model.backpressure.backpressure_rule_0",
+          "cycle_model.observability.observability_signal_0"
+        ],
+        "status_counts": {
+          "pass": 14
+        },
+        "task_count": 14
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__adder_kogge_stone_core__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__adder_kogge_stone_core__equivalence.md",
+      "owner_file": "rtl/adder_kogge_stone_core.sv",
+      "owner_module": "adder_kogge_stone_core",
+      "packet_id": "module__adder_kogge_stone_core__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 6,
+          "enabled": true,
+          "index": 5,
+          "key": "equivalence",
+          "module_task_count": 49,
+          "rule": "Owner module adder_kogge_stone_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.adder_kogge_stone_core.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__adder_kogge_stone_core__features.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__adder_kogge_stone_core__features.md",
+      "owner_file": "rtl/adder_kogge_stone_core.sv",
+      "owner_module": "adder_kogge_stone_core",
+      "packet_id": "module__adder_kogge_stone_core__features",
+      "summary": {
+        "categories": {
+          "features.item": 2
+        },
+        "module_slice": {
+          "count": 6,
+          "enabled": true,
+          "index": 4,
+          "key": "features",
+          "module_task_count": 49,
+          "rule": "Owner module adder_kogge_stone_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "features",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 2,
+        "source_refs": [
+          "features.ks_addition",
+          "features.apb_lite_csr"
+        ],
+        "status_counts": {
+          "pass": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__adder_kogge_stone_core__fsm.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__adder_kogge_stone_core__fsm.md",
+      "owner_file": "rtl/adder_kogge_stone_core.sv",
+      "owner_module": "adder_kogge_stone_core",
+      "packet_id": "module__adder_kogge_stone_core__fsm",
+      "summary": {
+        "categories": {
+          "fsm.state": 3,
+          "fsm.transition": 3
+        },
+        "module_slice": {
+          "count": 6,
+          "enabled": true,
+          "index": 3,
+          "key": "fsm",
+          "module_task_count": 49,
+          "rule": "Owner module adder_kogge_stone_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "fsm",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 6,
+        "source_refs": [
+          "fsm.adder_fsm.states.state_0",
+          "fsm.adder_fsm.states.state_1",
+          "fsm.adder_fsm.states.state_2",
+          "fsm.adder_fsm.transitions.transition_0",
+          "fsm.adder_fsm.transitions.transition_1",
+          "fsm.adder_fsm.transitions.transition_2"
+        ],
+        "status_counts": {
+          "pass": 6
+        },
+        "task_count": 6
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__adder_kogge_stone_core__function_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__adder_kogge_stone_core__function_model.md",
+      "owner_file": "rtl/adder_kogge_stone_core.sv",
+      "owner_module": "adder_kogge_stone_core",
+      "packet_id": "module__adder_kogge_stone_core__function_model",
+      "summary": {
+        "categories": {
           "function_model.error_case": 2,
           "function_model.input": 3,
           "function_model.invariant": 2,
@@ -765,21 +821,23 @@
           "function_model.precondition": 2,
           "function_model.side_effect": 3,
           "function_model.state_variable": 8,
-          "function_model.transaction": 1,
-          "workflow_todo.rtl_gen": 1
+          "function_model.transaction": 1
         },
         "module_slice": {
-          "count": 1,
-          "enabled": false,
+          "count": 6,
+          "enabled": true,
           "index": 1,
-          "key": "all",
-          "module_task_count": 43,
+          "key": "function_model",
+          "module_task_count": 49,
+          "rule": "Owner module adder_kogge_stone_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
           "task_limit": 48
         },
         "open_required_count": 0,
-        "required_count": 43,
+        "required_count": 25,
         "source_refs": [
-          "workflow_todos.rtl-gen[0]",
           "function_model.state_variables.a_reg",
           "function_model.state_variables.b_reg",
           "function_model.state_variables.cin_reg",
@@ -802,12 +860,13 @@
           "function_model.transactions.FM_ADD.side_effects.side_effect_1",
           "function_model.transactions.FM_ADD.side_effects.side_effect_2",
           "function_model.transactions.FM_ADD.error_cases.error_case_0",
-          "function_model.transactions.FM_ADD.error_cases.error_case_1"
+          "function_model.transactions.FM_ADD.error_cases.error_case_1",
+          "function_model.invariants.invariant_0"
         ],
         "status_counts": {
-          "pass": 43
+          "pass": 25
         },
-        "task_count": 43
+        "task_count": 25
       }
     },
     {
@@ -815,8 +874,8 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
@@ -831,7 +890,63 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__adder_kogge_stone_core__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__adder_kogge_stone_core__workflow_todo.md",
+      "owner_file": "rtl/adder_kogge_stone_core.sv",
+      "owner_module": "adder_kogge_stone_core",
+      "packet_id": "module__adder_kogge_stone_core__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 6,
+          "enabled": true,
+          "index": 6,
+          "key": "workflow_todo",
+          "module_task_count": 49,
+          "rule": "Owner module adder_kogge_stone_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[0]"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/module__adder_kogge_stone.json",
       "kind": "module",
@@ -902,9 +1017,9 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
+        "deferred_human_qa_allowed": true,
         "draft_allowed": false,
-        "evidence_closure_allowed": false,
+        "evidence_closure_allowed": true,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": false,
@@ -918,7 +1033,7 @@
         ],
         "tool_evidence_open_count": 0,
         "tool_evidence_plan": [],
-        "work_allowed": false
+        "work_allowed": true
       },
       "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
       "kind": "gate",
@@ -992,31 +1107,29 @@
   "status_markdown": "rtl/rtl_authoring_status.md",
   "summary": {
     "connection_contract_suggestions_present": false,
-    "deferred_human_qa_allowed": false,
+    "deferred_human_qa_allowed": true,
     "gate_packets": 3,
     "human_locked_packets": 1,
-    "human_locked_tasks": 3,
-    "llm_actionable_packets": 1,
-    "llm_actionable_tasks": 6,
+    "human_locked_tasks": 2,
+    "llm_actionable_packets": 0,
+    "llm_actionable_tasks": 0,
     "max_packet_required_tasks": 46,
-    "module_packets": 3,
-    "next_llm_packets": [
-      "unowned_tasks"
-    ],
+    "module_packets": 8,
+    "next_llm_packets": [],
     "packet_task_limit": 48,
-    "packets": 7,
+    "packets": 11,
     "pass_allowed": false,
     "pending_connection_contract_suggestions": 0,
     "recommended_packet_batch_limit": 4,
     "reference_profile_present": false,
     "reference_scale_gap_present": false,
     "required_tasks": 146,
-    "sliced_module_packets": 0,
+    "sliced_module_packets": 6,
     "target_scale_present": true,
     "tool_evidence_packets": 1,
-    "tool_evidence_tasks": 5,
+    "tool_evidence_tasks": 4,
     "total_tasks": 146,
-    "unowned_packets": 1
+    "unowned_packets": 0
   },
   "target_scale": {
     "basis": "calibrated from user requirements; small parameterized accelerator",
@@ -1028,7 +1141,7 @@
     "min_state_updates": 8,
     "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
   },
-  "todo_plan_sha256": "823deab5644f20ba72fd9abaaf5c7b5d9c4a81e40edbded03fc45d4cf5d81ff7",
+  "todo_plan_sha256": "cc6c87a960c3a8eaf436bdac0855c0025e0c4c24ce34430682b51e62909c07e1",
   "top": "adder_kogge_stone",
   "type": "rtl_authoring_plan"
 }

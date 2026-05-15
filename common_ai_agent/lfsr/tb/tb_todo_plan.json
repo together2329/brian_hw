@@ -1,0 +1,118 @@
+{
+  "approval_policy": "evidence_required",
+  "artifacts": [
+    "lfsr/tb/cocotb/test_lfsr.py",
+    "lfsr/tb/cocotb/test_runner.py",
+    "lfsr/tb/cocotb/tb_manifest.json",
+    "lfsr/tb/cocotb/tb_generation.json",
+    "lfsr/sim/scoreboard_events.jsonl after /sim",
+    "lfsr/cov/coverage.json after /sim"
+  ],
+  "fallback_if_no_evidence": "human_review_needed",
+  "gate": {
+    "all_required_todos_pass": false,
+    "approval_state": "human_review_needed",
+    "open_required_todos": 2,
+    "status": "human_gate"
+  },
+  "generated_at": "2026-05-15T02:23:55Z",
+  "headline": "[ssot-tb-cocotb] BLOCKED - SSOT/RTL contract needs repair",
+  "human_review_needed": [
+    {
+      "decision_needed": "Provide the missing source artifact required by generic TB generation.",
+      "downstream_effect": "The generator must consume disk-truth SSOT, FL, equivalence-goal, and RTL-contract artifacts.",
+      "evidence": "missing equivalence goals: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/lfsr/verify/equivalence_goals.json",
+      "id": "TB_GENERATOR_INPUT",
+      "options": [
+        "Run the owning ATLAS stage shown in the evidence, then rerun /tb."
+      ],
+      "recommended_default": "Run the owning ATLAS stage shown in the evidence, then rerun /tb."
+    }
+  ],
+  "ip": "lfsr",
+  "runs": [
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py lfsr --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "emit_goal_scoreboard_cocotb",
+      "returncode": 2,
+      "stderr": "",
+      "stdout": "[SSOT QUESTION] tb-gen blocked for lfsr: missing equivalence goals: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/lfsr/verify/equivalence_goals.json"
+    }
+  ],
+  "schema_version": "golden_todo_stage.v1",
+  "stage": "ssot-tb-cocotb",
+  "status": "human_gate",
+  "summary": {},
+  "tasks": [
+    {
+      "approval_policy": "evidence_required",
+      "approval_state": "human_review_needed",
+      "content": "Generate SSOT-derived pyuvm/cocotb testbench",
+      "criteria": "emit_goal_scoreboard_cocotb exits 0 and writes test_<ip>.py, test_runner.py, tb_manifest.json, and tb_generation.json.",
+      "detail": "Derive the testbench from SSOT scenarios, equivalence goals, and the RTL contract; do not approve a fixed template fallback.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "TB-0001",
+      "owner_workflow": "tb-gen",
+      "required": true,
+      "required_evidence": [
+        "lfsr/tb/cocotb/test_lfsr.py",
+        "lfsr/tb/cocotb/test_runner.py",
+        "lfsr/tb/cocotb/tb_manifest.json",
+        "lfsr/tb/cocotb/tb_generation.json"
+      ],
+      "source_refs": [
+        "lfsr/yaml/lfsr.ssot.yaml",
+        "lfsr/verify/equivalence_goals.json"
+      ],
+      "todo_completion": {
+        "evidence_basis": [
+          "lfsr/tb/cocotb/test_lfsr.py",
+          "lfsr/tb/cocotb/test_runner.py",
+          "lfsr/tb/cocotb/tb_manifest.json",
+          "lfsr/tb/cocotb/tb_generation.json",
+          "emit_goal_scoreboard_cocotb"
+        ],
+        "reason": "[ssot-tb-cocotb] BLOCKED - SSOT/RTL contract needs repair",
+        "status": "open"
+      }
+    },
+    {
+      "approval_policy": "evidence_required",
+      "approval_state": "human_review_needed",
+      "content": "Validate TB structure and scoreboard contract",
+      "criteria": "check_pyuvm_structure and equivalence_scoreboard --self-check both exit 0.",
+      "detail": "The generated TB must instantiate the common equivalence scoreboard and expose the rows required by SIM and Coverage.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "TB-0002",
+      "owner_workflow": "tb-gen",
+      "required": true,
+      "required_evidence": [
+        "check_pyuvm_structure returncode 0",
+        "equivalence_scoreboard_self_check returncode 0"
+      ],
+      "source_refs": [
+        "lfsr/tb/cocotb/test_lfsr.py",
+        "lfsr/tb/cocotb/tb_manifest.json"
+      ],
+      "todo_completion": {
+        "evidence_basis": [
+          "check_pyuvm_structure returncode 0",
+          "equivalence_scoreboard_self_check returncode 0",
+          "emit_goal_scoreboard_cocotb"
+        ],
+        "reason": "[ssot-tb-cocotb] BLOCKED - SSOT/RTL contract needs repair",
+        "status": "open"
+      }
+    }
+  ],
+  "todo_completion": {
+    "all_required_todos_pass": false,
+    "open_required_tasks": 2,
+    "status_counts": {
+      "open": 2,
+      "pass": 0
+    }
+  },
+  "type": "stage_todo_evidence_plan",
+  "workflow": "tb-gen"
+}

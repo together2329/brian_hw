@@ -42,12 +42,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 156,
+    "open_required_todos": 83,
     "orphan_tasks": 0,
-    "static_missing": 42,
+    "static_missing": 36,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:22:32Z",
+  "generated_at": "2026-05-15T02:24:41Z",
   "ip": "clkdiv",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 32,
@@ -83,43 +83,43 @@
         "source_ref": "sub_modules[0].connections[4]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract port is not connected by the RTL named port map",
         "module": "clkdiv_core",
         "port": "clk_i",
         "source_ref": "sub_modules[1].connections[0]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract port is not connected by the RTL named port map",
         "module": "clkdiv_core",
         "port": "rst_ni",
         "source_ref": "sub_modules[1].connections[1]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract port is not connected by the RTL named port map",
         "module": "clkdiv_core",
         "port": "enable_i",
         "source_ref": "sub_modules[1].connections[2]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract port is not connected by the RTL named port map",
         "module": "clkdiv_core",
         "port": "divisor_i",
         "source_ref": "sub_modules[1].connections[3]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract port is not connected by the RTL named port map",
         "module": "clkdiv_core",
         "port": "clk_o",
         "source_ref": "sub_modules[1].connections[4]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract port is not connected by the RTL named port map",
         "module": "clkdiv_core",
         "port": "locked_o",
         "source_ref": "sub_modules[1].connections[5]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract port is not connected by the RTL named port map",
         "module": "clkdiv_core",
         "port": "terminal_event_o",
         "source_ref": "sub_modules[1].connections[6]"
@@ -191,43 +191,43 @@
         "source_ref": "integration.connections[10]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract port is not connected by the RTL named port map",
         "module": "clkdiv_core",
         "port": "clk_i",
         "source_ref": "integration.connections[11]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract port is not connected by the RTL named port map",
         "module": "clkdiv_core",
         "port": "rst_ni",
         "source_ref": "integration.connections[12]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract port is not connected by the RTL named port map",
         "module": "clkdiv_core",
         "port": "enable_i",
         "source_ref": "integration.connections[13]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract port is not connected by the RTL named port map",
         "module": "clkdiv_core",
         "port": "divisor_i",
         "source_ref": "integration.connections[14]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract port is not connected by the RTL named port map",
         "module": "clkdiv_core",
         "port": "clk_o",
         "source_ref": "integration.connections[15]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract port is not connected by the RTL named port map",
         "module": "clkdiv_core",
         "port": "locked_o",
         "source_ref": "integration.connections[16]"
       },
       {
-        "issue": "SSOT connection contract targets a module not declared in RTL",
+        "issue": "SSOT connection contract port is not connected by the RTL named port map",
         "module": "clkdiv_core",
         "port": "terminal_event_o",
         "source_ref": "integration.connections[17]"
@@ -246,44 +246,52 @@
       }
     ],
     "connection_contract_status": "fail",
-    "declared_modules": [],
-    "graph": {},
+    "declared_modules": [
+      "clkdiv",
+      "clkdiv_core"
+    ],
+    "graph": {
+      "clkdiv": [
+        "clkdiv_core"
+      ],
+      "clkdiv_core": [
+        "i"
+      ]
+    },
     "issues": [
-      {
-        "file": "rtl/clkdiv.sv",
-        "issue": "SSOT top module is not declared in listed RTL sources",
-        "module": "clkdiv"
-      },
       {
         "file": "rtl/clkdiv_regs.sv",
         "issue": "SSOT manifest child module is not declared in listed RTL sources",
         "module": "clkdiv_regs"
-      },
-      {
-        "file": "rtl/clkdiv_core.sv",
-        "issue": "SSOT manifest child module is not declared in listed RTL sources",
-        "module": "clkdiv_core"
       }
     ],
     "port_connection_issues": [],
     "port_connection_status": "pass",
-    "reachable_modules": [],
-    "roots": [],
-    "sources": [],
+    "reachable_modules": [
+      "clkdiv",
+      "clkdiv_core"
+    ],
+    "roots": [
+      "clkdiv"
+    ],
+    "sources": [
+      "rtl/clkdiv.sv",
+      "rtl/clkdiv_core.sv"
+    ],
     "status": "fail"
   },
   "manifest_signal_flow_evidence": {
-    "checked_inputs": 0,
-    "checked_outputs": 0,
-    "issues": [
-      {
-        "issue": "SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
-        "module": "clkdiv"
-      }
+    "checked_inputs": 4,
+    "checked_outputs": 3,
+    "issues": [],
+    "reachable_modules": [
+      "clkdiv",
+      "clkdiv_core"
     ],
-    "reachable_modules": [],
-    "roots": [],
-    "status": "fail"
+    "roots": [
+      "clkdiv"
+    ],
+    "status": "pass"
   },
   "orphans": [],
   "owner_logic_evidence": {
@@ -293,16 +301,6 @@
         "file": "rtl/clkdiv_regs.sv",
         "issue": "Behavior-owner module is not declared in its owner file",
         "module": "clkdiv_regs"
-      },
-      {
-        "file": "rtl/clkdiv_core.sv",
-        "issue": "Behavior-owner module is not declared in its owner file",
-        "module": "clkdiv_core"
-      },
-      {
-        "file": "rtl/clkdiv.sv",
-        "issue": "Behavior-owner module is not declared in its owner file",
-        "module": "clkdiv"
       }
     ],
     "status": "fail"
@@ -324,43 +322,69 @@
   "reference_scale_gap": {},
   "rtl_implementation_depth_evidence": {
     "aggregate": {
-      "behavior_owner_logic_modules": 0,
-      "control_flow": 0,
-      "depth_score": 0,
-      "instances": 0,
-      "lines": 0,
-      "logic_modules": 0,
-      "modules": 0,
+      "behavior_owner_logic_modules": 2,
+      "control_flow": 3,
+      "depth_score": 27,
+      "instances": 2,
+      "lines": 66,
+      "logic_modules": 2,
+      "modules": 2,
       "nonconstant_assigns": 0,
-      "procedural_blocks": 0,
-      "source_files": 0,
-      "state_updates": 0,
-      "storage_decls": 0
+      "procedural_blocks": 2,
+      "source_files": 2,
+      "state_updates": 6,
+      "storage_decls": 2
     },
     "issues": [
       {
-        "issue": "No listed DUT RTL sources are available for production implementation-depth audit"
-      },
-      {
-        "actual": 0,
+        "actual": 27,
         "issue": "Production RTL implementation depth score is below the SSOT-derived or target-scale threshold",
         "required": 103,
         "source": "ssot_derived_threshold"
       },
       {
-        "actual": 0,
+        "actual": 2,
         "issue": "Too few RTL modules contain implementation structure for the SSOT behavior complexity",
         "required": 3,
         "source": "ssot_derived_threshold"
       },
       {
-        "actual": 0,
+        "actual": 2,
         "issue": "Too few SSOT behavior-owner modules contain implementation-depth evidence",
         "required": 3,
         "source": "ssot_derived_threshold"
       }
     ],
-    "modules": [],
+    "modules": [
+      {
+        "depth_score": 25,
+        "file": "rtl/clkdiv_core.sv",
+        "metrics": {
+          "control_flow": 3,
+          "instances": 1,
+          "nonconstant_assigns": 0,
+          "placeholder_tokens": false,
+          "procedural_blocks": 2,
+          "state_updates": 6,
+          "storage_decls": 2
+        },
+        "module": "clkdiv_core"
+      },
+      {
+        "depth_score": 2,
+        "file": "rtl/clkdiv.sv",
+        "metrics": {
+          "control_flow": 0,
+          "instances": 1,
+          "nonconstant_assigns": 0,
+          "placeholder_tokens": false,
+          "procedural_blocks": 0,
+          "state_updates": 0,
+          "storage_decls": 0
+        },
+        "module": "clkdiv"
+      }
+    ],
     "profile": "production",
     "reference_comparison": null,
     "status": "fail",
@@ -375,13 +399,9 @@
     }
   },
   "rtl_placeholder_free_evidence": {
-    "checked": 0,
-    "issues": [
-      {
-        "issue": "No listed RTL source files were readable, so placeholder-free evidence cannot be checked"
-      }
-    ],
-    "status": "fail"
+    "checked": 2,
+    "issues": [],
+    "status": "pass"
   },
   "schema_version": 1,
   "source": "clkdiv/yaml/clkdiv.ssot.yaml",
@@ -955,12 +975,14 @@
   ],
   "static_rtl_evidence": {
     "checked": 42,
-    "missing": 42,
+    "missing": 36,
     "missing_tasks": [
       {
         "category": "workflow_todo.rtl_gen",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "CLKDIV"
+        ],
         "owner_file": "rtl/clkdiv.sv",
         "required_match_count": 3,
         "required_terms": [
@@ -998,29 +1020,11 @@
         "task_id": "RTL-0028"
       },
       {
-        "category": "workflow_todo.rtl_gen",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/clkdiv_core.sv",
-        "required_match_count": 3,
-        "required_terms": [
-          "CLKDIV",
-          "CORE",
-          "DIVIDE",
-          "FM",
-          "FM_DIVIDE",
-          "RTL_TODO_CLKDIV_CORE",
-          "TODO",
-          "clkdiv"
-        ],
-        "source_ref": "workflow_todos.rtl-gen[2]",
-        "source_scope": "rtl/clkdiv_core.sv",
-        "task_id": "RTL-0029"
-      },
-      {
         "category": "function_model.precondition",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "rst"
+        ],
         "owner_file": "rtl/clkdiv_core.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -1049,8 +1053,10 @@
       },
       {
         "category": "function_model.input",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file": "rtl/clkdiv_core.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -1093,8 +1099,10 @@
       },
       {
         "category": "function_model.output",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file": "rtl/clkdiv_core.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -1146,24 +1154,6 @@
         "owner_file": "rtl/clkdiv_core.sv",
         "required_match_count": 2,
         "required_terms": [
-          "clk",
-          "clk_o",
-          "clk_state",
-          "count",
-          "terminal",
-          "terminal_count"
-        ],
-        "source_ref": "function_model.transactions.FM_DIVIDE.output_rules.divided_clock",
-        "source_scope": "rtl/clkdiv_core.sv",
-        "task_id": "RTL-0063"
-      },
-      {
-        "category": "function_model.output_rule",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/clkdiv_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
           "first",
           "first_reload_seen",
           "locked",
@@ -1194,8 +1184,10 @@
       },
       {
         "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file": "rtl/clkdiv_core.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -1211,8 +1203,10 @@
       },
       {
         "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file": "rtl/clkdiv_core.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -1260,8 +1254,10 @@
       },
       {
         "category": "function_model.side_effect",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file": "rtl/clkdiv_core.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -1303,26 +1299,10 @@
       },
       {
         "category": "function_model.invariant",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/clkdiv_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "clk",
-          "clk_i",
-          "clk_o",
-          "ni",
-          "rst",
-          "rst_ni"
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
         ],
-        "source_ref": "function_model.invariants.invariant_0",
-        "source_scope": "rtl/clkdiv_core.sv",
-        "task_id": "RTL-0073"
-      },
-      {
-        "category": "function_model.invariant",
-        "matched_count": 0,
-        "matched_terms": [],
         "owner_file": "rtl/clkdiv_core.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -1349,23 +1329,11 @@
         "task_id": "RTL-0076"
       },
       {
-        "category": "cycle_model.clock",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/clkdiv_core.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "clk",
-          "clk_i"
-        ],
-        "source_ref": "cycle_model.clock",
-        "source_scope": "rtl/clkdiv_core.sv",
-        "task_id": "RTL-0077"
-      },
-      {
         "category": "cycle_model.handshake_rules",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file": "rtl/clkdiv_core.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -1407,8 +1375,10 @@
       },
       {
         "category": "cycle_model.pipeline",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file": "rtl/clkdiv_core.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -1425,8 +1395,10 @@
       },
       {
         "category": "cycle_model.pipeline",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file": "rtl/clkdiv_core.sv",
         "required_match_count": 2,
         "required_terms": [
@@ -1571,34 +1543,6 @@
         "owner_file": "rtl/clkdiv.sv",
         "required_match_count": 1,
         "required_terms": [
-          "clk",
-          "clk_o"
-        ],
-        "source_ref": "features.Programmable_divide",
-        "source_scope": "rtl/clkdiv.sv",
-        "task_id": "RTL-0119"
-      },
-      {
-        "category": "features.item",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/clkdiv.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "clk",
-          "clk_o"
-        ],
-        "source_ref": "features.Glitchless_divisor_update",
-        "source_scope": "rtl/clkdiv.sv",
-        "task_id": "RTL-0120"
-      },
-      {
-        "category": "features.item",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/clkdiv.sv",
-        "required_match_count": 1,
-        "required_terms": [
           "irq",
           "irq_o"
         ],
@@ -1607,8 +1551,11 @@
         "task_id": "RTL-0121"
       }
     ],
-    "passed": 0,
-    "sources": []
+    "passed": 6,
+    "sources": [
+      "rtl/clkdiv.sv",
+      "rtl/clkdiv_core.sv"
+    ]
   },
   "summary": {
     "blocking_questions": 0,
@@ -1824,9 +1771,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2017,7 +1964,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: rtl_files_missing_manifest:rtl/clkdiv_regs.sv",
         "required": true,
         "status": "open"
       }
@@ -2065,7 +2012,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "42 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "36 static-evidence-required task(s) still lack DUT RTL evidence.",
         "required": true,
         "status": "open"
       }
@@ -2112,7 +2059,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "3 owner logic structure issue(s) remain. clkdiv_regs: Behavior-owner module is not declared in its owner file; clkdiv_core: Behavior-owner module is not declared in its owner file; clkdiv: Behavior-owner module is not declared in its owner file",
+        "reason": "1 owner logic structure issue(s) remain. clkdiv_regs: Behavior-owner module is not declared in its owner file",
         "required": true,
         "status": "open"
       }
@@ -2162,9 +2109,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
+        "reason": "RTL sources contain no placeholder markers or disallowed default-policy constructs.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2209,7 +2156,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top IO contract issue(s) remain. clkdiv: SSOT top module is not declared in listed RTL sources",
+        "reason": "14 top IO contract issue(s) remain. clk_i: SSOT top IO port is missing from RTL top declaration; rst_ni: SSOT top IO port is missing from RTL top declaration; paddr: SSOT top IO port is missing from RTL top declaration",
         "required": true,
         "status": "open"
       }
@@ -2256,9 +2203,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top output drive issue(s) remain. clkdiv: SSOT top module is not declared, so output drive evidence cannot be checked",
+        "reason": "SSOT top outputs have non-placeholder RTL drive evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2303,9 +2250,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top input consumption issue(s) remain. clkdiv: SSOT top module is not declared, so input consumption evidence cannot be checked",
+        "reason": "SSOT top inputs have RTL consumption evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2350,7 +2297,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "3 manifest hierarchy integration issue(s) remain. clkdiv: SSOT top module is not declared in listed RTL sources; clkdiv_regs: SSOT manifest child module is not declared in listed RTL sources; clkdiv_core: SSOT manifest child module is not declared in listed RTL sources",
+        "reason": "1 manifest hierarchy integration issue(s) remain. clkdiv_regs: SSOT manifest child module is not declared in listed RTL sources",
         "required": true,
         "status": "open"
       }
@@ -2444,9 +2391,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 manifest signal-flow issue(s) remain. clkdiv: None: SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
+        "reason": "Manifest child port maps carry live non-placeholder RTL signal flow.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2637,7 +2584,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "155 required non-closure TODO(s) remain open.",
+        "reason": "82 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -2786,7 +2733,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "4 production RTL implementation-depth issue(s) remain. No listed DUT RTL sources are available for production implementation-depth audit; Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=0 required=103; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=0 required=3",
+        "reason": "3 production RTL implementation-depth issue(s) remain. Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=27 required=103; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=2 required=3; Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=2 required=3",
         "required": true,
         "status": "open"
       }
@@ -3039,8 +2986,10 @@
         "workflow_todos.rtl-gen[0]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "CLKDIV"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -3069,7 +3018,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       },
@@ -3231,8 +3180,15 @@
         "workflow_todos.rtl-gen[2]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "CLKDIV",
+          "CORE",
+          "FM",
+          "clkdiv",
+          "clkdiv_core",
+          "core"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -3251,7 +3207,7 @@
           "divider_fsm"
         ],
         "source_scope": "rtl/clkdiv_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -3261,9 +3217,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_TODO_CLKDIV_CORE",
@@ -3315,9 +3271,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3358,9 +3314,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3401,9 +3357,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4104,9 +4060,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4149,9 +4105,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4194,9 +4150,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4239,9 +4195,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4284,9 +4240,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4329,9 +4285,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4373,9 +4329,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4409,8 +4365,10 @@
         "function_model.transactions.FM_DIVIDE.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "rst"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4430,7 +4388,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -4473,9 +4431,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -4530,7 +4488,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -4565,8 +4523,10 @@
         "function_model.transactions.FM_DIVIDE.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4585,7 +4545,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -4642,7 +4602,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -4699,7 +4659,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -4737,8 +4697,10 @@
         "function_model.transactions.FM_DIVIDE.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4760,7 +4722,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -4815,7 +4777,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -4876,7 +4838,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -4922,8 +4884,11 @@
         "function_model.transactions.FM_DIVIDE.output_rules.divided_clock"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "clk",
+          "count"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4936,7 +4901,7 @@
           "terminal_count"
         ],
         "source_scope": "rtl/clkdiv_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -4946,9 +4911,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5016,7 +4981,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5084,7 +5049,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5122,8 +5087,10 @@
         "function_model.transactions.FM_DIVIDE.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5145,7 +5112,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5183,8 +5150,10 @@
         "function_model.transactions.FM_DIVIDE.side_effects.side_effect_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5206,7 +5175,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5265,7 +5234,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5324,7 +5293,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5361,8 +5330,10 @@
         "function_model.transactions.FM_DIVIDE.side_effects.side_effect_4"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5383,7 +5354,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5439,7 +5410,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5493,7 +5464,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5532,8 +5503,11 @@
         "function_model.invariants.invariant_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "clk",
+          "rst"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5546,7 +5520,7 @@
           "rst_ni"
         ],
         "source_scope": "rtl/clkdiv_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -5556,9 +5530,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5591,8 +5565,10 @@
         "function_model.invariants.invariant_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -5611,7 +5587,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5654,9 +5630,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5711,7 +5687,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -5747,8 +5723,10 @@
         "cycle_model.clock"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -5757,7 +5735,7 @@
           "clk_i"
         ],
         "source_scope": "rtl/clkdiv_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -5767,9 +5745,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5809,9 +5787,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5851,9 +5829,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5895,9 +5873,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5939,9 +5917,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -5983,9 +5961,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6019,8 +5997,10 @@
         "cycle_model.handshake_rules.clk_o"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -6039,7 +6019,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -6095,7 +6075,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -6142,9 +6122,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6189,9 +6169,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6250,7 +6230,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -6293,8 +6273,10 @@
         "cycle_model.pipeline.S3_TERMINAL"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -6317,7 +6299,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -6356,8 +6338,10 @@
         "cycle_model.pipeline.S4_DISABLE"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -6376,7 +6360,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -6420,9 +6404,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6464,9 +6448,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6508,9 +6492,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -6566,7 +6550,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -6610,9 +6594,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7474,7 +7458,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -7528,7 +7512,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -7582,7 +7566,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -7643,7 +7627,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -7702,7 +7686,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -7761,7 +7745,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -7822,7 +7806,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -7883,7 +7867,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -7919,8 +7903,10 @@
         "features.Programmable_divide"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -7929,7 +7915,7 @@
           "clk_o"
         ],
         "source_scope": "rtl/clkdiv.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -7939,9 +7925,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -7975,8 +7961,10 @@
         "features.Glitchless_divisor_update"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -7985,7 +7973,7 @@
           "clk_o"
         ],
         "source_scope": "rtl/clkdiv.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -7995,9 +7983,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8051,7 +8039,7 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
         "status": "open"
       }
@@ -8180,9 +8168,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8223,9 +8211,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8266,9 +8254,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8310,9 +8298,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8354,9 +8342,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8402,9 +8390,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8451,9 +8439,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8496,9 +8484,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8541,9 +8529,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8586,9 +8574,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8631,9 +8619,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8676,9 +8664,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8721,9 +8709,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8766,9 +8754,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8811,9 +8799,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8856,9 +8844,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8904,9 +8892,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -8953,9 +8941,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9001,9 +8989,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9051,9 +9039,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9099,9 +9087,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9147,9 +9135,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9196,9 +9184,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9245,9 +9233,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9293,9 +9281,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9336,9 +9324,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9386,9 +9374,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9429,9 +9417,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9475,9 +9463,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9518,9 +9506,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9561,9 +9549,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9605,9 +9593,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9691,9 +9679,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9734,9 +9722,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9780,9 +9768,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9826,9 +9814,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9872,9 +9860,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9918,9 +9906,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -9964,76 +9952,46 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 156,
+    "open_required_tasks": 83,
     "open_tasks": [
       {
-        "category": "rtl_flow.top",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
-        "source_ref": "io_list",
-        "task_id": "RTL-0002"
-      },
-      {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: rtl_files_missing_manifest:rtl/clkdiv_regs.sv",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "task_id": "RTL-0006"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "42 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "36 static-evidence-required task(s) still lack DUT RTL evidence.",
         "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
         "task_id": "RTL-0007"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "3 owner logic structure issue(s) remain. clkdiv_regs: Behavior-owner module is not declared in its owner file; clkdiv_core: Behavior-owner module is not declared in its owner file; clkdiv: Behavior-owner module is not declared in its owner file",
+        "reason": "1 owner logic structure issue(s) remain. clkdiv_regs: Behavior-owner module is not declared in its owner file",
         "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
         "task_id": "RTL-0008"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
-        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-        "task_id": "RTL-0009"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 top IO contract issue(s) remain. clkdiv: SSOT top module is not declared in listed RTL sources",
+        "reason": "14 top IO contract issue(s) remain. clk_i: SSOT top IO port is missing from RTL top declaration; rst_ni: SSOT top IO port is missing from RTL top declaration; paddr: SSOT top IO port is missing from RTL top declaration",
         "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
         "task_id": "RTL-0010"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "1 top output drive issue(s) remain. clkdiv: SSOT top module is not declared, so output drive evidence cannot be checked",
-        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
-        "task_id": "RTL-0011"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 top input consumption issue(s) remain. clkdiv: SSOT top module is not declared, so input consumption evidence cannot be checked",
-        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
-        "task_id": "RTL-0012"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "3 manifest hierarchy integration issue(s) remain. clkdiv: SSOT top module is not declared in listed RTL sources; clkdiv_regs: SSOT manifest child module is not declared in listed RTL sources; clkdiv_core: SSOT manifest child module is not declared in listed RTL sources",
+        "reason": "1 manifest hierarchy integration issue(s) remain. clkdiv_regs: SSOT manifest child module is not declared in listed RTL sources",
         "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
         "task_id": "RTL-0013"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 manifest signal-flow issue(s) remain. clkdiv: None: SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
-        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
-        "task_id": "RTL-0015"
       },
       {
         "category": "rtl_gate.rtl_gen",
@@ -10055,7 +10013,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "155 required non-closure TODO(s) remain open.",
+        "reason": "82 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -10067,7 +10025,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "4 production RTL implementation-depth issue(s) remain. No listed DUT RTL sources are available for production implementation-depth audit; Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=0 required=103; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=0 required=3",
+        "reason": "3 production RTL implementation-depth issue(s) remain. Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=27 required=103; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=2 required=3; Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=2 required=3",
         "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
         "task_id": "RTL-0022"
       },
@@ -10091,7 +10049,7 @@
       },
       {
         "category": "workflow_todo.rtl_gen",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "workflow_todos.rtl-gen[0]",
         "task_id": "RTL-0027"
       },
@@ -10100,30 +10058,6 @@
         "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
         "source_ref": "workflow_todos.rtl-gen[1]",
         "task_id": "RTL-0028"
-      },
-      {
-        "category": "workflow_todo.rtl_gen",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "workflow_todos.rtl-gen[2]",
-        "task_id": "RTL-0029"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
-        "source_ref": "parameters.DIV_WIDTH",
-        "task_id": "RTL-0030"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
-        "source_ref": "parameters.RESET_POLARITY",
-        "task_id": "RTL-0031"
-      },
-      {
-        "category": "parameters.item",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
-        "source_ref": "parameters.CLOCK_FREQ_MHZ",
-        "task_id": "RTL-0032"
       },
       {
         "category": "io_list.port",
@@ -10210,292 +10144,154 @@
         "task_id": "RTL-0046"
       },
       {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "function_model.state_variables.enable",
-        "task_id": "RTL-0047"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "function_model.state_variables.pending_divisor",
-        "task_id": "RTL-0048"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "function_model.state_variables.active_divisor",
-        "task_id": "RTL-0049"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "function_model.state_variables.counter",
-        "task_id": "RTL-0050"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "function_model.state_variables.clk_state",
-        "task_id": "RTL-0051"
-      },
-      {
-        "category": "function_model.state_variable",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "function_model.state_variables.irq_pending",
-        "task_id": "RTL-0052"
-      },
-      {
-        "category": "function_model.transaction",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "function_model.transactions.FM_DIVIDE",
-        "task_id": "RTL-0053"
-      },
-      {
         "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_DIVIDE.preconditions.precondition_0",
         "task_id": "RTL-0054"
       },
       {
         "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "function_model.transactions.FM_DIVIDE.preconditions.precondition_1",
-        "task_id": "RTL-0055"
-      },
-      {
-        "category": "function_model.precondition",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_DIVIDE.preconditions.precondition_2",
         "task_id": "RTL-0056"
       },
       {
         "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_DIVIDE.inputs.input_0",
         "task_id": "RTL-0057"
       },
       {
         "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_DIVIDE.inputs.input_1",
         "task_id": "RTL-0058"
       },
       {
         "category": "function_model.input",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_DIVIDE.inputs.input_2",
         "task_id": "RTL-0059"
       },
       {
         "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_DIVIDE.outputs.output_0",
         "task_id": "RTL-0060"
       },
       {
         "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_DIVIDE.outputs.output_1",
         "task_id": "RTL-0061"
       },
       {
         "category": "function_model.output",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_DIVIDE.outputs.output_2",
         "task_id": "RTL-0062"
       },
       {
         "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "function_model.transactions.FM_DIVIDE.output_rules.divided_clock",
-        "task_id": "RTL-0063"
-      },
-      {
-        "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_DIVIDE.output_rules.lock_indicator",
         "task_id": "RTL-0064"
       },
       {
         "category": "function_model.output_rule",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_DIVIDE.output_rules.interrupt",
         "task_id": "RTL-0065"
       },
       {
         "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_DIVIDE.side_effects.side_effect_0",
         "task_id": "RTL-0066"
       },
       {
         "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_DIVIDE.side_effects.side_effect_1",
         "task_id": "RTL-0067"
       },
       {
         "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_DIVIDE.side_effects.side_effect_2",
         "task_id": "RTL-0068"
       },
       {
         "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_DIVIDE.side_effects.side_effect_3",
         "task_id": "RTL-0069"
       },
       {
         "category": "function_model.side_effect",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_DIVIDE.side_effects.side_effect_4",
         "task_id": "RTL-0070"
       },
       {
         "category": "function_model.error_case",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_DIVIDE.error_cases.error_case_0",
         "task_id": "RTL-0071"
       },
       {
         "category": "function_model.error_case",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.transactions.FM_DIVIDE.error_cases.error_case_1",
         "task_id": "RTL-0072"
       },
       {
         "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "function_model.invariants.invariant_0",
-        "task_id": "RTL-0073"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.invariants.invariant_1",
         "task_id": "RTL-0074"
       },
       {
         "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "function_model.invariants.invariant_2",
-        "task_id": "RTL-0075"
-      },
-      {
-        "category": "function_model.invariant",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "function_model.invariants.invariant_3",
         "task_id": "RTL-0076"
       },
       {
-        "category": "cycle_model.clock",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "cycle_model.clock",
-        "task_id": "RTL-0077"
-      },
-      {
-        "category": "cycle_model.reset",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "cycle_model.reset",
-        "task_id": "RTL-0078"
-      },
-      {
-        "category": "cycle_model.latency",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "cycle_model.latency",
-        "task_id": "RTL-0079"
-      },
-      {
         "category": "cycle_model.handshake_rules",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "cycle_model.handshake_rules.pready",
-        "task_id": "RTL-0080"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "cycle_model.handshake_rules.pslverr",
-        "task_id": "RTL-0081"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "cycle_model.handshake_rules.prdata",
-        "task_id": "RTL-0082"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "cycle_model.handshake_rules.clk_o",
         "task_id": "RTL-0083"
       },
       {
         "category": "cycle_model.handshake_rules",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "cycle_model.handshake_rules.irq_o",
         "task_id": "RTL-0084"
       },
       {
         "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "cycle_model.pipeline.S0_APB_SETUP",
-        "task_id": "RTL-0085"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "cycle_model.pipeline.S1_APB_ACCESS",
-        "task_id": "RTL-0086"
-      },
-      {
-        "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "cycle_model.pipeline.S2_COUNT",
         "task_id": "RTL-0087"
       },
       {
         "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "cycle_model.pipeline.S3_TERMINAL",
         "task_id": "RTL-0088"
       },
       {
         "category": "cycle_model.pipeline",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "cycle_model.pipeline.S4_DISABLE",
         "task_id": "RTL-0089"
       },
       {
-        "category": "cycle_model.ordering",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "cycle_model.ordering.ordering_rule_0",
-        "task_id": "RTL-0090"
-      },
-      {
-        "category": "cycle_model.ordering",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "cycle_model.ordering.ordering_rule_1",
-        "task_id": "RTL-0091"
-      },
-      {
-        "category": "cycle_model.ordering",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "cycle_model.ordering.ordering_rule_2",
-        "task_id": "RTL-0092"
-      },
-      {
         "category": "cycle_model.backpressure",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "cycle_model.backpressure.backpressure_rule_0",
         "task_id": "RTL-0093"
-      },
-      {
-        "category": "cycle_model.observability",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
-        "source_ref": "cycle_model.observability.observability_signal_0",
-        "task_id": "RTL-0094"
       },
       {
         "category": "registers.register",
@@ -10595,67 +10391,55 @@
       },
       {
         "category": "fsm.state",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.divider_fsm.states.state_0",
         "task_id": "RTL-0111"
       },
       {
         "category": "fsm.state",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.divider_fsm.states.state_1",
         "task_id": "RTL-0112"
       },
       {
         "category": "fsm.state",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.divider_fsm.states.state_2",
         "task_id": "RTL-0113"
       },
       {
         "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.divider_fsm.transitions.transition_0",
         "task_id": "RTL-0114"
       },
       {
         "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.divider_fsm.transitions.transition_1",
         "task_id": "RTL-0115"
       },
       {
         "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.divider_fsm.transitions.transition_2",
         "task_id": "RTL-0116"
       },
       {
         "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.divider_fsm.transitions.transition_3",
         "task_id": "RTL-0117"
       },
       {
         "category": "fsm.transition",
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "fsm.divider_fsm.transitions.transition_4",
         "task_id": "RTL-0118"
       },
       {
         "category": "features.item",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
-        "source_ref": "features.Programmable_divide",
-        "task_id": "RTL-0119"
-      },
-      {
-        "category": "features.item",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
-        "source_ref": "features.Glitchless_divisor_update",
-        "task_id": "RTL-0120"
-      },
-      {
-        "category": "features.item",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
+        "reason": "Required RTL static evidence is missing.",
         "source_ref": "features.Terminal_event_interrupt",
         "task_id": "RTL-0121"
       },
@@ -10672,79 +10456,13 @@
         "task_id": "RTL-0123"
       },
       {
-        "category": "security.assets",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
-        "source_ref": "security.assets.divider_configuration",
-        "task_id": "RTL-0124"
-      },
-      {
-        "category": "security.assets",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
-        "source_ref": "security.assets.generated_clock_output",
-        "task_id": "RTL-0125"
-      },
-      {
-        "category": "integration.dependencies",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
-        "source_ref": "integration.dependencies.external_modules",
-        "task_id": "RTL-0126"
-      },
-      {
-        "category": "integration.dependencies",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
-        "source_ref": "integration.dependencies.external_clocks",
-        "task_id": "RTL-0127"
-      },
-      {
-        "category": "integration.dependencies",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
-        "source_ref": "integration.dependencies.external_resets",
-        "task_id": "RTL-0128"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
-        "source_ref": "integration.connections.clk_i",
-        "task_id": "RTL-0129"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
-        "source_ref": "integration.connections.rst_ni",
-        "task_id": "RTL-0130"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
-        "source_ref": "integration.connections.paddr",
-        "task_id": "RTL-0131"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
-        "source_ref": "integration.connections.psel",
-        "task_id": "RTL-0132"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
-        "source_ref": "integration.connections.penable",
-        "task_id": "RTL-0133"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
-        "source_ref": "integration.connections.pwrite",
-        "task_id": "RTL-0134"
-      },
-      {
-        "category": "integration.connections",
-        "reason": "Owner RTL file is missing: rtl/clkdiv.sv.",
-        "source_ref": "integration.connections.pwdata",
-        "task_id": "RTL-0135"
+        "category": "equivalence.module",
+        "reason": "Owner RTL file is missing: rtl/clkdiv_regs.sv.",
+        "source_ref": "sub_modules.clkdiv_regs.module_equivalence",
+        "task_id": "RTL-0156"
       }
     ],
-    "required_passed": 7,
+    "required_passed": 80,
     "required_total": 163,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },
@@ -10752,38 +10470,163 @@
   "top_input_consumption_evidence": {
     "checked": 0,
     "consumed": 0,
-    "issues": [
-      {
-        "issue": "SSOT top module is not declared, so input consumption evidence cannot be checked",
-        "module": "clkdiv"
-      }
+    "issues": [],
+    "roots": [
+      "clkdiv"
     ],
-    "roots": [],
-    "status": "fail"
+    "status": "pass"
   },
   "top_io_contract_evidence": {
     "contracts": 14,
+    "declared_top_ports": [
+      "clk",
+      "data_in",
+      "ready",
+      "result",
+      "result_valid",
+      "rst_n",
+      "valid"
+    ],
     "issues": [
       {
-        "file": "rtl/clkdiv.sv",
-        "issue": "SSOT top module is not declared in listed RTL sources",
-        "module": "clkdiv"
+        "aliases": [
+          "clk_i"
+        ],
+        "issue": "SSOT top IO port is missing from RTL top declaration",
+        "port": "clk_i",
+        "source_ref": "io_list.clock_domains[0].ports[0]"
+      },
+      {
+        "aliases": [
+          "rst_ni"
+        ],
+        "issue": "SSOT top IO port is missing from RTL top declaration",
+        "port": "rst_ni",
+        "source_ref": "io_list.resets[0].ports[0]"
+      },
+      {
+        "aliases": [
+          "apb_slave_paddr",
+          "paddr"
+        ],
+        "issue": "SSOT top IO port is missing from RTL top declaration",
+        "port": "paddr",
+        "source_ref": "io_list.interfaces[0].ports[0]"
+      },
+      {
+        "aliases": [
+          "apb_slave_psel",
+          "psel"
+        ],
+        "issue": "SSOT top IO port is missing from RTL top declaration",
+        "port": "psel",
+        "source_ref": "io_list.interfaces[0].ports[1]"
+      },
+      {
+        "aliases": [
+          "apb_slave_penable",
+          "penable"
+        ],
+        "issue": "SSOT top IO port is missing from RTL top declaration",
+        "port": "penable",
+        "source_ref": "io_list.interfaces[0].ports[2]"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwrite",
+          "pwrite"
+        ],
+        "issue": "SSOT top IO port is missing from RTL top declaration",
+        "port": "pwrite",
+        "source_ref": "io_list.interfaces[0].ports[3]"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwdata",
+          "pwdata"
+        ],
+        "issue": "SSOT top IO port is missing from RTL top declaration",
+        "port": "pwdata",
+        "source_ref": "io_list.interfaces[0].ports[4]"
+      },
+      {
+        "aliases": [
+          "apb_slave_pstrb",
+          "pstrb"
+        ],
+        "issue": "SSOT top IO port is missing from RTL top declaration",
+        "port": "pstrb",
+        "source_ref": "io_list.interfaces[0].ports[5]"
+      },
+      {
+        "aliases": [
+          "apb_slave_prdata",
+          "prdata"
+        ],
+        "issue": "SSOT top IO port is missing from RTL top declaration",
+        "port": "prdata",
+        "source_ref": "io_list.interfaces[0].ports[6]"
+      },
+      {
+        "aliases": [
+          "apb_slave_pready",
+          "pready"
+        ],
+        "issue": "SSOT top IO port is missing from RTL top declaration",
+        "port": "pready",
+        "source_ref": "io_list.interfaces[0].ports[7]"
+      },
+      {
+        "aliases": [
+          "apb_slave_pslverr",
+          "pslverr"
+        ],
+        "issue": "SSOT top IO port is missing from RTL top declaration",
+        "port": "pslverr",
+        "source_ref": "io_list.interfaces[0].ports[8]"
+      },
+      {
+        "aliases": [
+          "clk_o",
+          "divided_clock_clk_o"
+        ],
+        "issue": "SSOT top IO port is missing from RTL top declaration",
+        "port": "clk_o",
+        "source_ref": "io_list.interfaces[1].ports[0]"
+      },
+      {
+        "aliases": [
+          "divided_clock_locked_o",
+          "locked_o"
+        ],
+        "issue": "SSOT top IO port is missing from RTL top declaration",
+        "port": "locked_o",
+        "source_ref": "io_list.interfaces[1].ports[1]"
+      },
+      {
+        "aliases": [
+          "divided_clock_irq_o",
+          "irq_o"
+        ],
+        "issue": "SSOT top IO port is missing from RTL top declaration",
+        "port": "irq_o",
+        "source_ref": "io_list.interfaces[1].ports[2]"
       }
     ],
-    "roots": [],
-    "status": "fail"
+    "roots": [
+      "clkdiv"
+    ],
+    "status": "fail",
+    "top_parameters": {}
   },
   "top_output_drive_evidence": {
     "checked": 0,
     "driven": 0,
-    "issues": [
-      {
-        "issue": "SSOT top module is not declared, so output drive evidence cannot be checked",
-        "module": "clkdiv"
-      }
+    "issues": [],
+    "roots": [
+      "clkdiv"
     ],
-    "roots": [],
-    "status": "fail"
+    "status": "pass"
   },
   "type": "ssot_derived_rtl_todo_plan"
 }

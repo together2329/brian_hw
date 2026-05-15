@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 46
+- LLM-actionable open tasks: 47
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - SSOT connection contracts:
@@ -48,13 +48,13 @@
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: rtl_flow.seed
 - Source ref: top_module
 - Detail: Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.
 SSOT ref: top_module.
 Owner: clkdiv in rtl/clkdiv.sv via top_module.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - rtl_todo_plan.json was regenerated from the current SSOT
   - Every required task in the plan is either implemented, evidenced, or escalated
@@ -67,14 +67,14 @@ Owner: clkdiv in rtl/clkdiv.sv via top_module.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: rtl_flow.top
 - Source ref: io_list
 - Detail: The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.
 SSOT ref: io_list.
 Owner: clkdiv in rtl/clkdiv.sv via top_module.
 SSOT item context: value=clkdiv.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Top module name matches SSOT top_module
   - Every SSOT top-level port appears with matching direction and width
@@ -87,14 +87,14 @@ SSOT item context: value=clkdiv.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[0]
 - Detail: Create rtl/clkdiv.sv with declared IO ports and instantiate/wire clkdiv_regs and clkdiv_core according to integration.connections.
 SSOT ref: workflow_todos.rtl-gen[0].
 Owner: clkdiv in rtl/clkdiv.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_CLKDIV_TOP.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Top module ports match io_list exactly
   - Named port connections satisfy integration.connections
@@ -110,14 +110,14 @@ SSOT item context: id=RTL_TODO_CLKDIV_TOP.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: features.item
 - Source ref: features.Programmable_divide
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Programmable_divide.
 Owner: clkdiv in rtl/clkdiv.sv via features.
 SSOT item context: name=Programmable divide; output=clk_o toggles at a rate determined by DIVISOR..
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -130,14 +130,14 @@ SSOT item context: name=Programmable divide; output=clk_o toggles at a rate dete
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: features.item
 - Source ref: features.Glitchless_divisor_update
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Glitchless_divisor_update.
 Owner: clkdiv in rtl/clkdiv.sv via features.
 SSOT item context: name=Glitchless divisor update; output=No runt pulse or asynchronous clk_o edge occurs due to divisor write..
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -150,14 +150,14 @@ SSOT item context: name=Glitchless divisor update; output=No runt pulse or async
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: features.item
 - Source ref: features.Terminal_event_interrupt
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.Terminal_event_interrupt.
 Owner: clkdiv in rtl/clkdiv.sv via features.
 SSOT item context: name=Terminal event interrupt; output=irq_o asserted while interrupt is enabled and pending..
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -170,14 +170,14 @@ SSOT item context: name=Terminal event interrupt; output=irq_o asserted while in
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: security.assets
 - Source ref: security.assets.divider_configuration
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.divider_configuration.
 Owner: clkdiv in rtl/clkdiv.sv via security.
 SSOT item context: name=divider_configuration.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -190,14 +190,14 @@ SSOT item context: name=divider_configuration.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: security.assets
 - Source ref: security.assets.generated_clock_output
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.generated_clock_output.
 Owner: clkdiv in rtl/clkdiv.sv via security.
 SSOT item context: name=generated_clock_output.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -210,14 +210,14 @@ SSOT item context: name=generated_clock_output.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_modules
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_modules.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: name=external_modules.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -230,14 +230,14 @@ SSOT item context: name=external_modules.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_clocks
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_clocks.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: name=external_clocks; value=["clk_i"].
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -250,14 +250,14 @@ SSOT item context: name=external_clocks; value=["clk_i"].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_resets
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_resets.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: name=external_resets; value=["rst_ni"].
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -270,14 +270,14 @@ SSOT item context: name=external_resets; value=["rst_ni"].
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.clk_i
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.clk_i.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=clk_i; signal=clk_i.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -291,14 +291,14 @@ SSOT item context: port=clk_i; signal=clk_i.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.rst_ni
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.rst_ni.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=rst_ni; signal=rst_ni.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -312,14 +312,14 @@ SSOT item context: port=rst_ni; signal=rst_ni.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.paddr
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.paddr.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=paddr; signal=paddr.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -333,14 +333,14 @@ SSOT item context: port=paddr; signal=paddr.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.psel
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.psel.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=psel; signal=psel.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -354,14 +354,14 @@ SSOT item context: port=psel; signal=psel.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.penable
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.penable.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=penable; signal=penable.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -375,14 +375,14 @@ SSOT item context: port=penable; signal=penable.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.pwrite
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.pwrite.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=pwrite; signal=pwrite.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -396,14 +396,14 @@ SSOT item context: port=pwrite; signal=pwrite.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.pwdata
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.pwdata.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=pwdata; signal=pwdata.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -417,14 +417,14 @@ SSOT item context: port=pwdata; signal=pwdata.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.pstrb
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.pstrb.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=pstrb; signal=pstrb.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -438,14 +438,14 @@ SSOT item context: port=pstrb; signal=pstrb.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.prdata
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.prdata.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=prdata; signal=prdata.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -459,14 +459,14 @@ SSOT item context: port=prdata; signal=prdata.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.pready
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.pready.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=pready; signal=pready.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -480,14 +480,14 @@ SSOT item context: port=pready; signal=pready.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.pslverr
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.pslverr.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=pslverr; signal=pslverr.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -501,14 +501,14 @@ SSOT item context: port=pslverr; signal=pslverr.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.clk_i
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.clk_i.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=clk_i; signal=clk_i.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -522,14 +522,14 @@ SSOT item context: port=clk_i; signal=clk_i.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.rst_ni
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.rst_ni.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=rst_ni; signal=rst_ni.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -543,14 +543,14 @@ SSOT item context: port=rst_ni; signal=rst_ni.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.enable
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.enable.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=enable_i; signal=enable.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -564,14 +564,14 @@ SSOT item context: port=enable_i; signal=enable.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.active_divisor
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.active_divisor.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=divisor_i; signal=active_divisor.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -585,14 +585,14 @@ SSOT item context: port=divisor_i; signal=active_divisor.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.clk_o
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.clk_o.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=clk_o; signal=clk_o.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -606,14 +606,14 @@ SSOT item context: port=clk_o; signal=clk_o.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.locked_o
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.locked_o.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=locked_o; signal=locked_o.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -627,14 +627,14 @@ SSOT item context: port=locked_o; signal=locked_o.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.terminal_event
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.terminal_event.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=terminal_event_o; signal=terminal_event.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -648,14 +648,14 @@ SSOT item context: port=terminal_event_o; signal=terminal_event.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.terminal_event
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.terminal_event.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=terminal_event_i; signal=terminal_event.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -669,14 +669,14 @@ SSOT item context: port=terminal_event_i; signal=terminal_event.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: integration.connections
 - Source ref: integration.connections.irq_o
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.irq_o.
 Owner: clkdiv in rtl/clkdiv.sv via integration.
 SSOT item context: port=irq_o; signal=irq_o.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -690,14 +690,14 @@ SSOT item context: port=irq_o; signal=irq_o.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_0
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_0.
 Owner: clkdiv in rtl/clkdiv.sv via synthesis.
 SSOT item context: value=No inferred latches.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -710,14 +710,14 @@ SSOT item context: value=No inferred latches.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_1
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_1.
 Owner: clkdiv in rtl/clkdiv.sv via synthesis.
 SSOT item context: value=All architectural flops reset according to clock_reset_domains.reset_scheme.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -730,14 +730,14 @@ SSOT item context: value=All architectural flops reset according to clock_reset_
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_2
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_2.
 Owner: clkdiv in rtl/clkdiv.sv via synthesis.
 SSOT item context: value=No package/interface/modport/function/task/for/while constructs in generated RTL.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -750,14 +750,14 @@ SSOT item context: value=No package/interface/modport/function/task/for/while co
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_3
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_3.
 Owner: clkdiv in rtl/clkdiv.sv via synthesis.
 SSOT item context: value=clk_o must be driven by sequential logic only; no combinational clock gating for clk_o.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -770,14 +770,14 @@ SSOT item context: value=clk_o must be driven by sequential logic only; no combi
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.area_um2_max
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.area_um2_max.
 Owner: clkdiv in rtl/clkdiv.sv via synthesis.
 SSOT item context: name=area_um2_max.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -790,14 +790,14 @@ SSOT item context: name=area_um2_max.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.power_mw_max
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.power_mw_max.
 Owner: clkdiv in rtl/clkdiv.sv via synthesis.
 SSOT item context: name=power_mw_max.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -810,14 +810,14 @@ SSOT item context: name=power_mw_max.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.frequency_mhz_min
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.frequency_mhz_min.
 Owner: clkdiv in rtl/clkdiv.sv via synthesis.
 SSOT item context: name=frequency_mhz_min; value=100.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -830,13 +830,13 @@ SSOT item context: name=frequency_mhz_min; value=100.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: equivalence.module
 - Source ref: sub_modules.clkdiv.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.clkdiv.module_equivalence.
 Owner: clkdiv in rtl/clkdiv.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
@@ -851,14 +851,14 @@ Owner: clkdiv in rtl/clkdiv.sv via module_equivalence.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: parameters.item
 - Source ref: parameters.DIV_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.DIV_WIDTH.
 Owner: clkdiv in rtl/clkdiv.sv via parameters.
 SSOT item context: name=DIV_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -871,14 +871,14 @@ SSOT item context: name=DIV_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: parameters.item
 - Source ref: parameters.RESET_POLARITY
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.RESET_POLARITY.
 Owner: clkdiv in rtl/clkdiv.sv via parameters.
 SSOT item context: name=RESET_POLARITY.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -891,14 +891,14 @@ SSOT item context: name=RESET_POLARITY.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: parameters.item
 - Source ref: parameters.CLOCK_FREQ_MHZ
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.CLOCK_FREQ_MHZ.
 Owner: clkdiv in rtl/clkdiv.sv via parameters.
 SSOT item context: name=CLOCK_FREQ_MHZ.
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -911,14 +911,14 @@ SSOT item context: name=CLOCK_FREQ_MHZ.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_APB
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_APB.
 Owner: clkdiv in rtl/clkdiv.sv via test_requirements.
 SSOT item context: id=SC_APB; name=APB register access; expected=Register readback, reserved zero behavior, pslverr, and side effects match registers and error_handling..
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -932,14 +932,14 @@ SSOT item context: id=SC_APB; name=APB register access; expected=Register readba
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_DIV2
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_DIV2.
 Owner: clkdiv in rtl/clkdiv.sv via test_requirements.
 SSOT item context: id=SC_DIV2; name=Divide by two baseline; expected=clk_o toggles every 2 clk_i rising edges and locked_o asserts after first reload..
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -953,14 +953,14 @@ SSOT item context: id=SC_DIV2; name=Divide by two baseline; expected=clk_o toggl
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_DIV_UPDATE
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_DIV_UPDATE.
 Owner: clkdiv in rtl/clkdiv.sv via test_requirements.
 SSOT item context: id=SC_DIV_UPDATE; name=Glitchless divisor update; expected=active_divisor changes only at terminal boundary; no runt/asynchronous output pulse..
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -974,14 +974,14 @@ SSOT item context: id=SC_DIV_UPDATE; name=Glitchless divisor update; expected=ac
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_IRQ
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_IRQ.
 Owner: clkdiv in rtl/clkdiv.sv via test_requirements.
 SSOT item context: id=SC_IRQ; name=Terminal interrupt set and clear; expected=irq_pending and irq_o assert on terminal event and deassert after W1C clear..
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -995,14 +995,14 @@ SSOT item context: id=SC_IRQ; name=Terminal interrupt set and clear; expected=ir
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_DIV_ZERO
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_DIV_ZERO.
 Owner: clkdiv in rtl/clkdiv.sv via test_requirements.
 SSOT item context: id=SC_DIV_ZERO; name=DIVISOR zero write policy; expected=pending_divisor coerces to 1 without pslverr and output follows divide-by-one half-period contract..
-- Current reason: Owner RTL file is missing: rtl/clkdiv.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared

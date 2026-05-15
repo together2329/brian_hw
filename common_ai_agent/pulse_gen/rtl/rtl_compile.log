@@ -1,3 +1,0 @@
-rtl/pulse_gen.sv:59: error: port ``rst_ni'' already bound.
-rtl/pulse_gen.sv:85: error: port ``rst_ni'' already bound.
-2 error(s) during elaboration.

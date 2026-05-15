@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "type": "fl_rtl_compare",
+  "ip": "lfsr",
+  "generated_at": "2026-05-15T02:24:39Z",
+  "status": "pending",
+  "sources": {
+    "equivalence_goals": "lfsr/verify/equivalence_goals.json",
+    "scoreboard_events": "lfsr/sim/scoreboard_events.jsonl",
+    "results_xml": "lfsr/sim/results.xml",
+    "coverage": "lfsr/cov/coverage.json",
+    "fl_model_check": "lfsr/model/fl_model_check.json"
+  },
+  "summary": {
+    "total": 0,
+    "goals_checked": 0,
+    "goals_passed": 0,
+    "goals_failed": 0,
+    "goals_blocked": 0,
+    "goals_untested": 0,
+    "scoreboard_events": 0,
+    "orphan_scoreboard_events": 0,
+    "missing_evidence": [
+      "lfsr/verify/equivalence_goals.json",
+      "lfsr/sim/scoreboard_events.jsonl",
+      "lfsr/sim/results.xml"
+    ],
+    "stale_evidence": [],
+    "sim_results": {
+      "exists": false,
+      "total": 0,
+      "fail": 0,
+      "errors": 0,
+      "source": ""
+    }
+  },
+  "goals": []
+}

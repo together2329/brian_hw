@@ -47,14 +47,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[1]
 - Detail: Implement CTRL, DIVISOR, STATUS, INTCLR, APB one-cycle pready/prdata/pslverr behavior, reserved-field policy, divisor zero coercion, and irq pending clear/set policy.
 SSOT ref: workflow_todos.rtl-gen[1].
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_CLKDIV_REGS.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Register reset, access, bit ranges, write effects, and reserved fields match registers.register_list
   - Unsupported address and RO write pslverr behavior matches error_handling
@@ -70,14 +70,14 @@ SSOT item context: id=RTL_TODO_CLKDIV_REGS.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: registers.register
 - Source ref: registers.register_list.CTRL
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.CTRL.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=0.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -94,14 +94,14 @@ SSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=0.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: registers.field
 - Source ref: registers.register_list.CTRL.fields.enable
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.enable.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=enable; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -120,14 +120,14 @@ SSOT item context: name=enable; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: registers.field
 - Source ref: registers.register_list.CTRL.fields.irq_enable
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.irq_enable.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=irq_enable; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -146,14 +146,14 @@ SSOT item context: name=irq_enable; reset=0; access=rw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: registers.field
 - Source ref: registers.register_list.CTRL.fields.reserved_31_2
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTRL.fields.reserved_31_2.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.CTRL.
 SSOT item context: name=reserved_31_2; reset=0; access=reserved.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -172,14 +172,14 @@ SSOT item context: name=reserved_31_2; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: registers.register
 - Source ref: registers.register_list.DIVISOR
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.DIVISOR.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.DIVISOR.
 SSOT item context: name=DIVISOR; width=32; reset=2; access=rw; offset=4.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -196,14 +196,14 @@ SSOT item context: name=DIVISOR; width=32; reset=2; access=rw; offset=4.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: registers.field
 - Source ref: registers.register_list.DIVISOR.fields.divisor
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DIVISOR.fields.divisor.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.DIVISOR.
 SSOT item context: name=divisor; reset=2; access=rw.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -222,14 +222,14 @@ SSOT item context: name=divisor; reset=2; access=rw.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: registers.field
 - Source ref: registers.register_list.DIVISOR.fields.reserved_31_16
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DIVISOR.fields.reserved_31_16.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.DIVISOR.
 SSOT item context: name=reserved_31_16; reset=0; access=reserved.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -248,14 +248,14 @@ SSOT item context: name=reserved_31_16; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: registers.register
 - Source ref: registers.register_list.STATUS
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.STATUS.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=8.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -272,14 +272,14 @@ SSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=8.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.running
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.running.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=running; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -298,14 +298,14 @@ SSOT item context: name=running; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.locked
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.locked.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=locked; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -324,14 +324,14 @@ SSOT item context: name=locked; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.irq_pending
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.irq_pending.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=irq_pending; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -350,14 +350,14 @@ SSOT item context: name=irq_pending; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.reserved_31_3
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.reserved_31_3.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.STATUS.
 SSOT item context: name=reserved_31_3; reset=0; access=reserved.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -376,14 +376,14 @@ SSOT item context: name=reserved_31_3; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: registers.register
 - Source ref: registers.register_list.INTCLR
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.INTCLR.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.INTCLR.
 SSOT item context: name=INTCLR; width=32; reset=0; access=wo; offset=12.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -400,14 +400,14 @@ SSOT item context: name=INTCLR; width=32; reset=0; access=wo; offset=12.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: registers.field
 - Source ref: registers.register_list.INTCLR.fields.clear_irq
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTCLR.fields.clear_irq.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.INTCLR.
 SSOT item context: name=clear_irq; reset=0; access=wo.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -426,14 +426,14 @@ SSOT item context: name=clear_irq; reset=0; access=wo.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: registers.field
 - Source ref: registers.register_list.INTCLR.fields.reserved_31_1
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.INTCLR.fields.reserved_31_1.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via registers.register_list.INTCLR.
 SSOT item context: name=reserved_31_1; reset=0; access=reserved.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -452,14 +452,14 @@ SSOT item context: name=reserved_31_1; reset=0; access=reserved.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: interrupts.sources
 - Source ref: interrupts.sources.TERMINAL_EVENT
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.TERMINAL_EVENT.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via interrupts.
 SSOT item context: name=TERMINAL_EVENT; clear=INTCLR.clear_irq W1C.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -473,14 +473,14 @@ SSOT item context: name=TERMINAL_EVENT; clear=INTCLR.clear_irq W1C.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: error_handling.recovery
 - Source ref: error_handling.recovery.recovery_0
 - Detail: This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: error_handling.recovery.recovery_0.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via error_handling.
 SSOT item context: action=legal APB access.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -493,14 +493,14 @@ SSOT item context: action=legal APB access.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: error_handling.recovery
 - Source ref: error_handling.recovery.recovery_1
 - Detail: This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: error_handling.recovery.recovery_1.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via error_handling.
 SSOT item context: action=INTCLR.clear_irq W1C.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -513,13 +513,13 @@ SSOT item context: action=INTCLR.clear_irq W1C.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: equivalence.module
 - Source ref: sub_modules.clkdiv_regs.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.clkdiv_regs.module_equivalence.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
@@ -534,14 +534,14 @@ Owner: clkdiv_regs in rtl/clkdiv_regs.sv via module_equivalence.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.clock_domains.clk_i.ports.clk_i
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.clock_domains.clk_i.ports.clk_i.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.
 SSOT item context: name=clk_i; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -556,14 +556,14 @@ SSOT item context: name=clk_i; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.resets.rst_ni.ports.rst_ni
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.resets.rst_ni.ports.rst_ni.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.
 SSOT item context: name=rst_ni; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -578,14 +578,14 @@ SSOT item context: name=rst_ni; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.paddr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.paddr.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=paddr; width=8; direction=input.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -600,14 +600,14 @@ SSOT item context: name=paddr; width=8; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.psel
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.psel.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=psel; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -622,14 +622,14 @@ SSOT item context: name=psel; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.penable
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.penable.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=penable; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -644,14 +644,14 @@ SSOT item context: name=penable; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.pwrite
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pwrite.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pwrite; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -666,14 +666,14 @@ SSOT item context: name=pwrite; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.pwdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pwdata.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pwdata; width=32; direction=input.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -688,14 +688,14 @@ SSOT item context: name=pwdata; width=32; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.pstrb
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pstrb.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pstrb; width=4; direction=input.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -710,14 +710,14 @@ SSOT item context: name=pstrb; width=4; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.prdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.prdata.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=prdata; width=32; direction=output.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -732,14 +732,14 @@ SSOT item context: name=prdata; width=32; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.pready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pready.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pready; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -754,14 +754,14 @@ SSOT item context: name=pready; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.pslverr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pslverr.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pslverr; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -776,14 +776,14 @@ SSOT item context: name=pslverr; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.interfaces.divided_clock.ports.clk_o
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.divided_clock.ports.clk_o.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.
 SSOT item context: name=clk_o; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -798,14 +798,14 @@ SSOT item context: name=clk_o; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.interfaces.divided_clock.ports.locked_o
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.divided_clock.ports.locked_o.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.
 SSOT item context: name=locked_o; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -820,14 +820,14 @@ SSOT item context: name=locked_o; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.interfaces.divided_clock.ports.irq_o
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.divided_clock.ports.irq_o.
 Owner: clkdiv_regs in rtl/clkdiv_regs.sv via io_list.
 SSOT item context: name=irq_o; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_regs.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified

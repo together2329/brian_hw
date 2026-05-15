@@ -27,11 +27,28 @@
         "cycle_model.latency",
         "cycle_model.pipeline",
         "dataflow",
+        "decomposition.units.csr_decode",
+        "decomposition.units.edge_detect",
+        "decomposition.units.sync",
         "features",
         "function_model",
-        "function_model.output_rules",
-        "function_model.state_variables",
-        "function_model.transactions"
+        "function_model.state_variables.control_reg",
+        "function_model.state_variables.prev_sync",
+        "function_model.state_variables.status_overflow",
+        "function_model.state_variables.status_sticky",
+        "function_model.state_variables.sync_chain",
+        "function_model.transactions.DETECT",
+        "function_model.transactions.DETECT.inputs.signal_i_at_PCLK_domain_after_sync",
+        "function_model.transactions.DETECT.output_rules.edge_o",
+        "function_model.transactions.DETECT.output_rules.irq_o",
+        "function_model.transactions.DETECT.outputs.edge_o_width_1_0_1_for_one_cycle_per_detected_edge_matching_EDGE_MODE",
+        "function_model.transactions.DETECT.outputs.irq_o_edge_o_irq_enable",
+        "function_model.transactions.DETECT.outputs.status_overflow_edge_o_status_sticky",
+        "function_model.transactions.DETECT.outputs.status_sticky_edge_o",
+        "function_model.transactions.DETECT.preconditions.enable_1",
+        "function_model.transactions.DETECT.preconditions.sync_chain_has_propagated_at_least_SYNC_STAGES_cycles_since_reset_deassertion",
+        "function_model.transactions.DETECT.side_effects.prev_sync_updates_to_last_stage_of_sync_chain",
+        "function_model.transactions.DETECT.side_effects.sync_chain_shifts_every_PCLK_cycle"
       ],
       "wiring_only": false
     },
@@ -507,7 +524,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "840d14de13dd95a959136737727b272b19f9ee4fec88ae3762a5e61ba413821c",
+  "todo_plan_sha256": "3c30a4f3a5718dde0b37733c98afe9bb34a0a29bc28e4390f27938df3af48ff4",
   "top": "edge_detector",
   "type": "rtl_authoring_packet"
 }

@@ -1,0 +1,18 @@
+{
+  "artifacts": [
+    "lfsr/sim/sim_todo_plan.json",
+    "lfsr/todo/sim_todo_tracker.json",
+    "lfsr/sim/sim_todo_tracker.json"
+  ],
+  "blocker": "lfsr/tb",
+  "created_at": "2026-05-15T02:24:21Z",
+  "headline": "[sim] blocked: no executable TB runner found",
+  "ip": "lfsr",
+  "message": "[sim] blocked: no executable TB runner found for lfsr\nexpected one of:\n- lfsr/tb/cocotb/test_runner.py\n- lfsr/tb/cocotb/run_tests.py\n- lfsr/tb/test_runner.py\n- lfsr/tb/run_tests.py\nRun /tb <ip> first.\n\nexpected artifacts:\n- lfsr/sim/sim_todo_plan.json\n- lfsr/todo/sim_todo_tracker.json\n- lfsr/sim/sim_todo_tracker.json",
+  "metadata": {},
+  "returncode": 2,
+  "runs": [],
+  "stage": "sim",
+  "status": "blocked",
+  "workflow": "sim"
+}

@@ -1,11 +1,25 @@
 {
-  "blocked_at_stage": "rtl-gen",
+  "blocked_at_stage": "sim-debug",
   "ip": "lfsr",
   "llm": {
-    "by_stage": {},
+    "by_stage": {
+      "tb-gen": {
+        "cache_read_tokens": 0,
+        "calls": 1,
+        "cost_usd": 0.0,
+        "input_tokens": 0,
+        "models": [
+          "glm-5.1"
+        ],
+        "output_tokens": 0,
+        "repair_calls": 0,
+        "repair_rate": 0.0,
+        "total_tokens": 0
+      }
+    },
     "totals": {
       "cache_read_tokens": 0,
-      "calls": 0,
+      "calls": 1,
       "cost_usd": 0.0,
       "input_tokens": 0,
       "output_tokens": 0,
@@ -14,12 +28,27 @@
       "total_tokens": 0
     }
   },
-  "llm_log_files": 0,
-  "run_status": "blocked",
+  "llm_log_files": 1,
+  "run_status": "fail",
   "stage_engine_order": [
+    {
+      "created_at": "2026-05-15T02:24:39Z",
+      "stage_engine": "sim-debug",
+      "status": "fail"
+    },
+    {
+      "created_at": "2026-05-15T02:24:21Z",
+      "stage_engine": "sim",
+      "status": "blocked"
+    },
     {
       "created_at": "2026-05-15T02:22:31Z",
       "stage_engine": "ssot-rtl",
+      "status": "human_gate"
+    },
+    {
+      "created_at": "2026-05-15T02:23:55Z",
+      "stage_engine": "ssot-tb-cocotb",
       "status": "human_gate"
     }
   ]

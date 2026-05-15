@@ -27,11 +27,28 @@
         "cycle_model.latency",
         "cycle_model.pipeline",
         "dataflow",
+        "decomposition.units.csr_decode",
+        "decomposition.units.edge_detect",
+        "decomposition.units.sync",
         "features",
         "function_model",
-        "function_model.output_rules",
-        "function_model.state_variables",
-        "function_model.transactions"
+        "function_model.state_variables.control_reg",
+        "function_model.state_variables.prev_sync",
+        "function_model.state_variables.status_overflow",
+        "function_model.state_variables.status_sticky",
+        "function_model.state_variables.sync_chain",
+        "function_model.transactions.DETECT",
+        "function_model.transactions.DETECT.inputs.signal_i_at_PCLK_domain_after_sync",
+        "function_model.transactions.DETECT.output_rules.edge_o",
+        "function_model.transactions.DETECT.output_rules.irq_o",
+        "function_model.transactions.DETECT.outputs.edge_o_width_1_0_1_for_one_cycle_per_detected_edge_matching_EDGE_MODE",
+        "function_model.transactions.DETECT.outputs.irq_o_edge_o_irq_enable",
+        "function_model.transactions.DETECT.outputs.status_overflow_edge_o_status_sticky",
+        "function_model.transactions.DETECT.outputs.status_sticky_edge_o",
+        "function_model.transactions.DETECT.preconditions.enable_1",
+        "function_model.transactions.DETECT.preconditions.sync_chain_has_propagated_at_least_SYNC_STAGES_cycles_since_reset_deassertion",
+        "function_model.transactions.DETECT.side_effects.prev_sync_updates_to_last_stage_of_sync_chain",
+        "function_model.transactions.DETECT.side_effects.sync_chain_shifts_every_PCLK_cycle"
       ],
       "wiring_only": false
     },
@@ -382,7 +399,7 @@
         "Primary implementation evidence is in rtl/edge_detector.sv",
         "sync_chain reset behavior matches SSOT value 0"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.sync_chain.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.\nSSOT item context: name=sync_chain; reset=0.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.sync_chain.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.sync_chain.\nSSOT item context: name=sync_chain; reset=0.",
       "evidence_terms": [],
       "id": "RTL-0048",
       "owner_file": "rtl/edge_detector.sv",
@@ -425,7 +442,7 @@
         "Primary implementation evidence is in rtl/edge_detector.sv",
         "prev_sync reset behavior matches SSOT value 0"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.prev_sync.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.\nSSOT item context: name=prev_sync; reset=0.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.prev_sync.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.prev_sync.\nSSOT item context: name=prev_sync; reset=0.",
       "evidence_terms": [],
       "id": "RTL-0049",
       "owner_file": "rtl/edge_detector.sv",
@@ -468,7 +485,7 @@
         "Primary implementation evidence is in rtl/edge_detector.sv",
         "control_reg reset behavior matches SSOT value 2"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.control_reg.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.\nSSOT item context: name=control_reg; reset=2.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.control_reg.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.control_reg.\nSSOT item context: name=control_reg; reset=2.",
       "evidence_terms": [],
       "id": "RTL-0050",
       "owner_file": "rtl/edge_detector.sv",
@@ -511,7 +528,7 @@
         "Primary implementation evidence is in rtl/edge_detector.sv",
         "status_sticky reset behavior matches SSOT value 0"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.status_sticky.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.\nSSOT item context: name=status_sticky; reset=0.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.status_sticky.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.status_sticky.\nSSOT item context: name=status_sticky; reset=0.",
       "evidence_terms": [],
       "id": "RTL-0051",
       "owner_file": "rtl/edge_detector.sv",
@@ -554,7 +571,7 @@
         "Primary implementation evidence is in rtl/edge_detector.sv",
         "status_overflow reset behavior matches SSOT value 0"
       ],
-      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.status_overflow.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.\nSSOT item context: name=status_overflow; reset=0.",
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.status_overflow.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.status_overflow.\nSSOT item context: name=status_overflow; reset=0.",
       "evidence_terms": [],
       "id": "RTL-0052",
       "owner_file": "rtl/edge_detector.sv",
@@ -596,7 +613,7 @@
         "Traceability keeps source_ref function_model.transactions.DETECT",
         "Primary implementation evidence is in rtl/edge_detector.sv"
       ],
-      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.DETECT.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.\nSSOT item context: id=DETECT; name=edge_detect.",
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.DETECT.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.preconditions.sync_chain_has_propagated_at_least_SYNC_STAGES_cycles_since_reset_deassertion.\nSSOT item context: id=DETECT; name=edge_detect.",
       "evidence_terms": [],
       "id": "RTL-0053",
       "owner_file": "rtl/edge_detector.sv",
@@ -638,7 +655,7 @@
         "Traceability keeps source_ref function_model.transactions.DETECT.preconditions.precondition_0",
         "Primary implementation evidence is in rtl/edge_detector.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.preconditions.precondition_0.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.\nSSOT item context: value=enable == 1.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.preconditions.precondition_0.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.\nSSOT item context: value=enable == 1.",
       "evidence_terms": [],
       "id": "RTL-0054",
       "owner_file": "rtl/edge_detector.sv",
@@ -679,7 +696,7 @@
         "Traceability keeps source_ref function_model.transactions.DETECT.preconditions.precondition_1",
         "Primary implementation evidence is in rtl/edge_detector.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.preconditions.precondition_1.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.\nSSOT item context: value=sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.preconditions.precondition_1.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.\nSSOT item context: value=sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion.",
       "evidence_terms": [
         "STAGES",
         "SYNC",
@@ -747,7 +764,7 @@
         "Traceability keeps source_ref function_model.transactions.DETECT.inputs.input_0",
         "Primary implementation evidence is in rtl/edge_detector.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.inputs.input_0.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.\nSSOT item context: value=signal_i at PCLK domain (after sync).",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.inputs.input_0.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.\nSSOT item context: value=signal_i at PCLK domain (after sync).",
       "evidence_terms": [
         "signal",
         "signal_i"
@@ -803,7 +820,7 @@
         "Traceability keeps source_ref function_model.transactions.DETECT.outputs.output_0",
         "Primary implementation evidence is in rtl/edge_detector.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.outputs.output_0.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.\nSSOT item context: value=edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.outputs.output_0.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.\nSSOT item context: value=edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE.",
       "evidence_terms": [
         "EDGE",
         "EDGE_MODE",
@@ -868,7 +885,7 @@
         "Traceability keeps source_ref function_model.transactions.DETECT.outputs.output_1",
         "Primary implementation evidence is in rtl/edge_detector.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.outputs.output_1.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.\nSSOT item context: value=status_sticky |= edge_o.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.outputs.output_1.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.\nSSOT item context: value=status_sticky |= edge_o.",
       "evidence_terms": [
         "edge",
         "edge_o",
@@ -933,7 +950,7 @@
         "Traceability keeps source_ref function_model.transactions.DETECT.outputs.output_2",
         "Primary implementation evidence is in rtl/edge_detector.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.outputs.output_2.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.\nSSOT item context: value=status_overflow |= edge_o & status_sticky.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.outputs.output_2.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.\nSSOT item context: value=status_overflow |= edge_o & status_sticky.",
       "evidence_terms": [
         "edge",
         "edge_o",
@@ -1002,7 +1019,7 @@
         "Traceability keeps source_ref function_model.transactions.DETECT.outputs.output_3",
         "Primary implementation evidence is in rtl/edge_detector.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.outputs.output_3.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.\nSSOT item context: value=irq_o = |edge_o && irq_enable.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.outputs.output_3.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.\nSSOT item context: value=irq_o = |edge_o && irq_enable.",
       "evidence_terms": [
         "edge",
         "edge_o",
@@ -1074,7 +1091,7 @@
         "DUT port edge_o is the implementation/observation point for edge_o",
         "edge_o is not implemented only in FunctionalModel or scoreboard code"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.output_rules.edge_o.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.\nSSOT item context: name=edge_o; port=edge_o; expr=(curr_sync ^ prev_sync) & mode_mask & {WIDTH{enable}}; width=WIDTH.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.output_rules.edge_o.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.output_rules.edge_o.\nSSOT item context: name=edge_o; port=edge_o; expr=(curr_sync ^ prev_sync) & mode_mask & {WIDTH{enable}}; width=WIDTH.",
       "evidence_terms": [
         "WIDTH",
         "curr",
@@ -1164,7 +1181,7 @@
         "DUT port irq_o is the implementation/observation point for irq_o",
         "irq_o is not implemented only in FunctionalModel or scoreboard code"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.output_rules.irq_o.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.\nSSOT item context: name=irq_o; port=irq_o; expr=|edge_o && irq_enable; width=1.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.output_rules.irq_o.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.output_rules.irq_o.\nSSOT item context: name=irq_o; port=irq_o; expr=|edge_o && irq_enable; width=1.",
       "evidence_terms": [
         "edge",
         "edge_o",
@@ -1235,7 +1252,7 @@
         "Traceability keeps source_ref function_model.transactions.DETECT.side_effects.side_effect_0",
         "Primary implementation evidence is in rtl/edge_detector.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.side_effects.side_effect_0.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.\nSSOT item context: value=sync_chain shifts every PCLK cycle.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.side_effects.side_effect_0.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.\nSSOT item context: value=sync_chain shifts every PCLK cycle.",
       "evidence_terms": [
         "chain",
         "sync",
@@ -1294,7 +1311,7 @@
         "Traceability keeps source_ref function_model.transactions.DETECT.side_effects.side_effect_1",
         "Primary implementation evidence is in rtl/edge_detector.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.side_effects.side_effect_1.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.\nSSOT item context: value=prev_sync updates to last stage of sync_chain.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.DETECT.side_effects.side_effect_1.\nOwner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.\nSSOT item context: value=prev_sync updates to last stage of sync_chain.",
       "evidence_terms": [
         "chain",
         "prev",
@@ -1521,7 +1538,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "840d14de13dd95a959136737727b272b19f9ee4fec88ae3762a5e61ba413821c",
+  "todo_plan_sha256": "3c30a4f3a5718dde0b37733c98afe9bb34a0a29bc28e4390f27938df3af48ff4",
   "top": "edge_detector",
   "type": "rtl_authoring_packet"
 }

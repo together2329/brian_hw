@@ -300,7 +300,7 @@
       "cycle_model.observability.observability_signal_0"
     ],
     "status_counts": {
-      "open": 18
+      "planned": 18
     },
     "task_count": 18
   },
@@ -333,19 +333,6 @@
       "ssot_refs": [
         "cycle_model.clock"
       ],
-      "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 1,
-        "required_terms": [
-          "clk",
-          "clk_i"
-        ],
-        "source_scope": "rtl/clkdiv_core.sv",
-        "status": "missing"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -354,9 +341,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -382,10 +369,6 @@
       "ssot_refs": [
         "cycle_model.reset"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -394,9 +377,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -422,10 +405,6 @@
       "ssot_refs": [
         "cycle_model.latency"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -434,9 +413,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -464,10 +443,6 @@
       "ssot_refs": [
         "cycle_model.handshake_rules.pready"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -476,9 +451,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -506,10 +481,6 @@
       "ssot_refs": [
         "cycle_model.handshake_rules.pslverr"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -518,9 +489,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -548,10 +519,6 @@
       "ssot_refs": [
         "cycle_model.handshake_rules.prdata"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -560,9 +527,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -593,19 +560,6 @@
       "ssot_refs": [
         "cycle_model.handshake_rules.clk_o"
       ],
-      "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "clk",
-          "clk_o"
-        ],
-        "source_scope": "rtl/clkdiv_core.sv",
-        "status": "missing"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -614,9 +568,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -647,19 +601,6 @@
       "ssot_refs": [
         "cycle_model.handshake_rules.irq_o"
       ],
-      "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "irq",
-          "irq_o"
-        ],
-        "source_scope": "rtl/clkdiv_core.sv",
-        "status": "missing"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -668,9 +609,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -701,10 +642,6 @@
       "ssot_refs": [
         "cycle_model.pipeline.S0_APB_SETUP"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -713,9 +650,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -746,10 +683,6 @@
       "ssot_refs": [
         "cycle_model.pipeline.S1_APB_ACCESS"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -758,9 +691,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -795,20 +728,6 @@
       "ssot_refs": [
         "cycle_model.pipeline.S2_COUNT"
       ],
-      "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "active",
-          "active_divisor",
-          "divisor"
-        ],
-        "source_scope": "rtl/clkdiv_core.sv",
-        "status": "missing"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -817,9 +736,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -857,23 +776,6 @@
       "ssot_refs": [
         "cycle_model.pipeline.S3_TERMINAL"
       ],
-      "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "clk",
-          "clk_o",
-          "divisor",
-          "irq",
-          "irq_pending",
-          "pending_divisor"
-        ],
-        "source_scope": "rtl/clkdiv_core.sv",
-        "status": "missing"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -882,9 +784,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -918,19 +820,6 @@
       "ssot_refs": [
         "cycle_model.pipeline.S4_DISABLE"
       ],
-      "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "clk",
-          "clk_o"
-        ],
-        "source_scope": "rtl/clkdiv_core.sv",
-        "status": "missing"
-      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -939,9 +828,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -969,10 +858,6 @@
       "ssot_refs": [
         "cycle_model.ordering.ordering_rule_0"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -981,9 +866,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -1011,10 +896,6 @@
       "ssot_refs": [
         "cycle_model.ordering.ordering_rule_1"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1023,9 +904,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -1053,10 +934,6 @@
       "ssot_refs": [
         "cycle_model.ordering.ordering_rule_2"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1065,9 +942,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -1099,20 +976,6 @@
       "ssot_refs": [
         "cycle_model.backpressure.backpressure_rule_0"
       ],
-      "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "clock",
-          "divided",
-          "divided_clock"
-        ],
-        "source_scope": "rtl/clkdiv_core.sv",
-        "status": "missing"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1121,9 +984,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     },
     {
@@ -1151,10 +1014,6 @@
       "ssot_refs": [
         "cycle_model.observability.observability_signal_0"
       ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1163,9 +1022,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/clkdiv_core.sv.",
+        "reason": "RTL audit has not run yet.",
         "required": true,
-        "status": "open"
+        "status": "planned"
       }
     }
   ],

@@ -26,7 +26,7 @@
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: cycle_model, cycle_model.latency, cycle_model.pipeline, dataflow, features, function_model, function_model.output_rules, function_model.state_variables, function_model.transactions
+- Owner refs: cycle_model, cycle_model.latency, cycle_model.pipeline, dataflow, decomposition.units.csr_decode, decomposition.units.edge_detect, decomposition.units.sync, features, function_model, function_model.state_variables.control_reg, function_model.state_variables.prev_sync, function_model.state_variables.status_overflow, function_model.state_variables.status_sticky, function_model.state_variables.sync_chain, function_model.transactions.DETECT, function_model.transactions.DETECT.inputs.signal_i_at_PCLK_domain_after_sync
 - Module slice: 5/16 section=function_model task_limit=48
 - Slice rule: Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT target scale: min_behavior_owner_logic_modules=2, min_logic_modules=2, min_modules=2, min_procedural_blocks=4, min_source_files=2, min_state_updates=4
@@ -49,7 +49,7 @@
 - Source ref: function_model.state_variables.sync_chain
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.sync_chain.
-Owner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.
+Owner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.sync_chain.
 SSOT item context: name=sync_chain; reset=0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -70,7 +70,7 @@ SSOT item context: name=sync_chain; reset=0.
 - Source ref: function_model.state_variables.prev_sync
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.prev_sync.
-Owner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.
+Owner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.prev_sync.
 SSOT item context: name=prev_sync; reset=0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -91,7 +91,7 @@ SSOT item context: name=prev_sync; reset=0.
 - Source ref: function_model.state_variables.control_reg
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.control_reg.
-Owner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.
+Owner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.control_reg.
 SSOT item context: name=control_reg; reset=2.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -112,7 +112,7 @@ SSOT item context: name=control_reg; reset=2.
 - Source ref: function_model.state_variables.status_sticky
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.status_sticky.
-Owner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.
+Owner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.status_sticky.
 SSOT item context: name=status_sticky; reset=0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -133,7 +133,7 @@ SSOT item context: name=status_sticky; reset=0.
 - Source ref: function_model.state_variables.status_overflow
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.status_overflow.
-Owner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.
+Owner: edge_detector in rtl/edge_detector.sv via function_model.state_variables.status_overflow.
 SSOT item context: name=status_overflow; reset=0.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -154,7 +154,7 @@ SSOT item context: name=status_overflow; reset=0.
 - Source ref: function_model.transactions.DETECT
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.DETECT.
-Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.
+Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.preconditions.sync_chain_has_propagated_at_least_SYNC_STAGES_cycles_since_reset_deassertion.
 SSOT item context: id=DETECT; name=edge_detect.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -174,7 +174,7 @@ SSOT item context: id=DETECT; name=edge_detect.
 - Source ref: function_model.transactions.DETECT.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.DETECT.preconditions.precondition_0.
-Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.
+Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.
 SSOT item context: value=enable == 1.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -194,7 +194,7 @@ SSOT item context: value=enable == 1.
 - Source ref: function_model.transactions.DETECT.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.DETECT.preconditions.precondition_1.
-Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.
+Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.
 SSOT item context: value=sync_chain has propagated at least SYNC_STAGES cycles since reset deassertion.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -214,7 +214,7 @@ SSOT item context: value=sync_chain has propagated at least SYNC_STAGES cycles s
 - Source ref: function_model.transactions.DETECT.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.DETECT.inputs.input_0.
-Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.
+Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.
 SSOT item context: value=signal_i at PCLK domain (after sync).
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -234,7 +234,7 @@ SSOT item context: value=signal_i at PCLK domain (after sync).
 - Source ref: function_model.transactions.DETECT.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.DETECT.outputs.output_0.
-Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.
+Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.
 SSOT item context: value=edge_o[width-1:0] = 1 for one cycle per detected edge matching EDGE_MODE.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -254,7 +254,7 @@ SSOT item context: value=edge_o[width-1:0] = 1 for one cycle per detected edge m
 - Source ref: function_model.transactions.DETECT.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.DETECT.outputs.output_1.
-Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.
+Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.
 SSOT item context: value=status_sticky |= edge_o.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -274,7 +274,7 @@ SSOT item context: value=status_sticky |= edge_o.
 - Source ref: function_model.transactions.DETECT.outputs.output_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.DETECT.outputs.output_2.
-Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.
+Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.
 SSOT item context: value=status_overflow |= edge_o & status_sticky.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -294,7 +294,7 @@ SSOT item context: value=status_overflow |= edge_o & status_sticky.
 - Source ref: function_model.transactions.DETECT.outputs.output_3
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.DETECT.outputs.output_3.
-Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.
+Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.
 SSOT item context: value=irq_o = |edge_o && irq_enable.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -314,7 +314,7 @@ SSOT item context: value=irq_o = |edge_o && irq_enable.
 - Source ref: function_model.transactions.DETECT.output_rules.edge_o
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.DETECT.output_rules.edge_o.
-Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.
+Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.output_rules.edge_o.
 SSOT item context: name=edge_o; port=edge_o; expr=(curr_sync ^ prev_sync) & mode_mask & {WIDTH{enable}}; width=WIDTH.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -338,7 +338,7 @@ SSOT item context: name=edge_o; port=edge_o; expr=(curr_sync ^ prev_sync) & mode
 - Source ref: function_model.transactions.DETECT.output_rules.irq_o
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.DETECT.output_rules.irq_o.
-Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.
+Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.output_rules.irq_o.
 SSOT item context: name=irq_o; port=irq_o; expr=|edge_o && irq_enable; width=1.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -362,7 +362,7 @@ SSOT item context: name=irq_o; port=irq_o; expr=|edge_o && irq_enable; width=1.
 - Source ref: function_model.transactions.DETECT.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.DETECT.side_effects.side_effect_0.
-Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.
+Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.
 SSOT item context: value=sync_chain shifts every PCLK cycle.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
@@ -382,7 +382,7 @@ SSOT item context: value=sync_chain shifts every PCLK cycle.
 - Source ref: function_model.transactions.DETECT.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.DETECT.side_effects.side_effect_1.
-Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.
+Owner: edge_detector in rtl/edge_detector.sv via function_model.transactions.DETECT.
 SSOT item context: value=prev_sync updates to last stage of sync_chain.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:

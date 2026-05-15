@@ -1713,7 +1713,7 @@
     "min_state_updates": 4,
     "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
   },
-  "todo_plan_sha256": "840d14de13dd95a959136737727b272b19f9ee4fec88ae3762a5e61ba413821c",
+  "todo_plan_sha256": "3c30a4f3a5718dde0b37733c98afe9bb34a0a29bc28e4390f27938df3af48ff4",
   "top": "edge_detector",
   "type": "rtl_authoring_plan"
 }

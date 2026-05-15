@@ -1,0 +1,1 @@
+Prepare tb-gen for lfsr using lfsr/verify/equivalence_goals.json, lfsr/model/functional_model.py, and lfsr/rtl/rtl_contract.json. Do not duplicate expected behavior by hand; scoreboard must call FunctionalModel.

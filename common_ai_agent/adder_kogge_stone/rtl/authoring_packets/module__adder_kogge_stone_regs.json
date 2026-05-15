@@ -83,8 +83,8 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": false,
-    "draft_allowed": false,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
@@ -99,7 +99,7 @@
     ],
     "tool_evidence_open_count": 0,
     "tool_evidence_plan": [],
-    "work_allowed": false
+    "work_allowed": true
   },
   "ip": "adder_kogge_stone",
   "kind": "module",
@@ -1532,7 +1532,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "823deab5644f20ba72fd9abaaf5c7b5d9c4a81e40edbded03fc45d4cf5d81ff7",
+  "todo_plan_sha256": "cc6c87a960c3a8eaf436bdac0855c0025e0c4c24ce34430682b51e62909c07e1",
   "top": "adder_kogge_stone",
   "type": "rtl_authoring_packet"
 }

@@ -49,14 +49,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: planned
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[2]
 - Detail: Implement enable behavior, active/pending divisor boundary update, counter terminal detection, clk_o sequential toggle, locked_o, and terminal_event_o from function_model and cycle_model.
 SSOT ref: workflow_todos.rtl-gen[2].
 Owner: clkdiv_core in rtl/clkdiv_core.sv via workflow_todos.owner.
 SSOT item context: id=RTL_TODO_CLKDIV_CORE.
-- Current reason: Owner RTL file is missing: rtl/clkdiv_core.sv.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - clk_o changes only on clk_i rising edge terminal count
   - DIVISOR updates are glitchless and apply only at terminal boundary

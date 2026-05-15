@@ -1,0 +1,1 @@
+{"elapsed_sec": 0.006, "error": "ATLAS_RUN_REAL_LLM_TDD=1 is not set", "log_stage": "tb-gen", "model": "glm-5.1", "stage": "tb-gen", "status": "blocked", "ts": "2026-05-15T02:23:46Z", "usage": {}}

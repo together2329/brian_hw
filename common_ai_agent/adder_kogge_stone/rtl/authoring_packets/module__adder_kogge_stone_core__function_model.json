@@ -8,11 +8,15 @@
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 1,
-      "enabled": false,
+      "count": 6,
+      "enabled": true,
       "index": 1,
-      "key": "all",
-      "module_task_count": 43,
+      "key": "function_model",
+      "module_task_count": 49,
+      "rule": "Owner module adder_kogge_stone_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
       "task_limit": 48
     },
     "owner": {
@@ -23,6 +27,8 @@
         "cycle_model.pipeline",
         "features",
         "features.ks_addition",
+        "fsm",
+        "fsm.adder_fsm",
         "function_model",
         "function_model.state_updates",
         "function_model.transactions",
@@ -89,8 +95,8 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": false,
-    "draft_allowed": false,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
@@ -105,13 +111,13 @@
     ],
     "tool_evidence_open_count": 0,
     "tool_evidence_plan": [],
-    "work_allowed": false
+    "work_allowed": true
   },
   "ip": "adder_kogge_stone",
   "kind": "module",
   "owner_file": "rtl/adder_kogge_stone_core.sv",
   "owner_module": "adder_kogge_stone_core",
-  "packet_id": "module__adder_kogge_stone_core",
+  "packet_id": "module__adder_kogge_stone_core__function_model",
   "rules": [
     "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
     "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
@@ -125,16 +131,6 @@
   "source_plan": "rtl/rtl_todo_plan.json",
   "summary": {
     "categories": {
-      "cycle_model.backpressure": 1,
-      "cycle_model.clock": 1,
-      "cycle_model.handshake_rules": 3,
-      "cycle_model.latency": 1,
-      "cycle_model.observability": 1,
-      "cycle_model.ordering": 3,
-      "cycle_model.pipeline": 3,
-      "cycle_model.reset": 1,
-      "equivalence.module": 1,
-      "features.item": 2,
       "function_model.error_case": 2,
       "function_model.input": 3,
       "function_model.invariant": 2,
@@ -142,21 +138,23 @@
       "function_model.precondition": 2,
       "function_model.side_effect": 3,
       "function_model.state_variable": 8,
-      "function_model.transaction": 1,
-      "workflow_todo.rtl_gen": 1
+      "function_model.transaction": 1
     },
     "module_slice": {
-      "count": 1,
-      "enabled": false,
+      "count": 6,
+      "enabled": true,
       "index": 1,
-      "key": "all",
-      "module_task_count": 43,
+      "key": "function_model",
+      "module_task_count": 49,
+      "rule": "Owner module adder_kogge_stone_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
       "task_limit": 48
     },
     "open_required_count": 0,
-    "required_count": 43,
+    "required_count": 25,
     "source_refs": [
-      "workflow_todos.rtl-gen[0]",
       "function_model.state_variables.a_reg",
       "function_model.state_variables.b_reg",
       "function_model.state_variables.cin_reg",
@@ -179,109 +177,15 @@
       "function_model.transactions.FM_ADD.side_effects.side_effect_1",
       "function_model.transactions.FM_ADD.side_effects.side_effect_2",
       "function_model.transactions.FM_ADD.error_cases.error_case_0",
-      "function_model.transactions.FM_ADD.error_cases.error_case_1"
+      "function_model.transactions.FM_ADD.error_cases.error_case_1",
+      "function_model.invariants.invariant_0"
     ],
     "status_counts": {
-      "pass": 43
+      "pass": 25
     },
-    "task_count": 43
+    "task_count": 25
   },
   "tasks": [
-    {
-      "category": "workflow_todo.rtl_gen",
-      "content": "Implement Kogge-Stone prefix tree in adder_kogge_stone_core.sv",
-      "criteria": [
-        "RTL owner logic is present in rtl/adder_kogge_stone_core.sv",
-        "FunctionalModel expected result and RTL observed result match for all DATA_WIDTH values",
-        "DUT-only compile/lint evidence is fresh after final edit",
-        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
-        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[0]",
-        "Primary implementation evidence is in rtl/adder_kogge_stone_core.sv",
-        "Semantic source_refs covered: cycle_model.pipeline, function_model.state_updates, function_model.transactions.FM_ADD"
-      ],
-      "detail": "Generate propagate and generate signals, build log2(DATA_WIDTH) prefix tree levels using black/grey cell pattern, produce group carries, and form sum = a ^ b ^ carry. Register outputs on posedge PCLK.\nSSOT ref: workflow_todos.rtl-gen[0].\nOwner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_KS_TREE.",
-      "evidence_terms": [
-        "ADD",
-        "FM",
-        "FM_ADD",
-        "KS",
-        "RTL_TODO_KS_TREE",
-        "TODO",
-        "TREE",
-        "adder",
-        "adder_kogge_stone_core",
-        "core",
-        "kogge",
-        "stone"
-      ],
-      "id": "RTL-0027",
-      "owner_file": "rtl/adder_kogge_stone_core.sv",
-      "owner_module": "adder_kogge_stone_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "workflow_todos.rtl-gen[0]",
-      "ssot_context": {
-        "id": "RTL_TODO_KS_TREE"
-      },
-      "ssot_refs": [
-        "cycle_model.pipeline",
-        "function_model.state_updates",
-        "function_model.transactions.FM_ADD",
-        "workflow_todos.rtl-gen[0]"
-      ],
-      "static_evidence": {
-        "matched_count": 5,
-        "matched_terms": [
-          "adder",
-          "adder_kogge_stone_core",
-          "core",
-          "kogge",
-          "stone"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 3,
-        "required_terms": [
-          "ADD",
-          "FM",
-          "FM_ADD",
-          "KS",
-          "RTL_TODO_KS_TREE",
-          "TODO",
-          "TREE",
-          "adder",
-          "adder_kogge_stone_core",
-          "core",
-          "kogge",
-          "stone"
-        ],
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "pass"
-      },
-      "todo_completion": {
-        "criteria_total": 8,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      },
-      "workflow_todo": {
-        "id": "RTL_TODO_KS_TREE",
-        "source_refs": [
-          "cycle_model.pipeline",
-          "function_model.state_updates",
-          "function_model.transactions.FM_ADD"
-        ],
-        "stage": "rtl-gen",
-        "user_category": ""
-      }
-    },
     {
       "category": "function_model.state_variable",
       "content": "Implement RTL state owner for FL state a_reg",
@@ -1706,775 +1610,9 @@
         "required": true,
         "status": "pass"
       }
-    },
-    {
-      "category": "cycle_model.clock",
-      "content": "Implement cycle-model clock",
-      "criteria": [
-        "RTL sequential logic uses the SSOT clock/reset phase",
-        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
-        "Downstream scoreboard samples the same acceptance/result phase",
-        "Traceability keeps source_ref cycle_model.clock",
-        "Primary implementation evidence is in rtl/adder_kogge_stone_core.sv",
-        "cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.\nSSOT item context: value=PCLK.",
-      "evidence_terms": [],
-      "id": "RTL-0075",
-      "owner_file": "rtl/adder_kogge_stone_core.sv",
-      "owner_module": "adder_kogge_stone_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.clock",
-      "ssot_context": {
-        "value": "PCLK"
-      },
-      "ssot_refs": [
-        "cycle_model.clock"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.reset",
-      "content": "Implement cycle-model reset",
-      "criteria": [
-        "RTL sequential logic uses the SSOT clock/reset phase",
-        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
-        "Downstream scoreboard samples the same acceptance/result phase",
-        "Traceability keeps source_ref cycle_model.reset",
-        "Primary implementation evidence is in rtl/adder_kogge_stone_core.sv",
-        "cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.",
-      "evidence_terms": [],
-      "id": "RTL-0076",
-      "owner_file": "rtl/adder_kogge_stone_core.sv",
-      "owner_module": "adder_kogge_stone_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.reset",
-      "ssot_context": {},
-      "ssot_refs": [
-        "cycle_model.reset"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.latency",
-      "content": "Implement cycle-model latency",
-      "criteria": [
-        "RTL sequential logic uses the SSOT clock/reset phase",
-        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
-        "Downstream scoreboard samples the same acceptance/result phase",
-        "Traceability keeps source_ref cycle_model.latency",
-        "Primary implementation evidence is in rtl/adder_kogge_stone_core.sv",
-        "cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.",
-      "evidence_terms": [],
-      "id": "RTL-0077",
-      "owner_file": "rtl/adder_kogge_stone_core.sv",
-      "owner_module": "adder_kogge_stone_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.latency",
-      "ssot_context": {},
-      "ssot_refs": [
-        "cycle_model.latency"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.handshake_rules",
-      "content": "Implement handshake rule: psel/penable",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.handshake_rules.psel_penable",
-        "Primary implementation evidence is in rtl/adder_kogge_stone_core.sv",
-        "cycle_model.handshake_rules.psel_penable appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.psel_penable.\nOwner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.\nSSOT item context: signal=psel/penable.",
-      "evidence_terms": [],
-      "id": "RTL-0078",
-      "owner_file": "rtl/adder_kogge_stone_core.sv",
-      "owner_module": "adder_kogge_stone_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.handshake_rules.psel_penable",
-      "ssot_context": {
-        "signal": "psel/penable"
-      },
-      "ssot_refs": [
-        "cycle_model.handshake_rules.psel_penable"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.handshake_rules",
-      "content": "Implement handshake rule: pready",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.handshake_rules.pready",
-        "Primary implementation evidence is in rtl/adder_kogge_stone_core.sv",
-        "cycle_model.handshake_rules.pready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.pready.\nOwner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.\nSSOT item context: signal=pready.",
-      "evidence_terms": [],
-      "id": "RTL-0079",
-      "owner_file": "rtl/adder_kogge_stone_core.sv",
-      "owner_module": "adder_kogge_stone_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.handshake_rules.pready",
-      "ssot_context": {
-        "signal": "pready"
-      },
-      "ssot_refs": [
-        "cycle_model.handshake_rules.pready"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.handshake_rules",
-      "content": "Implement handshake rule: pslverr",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.handshake_rules.pslverr",
-        "Primary implementation evidence is in rtl/adder_kogge_stone_core.sv",
-        "cycle_model.handshake_rules.pslverr appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.pslverr.\nOwner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.\nSSOT item context: signal=pslverr.",
-      "evidence_terms": [],
-      "id": "RTL-0080",
-      "owner_file": "rtl/adder_kogge_stone_core.sv",
-      "owner_module": "adder_kogge_stone_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.handshake_rules.pslverr",
-      "ssot_context": {
-        "signal": "pslverr"
-      },
-      "ssot_refs": [
-        "cycle_model.handshake_rules.pslverr"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.pipeline",
-      "content": "Implement pipeline stage: S_IDLE",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.pipeline.S_IDLE",
-        "Primary implementation evidence is in rtl/adder_kogge_stone_core.sv",
-        "cycle_model.pipeline.S_IDLE timing uses SSOT cycle/latency 0",
-        "cycle_model.pipeline.S_IDLE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S_IDLE.\nOwner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.pipeline.\nSSOT item context: stage=S_IDLE; action=Wait for CONTROL.start or hold_mode=0 with valid shadow registers.; cycle=0.",
-      "evidence_terms": [
-        "hold",
-        "hold_mode",
-        "mode"
-      ],
-      "id": "RTL-0081",
-      "owner_file": "rtl/adder_kogge_stone_core.sv",
-      "owner_module": "adder_kogge_stone_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.pipeline.S_IDLE",
-      "ssot_context": {
-        "action": "Wait for CONTROL.start or hold_mode=0 with valid shadow registers.",
-        "cycle": "0",
-        "stage": "S_IDLE"
-      },
-      "ssot_refs": [
-        "cycle_model.pipeline.S_IDLE"
-      ],
-      "static_evidence": {
-        "matched_count": 3,
-        "matched_terms": [
-          "hold",
-          "hold_mode",
-          "mode"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "hold",
-          "hold_mode",
-          "mode"
-        ],
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "pass"
-      },
-      "todo_completion": {
-        "criteria_total": 7,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.pipeline",
-      "content": "Implement pipeline stage: S_COMPUTE",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.pipeline.S_COMPUTE",
-        "Primary implementation evidence is in rtl/adder_kogge_stone_core.sv",
-        "cycle_model.pipeline.S_COMPUTE timing uses SSOT cycle/latency 1",
-        "cycle_model.pipeline.S_COMPUTE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S_COMPUTE.\nOwner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.pipeline.\nSSOT item context: stage=S_COMPUTE; action=Combinational Kogge-Stone prefix tree evaluates propagate/generate and produces sum/carry.; cycle=1.",
-      "evidence_terms": [],
-      "id": "RTL-0082",
-      "owner_file": "rtl/adder_kogge_stone_core.sv",
-      "owner_module": "adder_kogge_stone_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.pipeline.S_COMPUTE",
-      "ssot_context": {
-        "action": "Combinational Kogge-Stone prefix tree evaluates propagate/generate and produces sum/carry.",
-        "cycle": "1",
-        "stage": "S_COMPUTE"
-      },
-      "ssot_refs": [
-        "cycle_model.pipeline.S_COMPUTE"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 7,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.pipeline",
-      "content": "Implement pipeline stage: S_CAPTURE",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.pipeline.S_CAPTURE",
-        "Primary implementation evidence is in rtl/adder_kogge_stone_core.sv",
-        "cycle_model.pipeline.S_CAPTURE timing uses SSOT cycle/latency 1",
-        "cycle_model.pipeline.S_CAPTURE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S_CAPTURE.\nOwner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.pipeline.\nSSOT item context: stage=S_CAPTURE; action=On posedge PCLK, output registers capture sum and carry; STATUS updates to done=1, busy=0.; cycle=1.",
-      "evidence_terms": [],
-      "id": "RTL-0083",
-      "owner_file": "rtl/adder_kogge_stone_core.sv",
-      "owner_module": "adder_kogge_stone_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.pipeline.S_CAPTURE",
-      "ssot_context": {
-        "action": "On posedge PCLK, output registers capture sum and carry; STATUS updates to done=1, busy=0.",
-        "cycle": "1",
-        "stage": "S_CAPTURE"
-      },
-      "ssot_refs": [
-        "cycle_model.pipeline.S_CAPTURE"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 7,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.ordering",
-      "content": "Implement ordering rule: ordering_rule_0",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_0",
-        "Primary implementation evidence is in rtl/adder_kogge_stone_core.sv",
-        "cycle_model.ordering.ordering_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_0.\nOwner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.\nSSOT item context: value=APB write to A_DATA/B_DATA/CIN updates shadow before start is sampled..",
-      "evidence_terms": [],
-      "id": "RTL-0084",
-      "owner_file": "rtl/adder_kogge_stone_core.sv",
-      "owner_module": "adder_kogge_stone_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.ordering.ordering_rule_0",
-      "ssot_context": {
-        "value": "APB write to A_DATA/B_DATA/CIN updates shadow before start is sampled."
-      },
-      "ssot_refs": [
-        "cycle_model.ordering.ordering_rule_0"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.ordering",
-      "content": "Implement ordering rule: ordering_rule_1",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_1",
-        "Primary implementation evidence is in rtl/adder_kogge_stone_core.sv",
-        "cycle_model.ordering.ordering_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_1.\nOwner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.\nSSOT item context: value=APB write to CONTROL.start must be visible in the same cycle as the APB completes..",
-      "evidence_terms": [],
-      "id": "RTL-0085",
-      "owner_file": "rtl/adder_kogge_stone_core.sv",
-      "owner_module": "adder_kogge_stone_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.ordering.ordering_rule_1",
-      "ssot_context": {
-        "value": "APB write to CONTROL.start must be visible in the same cycle as the APB completes."
-      },
-      "ssot_refs": [
-        "cycle_model.ordering.ordering_rule_1"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.ordering",
-      "content": "Implement ordering rule: ordering_rule_2",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_2",
-        "Primary implementation evidence is in rtl/adder_kogge_stone_core.sv",
-        "cycle_model.ordering.ordering_rule_2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_2.\nOwner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.\nSSOT item context: value=Output register update occurs only on posedge PCLK..",
-      "evidence_terms": [],
-      "id": "RTL-0086",
-      "owner_file": "rtl/adder_kogge_stone_core.sv",
-      "owner_module": "adder_kogge_stone_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.ordering.ordering_rule_2",
-      "ssot_context": {
-        "value": "Output register update occurs only on posedge PCLK."
-      },
-      "ssot_refs": [
-        "cycle_model.ordering.ordering_rule_2"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.backpressure",
-      "content": "Implement backpressure rule: backpressure_rule_0",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_0",
-        "Primary implementation evidence is in rtl/adder_kogge_stone_core.sv",
-        "cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_0.\nOwner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.\nSSOT item context: value=No backpressure on adder datapath; APB interface is zero-wait-state..",
-      "evidence_terms": [],
-      "id": "RTL-0087",
-      "owner_file": "rtl/adder_kogge_stone_core.sv",
-      "owner_module": "adder_kogge_stone_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
-      "ssot_context": {
-        "value": "No backpressure on adder datapath; APB interface is zero-wait-state."
-      },
-      "ssot_refs": [
-        "cycle_model.backpressure.backpressure_rule_0"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.observability",
-      "content": "Implement observability signal: observability_signal_0",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.observability.observability_signal_0",
-        "Primary implementation evidence is in rtl/adder_kogge_stone_core.sv",
-        "cycle_model.observability.observability_signal_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_0.\nOwner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via cycle_model.\nSSOT item context: value=Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario..",
-      "evidence_terms": [],
-      "id": "RTL-0088",
-      "owner_file": "rtl/adder_kogge_stone_core.sv",
-      "owner_module": "adder_kogge_stone_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.observability.observability_signal_0",
-      "ssot_context": {
-        "value": "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
-      },
-      "ssot_refs": [
-        "cycle_model.observability.observability_signal_0"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "features.item",
-      "content": "Implement feature ks_addition",
-      "criteria": [
-        "Feature trigger/control/data behavior has RTL owner logic",
-        "Feature observability and error behavior match SSOT",
-        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
-        "Traceability keeps source_ref features.ks_addition",
-        "Primary implementation evidence is in rtl/adder_kogge_stone_core.sv"
-      ],
-      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.ks_addition.\nOwner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via features.ks_addition.\nSSOT item context: name=ks_addition; output=Registered sum_o[DATA_WIDTH-1:0] and cout_o on the cycle following start.",
-      "evidence_terms": [
-        "DATA",
-        "DATA_WIDTH",
-        "WIDTH",
-        "cout",
-        "cout_o",
-        "sum",
-        "sum_o"
-      ],
-      "id": "RTL-0120",
-      "owner_file": "rtl/adder_kogge_stone_core.sv",
-      "owner_module": "adder_kogge_stone_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "features.ks_addition",
-      "ssot_context": {
-        "name": "ks_addition",
-        "output": "Registered sum_o[DATA_WIDTH-1:0] and cout_o on the cycle following start"
-      },
-      "ssot_refs": [
-        "features.ks_addition"
-      ],
-      "static_evidence": {
-        "matched_count": 7,
-        "matched_terms": [
-          "DATA",
-          "DATA_WIDTH",
-          "WIDTH",
-          "cout",
-          "cout_o",
-          "sum",
-          "sum_o"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 1,
-        "required_terms": [
-          "DATA",
-          "DATA_WIDTH",
-          "WIDTH",
-          "cout",
-          "cout_o",
-          "sum",
-          "sum_o"
-        ],
-        "source_scope": "rtl/adder_kogge_stone_core.sv",
-        "status": "pass"
-      },
-      "todo_completion": {
-        "criteria_total": 5,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "features.item",
-      "content": "Implement feature apb_lite_csr",
-      "criteria": [
-        "Feature trigger/control/data behavior has RTL owner logic",
-        "Feature observability and error behavior match SSOT",
-        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
-        "Traceability keeps source_ref features.apb_lite_csr",
-        "Primary implementation evidence is in rtl/adder_kogge_stone_core.sv"
-      ],
-      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.apb_lite_csr.\nOwner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via features.\nSSOT item context: name=apb_lite_csr; output=prdata[31:0], pready, pslverr.",
-      "evidence_terms": [],
-      "id": "RTL-0121",
-      "owner_file": "rtl/adder_kogge_stone_core.sv",
-      "owner_module": "adder_kogge_stone_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "features.apb_lite_csr",
-      "ssot_context": {
-        "name": "apb_lite_csr",
-        "output": "prdata[31:0], pready, pslverr"
-      },
-      "ssot_refs": [
-        "features.apb_lite_csr"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 5,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "equivalence.module",
-      "content": "Prove module adder_kogge_stone_core is functionally equivalent to FL",
-      "criteria": [
-        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
-        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
-        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
-        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
-        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
-        "Traceability keeps source_ref sub_modules.adder_kogge_stone_core.module_equivalence",
-        "Primary implementation evidence is in rtl/adder_kogge_stone_core.sv"
-      ],
-      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.adder_kogge_stone_core.module_equivalence.\nOwner: adder_kogge_stone_core in rtl/adder_kogge_stone_core.sv via module_equivalence.",
-      "evidence_terms": [],
-      "id": "RTL-0139",
-      "owner_file": "rtl/adder_kogge_stone_core.sv",
-      "owner_module": "adder_kogge_stone_core",
-      "priority": "high",
-      "required": true,
-      "source_ref": "sub_modules.adder_kogge_stone_core.module_equivalence",
-      "ssot_context": {},
-      "ssot_refs": [
-        "sub_modules.adder_kogge_stone_core.module_equivalence"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 7,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
     }
   ],
-  "todo_plan_sha256": "823deab5644f20ba72fd9abaaf5c7b5d9c4a81e40edbded03fc45d4cf5d81ff7",
+  "todo_plan_sha256": "cc6c87a960c3a8eaf436bdac0855c0025e0c4c24ce34430682b51e62909c07e1",
   "top": "adder_kogge_stone",
   "type": "rtl_authoring_packet"
 }

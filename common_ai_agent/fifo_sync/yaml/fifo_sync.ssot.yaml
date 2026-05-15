@@ -1294,7 +1294,7 @@ custom:
     source: rtl_blocked.json OPTIONAL_BEHAVIOR_POLICY
   rtl_blocker_resolutions:
   - id: OPTIONAL_BEHAVIOR_POLICY
-    answer: Optional prose is resolved into explicit parameter-controlled policy: USE_APB default 1 implements APB CSR behavior, USE_OUTPUT_REGISTER default 0 selects read-data bypass versus register, and USE_ECC default 0 is disabled for this revision because ECC behavior is not specified.
+    answer: 'Optional prose is resolved into explicit parameter-controlled policy: USE_APB default 1 implements APB CSR behavior, USE_OUTPUT_REGISTER default 0 selects read-data bypass versus register, and USE_ECC default 0 is disabled for this revision because ECC behavior is not specified.'
     source: rtl-gen repair
   assumptions:
   - id: ASM_DEPTH_POWER2
