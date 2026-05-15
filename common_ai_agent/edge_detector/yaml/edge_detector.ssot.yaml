@@ -159,9 +159,6 @@ function_model:
       output_rules:
         - { name: "edge_o", expr: "(curr_sync ^ prev_sync) & mode_mask & {WIDTH{enable}}", width: "WIDTH", port: "edge_o", description: "One-cycle pulse per detected edge, masked by mode and enable" }
         - { name: "irq_o", expr: "|edge_o && irq_enable", width: 1, port: "irq_o", description: "Interrupt asserted when any edge detected and irq_enable set" }
-  output_rules:
-    - { name: "edge_o", expr: "(curr_sync ^ prev_sync) & mode_mask & {WIDTH{enable}}", width: "WIDTH", port: "edge_o", description: "One-cycle pulse per detected edge, masked by mode and enable" }
-    - { name: "irq_o", expr: "|edge_o && irq_enable", width: 1, port: "irq_o", description: "Interrupt asserted when any edge detected and irq_enable set" }
   invariants:
     - "edge_o is asserted for exactly one PCLK cycle per qualifying edge transition."
     - "No edge_o pulse occurs when enable == 0."
