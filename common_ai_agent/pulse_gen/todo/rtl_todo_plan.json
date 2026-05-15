@@ -35,12 +35,12 @@
       "Gate: DUT-only lint report passes after the final RTL edit",
       "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
     ],
-    "open_required_todos": 7,
+    "open_required_todos": 3,
     "orphan_tasks": 0,
-    "static_missing": 2,
+    "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:13:25Z",
+  "generated_at": "2026-05-15T02:18:33Z",
   "ip": "pulse_gen",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 18,
@@ -51,7 +51,7 @@
         "module": "pulse_gen_core",
         "port": "rst_ni",
         "rtl_exprs": [
-          "rst_ni"
+          "PRESETn_sync"
         ],
         "source_ref": "integration.connections[1]"
       },
@@ -61,7 +61,7 @@
         "module": "pulse_gen_regs",
         "port": "rst_ni",
         "rtl_exprs": [
-          "rst_ni"
+          "PRESETn_sync"
         ],
         "source_ref": "integration.connections[6]"
       },
@@ -71,7 +71,7 @@
         "module": "pulse_gen_regs",
         "port": "pulse_width_o",
         "rtl_exprs": [
-          "pulse_width"
+          "pulse_gen_core_pulse_width_i"
         ],
         "source_ref": "integration.connections[13]"
       },
@@ -88,12 +88,22 @@
         "source_ref": "integration.connections[15]"
       },
       {
+        "expected_signal": "pulse_gen_core.fired_count",
+        "issue": "RTL named port-map expression does not match SSOT connection signal terms",
+        "module": "pulse_gen_regs",
+        "port": "fired_count_i",
+        "rtl_exprs": [
+          "pulse_gen_core_fired_count"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
         "expected_signal": "pulse_gen_core.int_enable_i",
         "issue": "RTL named port-map expression does not match SSOT connection signal terms",
         "module": "pulse_gen_regs",
         "port": "int_enable_o",
         "rtl_exprs": [
-          "int_enable"
+          "pulse_gen_core_int_enable_i"
         ],
         "source_ref": "integration.connections[17]"
       }
@@ -170,16 +180,16 @@
     "aggregate": {
       "behavior_owner_logic_modules": 3,
       "control_flow": 25,
-      "depth_score": 226,
+      "depth_score": 232,
       "instances": 2,
-      "lines": 416,
+      "lines": 422,
       "logic_modules": 3,
       "modules": 3,
-      "nonconstant_assigns": 33,
+      "nonconstant_assigns": 36,
       "procedural_blocks": 13,
       "source_files": 3,
       "state_updates": 37,
-      "storage_decls": 51
+      "storage_decls": 54
     },
     "issues": [],
     "modules": [
@@ -198,30 +208,30 @@
         "module": "pulse_gen_regs"
       },
       {
-        "depth_score": 92,
+        "depth_score": 94,
         "file": "rtl/pulse_gen_core.sv",
         "metrics": {
           "control_flow": 12,
           "instances": 0,
-          "nonconstant_assigns": 12,
+          "nonconstant_assigns": 13,
           "placeholder_tokens": false,
           "procedural_blocks": 6,
           "state_updates": 17,
-          "storage_decls": 16
+          "storage_decls": 17
         },
         "module": "pulse_gen_core"
       },
       {
-        "depth_score": 29,
+        "depth_score": 33,
         "file": "rtl/pulse_gen.sv",
         "metrics": {
           "control_flow": 1,
           "instances": 2,
-          "nonconstant_assigns": 0,
+          "nonconstant_assigns": 2,
           "placeholder_tokens": false,
           "procedural_blocks": 1,
           "state_updates": 4,
-          "storage_decls": 13
+          "storage_decls": 15
         },
         "module": "pulse_gen"
       }
@@ -660,47 +670,9 @@
   ],
   "static_rtl_evidence": {
     "checked": 50,
-    "missing": 2,
-    "missing_tasks": [
-      {
-        "category": "workflow_todo.rtl_gen",
-        "matched_count": 2,
-        "matched_terms": [
-          "pulse",
-          "pulse_gen"
-        ],
-        "owner_file": "rtl/pulse_gen.sv",
-        "required_match_count": 3,
-        "required_terms": [
-          "RTL_TODO_TOP",
-          "TODO",
-          "TOP",
-          "io",
-          "io_list",
-          "list",
-          "pulse",
-          "pulse_gen"
-        ],
-        "source_ref": "workflow_todos.rtl-gen[2]",
-        "source_scope": "rtl/pulse_gen.sv",
-        "task_id": "RTL-0022"
-      },
-      {
-        "category": "function_model.state_update",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/pulse_gen_core.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "APB",
-          "PCLK"
-        ],
-        "source_ref": "function_model.transactions.FM_FIRE.state_updates.ctrl_fire",
-        "source_scope": "rtl/pulse_gen_core.sv",
-        "task_id": "RTL-0073"
-      }
-    ],
-    "passed": 48,
+    "missing": 0,
+    "missing_tasks": [],
+    "passed": 50,
     "sources": [
       "rtl/pulse_gen.sv",
       "rtl/pulse_gen_core.sv",
@@ -1161,9 +1133,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "2 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "Static DUT RTL evidence audit has no missing required task.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1352,9 +1324,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top output drive issue(s) remain. PREADY: RTL top output is driven only by a constant without explicit SSOT tieoff allowance",
+        "reason": "SSOT top outputs have non-placeholder RTL drive evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1587,7 +1559,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "6 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms",
+        "reason": "7 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms",
         "required": true,
         "status": "open"
       }
@@ -1733,7 +1705,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "2 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -1963,8 +1935,12 @@
         "workflow_todos.rtl-gen[2]"
       ],
       "static_evidence": {
-        "matched_count": 2,
+        "matched_count": 6,
         "matched_terms": [
+          "TOP",
+          "io",
+          "io_list",
+          "list",
           "pulse",
           "pulse_gen"
         ],
@@ -1982,7 +1958,7 @@
           "pulse_gen"
         ],
         "source_scope": "rtl/pulse_gen.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1992,9 +1968,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_TODO_TOP",
@@ -4819,8 +4795,11 @@
         "function_model.transactions.FM_FIRE.state_updates.ctrl_fire"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "APB",
+          "PCLK"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -4829,7 +4808,7 @@
           "PCLK"
         ],
         "source_scope": "rtl/pulse_gen_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -4839,9 +4818,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -10545,7 +10524,7 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 7,
+    "open_required_tasks": 3,
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
@@ -10555,42 +10534,18 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "2 static-evidence-required task(s) still lack DUT RTL evidence.",
-        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
-        "task_id": "RTL-0007"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 top output drive issue(s) remain. PREADY: RTL top output is driven only by a constant without explicit SSOT tieoff allowance",
-        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
-        "task_id": "RTL-0011"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "6 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms",
+        "reason": "7 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms",
         "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
         "task_id": "RTL-0016"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "2 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
-      },
-      {
-        "category": "workflow_todo.rtl_gen",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "workflow_todos.rtl-gen[2]",
-        "task_id": "RTL-0022"
-      },
-      {
-        "category": "function_model.state_update",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "function_model.transactions.FM_FIRE.state_updates.ctrl_fire",
-        "task_id": "RTL-0073"
       }
     ],
-    "required_passed": 176,
+    "required_passed": 180,
     "required_total": 183,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },
@@ -10636,25 +10591,12 @@
   },
   "top_output_drive_evidence": {
     "checked": 5,
-    "driven": 4,
-    "issues": [
-      {
-        "assignments": [
-          {
-            "constant": true,
-            "expr": "1'b1",
-            "kind": "continuous_assign"
-          }
-        ],
-        "issue": "RTL top output is driven only by a constant without explicit SSOT tieoff allowance",
-        "port": "PREADY",
-        "source_ref": "io_list.interfaces[0].ports[7]"
-      }
-    ],
+    "driven": 5,
+    "issues": [],
     "roots": [
       "pulse_gen"
     ],
-    "status": "fail"
+    "status": "pass"
   },
   "type": "ssot_derived_rtl_todo_plan"
 }

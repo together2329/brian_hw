@@ -4,7 +4,7 @@
 
 - Top: pulse_gen
 - Packets: 19
-- LLM-actionable tasks: 4
+- LLM-actionable tasks: 0
 - Human-locked tasks: 1
 - Tool-evidence tasks: 2
 - Deferred human QA allowed: True
@@ -12,12 +12,6 @@
 - Target scale locked: False
 - Pending connection-contract suggestions: 0
 - Recommended packet batch limit: 4
-
-## Next LLM Packets
-
-- module__pulse_gen_core__function_model: rtl/authoring_packets/module__pulse_gen_core__function_model.json (llm_open=1, human_locked=0)
-- module__pulse_gen__workflow_todo: rtl/authoring_packets/module__pulse_gen__workflow_todo.json (llm_open=1, human_locked=0)
-- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=2, human_locked=0)
 
 ## Tool Evidence Queue
 

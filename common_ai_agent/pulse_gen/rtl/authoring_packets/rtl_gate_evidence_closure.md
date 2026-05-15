@@ -24,7 +24,7 @@
 - Evidence closure allowed: True
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 2
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - SSOT connection contracts:
@@ -48,13 +48,13 @@
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.static_rtl_evidence
 - Detail: After RTL exists, derive_rtl_todos.py --audit-rtl must find concrete DUT source terms for every static-evidence-required task.
 SSOT ref: quality_gates.rtl_gen.static_rtl_evidence.
 Owner: pulse_gen in rtl/pulse_gen.sv via top_module.
-- Current reason: 2 static-evidence-required task(s) still lack DUT RTL evidence.
+- Current reason: Static DUT RTL evidence audit has no missing required task.
 - Criteria:
   - derive_rtl_todos.py --audit-rtl ran after the final RTL edit
   - rtl_todo_plan.json static_rtl_evidence.missing is zero
@@ -128,13 +128,13 @@ Owner: pulse_gen in rtl/pulse_gen.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.top_output_drive_evidence
 - Detail: Declaring output ports is not enough. Each SSOT-declared top output must be driven by nonconstant RTL logic, a procedural assignment, or a declared child-module output connection. Constant tieoffs require an explicit SSOT constant/tieoff allowance.
 SSOT ref: quality_gates.rtl_gen.top_output_drive_evidence.
 Owner: pulse_gen in rtl/pulse_gen.sv via top_module.
-- Current reason: 1 top output drive issue(s) remain. PREADY: RTL top output is driven only by a constant without explicit SSOT tieoff allowance
+- Current reason: SSOT top outputs have non-placeholder RTL drive evidence.
 - Criteria:
   - Every SSOT output/inout top contract has drive evidence in the RTL top
   - Non-waived output constants are rejected as placeholder tieoffs

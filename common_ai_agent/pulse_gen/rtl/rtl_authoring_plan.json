@@ -5,31 +5,12 @@
       "Add tests, vectors, assertions, reports, and repair RTL under LLM-editable surfaces.",
       "Leave unresolved locked-truth decisions as human_gate/change-request records instead of changing SSOT authority."
     ],
-    "blocked_by_llm_work": [
-      {
-        "gate_kind": "static_rtl_evidence",
-        "owner_module": "pulse_gen",
-        "reason": "2 static-evidence-required task(s) still lack DUT RTL evidence.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
-        "status": "open",
-        "task_id": "RTL-0007"
-      },
-      {
-        "gate_kind": "top_output_drive_evidence",
-        "owner_module": "pulse_gen",
-        "reason": "1 top output drive issue(s) remain. PREADY: RTL top output is driven only by a constant without explicit SSOT tieoff allowance",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
-        "status": "open",
-        "task_id": "RTL-0011"
-      }
-    ],
+    "blocked_by_llm_work": [],
     "blocked_by_locked_truth": [
       {
         "gate_kind": "manifest_connection_contract_evidence",
         "owner_module": "pulse_gen",
-        "reason": "6 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms",
+        "reason": "7 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
         "status": "open",
@@ -49,7 +30,7 @@
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "pulse_gen",
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "2 required non-closure TODO(s) remain open.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -77,7 +58,7 @@
     "draft_allowed": true,
     "gate_status": "fail",
     "hard_blockers": [],
-    "open_required_todos": 7,
+    "open_required_todos": 3,
     "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
@@ -123,7 +104,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "6 required non-closure TODO(s) remain open.",
+        "reason": "2 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -138,210 +119,11 @@
   "packets": [
     {
       "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pulse_gen_core__function_model.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pulse_gen_core__function_model.md",
-      "owner_file": "rtl/pulse_gen_core.sv",
-      "owner_module": "pulse_gen_core",
-      "packet_id": "module__pulse_gen_core__function_model",
-      "summary": {
-        "categories": {
-          "function_model.error_case": 3,
-          "function_model.input": 3,
-          "function_model.invariant": 6,
-          "function_model.output": 3,
-          "function_model.output_rule": 3,
-          "function_model.precondition": 3,
-          "function_model.side_effect": 4,
-          "function_model.state_update": 8,
-          "function_model.state_variable": 10,
-          "function_model.transaction": 1
-        },
-        "module_slice": {
-          "count": 6,
-          "enabled": true,
-          "index": 1,
-          "key": "function_model",
-          "module_task_count": 73,
-          "rule": "Owner module pulse_gen_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "function_model",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 44,
-        "source_refs": [
-          "function_model.state_variables.fsm_state",
-          "function_model.state_variables.pulse_counter",
-          "function_model.state_variables.latched_width",
-          "function_model.state_variables.latched_polarity",
-          "function_model.state_variables.ctrl_fire",
-          "function_model.state_variables.ctrl_enable",
-          "function_model.state_variables.ctrl_hw_trig_en",
-          "function_model.state_variables.status_busy",
-          "function_model.state_variables.status_done",
-          "function_model.state_variables.fired_count",
-          "function_model.transactions.FM_FIRE",
-          "function_model.transactions.FM_FIRE.preconditions.precondition_0",
-          "function_model.transactions.FM_FIRE.preconditions.precondition_1",
-          "function_model.transactions.FM_FIRE.preconditions.precondition_2",
-          "function_model.transactions.FM_FIRE.inputs.input_0",
-          "function_model.transactions.FM_FIRE.inputs.input_1",
-          "function_model.transactions.FM_FIRE.inputs.input_2",
-          "function_model.transactions.FM_FIRE.outputs.pulse_out_active",
-          "function_model.transactions.FM_FIRE.outputs.pulse_out_idle",
-          "function_model.transactions.FM_FIRE.outputs.irq_o",
-          "function_model.transactions.FM_FIRE.output_rules.pulse_out_active",
-          "function_model.transactions.FM_FIRE.output_rules.pulse_out_idle",
-          "function_model.transactions.FM_FIRE.output_rules.irq_o",
-          "function_model.transactions.FM_FIRE.state_updates.fsm_state"
-        ],
-        "status_counts": {
-          "open": 1,
-          "pass": 43
-        },
-        "task_count": 44
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__pulse_gen__workflow_todo.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__pulse_gen__workflow_todo.md",
-      "owner_file": "rtl/pulse_gen.sv",
-      "owner_module": "pulse_gen",
-      "packet_id": "module__pulse_gen__workflow_todo",
-      "summary": {
-        "categories": {
-          "workflow_todo.rtl_gen": 1
-        },
-        "module_slice": {
-          "count": 9,
-          "enabled": true,
-          "index": 9,
-          "key": "workflow_todo",
-          "module_task_count": 49,
-          "rule": "Owner module pulse_gen is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "workflow_todo",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 1,
-        "required_count": 1,
-        "source_refs": [
-          "workflow_todos.rtl-gen[2]"
-        ],
-        "status_counts": {
-          "open": 1
-        },
-        "task_count": 1
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": false,
-        "evidence_closure_allowed": true,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 2,
-        "open_required_count": 2,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
-      "kind": "gate",
-      "markdown": "rtl/authoring_packets/rtl_gate_evidence_closure.md",
-      "owner_file": "rtl/pulse_gen.sv",
-      "owner_module": "pulse_gen",
-      "packet_id": "rtl_gate_evidence_closure",
-      "summary": {
-        "categories": {
-          "rtl_gate.rtl_gen": 9
-        },
-        "module_slice": {},
-        "open_required_count": 2,
-        "required_count": 9,
-        "source_refs": [
-          "quality_gates.rtl_gen.static_rtl_evidence",
-          "quality_gates.rtl_gen.owner_logic_structure_evidence",
-          "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-          "quality_gates.rtl_gen.top_io_contract_evidence",
-          "quality_gates.rtl_gen.top_output_drive_evidence",
-          "quality_gates.rtl_gen.top_input_consumption_evidence",
-          "quality_gates.rtl_gen.manifest_hierarchy_integration",
-          "quality_gates.rtl_gen.manifest_port_connection_evidence",
-          "quality_gates.rtl_gen.manifest_signal_flow_evidence"
-        ],
-        "status_counts": {
-          "open": 2,
-          "pass": 7
-        },
-        "task_count": 9
-      }
-    },
-    {
-      "execution_policy": {
         "blocked_by_locked_truth": [
           {
             "gate_kind": "manifest_connection_contract_evidence",
             "owner_module": "pulse_gen",
-            "reason": "6 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms",
+            "reason": "7 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
             "status": "open",
@@ -410,7 +192,7 @@
           {
             "gate_kind": "dynamic_todo_closure",
             "owner_module": "pulse_gen",
-            "reason": "6 required non-closure TODO(s) remain open.",
+            "reason": "2 required non-closure TODO(s) remain open.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "status": "open",
@@ -471,7 +253,7 @@
             "prerequisites": [
               "All non-closure required TODOs have pass status."
             ],
-            "reason": "6 required non-closure TODO(s) remain open.",
+            "reason": "2 required non-closure TODO(s) remain open.",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "stage_sequence": [
               "audit-rtl"
@@ -843,6 +625,94 @@
           "pass": 7
         },
         "task_count": 7
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pulse_gen_core__function_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pulse_gen_core__function_model.md",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "packet_id": "module__pulse_gen_core__function_model",
+      "summary": {
+        "categories": {
+          "function_model.error_case": 3,
+          "function_model.input": 3,
+          "function_model.invariant": 6,
+          "function_model.output": 3,
+          "function_model.output_rule": 3,
+          "function_model.precondition": 3,
+          "function_model.side_effect": 4,
+          "function_model.state_update": 8,
+          "function_model.state_variable": 10,
+          "function_model.transaction": 1
+        },
+        "module_slice": {
+          "count": 6,
+          "enabled": true,
+          "index": 1,
+          "key": "function_model",
+          "module_task_count": 73,
+          "rule": "Owner module pulse_gen_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 44,
+        "source_refs": [
+          "function_model.state_variables.fsm_state",
+          "function_model.state_variables.pulse_counter",
+          "function_model.state_variables.latched_width",
+          "function_model.state_variables.latched_polarity",
+          "function_model.state_variables.ctrl_fire",
+          "function_model.state_variables.ctrl_enable",
+          "function_model.state_variables.ctrl_hw_trig_en",
+          "function_model.state_variables.status_busy",
+          "function_model.state_variables.status_done",
+          "function_model.state_variables.fired_count",
+          "function_model.transactions.FM_FIRE",
+          "function_model.transactions.FM_FIRE.preconditions.precondition_0",
+          "function_model.transactions.FM_FIRE.preconditions.precondition_1",
+          "function_model.transactions.FM_FIRE.preconditions.precondition_2",
+          "function_model.transactions.FM_FIRE.inputs.input_0",
+          "function_model.transactions.FM_FIRE.inputs.input_1",
+          "function_model.transactions.FM_FIRE.inputs.input_2",
+          "function_model.transactions.FM_FIRE.outputs.pulse_out_active",
+          "function_model.transactions.FM_FIRE.outputs.pulse_out_idle",
+          "function_model.transactions.FM_FIRE.outputs.irq_o",
+          "function_model.transactions.FM_FIRE.output_rules.pulse_out_active",
+          "function_model.transactions.FM_FIRE.output_rules.pulse_out_idle",
+          "function_model.transactions.FM_FIRE.output_rules.irq_o",
+          "function_model.transactions.FM_FIRE.state_updates.fsm_state"
+        ],
+        "status_counts": {
+          "pass": 44
+        },
+        "task_count": 44
       }
     },
     {
@@ -1390,6 +1260,115 @@
         },
         "task_count": 15
       }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__pulse_gen__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__pulse_gen__workflow_todo.md",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "packet_id": "module__pulse_gen__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 9,
+          "key": "workflow_todo",
+          "module_task_count": 49,
+          "rule": "Owner module pulse_gen is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[2]"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_evidence_closure.md",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "packet_id": "rtl_gate_evidence_closure",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 9
+        },
+        "module_slice": {},
+        "open_required_count": 0,
+        "required_count": 9,
+        "source_refs": [
+          "quality_gates.rtl_gen.static_rtl_evidence",
+          "quality_gates.rtl_gen.owner_logic_structure_evidence",
+          "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+          "quality_gates.rtl_gen.top_io_contract_evidence",
+          "quality_gates.rtl_gen.top_output_drive_evidence",
+          "quality_gates.rtl_gen.top_input_consumption_evidence",
+          "quality_gates.rtl_gen.manifest_hierarchy_integration",
+          "quality_gates.rtl_gen.manifest_port_connection_evidence",
+          "quality_gates.rtl_gen.manifest_signal_flow_evidence"
+        ],
+        "status_counts": {
+          "pass": 9
+        },
+        "task_count": 9
+      }
     }
   ],
   "policy": {
@@ -1427,15 +1406,11 @@
     "gate_packets": 3,
     "human_locked_packets": 1,
     "human_locked_tasks": 1,
-    "llm_actionable_packets": 3,
-    "llm_actionable_tasks": 4,
+    "llm_actionable_packets": 0,
+    "llm_actionable_tasks": 0,
     "max_packet_required_tasks": 44,
     "module_packets": 16,
-    "next_llm_packets": [
-      "module__pulse_gen_core__function_model",
-      "module__pulse_gen__workflow_todo",
-      "rtl_gate_evidence_closure"
-    ],
+    "next_llm_packets": [],
     "packet_task_limit": 48,
     "packets": 19,
     "pass_allowed": false,

@@ -64,6 +64,7 @@ module spi #(
     logic done_event;
     logic mode_fault_event;
     logic rx_overrun_event;
+    logic rx_overrun_shift_event;
     logic tx_overrun_event;
     logic rx_underrun_event;
     logic illegal_access_event;

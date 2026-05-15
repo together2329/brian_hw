@@ -7,16 +7,8 @@ errors=0 warnings=0
 
 ===== verilator =====
 command: verilator --lint-only -Wall -Irtl -f list/priority_enc.f --top-module priority_enc
-returncode: 1
-errors: 0 warnings: 2
-%Warning-UNUSEDSIGNAL: rtl/priority_enc_core.sv:21:29: Signal is not used: 'apb_csr_bad_addr_seen'
-                                                     : ... note: In instance 'priority_enc.u_priority_enc_core'
-   21 |     logic                   apb_csr_bad_addr_seen;
-      |                             ^~~~~~~~~~~~~~~~~~~~~
-                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
-                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
-%Warning-UNUSEDSIGNAL: rtl/priority_enc_core.sv:22:29: Signal is not used: 'STATUS_write_seen'
-                                                     : ... note: In instance 'priority_enc.u_priority_enc_core'
-   22 |     logic                   STATUS_write_seen;
-      |                             ^~~~~~~~~~~~~~~~~
-%Error: Exiting due to 2 warning(s)
+returncode: 0
+errors: 0 warnings: 0
+- V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
+- Verilator: Built from 0.101 MB sources in 5 modules, into 0.027 MB in 3 C++ files needing 0.000 MB
+- Verilator: Walltime 0.290 s (elab=0.011, cvt=0.015, bld=0.000); cpu 0.030 s on 1 threads; allocated 11.234 MB

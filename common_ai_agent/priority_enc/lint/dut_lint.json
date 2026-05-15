@@ -15,10 +15,10 @@
     "rtl/priority_enc_fsm.sv",
     "rtl/priority_enc_param.vh"
   ],
-  "timestamp": "2026-05-15T02:17:19.659657+00:00",
-  "returncode": 1,
+  "timestamp": "2026-05-15T02:18:41.496665+00:00",
+  "returncode": 0,
   "errors": 0,
-  "warnings": 2,
+  "warnings": 0,
   "waived_warnings": 0,
   "tool_results": [
     {
@@ -35,30 +35,11 @@
       "tool": "verilator",
       "available": true,
       "command": "verilator --lint-only -Wall -Irtl -f list/priority_enc.f --top-module priority_enc",
-      "returncode": 1,
+      "returncode": 0,
       "errors": 0,
-      "warnings": 2,
-      "diagnostics": [
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/priority_enc_core.sv",
-          "line": 21,
-          "column": 29,
-          "message": "Signal is not used: 'apb_csr_bad_addr_seen'",
-          "source": "    logic                   apb_csr_bad_addr_seen;"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/priority_enc_core.sv",
-          "line": 22,
-          "column": 29,
-          "message": "Signal is not used: 'STATUS_write_seen'",
-          "source": "    logic                   STATUS_write_seen;"
-        }
-      ],
-      "passed": false
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": true
     }
   ],
   "suppression_violation_count": 0,
@@ -66,5 +47,5 @@
   "style_violation_count": 0,
   "style_violations": [],
   "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
-  "passed": false
+  "passed": true
 }

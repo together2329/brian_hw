@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline, dataflow, features, features.pulse_fire, fsm, fsm.pulse_fsm, function_model, function_model.state_variables, function_model.transactions, function_model.transactions.FM_FIRE
 - Module slice: 1/6 section=function_model task_limit=48
@@ -696,14 +696,14 @@ SSOT item context: name=fired_count; expr=fired_count + 1 at PULSE→DONE transi
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_FIRE.state_updates.ctrl_fire
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FIRE.state_updates.ctrl_fire.
 Owner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.
 SSOT item context: name=ctrl_fire; expr=set to 1 by APB write; auto-clears to 0 after one PCLK; reset=0.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
