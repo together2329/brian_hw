@@ -29,11 +29,15 @@
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - SSOT target scale: min_behavior_owner_logic_modules=1, min_logic_modules=1, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=3
 - Tool-evidence blockers:
-  - dynamic_todo_closure: 4 required non-closure TODO(s) remain open.
+  - dut_compile: rtl/rtl_compile.json is older than current RTL source rtl/arbiter_rr_core.sv; rerun DUT compile after the final RTL edit.
+  - dut_lint: lint/dut_lint.json is older than current RTL source rtl/arbiter_rr_core.sv; rerun DUT lint after the final RTL edit.
+  - dynamic_todo_closure: 6 required non-closure TODO(s) remain open.
   - protocol_assertion_evidence: Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.
   - fl_rtl_goal_audit: Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
   - coverage_closure: Missing coverage closure artifact: cov/coverage.json.
 - Tool-evidence runbook:
+  - dut_compile: stages=ssot-rtl, dut_compile; artifact=arbiter_rr/rtl/rtl_compile.json
+  - dut_lint: stages=lint, dut_lint; artifact=arbiter_rr/lint/dut_lint.json
   - dynamic_todo_closure: stages=audit-rtl; artifact=arbiter_rr/rtl/rtl_todo_plan.json
   - protocol_assertion_evidence: stages=ssot-protocol-assertions, sim; artifact=arbiter_rr/verify/protocol_assertions.sva
   - fl_rtl_goal_audit: stages=ssot-fl-model, ssot-equiv-goals, ssot-tb-cocotb, sim, goal-audit; artifact=arbiter_rr/sim/fl_rtl_goal_audit.json
@@ -82,13 +86,13 @@ Owner: arbiter_rr in rtl/arbiter_rr.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_compile
 - Detail: Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.
 SSOT ref: quality_gates.rtl_gen.dut_compile.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via top_module.
-- Current reason: DUT-only compile artifact passed with zero errors, diagnostics, and style violations.
+- Current reason: rtl/rtl_compile.json is older than current RTL source rtl/arbiter_rr_core.sv; rerun DUT compile after the final RTL edit.
 - Criteria:
   - rtl/rtl_compile.json exists
   - rtl_compile.json reports dut_only=true
@@ -103,13 +107,13 @@ Owner: arbiter_rr in rtl/arbiter_rr.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_lint
 - Detail: Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.
 SSOT ref: quality_gates.rtl_gen.dut_lint.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via top_module.
-- Current reason: DUT-only lint artifact passed with zero errors, warnings, and suppression violations.
+- Current reason: lint/dut_lint.json is older than current RTL source rtl/arbiter_rr_core.sv; rerun DUT lint after the final RTL edit.
 - Criteria:
   - lint/dut_lint.json exists
   - dut_lint.json reports dut_only=true
@@ -131,7 +135,7 @@ Owner: arbiter_rr in rtl/arbiter_rr.sv via top_module.
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: arbiter_rr in rtl/arbiter_rr.sv via top_module.
-- Current reason: 4 required non-closure TODO(s) remain open.
+- Current reason: 6 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

@@ -7,8 +7,20 @@ errors=0 warnings=0
 
 ===== verilator =====
 command: verilator --lint-only -Wall -Irtl -f list/arbiter_rr.f --top-module arbiter_rr
-returncode: 0
-errors: 0 warnings: 0
-- V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
-- Verilator: Built from 0.090 MB sources in 4 modules, into 0.041 MB in 3 C++ files needing 0.000 MB
-- Verilator: Walltime 0.103 s (elab=0.009, cvt=0.021, bld=0.000); cpu 0.026 s on 1 threads; allocated 11.281 MB
+returncode: 1
+errors: 0 warnings: 3
+%Warning-UNUSEDSIGNAL: rtl/arbiter_rr_core.sv:31:33: Signal is not used: 'selected_oh'
+                                                   : ... note: In instance 'arbiter_rr.u_core'
+   31 |     logic [NUM_REQ-1:0]         selected_oh;
+      |                                 ^~~~~~~~~~~
+                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
+                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
+%Warning-UNUSEDSIGNAL: rtl/arbiter_rr_core.sv:32:33: Signal is not used: 'selected_index'
+                                                   : ... note: In instance 'arbiter_rr.u_core'
+   32 |     logic [IDX_WIDTH-1:0]       selected_index;
+      |                                 ^~~~~~~~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/arbiter_rr_core.sv:33:33: Signal is not used: 'selected_valid'
+                                                   : ... note: In instance 'arbiter_rr.u_core'
+   33 |     logic                       selected_valid;
+      |                                 ^~~~~~~~~~~~~~
+%Error: Exiting due to 3 warning(s)

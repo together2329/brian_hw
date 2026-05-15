@@ -3,7 +3,7 @@
   "type": "generic_ssot_rule_rtl_contract",
   "ip": "edge_detector",
   "top": "edge_detector",
-  "generated_at": "2026-05-15T02:45:00Z",
+  "generated_at": "2026-05-15T02:50:00Z",
   "contract": {
     "top": "edge_detector",
     "clock": "PCLK",
@@ -21,6 +21,7 @@
     "outputs": [
       { "name": "edge_o", "port": "edge_o", "width": "WIDTH" },
       { "name": "irq_o", "port": "irq_o", "width": 1 },
+      { "name": "write", "port": "PREADY", "width": 1 },
       { "name": "prdata", "port": "PRDATA", "width": 32 },
       { "name": "pready", "port": "PREADY", "width": 1 },
       { "name": "pslverr", "port": "PSLVERR", "width": 1 }

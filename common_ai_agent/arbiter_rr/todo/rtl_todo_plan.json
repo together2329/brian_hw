@@ -42,12 +42,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 5,
+    "open_required_todos": 7,
     "orphan_tasks": 0,
     "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:37:30Z",
+  "generated_at": "2026-05-15T02:38:51Z",
   "ip": "arbiter_rr",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 24,
@@ -132,30 +132,30 @@
   "rtl_implementation_depth_evidence": {
     "aggregate": {
       "behavior_owner_logic_modules": 3,
-      "control_flow": 30,
-      "depth_score": 154,
+      "control_flow": 45,
+      "depth_score": 289,
       "instances": 2,
-      "lines": 356,
+      "lines": 434,
       "logic_modules": 3,
       "modules": 3,
       "nonconstant_assigns": 20,
       "procedural_blocks": 6,
       "source_files": 3,
-      "state_updates": 25,
+      "state_updates": 85,
       "storage_decls": 32
     },
     "issues": [],
     "modules": [
       {
-        "depth_score": 88,
+        "depth_score": 223,
         "file": "rtl/arbiter_rr_core.sv",
         "metrics": {
-          "control_flow": 23,
+          "control_flow": 38,
           "instances": 0,
           "nonconstant_assigns": 4,
           "placeholder_tokens": false,
           "procedural_blocks": 4,
-          "state_updates": 19,
+          "state_updates": 79,
           "storage_decls": 11
         },
         "module": "arbiter_rr_core"
@@ -1647,9 +1647,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/arbiter_rr_core.sv; rerun DUT compile after the final RTL edit.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -1697,9 +1697,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
+        "reason": "lint/dut_lint.json is older than current RTL source rtl/arbiter_rr_core.sv; rerun DUT lint after the final RTL edit.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -1744,7 +1744,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "4 required non-closure TODO(s) remain open.",
+        "reason": "6 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -1893,7 +1893,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=154, required=86).",
+        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=289, required=86).",
         "required": true,
         "status": "pass"
       }
@@ -9759,11 +9759,23 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 5,
+    "open_required_tasks": 7,
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "4 required non-closure TODO(s) remain open.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/arbiter_rr_core.sv; rerun DUT compile after the final RTL edit.",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "task_id": "RTL-0017"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "lint/dut_lint.json is older than current RTL source rtl/arbiter_rr_core.sv; rerun DUT lint after the final RTL edit.",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "task_id": "RTL-0018"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "6 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -9792,7 +9804,7 @@
         "task_id": "RTL-0026"
       }
     ],
-    "required_passed": 164,
+    "required_passed": 162,
     "required_total": 169,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

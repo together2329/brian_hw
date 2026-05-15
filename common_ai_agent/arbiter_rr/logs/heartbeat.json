@@ -1,7 +1,8 @@
 {
+  "log_stage": "tb-gen",
   "model": "glm-5.1",
-  "phase": "finished",
-  "state": "done",
-  "status": "fail",
-  "ts": "2026-05-15T02:37:57Z"
+  "phase": "llm_call",
+  "stage": "tb-gen",
+  "state": "running",
+  "ts": "2026-05-15T02:38:55Z"
 }
