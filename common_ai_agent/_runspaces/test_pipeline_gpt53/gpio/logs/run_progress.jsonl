@@ -23,3 +23,5 @@
 {"event": "llm_call_start", "log_stage": "rtl-gen-packet-00-module__gpio_regs__function_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "ts": "2026-05-15T09:54:48Z"}
 {"elapsed_sec": 34.357, "error": "", "event": "llm_call_end", "log_stage": "rtl-gen-packet-00-module__gpio_regs__function_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "status": "pass", "ts": "2026-05-15T09:55:22Z"}
 {"event": "llm_call_start", "log_stage": "rtl-gen-packet-01-module__gpio_regs__cycle_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "ts": "2026-05-15T09:55:24Z"}
+{"elapsed_sec": 29.549, "error": "", "event": "llm_call_end", "log_stage": "rtl-gen-packet-01-module__gpio_regs__cycle_model", "model": "gpt-5.3-codex", "stage": "rtl-gen", "status": "pass", "ts": "2026-05-15T09:55:54Z"}
+{"event": "llm_call_start", "log_stage": "rtl-gen-packet-02-module__gpio_regs__test_requirements", "model": "gpt-5.3-codex", "stage": "rtl-gen", "ts": "2026-05-15T09:55:57Z"}

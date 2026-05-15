@@ -51,7 +51,7 @@ module arm_m0_min #(
     );
 
     arm_m0_min_id #(.XLEN(XLEN)) u_id (
-        .clk(clk), .rst(rst), .fault_halt(fault_halt), .if_valid(if_valid), .if_instr(if_instr), .pc_in(pc), .nzcv(nzcv),
+        .fault_halt(fault_halt), .if_valid(if_valid), .if_instr(if_instr), .pc_in(pc), .nzcv(nzcv),
         .id_valid(id_valid), .rs1_addr(rs1_addr), .rs2_addr(rs2_addr), .rd_addr(rd_addr), .imm_ext(imm_ext), .alu_op(alu_op),
         .is_cmp(is_cmp), .is_ldr(is_ldr), .is_str(is_str), .is_b(is_b), .is_beq(is_beq), .is_bne(is_bne), .is_undef(is_undef)
     );

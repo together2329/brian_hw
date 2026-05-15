@@ -1,8 +1,6 @@
 module arm_m0_min_id #(
     parameter integer XLEN = 32
 ) (
-    input  logic             clk,
-    input  logic             rst,
     input  logic             fault_halt,
     input  logic             if_valid,
     input  logic [31:0]      if_instr,

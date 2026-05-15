@@ -1,7 +1,8 @@
 {
   "agent": "common_ai_agent",
   "authoring_packets": [
-    "module__gpio_regs__function_model"
+    "module__gpio_regs__function_model",
+    "module__gpio_regs__cycle_model"
   ],
   "contract_files": [
     "rtl/rtl_contract.json"
@@ -16,6 +17,6 @@
   "surface": "headless_common_engine",
   "todo_plan_sha256": "123947ae1f7d9f96f7ef25a8af2118a8e5c5ac198b54689b9c8f4223188b5dce",
   "type": "rtl_authoring_provenance",
-  "updated_at": "2026-05-15T09:55:23Z",
+  "updated_at": "2026-05-15T09:55:56Z",
   "workflow": "rtl-gen"
 }

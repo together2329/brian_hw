@@ -20,7 +20,11 @@ module arm_m0_min_alu #(
                      ALU_ASR = 4'd8;
 
     logic [4:0] shamt;
+    logic signed [XLEN-1:0] op_a_s;
+    logic signed [XLEN-1:0] asr_res_s;
     assign shamt = op_b[4:0];
+    assign op_a_s = op_a;
+    assign asr_res_s = op_a_s >>> shamt;
 
     always @(*) begin
         alu_res = {XLEN{1'b0}};
@@ -33,7 +37,7 @@ module arm_m0_min_alu #(
             ALU_MOV: alu_res = op_b;
             ALU_LSL: alu_res = op_a << shamt;
             ALU_LSR: alu_res = op_a >> shamt;
-            ALU_ASR: alu_res = $signed(op_a) >>> shamt;
+            ALU_ASR: alu_res = asr_res_s;
             default: alu_res = {XLEN{1'b0}};
         endcase
     end

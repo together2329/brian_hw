@@ -1,8 +1,8 @@
 {
-  "log_stage": "rtl-gen-packet-01-module__gpio_regs__cycle_model",
+  "log_stage": "rtl-gen-packet-02-module__gpio_regs__test_requirements",
   "model": "gpt-5.3-codex",
   "phase": "llm_call",
   "stage": "rtl-gen",
   "state": "running",
-  "ts": "2026-05-15T09:55:24Z"
+  "ts": "2026-05-15T09:55:57Z"
 }
