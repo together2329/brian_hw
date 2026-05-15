@@ -411,10 +411,57 @@ coding_rules:
     - "UNUSEDSIGNAL: reserved bits in registers"
     - "WIDTHEXPAND: signal_i indexing when WIDTH < 8"
 reuse_modules: []
-custom: TBD
+custom:
+  assumptions:
+    - "signal_i may be asynchronous to PCLK; synchronizer handles metastability but does not guarantee detection of pulses shorter than SYNC_STAGES+1 PCLK cycles."
+    - "APB PREADY is assumed tied high (zero wait states) unless SoC fabric introduces wait states."
+    - "No explicit low-power mode; clock gating is external to this IP."
+    - "Reserved EDGE_MODE=3 is treated as 'no detection' (edge_o forced to 0); software must use 0, 1, or 2."
+    - "Overflow flag only indicates that a new edge occurred while sticky was still set; it does not count multiple missed edges."
+  note: "Simple peripheral IP; no custom protocol extensions"
 dir_structure: TBD
 filelist: TBD
-test_requirements: TBD
+test_requirements:
+  scenarios:
+    - { id: "SC1", name: "Basic rising edge detection", stimulus: "Set EDGE_MODE=1, enable=1, toggle signal_i[0] low->high", expected: "edge_o[0]=1 for one cycle; STATUS.edge_sticky[0]=1", checker: "Scoreboard expected/got assertion", coverage: ["function_model transaction DETECT", "cycle_model stage S2_OUTPUT"] }
+    - { id: "SC2", name: "Basic falling edge detection", stimulus: "Set EDGE_MODE=2, enable=1, toggle signal_i[0] high->low", expected: "edge_o[0]=1 for one cycle; STATUS.edge_sticky[0]=1", checker: "Scoreboard expected/got assertion", coverage: ["function_model transaction DETECT", "cycle_model stage S2_OUTPUT"] }
+    - { id: "SC3", name: "Both-edge detection", stimulus: "Set EDGE_MODE=0, enable=1, toggle signal_i[0] both directions", expected: "edge_o[0]=1 on each transition", checker: "Scoreboard counts transitions", coverage: ["both_edge_mode"] }
+    - { id: "SC4", name: "Synchronizer latency", stimulus: "Toggle signal_i after reset; observe first edge_o", expected: "First edge_o appears after SYNC_STAGES+1 cycles", checker: "Cycle checker verifies latency", coverage: ["sync_latency"] }
+    - { id: "SC5", name: "Sticky and overflow behavior", stimulus: "Generate edge, do not clear sticky, generate another edge", expected: "STATUS.overflow=1; edge_o still pulses", checker: "Status register assertion", coverage: ["overflow_flag"] }
+    - { id: "SC6", name: "W1C clear", stimulus: "Write 1s to STATUS after edge detection", expected: "STATUS.edge_sticky and STATUS.overflow cleared to 0", checker: "Register readback assertion", coverage: ["w1c_clear"] }
+    - { id: "SC7", name: "Enable gating", stimulus: "Set enable=0, toggle signal_i", expected: "edge_o remains 0; STATUS unchanged", checker: "Scoreboard expected/got assertion", coverage: ["enable_gating"] }
+    - { id: "SC8", name: "Reserved mode safety", stimulus: "Set EDGE_MODE=3, toggle signal_i", expected: "edge_o remains 0 regardless of input", checker: "Scoreboard expected/got assertion", coverage: ["reserved_mode"] }
+    - { id: "SC9", name: "Interrupt generation", stimulus: "Set irq_enable=1, generate edge", expected: "irq_o=1 same cycle as edge_o", checker: "Interrupt assertion checker", coverage: ["interrupt_latency"] }
+    - { id: "SC10", name: "APB register read/write", stimulus: "Write CONTROL, read back; write STATUS W1C, read back", expected: "Read data matches expected register state", checker: "Register readback assertion", coverage: ["apb_access"] }
+    - { id: "SC11", name: "Illegal APB address", stimulus: "Access unmapped address offset", expected: "PSLVERR=1, no state change", checker: "APB error response checker", coverage: ["error_handling.ERR_ILLEGAL_ACCESS"] }
+    - { id: "SC12", name: "Multi-bit WIDTH operation", stimulus: "WIDTH=8, toggle multiple signal_i bits simultaneously", expected: "edge_o reflects all transitions; each bit independent", checker: "Scoreboard per-bit assertion", coverage: ["multi_bit"] }
+  scoreboard_checks: 24
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Behavioral coverage for edge detection, sticky, overflow, and interrupt behavior."
+      bins:
+        - { id: "FCOV_RISING_EDGE", source_ref: "function_model.transactions.DETECT", class: "transaction", description: "Rising edge detected" }
+        - { id: "FCOV_FALLING_EDGE", source_ref: "function_model.transactions.DETECT", class: "transaction", description: "Falling edge detected" }
+        - { id: "FCOV_BOTH_EDGE", source_ref: "function_model.transactions.DETECT", class: "transaction", description: "Both-edge detection" }
+        - { id: "FCOV_STICKY_SET", source_ref: "function_model.state_variables.status_sticky", class: "state", description: "Sticky flag set" }
+        - { id: "FCOV_OVERFLOW_SET", source_ref: "function_model.state_variables.status_overflow", class: "state", description: "Overflow flag set" }
+        - { id: "FCOV_W1C_CLEAR", source_ref: "registers.STATUS", class: "register", description: "W1C clear of sticky/overflow" }
+        - { id: "FCOV_ENABLE_GATE", source_ref: "function_model.output_rules.edge_o", class: "output", description: "Enable gating verified" }
+        - { id: "FCOV_RESERVED_MODE", source_ref: "error_handling.error_sources.ERR_RESERVED_MODE", class: "error", description: "Reserved mode safely ignored" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle/handshake/latency/FSM coverage for synchronizer delay, edge decode timing, and APB protocol."
+      bins:
+        - { id: "CCOV_SYNC_LATENCY", source_ref: "cycle_model.latency.sync_latency", class: "latency", description: "Synchronizer delay observed" }
+        - { id: "CCOV_EDGE_DECODE", source_ref: "cycle_model.pipeline.S1_EDGE_DECODE", class: "pipeline_stage", description: "Edge decode stage observed" }
+        - { id: "CCOV_IRQ_SAME_CYCLE", source_ref: "cycle_model.latency.interrupt_latency", class: "latency", description: "Interrupt same-cycle assertion" }
+        - { id: "CCOV_APB_READ", source_ref: "io_list.interfaces.apb_slave", class: "protocol", description: "APB read transaction observed" }
+        - { id: "CCOV_APB_WRITE", source_ref: "io_list.interfaces.apb_slave", class: "protocol", description: "APB write transaction observed" }
+    functional: "Legacy alias: function + cycle coverage must both close; new flows read coverage_goals.function and coverage_goals.cycle separately."
+    code: "line >= 90%, branch >= 85%"
 quality_gates: TBD
 traceability: TBD
 workflow_todos: TBD
