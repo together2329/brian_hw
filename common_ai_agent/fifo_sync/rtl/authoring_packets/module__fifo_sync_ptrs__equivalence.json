@@ -8,27 +8,29 @@
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 4,
+      "count": 6,
       "enabled": true,
-      "index": 3,
+      "index": 5,
       "key": "equivalence",
-      "module_task_count": 87,
-      "rule": "Owner module fifo_sync_flags is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 131,
+      "rule": "Owner module fifo_sync_ptrs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "equivalence",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
     "owner": {
-      "file": "rtl/fifo_sync_flags.sv",
-      "name": "fifo_sync_flags",
+      "file": "rtl/fifo_sync_ptrs.sv",
+      "name": "fifo_sync_ptrs",
       "refs": [
         "cycle_model",
-        "cycle_model.latency",
-        "decomposition.units.flag_generation",
+        "cycle_model.handshake_rules",
+        "cycle_model.pipeline",
+        "decomposition.units.pointer_control",
+        "fsm",
+        "fsm.ptr_fsm",
         "function_model",
-        "function_model.transactions",
-        "function_model.transactions.output_rules"
+        "function_model.state_variables"
       ],
       "wiring_only": false
     },
@@ -70,57 +72,24 @@
       {
         "instance": "",
         "machine_readable": true,
-        "module": "fifo_sync_flags",
-        "port": "count_i",
-        "signal": "count",
+        "module": "fifo_sync_ptrs",
+        "port": "clk_i",
+        "signal": "PCLK",
         "signal_terms": [
-          "count"
+          "PCLK"
         ],
-        "source_ref": "integration.connections[8]"
+        "source_ref": "integration.connections[0]"
       },
       {
         "instance": "",
         "machine_readable": true,
-        "module": "fifo_sync_flags",
-        "port": "full_o",
-        "signal": "full_o",
+        "module": "fifo_sync_ptrs",
+        "port": "rst_ni",
+        "signal": "PRESETn",
         "signal_terms": [
-          "full_o"
+          "PRESETn"
         ],
-        "source_ref": "integration.connections[9]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "fifo_sync_flags",
-        "port": "empty_o",
-        "signal": "empty_o",
-        "signal_terms": [
-          "empty_o"
-        ],
-        "source_ref": "integration.connections[10]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "fifo_sync_flags",
-        "port": "almost_full_o",
-        "signal": "almost_full_o",
-        "signal_terms": [
-          "almost_full_o"
-        ],
-        "source_ref": "integration.connections[11]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "fifo_sync_flags",
-        "port": "almost_empty_o",
-        "signal": "almost_empty_o",
-        "signal_terms": [
-          "almost_empty_o"
-        ],
-        "source_ref": "integration.connections[12]"
+        "source_ref": "integration.connections[1]"
       }
     ],
     "ssot_top_io_contracts": [],
@@ -150,9 +119,9 @@
   },
   "ip": "fifo_sync",
   "kind": "module",
-  "owner_file": "rtl/fifo_sync_flags.sv",
-  "owner_module": "fifo_sync_flags",
-  "packet_id": "module__fifo_sync_flags__equivalence",
+  "owner_file": "rtl/fifo_sync_ptrs.sv",
+  "owner_module": "fifo_sync_ptrs",
+  "packet_id": "module__fifo_sync_ptrs__equivalence",
   "rules": [
     "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
     "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
@@ -169,12 +138,12 @@
       "equivalence.module": 1
     },
     "module_slice": {
-      "count": 4,
+      "count": 6,
       "enabled": true,
-      "index": 3,
+      "index": 5,
       "key": "equivalence",
-      "module_task_count": 87,
-      "rule": "Owner module fifo_sync_flags is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 131,
+      "rule": "Owner module fifo_sync_ptrs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "equivalence",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -183,7 +152,7 @@
     "open_required_count": 0,
     "required_count": 1,
     "source_refs": [
-      "sub_modules.fifo_sync_flags.module_equivalence"
+      "sub_modules.fifo_sync_ptrs.module_equivalence"
     ],
     "status_counts": {
       "pass": 1
@@ -193,27 +162,27 @@
   "tasks": [
     {
       "category": "equivalence.module",
-      "content": "Prove module fifo_sync_flags is functionally equivalent to FL",
+      "content": "Prove module fifo_sync_ptrs is functionally equivalent to FL",
       "criteria": [
         "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
         "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
         "scoreboard row fl_expected.model_api is FunctionalModel.apply",
         "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
         "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
-        "Traceability keeps source_ref sub_modules.fifo_sync_flags.module_equivalence",
-        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+        "Traceability keeps source_ref sub_modules.fifo_sync_ptrs.module_equivalence",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
       ],
-      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.fifo_sync_flags.module_equivalence.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via module_equivalence.",
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.fifo_sync_ptrs.module_equivalence.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via module_equivalence.",
       "evidence_terms": [],
-      "id": "RTL-0246",
-      "owner_file": "rtl/fifo_sync_flags.sv",
-      "owner_module": "fifo_sync_flags",
+      "id": "RTL-0245",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
       "priority": "high",
       "required": true,
-      "source_ref": "sub_modules.fifo_sync_flags.module_equivalence",
+      "source_ref": "sub_modules.fifo_sync_ptrs.module_equivalence",
       "ssot_context": {},
       "ssot_refs": [
-        "sub_modules.fifo_sync_flags.module_equivalence"
+        "sub_modules.fifo_sync_ptrs.module_equivalence"
       ],
       "static_evidence": {
         "required": false,
@@ -233,7 +202,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "032a3ff3857e4d4f801c2168d90f620b1f2667ea7c6cbf3a2353967d335fc389",
+  "todo_plan_sha256": "7f458f6bfdb9b16a17f4e9d38e3575fb165fea4c3e449c3d83165af4f6474d43",
   "top": "fifo_sync",
   "type": "rtl_authoring_packet"
 }

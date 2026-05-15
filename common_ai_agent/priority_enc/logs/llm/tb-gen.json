@@ -1,0 +1,15 @@
+{
+  "error": "ATLAS_RUN_REAL_LLM_TDD=1 is not set",
+  "finish_reason": "",
+  "finished_at": "2026-05-15T02:25:43Z",
+  "input_hash": "69821a45fca5fa9d5a4fd0b9ed0ee25eb707d23edd7821debac86f3a114c6312",
+  "model": "glm-5.1",
+  "output_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "parsed_artifacts": [],
+  "prompt_hash": "1b3aa05c4270d31e40cc24a66d1ea72b3c33d91d382c92f041a77581fe8eaf5e",
+  "raw_response": "",
+  "stage": "tb-gen",
+  "started_at": "2026-05-15T02:25:43Z",
+  "status": "blocked",
+  "usage": {}
+}

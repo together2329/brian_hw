@@ -12,19 +12,18 @@
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 3,
+      "module_task_count": 2,
       "task_limit": 48
     },
     "owner": {
-      "file": "rtl/fifo_sync_mem.sv",
-      "name": "fifo_sync_mem",
+      "file": "rtl/fifo_sync_flags.sv",
+      "name": "fifo_sync_flags",
       "refs": [
-        "dataflow",
-        "dataflow.read_path",
-        "dataflow.write_path",
-        "decomposition.units.storage",
-        "memory",
-        "memory.instances"
+        "cycle_model",
+        "cycle_model.latency",
+        "decomposition.units.flag_generation",
+        "function_model",
+        "function_model.transactions.output_rules"
       ],
       "wiring_only": false
     },
@@ -66,68 +65,57 @@
       {
         "instance": "",
         "machine_readable": true,
-        "module": "fifo_sync_mem",
-        "port": "clk_i",
-        "signal": "PCLK",
+        "module": "fifo_sync_flags",
+        "port": "count_i",
+        "signal": "count",
         "signal_terms": [
-          "PCLK"
+          "count"
         ],
-        "source_ref": "integration.connections[2]"
+        "source_ref": "integration.connections[8]"
       },
       {
         "instance": "",
         "machine_readable": true,
-        "module": "fifo_sync_mem",
-        "port": "wr_en_i",
-        "signal": "push_accepted",
+        "module": "fifo_sync_flags",
+        "port": "full_o",
+        "signal": "full_o",
         "signal_terms": [
-          "push_accepted"
+          "full_o"
         ],
-        "source_ref": "integration.connections[3]"
+        "source_ref": "integration.connections[9]"
       },
       {
         "instance": "",
         "machine_readable": true,
-        "module": "fifo_sync_mem",
-        "port": "wr_addr_i",
-        "signal": "wr_ptr",
+        "module": "fifo_sync_flags",
+        "port": "empty_o",
+        "signal": "empty_o",
         "signal_terms": [
-          "wr_ptr"
+          "empty_o"
         ],
-        "source_ref": "integration.connections[4]"
+        "source_ref": "integration.connections[10]"
       },
       {
         "instance": "",
         "machine_readable": true,
-        "module": "fifo_sync_mem",
-        "port": "wr_data_i",
-        "signal": "wr_data_i",
+        "module": "fifo_sync_flags",
+        "port": "almost_full_o",
+        "signal": "almost_full_o",
         "signal_terms": [
-          "wr_data_i"
+          "almost_full_o"
         ],
-        "source_ref": "integration.connections[5]"
+        "source_ref": "integration.connections[11]"
       },
       {
         "instance": "",
         "machine_readable": true,
-        "module": "fifo_sync_mem",
-        "port": "rd_addr_i",
-        "signal": "rd_ptr",
+        "module": "fifo_sync_flags",
+        "port": "almost_empty_o",
+        "signal": "almost_empty_o",
         "signal_terms": [
-          "rd_ptr"
+          "almost_empty_o"
         ],
-        "source_ref": "integration.connections[6]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "fifo_sync_mem",
-        "port": "rd_data_o",
-        "signal": "mem_rd_data",
-        "signal_terms": [
-          "mem_rd_data"
-        ],
-        "source_ref": "integration.connections[7]"
+        "source_ref": "integration.connections[12]"
       }
     ],
     "ssot_top_io_contracts": [],
@@ -157,9 +145,9 @@
   },
   "ip": "fifo_sync",
   "kind": "module",
-  "owner_file": "rtl/fifo_sync_mem.sv",
-  "owner_module": "fifo_sync_mem",
-  "packet_id": "module__fifo_sync_mem",
+  "owner_file": "rtl/fifo_sync_flags.sv",
+  "owner_module": "fifo_sync_flags",
+  "packet_id": "module__fifo_sync_flags",
   "rules": [
     "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
     "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
@@ -174,7 +162,6 @@
   "summary": {
     "categories": {
       "equivalence.module": 1,
-      "memory.instances": 1,
       "workflow_todo.rtl_gen": 1
     },
     "module_slice": {
@@ -182,79 +169,67 @@
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 3,
+      "module_task_count": 2,
       "task_limit": 48
     },
     "open_required_count": 0,
-    "required_count": 3,
+    "required_count": 2,
     "source_refs": [
-      "workflow_todos.rtl-gen[1]",
-      "memory.instances.fifo_ram",
-      "sub_modules.fifo_sync_mem.module_equivalence"
+      "workflow_todos.rtl-gen[2]",
+      "sub_modules.fifo_sync_flags.module_equivalence"
     ],
     "status_counts": {
-      "pass": 3
+      "pass": 2
     },
-    "task_count": 3
+    "task_count": 2
   },
   "tasks": [
     {
       "category": "workflow_todo.rtl_gen",
-      "content": "Implement dual-port register array storage",
+      "content": "Implement combinational flag generation",
       "criteria": [
-        "Memory array declared as reg [DATA_WIDTH-1:0] mem [0:DEPTH-1]",
-        "Write occurs when push_accepted",
-        "Read port drives mem[rd_ptr] combinationally or to output register",
-        "Memory resets to 0 on async reset",
+        "All 5 flags/count outputs match function_model output_rules expressions",
+        "Flags are combinational functions of count",
+        "Threshold comparisons use parameterized thresholds (runtime-writable via APB when USE_APB=1)",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[1]",
-        "Primary implementation evidence is in rtl/fifo_sync_mem.sv",
-        "Semantic source_refs covered: dataflow.read_path, dataflow.write_path, memory.instances.fifo_ram"
+        "Traceability keeps source_ref workflow_todos.rtl-gen[2]",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv",
+        "Semantic source_refs covered: function_model.transactions.FM1.output_rules, function_model.transactions.FM2.output_rules"
       ],
-      "detail": "Behavioral reg array of DEPTH entries x DATA_WIDTH bits. Write port: mem[wr_ptr] <= wr_data_i on push acceptance. Read port: combinational rd_data_o = mem[rd_ptr] (or routed through output register).\nSSOT ref: workflow_todos.rtl-gen[1].\nOwner: fifo_sync_mem in rtl/fifo_sync_mem.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_FIFO_MEM.",
+      "detail": "full_o = (count == DEPTH), empty_o = (count == 0), almost_full_o = (count >= ALMOST_FULL_THRESHOLD), almost_empty_o = (count <= ALMOST_EMPTY_THRESHOLD), count_o = count. Flags are combinational functions of registered count.\nSSOT ref: workflow_todos.rtl-gen[2].\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_FIFO_FLAGS.",
       "evidence_terms": [
         "FIFO",
-        "MEM",
-        "RTL_TODO_FIFO_MEM",
+        "FLAGS",
+        "RTL_TODO_FIFO_FLAGS",
         "TODO",
         "fifo",
-        "fifo_ram",
-        "fifo_sync_mem",
-        "mem",
-        "path",
-        "ram",
-        "read",
-        "read_path",
-        "sync",
-        "write",
-        "write_path"
+        "fifo_sync_flags",
+        "flags",
+        "sync"
       ],
-      "id": "RTL-0028",
-      "owner_file": "rtl/fifo_sync_mem.sv",
-      "owner_module": "fifo_sync_mem",
+      "id": "RTL-0029",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
       "priority": "high",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[1]",
+      "source_ref": "workflow_todos.rtl-gen[2]",
       "ssot_context": {
-        "id": "RTL_TODO_FIFO_MEM"
+        "id": "RTL_TODO_FIFO_FLAGS"
       },
       "ssot_refs": [
-        "dataflow.read_path",
-        "dataflow.write_path",
-        "memory.instances.fifo_ram",
-        "workflow_todos.rtl-gen[1]"
+        "function_model.transactions.FM1.output_rules",
+        "function_model.transactions.FM2.output_rules",
+        "workflow_todos.rtl-gen[2]"
       ],
       "static_evidence": {
-        "matched_count": 8,
+        "matched_count": 6,
         "matched_terms": [
           "FIFO",
-          "MEM",
+          "FLAGS",
           "fifo",
-          "fifo_ram",
-          "fifo_sync_mem",
-          "mem",
-          "ram",
+          "fifo_sync_flags",
+          "flags",
           "sync"
         ],
         "owner_file_scoped": true,
@@ -262,80 +237,16 @@
         "required_match_count": 3,
         "required_terms": [
           "FIFO",
-          "MEM",
-          "RTL_TODO_FIFO_MEM",
+          "FLAGS",
+          "RTL_TODO_FIFO_FLAGS",
           "TODO",
           "fifo",
-          "fifo_ram",
-          "fifo_sync_mem",
-          "mem",
-          "path",
-          "ram",
-          "read",
-          "read_path",
-          "sync",
-          "write",
-          "write_path"
+          "fifo_sync_flags",
+          "flags",
+          "sync"
         ],
-        "source_scope": "rtl/fifo_sync_mem.sv",
+        "source_scope": "rtl/fifo_sync_flags.sv",
         "status": "pass"
-      },
-      "todo_completion": {
-        "criteria_total": 9,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      },
-      "workflow_todo": {
-        "id": "RTL_TODO_FIFO_MEM",
-        "source_refs": [
-          "dataflow.read_path",
-          "dataflow.write_path",
-          "memory.instances.fifo_ram"
-        ],
-        "stage": "rtl-gen",
-        "user_category": ""
-      }
-    },
-    {
-      "category": "memory.instances",
-      "content": "Implement memory item fifo_ram",
-      "criteria": [
-        "RTL owner/evidence is named for this SSOT item",
-        "Behavior is not represented only by comments or TB code",
-        "Downstream verification can observe or justify the item",
-        "Traceability keeps source_ref memory.instances.fifo_ram",
-        "Primary implementation evidence is in rtl/fifo_sync_mem.sv",
-        "fifo_ram width matches SSOT value DATA_WIDTH",
-        "fifo_ram timing uses SSOT cycle/latency 0",
-        "fifo_ram storage depth matches SSOT value DEPTH"
-      ],
-      "detail": "This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: memory.instances.fifo_ram.\nOwner: fifo_sync_mem in rtl/fifo_sync_mem.sv via memory.instances.\nSSOT item context: name=fifo_ram; width=DATA_WIDTH; depth=DEPTH; latency=0.",
-      "evidence_terms": [],
-      "id": "RTL-0191",
-      "owner_file": "rtl/fifo_sync_mem.sv",
-      "owner_module": "fifo_sync_mem",
-      "priority": "high",
-      "required": true,
-      "source_ref": "memory.instances.fifo_ram",
-      "ssot_context": {
-        "depth": "DEPTH",
-        "latency": "0",
-        "name": "fifo_ram",
-        "width": "DATA_WIDTH"
-      },
-      "ssot_refs": [
-        "memory.instances.fifo_ram"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -348,31 +259,40 @@
         "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
         "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_FIFO_FLAGS",
+        "source_refs": [
+          "function_model.transactions.FM1.output_rules",
+          "function_model.transactions.FM2.output_rules"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
       }
     },
     {
       "category": "equivalence.module",
-      "content": "Prove module fifo_sync_mem is functionally equivalent to FL",
+      "content": "Prove module fifo_sync_flags is functionally equivalent to FL",
       "criteria": [
         "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
         "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
         "scoreboard row fl_expected.model_api is FunctionalModel.apply",
         "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
         "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
-        "Traceability keeps source_ref sub_modules.fifo_sync_mem.module_equivalence",
-        "Primary implementation evidence is in rtl/fifo_sync_mem.sv"
+        "Traceability keeps source_ref sub_modules.fifo_sync_flags.module_equivalence",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
       ],
-      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.fifo_sync_mem.module_equivalence.\nOwner: fifo_sync_mem in rtl/fifo_sync_mem.sv via module_equivalence.",
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.fifo_sync_flags.module_equivalence.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via module_equivalence.",
       "evidence_terms": [],
-      "id": "RTL-0244",
-      "owner_file": "rtl/fifo_sync_mem.sv",
-      "owner_module": "fifo_sync_mem",
+      "id": "RTL-0246",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
       "priority": "high",
       "required": true,
-      "source_ref": "sub_modules.fifo_sync_mem.module_equivalence",
+      "source_ref": "sub_modules.fifo_sync_flags.module_equivalence",
       "ssot_context": {},
       "ssot_refs": [
-        "sub_modules.fifo_sync_mem.module_equivalence"
+        "sub_modules.fifo_sync_flags.module_equivalence"
       ],
       "static_evidence": {
         "required": false,

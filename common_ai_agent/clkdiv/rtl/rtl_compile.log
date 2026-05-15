@@ -1,0 +1,4 @@
+rtl/clkdiv_regs.sv: No such file or directory
+error: Unable to find the root module "clkdiv" in the Verilog source.
+     : Perhaps ``-s clkdiv'' is incorrect?
+1 error(s) during elaboration.

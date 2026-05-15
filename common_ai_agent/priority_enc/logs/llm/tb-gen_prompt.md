@@ -1,0 +1,1 @@
+Prepare tb-gen for priority_enc using priority_enc/verify/equivalence_goals.json, priority_enc/model/functional_model.py, and priority_enc/rtl/rtl_contract.json. Do not duplicate expected behavior by hand; scoreboard must call FunctionalModel.

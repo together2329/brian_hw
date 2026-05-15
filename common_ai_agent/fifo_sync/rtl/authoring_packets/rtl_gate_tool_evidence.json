@@ -522,7 +522,7 @@
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "fifo_sync",
-        "reason": "41 required non-closure TODO(s) remain open.",
+        "reason": "37 required non-closure TODO(s) remain open.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -610,7 +610,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "41 required non-closure TODO(s) remain open.",
+        "reason": "37 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -919,7 +919,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "41 required non-closure TODO(s) remain open.",
+        "reason": "37 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -1073,7 +1073,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "032a3ff3857e4d4f801c2168d90f620b1f2667ea7c6cbf3a2353967d335fc389",
+  "todo_plan_sha256": "7f458f6bfdb9b16a17f4e9d38e3575fb165fea4c3e449c3d83165af4f6474d43",
   "top": "fifo_sync",
   "type": "rtl_authoring_packet"
 }

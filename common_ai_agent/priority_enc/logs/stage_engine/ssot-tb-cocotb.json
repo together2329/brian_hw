@@ -1,0 +1,55 @@
+{
+  "artifacts": [
+    "priority_enc/tb/cocotb/test_priority_enc.py",
+    "priority_enc/tb/cocotb/test_runner.py",
+    "priority_enc/tb/cocotb/tb_manifest.json",
+    "priority_enc/tb/cocotb/tb_generation.json",
+    "priority_enc/sim/scoreboard_events.jsonl after /sim",
+    "priority_enc/cov/coverage.json after /sim",
+    "priority_enc/tb/tb_todo_plan.json",
+    "priority_enc/todo/tb_todo_tracker.json",
+    "priority_enc/tb/tb_todo_tracker.json"
+  ],
+  "blocker": "priority_enc/tb/cocotb/tb_blocked.json",
+  "created_at": "2026-05-15T02:25:55Z",
+  "headline": "[ssot-tb-cocotb] BLOCKED - SSOT/RTL contract needs repair",
+  "ip": "priority_enc",
+  "message": "[ssot-tb-cocotb] BLOCKED - SSOT/RTL contract needs repair\nmodule: priority_enc\nsource: priority_enc/yaml/priority_enc.ssot.yaml\ngenerator: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py\nvalidator: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_pyuvm_structure.sh\nblocker: SSOT/RTL contract is not concrete enough for generic cocotb scoreboard generation.\nevidence: priority_enc/tb/cocotb/tb_blocked.json\nnext: Repair SSOT/RTL contract through ATLAS, rerun /ssot-rtl, then rerun /tb.\n\nquestions:\n- TB_GENERATOR_INPUT: Provide the missing source artifact required by generic TB generation.\n  recommended: Run the owning ATLAS stage shown in the evidence, then rerun /tb.\n\nruns:\n- emit_goal_scoreboard_cocotb: exit 2\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py priority_enc --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[SSOT QUESTION] tb-gen blocked for priority_enc: missing equivalence goals: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/priority_enc/verify/equivalence_goals.json\n\nexpected artifacts:\n- priority_enc/tb/cocotb/test_priority_enc.py\n- priority_enc/tb/cocotb/test_runner.py\n- priority_enc/tb/cocotb/tb_manifest.json\n- priority_enc/tb/cocotb/tb_generation.json\n- priority_enc/sim/scoreboard_events.jsonl after /sim\n- priority_enc/cov/coverage.json after /sim\n- priority_enc/tb/tb_todo_plan.json\n- priority_enc/todo/tb_todo_tracker.json\n- priority_enc/tb/tb_todo_tracker.json",
+  "metadata": {
+    "tb_blocked": {
+      "ip": "priority_enc",
+      "next_action": "Repair SSOT/RTL contract through ATLAS, rerun /ssot-rtl, then rerun /tb.",
+      "owner": "ssot-gen + rtl-gen + tb-gen",
+      "questions": [
+        {
+          "decision_needed": "Provide the missing source artifact required by generic TB generation.",
+          "downstream_effect": "The generator must consume disk-truth SSOT, FL, equivalence-goal, and RTL-contract artifacts.",
+          "evidence": "missing equivalence goals: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/priority_enc/verify/equivalence_goals.json",
+          "id": "TB_GENERATOR_INPUT",
+          "options": [
+            "Run the owning ATLAS stage shown in the evidence, then rerun /tb."
+          ],
+          "recommended_default": "Run the owning ATLAS stage shown in the evidence, then rerun /tb."
+        }
+      ],
+      "reason": "SSOT/RTL contract is not concrete enough for generic cocotb scoreboard generation.",
+      "schema_version": 1,
+      "status": "blocked",
+      "timestamp": "2026-05-15T02:25:55Z",
+      "type": "tb_blocker"
+    }
+  },
+  "returncode": 2,
+  "runs": [
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py priority_enc --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "emit_goal_scoreboard_cocotb",
+      "returncode": 2,
+      "stderr": "",
+      "stdout": "[SSOT QUESTION] tb-gen blocked for priority_enc: missing equivalence goals: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/priority_enc/verify/equivalence_goals.json"
+    }
+  ],
+  "stage": "ssot-tb-cocotb",
+  "status": "human_gate",
+  "workflow": "tb-gen"
+}

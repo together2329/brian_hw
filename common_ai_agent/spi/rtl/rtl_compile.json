@@ -9,14 +9,14 @@
   "top": "spi",
   "filelist": "list/spi.f",
   "rtl_files": [
-    "rtl/spi.sv",
     "rtl/spi_regs.sv",
     "rtl/spi_fifo.sv",
     "rtl/spi_clkgen.sv",
     "rtl/spi_shift.sv",
-    "rtl/spi_int.sv"
+    "rtl/spi_int.sv",
+    "rtl/spi.sv"
   ],
-  "timestamp": "2026-05-15T02:20:46Z",
+  "timestamp": "2026-05-15T02:26:14Z",
   "returncode": 0,
   "errors": 0,
   "diagnostics": 0,

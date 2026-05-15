@@ -67,16 +67,16 @@ module pulse_gen #(
         .PSTRB(PSTRB),
         .PRDATA(PRDATA),
         .PSLVERR(PSLVERR),
-        .status_busy_i(pulse_gen_regs_status_busy),
+        .status_busy_i(\pulse_gen_regs.status_busy ),
         .status_done_set_i(pulse_gen_regs_status_done_set),
-        .fired_count_i(pulse_gen_core_fired_count),
+        .fired_count_i(\pulse_gen_core.fired_count ),
         .ctrl_fire_o(ctrl_fire),
         .ctrl_polarity_o(ctrl_polarity),
         .ctrl_enable_o(ctrl_enable),
         .ctrl_hw_trig_en_o(ctrl_hw_trig_en),
-        .pulse_width_o(pulse_gen_core_pulse_width_i),
-        .int_enable_o(pulse_gen_core_int_enable_i),
-        .status_done_o(pulse_gen_regs_status_done)
+        .pulse_width_o(\pulse_gen_core.pulse_width_i ),
+        .int_enable_o(\pulse_gen_core.int_enable_i ),
+        .status_done_o(\pulse_gen_regs.status_done )
     );
 
     pulse_gen_core #(
@@ -89,15 +89,14 @@ module pulse_gen #(
         .ctrl_fire_i(ctrl_fire),
         .ctrl_polarity_i(ctrl_polarity),
         .ctrl_enable_i(ctrl_enable),
-        .ctrl_hw_trig_en_i(ctrl_hw_trig_en),
-        .pulse_width_i(pulse_gen_core_pulse_width_i),
-        .int_enable_i(pulse_gen_core_int_enable_i),
-        .status_done_i(pulse_gen_regs_status_done),
+        .pulse_width_i(\pulse_gen_core.pulse_width_i ),
+        .int_enable_i(\pulse_gen_core.int_enable_i ),
+        .status_done_i(\pulse_gen_regs.status_done ),
         .pulse_out(pulse_out),
         .irq_o(irq_o),
-        .status_busy_o(pulse_gen_regs_status_busy),
+        .status_busy_o(\pulse_gen_regs.status_busy ),
         .status_done_set_o(pulse_gen_regs_status_done_set),
-        .fired_count_o(pulse_gen_core_fired_count)
+        .fired_count_o(\pulse_gen_core.fired_count )
     );
 
 endmodule

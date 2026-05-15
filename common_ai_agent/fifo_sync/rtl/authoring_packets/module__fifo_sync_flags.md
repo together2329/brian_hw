@@ -1,10 +1,10 @@
-# RTL Authoring Packet: module__fifo_sync_flags__workflow_todo
+# RTL Authoring Packet: module__fifo_sync_flags
 
 - Kind: module
 - Owner module: fifo_sync_flags
 - Owner file: rtl/fifo_sync_flags.sv
-- Task count: 1
-- Required tasks: 1
+- Task count: 2
+- Required tasks: 2
 
 ## Rules
 
@@ -26,9 +26,7 @@
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: cycle_model, cycle_model.latency, decomposition.units.flag_generation, function_model, function_model.transactions, function_model.transactions.output_rules
-- Module slice: 4/4 section=workflow_todo task_limit=48
-- Slice rule: Owner module fifo_sync_flags is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Owner refs: cycle_model, cycle_model.latency, decomposition.units.flag_generation, function_model, function_model.transactions.output_rules
 - SSOT connection contracts:
   - fifo_sync_flags.count_i <= count (integration.connections[8])
   - fifo_sync_flags.full_o <= full_o (integration.connections[9])
@@ -60,3 +58,24 @@ SSOT item context: id=RTL_TODO_FIFO_FLAGS.
   - Primary implementation evidence is in rtl/fifo_sync_flags.sv
   - Semantic source_refs covered: function_model.transactions.FM1.output_rules, function_model.transactions.FM2.output_rules
 - SSOT refs: function_model.transactions.FM1.output_rules, function_model.transactions.FM2.output_rules, workflow_todos.rtl-gen[2]
+
+### RTL-0246: Prove module fifo_sync_flags is functionally equivalent to FL
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: equivalence.module
+- Source ref: sub_modules.fifo_sync_flags.module_equivalence
+- Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
+SSOT ref: sub_modules.fifo_sync_flags.module_equivalence.
+Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via module_equivalence.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
+  - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
+  - scoreboard row fl_expected.model_api is FunctionalModel.apply
+  - scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data
+  - Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong
+  - Traceability keeps source_ref sub_modules.fifo_sync_flags.module_equivalence
+  - Primary implementation evidence is in rtl/fifo_sync_flags.sv
+- SSOT refs: sub_modules.fifo_sync_flags.module_equivalence

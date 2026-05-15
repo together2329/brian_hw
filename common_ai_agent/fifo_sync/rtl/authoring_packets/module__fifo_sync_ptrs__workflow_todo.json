@@ -8,27 +8,29 @@
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 4,
+      "count": 6,
       "enabled": true,
-      "index": 4,
+      "index": 6,
       "key": "workflow_todo",
-      "module_task_count": 87,
-      "rule": "Owner module fifo_sync_flags is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 131,
+      "rule": "Owner module fifo_sync_ptrs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "workflow_todo",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
     "owner": {
-      "file": "rtl/fifo_sync_flags.sv",
-      "name": "fifo_sync_flags",
+      "file": "rtl/fifo_sync_ptrs.sv",
+      "name": "fifo_sync_ptrs",
       "refs": [
         "cycle_model",
-        "cycle_model.latency",
-        "decomposition.units.flag_generation",
+        "cycle_model.handshake_rules",
+        "cycle_model.pipeline",
+        "decomposition.units.pointer_control",
+        "fsm",
+        "fsm.ptr_fsm",
         "function_model",
-        "function_model.transactions",
-        "function_model.transactions.output_rules"
+        "function_model.state_variables"
       ],
       "wiring_only": false
     },
@@ -70,57 +72,24 @@
       {
         "instance": "",
         "machine_readable": true,
-        "module": "fifo_sync_flags",
-        "port": "count_i",
-        "signal": "count",
+        "module": "fifo_sync_ptrs",
+        "port": "clk_i",
+        "signal": "PCLK",
         "signal_terms": [
-          "count"
+          "PCLK"
         ],
-        "source_ref": "integration.connections[8]"
+        "source_ref": "integration.connections[0]"
       },
       {
         "instance": "",
         "machine_readable": true,
-        "module": "fifo_sync_flags",
-        "port": "full_o",
-        "signal": "full_o",
+        "module": "fifo_sync_ptrs",
+        "port": "rst_ni",
+        "signal": "PRESETn",
         "signal_terms": [
-          "full_o"
+          "PRESETn"
         ],
-        "source_ref": "integration.connections[9]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "fifo_sync_flags",
-        "port": "empty_o",
-        "signal": "empty_o",
-        "signal_terms": [
-          "empty_o"
-        ],
-        "source_ref": "integration.connections[10]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "fifo_sync_flags",
-        "port": "almost_full_o",
-        "signal": "almost_full_o",
-        "signal_terms": [
-          "almost_full_o"
-        ],
-        "source_ref": "integration.connections[11]"
-      },
-      {
-        "instance": "",
-        "machine_readable": true,
-        "module": "fifo_sync_flags",
-        "port": "almost_empty_o",
-        "signal": "almost_empty_o",
-        "signal_terms": [
-          "almost_empty_o"
-        ],
-        "source_ref": "integration.connections[12]"
+        "source_ref": "integration.connections[1]"
       }
     ],
     "ssot_top_io_contracts": [],
@@ -150,9 +119,9 @@
   },
   "ip": "fifo_sync",
   "kind": "module",
-  "owner_file": "rtl/fifo_sync_flags.sv",
-  "owner_module": "fifo_sync_flags",
-  "packet_id": "module__fifo_sync_flags__workflow_todo",
+  "owner_file": "rtl/fifo_sync_ptrs.sv",
+  "owner_module": "fifo_sync_ptrs",
+  "packet_id": "module__fifo_sync_ptrs__workflow_todo",
   "rules": [
     "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
     "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
@@ -169,12 +138,12 @@
       "workflow_todo.rtl_gen": 1
     },
     "module_slice": {
-      "count": 4,
+      "count": 6,
       "enabled": true,
-      "index": 4,
+      "index": 6,
       "key": "workflow_todo",
-      "module_task_count": 87,
-      "rule": "Owner module fifo_sync_flags is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 131,
+      "rule": "Owner module fifo_sync_ptrs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "workflow_todo",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -183,7 +152,7 @@
     "open_required_count": 0,
     "required_count": 1,
     "source_refs": [
-      "workflow_todos.rtl-gen[2]"
+      "workflow_todos.rtl-gen[0]"
     ],
     "status_counts": {
       "pass": 1
@@ -193,50 +162,57 @@
   "tasks": [
     {
       "category": "workflow_todo.rtl_gen",
-      "content": "Implement combinational flag generation",
+      "content": "Implement pointer management and fill counter",
       "criteria": [
-        "All 5 flags/count outputs match function_model output_rules expressions",
-        "Flags are combinational functions of count",
-        "Threshold comparisons use parameterized thresholds (runtime-writable via APB when USE_APB=1)",
+        "wr_ptr and rd_ptr are declared with correct width ($clog2(DEPTH))",
+        "count is declared with width $clog2(DEPTH+1)",
+        "Push increments wr_ptr and count when wr_en_i && !full_o && !flush_i",
+        "Pop increments rd_ptr and decrements count when rd_en_i && !empty_o && !flush_i",
+        "Simultaneous push/pop: both pointers advance, count unchanged",
+        "Flush: all three reset to 0, priority over push/pop",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[2]",
-        "Primary implementation evidence is in rtl/fifo_sync_flags.sv",
-        "Semantic source_refs covered: function_model.transactions.FM1.output_rules, function_model.transactions.FM2.output_rules"
+        "Traceability keeps source_ref workflow_todos.rtl-gen[0]",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "Semantic source_refs covered: cycle_model.pipeline, fsm.ptr_fsm, function_model.state_variables"
       ],
-      "detail": "full_o = (count == DEPTH), empty_o = (count == 0), almost_full_o = (count >= ALMOST_FULL_THRESHOLD), almost_empty_o = (count <= ALMOST_EMPTY_THRESHOLD), count_o = count. Flags are combinational functions of registered count.\nSSOT ref: workflow_todos.rtl-gen[2].\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_FIFO_FLAGS.",
+      "detail": "Translate function_model state_variables (wr_ptr, rd_ptr, count) and cycle_model pipeline stages into sequential always block with push/pop acceptance logic. Wrapping is modular at DEPTH. Count increments on push, decrements on pop, clamped to [0..DEPTH].\nSSOT ref: workflow_todos.rtl-gen[0].\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_FIFO_PTRS.",
       "evidence_terms": [
         "FIFO",
-        "FLAGS",
-        "RTL_TODO_FIFO_FLAGS",
+        "PTRS",
+        "RTL_TODO_FIFO_PTRS",
         "TODO",
         "fifo",
-        "fifo_sync_flags",
-        "flags",
+        "fifo_sync_ptrs",
+        "ptr",
+        "ptr_fsm",
+        "ptrs",
         "sync"
       ],
-      "id": "RTL-0029",
-      "owner_file": "rtl/fifo_sync_flags.sv",
-      "owner_module": "fifo_sync_flags",
+      "id": "RTL-0027",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
       "priority": "high",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[2]",
+      "source_ref": "workflow_todos.rtl-gen[0]",
       "ssot_context": {
-        "id": "RTL_TODO_FIFO_FLAGS"
+        "id": "RTL_TODO_FIFO_PTRS"
       },
       "ssot_refs": [
-        "function_model.transactions.FM1.output_rules",
-        "function_model.transactions.FM2.output_rules",
-        "workflow_todos.rtl-gen[2]"
+        "cycle_model.pipeline",
+        "fsm.ptr_fsm",
+        "function_model.state_variables",
+        "workflow_todos.rtl-gen[0]"
       ],
       "static_evidence": {
-        "matched_count": 6,
+        "matched_count": 7,
         "matched_terms": [
           "FIFO",
-          "FLAGS",
+          "PTRS",
           "fifo",
-          "fifo_sync_flags",
-          "flags",
+          "fifo_sync_ptrs",
+          "ptr",
+          "ptrs",
           "sync"
         ],
         "owner_file_scoped": true,
@@ -244,19 +220,21 @@
         "required_match_count": 3,
         "required_terms": [
           "FIFO",
-          "FLAGS",
-          "RTL_TODO_FIFO_FLAGS",
+          "PTRS",
+          "RTL_TODO_FIFO_PTRS",
           "TODO",
           "fifo",
-          "fifo_sync_flags",
-          "flags",
+          "fifo_sync_ptrs",
+          "ptr",
+          "ptr_fsm",
+          "ptrs",
           "sync"
         ],
-        "source_scope": "rtl/fifo_sync_flags.sv",
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
         "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 8,
+        "criteria_total": 11,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
@@ -268,17 +246,18 @@
         "status": "pass"
       },
       "workflow_todo": {
-        "id": "RTL_TODO_FIFO_FLAGS",
+        "id": "RTL_TODO_FIFO_PTRS",
         "source_refs": [
-          "function_model.transactions.FM1.output_rules",
-          "function_model.transactions.FM2.output_rules"
+          "cycle_model.pipeline",
+          "fsm.ptr_fsm",
+          "function_model.state_variables"
         ],
         "stage": "rtl-gen",
         "user_category": ""
       }
     }
   ],
-  "todo_plan_sha256": "032a3ff3857e4d4f801c2168d90f620b1f2667ea7c6cbf3a2353967d335fc389",
+  "todo_plan_sha256": "7f458f6bfdb9b16a17f4e9d38e3575fb165fea4c3e449c3d83165af4f6474d43",
   "top": "fifo_sync",
   "type": "rtl_authoring_packet"
 }

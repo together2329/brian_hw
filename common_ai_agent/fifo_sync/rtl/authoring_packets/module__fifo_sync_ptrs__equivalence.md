@@ -1,8 +1,8 @@
-# RTL Authoring Packet: module__fifo_sync_flags__equivalence
+# RTL Authoring Packet: module__fifo_sync_ptrs__equivalence
 
 - Kind: module
-- Owner module: fifo_sync_flags
-- Owner file: rtl/fifo_sync_flags.sv
+- Owner module: fifo_sync_ptrs
+- Owner file: rtl/fifo_sync_ptrs.sv
 - Task count: 1
 - Required tasks: 1
 
@@ -26,28 +26,25 @@
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: cycle_model, cycle_model.latency, decomposition.units.flag_generation, function_model, function_model.transactions, function_model.transactions.output_rules
-- Module slice: 3/4 section=equivalence task_limit=48
-- Slice rule: Owner module fifo_sync_flags is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, decomposition.units.pointer_control, fsm, fsm.ptr_fsm, function_model, function_model.state_variables
+- Module slice: 5/6 section=equivalence task_limit=48
+- Slice rule: Owner module fifo_sync_ptrs is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT connection contracts:
-  - fifo_sync_flags.count_i <= count (integration.connections[8])
-  - fifo_sync_flags.full_o <= full_o (integration.connections[9])
-  - fifo_sync_flags.empty_o <= empty_o (integration.connections[10])
-  - fifo_sync_flags.almost_full_o <= almost_full_o (integration.connections[11])
-  - fifo_sync_flags.almost_empty_o <= almost_empty_o (integration.connections[12])
+  - fifo_sync_ptrs.clk_i <= PCLK (integration.connections[0])
+  - fifo_sync_ptrs.rst_ni <= PRESETn (integration.connections[1])
 
 ## Tasks
 
-### RTL-0246: Prove module fifo_sync_flags is functionally equivalent to FL
+### RTL-0245: Prove module fifo_sync_ptrs is functionally equivalent to FL
 
 - Priority: high
 - Required: True
 - Status: pass
 - Category: equivalence.module
-- Source ref: sub_modules.fifo_sync_flags.module_equivalence
+- Source ref: sub_modules.fifo_sync_ptrs.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
-SSOT ref: sub_modules.fifo_sync_flags.module_equivalence.
-Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via module_equivalence.
+SSOT ref: sub_modules.fifo_sync_ptrs.module_equivalence.
+Owner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via module_equivalence.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
@@ -55,6 +52,6 @@ Owner: fifo_sync_flags in rtl/fifo_sync_flags.sv via module_equivalence.
   - scoreboard row fl_expected.model_api is FunctionalModel.apply
   - scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data
   - Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong
-  - Traceability keeps source_ref sub_modules.fifo_sync_flags.module_equivalence
-  - Primary implementation evidence is in rtl/fifo_sync_flags.sv
-- SSOT refs: sub_modules.fifo_sync_flags.module_equivalence
+  - Traceability keeps source_ref sub_modules.fifo_sync_ptrs.module_equivalence
+  - Primary implementation evidence is in rtl/fifo_sync_ptrs.sv
+- SSOT refs: sub_modules.fifo_sync_ptrs.module_equivalence

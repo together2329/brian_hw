@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "type": "tb_blocker",
+  "status": "blocked",
+  "owner": "ssot-gen + rtl-gen + tb-gen",
+  "ip": "priority_enc",
+  "reason": "SSOT/RTL contract is not concrete enough for generic cocotb scoreboard generation.",
+  "questions": [
+    {
+      "id": "TB_GENERATOR_INPUT",
+      "decision_needed": "Provide the missing source artifact required by generic TB generation.",
+      "evidence": "missing equivalence goals: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/priority_enc/verify/equivalence_goals.json",
+      "options": [
+        "Run the owning ATLAS stage shown in the evidence, then rerun /tb."
+      ],
+      "recommended_default": "Run the owning ATLAS stage shown in the evidence, then rerun /tb.",
+      "downstream_effect": "The generator must consume disk-truth SSOT, FL, equivalence-goal, and RTL-contract artifacts."
+    }
+  ],
+  "next_action": "Repair SSOT/RTL contract through ATLAS, rerun /ssot-rtl, then rerun /tb.",
+  "timestamp": "2026-05-15T02:25:55Z"
+}
