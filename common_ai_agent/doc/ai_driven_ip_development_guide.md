@@ -20,6 +20,13 @@ Evidence-based approval.
 Human review only for real product/spec decisions.
 ```
 
+Wiki map:
+
+- [common_ai_agent wiki index](wiki/index.md)
+- [Workflow ownership and boundaries](wiki/workflow-ownership-and-boundaries.md)
+- [Full flow pipeline](wiki/full-flow-pipeline.md)
+- [Golden todo evidence](wiki/golden-todo-evidence.md)
+
 ## Mental Model
 
 Think of the system like this:
@@ -85,6 +92,14 @@ Hard rule:
 ```text
 If downstream evidence fails, repair the owning downstream artifact or open a
 human review item. Do not edit SSOT/FL/CL/coverage goals just to make a stage pass.
+```
+
+Pipeline-test rule:
+
+```text
+Do not manually patch generated IP artifacts to make a pipeline test pass.
+Classify the owner, route the repair through the owning workflow, then rerun
+the validator. Direct edits are for workflow source/docs fixes only.
 ```
 
 ## Golden Todo Strategy

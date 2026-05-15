@@ -16,6 +16,9 @@ model output only; it should not define approval semantics.
 
 For the broader end-to-end user and multi-agent operating guide, see
 [`ai_driven_ip_development_guide.md`](ai_driven_ip_development_guide.md).
+For cross-linked wiki navigation, start at [`wiki/index.md`](wiki/index.md),
+especially [`wiki/golden-todo-evidence.md`](wiki/golden-todo-evidence.md) and
+[`wiki/workflow-ownership-and-boundaries.md`](wiki/workflow-ownership-and-boundaries.md).
 
 ## Core Principle
 
@@ -39,6 +42,10 @@ human decision needed  -> human_review_needed
 LLM `reason` is still valuable, but it is not the default approval authority.
 It explains intent and repair history. Approval comes from evidence unless a
 todo explicitly opts into a weaker policy.
+
+During pipeline tests, do not manually patch generated IP artifacts to satisfy
+todo criteria. Route the repair through the owning workflow and let the ledger
+plus validator decide whether the row closes.
 
 ## Approval Policies
 

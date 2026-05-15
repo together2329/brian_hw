@@ -9,6 +9,8 @@ In short: LLMs author artifacts, TodoTracker owns execution state, validators
 approve evidence, and human review owns product/spec decisions.
 The user-facing end-to-end operating model is
 [`doc/ai_driven_ip_development_guide.md`](../doc/ai_driven_ip_development_guide.md).
+The cross-linked wiki entry point for LLM/agent navigation is
+[`../doc/wiki/index.md`](../doc/wiki/index.md).
 
 ## Control Surfaces
 
@@ -23,6 +25,7 @@ The user-facing end-to-end operating model is
 - `src/workflow_stage_engine.py` owns deterministic stage execution, artifact paths, validators, return status, and run logs.
 - `src/workflow_stage_surface.py` owns UI-neutral adapter policy: workflow/session names, repair prompt routing, and human-gate signals.
 - UI files may call the surface adapter and render its result. They may not reimplement RTL/TB/sim validators.
+- During pipeline tests, agents must not manually patch generated IP artifacts to make a stage pass. They must classify owner, route repair through the owning workflow, and rerun the common-engine validator.
 
 ## Canonical Flow
 
