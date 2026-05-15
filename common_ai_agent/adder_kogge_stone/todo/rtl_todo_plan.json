@@ -42,12 +42,12 @@
       "Gate: production RTL passes FL-vs-RTL goal audit",
       "Gate: production RTL closes SSOT functional coverage goals"
     ],
-    "open_required_todos": 6,
+    "open_required_todos": 7,
     "orphan_tasks": 0,
     "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T02:24:38Z",
+  "generated_at": "2026-05-15T02:26:46Z",
   "ip": "adder_kogge_stone",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 4,
@@ -543,6 +543,7 @@
         "file": "rtl/adder_kogge_stone_regs.sv",
         "name": "adder_kogge_stone_regs",
         "refs": [
+          "decomposition.units.apb_decode",
           "registers",
           "registers.register_list"
         ],
@@ -554,6 +555,7 @@
         "refs": [
           "cycle_model",
           "cycle_model.pipeline",
+          "decomposition.units.ks_datapath",
           "features",
           "features.ks_addition",
           "fsm",
@@ -888,9 +890,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -1508,7 +1510,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "5 required non-closure TODO(s) remain open.",
+        "reason": "6 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -8089,11 +8091,17 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 6,
+    "open_required_tasks": 7,
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "5 required non-closure TODO(s) remain open.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "task_id": "RTL-0006"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "6 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       },
@@ -8128,7 +8136,7 @@
         "task_id": "RTL-0026"
       }
     ],
-    "required_passed": 140,
+    "required_passed": 139,
     "required_total": 146,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

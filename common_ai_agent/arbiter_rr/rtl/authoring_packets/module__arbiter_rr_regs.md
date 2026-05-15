@@ -26,7 +26,7 @@
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: io_list, io_list.interfaces.apb_slave, registers, registers.register_list
+- Owner refs: decomposition.units.csr_decode, io_list, io_list.interfaces.apb_slave, registers, registers.register_list
 - SSOT target scale: min_behavior_owner_logic_modules=1, min_logic_modules=1, min_modules=3, min_procedural_blocks=4, min_source_files=3, min_state_updates=3
 - SSOT connection contracts:
   - arbiter_rr_regs.PCLK <= PCLK (integration.connections[0])

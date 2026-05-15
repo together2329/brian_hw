@@ -28,7 +28,7 @@
 - Human-locked open tasks: 1
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Locked-truth blockers:
-  - manifest_connection_contract_evidence: 7 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms
+  - manifest_connection_contract_evidence: 4 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_core: SSOT connection contract port is not connected by the RTL named port map
 - SSOT connection contracts:
   - pulse_gen_core.clk_i <= PCLK (integration.connections[0])
   - pulse_gen_core.rst_ni <= PRESETn (integration.connections[1])
@@ -114,7 +114,7 @@ Owner: pulse_gen in rtl/pulse_gen.sv via top_module.
 - Detail: Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.
 SSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.
 Owner: pulse_gen in rtl/pulse_gen.sv via top_module.
-- Current reason: 7 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms
+- Current reason: 4 SSOT connection contract issue(s) remain. pulse_gen_core: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_regs: RTL named port-map expression does not match SSOT connection signal terms; pulse_gen_core: SSOT connection contract port is not connected by the RTL named port map
 - Criteria:
   - Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections
   - Each SSOT connection contract resolves to a reachable manifest child module and port

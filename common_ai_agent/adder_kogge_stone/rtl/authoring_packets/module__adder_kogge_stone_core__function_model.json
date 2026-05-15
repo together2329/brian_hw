@@ -25,6 +25,7 @@
       "refs": [
         "cycle_model",
         "cycle_model.pipeline",
+        "decomposition.units.ks_datapath",
         "features",
         "features.ks_addition",
         "fsm",
@@ -1612,7 +1613,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "cc6c87a960c3a8eaf436bdac0855c0025e0c4c24ce34430682b51e62909c07e1",
+  "todo_plan_sha256": "ca5778f827454955336f5296dbb32b9542962c1f72d9136af0739c2abde77613",
   "top": "adder_kogge_stone",
   "type": "rtl_authoring_packet"
 }

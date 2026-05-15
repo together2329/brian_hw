@@ -42,7 +42,6 @@ sub_modules:
   implements:
   - function_model.state_variables
   - cycle_model.pipeline
-  - fsm.ptr_fsm
   source_sections:
   - function_model
   - cycle_model

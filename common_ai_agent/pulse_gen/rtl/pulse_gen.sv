@@ -89,6 +89,7 @@ module pulse_gen #(
         .ctrl_fire_i(ctrl_fire),
         .ctrl_polarity_i(ctrl_polarity),
         .ctrl_enable_i(ctrl_enable),
+        .ctrl_hw_trig_en_i(ctrl_hw_trig_en),
         .pulse_width_i(\pulse_gen_core.pulse_width_i ),
         .int_enable_i(\pulse_gen_core.int_enable_i ),
         .status_done_i(\pulse_gen_regs.status_done ),
