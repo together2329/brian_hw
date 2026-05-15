@@ -1,6 +1,7 @@
 import threading
 import time
 import pytest
+import sqlite3
 from pathlib import Path
 
 from core.atlas_db import AtlasDB
@@ -48,6 +49,22 @@ class TestUsers:
         fetched = db.get_user_by_username("carol")
         assert fetched is not None
         assert fetched["username"] == "carol"
+
+    def test_user_email_lookup_and_reset_token(self, db):
+        user = db.create_user("erin", "Erin", email="Erin@Example.COM")
+        assert user["email"] == "erin@example.com"
+        assert db.get_user_by_email("ERIN@example.com")["id"] == user["id"]
+
+        with pytest.raises(sqlite3.IntegrityError):
+            db.create_user("erin2", "Erin 2", email="erin@example.com")
+
+        db.set_user_password_reset(user["id"], "token-hash", time.time() + 60)
+        assert db.get_user_by_password_reset_token_hash("token-hash")["id"] == user["id"]
+
+        db.update_user_password(user["id"], "hash-new")
+        refreshed = db.get_user(user["id"])
+        assert refreshed["password_hash"] == "hash-new"
+        assert refreshed["password_reset_token_hash"] is None
 
 
 class TestSessions:

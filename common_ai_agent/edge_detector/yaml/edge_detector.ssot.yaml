@@ -502,11 +502,14 @@ test_requirements:
         - { id: "CCOV_SYNC_LATENCY", source_ref: "cycle_model.latency.sync_latency", class: "latency", description: "Synchronizer delay observed" }
         - { id: "CCOV_EDGE_DECODE", source_ref: "cycle_model.pipeline.S1_EDGE_DECODE", class: "pipeline_stage", description: "Edge decode stage observed" }
         - { id: "CCOV_IRQ_SAME_CYCLE", source_ref: "cycle_model.latency.interrupt_latency", class: "latency", description: "Interrupt same-cycle assertion" }
-        - { id: "CCOV_APB_READ", source_ref: "io_list.interfaces.apb_slave", class: "protocol", description: "APB read transaction observed" }
-        - { id: "CCOV_APB_WRITE", source_ref: "io_list.interfaces.apb_slave", class: "protocol", description: "APB write transaction observed" }
+        - { id: "CCOV_APB_READ", source_ref: "cycle_model.handshake_rules", class: "protocol", description: "APB read transaction observed" }
+        - { id: "CCOV_APB_WRITE", source_ref: "cycle_model.handshake_rules", class: "protocol", description: "APB write transaction observed" }
     functional: "Legacy alias: function + cycle coverage must both close; new flows read coverage_goals.function and coverage_goals.cycle separately."
     code: "line >= 90%, branch >= 85%"
 quality_gates:
+  ssot:
+    pass: "SSOT is complete, validated, and contains no unresolved TBD markers in production sections."
+    evidence: ["yaml/edge_detector.ssot.yaml", "check_ssot_disk.sh PASS output"]
   rtl_gen:
     profile: "production"
     target_scale:
@@ -530,9 +533,15 @@ quality_gates:
   coverage:
     pass: "SSOT-declared functional/code/toggle/FSM/assertion coverage goals pass or have approved SSOT waivers."
     evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+  dv:
+    pass: "All SSOT-declared test scenarios execute, scoreboard checks pass, and coverage goals meet targets or have approved waivers."
+    evidence: ["sim/sim_report.txt", "sim/coverage_report.md", "cov/coverage.json"]
   eda:
     pass: "Synthesis, STA, PnR, and post-route STA meet SSOT timing/area/power/physical targets or have approved SSOT waivers."
     evidence: ["syn report", "sta reports", "pnr report", "routed.spef", "sta-post reports"]
+  signoff:
+    pass: "All quality gates (SSOT, RTL, DV, Coverage, EDA) close with approved evidence or waivers."
+    evidence: ["ATLAS signoff checklist", "quality_gates.json"]
 traceability:
   yaml_to_output:
     - { yaml: "top_module.name", output: "ALL files (module name)" }

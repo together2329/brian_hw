@@ -25,6 +25,7 @@ class AtlasStorage(Protocol):
         display_name: str,
         password_hash: Optional[str] = None,
         role: str = "user",
+        email: Optional[str] = None,
     ) -> dict[str, Any]:
         ...
 
@@ -80,8 +81,9 @@ class SQLiteStorage:
         display_name: str,
         password_hash: Optional[str] = None,
         role: str = "user",
+        email: Optional[str] = None,
     ) -> dict[str, Any]:
-        return self._db.create_user(username, display_name, password_hash=password_hash, role=role)
+        return self._db.create_user(username, display_name, password_hash=password_hash, role=role, email=email)
 
     def create_session(
         self,

@@ -58,6 +58,7 @@ _EXPECTED_TABLES = {
 
 
 _EXPECTED_INDEXES = {
+    "idx_users_email", "idx_users_password_reset_token",
     "idx_sessions_user", "idx_messages_session", "idx_parts_message",
     "idx_feedback_user", "idx_feedback_status",
     "idx_queue_session_direction", "idx_queue_created",
@@ -110,7 +111,9 @@ def test_all_expected_indexes_present(db):
 
 
 @pytest.mark.parametrize("table,must_have", [
-    ("users",          {"id", "username", "display_name", "role", "password_hash"}),
+    ("users",          {"id", "username", "display_name", "email", "role", "password_hash",
+                        "password_reset_token_hash", "password_reset_expires_at",
+                        "password_reset_requested_at", "password_reset_used_at"}),
     ("sessions",       {"id", "user_id", "status", "directory", "summary"}),
     ("messages",       {"id", "session_id", "role", "model_id", "provider_id",
                         "cost", "tokens_input", "tokens_output", "tokens_reasoning"}),

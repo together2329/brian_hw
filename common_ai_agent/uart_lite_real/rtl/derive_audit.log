@@ -1,0 +1,1 @@
+[derive_rtl_todos] uart_lite_real: tasks=22 blockers=2 orphans=0 gate=blocked

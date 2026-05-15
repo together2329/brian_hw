@@ -19,6 +19,7 @@ function AdminPage() {
   const [loginSubmitting, setLoginSubmitting] = React.useState(false);
   const [loginForm, setLoginForm] = React.useState({
     username: 'admin',
+    email: '',
     password: '',
     displayName: 'Admin',
   });
@@ -138,11 +139,18 @@ function AdminPage() {
         throw new Error('Username and password required');
       }
       const createFirstAdmin = authStatus && authStatus.login_required && !authStatus.admin_user_exists;
+      const email = String(loginForm.email || '').trim();
+      if (createFirstAdmin && authStatus.email_required && !email) {
+        throw new Error('Email required');
+      }
       const payload = {
         username,
         password,
         display_name: String(loginForm.displayName || '').trim() || username,
       };
+      if (createFirstAdmin && email) {
+        payload.email = email;
+      }
       let r = await fetch(createFirstAdmin ? '/api/auth/register' : '/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -724,6 +732,18 @@ function AdminPage() {
                 />
               </label>
             )}
+            {!authStatus.admin_user_exists && (
+              <label style={loginFieldStyle}>
+                Email{authStatus.email_required ? '' : ' (optional)'}
+                <input
+                  style={loginInputStyle}
+                  type="email"
+                  value={loginForm.email}
+                  autoComplete="email"
+                  onChange={(ev) => setLoginForm((prev) => ({ ...prev, email: ev.target.value }))}
+                />
+              </label>
+            )}
             <label style={loginFieldStyle}>
               Password
               <input
@@ -1021,6 +1041,7 @@ function AdminPage() {
                   <thead>
                     <tr>
                       <th style={thStyle}>Username</th>
+                      <th style={thStyle}>Email</th>
                       <th style={thStyle}>Display Name</th>
                       <th style={thStyle}>Role</th>
                       <th style={thStyle}>Sessions</th>
@@ -1030,12 +1051,13 @@ function AdminPage() {
                   <tbody>
                     {filteredUsers.length === 0 ? (
                       <tr>
-                        <td colSpan={5} style={{ ...tdStyle, ...emptyStateStyle }}>No users found.</td>
+                        <td colSpan={6} style={{ ...tdStyle, ...emptyStateStyle }}>No users found.</td>
                       </tr>
                     ) : (
                       filteredUsers.map((u) => (
                         <tr key={u.id}>
                           <td style={tdStyle}>{u.username}</td>
+                          <td style={tdStyle}>{u.email || '—'}</td>
                           <td style={tdStyle}>{u.display_name || '—'}</td>
                           <td style={tdStyle}>
                             <span style={{

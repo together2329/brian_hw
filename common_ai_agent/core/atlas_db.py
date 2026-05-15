@@ -33,11 +33,20 @@ CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     username TEXT UNIQUE,
     display_name TEXT,
+    email TEXT,
     password_hash TEXT,
     role TEXT DEFAULT 'user',
     created_at REAL,
-    last_login_at REAL
+    last_login_at REAL,
+    password_reset_token_hash TEXT,
+    password_reset_expires_at REAL,
+    password_reset_requested_at REAL,
+    password_reset_used_at REAL
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email
+    ON users(email) WHERE email IS NOT NULL AND email != '';
+CREATE INDEX IF NOT EXISTS idx_users_password_reset_token
+    ON users(password_reset_token_hash) WHERE password_reset_token_hash IS NOT NULL;
 
 -- sessions
 CREATE TABLE IF NOT EXISTS sessions (
@@ -466,6 +475,19 @@ class AtlasDB:
 
     def _run_lightweight_migrations(self, conn: sqlite3.Connection) -> None:
         """Apply additive SQLite migrations for existing local databases."""
+        self._ensure_column(conn, "users", "email", "TEXT")
+        self._ensure_column(conn, "users", "password_reset_token_hash", "TEXT")
+        self._ensure_column(conn, "users", "password_reset_expires_at", "REAL")
+        self._ensure_column(conn, "users", "password_reset_requested_at", "REAL")
+        self._ensure_column(conn, "users", "password_reset_used_at", "REAL")
+        conn.execute(
+            """CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email
+                  ON users(email) WHERE email IS NOT NULL AND email != ''"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_users_password_reset_token
+                  ON users(password_reset_token_hash) WHERE password_reset_token_hash IS NOT NULL"""
+        )
         self._ensure_column(conn, "workflow_todos", "notes", "TEXT")
         # Backfill the chat-room index on databases created before
         # 2026-05-15. CREATE INDEX IF NOT EXISTS is idempotent so this
@@ -510,27 +532,35 @@ class AtlasDB:
         display_name: str,
         password_hash: str = None,
         role: str = "user",
+        email: str = None,
     ) -> Dict[str, Any]:
         """Create a new user. Returns the user dict."""
         user_id = self._new_id()
         now = self._now()
         role = role or "user"
+        email = self._normalize_email(email)
         self._execute(
             """
-            INSERT INTO users (id, username, display_name, password_hash, role, created_at, last_login_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO users (id, username, display_name, email, password_hash, role, created_at, last_login_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (user_id, username, display_name, password_hash, role, now, None),
+            (user_id, username, display_name, email, password_hash, role, now, None),
         )
         return {
             "id": user_id,
             "username": username,
             "display_name": display_name,
+            "email": email,
             "password_hash": password_hash,
             "role": role,
             "created_at": now,
             "last_login_at": None,
         }
+
+    @staticmethod
+    def _normalize_email(email: str = None) -> Optional[str]:
+        value = str(email or "").strip().lower()
+        return value or None
 
     def get_user(self, user_id: str) -> Optional[Dict[str, Any]]:
         """Get user by ID. Returns user dict or None."""
@@ -546,9 +576,70 @@ class AtlasDB:
             return None
         return self._row_to_dict(row, "users")
 
+    def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+        """Get user by normalized email. Returns user dict or None."""
+        normalized = self._normalize_email(email)
+        if not normalized:
+            return None
+        row = self._fetchone("SELECT * FROM users WHERE email = ?", (normalized,))
+        if row is None:
+            return None
+        return self._row_to_dict(row, "users")
+
+    def get_user_by_password_reset_token_hash(self, token_hash: str) -> Optional[Dict[str, Any]]:
+        """Get user by password reset token hash. Returns user dict or None."""
+        if not token_hash:
+            return None
+        row = self._fetchone(
+            "SELECT * FROM users WHERE password_reset_token_hash = ?",
+            (token_hash,),
+        )
+        if row is None:
+            return None
+        return self._row_to_dict(row, "users")
+
     def set_user_role(self, user_id: str, role: str) -> Optional[Dict[str, Any]]:
         """Update a user's role and return the refreshed user."""
         self._execute("UPDATE users SET role = ? WHERE id = ?", (role, user_id))
+        return self.get_user(user_id)
+
+    def set_user_password_reset(
+        self,
+        user_id: str,
+        token_hash: str,
+        expires_at: float,
+        requested_at: float = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Store a password-reset token hash and expiry for a user."""
+        requested_at = requested_at if requested_at is not None else self._now()
+        self._execute(
+            """
+            UPDATE users
+               SET password_reset_token_hash = ?,
+                   password_reset_expires_at = ?,
+                   password_reset_requested_at = ?,
+                   password_reset_used_at = NULL
+             WHERE id = ?
+            """,
+            (token_hash, expires_at, requested_at, user_id),
+        )
+        return self.get_user(user_id)
+
+    def update_user_password(self, user_id: str, password_hash: str) -> Optional[Dict[str, Any]]:
+        """Update password and consume any outstanding password-reset token."""
+        now = self._now()
+        self._execute(
+            """
+            UPDATE users
+               SET password_hash = ?,
+                   password_reset_token_hash = NULL,
+                   password_reset_expires_at = NULL,
+                   password_reset_requested_at = NULL,
+                   password_reset_used_at = ?
+             WHERE id = ?
+            """,
+            (password_hash, now, user_id),
+        )
         return self.get_user(user_id)
 
     # ---------- Sessions ----------
@@ -915,19 +1006,22 @@ class AtlasDB:
         role: str = "user",
         created_at: float = None,
         last_login_at: float = None,
+        email: str = None,
     ) -> Dict[str, Any]:
         now = created_at or self._now()
+        email = self._normalize_email(email)
         self._execute(
             """
-            INSERT OR IGNORE INTO users (id, username, display_name, password_hash, role, created_at, last_login_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT OR IGNORE INTO users (id, username, display_name, email, password_hash, role, created_at, last_login_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (user_id, username, display_name, password_hash, role, now, last_login_at),
+            (user_id, username, display_name, email, password_hash, role, now, last_login_at),
         )
         return self.get_user(user_id) or {
             "id": user_id,
             "username": username,
             "display_name": display_name,
+            "email": email,
             "role": role,
         }
 
@@ -2452,7 +2546,7 @@ class AtlasDB:
         """List all users (excludes password_hash)."""
         rows = self._fetchall(
             """
-            SELECT id, username, display_name, role, created_at, last_login_at
+            SELECT id, username, display_name, email, role, created_at, last_login_at
             FROM users ORDER BY created_at DESC
             """
         )

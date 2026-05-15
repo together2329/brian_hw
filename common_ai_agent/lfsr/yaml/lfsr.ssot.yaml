@@ -131,9 +131,109 @@ features:
     datapath: "Zero-detect on state register"
     control: "Auto-reloads DEFAULT_SEED if CTRL.auto_reload is set; else halts"
     output: "prbs_valid deasserted; STATUS.lockup flagged"
-dataflow: TBD
-function_model: TBD
-cycle_model: TBD
+dataflow:
+  register_path:
+    source: "APB-lite interface"
+    decode: "lfsr_regs decodes PADDR to select CTRL, POLY, SEED, STATUS, or PRBS register"
+    write: "PWDATA latched into selected register on PENABLE && PWRITE && PREADY"
+    read: "Selected register value driven to PRDATA on PENABLE && !PWRITE && PREADY"
+  prbs_path:
+    source: "lfsr_state register"
+    feedback: "XOR reduction of lfsr_state bits selected by poly_reg tap mask"
+    next_state: "{feedback_bit, lfsr_state[LFSR_WIDTH-1:1]} — right shift with new MSB"
+    output: "prbs_out = lfsr_state; prbs_bit = lfsr_state[0]"
+    enable_gate: "CTRL.enable must be 1 for state update; state holds when disabled"
+function_model:
+  purpose: "Executable behavioral contract for rtl-gen and tb-gen; describes the LFSR computation independent of cycle timing."
+  state_variables:
+    - { name: "lfsr_state", source: "registers.PRBS / SEED", reset: "DEFAULT_SEED", description: "Current LFSR shift-register value" }
+    - { name: "poly_reg",   source: "registers.POLY",        reset: "DEFAULT_POLY",   description: "Programmable polynomial tap mask" }
+    - { name: "ctrl_reg",   source: "registers.CTRL",        reset: 0,              description: "Control register {auto_reload, enable}" }
+    - { name: "status_reg", source: "registers.STATUS",      reset: 0,              description: "Status register {lockup, running}" }
+  transactions:
+    - id: "FM1"
+      name: "single_step_prbs"
+      preconditions:
+        - "ctrl_reg.enable == 1"
+        - "lfsr_state != 0"
+      inputs:
+        - "lfsr_state (current)"
+        - "poly_reg (tap mask)"
+      outputs:
+        - { name: "prbs_out", expr: "lfsr_state",                     width: "LFSR_WIDTH", port: "prbs_out" }
+        - { name: "prbs_bit", expr: "lfsr_state[0]",                  width: 1,            port: "prbs_bit" }
+      state_updates:
+        - { name: "lfsr_state", reset: "DEFAULT_SEED", expr: "{feedback_bit, lfsr_state[LFSR_WIDTH-1:1]} where feedback_bit = ^(lfsr_state & poly_reg)" }
+      side_effects:
+        - "status_reg.running set to 1"
+    - id: "FM2"
+      name: "load_seed"
+      preconditions:
+        - "APB write to SEED register (offset 0x08)"
+      inputs:
+        - "PWDATA[APB_DATA_WIDTH-1:0]"
+      outputs: []
+      state_updates:
+        - { name: "lfsr_state", reset: "DEFAULT_SEED", expr: "PWDATA truncated to LFSR_WIDTH bits" }
+      side_effects:
+        - "prbs_valid deasserted for one cycle after load"
+    - id: "FM3"
+      name: "load_polynomial"
+      preconditions:
+        - "APB write to POLY register (offset 0x04)"
+        - "ctrl_reg.enable == 0 (polynomial change only when halted)"
+      inputs:
+        - "PWDATA[APB_DATA_WIDTH-1:0]"
+      outputs: []
+      state_updates:
+        - { name: "poly_reg", reset: "DEFAULT_POLY", expr: "PWDATA truncated to LFSR_WIDTH bits" }
+      side_effects: []
+    - id: "FM4"
+      name: "lockup_recovery"
+      preconditions:
+        - "lfsr_state == 0 after a step"
+      inputs: []
+      outputs:
+        - { name: "prbs_valid", expr: "0", width: 1, port: "prbs_valid" }
+      state_updates:
+        - { name: "lfsr_state", reset: "DEFAULT_SEED", expr: "DEFAULT_SEED if ctrl_reg.auto_reload else 0" }
+      side_effects:
+        - "status_reg.lockup set to 1"
+        - "status_reg.running cleared to 0"
+  invariants:
+    - "LFSR state never changes when ctrl_reg.enable == 0 except via APB write to SEED or reset."
+    - "Polynomial register is writable only when enable == 0."
+    - "All-zero state is detected and either auto-reloaded or held."
+  reference_model_hint: "tb-gen should implement a Python LFSR model from this section and compare expected/got for every scenario."
+cycle_model:
+  purpose: "Cycle/handshake contract for rtl-gen; describes when state, valid/ready, outputs, and status may change."
+  executable: "pymtl3"
+  backend_policy: "Use PyMTL3 for the clocked cycle model shell; keep FunctionalModel as the behavioral oracle and run direct Python smoke checks instead of relying on pytest-pymtl3."
+  clock: "PCLK"
+  reset:
+    assertion: "PRESETn low asynchronously clears all architectural state to reset values"
+    deassertion: "state is usable on the first rising edge after synchronized deassertion"
+  latency:
+    register_read:  { min_cycles: 0, max_cycles: 1, description: "APB-lite read data and pready timing" }
+    register_write: { min_cycles: 0, max_cycles: 1, description: "APB-lite write acceptance timing" }
+    prbs_output:    { min_cycles: 1, max_cycles: 1, description: "Single-cycle LFSR step latency" }
+  handshake_rules:
+    - { signal: "PSEL/PENABLE", rule: "Standard APB4: setup phase (PSEL=1,PENABLE=0) followed by access phase (PSEL=1,PENABLE=1); PREADY completes the transfer." }
+  pipeline:
+    - { stage: "S0_IDLE",      cycle: 0, action: "Hold state; sample APB decode and enable" }
+    - { stage: "S1_STEP",      cycle: 1, action: "Compute next LFSR state if enabled; update prbs_out/prbs_bit/prbs_valid" }
+  ordering:
+    - "APB write to SEED takes effect on the same cycle as the completing PREADY."
+    - "LFSR state update occurs on the rising edge after enable is sampled high."
+  backpressure:
+    - "No backpressure on PRBS output; downstream must sample prbs_out/prbs_bit on appropriate cycles."
+  performance:
+    frequency_mhz: 50
+    throughput: { sustained_prbs_per_cycle: 1, condition: "CTRL.enable == 1 and no lockup" }
+    outstanding: { read_max: 1, write_max: 1, description: "Single APB transaction at a time" }
+    depth: { pipeline_stages: 1, queue_depth: 0, description: "Single-stage combinational feedback with registered output" }
+  observability:
+    - "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
 clock_reset_domains:
   domains:
     - { name: "PCLK", frequency_mhz: 50, description: "Single peripheral clock domain" }
@@ -141,25 +241,289 @@ clock_reset_domains:
     signal: "PRESETn"
     polarity: "active_low"
     type: "async_assert_sync_deassert"
-cdc_requirements: TBD
-rdc_requirements: TBD
-registers: TBD
-memory: TBD
-interrupts: TBD
-fsm: TBD
-rtl_contract: TBD
-timing: TBD
-power: TBD
-security: TBD
-error_handling: TBD
-debug_observability: TBD
-integration: TBD
-dft: TBD
-synthesis: TBD
-pnr: TBD
-coding_rules: TBD
-reuse_modules: TBD
-custom: TBD
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain (PCLK) — no CDC required"
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "No reset domain crossings"
+registers:
+  config:
+    register_width: 32
+    addr_width: 8
+    byte_addressable: true
+    alignment_bytes: 4
+  bit_order: "lsb0"
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: "ignore"
+    rtl_requirement: "Reserved fields read as zero and do not allocate storage."
+  register_list:
+    - name: "CTRL"
+      offset: 0x00
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "control"
+      description: "Control Register"
+      write_side_effects:
+        - "Writing enable=1 starts PRBS generation from current lfsr_state."
+        - "Writing enable=0 halts PRBS generation; state holds."
+        - "auto_reload controls lockup behavior."
+      fields:
+        - { name: "enable",      bits: [0, 0], access: "rw", reset: 0x0, write_effect: "1=run, 0=halt", description: "PRBS enable" }
+        - { name: "auto_reload", bits: [1, 1], access: "rw", reset: 0x0, write_effect: "1=reload DEFAULT_SEED on lockup, 0=halt on lockup", description: "Auto-reload on lockup" }
+        - { name: "reserved_31_2", bits: [31, 2], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+    - name: "POLY"
+      offset: 0x04
+      width: 32
+      access: "rw"
+      reset: "DEFAULT_POLY"
+      category: "config"
+      description: "Polynomial Register"
+      write_side_effects:
+        - "Writable only when CTRL.enable == 0."
+      fields:
+        - { name: "poly", bits: [31, 0], access: "rw", reset: "DEFAULT_POLY", write_effect: "Update polynomial tap mask", description: "Feedback polynomial (taps)" }
+    - name: "SEED"
+      offset: 0x08
+      width: 32
+      access: "rw"
+      reset: "DEFAULT_SEED"
+      category: "config"
+      description: "Seed Register"
+      write_side_effects:
+        - "Direct load of LFSR state; takes effect immediately on PREADY."
+      fields:
+        - { name: "seed", bits: [31, 0], access: "rw", reset: "DEFAULT_SEED", write_effect: "Load LFSR state", description: "LFSR seed value" }
+    - name: "STATUS"
+      offset: 0x0C
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "status"
+      description: "Status Register"
+      fields:
+        - { name: "running", bits: [0, 0], access: "ro", reset: 0x0, description: "1=LFSR is stepping, 0=halted" }
+        - { name: "lockup",  bits: [1, 1], access: "ro", reset: 0x0, description: "1=lockup detected (all-zero state)" }
+        - { name: "reserved_31_2", bits: [31, 2], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+    - name: "PRBS"
+      offset: 0x10
+      width: 32
+      access: "ro"
+      reset: "DEFAULT_SEED"
+      category: "status"
+      description: "Current PRBS Value (read-only copy of lfsr_state)"
+      fields:
+        - { name: "prbs", bits: [31, 0], access: "ro", reset: "DEFAULT_SEED", description: "Current LFSR state value" }
+memory:
+  instances: []
+  note: "No SRAM/FIFO in LFSR. All state is in flip-flops (registers)."
+interrupts:
+  sources: []
+  output: {}
+  note: "No interrupt output in this LFSR IP revision; status is polled via APB."
+fsm:
+  lfsr_control:
+    states:
+      - "IDLE"
+      - "RUNNING"
+      - "LOCKUP"
+    transitions:
+      - { from: "IDLE",    to: "RUNNING", condition: "CTRL.enable == 1 && lfsr_state != 0" }
+      - { from: "RUNNING", to: "IDLE",    condition: "CTRL.enable == 0" }
+      - { from: "RUNNING", to: "LOCKUP",  condition: "lfsr_state == 0" }
+      - { from: "LOCKUP",  to: "IDLE",    condition: "CTRL.enable == 0" }
+      - { from: "LOCKUP",  to: "RUNNING", condition: "CTRL.enable == 1 && CTRL.auto_reload == 1" }
+rtl_contract:
+  transaction: "FM1"
+  sample_condition: "transaction completes on each enabled clock cycle"
+  input_map:
+    polynomial: "registers.POLY.poly"
+    seed: "registers.SEED.seed"
+    enable: "registers.CTRL.enable"
+    auto_reload: "registers.CTRL.auto_reload"
+  output_map:
+    prbs_out: "prbs_out port (LFSR_WIDTH bits)"
+    prbs_bit: "prbs_bit port (1 bit)"
+    prbs_valid: "prbs_valid port (1 bit)"
+    status: "registers.STATUS"
+  state_updates:
+    - { name: "lfsr_state", reset: "DEFAULT_SEED", expr: "{^(lfsr_state & poly_reg), lfsr_state[LFSR_WIDTH-1:1]} when enabled" }
+    - { name: "poly_reg",   reset: "DEFAULT_POLY",   expr: "PWDATA on APB write to POLY when halted" }
+    - { name: "ctrl_reg",   reset: 0,              expr: "PWDATA on APB write to CTRL" }
+    - { name: "status_reg", reset: 0,              expr: "{running: enabled && !lockup, lockup: lfsr_state==0}" }
+timing:
+  target_clocks:
+    - { name: "PCLK", frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.5 }
+  latency_budget:
+    register_access_cycles: { min: 1, max: 2, measured_from: "PSEL && PENABLE", measured_to: "PREADY" }
+    prbs_output_latency_cycles: { min: 1, max: 1, measured_from: "enable sampled high", measured_to: "prbs_out valid" }
+  throughput:
+    sustained_prbs_per_cycle: 1
+    conditions: "CTRL.enable == 1 and no lockup condition"
+  timing_exceptions: []
+  io_delays:
+    inputs:
+      - { ports: "all_inputs_except_clocks_resets", clock: "PCLK", delay_ns: 0.5, source: "system-level timing budget" }
+    outputs:
+      - { ports: "all_outputs", clock: "PCLK", delay_ns: 0.5, source: "system-level timing budget" }
+  false_paths:
+    - { from: "PRESETn", to: "all_registers", reason: "async reset assertion" }
+  multicycle_paths: []
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt", "sta/out/wns.json"]
+power:
+  domains:
+    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["PCLK"], isolation: "not_required_single_domain" }
+  clock_gating:
+    required: false
+    rationale: "No explicit low-power mode in this IP revision"
+  reset_retention:
+    retention_required: false
+    reset_value_source: "registers and function_model state_variables"
+  power_states:
+    - { name: "ON", entry: "reset deasserted", exit: "reset asserted", guarantees: ["All architectural behavior active"] }
+  upf_required: false
+security:
+  classification: "non_secure_peripheral"
+  assets:
+    - { name: "register_map", protection: "APB access control is external to this IP" }
+    - { name: "prbs_sequence", protection: "Sequence is deterministic given polynomial and seed; no cryptographic strength claimed" }
+  threat_model:
+    - { threat: "illegal register write", mitigation: "RO access policy and enable-gated write side effects in registers.register_list" }
+    - { threat: "lockup denial of service", mitigation: "auto_reload option and STATUS.lockup visibility" }
+  privilege_model: "External bus fabric enforces privilege; this IP implements no internal privilege levels"
+  safety_goals:
+    - "Lockup condition is software-visible via STATUS.lockup"
+    - "All-zero state cannot persist undetected when auto_reload is enabled"
+error_handling:
+  error_sources:
+    - { id: "ERR_APB", condition: "APB access to undefined address or write to POLY while enabled", architectural_effect: "PSLVERR asserted with PREADY" }
+    - { id: "ERR_LOCKUP", condition: "lfsr_state becomes all-zero", architectural_effect: "STATUS.lockup=1, prbs_valid=0, auto-reload or halt per CTRL.auto_reload" }
+  propagation:
+    - "APB error is signaled on the completing cycle only; no persistent error state." 
+    - "Lockup is persistent in STATUS until cleared by disable/re-seed." 
+  recovery:
+    - { action: "software disable and re-enable or write new SEED", clears: ["STATUS.lockup"], preserves: ["registers.POLY", "registers.CTRL"] }
+debug_observability:
+  waveform_must_probe:
+    - "lfsr_state"
+    - "poly_reg"
+    - "ctrl_reg"
+    - "prbs_out"
+    - "prbs_bit"
+    - "prbs_valid"
+    - "PREADY"
+    - "PSLVERR"
+  status_outputs: ["STATUS.running", "STATUS.lockup", "PRBS.prbs"]
+  trace_events:
+    - { name: "prbs_step", trigger: "LFSR state updates on enabled cycle" }
+    - { name: "lockup_detected", trigger: "lfsr_state becomes 0" }
+    - { name: "seed_loaded", trigger: "APB write to SEED completes" }
+  debug_registers:
+    - "STATUS"
+    - "PRBS"
+integration:
+  bus_attachment:
+    control: "APB4 slave"
+  connections:
+    - { module: "lfsr", port: "PCLK", signal: "PCLK" }
+    - { module: "lfsr", port: "PRESETn", signal: "PRESETn" }
+    - { module: "lfsr_regs", port: "apb_slave", signal: "APB4" }
+  address_map_requirements:
+    alignment_bytes: 4
+    decode_owner: "SoC APB interconnect"
+    illegal_access_response: "pslverr for unsupported APB access"
+  dependencies:
+    external_modules: []
+    external_clocks: ["PCLK"]
+    external_resets: ["PRESETn"]
+  integration_notes:
+    - "SoC must provide APB-compliant PREADY behavior." 
+    - "prbs_out/prbs_bit are ungated outputs; downstream logic must sample when prbs_valid=1."
+dft:
+  scan_required: false
+  scan_ports: []
+  test_mode_ports: []
+  controllability:
+    reset: "PRESETn must be controllable in test mode"
+    clocks: ["PCLK"]
+  observability:
+    required_internal_points: ["lfsr_state", "ctrl_reg", "status_reg"]
+  mbist_required: false
+  notes: "No SRAM macro; all state is in scanable flip-flops if scan is added later."
+synthesis:
+  dialect: "systemverilog_2012"
+  top_module: "lfsr"
+  technology:
+    pdk: "generic"
+    standard_cell_library: "generic"
+    liberty_corner: "tt_25C_1v0"
+  constraints:
+    - "No inferred latches"
+    - "All flops reset according to clock_reset_domains.reset_scheme"
+    - "No package/interface/modport/function/task/for/while constructs in generated RTL"
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 50
+  required_outputs:
+    - "syn/out/lfsr.json or syn/out/lfsr.v"
+    - "syn/out/area.rpt"
+    - "syn/out/timing_summary.rpt"
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: "met3"
+    vertical: "met2"
+  placement:
+    density_target: 0.65
+  cts:
+    buf_list: []
+  routing:
+    signal_layers: { min: "met1", max: "met5" }
+    drc_waivers: []
+  required_outputs:
+    - "pnr/out/floorplan.def"
+    - "pnr/out/placed.def"
+    - "pnr/out/cts.def"
+    - "pnr/out/routed.def"
+    - "pnr/out/routed.v"
+    - "pnr/out/routed.spef"
+    - "pnr/out/pnr.report.md"
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/lfsr_param.vh"
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge PCLK or negedge PRESETn)"
+    - "blocking (=) in combinational always @(*)"
+    - "No latches: every combinational branch assigns all outputs"
+    - "Active-low async reset: always @(posedge PCLK or negedge PRESETn) with if (!PRESETn)"
+    - "Parameterize widths via LFSR_WIDTH, APB_ADDR_WIDTH, APB_DATA_WIDTH"
+    - "Use rtl/lfsr_param.vh for shared parameter declarations"
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+  lint_waivers:
+    - "UNUSEDSIGNAL: explicit approved tie-offs only"
+reuse_modules: []
+custom:
+  assumptions:
+    - "LFSR feedback uses XOR reduction (Fibonacci / external XOR form) rather than Galois form. This is an implementation assumption recorded for rtl-gen." 
+    - "Polynomial encoding: bit i of poly_reg corresponds to tap x^i. MSB must be set for a valid primitive polynomial of degree LFSR_WIDTH."
+    - "DEFAULT_POLY=0x80000057 is assumed to be a valid primitive polynomial for 32-bit LFSR. User should verify for target application."
+    - "No interrupt line is implemented; this is a polled-status-only peripheral in this revision."
+    - "APB-lite interface omits PSTRB; byte-wise writes are not distinguished."
+  note: "See assumptions above for recorded design decisions that may become QA items in future revisions."
 dir_structure: TBD
 filelist: TBD
 test_requirements: TBD

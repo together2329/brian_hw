@@ -32,20 +32,32 @@ io_list:
     - name: "priority_inputs"
       type: "custom"
       role: "input"
+      clock_domain: "PCLK"
       description: "Priority encoder input vector"
+      protocol: "Synchronous sampled; inputs registered on PCLK rising edge. No handshake."
+      timing: "Setup 2ns before PCLK rising edge; hold 1ns after."
+      handshake: "None (feedthrough inputs)."
       ports:
         - { name: "data_in", width: "N", direction: "input", description: "N-bit input vector; bit N-1 is highest priority" }
     - name: "priority_outputs"
       type: "custom"
       role: "output"
+      clock_domain: "PCLK"
       description: "Priority encoder result outputs"
+      protocol: "Synchronous registered outputs updated on PCLK rising edge. No handshake."
+      timing: "Output valid after PCLK rising edge with 3ns max delay."
+      handshake: "None (always-valid or zero when disabled)."
       ports:
         - { name: "index_out", width: "INDEX_WIDTH", direction: "output", description: "Encoded index of highest-priority asserted bit" }
         - { name: "valid_out", width: 1, direction: "output", description: "High when at least one input is asserted" }
     - name: "apb_csr"
       type: "APB4-lite"
       role: "slave"
+      clock_domain: "PCLK"
       description: "APB-lite register interface for runtime configuration"
+      protocol: "APB4-lite slave: PSEL -> PENABLE rising-edge sample. PREADY tied high. No wait states."
+      timing: "Single-cycle access. Setup/hold per APB spec."
+      handshake: "PSEL/PENABLE request; PREADY response (always ready)."
       ports:
         - { name: "PADDR",   width: 12, direction: "input",  description: "APB address" }
         - { name: "PSEL",    width: 1,  direction: "input",  description: "APB select" }
@@ -69,8 +81,8 @@ registers:
       category: "control"
       description: "Control register"
       fields:
-        - { name: "enable", bits: [0, 0], access: "rw", reset: 0x1, description: "1=encoder enabled, 0=outputs forced to zero" }
-        - { name: "rsvd",   bits: [31, 1], access: "ro", reset: 0x0, description: "Reserved, read as zero" }
+        - { name: "enable", bits: [0, 0], access: "rw", reset: 0x1, write_effect: "Updates enable bit; when cleared, forces index_out/valid_out to 0 on next PCLK", description: "1=encoder enabled, 0=outputs forced to zero" }
+        - { name: "rsvd",   bits: [31, 1], access: "ro", reset: 0x0, read_effect: "Read as zero; writes ignored", description: "Reserved, read as zero" }
     - name: "MASK"
       offset: 0x004
       width: 32
@@ -79,8 +91,8 @@ registers:
       category: "control"
       description: "Input mask register"
       fields:
-        - { name: "mask", bits: [N-1, 0], access: "rw", reset: 0x0, description: "1=input bit is masked (ignored), 0=input is active" }
-        - { name: "rsvd", bits: [31, N], access: "ro", reset: 0x0, description: "Reserved, read as zero" }
+        - { name: "mask", bits: [N-1, 0], access: "rw", reset: 0x0, write_effect: "Updates mask register; applied to data_in on next PCLK cycle", description: "1=input bit is masked (ignored), 0=input is active" }
+        - { name: "rsvd", bits: [31, N], access: "ro", reset: 0x0, read_effect: "Read as zero; writes ignored", description: "Reserved, read as zero" }
     - name: "STATUS"
       offset: 0x008
       width: 32
@@ -196,6 +208,11 @@ cycle_model:
     - "APB register writes take effect on the PCLK cycle after PENABLE handshake completes."
   backpressure:
     - "No backpressure on priority inputs; outputs are always valid or zero."
+  performance:
+    throughput: "1 result per PCLK cycle when enabled"
+    max_latency_cycles: 1
+    min_latency_cycles: 1
+    note: "Combinational encode + registered output gives deterministic 1-cycle throughput."
   observability:
     - "Every function_model transaction maps to cycle_model pipeline stages S0_COMB and S1_REG."
 clock_reset_domains:
@@ -248,7 +265,21 @@ rtl_contract:
   ownership:
     - { module: "priority_enc_regs", owns: ["registers"], behavior_source: "registers.register_list" }
     - { module: "priority_enc_core", owns: ["function_model", "cycle_model.pipeline"], behavior_source: "function_model.state_updates" }
+  input_map:
+    - { name: "data_in",    width: "N",         direction: "input",  port: "data_in",    rtl_module: "priority_enc", description: "Priority encoder input vector" }
+    - { name: "PADDR",      width: 12,          direction: "input",  port: "PADDR",      rtl_module: "priority_enc", description: "APB address" }
+    - { name: "PWDATA",     width: 32,          direction: "input",  port: "PWDATA",     rtl_module: "priority_enc", description: "APB write data" }
+  output_map:
+    - { name: "index_out",  width: "INDEX_WIDTH", direction: "output", port: "index_out",  rtl_module: "priority_enc", description: "Encoded index" }
+    - { name: "valid_out",  width: 1,           direction: "output", port: "valid_out",  rtl_module: "priority_enc", description: "Valid indicator" }
+    - { name: "PRDATA",     width: 32,          direction: "output", port: "PRDATA",     rtl_module: "priority_enc", description: "APB read data" }
+    - { name: "PSLVERR",    width: 1,           direction: "output", port: "PSLVERR",    rtl_module: "priority_enc", description: "APB error" }
+  transaction:
+    - { name: "priority_encode", type: "datapath", source: "function_model.transactions.FM_ENCODE", rtl_module: "priority_enc_core", timing: "1 PCLK cycle", description: "Priority encode transaction mapped to core datapath" }
+    - { name: "apb_csr_access", type: "control", source: "registers.register_list", rtl_module: "priority_enc_regs", timing: "1 PCLK cycle", description: "APB register read/write transaction" }
 timing:
+  target_clocks:
+    - { name: "PCLK", period_ns: 20.0, freq_mhz: 50, jitter_ns: 0.1, duty_cycle: "50/50", description: "Main system clock" }
   target_clock_period_ns: 20.0
   target_clock_freq_mhz: 50
   input_setup_ns: 2.0
@@ -256,17 +287,29 @@ timing:
   output_delay_ns: 3.0
   apb_access_time_ns: 20.0
   latency_cycles: 1
+  latency_budget:
+    combinational_encode_ns: 10.0
+    register_setup_ns: 2.0
+    register_clock_to_q_ns: 2.0
+    total_ns: 14.0
+    margin_ns: 6.0
   note: "Priority logic must settle within one PCLK cycle (20ns)."
 power:
   domains:
     - { name: "VDD", voltage: "1.0V", description: "Core supply" }
+  power_states:
+    - { name: "ON", description: "Normal operation; PCLK running, outputs active when enabled", default: true }
+    - { name: "DISABLED", description: "CTRL.enable=0; outputs forced to zero, optional clock gating" }
   clock_gating:
     - { signal: "PCLK", enable: "CTRL.enable", description: "Clock gating optional for output register when disabled" }
   retention: []
   note: "Minimal power; no dynamic power reduction beyond optional clock gating."
 security:
-  assets: []
-  threat_model: "No security-critical assets. APB interface is open read/write."
+  classification: "unclassified"
+  assets:
+    - { name: "none", type: "none", description: "No security-critical assets in this peripheral" }
+  threat_model:
+    - { threat: "none", severity: "none", mitigation: "none required", description: "No security-critical assets in this peripheral" }
   privilege_assumptions: "APB master is trusted."
   safety_goals: []
   note: "No security requirements for this peripheral."
@@ -308,6 +351,15 @@ synthesis:
     power_mw: null
     timing_met: true
   required_reports: ["synthesis timing report", "area report"]
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers: { horizontal: "met3", vertical: "met2" }
+  cts: { buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"] }
+  routing: { signal_layers: { min: "met1", max: "met5" }, drc_waivers: [] }
+  note: "Placeholder PnR section for completeness; small peripheral, exact dimensions TBD at integration time."
 coding_rules:
   verilog_style: "systemverilog_2012"
   file_extension: ".sv"

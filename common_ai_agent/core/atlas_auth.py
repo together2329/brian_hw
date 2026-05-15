@@ -13,7 +13,10 @@ from __future__ import annotations
 import hmac
 import hashlib
 import os
+import secrets
+import smtplib
 import time
+from email.message import EmailMessage
 from pathlib import Path
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
@@ -45,6 +48,7 @@ _DEFAULT_ADMIN_USERS = "admin"
 _LOCAL_ADMIN_MODES = {"local", "open", "legacy", "bypass", "none", "off"}
 _TRUTHY = {"1", "true", "yes", "on"}
 _FALSY = {"0", "false", "no", "off"}
+_DEFAULT_RECOVERY_TTL_SECONDS = 30 * 60
 
 
 def _default_cookie_secret() -> str:
@@ -97,6 +101,98 @@ def _env_flag(name: str, default: bool = False) -> bool:
     return default
 
 
+def _env_int(name: str, default: int) -> int:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    return value if value > 0 else default
+
+
+def account_recovery_enabled() -> bool:
+    return _env_flag("ATLAS_ACCOUNT_RECOVERY_ENABLED", False)
+
+
+def account_recovery_debug_enabled() -> bool:
+    return _env_flag("ATLAS_ACCOUNT_RECOVERY_DEBUG", False)
+
+
+def account_recovery_email_enabled() -> bool:
+    return account_recovery_enabled() and _env_flag("ATLAS_ACCOUNT_RECOVERY_EMAIL_ENABLED", False)
+
+
+def registration_email_required() -> bool:
+    return _env_flag("ATLAS_AUTH_EMAIL_REQUIRED", False) or account_recovery_enabled()
+
+
+def _smtp_configured() -> bool:
+    return bool(
+        os.environ.get("ATLAS_SMTP_HOST")
+        and (os.environ.get("ATLAS_SMTP_FROM") or os.environ.get("ATLAS_SMTP_USERNAME"))
+    )
+
+
+def auth_feature_status() -> Dict[str, Any]:
+    return {
+        "recovery_enabled": account_recovery_enabled(),
+        "recovery_email_enabled": account_recovery_email_enabled(),
+        "recovery_email_configured": _smtp_configured(),
+        "email_required": registration_email_required(),
+    }
+
+
+def _normalize_email(email: Any) -> str:
+    value = str(email or "").strip().lower()
+    if not value:
+        return ""
+    if "@" not in value or value.startswith("@") or value.endswith("@"):
+        return ""
+    return value
+
+
+def _hash_recovery_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def _password_reset_url(token: str) -> str:
+    explicit = os.environ.get("ATLAS_PASSWORD_RESET_URL", "").strip()
+    if explicit:
+        return explicit.replace("{token}", token)
+    base = os.environ.get("ATLAS_PUBLIC_BASE_URL", "").strip().rstrip("/")
+    if base:
+        return f"{base}/?reset_token={token}"
+    return f"/?reset_token={token}"
+
+
+def _send_recovery_email(to_email: str, subject: str, body: str) -> bool:
+    if not account_recovery_email_enabled() or not _smtp_configured():
+        return False
+
+    host = os.environ.get("ATLAS_SMTP_HOST", "").strip()
+    port = _env_int("ATLAS_SMTP_PORT", 587)
+    username = os.environ.get("ATLAS_SMTP_USERNAME", "").strip()
+    password = os.environ.get("ATLAS_SMTP_PASSWORD", "")
+    sender = os.environ.get("ATLAS_SMTP_FROM", "").strip() or username
+    use_tls = _env_flag("ATLAS_SMTP_TLS", True)
+
+    msg = EmailMessage()
+    msg["From"] = sender
+    msg["To"] = to_email
+    msg["Subject"] = subject
+    msg.set_content(body)
+
+    with smtplib.SMTP(host, port, timeout=10) as smtp:
+        if use_tls:
+            smtp.starttls()
+        if username:
+            smtp.login(username, password)
+        smtp.send_message(msg)
+    return True
+
+
 def is_local_admin_mode() -> bool:
     """Return True when legacy passwordless local admin is explicitly enabled.
 
@@ -146,6 +242,7 @@ def admin_auth_status(db: AtlasDB, user: Optional[Dict[str, Any]]) -> Dict[str, 
             "login_required": False,
             "authenticated": True,
             "admin_user_exists": admin_user_exists(db),
+            **auth_feature_status(),
             "user": {
                 "id": (user or {}).get("id") or "local-admin",
                 "username": (user or {}).get("username") or "local-admin",
@@ -159,6 +256,7 @@ def admin_auth_status(db: AtlasDB, user: Optional[Dict[str, Any]]) -> Dict[str, 
         "authenticated": is_admin_user(user),
         "admin_user_exists": admin_user_exists(db),
         "bootstrap_admin_users": sorted(_admin_usernames()),
+        **auth_feature_status(),
         "user": _sanitize_user(user) if is_admin_user(user) else None,
     }
 
@@ -338,6 +436,7 @@ def _sanitize_user(user: Dict[str, Any]) -> Dict[str, Any]:
         "id": user.get("id"),
         "username": user.get("username"),
         "display_name": user.get("display_name"),
+        "email": user.get("email"),
         "role": user.get("role"),
         "created_at": user.get("created_at"),
         "last_login_at": user.get("last_login_at"),
@@ -347,24 +446,37 @@ def _sanitize_user(user: Dict[str, Any]) -> Dict[str, Any]:
 def create_auth_endpoints(app: FastAPI, auth: GuestAuth) -> None:
     """Register auth endpoints on the FastAPI app."""
 
+    @app.get("/api/auth/status")
+    async def auth_status():
+        return auth_feature_status()
+
     @app.post("/api/auth/register")
     async def auth_register(request: Request, response: Response):
         body = await request.json()
         username = str(body.get("username", "")).strip()
         password = str(body.get("password", ""))
         display_name = str(body.get("display_name", "")).strip() or username
+        raw_email = body.get("email", "")
+        email = _normalize_email(raw_email)
 
         if not username or not password:
             raise HTTPException(status_code=400, detail="username and password required")
+        if raw_email and not email:
+            raise HTTPException(status_code=400, detail="valid email required")
+        if registration_email_required() and not email:
+            raise HTTPException(status_code=400, detail="email required")
 
         if auth.db.get_user_by_username(username) is not None:
             raise HTTPException(status_code=409, detail="username already exists")
+        if email and auth.db.get_user_by_email(email) is not None:
+            raise HTTPException(status_code=409, detail="email already exists")
 
         user = auth.db.create_user(
             username,
             display_name,
             hash_password(password),
             role=_bootstrap_role_for_username(username),
+            email=email,
         )
         auth._set_cookie(response, user["id"])
         return {"user": _sanitize_user(user)}
@@ -389,6 +501,108 @@ def create_auth_endpoints(app: FastAPI, auth: GuestAuth) -> None:
         )
         auth._set_cookie(response, user["id"])
         return {"user": _sanitize_user(user)}
+
+    @app.post("/api/auth/recover/id")
+    async def auth_recover_id(request: Request):
+        if not account_recovery_enabled():
+            raise HTTPException(status_code=404, detail="account recovery disabled")
+
+        body = await request.json()
+        email = _normalize_email(body.get("email", ""))
+        if not email:
+            raise HTTPException(status_code=400, detail="valid email required")
+
+        user = auth.db.get_user_by_email(email)
+        email_sent = False
+        if user is not None:
+            try:
+                email_sent = _send_recovery_email(
+                    email,
+                    "ATLAS user ID recovery",
+                    f"Your ATLAS user ID is: {user.get('username')}\n",
+                )
+            except Exception:
+                email_sent = False
+
+        result: Dict[str, Any] = {"ok": True, "email_sent": email_sent}
+        if account_recovery_debug_enabled():
+            result["usernames"] = [user["username"]] if user is not None else []
+        return result
+
+    @app.post("/api/auth/recover/password")
+    async def auth_recover_password(request: Request):
+        if not account_recovery_enabled():
+            raise HTTPException(status_code=404, detail="account recovery disabled")
+
+        body = await request.json()
+        identifier = str(
+            body.get("identifier")
+            or body.get("username")
+            or body.get("email")
+            or ""
+        ).strip()
+        if not identifier:
+            raise HTTPException(status_code=400, detail="username or email required")
+
+        user = auth.db.get_user_by_email(identifier) if "@" in identifier else auth.db.get_user_by_username(identifier)
+        token = None
+        reset_url = None
+        expires_at = None
+        email_sent = False
+        if user is not None and user.get("email"):
+            token = secrets.token_urlsafe(32)
+            reset_url = _password_reset_url(token)
+            now = _now()
+            expires_at = now + _env_int("ATLAS_ACCOUNT_RECOVERY_TOKEN_TTL_SECONDS", _DEFAULT_RECOVERY_TTL_SECONDS)
+            auth.db.set_user_password_reset(
+                user["id"],
+                _hash_recovery_token(token),
+                expires_at,
+                requested_at=now,
+            )
+            try:
+                email_sent = _send_recovery_email(
+                    str(user["email"]),
+                    "ATLAS password reset",
+                    (
+                        "A password reset was requested for your ATLAS account.\n\n"
+                        f"User ID: {user.get('username')}\n"
+                        f"Reset link: {reset_url}\n\n"
+                        "If you did not request this, ignore this email.\n"
+                    ),
+                )
+            except Exception:
+                email_sent = False
+
+        result: Dict[str, Any] = {"ok": True, "email_sent": email_sent}
+        if account_recovery_debug_enabled() and token:
+            result.update({
+                "reset_token": token,
+                "reset_url": reset_url,
+                "expires_at": expires_at,
+            })
+        return result
+
+    @app.post("/api/auth/reset/password")
+    async def auth_reset_password(request: Request):
+        if not account_recovery_enabled():
+            raise HTTPException(status_code=404, detail="account recovery disabled")
+
+        body = await request.json()
+        token = str(body.get("token", "")).strip()
+        password = str(body.get("password", ""))
+        if not token or not password:
+            raise HTTPException(status_code=400, detail="token and password required")
+
+        user = auth.db.get_user_by_password_reset_token_hash(_hash_recovery_token(token))
+        if user is None:
+            raise HTTPException(status_code=400, detail="invalid or expired reset token")
+        expires_at = float(user.get("password_reset_expires_at") or 0)
+        if expires_at < _now():
+            raise HTTPException(status_code=400, detail="invalid or expired reset token")
+
+        auth.db.update_user_password(user["id"], hash_password(password))
+        return {"ok": True}
 
     @app.post("/api/auth/logout")
     async def auth_logout(request: Request, response: Response):

@@ -219,26 +219,267 @@ registers:
         - { name: "parity_err_sticky", bits: [0, 0], access: "rw", reset: 0, description: "1=Parity error detected since last clear; write 1 to clear" }
         - { name: "reserved",          bits: [31, 1], access: "ro", reset: 0, description: "Reserved, read as 0" }
 
-memory: TBD
-interrupts: TBD
-fsm: TBD
-rtl_contract: TBD
-timing: TBD
-power: TBD
-security: TBD
-error_handling: TBD
-debug_observability: TBD
-integration: TBD
-dft: TBD
-synthesis: TBD
-pnr: TBD
-coding_rules: TBD
-reuse_modules: TBD
-custom: TBD
-dir_structure: TBD
-filelist: TBD
-test_requirements: TBD
-quality_gates: TBD
-traceability: TBD
-workflow_todos: TBD
-generation_flow: TBD
+memory:
+  instances: []
+  note: "No internal SRAM/FIFO. Registers only."
+
+interrupts:
+  sources: []
+  output: {}
+  note: "No interrupt output in this minimal peripheral; parity_error is a status flag only."
+
+fsm:
+  note: "No complex FSM. APB-lite slave is a simple two-phase stateless decode. Parity core is combinational/registered datapath only."
+
+rtl_contract:
+  top_module_file: "rtl/parity_gen.sv"
+  parameter_header: "rtl/parity_gen_param.vh"
+  reset_polarity: "active_low"
+  reset_type: "async_assert_sync_deassert"
+  clock_gating: false
+  note: "Simple peripheral; no clock gating."
+
+timing:
+  clock_targets:
+    - { name: "PCLK", freq_mhz: 50, description: "Single clock domain" }
+  latency_targets:
+    - { path: "data_in → parity_out", cycles: 1, description: "1-cycle registered parity generation" }
+    - { path: "data_in → parity_error", cycles: 1, description: "1-cycle registered parity checking" }
+  setup_hold: "Standard STA against PCLK and PRESETn constraints in parity_gen.sdc"
+  note: "Simple combinational XOR-tree with registered output; timing is dominated by data_in width."
+
+power:
+  domains:
+    - { name: "PCLK", description: "Single power domain" }
+  clock_gating: false
+  retention: false
+  note: "No explicit low-power features. Add clock gating if parity_gen is instantiated in a power-managed subsystem."
+
+security:
+  assets:
+    - { name: "parity configuration", description: "CONTROL/STATUS registers" }
+  threat_model: "Minimal — this is a utility peripheral with no secret key or privilege interface."
+  privilege_assumptions: "APB-lite interface accessible to any bus master with address decode hit."
+  safety_goals: []
+  note: "No security-specific mitigations required for this parity utility block."
+
+error_handling:
+  error_sources:
+    - { name: "parity_mismatch", source: "function_model.transactions.FM_CHK", effect: "parity_error asserted; parity_err_sticky set in STATUS", propagation: "parity_error output pin + APB-readable STATUS register", recovery: "Write 1 to STATUS[0] to clear sticky; update expected_parity in CONTROL if desired" }
+  apb_error_response:
+    - "Reserved register addresses return PSLVERR=1 on APB access."
+    - "Byte-wise writes to CONTROL/STATUS are accepted; software must use full 32-bit values for predictable behavior."
+
+debug_observability:
+  waveform_probes:
+    - "data_in, parity_out, parity_error"
+    - "CONTROL, STATUS register values"
+    - "APB PSEL/PENABLE/PREADY handshake"
+  trace_events: []
+  note: "Minimal debug requirements; parity_error is the primary observable signal."
+
+integration:
+  bus_attachment:
+    - { interface: "apb_slave", bus: "APB4-lite", address_range: "0x000-0xFFF", description: "Register decode occupies 4KB APB address space" }
+  external_dependencies: []
+  note: "Standalone peripheral; no external IP dependencies beyond standard APB bus infrastructure."
+
+dft:
+  scan_mode: "Not specified — add scan chain insertion if required by SoC DFT policy."
+  mbist: false
+  bist: false
+  note: "Simple combinational logic; scan insertion is straightforward if needed."
+
+synthesis:
+  dialect: "systemverilog_2012"
+  constraints: "sdc/parity_gen.sdc"
+  ppa_targets:
+    area_um2: null
+    power_mw: null
+    clock_mhz: 50
+  required_reports: ["syn_area", "syn_timing", "syn_power"]
+  note: "Target generic technology; no hard macro instantiations."
+
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers: { horizontal: "met3", vertical: "met2" }
+  cts: { buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"] }
+  routing: { signal_layers: { min: "met1", max: "met5" }, drc_waivers: [] }
+  note: "Default PnR targets; adjust for target technology node."
+
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/parity_gen_param.vh"
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge PCLK or negedge PRESETn)"
+    - "blocking (=) in combinational always @(*)"
+    - "No latches: every combinational branch assigns all outputs"
+    - "Active-low async reset (PRESETn)"
+    - "Parameterize widths (no hardcoded numbers)"
+    - "Use rtl/parity_gen_param.vh for shared parameter declarations; include it inside consuming modules"
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+  lint_waivers:
+    - "UNUSEDSIGNAL: reserved register field tie-offs"
+    - "WIDTHEXPAND: data_in parameter width variations"
+
+reuse_modules: []
+
+custom:
+  assumptions:
+    - "Parity algorithm is even parity (XOR reduction of all data bits)."
+    - "data_in is sampled on every rising PCLK edge when enable is set; no handshake."
+    - "APB-lite interface uses zero wait states (PREADY always high in access phase)."
+    - "Byte-wise APB writes are accepted but software should use 32-bit aligned accesses."
+    - "Reserved register bits read as 0 and writes are ignored."
+    - "No interrupt line; parity_error is a continuously driven status flag."
+    - "No security privilege levels; any APB master can access registers."
+  note: "Assumptions recorded per user instruction (pipeline mode, no ask_user blocking)."
+
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "docs/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+
+filelist:
+  headers:
+    - "rtl/parity_gen_param.vh"
+  rtl:
+    - "rtl/parity_gen.sv"
+    - "rtl/parity_gen_regs.sv"
+    - "rtl/parity_gen_core.sv"
+  sim:
+    - "sim/tb_top.sv"
+    - "sim/tb_program.sv"
+    - "sim/parity_gen_model.sv"
+  firmware:
+    - "firmware/parity_gen_regs.h"
+  docs:
+    - "docs/register_map.md"
+    - "docs/README.md"
+
+test_requirements:
+  scenarios:
+    - { id: "SC1", name: "Basic parity generation", stimulus: "Set CONTROL.enable=1, drive data_in with known pattern", expected: "parity_out == XOR(data_in) after 1 cycle", checker: "Scoreboard expected/got assertion", coverage: ["function_model.FM_GEN", "cycle_model.S1_OUTPUT"] }
+    - { id: "SC2", name: "Parity check match", stimulus: "Set CONTROL.check_enable=1 and expected_parity to match computed parity", expected: "parity_error == 0", checker: "Scoreboard checks parity_error", coverage: ["function_model.FM_CHK", "cycle_model.S1_OUTPUT"] }
+    - { id: "SC3", name: "Parity check mismatch", stimulus: "Set CONTROL.check_enable=1 and expected_parity to opposite of computed parity", expected: "parity_error == 1 and STATUS.parity_err_sticky set", checker: "Scoreboard checks parity_error and sticky bit", coverage: ["function_model.FM_CHK", "error_handling.parity_mismatch"] }
+    - { id: "SC4", name: "APB register access", stimulus: "Write/read CONTROL and STATUS via APB-lite", expected: "Register values read back correctly", checker: "APB bus monitor assertion", coverage: ["registers.CONTROL", "registers.STATUS"] }
+    - { id: "SC5", name: "Reset behavior", stimulus: "Assert PRESETn, then release", expected: "All registers reset to 0, outputs cleared", checker: "Reset checker assertion", coverage: ["clock_reset_domains", "registers.reset_values"] }
+  scoreboard_checks: 10
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Behavioral coverage for parity generation and checking transactions."
+      bins:
+        - { id: "FCOV_GEN", source_ref: "function_model.transactions.FM_GEN", class: "transaction", description: "Parity generation transaction observed" }
+        - { id: "FCOV_CHK_MATCH", source_ref: "function_model.transactions.FM_CHK", class: "transaction", description: "Parity check match observed" }
+        - { id: "FCOV_CHK_MISMATCH", source_ref: "function_model.transactions.FM_CHK", class: "transaction", description: "Parity check mismatch observed" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle/handshake/latency coverage for registered output timing."
+      bins:
+        - { id: "CCOV_SAMPLE", source_ref: "cycle_model.pipeline.S0_SAMPLE", class: "pipeline_stage", description: "Sample stage observed" }
+        - { id: "CCOV_OUTPUT", source_ref: "cycle_model.pipeline.S1_OUTPUT", class: "pipeline_stage", description: "Output stage observed" }
+        - { id: "CCOV_APB_HANDSHAKE", source_ref: "cycle_model.handshake_rules", class: "handshake", description: "APB-lite handshake observed" }
+    functional: "Legacy alias: function + cycle coverage must both close; new flows read coverage_goals.function and coverage_goals.cycle separately."
+    code: "line >= 90%, branch >= 85%"
+
+quality_gates:
+  rtl_gen:
+    profile: "production"
+    target_scale:
+      basis: "minimal peripheral with 2 sub-modules and APB interface"
+      source_files_min: 3
+      modules_min: 3
+      procedural_blocks_min: 4
+      state_updates_min: 2
+      depth_score_min: 0
+      logic_modules_min: 2
+      behavior_owner_logic_modules_min: 2
+    target_scale_waiver:
+      approved: false
+      reason: ""
+      owner: ""
+    pass: "Every SSOT-derived RTL TODO and rtl_gate.rtl_gen gate closes with fresh evidence."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json", "sim/fl_rtl_goal_audit.json", "cov/coverage.json"]
+  rtl:
+    pass: "RTL implements function_model and cycle_model, compiles, lints, and matches locked FL/CL authority."
+    evidence: ["rtl compile report", "dut lint report", "FL-vs-RTL scoreboard/audit"]
+  coverage:
+    pass: "SSOT-declared functional/code/toggle/FSM/assertion coverage goals pass or have approved SSOT waivers."
+    evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+  eda:
+    pass: "Synthesis, STA, PnR, and post-route STA meet SSOT timing/area/power/physical targets or have approved SSOT waivers."
+    evidence: ["syn report", "sta reports", "pnr report", "routed.spef", "sta-post reports"]
+
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "ALL files (module name)" }
+    - { yaml: "parameters", output: "parity_gen_param.vh (shared parameter include, no package)" }
+    - { yaml: "io_list.interfaces", output: "parity_gen.sv (port list)" }
+    - { yaml: "registers.register_list", output: "parity_gen_regs.sv + firmware + docs" }
+    - { yaml: "function_model", output: "parity_gen_core.sv + tb/cocotb scoreboard/reference model" }
+    - { yaml: "cycle_model", output: "parity_gen_core.sv pipeline/handshake logic + waveform checks" }
+    - { yaml: "timing", output: "STA constraints and latency pass/fail criteria" }
+    - { yaml: "pnr", output: "floorplan/place/CTS/route TCL and routed DEF/Verilog/SPEF" }
+    - { yaml: "security", output: "security/safety mitigations and negative tests" }
+    - { yaml: "error_handling", output: "RTL fault paths and DV fault scenarios" }
+    - { yaml: "quality_gates", output: "ATLAS progress and signoff criteria" }
+    - { yaml: "test_requirements.scenarios", output: "sim/tb_program.sv" }
+
+workflow_todos:
+  fl-model-gen: []
+  rtl-gen:
+    - id: "RTL_TODO_CORE"
+      content: "Implement parity generation and checking datapath"
+      detail: "Translate function_model transactions FM_GEN and FM_CHK, cycle_model timing, and ownership refs into RTL state/datapath/control logic in parity_gen_core.sv."
+      criteria:
+        - "RTL owner logic is present in parity_gen_core.sv"
+        - "FunctionalModel expected result and RTL observed result can be compared for FM_GEN and FM_CHK"
+      source_refs: ["function_model.transactions", "cycle_model.pipeline"]
+      owner_module: "parity_gen_core"
+      owner_file: "rtl/parity_gen_core.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_REGS"
+      content: "Implement APB-lite register decode"
+      detail: "Implement CONTROL and STATUS register decode with APB-lite slave interface in parity_gen_regs.sv."
+      criteria:
+        - "APB read/write to CONTROL and STATUS works with zero wait states"
+        - "Reserved addresses return PSLVERR=1"
+      source_refs: ["registers.register_list", "io_list.interfaces.apb_slave"]
+      owner_module: "parity_gen_regs"
+      owner_file: "rtl/parity_gen_regs.sv"
+      priority: "high"
+      required: true
+  tb-gen: []
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh parity_gen", description: "Validate production SSOT structure and quality gates" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model parity_gen", description: "FunctionalModel, decomposition, coverage plan, and equivalence goals from validated SSOT" }
+    - { name: "handoff_rtl", command: "/ssot-rtl parity_gen", description: "Downstream RTL generation from validated SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb parity_gen", description: "Downstream pyuvm/cocotb verification from validated SSOT" }
+    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Downstream waveform, failure, and coverage inspection after sim exists" }
+    - { name: "handoff_coverage", command: "/coverage parity_gen", description: "Measure SSOT-declared coverage goals" }
+    - { name: "handoff_eda", command: "/syn parity_gen && /sta parity_gen && /pnr parity_gen && /sta-post parity_gen", description: "Produce SSOT-declared synthesis, STA, PnR, and post-route STA evidence" }
+

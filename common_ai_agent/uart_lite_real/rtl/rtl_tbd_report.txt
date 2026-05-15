@@ -1,0 +1,51 @@
+[SSOT TBD REPORT] -> ssot-gen
+Module  : uart_lite_real
+Missing :
+- yaml_path: function_model
+  needed_for: architectural behavior, state updates, side effects
+  question: What does this UART-lite IP do? Tx/Rx? FIFOs? Programmable baud?
+  current_rtl_action: TBD — not implemented
+- yaml_path: cycle_model
+  needed_for: handshake timing, latency, pipeline stages
+  question: What are the valid/ready rules, read latency, and cycle-level behavior?
+  current_rtl_action: TBD — not implemented
+- yaml_path: top_module
+  needed_for: rtl/uart_lite_real.sv module name
+  question: What is the top-level module name?
+  current_rtl_action: TBD — not implemented
+- yaml_path: io_list
+  needed_for: module port declarations
+  question: What are the clock, reset, bus interface, UART line, and interrupt ports?
+  current_rtl_action: TBD — not implemented
+- yaml_path: parameters
+  needed_for: parameter declarations
+  question: What user-tunable parameters exist and what are their defaults?
+  current_rtl_action: TBD — not implemented
+- yaml_path: features
+  needed_for: functional blocks to implement
+  question: What sub-blocks exist (tx, rx, baud gen, regs, fifo)?
+  current_rtl_action: TBD — not implemented
+- yaml_path: dataflow
+  needed_for: datapath connectivity between sub-blocks
+  question: How do blocks connect and what is the data path width?
+  current_rtl_action: TBD — not implemented
+- yaml_path: registers
+  needed_for: CSR block
+  question: What CSRs exist, at what offsets, with what fields and access types?
+  current_rtl_action: TBD — not implemented
+- yaml_path: sub_modules
+  needed_for: RTL file partition and hierarchy
+  question: What submodules exist, what files own them, and what behavior do they implement?
+  current_rtl_action: TBD — not implemented
+- yaml_path: filelist.rtl
+  needed_for: uart_lite_real/list/uart_lite_real.f
+  question: What RTL files should be listed?
+  current_rtl_action: TBD — not implemented
+- yaml_path: workflow_todos.rtl-gen
+  needed_for: RTL generation task tracking
+  question: What are the specific RTL generation tasks and pass criteria?
+  current_rtl_action: TBD — not implemented
+- yaml_path: quality_gates.rtl_gen
+  needed_for: quality gates (compile, lint, static evidence)
+  question: What gates must pass for RTL signoff?
+  current_rtl_action: TBD — not implemented

@@ -1,0 +1,24 @@
+{
+  "escalation_type": "SSOT_BLOCKER",
+  "ip": "uart_lite_real",
+  "ssot_path": "uart_lite_real/yaml/uart_lite_real.ssot.yaml",
+  "status": "blocked",
+  "reason": "SSOT function_model and cycle_model are TBD; all semantic sections are placeholder.",
+  "blockers": [
+    {"id": "MISSING_FUNCTION_MODEL", "source_ref": "function_model", "reason": "SSOT function_model is empty/TBD"},
+    {"id": "MISSING_CYCLE_MODEL", "source_ref": "cycle_model", "reason": "SSOT cycle_model is empty/TBD"}
+  ],
+  "required_from_ssot_gen": [
+    "function_model",
+    "cycle_model",
+    "top_module",
+    "io_list",
+    "parameters",
+    "features",
+    "registers",
+    "sub_modules",
+    "workflow_todos.rtl-gen"
+  ],
+  "metrics": {"rtl.complete": 0, "rtl.files": 0, "rtl.compile_errors": 0},
+  "timestamp": "2026-05-15T01:01:50Z"
+}

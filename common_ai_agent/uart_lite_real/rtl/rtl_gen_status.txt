@@ -1,0 +1,47 @@
+[SSOT RESULT] rtl-gen BLOCKED
+Module  : uart_lite_real
+SSOT    : uart_lite_real/yaml/uart_lite_real.ssot.yaml
+Gate    : blocked (2 hard blockers)
+Lint    : N/A — no RTL authored
+
+[SSOT TBD REPORT] -> ssot-gen
+Module  : uart_lite_real
+Missing :
+- yaml_path: function_model
+  needed_for: RTL datapath, state updates, side effects, error cases, invariants
+  question: What is the functional behavior of uart_lite_real? (e.g., UART-lite TX/RX, baud-rate generation, frame format, handshake policy)
+  current_rtl_action: TBD — not implemented
+- yaml_path: cycle_model
+  needed_for: handshake timing, latency bounds, pipeline stages, ordering, backpressure
+  question: What is the cycle-level contract? (e.g., valid/ready latency, baud-clock division, FIFO depth/behavior)
+  current_rtl_action: TBD — not implemented
+- yaml_path: top_module
+  needed_for: module name for rtl/uart_lite_real.sv
+  question: What is the top module name?
+  current_rtl_action: TBD — not implemented
+- yaml_path: io_list
+  needed_for: port declarations (clock, reset, data, control, status, bus interface)
+  question: What are the top-level ports, directions, and widths?
+  current_rtl_action: TBD — not implemented
+- yaml_path: parameters
+  needed_for: user-tunable DATA_W, ADDR_W, FIFO_DEPTH, BAUD_DIV_W, etc.
+  question: What parameters should be exposed and what are their defaults?
+  current_rtl_action: TBD — not implemented
+- yaml_path: sub_modules
+  needed_for: RTL file decomposition and filelist
+  question: Are there child modules (e.g., baud_gen, tx_fsm, rx_fsm, fifo) or is this a single-file IP?
+  current_rtl_action: TBD — not implemented
+- yaml_path: features
+  needed_for: feature-to-RTL decomposition
+  question: What are the user-visible features (e.g., 8N1 UART, programmable baud, TX/RX FIFO, interrupts)?
+  current_rtl_action: TBD — not implemented
+- yaml_path: registers
+  needed_for: CSR decode block
+  question: What control/status registers exist, their offsets, fields, and access types?
+  current_rtl_action: TBD — not implemented
+- yaml_path: filelist.rtl
+  needed_for: uart_lite_real/list/uart_lite_real.f
+  question: What RTL files should be listed in the filelist?
+  current_rtl_action: TBD — not implemented
+
+METRICS: rtl.complete=0, rtl.files=0, rtl.compile_errors=0

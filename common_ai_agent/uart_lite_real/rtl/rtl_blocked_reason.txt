@@ -1,0 +1,8 @@
+[RTL BLOCKED] uart_lite_real
+Date: 2026-05-15
+Reason: SSOT yaml/uart_lite_real.ssot.yaml is entirely TBD (all fields placeholder).
+Blockers from derive_rtl_todos.py --audit-rtl:
+  - MISSING_FUNCTION_MODEL: SSOT must include non-empty function_model before RTL generation.
+  - MISSING_CYCLE_MODEL: SSOT must include non-empty cycle_model before RTL generation.
+Required from ssot-gen: top_module, io_list, parameters, function_model, cycle_model, features, registers, sub_modules, filelist.rtl
+METRICS: rtl.complete=0, rtl.files=0, rtl.compile_errors=0
