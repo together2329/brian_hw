@@ -1,0 +1,14 @@
+{
+  "artifacts": [],
+  "blocker": "arbiter_rr/tb",
+  "created_at": "2026-05-15T02:15:10Z",
+  "headline": "[sim] blocked: no executable TB runner found",
+  "ip": "arbiter_rr",
+  "message": "[sim] blocked: no executable TB runner found for arbiter_rr\nexpected one of:\n- arbiter_rr/tb/cocotb/test_runner.py\n- arbiter_rr/tb/cocotb/run_tests.py\n- arbiter_rr/tb/test_runner.py\n- arbiter_rr/tb/run_tests.py\nRun /tb <ip> first.",
+  "metadata": {},
+  "returncode": 2,
+  "runs": [],
+  "stage": "sim",
+  "status": "blocked",
+  "workflow": "sim"
+}

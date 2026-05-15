@@ -8,35 +8,41 @@ errors=0 warnings=0
 ===== verilator =====
 command: verilator --lint-only -Wall -Irtl -f list/spi.f --top-module spi
 returncode: 1
-errors: 0 warnings: 7
-%Warning-UNUSEDSIGNAL: rtl/spi.sv:75:11: Signal is not used: 'rx_push_drop_event'
-                                       : ... note: In instance 'spi'
-   75 |     logic rx_push_drop_event;
-      |           ^~~~~~~~~~~~~~~~~~
-                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
-                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
-%Warning-UNUSEDSIGNAL: rtl/spi.sv:76:11: Signal is not used: 'prescale_tick_event'
-                                       : ... note: In instance 'spi'
-   76 |     logic prescale_tick_event;
-      |           ^~~~~~~~~~~~~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/spi.sv:77:18: Signal is not used: 'pclk_freq_mhz_marker'
-                                       : ... note: In instance 'spi'
-   77 |     logic [31:0] pclk_freq_mhz_marker;
-      |                  ^~~~~~~~~~~~~~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/spi_shift.sv:14:25: Signal is not used: 'cpol'
-                                             : ... note: In instance 'spi.u_shift'
-   14 |     input  logic        cpol,
-      |                         ^~~~
+errors: 0 warnings: 8
+%Warning-PINCONNECTEMPTY: rtl/spi.sv:108:56: Instance pin connected by name with empty reference: 'prescale_tick'
+  108 |         .prescale_div(prescale_div), .sclk_o(sclk_o), .prescale_tick(),
+      |                                                        ^~~~~~~~~~~~~
+                          ... For warning description see https://verilator.org/warn/PINCONNECTEMPTY?v=5.046
+                          ... Use "/* verilator lint_off PINCONNECTEMPTY */" and lint_on around source to disable this message.
+%Warning-PINCONNECTEMPTY: rtl/spi.sv:121:10: Instance pin connected by name with empty reference: 'rx_overrun_event'
+  121 |         .rx_overrun_event(), .bit_index_dbg(bit_index_dbg), .active_cs_dbg(active_cs_dbg), .cs_active(cs_active)
+      |          ^~~~~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/spi.sv:12:23: Parameter is not used: 'PCLK_FREQ_MHZ'
+                                      : ... note: In instance 'spi'
+   12 |     parameter integer PCLK_FREQ_MHZ = 100
+      |                       ^~~~~~~~~~~~~
+                      ... For warning description see https://verilator.org/warn/UNUSEDPARAM?v=5.046
+                      ... Use "/* verilator lint_off UNUSEDPARAM */" and lint_on around source to disable this message.
+%Warning-UNUSEDPARAM: rtl/spi_shift.sv:3:23: Parameter is not used: 'DATA_WIDTH'
+                                           : ... note: In instance 'spi.u_shift'
+    3 |     parameter integer DATA_WIDTH = 8,
+      |                       ^~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/spi_shift.sv:5:23: Parameter is not used: 'CPOL_RESET'
+                                           : ... note: In instance 'spi.u_shift'
+    5 |     parameter integer CPOL_RESET = 0,
+      |                       ^~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/spi_shift.sv:6:23: Parameter is not used: 'CPHA_RESET'
+                                           : ... note: In instance 'spi.u_shift'
+    6 |     parameter integer CPHA_RESET = 0,
+      |                       ^~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/spi_shift.sv:7:23: Parameter is not used: 'LSB_FIRST_RESET'
+                                           : ... note: In instance 'spi.u_shift'
+    7 |     parameter integer LSB_FIRST_RESET = 0
+      |                       ^~~~~~~~~~~~~~~
 %Warning-UNUSEDSIGNAL: rtl/spi_shift.sv:64:17: Bits of signal are not used: 'reverse_bit_index_full'[5]
                                              : ... note: In instance 'spi.u_shift'
    64 |     logic [5:0] reverse_bit_index_full;
       |                 ^~~~~~~~~~~~~~~~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/spi_shift.sv:65:11: Signal is not used: 'cpha_mode_marker'
-                                             : ... note: In instance 'spi.u_shift'
-   65 |     logic cpha_mode_marker;
-      |           ^~~~~~~~~~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/spi_int.sv:20:11: Signal is not used: 'clear_level_marker'
-                                           : ... note: In instance 'spi.u_int'
-   20 |     logic clear_level_marker;
-      |           ^~~~~~~~~~~~~~~~~~
-%Error: Exiting due to 7 warning(s)
+                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
+                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
+%Error: Exiting due to 8 warning(s)

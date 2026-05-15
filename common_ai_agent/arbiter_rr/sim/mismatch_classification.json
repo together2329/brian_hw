@@ -1,0 +1,1332 @@
+{
+  "schema_version": 1,
+  "type": "mismatch_classification",
+  "ip": "arbiter_rr",
+  "generated_at": "2026-05-15T02:15:27Z",
+  "status": "pending",
+  "classifications": [
+    {
+      "goal_id": "EQ_TRANSACTION_FM1",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "function_model.transactions[0]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_TRANSACTION_FM1. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM2",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "function_model.transactions[1]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_TRANSACTION_FM2. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC1",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "test_requirements.scenarios[0]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_SCENARIO_SC1. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC2",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "test_requirements.scenarios[1]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_SCENARIO_SC2. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC3",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "test_requirements.scenarios[2]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_SCENARIO_SC3. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC4",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "test_requirements.scenarios[3]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_SCENARIO_SC4. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC5",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "test_requirements.scenarios[4]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_SCENARIO_SC5. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC6",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "test_requirements.scenarios[5]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_SCENARIO_SC6. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC7",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "test_requirements.scenarios[6]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_SCENARIO_SC7. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC8",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "test_requirements.scenarios[7]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_SCENARIO_SC8. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC9",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "test_requirements.scenarios[8]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_SCENARIO_SC9. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC10",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "test_requirements.scenarios[9]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_SCENARIO_SC10. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "cycle_model.handshake_rules[0]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_PROTOCOL_HANDSHAKE_0. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "cycle_model.handshake_rules[1]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_PROTOCOL_HANDSHAKE_1. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "cycle_model.handshake_rules[2]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_PROTOCOL_HANDSHAKE_2. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_3",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "cycle_model.handshake_rules[3]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_PROTOCOL_HANDSHAKE_3. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "cycle_model.ordering[0]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_TIMING_ORDERING_0. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "cycle_model.ordering[1]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_TIMING_ORDERING_1. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "cycle_model.ordering[2]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_TIMING_ORDERING_2. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_CTRL",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "registers.register_list[0]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_REGISTER_CTRL. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_REQ_MASK",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "registers.register_list[1]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_REGISTER_REQ_MASK. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_REGISTER_STATUS",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "registers.register_list[2]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_REGISTER_STATUS. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "error_handling.error_sources[0]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_ERROR_NONE. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_STATE_ARB_FSM_IDLE_TO_EVAL_0",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "fsm.arb_fsm.transitions[0]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_STATE_ARB_FSM_IDLE_TO_EVAL_0. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "fsm.arb_fsm.transitions[1]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_STATE_ARB_FSM_GRANT_TO_IDLE_2",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "fsm.arb_fsm.transitions[2]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_STATE_ARB_FSM_GRANT_TO_IDLE_2. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_STATE_ARB_FSM_IDLE_TO_IDLE_3",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "fsm.arb_fsm.transitions[3]"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_STATE_ARB_FSM_IDLE_TO_IDLE_3. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "debug_observability.waveform_must_probe"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_DEBUG_OBSERVABILITY. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_MODULE_ARBITER_RR_CORE",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "cycle_model",
+          "cycle_model.backpressure.backpressure_0",
+          "cycle_model.clock",
+          "cycle_model.handshake_rules",
+          "cycle_model.handshake_rules.gnt_idx_o",
+          "cycle_model.handshake_rules.gnt_o",
+          "cycle_model.handshake_rules.gnt_valid_o",
+          "cycle_model.handshake_rules.req_i",
+          "cycle_model.latency",
+          "cycle_model.observability.observability_0",
+          "cycle_model.ordering.ordering_0",
+          "cycle_model.ordering.ordering_1",
+          "cycle_model.ordering.ordering_2",
+          "cycle_model.pipeline",
+          "cycle_model.pipeline.s0_sample_req",
+          "cycle_model.pipeline.s1_grant",
+          "cycle_model.reset",
+          "features",
+          "features.enable_disable",
+          "features.request_masking",
+          "features.round_robin_arbitration",
+          "fsm",
+          "fsm.arb_fsm",
+          "function_model",
+          "function_model.invariants.invariant_0",
+          "function_model.invariants.invariant_1",
+          "function_model.invariants.invariant_2",
+          "function_model.invariants.invariant_3",
+          "function_model.invariants.invariant_4",
+          "function_model.invariants.invariant_5",
+          "function_model.state_variables.arb_enabled",
+          "function_model.state_variables.last_winner",
+          "function_model.state_variables.req_mask",
+          "function_model.transactions",
+          "function_model.transactions.FM1",
+          "function_model.transactions.FM2",
+          "function_model.transactions.fm1",
+          "function_model.transactions.fm1.inputs.input_0",
+          "function_model.transactions.fm1.inputs.input_1",
+          "function_model.transactions.fm1.inputs.input_2",
+          "function_model.transactions.fm1.output_rules.grant",
+          "function_model.transactions.fm1.output_rules.grant_index",
+          "function_model.transactions.fm1.output_rules.grant_valid",
+          "function_model.transactions.fm1.outputs.output_0",
+          "function_model.transactions.fm1.outputs.output_1",
+          "function_model.transactions.fm1.outputs.output_2",
+          "function_model.transactions.fm1.outputs.output_3",
+          "function_model.transactions.fm1.preconditions.precondition_0",
+          "function_model.transactions.fm1.preconditions.precondition_1",
+          "function_model.transactions.fm1.side_effects.side_effect_0",
+          "function_model.transactions.fm1.side_effects.side_effect_1",
+          "function_model.transactions.fm1.state_updates.last_winner",
+          "function_model.transactions.fm2",
+          "function_model.transactions.fm2.inputs.input_0",
+          "function_model.transactions.fm2.inputs.input_1",
+          "function_model.transactions.fm2.output_rules.grant",
+          "function_model.transactions.fm2.output_rules.grant_index",
+          "function_model.transactions.fm2.output_rules.grant_valid",
+          "function_model.transactions.fm2.outputs.output_0",
+          "function_model.transactions.fm2.outputs.output_1",
+          "function_model.transactions.fm2.outputs.output_2",
+          "function_model.transactions.fm2.outputs.output_3",
+          "function_model.transactions.fm2.preconditions.precondition_0",
+          "function_model.transactions.fm2.side_effects.side_effect_0",
+          "function_model.transactions.fm2.state_updates.last_winner",
+          "parameters.idx_width"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_MODULE_ARBITER_RR_CORE. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_SAMPLE_STAGE",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "cycle_model.pipeline.S0_SAMPLE_REQ"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_COVERAGE_CCOV_SAMPLE_STAGE. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_1CYCLE_LATENCY",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "cycle_model.latency.arbitration"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_COVERAGE_CCOV_1CYCLE_LATENCY. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_RESET_CLEAN",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "cycle_model.reset"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_COVERAGE_CCOV_RESET_CLEAN. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "cycle_model.performance.outstanding"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_COVERAGE_CYCLE_PERF_OUTSTANDING. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "classification": "coverage_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "reason": "missing scoreboard evidence for goal",
+      "evidence": {
+        "ssot_refs": [
+          "cycle_model.performance.frequency_mhz"
+        ],
+        "scoreboard_rows": [],
+        "fl_expected": null,
+        "rtl_observed": null,
+        "sim_result": "failed"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "requirement",
+          "ssot_spec",
+          "functional_model",
+          "coverage_plan",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "rtl",
+          "tb",
+          "test_vector",
+          "scoreboard_implementation",
+          "lint_fix",
+          "report"
+        ],
+        "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead."
+      },
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: missing scoreboard evidence for goal",
+      "human_question": ""
+    }
+  ]
+}

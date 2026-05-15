@@ -47,8 +47,8 @@ module spi_int (
         int_pending_raw[3] = sticky_pending[3];
         int_pending_raw[4] = sticky_pending[4];
         int_pending_raw[5] = sticky_pending[5];
-        int_pending_raw[6] = tx_empty_level;
-        int_pending_raw[7] = rx_full_level;
+        int_pending_raw[6] = tx_empty_level | (int_clear_w1c[6] & 1'b0);
+        int_pending_raw[7] = rx_full_level | (int_clear_w1c[7] & 1'b0);
     end
 
     // SSOT invariant: irq_o is OR(INT_PENDING & INT_MASK).

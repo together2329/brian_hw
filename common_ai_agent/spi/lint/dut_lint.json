@@ -17,10 +17,10 @@
     "rtl/spi_int.sv",
     "rtl/spi_param.vh"
   ],
-  "timestamp": "2026-05-15T02:12:22.405746+00:00",
+  "timestamp": "2026-05-15T02:15:40.453030+00:00",
   "returncode": 1,
   "errors": 0,
-  "warnings": 7,
+  "warnings": 8,
   "waived_warnings": 0,
   "tool_results": [
     {
@@ -39,43 +39,70 @@
       "command": "verilator --lint-only -Wall -Irtl -f list/spi.f --top-module spi",
       "returncode": 1,
       "errors": 0,
-      "warnings": 7,
+      "warnings": 8,
       "diagnostics": [
         {
           "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
+          "rule": "PINCONNECTEMPTY",
           "file": "rtl/spi.sv",
-          "line": 75,
-          "column": 11,
-          "message": "Signal is not used: 'rx_push_drop_event'",
-          "source": "    logic rx_push_drop_event;"
+          "line": 108,
+          "column": 56,
+          "message": "Instance pin connected by name with empty reference: 'prescale_tick'",
+          "source": "        .prescale_div(prescale_div), .sclk_o(sclk_o), .prescale_tick(),"
         },
         {
           "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
+          "rule": "PINCONNECTEMPTY",
           "file": "rtl/spi.sv",
-          "line": 76,
-          "column": 11,
-          "message": "Signal is not used: 'prescale_tick_event'",
-          "source": "    logic prescale_tick_event;"
+          "line": 121,
+          "column": 10,
+          "message": "Instance pin connected by name with empty reference: 'rx_overrun_event'",
+          "source": "        .rx_overrun_event(), .bit_index_dbg(bit_index_dbg), .active_cs_dbg(active_cs_dbg), .cs_active(cs_active)"
         },
         {
           "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
+          "rule": "UNUSEDPARAM",
           "file": "rtl/spi.sv",
-          "line": 77,
-          "column": 18,
-          "message": "Signal is not used: 'pclk_freq_mhz_marker'",
-          "source": "    logic [31:0] pclk_freq_mhz_marker;"
+          "line": 12,
+          "column": 23,
+          "message": "Parameter is not used: 'PCLK_FREQ_MHZ'",
+          "source": "    parameter integer PCLK_FREQ_MHZ = 100"
         },
         {
           "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
+          "rule": "UNUSEDPARAM",
           "file": "rtl/spi_shift.sv",
-          "line": 14,
-          "column": 25,
-          "message": "Signal is not used: 'cpol'",
-          "source": "    input  logic        cpol,"
+          "line": 3,
+          "column": 23,
+          "message": "Parameter is not used: 'DATA_WIDTH'",
+          "source": "    parameter integer DATA_WIDTH = 8,"
+        },
+        {
+          "severity": "warning",
+          "rule": "UNUSEDPARAM",
+          "file": "rtl/spi_shift.sv",
+          "line": 5,
+          "column": 23,
+          "message": "Parameter is not used: 'CPOL_RESET'",
+          "source": "    parameter integer CPOL_RESET = 0,"
+        },
+        {
+          "severity": "warning",
+          "rule": "UNUSEDPARAM",
+          "file": "rtl/spi_shift.sv",
+          "line": 6,
+          "column": 23,
+          "message": "Parameter is not used: 'CPHA_RESET'",
+          "source": "    parameter integer CPHA_RESET = 0,"
+        },
+        {
+          "severity": "warning",
+          "rule": "UNUSEDPARAM",
+          "file": "rtl/spi_shift.sv",
+          "line": 7,
+          "column": 23,
+          "message": "Parameter is not used: 'LSB_FIRST_RESET'",
+          "source": "    parameter integer LSB_FIRST_RESET = 0"
         },
         {
           "severity": "warning",
@@ -85,24 +112,6 @@
           "column": 17,
           "message": "Bits of signal are not used: 'reverse_bit_index_full'[5]",
           "source": "    logic [5:0] reverse_bit_index_full;"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/spi_shift.sv",
-          "line": 65,
-          "column": 11,
-          "message": "Signal is not used: 'cpha_mode_marker'",
-          "source": "    logic cpha_mode_marker;"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/spi_int.sv",
-          "line": 20,
-          "column": 11,
-          "message": "Signal is not used: 'clear_level_marker'",
-          "source": "    logic clear_level_marker;"
         }
       ],
       "passed": false

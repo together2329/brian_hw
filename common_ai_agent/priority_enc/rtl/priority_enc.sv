@@ -21,6 +21,7 @@ module priority_enc #(
 
     logic                   ctrl_enable;
     logic [N-1:0]           mask;
+    logic                   fsm_active;
     logic [INDEX_WIDTH-1:0] core_index;
     logic                   core_valid;
 
@@ -45,6 +46,13 @@ module priority_enc #(
         .PSLVERR(PSLVERR),
         .ctrl_enable_o(ctrl_enable),
         .mask_o(mask)
+    );
+
+    priority_enc_fsm u_priority_enc_fsm (
+        .PCLK(PCLK),
+        .PRESETn(PRESETn),
+        .ctrl_enable_i(ctrl_enable),
+        .active_o(fsm_active)
     );
 
     priority_enc_core #(

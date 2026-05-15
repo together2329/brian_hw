@@ -1,0 +1,457 @@
+{
+  "schema_version": 1,
+  "type": "fl_rtl_compare",
+  "ip": "arbiter_rr",
+  "generated_at": "2026-05-15T02:15:27Z",
+  "status": "pending",
+  "sources": {
+    "equivalence_goals": "arbiter_rr/verify/equivalence_goals.json",
+    "scoreboard_events": "arbiter_rr/sim/scoreboard_events.jsonl",
+    "results_xml": "arbiter_rr/sim/results.xml",
+    "coverage": "arbiter_rr/cov/coverage.json",
+    "fl_model_check": "arbiter_rr/model/fl_model_check.json"
+  },
+  "summary": {
+    "total": 34,
+    "goals_checked": 0,
+    "goals_passed": 0,
+    "goals_failed": 0,
+    "goals_blocked": 0,
+    "goals_untested": 34,
+    "scoreboard_events": 0,
+    "orphan_scoreboard_events": 0,
+    "missing_evidence": [
+      "arbiter_rr/sim/scoreboard_events.jsonl",
+      "arbiter_rr/sim/results.xml"
+    ],
+    "stale_evidence": [],
+    "sim_results": {
+      "exists": false,
+      "total": 0,
+      "fail": 0,
+      "errors": 0,
+      "source": ""
+    }
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_FM1",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "fcov_grant_single",
+        "fcov_grant_all_rotation",
+        "function_arbitrate_grant"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM2",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "fcov_no_grant_idle",
+        "function_no_grant_idle"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC1",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC1_executed",
+        "SC10_executed",
+        "fcov_grant_single"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC2",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC2_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC3",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC3_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC4",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC4_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC5",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC5_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC6",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC6_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC7",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC7_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC8",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC8_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC9",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC9_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC10",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC10_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "ccov_req_stability",
+        "ccov_gnt_onehot_assertion",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "ccov_req_stability",
+        "ccov_gnt_onehot_assertion",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "ccov_req_stability",
+        "ccov_gnt_onehot_assertion",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_3",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "ccov_req_stability",
+        "ccov_gnt_onehot_assertion",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_REGISTER_CTRL",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "fcov_mask_each_bit",
+        "fcov_enable_toggle",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_latency_arbitration",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_pipeline_s1_grant",
+        "cycle_ordering_2",
+        "cycle_perf_depth",
+        "error_error_0"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_REGISTER_REQ_MASK",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "fcov_mask_each_bit",
+        "fcov_enable_toggle",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_latency_arbitration",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_pipeline_s0_sample_req",
+        "cycle_pipeline_s1_grant",
+        "cycle_ordering_2",
+        "cycle_perf_depth",
+        "error_error_0"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_REGISTER_STATUS",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "fcov_mask_each_bit",
+        "fcov_enable_toggle",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_latency_arbitration",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_pipeline_s1_grant",
+        "cycle_ordering_2",
+        "cycle_perf_depth",
+        "error_error_0"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "error_error_0"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_STATE_ARB_FSM_IDLE_TO_EVAL_0",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC5_executed",
+        "fcov_no_grant_idle",
+        "function_no_grant_idle",
+        "cycle_pipeline_s1_grant",
+        "fsm_arb_fsm_idle_to_eval_0",
+        "fsm_arb_fsm_eval_to_grant_1",
+        "fsm_arb_fsm_grant_to_idle_2",
+        "fsm_arb_fsm_idle_to_idle_3"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC1_executed",
+        "SC9_executed",
+        "fcov_grant_single",
+        "fcov_grant_all_rotation",
+        "fcov_no_grant_idle",
+        "ccov_grant_stage",
+        "ccov_gnt_onehot_assertion",
+        "function_arbitrate_grant",
+        "function_no_grant_idle",
+        "cycle_handshake_2",
+        "cycle_latency_arbitration",
+        "cycle_pipeline_s1_grant",
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_backpressure_0",
+        "cycle_perf_throughput",
+        "fsm_arb_fsm_idle_to_eval_0",
+        "fsm_arb_fsm_eval_to_grant_1",
+        "fsm_arb_fsm_grant_to_idle_2",
+        "fsm_arb_fsm_idle_to_idle_3"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_STATE_ARB_FSM_GRANT_TO_IDLE_2",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC1_executed",
+        "SC5_executed",
+        "SC9_executed",
+        "fcov_grant_single",
+        "fcov_grant_all_rotation",
+        "fcov_no_grant_idle",
+        "ccov_grant_stage",
+        "ccov_gnt_onehot_assertion",
+        "function_arbitrate_grant",
+        "function_no_grant_idle",
+        "cycle_handshake_2",
+        "cycle_latency_arbitration",
+        "cycle_pipeline_s1_grant",
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_backpressure_0",
+        "cycle_perf_throughput",
+        "fsm_arb_fsm_idle_to_eval_0",
+        "fsm_arb_fsm_eval_to_grant_1",
+        "fsm_arb_fsm_grant_to_idle_2",
+        "fsm_arb_fsm_idle_to_idle_3"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_STATE_ARB_FSM_IDLE_TO_IDLE_3",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "SC5_executed",
+        "fcov_no_grant_idle",
+        "function_no_grant_idle",
+        "fsm_arb_fsm_idle_to_eval_0",
+        "fsm_arb_fsm_eval_to_grant_1",
+        "fsm_arb_fsm_grant_to_idle_2",
+        "fsm_arb_fsm_idle_to_idle_3"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_MODULE_ARBITER_RR_CORE",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_SAMPLE_STAGE",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "ccov_sample_stage"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_1CYCLE_LATENCY",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "ccov_1cycle_latency"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_RESET_CLEAN",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "ccov_reset_clean"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_perf_outstanding"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "status": "untested",
+      "events": 0,
+      "coverage_refs": [
+        "cycle_perf_frequency_mhz"
+      ],
+      "coverage_hit": null
+    }
+  ]
+}

@@ -129,9 +129,7 @@ module adder_kogge_stone_regs #(
             if (apb_write & valid_addr) begin
                 case (paddr_i)
                     ADDR_CONTROL: begin
-                        start_pulse_o    <= pwdata_i[0];
-                        hold_mode_o      <= pwdata_i[1];
-                        clr_done_pulse_o <= pwdata_i[2];
+                        hold_mode_o <= pwdata_i[1];
                     end
                     ADDR_A_DATA: begin
                         a_shadow_o <= pwdata_operand;
@@ -143,8 +141,7 @@ module adder_kogge_stone_regs #(
                         cin_shadow_o <= pwdata_i[0];
                     end
                     default: begin
-                        start_pulse_o    <= 1'b0;
-                        clr_done_pulse_o <= 1'b0;
+                        hold_mode_o <= hold_mode_o;
                     end
                 endcase
             end
