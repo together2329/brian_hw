@@ -1,0 +1,1028 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 24,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 7,
+      "key": "test_requirements",
+      "module_task_count": 54,
+      "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "test_requirements",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/arbiter_rr.sv",
+      "name": "arbiter_rr",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/arbiter_rr_regs.sv",
+        "name": "arbiter_rr_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arbiter_rr_core.sv",
+        "name": "arbiter_rr_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arbiter_rr.sv",
+        "name": "arbiter_rr",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PCLK",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PRESETn",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PADDR",
+        "signal": "PADDR",
+        "signal_terms": [
+          "PADDR"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PSEL",
+        "signal": "PSEL",
+        "signal_terms": [
+          "PSEL"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PENABLE",
+        "signal": "PENABLE",
+        "signal_terms": [
+          "PENABLE"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PWRITE",
+        "signal": "PWRITE",
+        "signal_terms": [
+          "PWRITE"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PWDATA",
+        "signal": "PWDATA",
+        "signal_terms": [
+          "PWDATA"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PRDATA",
+        "signal": "PRDATA",
+        "signal_terms": [
+          "PRDATA"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PREADY",
+        "signal": "PREADY",
+        "signal_terms": [
+          "PREADY"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PSLVERR",
+        "signal": "PSLVERR",
+        "signal_terms": [
+          "PSLVERR"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "enable_o",
+        "signal": "arb_enable",
+        "signal_terms": [
+          "arb_enable"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "mask_o",
+        "signal": "req_mask",
+        "signal_terms": [
+          "req_mask"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "req_i",
+        "signal": "req_i",
+        "signal_terms": [
+          "req_i"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "mask_i",
+        "signal": "req_mask",
+        "signal_terms": [
+          "req_mask"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "enable_i",
+        "signal": "arb_enable",
+        "signal_terms": [
+          "arb_enable"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "gnt_o",
+        "signal": "gnt_o",
+        "signal_terms": [
+          "gnt_o"
+        ],
+        "source_ref": "integration.connections[17]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "gnt_valid_o",
+        "signal": "gnt_valid_o",
+        "signal_terms": [
+          "gnt_valid_o"
+        ],
+        "source_ref": "integration.connections[18]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "gnt_idx_o",
+        "signal": "gnt_idx_o",
+        "signal_terms": [
+          "gnt_idx_o"
+        ],
+        "source_ref": "integration.connections[19]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "winner_oh_o",
+        "signal": "status_winner",
+        "signal_terms": [
+          "status_winner"
+        ],
+        "source_ref": "integration.connections[20]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "active_req_o",
+        "signal": "status_active_req",
+        "signal_terms": [
+          "status_active_req"
+        ],
+        "source_ref": "integration.connections[21]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "winner_oh_i",
+        "signal": "status_winner",
+        "signal_terms": [
+          "status_winner"
+        ],
+        "source_ref": "integration.connections[22]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "active_req_i",
+        "signal": "status_active_req",
+        "signal_terms": [
+          "status_active_req"
+        ],
+        "source_ref": "integration.connections[23]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "PCLK"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PCLK",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PRESETn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PRESETn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PADDR",
+          "apb_slave_PADDR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PADDR",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "PSEL",
+          "apb_slave_PSEL"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSEL",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PENABLE",
+          "apb_slave_PENABLE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PENABLE",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWRITE",
+          "apb_slave_PWRITE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWRITE",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWDATA",
+          "apb_slave_PWDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWDATA",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PRDATA",
+          "apb_slave_PRDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PRDATA",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PREADY",
+          "apb_slave_PREADY"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PREADY",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PSLVERR",
+          "apb_slave_PSLVERR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PSLVERR",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "req_i",
+          "request_inputs_req_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "req_i",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "NUM_REQ"
+      },
+      {
+        "aliases": [
+          "gnt_o",
+          "grant_outputs_gnt_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "gnt_o",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "NUM_REQ"
+      },
+      {
+        "aliases": [
+          "gnt_valid_o",
+          "grant_outputs_gnt_valid_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "gnt_valid_o",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "gnt_idx_o",
+          "grant_outputs_gnt_idx_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "gnt_idx_o",
+        "source_ref": "io_list.interfaces[2].ports[2]",
+        "width": "IDX_WIDTH"
+      }
+    ],
+    "target_scale": {
+      "basis": "small bus/arbitration IP — minimal structural depth",
+      "min_behavior_owner_logic_modules": 1,
+      "min_logic_modules": 1,
+      "min_modules": 3,
+      "min_procedural_blocks": 4,
+      "min_source_files": 3,
+      "min_state_updates": 3,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": false,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 10,
+    "open_required_count": 10,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": false
+  },
+  "ip": "arbiter_rr",
+  "kind": "module",
+  "owner_file": "rtl/arbiter_rr.sv",
+  "owner_module": "arbiter_rr",
+  "packet_id": "module__arbiter_rr__test_requirements",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "test_requirements.scenario": 10
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 7,
+      "key": "test_requirements",
+      "module_task_count": 54,
+      "rule": "Owner module arbiter_rr is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "test_requirements",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 10,
+    "required_count": 10,
+    "source_refs": [
+      "test_requirements.scenarios.SC1",
+      "test_requirements.scenarios.SC2",
+      "test_requirements.scenarios.SC3",
+      "test_requirements.scenarios.SC4",
+      "test_requirements.scenarios.SC5",
+      "test_requirements.scenarios.SC6",
+      "test_requirements.scenarios.SC7",
+      "test_requirements.scenarios.SC8",
+      "test_requirements.scenarios.SC9",
+      "test_requirements.scenarios.SC10"
+    ],
+    "status_counts": {
+      "open": 10
+    },
+    "task_count": 10
+  },
+  "tasks": [
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC1",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC1",
+        "Primary implementation evidence is in rtl/arbiter_rr.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: gnt_o[2] asserted on next cycle, gnt_valid_o=1, gnt_idx_o=2"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC1.\nOwner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.\nSSOT item context: id=SC1; name=Single requestor grant; expected=gnt_o[2] asserted on next cycle, gnt_valid_o=1, gnt_idx_o=2.",
+      "evidence_terms": [],
+      "id": "RTL-0160",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC1",
+      "ssot_context": {
+        "expected": "gnt_o[2] asserted on next cycle, gnt_valid_o=1, gnt_idx_o=2",
+        "id": "SC1",
+        "name": "Single requestor grant"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC2",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC2",
+        "Primary implementation evidence is in rtl/arbiter_rr.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Each requestor is granted exactly once in 4 cycles in rotation order starting from (last_winner+1)"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC2.\nOwner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.\nSSOT item context: id=SC2; name=Round-robin fairness; expected=Each requestor is granted exactly once in 4 cycles in rotation order starting from (last_winner+1).",
+      "evidence_terms": [],
+      "id": "RTL-0161",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC2",
+      "ssot_context": {
+        "expected": "Each requestor is granted exactly once in 4 cycles in rotation order starting from (last_winner+1)",
+        "id": "SC2",
+        "name": "Round-robin fairness"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC3",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC3",
+        "Primary implementation evidence is in rtl/arbiter_rr.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Only requestors 0 and 2 participate; grants alternate between them"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC3.\nOwner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.\nSSOT item context: id=SC3; name=Request masking; expected=Only requestors 0 and 2 participate; grants alternate between them.",
+      "evidence_terms": [],
+      "id": "RTL-0162",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC3",
+      "ssot_context": {
+        "expected": "Only requestors 0 and 2 participate; grants alternate between them",
+        "id": "SC3",
+        "name": "Request masking"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC4",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC4",
+        "Primary implementation evidence is in rtl/arbiter_rr.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Grants stop when disabled, resume when re-enabled; last_winner is preserved across disable period"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC4.\nOwner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.\nSSOT item context: id=SC4; name=Enable/disable; expected=Grants stop when disabled, resume when re-enabled; last_winner is preserved across disable period.",
+      "evidence_terms": [],
+      "id": "RTL-0163",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC4",
+      "ssot_context": {
+        "expected": "Grants stop when disabled, resume when re-enabled; last_winner is preserved across disable period",
+        "id": "SC4",
+        "name": "Enable/disable"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC4"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC5",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC5",
+        "Primary implementation evidence is in rtl/arbiter_rr.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: gnt_o=0, gnt_valid_o=0 on all cycles"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC5.\nOwner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.\nSSOT item context: id=SC5; name=No requests idle; expected=gnt_o=0, gnt_valid_o=0 on all cycles.",
+      "evidence_terms": [],
+      "id": "RTL-0164",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC5",
+      "ssot_context": {
+        "expected": "gnt_o=0, gnt_valid_o=0 on all cycles",
+        "id": "SC5",
+        "name": "No requests idle"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC5"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC6",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC6",
+        "Primary implementation evidence is in rtl/arbiter_rr.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Priority rotation resumes from (3+1)%4 = 0 after re-enable"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC6.\nOwner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.\nSSOT item context: id=SC6; name=Last winner persistence across disable; expected=Priority rotation resumes from (3+1)%4 = 0 after re-enable.",
+      "evidence_terms": [],
+      "id": "RTL-0165",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC6",
+      "ssot_context": {
+        "expected": "Priority rotation resumes from (3+1)%4 = 0 after re-enable",
+        "id": "SC6",
+        "name": "Last winner persistence across disable"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC6"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC7",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC7",
+        "Primary implementation evidence is in rtl/arbiter_rr.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Written values readable; STATUS reflects internal arbiter state"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC7.\nOwner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.\nSSOT item context: id=SC7; name=APB CSR read/write; expected=Written values readable; STATUS reflects internal arbiter state.",
+      "evidence_terms": [],
+      "id": "RTL-0166",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC7",
+      "ssot_context": {
+        "expected": "Written values readable; STATUS reflects internal arbiter state",
+        "id": "SC7",
+        "name": "APB CSR read/write"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC7"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC8",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC8",
+        "Primary implementation evidence is in rtl/arbiter_rr.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: PSLVERR=1, PRDATA=0"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC8.\nOwner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.\nSSOT item context: id=SC8; name=APB illegal offset; expected=PSLVERR=1, PRDATA=0.",
+      "evidence_terms": [],
+      "id": "RTL-0167",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC8",
+      "ssot_context": {
+        "expected": "PSLVERR=1, PRDATA=0",
+        "id": "SC8",
+        "name": "APB illegal offset"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC8"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC9",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC9",
+        "Primary implementation evidence is in rtl/arbiter_rr.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: gnt_o is always one-hot or zero; never multi-bit or invalid"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC9.\nOwner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.\nSSOT item context: id=SC9; name=One-hot grant invariant under all input combinations; expected=gnt_o is always one-hot or zero; never multi-bit or invalid.",
+      "evidence_terms": [],
+      "id": "RTL-0168",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC9",
+      "ssot_context": {
+        "expected": "gnt_o is always one-hot or zero; never multi-bit or invalid",
+        "id": "SC9",
+        "name": "One-hot grant invariant under all input combinations"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC9"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC10",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC10",
+        "Primary implementation evidence is in rtl/arbiter_rr.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: All outputs zero during reset; arbitration resumes from last_winner=0 after deassertion"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC10.\nOwner: arbiter_rr in rtl/arbiter_rr.sv via test_requirements.\nSSOT item context: id=SC10; name=Reset behavior; expected=All outputs zero during reset; arbitration resumes from last_winner=0 after deassertion.",
+      "evidence_terms": [],
+      "id": "RTL-0169",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC10",
+      "ssot_context": {
+        "expected": "All outputs zero during reset; arbitration resumes from last_winner=0 after deassertion",
+        "id": "SC10",
+        "name": "Reset behavior"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC10"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "ed4fb0aab2b37641faadb8a908ce4f3766aa5320c73da71fb75da59dd59109b2",
+  "top": "arbiter_rr",
+  "type": "rtl_authoring_packet"
+}

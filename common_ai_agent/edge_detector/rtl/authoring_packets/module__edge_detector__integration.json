@@ -1,0 +1,709 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 16,
+      "enabled": true,
+      "index": 4,
+      "key": "integration",
+      "module_task_count": 103,
+      "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "integration",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/edge_detector.sv",
+      "name": "edge_detector",
+      "refs": [
+        "cycle_model",
+        "cycle_model.latency",
+        "cycle_model.pipeline",
+        "dataflow",
+        "features",
+        "function_model",
+        "function_model.output_rules",
+        "function_model.state_variables",
+        "function_model.transactions"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/edge_detector.sv",
+        "name": "edge_detector",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "edge_detector",
+        "port": "PCLK",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "edge_detector",
+        "port": "PRESETn",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "edge_detector",
+        "port": "signal_i",
+        "signal": "signal_i",
+        "signal_terms": [
+          "signal_i"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "edge_detector",
+        "port": "edge_o",
+        "signal": "edge_o",
+        "signal_terms": [
+          "edge_o"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "edge_detector",
+        "port": "irq_o",
+        "signal": "irq_o",
+        "signal_terms": [
+          "irq_o"
+        ],
+        "source_ref": "integration.connections[4]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "PCLK"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PCLK",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PRESETn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PRESETn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "signal_i",
+          "signal_in_signal_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "signal_i",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "WIDTH"
+      },
+      {
+        "aliases": [
+          "edge_o",
+          "edge_out_edge_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "edge_o",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "WIDTH"
+      },
+      {
+        "aliases": [
+          "interrupt_irq_o",
+          "irq_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "irq_o",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PADDR",
+          "apb_csr_PADDR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PADDR",
+        "source_ref": "io_list.interfaces[3].ports[0]",
+        "width": "12"
+      },
+      {
+        "aliases": [
+          "PSEL",
+          "apb_csr_PSEL"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSEL",
+        "source_ref": "io_list.interfaces[3].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PENABLE",
+          "apb_csr_PENABLE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PENABLE",
+        "source_ref": "io_list.interfaces[3].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWRITE",
+          "apb_csr_PWRITE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWRITE",
+        "source_ref": "io_list.interfaces[3].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWDATA",
+          "apb_csr_PWDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWDATA",
+        "source_ref": "io_list.interfaces[3].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PSTRB",
+          "apb_csr_PSTRB"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSTRB",
+        "source_ref": "io_list.interfaces[3].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "PRDATA",
+          "apb_csr_PRDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PRDATA",
+        "source_ref": "io_list.interfaces[3].ports[6]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PREADY",
+          "apb_csr_PREADY"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PREADY",
+        "source_ref": "io_list.interfaces[3].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PSLVERR",
+          "apb_csr_PSLVERR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PSLVERR",
+        "source_ref": "io_list.interfaces[3].ports[8]",
+        "width": "1"
+      }
+    ],
+    "target_scale": {
+      "basis": "Simple peripheral IP with combinational/sequential logic only",
+      "min_behavior_owner_logic_modules": 2,
+      "min_logic_modules": 2,
+      "min_modules": 2,
+      "min_procedural_blocks": 4,
+      "min_source_files": 2,
+      "min_state_updates": 4,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 8,
+    "open_required_count": 8,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "edge_detector",
+  "kind": "module",
+  "owner_file": "rtl/edge_detector.sv",
+  "owner_module": "edge_detector",
+  "packet_id": "module__edge_detector__integration",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "integration.connections": 5,
+      "integration.dependencies": 3
+    },
+    "module_slice": {
+      "count": 16,
+      "enabled": true,
+      "index": 4,
+      "key": "integration",
+      "module_task_count": 103,
+      "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "integration",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 8,
+    "required_count": 8,
+    "source_refs": [
+      "integration.dependencies.external_modules",
+      "integration.dependencies.external_clocks",
+      "integration.dependencies.external_resets",
+      "integration.connections.PCLK",
+      "integration.connections.PRESETn",
+      "integration.connections.signal_i",
+      "integration.connections.edge_o",
+      "integration.connections.irq_o"
+    ],
+    "status_counts": {
+      "open": 8
+    },
+    "task_count": 8
+  },
+  "tasks": [
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_modules",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_modules",
+        "Primary implementation evidence is in rtl/edge_detector.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_modules.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: name=external_modules.",
+      "evidence_terms": [],
+      "id": "RTL-0101",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_modules",
+      "ssot_context": {
+        "name": "external_modules"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_modules"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_clocks",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_clocks",
+        "Primary implementation evidence is in rtl/edge_detector.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_clocks.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: name=external_clocks; value=[\"PCLK\"].",
+      "evidence_terms": [],
+      "id": "RTL-0102",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_clocks",
+      "ssot_context": {
+        "name": "external_clocks",
+        "value": "[\"PCLK\"]"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_clocks"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_resets",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_resets",
+        "Primary implementation evidence is in rtl/edge_detector.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_resets.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: name=external_resets; value=[\"PRESETn\"].",
+      "evidence_terms": [],
+      "id": "RTL-0103",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_resets",
+      "ssot_context": {
+        "name": "external_resets",
+        "value": "[\"PRESETn\"]"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_resets"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item PCLK",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.PCLK",
+        "Primary implementation evidence is in rtl/edge_detector.sv",
+        "DUT port PCLK is the implementation/observation point for PCLK"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.PCLK.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: port=PCLK; signal=PCLK.",
+      "evidence_terms": [],
+      "id": "RTL-0104",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.PCLK",
+      "ssot_context": {
+        "port": "PCLK",
+        "signal": "PCLK"
+      },
+      "ssot_refs": [
+        "integration.connections.PCLK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item PRESETn",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.PRESETn",
+        "Primary implementation evidence is in rtl/edge_detector.sv",
+        "DUT port PRESETn is the implementation/observation point for PRESETn"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.PRESETn.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: port=PRESETn; signal=PRESETn.",
+      "evidence_terms": [],
+      "id": "RTL-0105",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.PRESETn",
+      "ssot_context": {
+        "port": "PRESETn",
+        "signal": "PRESETn"
+      },
+      "ssot_refs": [
+        "integration.connections.PRESETn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item signal_i",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.signal_i",
+        "Primary implementation evidence is in rtl/edge_detector.sv",
+        "DUT port signal_i is the implementation/observation point for signal_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.signal_i.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: port=signal_i; signal=signal_i.",
+      "evidence_terms": [
+        "signal",
+        "signal_i"
+      ],
+      "id": "RTL-0106",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.signal_i",
+      "ssot_context": {
+        "port": "signal_i",
+        "signal": "signal_i"
+      },
+      "ssot_refs": [
+        "integration.connections.signal_i"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item edge_o",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.edge_o",
+        "Primary implementation evidence is in rtl/edge_detector.sv",
+        "DUT port edge_o is the implementation/observation point for edge_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.edge_o.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: port=edge_o; signal=edge_o.",
+      "evidence_terms": [
+        "edge",
+        "edge_o"
+      ],
+      "id": "RTL-0107",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.edge_o",
+      "ssot_context": {
+        "port": "edge_o",
+        "signal": "edge_o"
+      },
+      "ssot_refs": [
+        "integration.connections.edge_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item irq_o",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.irq_o",
+        "Primary implementation evidence is in rtl/edge_detector.sv",
+        "DUT port irq_o is the implementation/observation point for irq_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.irq_o.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: port=irq_o; signal=irq_o.",
+      "evidence_terms": [
+        "irq",
+        "irq_o"
+      ],
+      "id": "RTL-0108",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.irq_o",
+      "ssot_context": {
+        "port": "irq_o",
+        "signal": "irq_o"
+      },
+      "ssot_refs": [
+        "integration.connections.irq_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "840d14de13dd95a959136737727b272b19f9ee4fec88ae3762a5e61ba413821c",
+  "top": "edge_detector",
+  "type": "rtl_authoring_packet"
+}

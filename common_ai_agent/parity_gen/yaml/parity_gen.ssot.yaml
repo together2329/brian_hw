@@ -1,0 +1,244 @@
+ip: parity_gen
+version: "1.0"
+status: draft
+top_module:
+  name: "parity_gen"
+  file: "rtl/parity_gen.sv"
+  version: "1.0"
+  type: "peripheral"
+  description: "Parameterized parity generator and checker with APB-lite CSR interface"
+  reference_spec: "user-defined"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 50
+    area_um2: null
+    power_mw: null
+sub_modules:
+  - { name: "parity_gen_regs", file: "rtl/parity_gen_regs.sv", ownership: "manifest", ssot_gen: true, implements: ["registers.register_list", "io_list.interfaces.apb_slave"], source_sections: ["registers", "io_list"], register_refs: ["registers.register_list"], description: "APB-lite register decode and CSR storage" }
+  - { name: "parity_gen_core", file: "rtl/parity_gen_core.sv", ownership: "manifest", ssot_gen: true, implements: ["function_model.transactions", "cycle_model.latency", "features"], source_sections: ["function_model", "cycle_model", "features"], function_model_refs: ["function_model.transactions"], cycle_model_refs: ["cycle_model.latency"], feature_refs: ["features"], description: "Parity generation and checking datapath" }
+
+decomposition:
+  units:
+    - { id: "register_decode", kind: "control", source_refs: ["registers.register_list"], rtl_candidates: ["parity_gen_regs"], verification_impact: ["test_requirements.scenarios"] }
+    - { id: "parity_datapath", kind: "datapath", source_refs: ["function_model.transactions"], rtl_candidates: ["parity_gen_core"], verification_impact: ["coverage_goals.function"] }
+
+parameters:
+  - name: "DATA_WIDTH"
+    default: 32
+    type: int
+    description: "Width of the data input bus in bits"
+    drives: ["rtl/parity_gen.sv", "rtl/parity_gen_core.sv"]
+  - name: "ADDR_WIDTH"
+    default: 12
+    type: int
+    description: "APB address width in bits"
+    drives: ["rtl/parity_gen_regs.sv"]
+  - name: "RESET_POLARITY"
+    default: "active_low"
+    type: enum
+    values: ["active_low", "active_high"]
+    description: "Reset polarity for PRESETn"
+    drives: ["ALL .sv files"]
+io_list:
+  clock_domains:
+    - name: "PCLK"
+      frequency_mhz: 50
+      description: "Main peripheral clock"
+      ports:
+        - { name: "PCLK", width: 1, direction: "input", description: "System clock" }
+  resets:
+    - name: "PRESETn"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "Main reset"
+      ports:
+        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low async assert, sync deassert reset" }
+  interfaces:
+    - name: "apb_slave"
+      type: "APB4-lite"
+      role: "slave"
+      description: "Register access interface"
+      ports:
+        - { name: "PADDR",   width: 12, direction: "input",  description: "APB address" }
+        - { name: "PSEL",    width: 1,  direction: "input",  description: "APB select" }
+        - { name: "PENABLE", width: 1,  direction: "input",  description: "APB enable" }
+        - { name: "PWRITE",  width: 1,  direction: "input",  description: "APB write" }
+        - { name: "PWDATA",  width: 32, direction: "input",  description: "APB write data" }
+        - { name: "PRDATA",  width: 32, direction: "output", description: "APB read data" }
+        - { name: "PREADY",  width: 1,  direction: "output", description: "APB ready" }
+        - { name: "PSLVERR", width: 1,  direction: "output", description: "APB error" }
+    - name: "data_input"
+      type: "custom"
+      description: "Data input for parity generation/checking"
+      ports:
+        - { name: "data_in", width: 32, direction: "input", description: "Input data bus (parameterized width)" }
+    - name: "parity_output"
+      type: "custom"
+      description: "Parity result outputs"
+      ports:
+        - { name: "parity_out",    width: 1, direction: "output", description: "Generated parity bit" }
+        - { name: "parity_error",  width: 1, direction: "output", description: "Parity mismatch flag" }
+features:
+  - name: "Parity Generation"
+    trigger: "data_in valid and enable set in CONTROL register"
+    datapath: "data_in → XOR-tree → parity_out"
+    control: "None (combinational/1-cycle registered)"
+    output: "parity_out single bit"
+  - name: "Parity Checking"
+    trigger: "data_in valid and check_enable set"
+    datapath: "data_in → XOR-tree → compare with expected_parity bit → parity_error"
+    control: "None (combinational/1-cycle registered)"
+    output: "parity_error single bit"
+  - name: "APB-lite Configuration"
+    trigger: "PSEL && PENABLE && PWRITE on APB interface"
+    datapath: "PWDATA → register decode → CONTROL/STATUS"
+    control: "APB slave state machine"
+    output: "Updated configuration registers"
+
+dataflow:
+  read_path:
+    source: "data_in port"
+    sequence: "data_in → parity_core → parity_out"
+    latency: "1 PCLK cycle (registered output)"
+  check_path:
+    source: "data_in port + expected_parity field"
+    sequence: "data_in → parity_core → compare with expected_parity → parity_error"
+    latency: "1 PCLK cycle (registered output)"
+  config_path:
+    source: "APB write"
+    sequence: "PWDATA → register decoder → CONTROL/STATUS"
+    latency: "0-cycle comb (APB PREADY asserted immediately)")
+
+function_model:
+  purpose: "Executable behavioral contract for rtl-gen and tb-gen; describes what the IP computes independent of cycle timing."
+  state_variables:
+    - { name: "control", source: "registers.CONTROL", reset: 0, description: "Control register value" }
+    - { name: "status", source: "registers.STATUS", reset: 0, description: "Status register value" }
+  transactions:
+    - id: "FM_GEN"
+      name: "parity_generate"
+      preconditions:
+        - "control.enable == 1"
+      inputs:
+        - "data_in[DATA_WIDTH-1:0]"
+      outputs:
+        - "parity_out == XOR reduction of data_in"
+      side_effects: []
+      error_cases: []
+    - id: "FM_CHK"
+      name: "parity_check"
+      preconditions:
+        - "control.check_enable == 1"
+      inputs:
+        - "data_in[DATA_WIDTH-1:0]"
+        - "control.expected_parity"
+      outputs:
+        - "parity_error == (XOR reduction of data_in) XOR control.expected_parity"
+      side_effects:
+        - "status.parity_err_sticky set if parity_error == 1"
+      error_cases: []
+  output_rules:
+    - { name: "parity_out", expr: "^data_in", width: 1, port: "parity_out" }
+    - { name: "parity_error", expr: "(^data_in) ^ expected_parity", width: 1, port: "parity_error" }
+  state_updates:
+    - { name: "control_reg", reset: 0, expr: "APB write to CONTROL register latches PWDATA into control_reg" }
+    - { name: "status_reg", reset: 0, expr: "status_reg[0] <= status_reg[0] | parity_error when check_enable; cleared by APB write 1 clear" }
+  invariants:
+    - "parity_out is strictly a function of data_in and control.enable"
+    - "parity_error is strictly a function of data_in, control.expected_parity, and control.check_enable"
+  reference_model_hint: "tb-gen should implement a Python scoreboard model from this section and compare expected/got for every scenario."
+
+cycle_model:
+  purpose: "Cycle/handshake contract for rtl-gen; describes when state, valid/ready, outputs, and interrupts may change."
+  executable: "python"
+  backend_policy: "Use direct Python smoke checks for cycle behavior."
+  clock: "PCLK"
+  reset:
+    assertion: "PRESETn low asynchronously clears all architectural state"
+    deassertion: "state is usable on the first rising edge after synchronized deassertion"
+  latency:
+    parity_compute: { min_cycles: 1, max_cycles: 1, description: "Registered parity_out and parity_error update one cycle after data_in/control stable" }
+    register_access: { min_cycles: 0, max_cycles: 1, description: "APB-lite: PREADY asserted immediately (0 wait states)" }
+  handshake_rules:
+    - { signal: "PSEL/PENABLE", rule: "Standard APB-lite: setup phase (PSEL=1, PENABLE=0), access phase (PSEL=1, PENABLE=1). PREADY must be high in access phase to complete." }
+    - { signal: "data_in", rule: "Sampled on rising PCLK when enable is asserted; no ready/valid handshake." }
+  pipeline:
+    - { stage: "S0_SAMPLE", cycle: 0, action: "Sample data_in and control register state" }
+    - { stage: "S1_OUTPUT", cycle: 1, action: "Drive parity_out and parity_error registered outputs" }
+  ordering:
+    - "Registered outputs parity_out and parity_error reflect data_in sampled in the previous cycle."
+  backpressure:
+    - "None for data_in (always-on sampling). APB slave accepts every transfer with zero wait states."
+  observability:
+    - "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
+
+clock_reset_domains:
+  domains:
+    - { name: "PCLK", frequency_mhz: 50, description: "Main peripheral clock" }
+  reset_scheme:
+    signal: "PRESETn"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain (PCLK) — no CDC required"
+
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single reset domain (PRESETn) — no RDC required"
+
+registers:
+  config:
+    register_width: 32
+    addr_width: 12
+    byte_addressable: true
+  register_list:
+    - name: "CONTROL"
+      offset: 0x000
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "control"
+      description: "Control Register"
+      fields:
+        - { name: "enable",         bits: [0, 0], access: "rw", reset: 0, description: "1=Enable parity generation" }
+        - { name: "check_enable",   bits: [1, 1], access: "rw", reset: 0, description: "1=Enable parity checking" }
+        - { name: "expected_parity", bits: [2, 2], access: "rw", reset: 0, description: "Expected parity bit for checking mode" }
+        - { name: "reserved",       bits: [31, 3], access: "ro", reset: 0, description: "Reserved, read as 0" }
+    - name: "STATUS"
+      offset: 0x004
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "status"
+      description: "Status Register"
+      fields:
+        - { name: "parity_err_sticky", bits: [0, 0], access: "rw", reset: 0, description: "1=Parity error detected since last clear; write 1 to clear" }
+        - { name: "reserved",          bits: [31, 1], access: "ro", reset: 0, description: "Reserved, read as 0" }
+
+memory: TBD
+interrupts: TBD
+fsm: TBD
+rtl_contract: TBD
+timing: TBD
+power: TBD
+security: TBD
+error_handling: TBD
+debug_observability: TBD
+integration: TBD
+dft: TBD
+synthesis: TBD
+pnr: TBD
+coding_rules: TBD
+reuse_modules: TBD
+custom: TBD
+dir_structure: TBD
+filelist: TBD
+test_requirements: TBD
+quality_gates: TBD
+traceability: TBD
+workflow_todos: TBD
+generation_flow: TBD

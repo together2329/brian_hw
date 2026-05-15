@@ -1,0 +1,169 @@
+ip: lfsr
+version: "1.0"
+purpose: "LFSR-based Pseudo-Random Binary Sequence (PRBS) generator with runtime-programmable polynomial, seed, and enable via APB-lite CSR interface. Output is available as a parameterized-width parallel word and a single-bit serial stream."
+type: "peripheral"
+top_module:
+  name: "lfsr"
+  file: "rtl/lfsr.sv"
+  version: "1.0"
+  type: "peripheral"
+  description: "LFSR PRBS generator with APB-lite register interface"
+  reference_spec: "user-defined"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 50
+    area_um2: null
+    power_mw: null
+sub_modules: TBD
+parameters:
+  - name: "LFSR_WIDTH"
+    default: 32
+    type: int
+    description: "Width of the LFSR state register in bits"
+    drives: ["lfsr_core.sv", "lfsr_regs.sv", "lfsr.sv"]
+  - name: "POLY_DEGREE"
+    default: 32
+    type: int
+    description: "Polynomial degree (must be <= LFSR_WIDTH)"
+    drives: ["lfsr_core.sv"]
+  - name: "APB_ADDR_WIDTH"
+    default: 8
+    type: int
+    description: "APB-lite address width in bits"
+    drives: ["lfsr_regs.sv"]
+  - name: "APB_DATA_WIDTH"
+    default: 32
+    type: int
+    description: "APB-lite data width in bits"
+    drives: ["lfsr_regs.sv"]
+  - name: "DEFAULT_POLY"
+    default: "0x80000057"
+    type: hex
+    description: "Default feedback polynomial (taps); standard 32-bit PRBS polynomial"
+    drives: ["lfsr_regs.sv"]
+  - name: "DEFAULT_SEED"
+    default: "0x1"
+    type: hex
+    description: "Default non-zero seed value on reset"
+    drives: ["lfsr_regs.sv"]
+  - name: "CLOCK_FREQ_MHZ"
+    default: 50
+    type: int
+    description: "Target clock frequency in MHz"
+    drives: ["tb_top.sv", "docs/README.md"]
+  - name: "RESET_POLARITY"
+    default: "active_low"
+    type: enum
+    values: ["active_low", "active_high"]
+    drives: ["ALL .sv files"]
+io_list:
+  clock_domains:
+    - name: "PCLK"
+      frequency_mhz: 50
+      description: "Main peripheral clock"
+      ports:
+        - { name: "PCLK", width: 1, direction: "input", description: "Peripheral clock" }
+  resets:
+    - name: "PRESETn"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "Active-low asynchronous reset with synchronous deassertion"
+      ports:
+        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low reset" }
+  interfaces:
+    - name: "apb_slave"
+      type: "APB4"
+      role: "slave"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "APB-lite register access interface"
+      protocol:
+        setup_phase: "psel=1, penable=0 captures address/control."
+        access_phase: "psel=1, penable=1 completes when pready=1."
+        read_rule: "prdata is valid in the completing access phase for reads."
+        write_rule: "pwdata is sampled in the completing access phase for writes."
+        error_rule: "pslverr is asserted only with pready=1 for illegal or unsupported access."
+      ports:
+        - { name: "PADDR",   width: "APB_ADDR_WIDTH", direction: "input",  description: "APB address" }
+        - { name: "PSEL",    width: 1,                direction: "input",  description: "APB select" }
+        - { name: "PENABLE", width: 1,                direction: "input",  description: "APB enable" }
+        - { name: "PWRITE",  width: 1,                direction: "input",  description: "APB write" }
+        - { name: "PWDATA",  width: "APB_DATA_WIDTH", direction: "input",  description: "APB write data" }
+        - { name: "PRDATA",  width: "APB_DATA_WIDTH", direction: "output", description: "APB read data" }
+        - { name: "PREADY",  width: 1,                direction: "output", description: "APB ready" }
+        - { name: "PSLVERR", width: 1,                direction: "output", description: "APB error" }
+    - name: "prbs_output"
+      type: "custom"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "PRBS parallel and serial outputs"
+      protocol:
+        update_rule: "prbs_out and prbs_bit update on the rising edge of PCLK when enabled."
+        latency: "1 cycle from enable assertion to first valid output."
+      ports:
+        - { name: "prbs_out", width: "LFSR_WIDTH", direction: "output", description: "Current LFSR state / parallel PRBS word" }
+        - { name: "prbs_bit", width: 1,            direction: "output", description: "Serial PRBS output (LSB of state)" }
+    - name: "status"
+      type: "custom"
+      clock_domain: "PCLK"
+      reset_domain: "PRESETn"
+      description: "Runtime status output"
+      ports:
+        - { name: "prbs_valid", width: 1, direction: "output", description: "High when prbs_out/prbs_bit contain valid next-state data" }
+features:
+  - name: "PRBS Generation"
+    trigger: "CTRL.enable asserted and LFSR state is non-zero"
+    datapath: "LFSR state XOR-reduced by POLY taps, shifted right, new bit inserted at MSB"
+    control: "Runtime enable/disable via CTRL.enable; halted when disabled"
+    output: "prbs_out (parallel LFSR_WIDTH word), prbs_bit (serial LSB)"
+  - name: "Polynomial Programming"
+    trigger: "APB write to POLY register when CTRL.enable is 0"
+    datapath: "PWDATA latched into polynomial register"
+    control: "APB write decode in register block"
+    output: "Updated polynomial drives XOR tap mask in LFSR feedback"
+  - name: "Seed Loading"
+    trigger: "APB write to SEED register or hardware reset"
+    datapath: "PWDATA or DEFAULT_SEED loaded into LFSR state"
+    control: "APB write decode or reset path"
+    output: "LFSR state reinitialized; prbs_valid deasserted until next cycle"
+  - name: "Lock-up Detection"
+    trigger: "LFSR state becomes all-zero"
+    datapath: "Zero-detect on state register"
+    control: "Auto-reloads DEFAULT_SEED if CTRL.auto_reload is set; else halts"
+    output: "prbs_valid deasserted; STATUS.lockup flagged"
+dataflow: TBD
+function_model: TBD
+cycle_model: TBD
+clock_reset_domains:
+  domains:
+    - { name: "PCLK", frequency_mhz: 50, description: "Single peripheral clock domain" }
+  reset_scheme:
+    signal: "PRESETn"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+cdc_requirements: TBD
+rdc_requirements: TBD
+registers: TBD
+memory: TBD
+interrupts: TBD
+fsm: TBD
+rtl_contract: TBD
+timing: TBD
+power: TBD
+security: TBD
+error_handling: TBD
+debug_observability: TBD
+integration: TBD
+dft: TBD
+synthesis: TBD
+pnr: TBD
+coding_rules: TBD
+reuse_modules: TBD
+custom: TBD
+dir_structure: TBD
+filelist: TBD
+test_requirements: TBD
+traceability: TBD
+quality_gates: TBD
+workflow_todos: TBD
+generation_flow: TBD

@@ -1,0 +1,2379 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 18,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 44,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pulse_gen_regs.sv",
+      "name": "pulse_gen_regs",
+      "refs": [
+        "integration",
+        "integration.bus_attachment",
+        "interrupts",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pulse_gen_regs.sv",
+        "name": "pulse_gen_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pulse_gen_core.sv",
+        "name": "pulse_gen_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pulse_gen.sv",
+        "name": "pulse_gen",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "ctrl_fire_o",
+        "signal": "pulse_gen_core.ctrl_fire",
+        "signal_terms": [
+          "ctrl_fire",
+          "pulse_gen_core"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "ctrl_enable_o",
+        "signal": "pulse_gen_core.ctrl_enable",
+        "signal_terms": [
+          "ctrl_enable",
+          "pulse_gen_core"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "ctrl_hw_trig_en_o",
+        "signal": "pulse_gen_core.ctrl_hw_trig_en",
+        "signal_terms": [
+          "ctrl_hw_trig_en",
+          "pulse_gen_core"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "pulse_width_o",
+        "signal": "pulse_gen_core.pulse_width_i",
+        "signal_terms": [
+          "pulse_gen_core",
+          "pulse_width_i"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "fired_count_i",
+        "signal": "pulse_gen_core.fired_count",
+        "signal_terms": [
+          "fired_count",
+          "pulse_gen_core"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "int_enable_o",
+        "signal": "pulse_gen_core.int_enable_i",
+        "signal_terms": [
+          "int_enable_i",
+          "pulse_gen_core"
+        ],
+        "source_ref": "integration.connections[17]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 44,
+    "open_required_count": 44,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pulse_gen",
+  "kind": "module",
+  "owner_file": "rtl/pulse_gen_regs.sv",
+  "owner_module": "pulse_gen_regs",
+  "packet_id": "module__pulse_gen_regs",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "integration.connections": 18,
+      "integration.dependencies": 3,
+      "interrupts.sources": 1,
+      "registers.field": 15,
+      "registers.register": 5,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 44,
+      "task_limit": 48
+    },
+    "open_required_count": 44,
+    "required_count": 44,
+    "source_refs": [
+      "workflow_todos.rtl-gen[1]",
+      "registers.register_list.CTRL",
+      "registers.register_list.CTRL.fields.fire",
+      "registers.register_list.CTRL.fields.polarity",
+      "registers.register_list.CTRL.fields.enable",
+      "registers.register_list.CTRL.fields.hw_trig_en",
+      "registers.register_list.CTRL.fields.reserved_31_4",
+      "registers.register_list.STATUS",
+      "registers.register_list.STATUS.fields.busy",
+      "registers.register_list.STATUS.fields.done",
+      "registers.register_list.STATUS.fields.fired_count",
+      "registers.register_list.STATUS.fields.reserved_31_18",
+      "registers.register_list.PULSE_WIDTH",
+      "registers.register_list.PULSE_WIDTH.fields.width",
+      "registers.register_list.PULSE_WIDTH.fields.reserved_31_16",
+      "registers.register_list.INT_ENABLE",
+      "registers.register_list.INT_ENABLE.fields.done_ie",
+      "registers.register_list.INT_ENABLE.fields.reserved_31_1",
+      "registers.register_list.ID",
+      "registers.register_list.ID.fields.revision",
+      "registers.register_list.ID.fields.id",
+      "interrupts.sources.PULSE_DONE",
+      "integration.dependencies.external_modules",
+      "integration.dependencies.external_clocks"
+    ],
+    "status_counts": {
+      "open": 44
+    },
+    "task_count": 44
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement pulse_gen_regs APB-Lite register decode and interrupt logic",
+      "criteria": [
+        "All 5 registers accessible at correct offsets with correct access policy",
+        "PREADY tied to 1 (zero-wait-state)",
+        "PSLVERR asserted for unsupported addresses",
+        "W1C clear for STATUS.done works correctly",
+        "irq_o = STATUS.done & INT_ENABLE.done_ie combinational",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[1]",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "Semantic source_refs covered: interrupts, registers.register_list"
+      ],
+      "detail": "Implement APB-Lite slave with zero-wait-state (PREADY=1), address decode for CTRL/STATUS/PULSE_WIDTH/INT_ENABLE/ID, W1C clear for STATUS.done, PSLVERR for illegal addresses, and interrupt output irq_o = STATUS.done & INT_ENABLE.done_ie.\nSSOT ref: workflow_todos.rtl-gen[1].\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_REGS.",
+      "evidence_terms": [
+        "REGS",
+        "RTL_TODO_REGS",
+        "TODO",
+        "pulse",
+        "pulse_gen_regs",
+        "regs"
+      ],
+      "id": "RTL-0021",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[1]",
+      "ssot_context": {
+        "id": "RTL_TODO_REGS"
+      },
+      "ssot_refs": [
+        "interrupts",
+        "registers.register_list",
+        "workflow_todos.rtl-gen[1]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "REGS",
+          "RTL_TODO_REGS",
+          "TODO",
+          "pulse",
+          "pulse_gen_regs",
+          "regs"
+        ],
+        "source_scope": "rtl/pulse_gen_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 10,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_REGS",
+        "source_refs": [
+          "interrupts",
+          "registers.register_list"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register CTRL",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.CTRL",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "CTRL width matches SSOT value 32",
+        "CTRL reset behavior matches SSOT value 0",
+        "CTRL access policy rw is implemented without read/write shortcuts",
+        "CTRL decode uses SSOT address/offset 0"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CTRL.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0104",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL",
+      "ssot_context": {
+        "access": "rw",
+        "name": "CTRL",
+        "offset": "0",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CTRL.fire",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CTRL.fields.fire",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "fire reset behavior matches SSOT value 0",
+        "fire access policy rw is implemented without read/write shortcuts",
+        "fire readback returns implemented RTL state when readable",
+        "fire write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.fire.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=fire; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0105",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL.fields.fire",
+      "ssot_context": {
+        "access": "rw",
+        "name": "fire",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL.fields.fire"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CTRL.polarity",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CTRL.fields.polarity",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "polarity reset behavior matches SSOT value 0",
+        "polarity access policy rw is implemented without read/write shortcuts",
+        "polarity readback returns implemented RTL state when readable",
+        "polarity write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.polarity.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=polarity; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0106",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL.fields.polarity",
+      "ssot_context": {
+        "access": "rw",
+        "name": "polarity",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL.fields.polarity"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CTRL.enable",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CTRL.fields.enable",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "enable reset behavior matches SSOT value 1",
+        "enable access policy rw is implemented without read/write shortcuts",
+        "enable readback returns implemented RTL state when readable",
+        "enable write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.enable.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=enable; reset=1; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0107",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL.fields.enable",
+      "ssot_context": {
+        "access": "rw",
+        "name": "enable",
+        "reset": "1"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL.fields.enable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CTRL.hw_trig_en",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CTRL.fields.hw_trig_en",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "hw_trig_en reset behavior matches SSOT value 0",
+        "hw_trig_en access policy rw is implemented without read/write shortcuts",
+        "hw_trig_en readback returns implemented RTL state when readable",
+        "hw_trig_en write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.hw_trig_en.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=hw_trig_en; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0108",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL.fields.hw_trig_en",
+      "ssot_context": {
+        "access": "rw",
+        "name": "hw_trig_en",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL.fields.hw_trig_en"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CTRL.reserved_31_4",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CTRL.fields.reserved_31_4",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "reserved_31_4 reset behavior matches SSOT value 0",
+        "reserved_31_4 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_4 readback returns implemented RTL state when readable",
+        "reserved_31_4 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.reserved_31_4.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_4; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0109",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL.fields.reserved_31_4",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_4",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL.fields.reserved_31_4"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register STATUS",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.STATUS",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "STATUS width matches SSOT value 32",
+        "STATUS reset behavior matches SSOT value 0",
+        "STATUS access policy mixed is implemented without read/write shortcuts",
+        "STATUS decode uses SSOT address/offset 4"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.STATUS.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=STATUS; width=32; reset=0; access=mixed; offset=4.",
+      "evidence_terms": [],
+      "id": "RTL-0110",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS",
+      "ssot_context": {
+        "access": "mixed",
+        "name": "STATUS",
+        "offset": "4",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.busy",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.busy",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "busy reset behavior matches SSOT value 0",
+        "busy access policy ro is implemented without read/write shortcuts",
+        "busy readback returns implemented RTL state when readable",
+        "busy write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.busy.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=busy; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0111",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.busy",
+      "ssot_context": {
+        "access": "ro",
+        "name": "busy",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.busy"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.done",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.done",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "done reset behavior matches SSOT value 0",
+        "done access policy w1c is implemented without read/write shortcuts",
+        "done readback returns implemented RTL state when readable",
+        "done write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.done.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=done; reset=0; access=w1c.",
+      "evidence_terms": [],
+      "id": "RTL-0112",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.done",
+      "ssot_context": {
+        "access": "w1c",
+        "name": "done",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.done"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.fired_count",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.fired_count",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "fired_count reset behavior matches SSOT value 0",
+        "fired_count access policy ro is implemented without read/write shortcuts",
+        "fired_count readback returns implemented RTL state when readable",
+        "fired_count write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.fired_count.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=fired_count; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0113",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.fired_count",
+      "ssot_context": {
+        "access": "ro",
+        "name": "fired_count",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.fired_count"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.reserved_31_18",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.reserved_31_18",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "reserved_31_18 reset behavior matches SSOT value 0",
+        "reserved_31_18 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_18 readback returns implemented RTL state when readable",
+        "reserved_31_18 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.reserved_31_18.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_18; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0114",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.reserved_31_18",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_18",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.reserved_31_18"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register PULSE_WIDTH",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.PULSE_WIDTH",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "PULSE_WIDTH width matches SSOT value 32",
+        "PULSE_WIDTH reset behavior matches SSOT value 1",
+        "PULSE_WIDTH access policy rw is implemented without read/write shortcuts",
+        "PULSE_WIDTH decode uses SSOT address/offset 8"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.PULSE_WIDTH.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=PULSE_WIDTH; width=32; reset=1; access=rw; offset=8.",
+      "evidence_terms": [],
+      "id": "RTL-0115",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.PULSE_WIDTH",
+      "ssot_context": {
+        "access": "rw",
+        "name": "PULSE_WIDTH",
+        "offset": "8",
+        "reset": "1",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.PULSE_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field PULSE_WIDTH.width",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.PULSE_WIDTH.fields.width",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "width reset behavior matches SSOT value 1",
+        "width access policy rw is implemented without read/write shortcuts",
+        "width readback returns implemented RTL state when readable",
+        "width write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.PULSE_WIDTH.fields.width.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=width; reset=1; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0116",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.PULSE_WIDTH.fields.width",
+      "ssot_context": {
+        "access": "rw",
+        "name": "width",
+        "reset": "1"
+      },
+      "ssot_refs": [
+        "registers.register_list.PULSE_WIDTH.fields.width"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field PULSE_WIDTH.reserved_31_16",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.PULSE_WIDTH.fields.reserved_31_16",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "reserved_31_16 reset behavior matches SSOT value 0",
+        "reserved_31_16 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_16 readback returns implemented RTL state when readable",
+        "reserved_31_16 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.PULSE_WIDTH.fields.reserved_31_16.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_16; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0117",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.PULSE_WIDTH.fields.reserved_31_16",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_16",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.PULSE_WIDTH.fields.reserved_31_16"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register INT_ENABLE",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.INT_ENABLE",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "INT_ENABLE width matches SSOT value 32",
+        "INT_ENABLE reset behavior matches SSOT value 0",
+        "INT_ENABLE access policy rw is implemented without read/write shortcuts",
+        "INT_ENABLE decode uses SSOT address/offset 12"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INT_ENABLE.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=INT_ENABLE; width=32; reset=0; access=rw; offset=12.",
+      "evidence_terms": [],
+      "id": "RTL-0118",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INT_ENABLE",
+      "ssot_context": {
+        "access": "rw",
+        "name": "INT_ENABLE",
+        "offset": "12",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.INT_ENABLE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INT_ENABLE.done_ie",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INT_ENABLE.fields.done_ie",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "done_ie reset behavior matches SSOT value 0",
+        "done_ie access policy rw is implemented without read/write shortcuts",
+        "done_ie readback returns implemented RTL state when readable",
+        "done_ie write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_ENABLE.fields.done_ie.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=done_ie; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0119",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INT_ENABLE.fields.done_ie",
+      "ssot_context": {
+        "access": "rw",
+        "name": "done_ie",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INT_ENABLE.fields.done_ie"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INT_ENABLE.reserved_31_1",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INT_ENABLE.fields.reserved_31_1",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "reserved_31_1 reset behavior matches SSOT value 0",
+        "reserved_31_1 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_1 readback returns implemented RTL state when readable",
+        "reserved_31_1 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INT_ENABLE.fields.reserved_31_1.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_1; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0120",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INT_ENABLE.fields.reserved_31_1",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_1",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INT_ENABLE.fields.reserved_31_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register ID",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.ID",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "ID width matches SSOT value 32",
+        "ID reset behavior matches SSOT value 65568",
+        "ID access policy ro is implemented without read/write shortcuts",
+        "ID decode uses SSOT address/offset 16"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ID.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=ID; width=32; reset=65568; access=ro; offset=16.",
+      "evidence_terms": [],
+      "id": "RTL-0121",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ID",
+      "ssot_context": {
+        "access": "ro",
+        "name": "ID",
+        "offset": "16",
+        "reset": "65568",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.ID"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ID.revision",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ID.fields.revision",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "revision reset behavior matches SSOT value 32",
+        "revision access policy ro is implemented without read/write shortcuts",
+        "revision readback returns implemented RTL state when readable",
+        "revision write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ID.fields.revision.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=revision; reset=32; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0122",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ID.fields.revision",
+      "ssot_context": {
+        "access": "ro",
+        "name": "revision",
+        "reset": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.ID.fields.revision"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ID.id",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ID.fields.id",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "id reset behavior matches SSOT value 256",
+        "id access policy ro is implemented without read/write shortcuts",
+        "id readback returns implemented RTL state when readable",
+        "id write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ID.fields.id.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via registers.register_list.\nSSOT item context: name=id; reset=256; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0123",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ID.fields.id",
+      "ssot_context": {
+        "access": "ro",
+        "name": "id",
+        "reset": "256"
+      },
+      "ssot_refs": [
+        "registers.register_list.ID.fields.id"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "interrupts.sources",
+      "content": "Implement interrupt item PULSE_DONE",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref interrupts.sources.PULSE_DONE",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "PULSE_DONE clear behavior matches SSOT clear policy W1C via STATUS.done"
+      ],
+      "detail": "This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: interrupts.sources.PULSE_DONE.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via interrupts.\nSSOT item context: name=PULSE_DONE; clear=W1C via STATUS.done.",
+      "evidence_terms": [],
+      "id": "RTL-0124",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "interrupts.sources.PULSE_DONE",
+      "ssot_context": {
+        "clear": "W1C via STATUS.done",
+        "name": "PULSE_DONE"
+      },
+      "ssot_refs": [
+        "interrupts.sources.PULSE_DONE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_modules",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_modules",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_modules.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: name=external_modules.",
+      "evidence_terms": [],
+      "id": "RTL-0139",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_modules",
+      "ssot_context": {
+        "name": "external_modules"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_modules"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_clocks",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_clocks",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_clocks.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: name=external_clocks; value=[\"PCLK\"].",
+      "evidence_terms": [],
+      "id": "RTL-0140",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_clocks",
+      "ssot_context": {
+        "name": "external_clocks",
+        "value": "[\"PCLK\"]"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_clocks"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_resets",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_resets",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_resets.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: name=external_resets; value=[\"PRESETn\"].",
+      "evidence_terms": [],
+      "id": "RTL-0141",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_resets",
+      "ssot_context": {
+        "name": "external_resets",
+        "value": "[\"PRESETn\"]"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_resets"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item PCLK",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.PCLK",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "DUT port clk_i is the implementation/observation point for clk_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.PCLK.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: port=clk_i; signal=PCLK.",
+      "evidence_terms": [
+        "clk",
+        "clk_i"
+      ],
+      "id": "RTL-0142",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.PCLK",
+      "ssot_context": {
+        "port": "clk_i",
+        "signal": "PCLK"
+      },
+      "ssot_refs": [
+        "integration.connections.PCLK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item PRESETn",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.PRESETn",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "DUT port rst_ni is the implementation/observation point for rst_ni"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.PRESETn.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: port=rst_ni; signal=PRESETn.",
+      "evidence_terms": [
+        "ni",
+        "rst",
+        "rst_ni"
+      ],
+      "id": "RTL-0143",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.PRESETn",
+      "ssot_context": {
+        "port": "rst_ni",
+        "signal": "PRESETn"
+      },
+      "ssot_refs": [
+        "integration.connections.PRESETn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item trigger_i",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.trigger_i",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "DUT port trigger_i is the implementation/observation point for trigger_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.trigger_i.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: port=trigger_i; signal=trigger_i.",
+      "evidence_terms": [
+        "trigger",
+        "trigger_i"
+      ],
+      "id": "RTL-0144",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.trigger_i",
+      "ssot_context": {
+        "port": "trigger_i",
+        "signal": "trigger_i"
+      },
+      "ssot_refs": [
+        "integration.connections.trigger_i"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pulse_out",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pulse_out",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "DUT port pulse_out is the implementation/observation point for pulse_out"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pulse_out.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: port=pulse_out; signal=pulse_out.",
+      "evidence_terms": [
+        "out",
+        "pulse",
+        "pulse_out"
+      ],
+      "id": "RTL-0145",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pulse_out",
+      "ssot_context": {
+        "port": "pulse_out",
+        "signal": "pulse_out"
+      },
+      "ssot_refs": [
+        "integration.connections.pulse_out"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item irq_o",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.irq_o",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "DUT port irq_o is the implementation/observation point for irq_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.irq_o.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: port=irq_o; signal=irq_o.",
+      "evidence_terms": [
+        "irq",
+        "irq_o"
+      ],
+      "id": "RTL-0146",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.irq_o",
+      "ssot_context": {
+        "port": "irq_o",
+        "signal": "irq_o"
+      },
+      "ssot_refs": [
+        "integration.connections.irq_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item PCLK",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.PCLK",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "DUT port clk_i is the implementation/observation point for clk_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.PCLK.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: port=clk_i; signal=PCLK.",
+      "evidence_terms": [
+        "clk",
+        "clk_i"
+      ],
+      "id": "RTL-0147",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.PCLK",
+      "ssot_context": {
+        "port": "clk_i",
+        "signal": "PCLK"
+      },
+      "ssot_refs": [
+        "integration.connections.PCLK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item PRESETn",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.PRESETn",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "DUT port rst_ni is the implementation/observation point for rst_ni"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.PRESETn.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: port=rst_ni; signal=PRESETn.",
+      "evidence_terms": [
+        "ni",
+        "rst",
+        "rst_ni"
+      ],
+      "id": "RTL-0148",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.PRESETn",
+      "ssot_context": {
+        "port": "rst_ni",
+        "signal": "PRESETn"
+      },
+      "ssot_refs": [
+        "integration.connections.PRESETn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pulse_gen_regs.PRDATA",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pulse_gen_regs_PRDATA",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "DUT port PRDATA is the implementation/observation point for PRDATA"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pulse_gen_regs_PRDATA.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: port=PRDATA; signal=pulse_gen_regs.PRDATA.",
+      "evidence_terms": [
+        "pulse",
+        "pulse_gen_regs",
+        "regs"
+      ],
+      "id": "RTL-0149",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pulse_gen_regs_PRDATA",
+      "ssot_context": {
+        "port": "PRDATA",
+        "signal": "pulse_gen_regs.PRDATA"
+      },
+      "ssot_refs": [
+        "integration.connections.pulse_gen_regs_PRDATA"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item 1'b1 (zero-wait-state)",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.item_1_b1_zero_wait_state",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "DUT port PREADY is the implementation/observation point for PREADY"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.item_1_b1_zero_wait_state.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: port=PREADY; signal=1'b1 (zero-wait-state).",
+      "evidence_terms": [],
+      "id": "RTL-0150",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.item_1_b1_zero_wait_state",
+      "ssot_context": {
+        "port": "PREADY",
+        "signal": "1'b1 (zero-wait-state)"
+      },
+      "ssot_refs": [
+        "integration.connections.item_1_b1_zero_wait_state"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pulse_gen_regs.PSLVERR",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pulse_gen_regs_PSLVERR",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "DUT port PSLVERR is the implementation/observation point for PSLVERR"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pulse_gen_regs_PSLVERR.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: port=PSLVERR; signal=pulse_gen_regs.PSLVERR.",
+      "evidence_terms": [
+        "pulse",
+        "pulse_gen_regs",
+        "regs"
+      ],
+      "id": "RTL-0151",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pulse_gen_regs_PSLVERR",
+      "ssot_context": {
+        "port": "PSLVERR",
+        "signal": "pulse_gen_regs.PSLVERR"
+      },
+      "ssot_refs": [
+        "integration.connections.pulse_gen_regs_PSLVERR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pulse_gen_core.ctrl_fire",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pulse_gen_core_ctrl_fire",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "DUT port ctrl_fire_o is the implementation/observation point for ctrl_fire_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pulse_gen_core_ctrl_fire.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: port=ctrl_fire_o; signal=pulse_gen_core.ctrl_fire.",
+      "evidence_terms": [
+        "core",
+        "ctrl",
+        "ctrl_fire",
+        "ctrl_fire_o",
+        "fire",
+        "pulse",
+        "pulse_gen_core"
+      ],
+      "id": "RTL-0152",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pulse_gen_core_ctrl_fire",
+      "ssot_context": {
+        "port": "ctrl_fire_o",
+        "signal": "pulse_gen_core.ctrl_fire"
+      },
+      "ssot_refs": [
+        "integration.connections.pulse_gen_core_ctrl_fire"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pulse_gen_core.ctrl_enable",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pulse_gen_core_ctrl_enable",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "DUT port ctrl_enable_o is the implementation/observation point for ctrl_enable_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pulse_gen_core_ctrl_enable.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: port=ctrl_enable_o; signal=pulse_gen_core.ctrl_enable.",
+      "evidence_terms": [
+        "core",
+        "ctrl",
+        "ctrl_enable",
+        "ctrl_enable_o",
+        "enable",
+        "pulse",
+        "pulse_gen_core"
+      ],
+      "id": "RTL-0153",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pulse_gen_core_ctrl_enable",
+      "ssot_context": {
+        "port": "ctrl_enable_o",
+        "signal": "pulse_gen_core.ctrl_enable"
+      },
+      "ssot_refs": [
+        "integration.connections.pulse_gen_core_ctrl_enable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pulse_gen_core.ctrl_hw_trig_en",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pulse_gen_core_ctrl_hw_trig_en",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "DUT port ctrl_hw_trig_en_o is the implementation/observation point for ctrl_hw_trig_en_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pulse_gen_core_ctrl_hw_trig_en.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: port=ctrl_hw_trig_en_o; signal=pulse_gen_core.ctrl_hw_trig_en.",
+      "evidence_terms": [
+        "core",
+        "ctrl",
+        "ctrl_hw_trig_en",
+        "ctrl_hw_trig_en_o",
+        "en",
+        "hw",
+        "pulse",
+        "pulse_gen_core",
+        "trig"
+      ],
+      "id": "RTL-0154",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pulse_gen_core_ctrl_hw_trig_en",
+      "ssot_context": {
+        "port": "ctrl_hw_trig_en_o",
+        "signal": "pulse_gen_core.ctrl_hw_trig_en"
+      },
+      "ssot_refs": [
+        "integration.connections.pulse_gen_core_ctrl_hw_trig_en"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pulse_gen_core.pulse_width_i",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pulse_gen_core_pulse_width_i",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "DUT port pulse_width_o is the implementation/observation point for pulse_width_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pulse_gen_core_pulse_width_i.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: port=pulse_width_o; signal=pulse_gen_core.pulse_width_i.",
+      "evidence_terms": [
+        "core",
+        "pulse",
+        "pulse_gen_core",
+        "pulse_width_i",
+        "pulse_width_o",
+        "width"
+      ],
+      "id": "RTL-0155",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pulse_gen_core_pulse_width_i",
+      "ssot_context": {
+        "port": "pulse_width_o",
+        "signal": "pulse_gen_core.pulse_width_i"
+      },
+      "ssot_refs": [
+        "integration.connections.pulse_gen_core_pulse_width_i"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pulse_gen_regs.status_busy",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pulse_gen_regs_status_busy",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "DUT port status_busy_i is the implementation/observation point for status_busy_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pulse_gen_regs_status_busy.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: port=status_busy_i; signal=pulse_gen_regs.status_busy.",
+      "evidence_terms": [
+        "busy",
+        "pulse",
+        "pulse_gen_regs",
+        "regs",
+        "status",
+        "status_busy",
+        "status_busy_i"
+      ],
+      "id": "RTL-0156",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pulse_gen_regs_status_busy",
+      "ssot_context": {
+        "port": "status_busy_i",
+        "signal": "pulse_gen_regs.status_busy"
+      },
+      "ssot_refs": [
+        "integration.connections.pulse_gen_regs_status_busy"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pulse_gen_regs.status_done",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pulse_gen_regs_status_done",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "DUT port status_done_o is the implementation/observation point for status_done_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pulse_gen_regs_status_done.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: port=status_done_o; signal=pulse_gen_regs.status_done.",
+      "evidence_terms": [
+        "done",
+        "pulse",
+        "pulse_gen_regs",
+        "regs",
+        "status",
+        "status_done",
+        "status_done_o"
+      ],
+      "id": "RTL-0157",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pulse_gen_regs_status_done",
+      "ssot_context": {
+        "port": "status_done_o",
+        "signal": "pulse_gen_regs.status_done"
+      },
+      "ssot_refs": [
+        "integration.connections.pulse_gen_regs_status_done"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pulse_gen_core.fired_count",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pulse_gen_core_fired_count",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "DUT port fired_count_i is the implementation/observation point for fired_count_i"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pulse_gen_core_fired_count.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: port=fired_count_i; signal=pulse_gen_core.fired_count.",
+      "evidence_terms": [
+        "core",
+        "count",
+        "fired",
+        "fired_count",
+        "fired_count_i",
+        "pulse",
+        "pulse_gen_core"
+      ],
+      "id": "RTL-0158",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pulse_gen_core_fired_count",
+      "ssot_context": {
+        "port": "fired_count_i",
+        "signal": "pulse_gen_core.fired_count"
+      },
+      "ssot_refs": [
+        "integration.connections.pulse_gen_core_fired_count"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pulse_gen_core.int_enable_i",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pulse_gen_core_int_enable_i",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv",
+        "DUT port int_enable_o is the implementation/observation point for int_enable_o"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pulse_gen_core_int_enable_i.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via integration.\nSSOT item context: port=int_enable_o; signal=pulse_gen_core.int_enable_i.",
+      "evidence_terms": [
+        "core",
+        "enable",
+        "int",
+        "int_enable_i",
+        "int_enable_o",
+        "pulse",
+        "pulse_gen_core"
+      ],
+      "id": "RTL-0159",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pulse_gen_core_int_enable_i",
+      "ssot_context": {
+        "port": "int_enable_o",
+        "signal": "pulse_gen_core.int_enable_i"
+      },
+      "ssot_refs": [
+        "integration.connections.pulse_gen_core_int_enable_i"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module pulse_gen_regs is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.pulse_gen_regs.module_equivalence",
+        "Primary implementation evidence is in rtl/pulse_gen_regs.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.pulse_gen_regs.module_equivalence.\nOwner: pulse_gen_regs in rtl/pulse_gen_regs.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0166",
+      "owner_file": "rtl/pulse_gen_regs.sv",
+      "owner_module": "pulse_gen_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.pulse_gen_regs.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.pulse_gen_regs.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "db19106d42be138c54967891b2b40e88eeea77aea8313dbb312896ba687401f7",
+  "top": "pulse_gen",
+  "type": "rtl_authoring_packet"
+}

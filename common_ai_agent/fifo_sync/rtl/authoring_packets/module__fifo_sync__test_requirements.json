@@ -1,0 +1,1490 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 18,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 7,
+      "key": "test_requirements",
+      "module_task_count": 62,
+      "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "test_requirements",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/fifo_sync.sv",
+      "name": "fifo_sync",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/fifo_sync_mem.sv",
+        "name": "fifo_sync_mem",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_ptrs.sv",
+        "name": "fifo_sync_ptrs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_flags.sv",
+        "name": "fifo_sync_flags",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_regs.sv",
+        "name": "fifo_sync_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_output_reg.sv",
+        "name": "fifo_sync_output_reg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync.sv",
+        "name": "fifo_sync",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_ptrs",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_ptrs",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_mem",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_mem",
+        "port": "wr_en_i",
+        "signal": "push_accepted",
+        "signal_terms": [
+          "push_accepted"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_mem",
+        "port": "wr_addr_i",
+        "signal": "wr_ptr",
+        "signal_terms": [
+          "wr_ptr"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_mem",
+        "port": "wr_data_i",
+        "signal": "wr_data_i",
+        "signal_terms": [
+          "wr_data_i"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_mem",
+        "port": "rd_addr_i",
+        "signal": "rd_ptr",
+        "signal_terms": [
+          "rd_ptr"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_mem",
+        "port": "rd_data_o",
+        "signal": "mem_rd_data",
+        "signal_terms": [
+          "mem_rd_data"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "count_i",
+        "signal": "count",
+        "signal_terms": [
+          "count"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "full_o",
+        "signal": "full_o",
+        "signal_terms": [
+          "full_o"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "empty_o",
+        "signal": "empty_o",
+        "signal_terms": [
+          "empty_o"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "almost_full_o",
+        "signal": "almost_full_o",
+        "signal_terms": [
+          "almost_full_o"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "almost_empty_o",
+        "signal": "almost_empty_o",
+        "signal_terms": [
+          "almost_empty_o"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_output_reg",
+        "port": "din_i",
+        "signal": "mem_rd_data",
+        "signal_terms": [
+          "mem_rd_data"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_output_reg",
+        "port": "load_i",
+        "signal": "pop_accepted",
+        "signal_terms": [
+          "pop_accepted"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_output_reg",
+        "port": "dout_o",
+        "signal": "rd_data_o",
+        "signal_terms": [
+          "rd_data_o"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_regs",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_regs",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[17]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "PCLK"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PCLK",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PRESETn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PRESETn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fifo_write_wr_en_i",
+          "wr_en_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "wr_en_i",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fifo_write_wr_data_i",
+          "wr_data_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "wr_data_i",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "fifo_write_full_o",
+          "full_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "full_o",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "almost_full_o",
+          "fifo_write_almost_full_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "almost_full_o",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fifo_read_rd_en_i",
+          "rd_en_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rd_en_i",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fifo_read_rd_data_o",
+          "rd_data_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "rd_data_o",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "empty_o",
+          "fifo_read_empty_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "empty_o",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "almost_empty_o",
+          "fifo_read_almost_empty_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "almost_empty_o",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "count_o",
+          "fifo_status_count_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "count_o",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "$clog2(DEPTH+1)"
+      },
+      {
+        "aliases": [
+          "fifo_control_flush_i",
+          "flush_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "flush_i",
+        "source_ref": "io_list.interfaces[3].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_paddr",
+          "paddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "paddr",
+        "source_ref": "io_list.interfaces[4].ports[0]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "apb_csr_psel",
+          "psel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "psel",
+        "source_ref": "io_list.interfaces[4].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_penable",
+          "penable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "penable",
+        "source_ref": "io_list.interfaces[4].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_pwrite",
+          "pwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwrite",
+        "source_ref": "io_list.interfaces[4].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_pwdata",
+          "pwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwdata",
+        "source_ref": "io_list.interfaces[4].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_csr_prdata",
+          "prdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prdata",
+        "source_ref": "io_list.interfaces[4].ports[5]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_csr_pready",
+          "pready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pready",
+        "source_ref": "io_list.interfaces[4].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_pslverr",
+          "pslverr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pslverr",
+        "source_ref": "io_list.interfaces[4].ports[7]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 20,
+    "open_required_count": 20,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "fifo_sync",
+  "kind": "module",
+  "owner_file": "rtl/fifo_sync.sv",
+  "owner_module": "fifo_sync",
+  "packet_id": "module__fifo_sync__test_requirements",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "test_requirements.scenario": 20
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 7,
+      "key": "test_requirements",
+      "module_task_count": 62,
+      "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "test_requirements",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 20,
+    "required_count": 20,
+    "source_refs": [
+      "test_requirements.scenarios.SC1",
+      "test_requirements.scenarios.SC2",
+      "test_requirements.scenarios.SC3",
+      "test_requirements.scenarios.SC4",
+      "test_requirements.scenarios.SC5",
+      "test_requirements.scenarios.SC6",
+      "test_requirements.scenarios.SC7",
+      "test_requirements.scenarios.SC8",
+      "test_requirements.scenarios.SC9",
+      "test_requirements.scenarios.SC10",
+      "test_requirements.scenarios.SC11",
+      "test_requirements.scenarios.SC12",
+      "test_requirements.scenarios.SC13",
+      "test_requirements.scenarios.SC14",
+      "test_requirements.scenarios.SC15",
+      "test_requirements.scenarios.SC16",
+      "test_requirements.scenarios.SC17",
+      "test_requirements.scenarios.SC18",
+      "test_requirements.scenarios.SC19",
+      "test_requirements.scenarios.SC20"
+    ],
+    "status_counts": {
+      "open": 20
+    },
+    "task_count": 20
+  },
+  "tasks": [
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC1",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC1",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Data stored; count=1; full_o=0; empty_o=0"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC1.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC1; name=Push single entry; expected=Data stored; count=1; full_o=0; empty_o=0.",
+      "evidence_terms": [],
+      "id": "RTL-0250",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC1",
+      "ssot_context": {
+        "expected": "Data stored; count=1; full_o=0; empty_o=0",
+        "id": "SC1",
+        "name": "Push single entry"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC2",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC2",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: rd_data_o=pattern_A; count=0; empty_o=1"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC2.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC2; name=Pop single entry; expected=rd_data_o=pattern_A; count=0; empty_o=1.",
+      "evidence_terms": [],
+      "id": "RTL-0251",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC2",
+      "ssot_context": {
+        "expected": "rd_data_o=pattern_A; count=0; empty_o=1",
+        "id": "SC2",
+        "name": "Pop single entry"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC3",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC3",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: full_o=1 after DEPTH pushes; count_o=DEPTH; all entries stored correctly"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC3.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC3; name=Fill to full; expected=full_o=1 after DEPTH pushes; count_o=DEPTH; all entries stored correctly.",
+      "evidence_terms": [],
+      "id": "RTL-0252",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC3",
+      "ssot_context": {
+        "expected": "full_o=1 after DEPTH pushes; count_o=DEPTH; all entries stored correctly",
+        "id": "SC3",
+        "name": "Fill to full"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC4",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC4",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: No state change; count unchanged; previously stored data intact"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC4.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC4; name=Overflow rejection; expected=No state change; count unchanged; previously stored data intact.",
+      "evidence_terms": [],
+      "id": "RTL-0253",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC4",
+      "ssot_context": {
+        "expected": "No state change; count unchanged; previously stored data intact",
+        "id": "SC4",
+        "name": "Overflow rejection"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC4"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC5",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC5",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: No state change; count remains 0; rd_data_o holds previous value"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC5.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC5; name=Underflow rejection; expected=No state change; count remains 0; rd_data_o holds previous value.",
+      "evidence_terms": [],
+      "id": "RTL-0254",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC5",
+      "ssot_context": {
+        "expected": "No state change; count remains 0; rd_data_o holds previous value",
+        "id": "SC5",
+        "name": "Underflow rejection"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC5"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC6",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC6",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Both accepted; count unchanged; new data pushed; old data popped correctly"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC6.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC6; name=Simultaneous push and pop; expected=Both accepted; count unchanged; new data pushed; old data popped correctly.",
+      "evidence_terms": [],
+      "id": "RTL-0255",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC6",
+      "ssot_context": {
+        "expected": "Both accepted; count unchanged; new data pushed; old data popped correctly",
+        "id": "SC6",
+        "name": "Simultaneous push and pop"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC6"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC7",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC7",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Push rejected (full), pop accepted; count decrements to DEPTH-1"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC7.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC7; name=Simultaneous push and pop at boundary; expected=Push rejected (full), pop accepted; count decrements to DEPTH-1.",
+      "evidence_terms": [],
+      "id": "RTL-0256",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC7",
+      "ssot_context": {
+        "expected": "Push rejected (full), pop accepted; count decrements to DEPTH-1",
+        "id": "SC7",
+        "name": "Simultaneous push and pop at boundary"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC7"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC8",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC8",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: wr_ptr=0; rd_ptr=0; count=0; empty_o=1; full_o=0; all entries invalidated"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC8.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC8; name=Flush when partially full; expected=wr_ptr=0; rd_ptr=0; count=0; empty_o=1; full_o=0; all entries invalidated.",
+      "evidence_terms": [],
+      "id": "RTL-0257",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC8",
+      "ssot_context": {
+        "expected": "wr_ptr=0; rd_ptr=0; count=0; empty_o=1; full_o=0; all entries invalidated",
+        "id": "SC8",
+        "name": "Flush when partially full"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC8"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC9",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC9",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: All pointers and count cleared; full_o deasserts; empty_o asserts"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC9.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC9; name=Flush when full; expected=All pointers and count cleared; full_o deasserts; empty_o asserts.",
+      "evidence_terms": [],
+      "id": "RTL-0258",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC9",
+      "ssot_context": {
+        "expected": "All pointers and count cleared; full_o deasserts; empty_o asserts",
+        "id": "SC9",
+        "name": "Flush when full"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC9"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC10",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC10",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Flush takes precedence; push and pop ignored; state reset to empty"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC10.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC10; name=Flush during simultaneous push/pop; expected=Flush takes precedence; push and pop ignored; state reset to empty.",
+      "evidence_terms": [],
+      "id": "RTL-0259",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC10",
+      "ssot_context": {
+        "expected": "Flush takes precedence; push and pop ignored; state reset to empty",
+        "id": "SC10",
+        "name": "Flush during simultaneous push/pop"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC10"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC11",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC11",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: almost_full_o asserts at threshold; full_o not yet asserted"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC11.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC11; name=Almost full threshold; expected=almost_full_o asserts at threshold; full_o not yet asserted.",
+      "evidence_terms": [],
+      "id": "RTL-0260",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC11",
+      "ssot_context": {
+        "expected": "almost_full_o asserts at threshold; full_o not yet asserted",
+        "id": "SC11",
+        "name": "Almost full threshold"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC11"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC12",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC12",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: almost_empty_o asserts at threshold; empty_o not yet asserted"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC12.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC12; name=Almost empty threshold; expected=almost_empty_o asserts at threshold; empty_o not yet asserted.",
+      "evidence_terms": [],
+      "id": "RTL-0261",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC12",
+      "ssot_context": {
+        "expected": "almost_empty_o asserts at threshold; empty_o not yet asserted",
+        "id": "SC12",
+        "name": "Almost empty threshold"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC12"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC13",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC13",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: FIFO_STATUS.count=3, full=0, empty=0, almost flags per threshold config"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC13.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC13; name=APB CSR read status; expected=FIFO_STATUS.count=3, full=0, empty=0, almost flags per threshold config.",
+      "evidence_terms": [],
+      "id": "RTL-0262",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC13",
+      "ssot_context": {
+        "expected": "FIFO_STATUS.count=3, full=0, empty=0, almost flags per threshold config",
+        "id": "SC13",
+        "name": "APB CSR read status"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC13"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC14",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC14",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: almost_full_o and almost_empty_o reflect updated thresholds"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC14.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC14; name=APB CSR write config; expected=almost_full_o and almost_empty_o reflect updated thresholds.",
+      "evidence_terms": [],
+      "id": "RTL-0263",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC14",
+      "ssot_context": {
+        "expected": "almost_full_o and almost_empty_o reflect updated thresholds",
+        "id": "SC14",
+        "name": "APB CSR write config"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC14"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC15",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC15",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: FIFO flushed; pointers cleared; FIFO_STATUS reflects empty state"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC15.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC15; name=APB CSR flush; expected=FIFO flushed; pointers cleared; FIFO_STATUS reflects empty state.",
+      "evidence_terms": [],
+      "id": "RTL-0264",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC15",
+      "ssot_context": {
+        "expected": "FIFO flushed; pointers cleared; FIFO_STATUS reflects empty state",
+        "id": "SC15",
+        "name": "APB CSR flush"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC15"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC16",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC16",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: pslverr=1; prdata=0 for reads; no FIFO state change"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC16.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC16; name=APB error response; expected=pslverr=1; prdata=0 for reads; no FIFO state change.",
+      "evidence_terms": [],
+      "id": "RTL-0265",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC16",
+      "ssot_context": {
+        "expected": "pslverr=1; prdata=0 for reads; no FIFO state change",
+        "id": "SC16",
+        "name": "APB error response"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC16"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC17",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC17",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Pointers wrap correctly; data integrity maintained; count accurate"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC17.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC17; name=Wrap-around pointer; expected=Pointers wrap correctly; data integrity maintained; count accurate.",
+      "evidence_terms": [],
+      "id": "RTL-0266",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC17",
+      "ssot_context": {
+        "expected": "Pointers wrap correctly; data integrity maintained; count accurate",
+        "id": "SC17",
+        "name": "Wrap-around pointer"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC17"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC18",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC18",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: rd_data_o valid 1 cycle after rd_en_i acceptance; not combinationally"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC18.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC18; name=Output register mode; expected=rd_data_o valid 1 cycle after rd_en_i acceptance; not combinationally.",
+      "evidence_terms": [],
+      "id": "RTL-0267",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC18",
+      "ssot_context": {
+        "expected": "rd_data_o valid 1 cycle after rd_en_i acceptance; not combinationally",
+        "id": "SC18",
+        "name": "Output register mode"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC18"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC19",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC19",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: All pointers/count cleared; flags reflect empty; rd_data_o undefined"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC19.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC19; name=Reset behavior; expected=All pointers/count cleared; flags reflect empty; rd_data_o undefined.",
+      "evidence_terms": [],
+      "id": "RTL-0268",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC19",
+      "ssot_context": {
+        "expected": "All pointers/count cleared; flags reflect empty; rd_data_o undefined",
+        "id": "SC19",
+        "name": "Reset behavior"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC19"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC20",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC20",
+        "Primary implementation evidence is in rtl/fifo_sync.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Push accepted normally; count=1; no glitch on flags"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC20.\nOwner: fifo_sync in rtl/fifo_sync.sv via test_requirements.\nSSOT item context: id=SC20; name=Reset deassertion; expected=Push accepted normally; count=1; no glitch on flags.",
+      "evidence_terms": [],
+      "id": "RTL-0269",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC20",
+      "ssot_context": {
+        "expected": "Push accepted normally; count=1; no glitch on flags",
+        "id": "SC20",
+        "name": "Reset deassertion"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC20"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "6b09b70c762b5a848981608dade6a77fd83d5460524c0d8f571affa50413d05e",
+  "top": "fifo_sync",
+  "type": "rtl_authoring_packet"
+}

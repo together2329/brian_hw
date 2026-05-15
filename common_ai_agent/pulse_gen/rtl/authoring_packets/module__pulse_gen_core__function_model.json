@@ -1,0 +1,2709 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 18,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 6,
+      "enabled": true,
+      "index": 1,
+      "key": "function_model",
+      "module_task_count": 73,
+      "rule": "Owner module pulse_gen_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pulse_gen_core.sv",
+      "name": "pulse_gen_core",
+      "refs": [
+        "cycle_model",
+        "cycle_model.pipeline",
+        "dataflow",
+        "features",
+        "features.pulse_fire",
+        "fsm",
+        "fsm.pulse_fsm",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.transactions",
+        "function_model.transactions.FM_FIRE"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pulse_gen_regs.sv",
+        "name": "pulse_gen_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pulse_gen_core.sv",
+        "name": "pulse_gen_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pulse_gen.sv",
+        "name": "pulse_gen",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "trigger_i",
+        "signal": "trigger_i",
+        "signal_terms": [
+          "trigger_i"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "pulse_out",
+        "signal": "pulse_out",
+        "signal_terms": [
+          "pulse_out"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "irq_o",
+        "signal": "irq_o",
+        "signal_terms": [
+          "irq_o"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "status_busy_i",
+        "signal": "pulse_gen_regs.status_busy",
+        "signal_terms": [
+          "pulse_gen_regs",
+          "status_busy"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "status_done_o",
+        "signal": "pulse_gen_regs.status_done",
+        "signal_terms": [
+          "pulse_gen_regs",
+          "status_done"
+        ],
+        "source_ref": "integration.connections[15]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 44,
+    "open_required_count": 44,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pulse_gen",
+  "kind": "module",
+  "owner_file": "rtl/pulse_gen_core.sv",
+  "owner_module": "pulse_gen_core",
+  "packet_id": "module__pulse_gen_core__function_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.error_case": 3,
+      "function_model.input": 3,
+      "function_model.invariant": 6,
+      "function_model.output": 3,
+      "function_model.output_rule": 3,
+      "function_model.precondition": 3,
+      "function_model.side_effect": 4,
+      "function_model.state_update": 8,
+      "function_model.state_variable": 10,
+      "function_model.transaction": 1
+    },
+    "module_slice": {
+      "count": 6,
+      "enabled": true,
+      "index": 1,
+      "key": "function_model",
+      "module_task_count": 73,
+      "rule": "Owner module pulse_gen_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 44,
+    "required_count": 44,
+    "source_refs": [
+      "function_model.state_variables.fsm_state",
+      "function_model.state_variables.pulse_counter",
+      "function_model.state_variables.latched_width",
+      "function_model.state_variables.latched_polarity",
+      "function_model.state_variables.ctrl_fire",
+      "function_model.state_variables.ctrl_enable",
+      "function_model.state_variables.ctrl_hw_trig_en",
+      "function_model.state_variables.status_busy",
+      "function_model.state_variables.status_done",
+      "function_model.state_variables.fired_count",
+      "function_model.transactions.FM_FIRE",
+      "function_model.transactions.FM_FIRE.preconditions.precondition_0",
+      "function_model.transactions.FM_FIRE.preconditions.precondition_1",
+      "function_model.transactions.FM_FIRE.preconditions.precondition_2",
+      "function_model.transactions.FM_FIRE.inputs.input_0",
+      "function_model.transactions.FM_FIRE.inputs.input_1",
+      "function_model.transactions.FM_FIRE.inputs.input_2",
+      "function_model.transactions.FM_FIRE.outputs.pulse_out_active",
+      "function_model.transactions.FM_FIRE.outputs.pulse_out_idle",
+      "function_model.transactions.FM_FIRE.outputs.irq_o",
+      "function_model.transactions.FM_FIRE.output_rules.pulse_out_active",
+      "function_model.transactions.FM_FIRE.output_rules.pulse_out_idle",
+      "function_model.transactions.FM_FIRE.output_rules.irq_o",
+      "function_model.transactions.FM_FIRE.state_updates.fsm_state"
+    ],
+    "status_counts": {
+      "open": 44
+    },
+    "task_count": 44
+  },
+  "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state fsm_state",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.fsm_state",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "fsm_state reset behavior matches SSOT value IDLE"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.fsm_state.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.\nSSOT item context: name=fsm_state; reset=IDLE.",
+      "evidence_terms": [],
+      "id": "RTL-0043",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.fsm_state",
+      "ssot_context": {
+        "name": "fsm_state",
+        "reset": "IDLE"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.fsm_state"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state pulse_counter",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.pulse_counter",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "pulse_counter reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.pulse_counter.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.\nSSOT item context: name=pulse_counter; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0044",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.pulse_counter",
+      "ssot_context": {
+        "name": "pulse_counter",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.pulse_counter"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state latched_width",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.latched_width",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "latched_width reset behavior matches SSOT value 1"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.latched_width.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.\nSSOT item context: name=latched_width; reset=1.",
+      "evidence_terms": [],
+      "id": "RTL-0045",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.latched_width",
+      "ssot_context": {
+        "name": "latched_width",
+        "reset": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.latched_width"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state latched_polarity",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.latched_polarity",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "latched_polarity reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.latched_polarity.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.\nSSOT item context: name=latched_polarity; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0046",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.latched_polarity",
+      "ssot_context": {
+        "name": "latched_polarity",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.latched_polarity"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state ctrl_fire",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.ctrl_fire",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "ctrl_fire reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.ctrl_fire.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.\nSSOT item context: name=ctrl_fire; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0047",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.ctrl_fire",
+      "ssot_context": {
+        "name": "ctrl_fire",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.ctrl_fire"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state ctrl_enable",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.ctrl_enable",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "ctrl_enable reset behavior matches SSOT value 1"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.ctrl_enable.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.\nSSOT item context: name=ctrl_enable; reset=1.",
+      "evidence_terms": [],
+      "id": "RTL-0048",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.ctrl_enable",
+      "ssot_context": {
+        "name": "ctrl_enable",
+        "reset": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.ctrl_enable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state ctrl_hw_trig_en",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.ctrl_hw_trig_en",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "ctrl_hw_trig_en reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.ctrl_hw_trig_en.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.\nSSOT item context: name=ctrl_hw_trig_en; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0049",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.ctrl_hw_trig_en",
+      "ssot_context": {
+        "name": "ctrl_hw_trig_en",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.ctrl_hw_trig_en"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state status_busy",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.status_busy",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "status_busy reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.status_busy.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.\nSSOT item context: name=status_busy; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0050",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.status_busy",
+      "ssot_context": {
+        "name": "status_busy",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.status_busy"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state status_done",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.status_done",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "status_done reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.status_done.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.\nSSOT item context: name=status_done; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0051",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.status_done",
+      "ssot_context": {
+        "name": "status_done",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.status_done"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state fired_count",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.fired_count",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "fired_count reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.fired_count.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.state_variables.\nSSOT item context: name=fired_count; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0052",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.fired_count",
+      "ssot_context": {
+        "name": "fired_count",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.fired_count"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_FIRE",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_FIRE.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: id=FM_FIRE; name=fire_pulse.",
+      "evidence_terms": [],
+      "id": "RTL-0053",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE",
+      "ssot_context": {
+        "id": "FM_FIRE",
+        "name": "fire_pulse"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_FIRE: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.preconditions.precondition_0.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: value=ctrl_enable == 1.",
+      "evidence_terms": [
+        "ctrl",
+        "ctrl_enable",
+        "enable"
+      ],
+      "id": "RTL-0054",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "ctrl_enable == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ctrl",
+          "ctrl_enable",
+          "enable"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_FIRE: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.preconditions.precondition_1.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: value=status_busy == 0.",
+      "evidence_terms": [
+        "busy",
+        "status",
+        "status_busy"
+      ],
+      "id": "RTL-0055",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "status_busy == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "busy",
+          "status",
+          "status_busy"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_FIRE: precondition_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.preconditions.precondition_2",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.preconditions.precondition_2.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: value=(ctrl_fire == 1) or (trigger_i == 1 and ctrl_hw_trig_en == 1).",
+      "evidence_terms": [
+        "ctrl",
+        "ctrl_fire",
+        "ctrl_hw_trig_en",
+        "en",
+        "fire",
+        "hw",
+        "trig",
+        "trigger",
+        "trigger_i"
+      ],
+      "id": "RTL-0056",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.preconditions.precondition_2",
+      "ssot_context": {
+        "value": "(ctrl_fire == 1) or (trigger_i == 1 and ctrl_hw_trig_en == 1)"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.preconditions.precondition_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ctrl",
+          "ctrl_fire",
+          "ctrl_hw_trig_en",
+          "en",
+          "fire",
+          "hw",
+          "trig",
+          "trigger",
+          "trigger_i"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_FIRE: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.inputs.input_0",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.inputs.input_0.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: value=trigger event: ctrl_fire or trigger_i level.",
+      "evidence_terms": [
+        "ctrl",
+        "ctrl_fire",
+        "fire",
+        "trigger",
+        "trigger_i"
+      ],
+      "id": "RTL-0057",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.inputs.input_0",
+      "ssot_context": {
+        "value": "trigger event: ctrl_fire or trigger_i level"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ctrl",
+          "ctrl_fire",
+          "fire",
+          "trigger",
+          "trigger_i"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_FIRE: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.inputs.input_1",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.inputs.input_1.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: value=latched_width = max(registers.PULSE_WIDTH.width, 1).",
+      "evidence_terms": [
+        "PULSE",
+        "PULSE_WIDTH",
+        "WIDTH",
+        "latched",
+        "latched_width",
+        "width"
+      ],
+      "id": "RTL-0058",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.inputs.input_1",
+      "ssot_context": {
+        "value": "latched_width = max(registers.PULSE_WIDTH.width, 1)"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.inputs.input_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "PULSE",
+          "PULSE_WIDTH",
+          "WIDTH",
+          "latched",
+          "latched_width",
+          "width"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_FIRE: input_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.inputs.input_2",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.inputs.input_2.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: value=latched_polarity = registers.CTRL.polarity.",
+      "evidence_terms": [
+        "latched",
+        "latched_polarity",
+        "polarity"
+      ],
+      "id": "RTL-0059",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.inputs.input_2",
+      "ssot_context": {
+        "value": "latched_polarity = registers.CTRL.polarity"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.inputs.input_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "latched",
+          "latched_polarity",
+          "polarity"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_FIRE: pulse_out_active",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.outputs.pulse_out_active",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "pulse_out_active width matches SSOT value PULSE_OUT_WIDTH",
+        "pulse_out_active RTL expression implements SSOT expression latched_polarity ? 1'b0 : 1'b1",
+        "DUT port pulse_out is the implementation/observation point for pulse_out_active"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.outputs.pulse_out_active.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: name=pulse_out_active; port=pulse_out; expr=latched_polarity ? 1'b0 : 1'b1; width=PULSE_OUT_WIDTH.",
+      "evidence_terms": [
+        "b0",
+        "b1",
+        "latched",
+        "latched_polarity",
+        "out",
+        "polarity",
+        "pulse",
+        "pulse_out"
+      ],
+      "id": "RTL-0060",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.outputs.pulse_out_active",
+      "ssot_context": {
+        "expr": "latched_polarity ? 1'b0 : 1'b1",
+        "name": "pulse_out_active",
+        "port": "pulse_out",
+        "width": "PULSE_OUT_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.outputs.pulse_out_active"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "b0",
+          "b1",
+          "latched",
+          "latched_polarity",
+          "out",
+          "polarity",
+          "pulse",
+          "pulse_out"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_FIRE: pulse_out_idle",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.outputs.pulse_out_idle",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "pulse_out_idle width matches SSOT value PULSE_OUT_WIDTH",
+        "pulse_out_idle RTL expression implements SSOT expression latched_polarity ? 1'b1 : 1'b0",
+        "DUT port pulse_out is the implementation/observation point for pulse_out_idle"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.outputs.pulse_out_idle.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: name=pulse_out_idle; port=pulse_out; expr=latched_polarity ? 1'b1 : 1'b0; width=PULSE_OUT_WIDTH.",
+      "evidence_terms": [
+        "b0",
+        "b1",
+        "latched",
+        "latched_polarity",
+        "out",
+        "polarity",
+        "pulse",
+        "pulse_out"
+      ],
+      "id": "RTL-0061",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.outputs.pulse_out_idle",
+      "ssot_context": {
+        "expr": "latched_polarity ? 1'b1 : 1'b0",
+        "name": "pulse_out_idle",
+        "port": "pulse_out",
+        "width": "PULSE_OUT_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.outputs.pulse_out_idle"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "b0",
+          "b1",
+          "latched",
+          "latched_polarity",
+          "out",
+          "polarity",
+          "pulse",
+          "pulse_out"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_FIRE: irq_o",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.outputs.irq_o",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "irq_o width matches SSOT value 1",
+        "irq_o RTL expression implements SSOT expression status_done & INT_ENABLE.done_ie",
+        "DUT port irq_o is the implementation/observation point for irq_o"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.outputs.irq_o.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: name=irq_o; port=irq_o; expr=status_done & INT_ENABLE.done_ie; width=1.",
+      "evidence_terms": [
+        "ENABLE",
+        "INT",
+        "INT_ENABLE",
+        "done",
+        "done_ie",
+        "ie",
+        "irq",
+        "irq_o",
+        "status",
+        "status_done"
+      ],
+      "id": "RTL-0062",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.outputs.irq_o",
+      "ssot_context": {
+        "expr": "status_done & INT_ENABLE.done_ie",
+        "name": "irq_o",
+        "port": "irq_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.outputs.irq_o"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ENABLE",
+          "INT",
+          "INT_ENABLE",
+          "done",
+          "done_ie",
+          "ie",
+          "irq",
+          "irq_o",
+          "status",
+          "status_done"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_FIRE: pulse_out_active",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.output_rules.pulse_out_active",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "pulse_out_active width matches SSOT value PULSE_OUT_WIDTH",
+        "pulse_out_active RTL expression implements SSOT expression latched_polarity ? 1'b0 : 1'b1",
+        "DUT port pulse_out is the implementation/observation point for pulse_out_active",
+        "pulse_out_active is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.output_rules.pulse_out_active.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: name=pulse_out_active; port=pulse_out; expr=latched_polarity ? 1'b0 : 1'b1; width=PULSE_OUT_WIDTH.",
+      "evidence_terms": [
+        "b0",
+        "b1",
+        "latched",
+        "latched_polarity",
+        "out",
+        "polarity",
+        "pulse",
+        "pulse_out"
+      ],
+      "id": "RTL-0063",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.output_rules.pulse_out_active",
+      "ssot_context": {
+        "expr": "latched_polarity ? 1'b0 : 1'b1",
+        "name": "pulse_out_active",
+        "port": "pulse_out",
+        "width": "PULSE_OUT_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.output_rules.pulse_out_active"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "b0",
+          "b1",
+          "latched",
+          "latched_polarity",
+          "out",
+          "polarity",
+          "pulse",
+          "pulse_out"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_FIRE: pulse_out_idle",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.output_rules.pulse_out_idle",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "pulse_out_idle width matches SSOT value PULSE_OUT_WIDTH",
+        "pulse_out_idle RTL expression implements SSOT expression latched_polarity ? 1'b1 : 1'b0",
+        "DUT port pulse_out is the implementation/observation point for pulse_out_idle",
+        "pulse_out_idle is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.output_rules.pulse_out_idle.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: name=pulse_out_idle; port=pulse_out; expr=latched_polarity ? 1'b1 : 1'b0; width=PULSE_OUT_WIDTH.",
+      "evidence_terms": [
+        "b0",
+        "b1",
+        "latched",
+        "latched_polarity",
+        "out",
+        "polarity",
+        "pulse",
+        "pulse_out"
+      ],
+      "id": "RTL-0064",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.output_rules.pulse_out_idle",
+      "ssot_context": {
+        "expr": "latched_polarity ? 1'b1 : 1'b0",
+        "name": "pulse_out_idle",
+        "port": "pulse_out",
+        "width": "PULSE_OUT_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.output_rules.pulse_out_idle"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "b0",
+          "b1",
+          "latched",
+          "latched_polarity",
+          "out",
+          "polarity",
+          "pulse",
+          "pulse_out"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_FIRE: irq_o",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.output_rules.irq_o",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "irq_o width matches SSOT value 1",
+        "irq_o RTL expression implements SSOT expression status_done & INT_ENABLE.done_ie",
+        "DUT port irq_o is the implementation/observation point for irq_o",
+        "irq_o is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.output_rules.irq_o.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: name=irq_o; port=irq_o; expr=status_done & INT_ENABLE.done_ie; width=1.",
+      "evidence_terms": [
+        "ENABLE",
+        "INT",
+        "INT_ENABLE",
+        "done",
+        "done_ie",
+        "ie",
+        "irq",
+        "irq_o",
+        "status",
+        "status_done"
+      ],
+      "id": "RTL-0065",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.output_rules.irq_o",
+      "ssot_context": {
+        "expr": "status_done & INT_ENABLE.done_ie",
+        "name": "irq_o",
+        "port": "irq_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.output_rules.irq_o"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ENABLE",
+          "INT",
+          "INT_ENABLE",
+          "done",
+          "done_ie",
+          "ie",
+          "irq",
+          "irq_o",
+          "status",
+          "status_done"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_FIRE: fsm_state",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.state_updates.fsm_state",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "fsm_state reset behavior matches SSOT value IDLE",
+        "fsm_state RTL expression implements SSOT expression IDLE→PULSE on trigger; PULSE→DONE when counter==width-1; DONE→IDLE after 1 cycle or W1C",
+        "fsm_state updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.state_updates.fsm_state.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: name=fsm_state; expr=IDLE→PULSE on trigger; PULSE→DONE when counter==width-1; DONE→IDLE after 1 cycle or W1C; reset=IDLE.",
+      "evidence_terms": [
+        "DONE",
+        "IDLE",
+        "PULSE",
+        "W1C"
+      ],
+      "id": "RTL-0066",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.state_updates.fsm_state",
+      "ssot_context": {
+        "expr": "IDLE→PULSE on trigger; PULSE→DONE when counter==width-1; DONE→IDLE after 1 cycle or W1C",
+        "name": "fsm_state",
+        "reset": "IDLE"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.state_updates.fsm_state"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DONE",
+          "IDLE",
+          "PULSE",
+          "W1C"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_FIRE: pulse_counter",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.state_updates.pulse_counter",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "pulse_counter reset behavior matches SSOT value 0",
+        "pulse_counter RTL expression implements SSOT expression 0 in IDLE/DONE; increments each cycle in PULSE",
+        "pulse_counter updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.state_updates.pulse_counter.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: name=pulse_counter; expr=0 in IDLE/DONE; increments each cycle in PULSE; reset=0.",
+      "evidence_terms": [
+        "DONE",
+        "IDLE",
+        "PULSE"
+      ],
+      "id": "RTL-0067",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.state_updates.pulse_counter",
+      "ssot_context": {
+        "expr": "0 in IDLE/DONE; increments each cycle in PULSE",
+        "name": "pulse_counter",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.state_updates.pulse_counter"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DONE",
+          "IDLE",
+          "PULSE"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_FIRE: latched_width",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.state_updates.latched_width",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "latched_width reset behavior matches SSOT value 1",
+        "latched_width RTL expression implements SSOT expression captured from PULSE_WIDTH register at trigger; held constant during PULSE",
+        "latched_width updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.state_updates.latched_width.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: name=latched_width; expr=captured from PULSE_WIDTH register at trigger; held constant during PULSE; reset=1.",
+      "evidence_terms": [
+        "PULSE",
+        "PULSE_WIDTH",
+        "WIDTH"
+      ],
+      "id": "RTL-0068",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.state_updates.latched_width",
+      "ssot_context": {
+        "expr": "captured from PULSE_WIDTH register at trigger; held constant during PULSE",
+        "name": "latched_width",
+        "reset": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.state_updates.latched_width"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "PULSE",
+          "PULSE_WIDTH",
+          "WIDTH"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_FIRE: latched_polarity",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.state_updates.latched_polarity",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "latched_polarity reset behavior matches SSOT value 0",
+        "latched_polarity RTL expression implements SSOT expression captured from CTRL.polarity at trigger; held constant during PULSE",
+        "latched_polarity updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.state_updates.latched_polarity.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: name=latched_polarity; expr=captured from CTRL.polarity at trigger; held constant during PULSE; reset=0.",
+      "evidence_terms": [
+        "CTRL",
+        "PULSE"
+      ],
+      "id": "RTL-0069",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.state_updates.latched_polarity",
+      "ssot_context": {
+        "expr": "captured from CTRL.polarity at trigger; held constant during PULSE",
+        "name": "latched_polarity",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.state_updates.latched_polarity"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CTRL",
+          "PULSE"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_FIRE: status_busy",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.state_updates.status_busy",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "status_busy reset behavior matches SSOT value 0",
+        "status_busy RTL expression implements SSOT expression 1 while fsm_state==PULSE; 0 otherwise",
+        "status_busy updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.state_updates.status_busy.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: name=status_busy; expr=1 while fsm_state==PULSE; 0 otherwise; reset=0.",
+      "evidence_terms": [
+        "PULSE",
+        "fsm_state"
+      ],
+      "id": "RTL-0070",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.state_updates.status_busy",
+      "ssot_context": {
+        "expr": "1 while fsm_state==PULSE; 0 otherwise",
+        "name": "status_busy",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.state_updates.status_busy"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "PULSE",
+          "fsm_state"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_FIRE: status_done",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.state_updates.status_done",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "status_done reset behavior matches SSOT value 0",
+        "status_done RTL expression implements SSOT expression set to 1 at PULSE→DONE transition; cleared by W1C write to STATUS.done",
+        "status_done updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.state_updates.status_done.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: name=status_done; expr=set to 1 at PULSE→DONE transition; cleared by W1C write to STATUS.done; reset=0.",
+      "evidence_terms": [
+        "DONE",
+        "PULSE",
+        "STATUS",
+        "W1C"
+      ],
+      "id": "RTL-0071",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.state_updates.status_done",
+      "ssot_context": {
+        "expr": "set to 1 at PULSE→DONE transition; cleared by W1C write to STATUS.done",
+        "name": "status_done",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.state_updates.status_done"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DONE",
+          "PULSE",
+          "STATUS",
+          "W1C"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_FIRE: fired_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.state_updates.fired_count",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "fired_count reset behavior matches SSOT value 0",
+        "fired_count RTL expression implements SSOT expression fired_count + 1 at PULSE→DONE transition; wraps at 2^16",
+        "fired_count updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.state_updates.fired_count.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: name=fired_count; expr=fired_count + 1 at PULSE→DONE transition; wraps at 2^16; reset=0.",
+      "evidence_terms": [
+        "DONE",
+        "PULSE",
+        "count",
+        "fired",
+        "fired_count"
+      ],
+      "id": "RTL-0072",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.state_updates.fired_count",
+      "ssot_context": {
+        "expr": "fired_count + 1 at PULSE→DONE transition; wraps at 2^16",
+        "name": "fired_count",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.state_updates.fired_count"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DONE",
+          "PULSE",
+          "count",
+          "fired",
+          "fired_count"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_FIRE: ctrl_fire",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.state_updates.ctrl_fire",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "ctrl_fire reset behavior matches SSOT value 0",
+        "ctrl_fire RTL expression implements SSOT expression set to 1 by APB write; auto-clears to 0 after one PCLK",
+        "ctrl_fire updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.state_updates.ctrl_fire.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: name=ctrl_fire; expr=set to 1 by APB write; auto-clears to 0 after one PCLK; reset=0.",
+      "evidence_terms": [
+        "APB",
+        "PCLK"
+      ],
+      "id": "RTL-0073",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.state_updates.ctrl_fire",
+      "ssot_context": {
+        "expr": "set to 1 by APB write; auto-clears to 0 after one PCLK",
+        "name": "ctrl_fire",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.state_updates.ctrl_fire"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "APB",
+          "PCLK"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_FIRE: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.side_effects.side_effect_0.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: value=fsm_state transitions: IDLE → PULSE → DONE → IDLE.",
+      "evidence_terms": [
+        "fsm_state"
+      ],
+      "id": "RTL-0074",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "fsm_state transitions: IDLE → PULSE → DONE → IDLE"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "fsm_state"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_FIRE: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.side_effects.side_effect_1.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: value=pulse_counter increments each PCLK cycle while in PULSE state.",
+      "evidence_terms": [
+        "pulse",
+        "pulse_counter"
+      ],
+      "id": "RTL-0075",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.side_effects.side_effect_1",
+      "ssot_context": {
+        "value": "pulse_counter increments each PCLK cycle while in PULSE state"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "pulse",
+          "pulse_counter"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_FIRE: side_effect_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.side_effects.side_effect_2",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.side_effects.side_effect_2.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: value=fired_count increments by 1 at PULSE→DONE transition.",
+      "evidence_terms": [
+        "count",
+        "fired",
+        "fired_count"
+      ],
+      "id": "RTL-0076",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.side_effects.side_effect_2",
+      "ssot_context": {
+        "value": "fired_count increments by 1 at PULSE→DONE transition"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.side_effects.side_effect_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "fired",
+          "fired_count"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_FIRE: side_effect_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.side_effects.side_effect_3",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.side_effects.side_effect_3.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: value=ctrl_fire auto-clears to 0 after one PCLK cycle (self-clearing trigger).",
+      "evidence_terms": [
+        "ctrl",
+        "ctrl_fire",
+        "fire"
+      ],
+      "id": "RTL-0077",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.side_effects.side_effect_3",
+      "ssot_context": {
+        "value": "ctrl_fire auto-clears to 0 after one PCLK cycle (self-clearing trigger)"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.side_effects.side_effect_3"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ctrl",
+          "ctrl_fire",
+          "fire"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_FIRE: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "function_model.transactions.FM_FIRE.error_cases.error_case_0 condition is implemented as RTL control logic: trigger while status_busy==1"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.error_cases.error_case_0.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: condition=trigger while status_busy==1.",
+      "evidence_terms": [
+        "busy",
+        "status",
+        "status_busy"
+      ],
+      "id": "RTL-0078",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.error_cases.error_case_0",
+      "ssot_context": {
+        "condition": "trigger while status_busy==1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "busy",
+          "status",
+          "status_busy"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_FIRE: error_case_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.error_cases.error_case_1",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "function_model.transactions.FM_FIRE.error_cases.error_case_1 condition is implemented as RTL control logic: PULSE_WIDTH.width written as 0"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.error_cases.error_case_1.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: condition=PULSE_WIDTH.width written as 0.",
+      "evidence_terms": [
+        "PULSE",
+        "PULSE_WIDTH",
+        "WIDTH"
+      ],
+      "id": "RTL-0079",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.error_cases.error_case_1",
+      "ssot_context": {
+        "condition": "PULSE_WIDTH.width written as 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.error_cases.error_case_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "PULSE",
+          "PULSE_WIDTH",
+          "WIDTH"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_FIRE: error_case_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FIRE.error_cases.error_case_2",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "function_model.transactions.FM_FIRE.error_cases.error_case_2 condition is implemented as RTL control logic: ctrl_enable==0 when trigger arrives"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FIRE.error_cases.error_case_2.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.transactions.FM_FIRE.\nSSOT item context: condition=ctrl_enable==0 when trigger arrives.",
+      "evidence_terms": [
+        "ctrl",
+        "ctrl_enable",
+        "enable"
+      ],
+      "id": "RTL-0080",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FIRE.error_cases.error_case_2",
+      "ssot_context": {
+        "condition": "ctrl_enable==0 when trigger arrives"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FIRE.error_cases.error_case_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ctrl",
+          "ctrl_enable",
+          "enable"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_0",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_0",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.\nSSOT item context: value=pulse_out is at idle_level whenever fsm_state != PULSE..",
+      "evidence_terms": [
+        "fsm_state",
+        "idle",
+        "idle_level",
+        "level",
+        "out",
+        "pulse",
+        "pulse_out"
+      ],
+      "id": "RTL-0081",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_0",
+      "ssot_context": {
+        "value": "pulse_out is at idle_level whenever fsm_state != PULSE."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fsm_state",
+          "idle",
+          "idle_level",
+          "level",
+          "out",
+          "pulse",
+          "pulse_out"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_1",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_1",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.\nSSOT item context: value=pulse_out is never asserted for more or fewer cycles than latched_width..",
+      "evidence_terms": [
+        "latched",
+        "latched_width",
+        "out",
+        "pulse",
+        "pulse_out",
+        "width"
+      ],
+      "id": "RTL-0082",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_1",
+      "ssot_context": {
+        "value": "pulse_out is never asserted for more or fewer cycles than latched_width."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "latched",
+          "latched_width",
+          "out",
+          "pulse",
+          "pulse_out",
+          "width"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_2",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_2",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.\nSSOT item context: value=STATUS.busy and pulse_out active are always coincident..",
+      "evidence_terms": [
+        "out",
+        "pulse",
+        "pulse_out"
+      ],
+      "id": "RTL-0083",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_2",
+      "ssot_context": {
+        "value": "STATUS.busy and pulse_out active are always coincident."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "pulse",
+          "pulse_out"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_3",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_3",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_3.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.\nSSOT item context: value=A new pulse cannot start while STATUS.busy==1 (non-reentrant)..",
+      "evidence_terms": [],
+      "id": "RTL-0084",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_3",
+      "ssot_context": {
+        "value": "A new pulse cannot start while STATUS.busy==1 (non-reentrant)."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_4",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_4",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_4.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.\nSSOT item context: value=irq_o is a pure combinational function of STATUS.done and INT_ENABLE.done_ie..",
+      "evidence_terms": [
+        "ENABLE",
+        "INT",
+        "INT_ENABLE",
+        "done",
+        "done_ie",
+        "ie",
+        "irq",
+        "irq_o"
+      ],
+      "id": "RTL-0085",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_4",
+      "ssot_context": {
+        "value": "irq_o is a pure combinational function of STATUS.done and INT_ENABLE.done_ie."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_4"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ENABLE",
+          "INT",
+          "INT_ENABLE",
+          "done",
+          "done_ie",
+          "ie",
+          "irq",
+          "irq_o"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_5",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_5",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_5.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via function_model.\nSSOT item context: value=ctrl_fire is self-clearing: it is 1 for exactly one PCLK cycle after being written..",
+      "evidence_terms": [
+        "ctrl",
+        "ctrl_fire",
+        "fire"
+      ],
+      "id": "RTL-0086",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_5",
+      "ssot_context": {
+        "value": "ctrl_fire is self-clearing: it is 1 for exactly one PCLK cycle after being written."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_5"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ctrl",
+          "ctrl_fire",
+          "fire"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "db19106d42be138c54967891b2b40e88eeea77aea8313dbb312896ba687401f7",
+  "top": "pulse_gen",
+  "type": "rtl_authoring_packet"
+}

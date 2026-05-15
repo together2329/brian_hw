@@ -63,6 +63,7 @@ var AtlasAdminDashboard = (() => {
         ]);
         if ([usersResp, sessionsResp, usageResp, fbResp].some((r) => r.status === 401)) {
           setAuthUser(null);
+          setAuthStatus((prev) => ({ ...prev || {}, login_required: true, authenticated: false }));
           setAuthError("Admin login required");
           return;
         }

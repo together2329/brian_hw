@@ -1,0 +1,924 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 24,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "owner": {
+      "file": "rtl/arbiter_rr.sv",
+      "name": "arbiter_rr",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/arbiter_rr_regs.sv",
+        "name": "arbiter_rr_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arbiter_rr_core.sv",
+        "name": "arbiter_rr_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arbiter_rr.sv",
+        "name": "arbiter_rr",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PCLK",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PRESETn",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PADDR",
+        "signal": "PADDR",
+        "signal_terms": [
+          "PADDR"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PSEL",
+        "signal": "PSEL",
+        "signal_terms": [
+          "PSEL"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PENABLE",
+        "signal": "PENABLE",
+        "signal_terms": [
+          "PENABLE"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PWRITE",
+        "signal": "PWRITE",
+        "signal_terms": [
+          "PWRITE"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PWDATA",
+        "signal": "PWDATA",
+        "signal_terms": [
+          "PWDATA"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PRDATA",
+        "signal": "PRDATA",
+        "signal_terms": [
+          "PRDATA"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PREADY",
+        "signal": "PREADY",
+        "signal_terms": [
+          "PREADY"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PSLVERR",
+        "signal": "PSLVERR",
+        "signal_terms": [
+          "PSLVERR"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "enable_o",
+        "signal": "arb_enable",
+        "signal_terms": [
+          "arb_enable"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "mask_o",
+        "signal": "req_mask",
+        "signal_terms": [
+          "req_mask"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "req_i",
+        "signal": "req_i",
+        "signal_terms": [
+          "req_i"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "mask_i",
+        "signal": "req_mask",
+        "signal_terms": [
+          "req_mask"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "enable_i",
+        "signal": "arb_enable",
+        "signal_terms": [
+          "arb_enable"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "gnt_o",
+        "signal": "gnt_o",
+        "signal_terms": [
+          "gnt_o"
+        ],
+        "source_ref": "integration.connections[17]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "gnt_valid_o",
+        "signal": "gnt_valid_o",
+        "signal_terms": [
+          "gnt_valid_o"
+        ],
+        "source_ref": "integration.connections[18]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "gnt_idx_o",
+        "signal": "gnt_idx_o",
+        "signal_terms": [
+          "gnt_idx_o"
+        ],
+        "source_ref": "integration.connections[19]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "winner_oh_o",
+        "signal": "status_winner",
+        "signal_terms": [
+          "status_winner"
+        ],
+        "source_ref": "integration.connections[20]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "active_req_o",
+        "signal": "status_active_req",
+        "signal_terms": [
+          "status_active_req"
+        ],
+        "source_ref": "integration.connections[21]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "winner_oh_i",
+        "signal": "status_winner",
+        "signal_terms": [
+          "status_winner"
+        ],
+        "source_ref": "integration.connections[22]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "active_req_i",
+        "signal": "status_active_req",
+        "signal_terms": [
+          "status_active_req"
+        ],
+        "source_ref": "integration.connections[23]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "PCLK"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PCLK",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PRESETn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PRESETn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PADDR",
+          "apb_slave_PADDR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PADDR",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "PSEL",
+          "apb_slave_PSEL"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSEL",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PENABLE",
+          "apb_slave_PENABLE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PENABLE",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWRITE",
+          "apb_slave_PWRITE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWRITE",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWDATA",
+          "apb_slave_PWDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWDATA",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PRDATA",
+          "apb_slave_PRDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PRDATA",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PREADY",
+          "apb_slave_PREADY"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PREADY",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PSLVERR",
+          "apb_slave_PSLVERR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PSLVERR",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "req_i",
+          "request_inputs_req_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "req_i",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "NUM_REQ"
+      },
+      {
+        "aliases": [
+          "gnt_o",
+          "grant_outputs_gnt_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "gnt_o",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "NUM_REQ"
+      },
+      {
+        "aliases": [
+          "gnt_valid_o",
+          "grant_outputs_gnt_valid_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "gnt_valid_o",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "gnt_idx_o",
+          "grant_outputs_gnt_idx_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "gnt_idx_o",
+        "source_ref": "io_list.interfaces[2].ports[2]",
+        "width": "IDX_WIDTH"
+      }
+    ],
+    "target_scale": {
+      "basis": "small bus/arbitration IP — minimal structural depth",
+      "min_behavior_owner_logic_modules": 1,
+      "min_logic_modules": 1,
+      "min_modules": 3,
+      "min_procedural_blocks": 4,
+      "min_source_files": 3,
+      "min_state_updates": 3,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [
+      {
+        "gate_kind": "owner_traceability",
+        "owner_module": "arbiter_rr",
+        "reason": "1 required SSOT-derived RTL task(s) still have no owner module.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.owner_traceability",
+        "status": "open",
+        "task_id": "RTL-0005"
+      },
+      {
+        "gate_kind": "manifest_connection_contract_evidence",
+        "owner_module": "arbiter_rr",
+        "reason": "24 SSOT connection contract issue(s) remain. arbiter_rr_regs: SSOT connection contract targets a module not declared in RTL; arbiter_rr_regs: SSOT connection contract targets a module not declared in RTL; arbiter_rr_regs: SSOT connection contract targets a module not declared in RTL",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+        "status": "open",
+        "task_id": "RTL-0016"
+      },
+      {
+        "gate_kind": "golden_authority_artifacts",
+        "owner_module": "arbiter_rr",
+        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/functional_model.py, model/fl_model_check.json, model/model_signature.json, model/decomposition.json, cov/fcov_plan.json, verify/equivalence_goals.json",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
+        "status": "open",
+        "task_id": "RTL-0020"
+      },
+      {
+        "gate_kind": "cycle_model_artifacts",
+        "owner_module": "arbiter_rr",
+        "reason": "Missing executable cycle model: model/cycle_model.py.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
+        "status": "open",
+        "task_id": "RTL-0023"
+      }
+    ],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": false,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 4,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 4,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": false
+  },
+  "ip": "arbiter_rr",
+  "kind": "gate",
+  "owner_file": "rtl/arbiter_rr.sv",
+  "owner_module": "arbiter_rr",
+  "packet_id": "rtl_gate_human_closure",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "rtl_gate.rtl_gen": 7
+    },
+    "module_slice": {},
+    "open_required_count": 4,
+    "required_count": 7,
+    "source_refs": [
+      "quality_gates.rtl_gen.ssot_required_sections",
+      "quality_gates.rtl_gen.workflow_todo_contract",
+      "quality_gates.rtl_gen.owner_traceability",
+      "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+      "quality_gates.rtl_gen.golden_authority_artifacts",
+      "quality_gates.rtl_gen.target_scale",
+      "quality_gates.rtl_gen.cycle_model_artifacts"
+    ],
+    "status_counts": {
+      "open": 4,
+      "pass": 3
+    },
+    "task_count": 7
+  },
+  "tasks": [
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: SSOT function_model and cycle_model are present before RTL generation",
+      "criteria": [
+        "function_model is present and non-empty in the SSOT",
+        "cycle_model is present and non-empty in the SSOT",
+        "Missing authority artifacts open a human/ssot-gen gate instead of being bypassed in RTL",
+        "Traceability keeps source_ref quality_gates.rtl_gen.ssot_required_sections",
+        "Primary implementation evidence is in rtl/arbiter_rr.sv"
+      ],
+      "detail": "rtl-gen cannot implement production RTL until the SSOT contains both the functional golden behavior and the cycle/handshake contract.\nSSOT ref: quality_gates.rtl_gen.ssot_required_sections.\nOwner: arbiter_rr in rtl/arbiter_rr.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "yaml/<ip>.ssot.yaml",
+        "kind": "ssot_required_sections",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0003",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.ssot_required_sections",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.ssot_required_sections"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "yaml/<ip>.ssot.yaml"
+        ],
+        "reason": "SSOT function_model and cycle_model authority is present.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: SSOT-authored rtl-gen workflow TODOs are well formed",
+      "criteria": [
+        "Every workflow_todos.rtl-gen item has content",
+        "Every workflow_todos.rtl-gen item has detail",
+        "Every workflow_todos.rtl-gen item has at least one criteria entry",
+        "Traceability keeps source_ref quality_gates.rtl_gen.workflow_todo_contract",
+        "Primary implementation evidence is in rtl/arbiter_rr.sv"
+      ],
+      "detail": "Every SSOT workflow_todos.rtl-gen item must be executable by rtl-gen and therefore must carry content, detail, and criteria.\nSSOT ref: quality_gates.rtl_gen.workflow_todo_contract.\nOwner: arbiter_rr in rtl/arbiter_rr.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "ssot_workflow_todo_format",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0004",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.workflow_todo_contract",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.workflow_todo_contract"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "SSOT-authored rtl-gen workflow TODOs are well formed.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: every SSOT-derived RTL behavior has an owner module",
+      "criteria": [
+        "No required function_model task is orphaned",
+        "No required cycle_model task is orphaned",
+        "No required register/dataflow/FSM task is orphaned",
+        "Owner module and owner file are recorded in rtl_todo_plan.json",
+        "Traceability keeps source_ref quality_gates.rtl_gen.owner_traceability",
+        "Primary implementation evidence is in rtl/arbiter_rr.sv"
+      ],
+      "detail": "Function-level, cycle-level, register, dataflow, and FSM behavior must map to an RTL owner module before approval.\nSSOT ref: quality_gates.rtl_gen.owner_traceability.\nOwner: arbiter_rr in rtl/arbiter_rr.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "owner_traceability",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0005",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.owner_traceability",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.owner_traceability"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "1 required SSOT-derived RTL task(s) still have no owner module.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: SSOT connection contracts match RTL child port maps",
+      "criteria": [
+        "Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections",
+        "Each SSOT connection contract resolves to a reachable manifest child module and port",
+        "RTL named port-map expressions match the SSOT-intended signal terms or carry an explicit SSOT waiver",
+        "Traceability keeps source_ref quality_gates.rtl_gen.manifest_connection_contract_evidence",
+        "Primary implementation evidence is in rtl/arbiter_rr.sv"
+      ],
+      "detail": "Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.\nSSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.\nOwner: arbiter_rr in rtl/arbiter_rr.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "manifest_connection_contract_evidence",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0016",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.manifest_connection_contract_evidence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "24 SSOT connection contract issue(s) remain. arbiter_rr_regs: SSOT connection contract targets a module not declared in RTL; arbiter_rr_regs: SSOT connection contract targets a module not declared in RTL; arbiter_rr_regs: SSOT connection contract targets a module not declared in RTL",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: production RTL uses locked SSOT/FL/coverage authority artifacts",
+      "criteria": [
+        "governance/authority.json exists",
+        "authority.json is the current IP human_llm_authority_manifest",
+        "authority operating rules R1..R6 and LLM loops L1..L9 are present",
+        "human authority gates G1..G7 are approved before production RTL-GEN",
+        "repo_layout separates locked SSOT/model/coverage truth from LLM-editable rtl/tb/sim/report work",
+        "model/functional_model.py exists",
+        "model/fl_model_check.json passed=true",
+        "model/model_signature.json matches the current SSOT-derived golden model signature",
+        "model/decomposition.json complete=true with unblocked implementation units",
+        "cov/fcov_plan.json has planned bins before RTL signoff",
+        "verify/equivalence_goals.json has required, unblocked goals",
+        "Traceability keeps source_ref quality_gates.rtl_gen.golden_authority_artifacts",
+        "Primary implementation evidence is in rtl/arbiter_rr.sv"
+      ],
+      "detail": "PL330-level RTL cannot proceed from prose alone. It must carry machine-readable authority artifacts that separate human-owned truth from LLM-editable implementation.\nSSOT ref: quality_gates.rtl_gen.golden_authority_artifacts.\nOwner: arbiter_rr in rtl/arbiter_rr.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "governance/authority.json",
+        "kind": "golden_authority_artifacts",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0020",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.golden_authority_artifacts"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 13,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "governance/authority.json"
+        ],
+        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/functional_model.py, model/fl_model_check.json, model/model_signature.json, model/decomposition.json, cov/fcov_plan.json, verify/equivalence_goals.json",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: production RTL scale target is locked or explicitly waived",
+      "criteria": [
+        "Reference-derived suggested_ssot_target_scale candidates are review inputs only",
+        "SSOT quality_gates.rtl_gen.target_scale contains human-locked structural depth minima before PL330-level PASS claims",
+        "If target scale is intentionally not enforced, SSOT contains target_scale_waiver.approved=true with a rationale",
+        "Traceability keeps source_ref quality_gates.rtl_gen.target_scale",
+        "Primary implementation evidence is in rtl/arbiter_rr.sv"
+      ],
+      "detail": "When a calibration reference profile provides target-scale candidates, a human must lock the chosen minimum structural scale in SSOT quality_gates.rtl_gen.target_scale or record an explicit SSOT target_scale_waiver before rtl-gen can claim production signoff.\nSSOT ref: quality_gates.rtl_gen.target_scale.\nOwner: arbiter_rr in rtl/arbiter_rr.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "yaml/<ip>.ssot.yaml",
+        "kind": "target_scale_policy",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0021",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.target_scale",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.target_scale"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "yaml/<ip>.ssot.yaml"
+        ],
+        "reason": "SSOT quality_gates.rtl_gen.target_scale contains human-locked structural scale minima.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: production RTL has executable cycle/handshake model evidence",
+      "criteria": [
+        "model/cycle_model.py exists",
+        "model/cl_model_check.json passed=true",
+        "cycle_model evidence traces to SSOT cycle_model",
+        "Traceability keeps source_ref quality_gates.rtl_gen.cycle_model_artifacts",
+        "Primary implementation evidence is in rtl/arbiter_rr.sv"
+      ],
+      "detail": "Complex DMA-class RTL needs a cycle-level oracle for latency, handshake, ordering, backpressure, and performance-sensitive behavior.\nSSOT ref: quality_gates.rtl_gen.cycle_model_artifacts.\nOwner: arbiter_rr in rtl/arbiter_rr.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "model/cycle_model.py",
+        "kind": "cycle_model_artifacts",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0023",
+      "owner_file": "rtl/arbiter_rr.sv",
+      "owner_module": "arbiter_rr",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.cycle_model_artifacts"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "model/cycle_model.py"
+        ],
+        "reason": "Missing executable cycle model: model/cycle_model.py.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "ed4fb0aab2b37641faadb8a908ce4f3766aa5320c73da71fb75da59dd59109b2",
+  "top": "arbiter_rr",
+  "type": "rtl_authoring_packet"
+}

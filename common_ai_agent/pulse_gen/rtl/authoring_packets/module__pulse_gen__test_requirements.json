@@ -1,0 +1,1190 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 18,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 7,
+      "key": "test_requirements",
+      "module_task_count": 49,
+      "rule": "Owner module pulse_gen is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "test_requirements",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pulse_gen.sv",
+      "name": "pulse_gen",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pulse_gen_regs.sv",
+        "name": "pulse_gen_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pulse_gen_core.sv",
+        "name": "pulse_gen_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pulse_gen.sv",
+        "name": "pulse_gen",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "trigger_i",
+        "signal": "trigger_i",
+        "signal_terms": [
+          "trigger_i"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "pulse_out",
+        "signal": "pulse_out",
+        "signal_terms": [
+          "pulse_out"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "irq_o",
+        "signal": "irq_o",
+        "signal_terms": [
+          "irq_o"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen",
+        "port": "PRDATA",
+        "signal": "pulse_gen_regs.PRDATA",
+        "signal_terms": [
+          "PRDATA",
+          "pulse_gen_regs"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen",
+        "port": "PREADY",
+        "signal": "1'b1 (zero-wait-state)",
+        "signal_terms": [
+          "b1",
+          "wait",
+          "zero"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen",
+        "port": "PSLVERR",
+        "signal": "pulse_gen_regs.PSLVERR",
+        "signal_terms": [
+          "PSLVERR",
+          "pulse_gen_regs"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "ctrl_fire_o",
+        "signal": "pulse_gen_core.ctrl_fire",
+        "signal_terms": [
+          "ctrl_fire",
+          "pulse_gen_core"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "ctrl_enable_o",
+        "signal": "pulse_gen_core.ctrl_enable",
+        "signal_terms": [
+          "ctrl_enable",
+          "pulse_gen_core"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "ctrl_hw_trig_en_o",
+        "signal": "pulse_gen_core.ctrl_hw_trig_en",
+        "signal_terms": [
+          "ctrl_hw_trig_en",
+          "pulse_gen_core"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "pulse_width_o",
+        "signal": "pulse_gen_core.pulse_width_i",
+        "signal_terms": [
+          "pulse_gen_core",
+          "pulse_width_i"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "status_busy_i",
+        "signal": "pulse_gen_regs.status_busy",
+        "signal_terms": [
+          "pulse_gen_regs",
+          "status_busy"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "status_done_o",
+        "signal": "pulse_gen_regs.status_done",
+        "signal_terms": [
+          "pulse_gen_regs",
+          "status_done"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "fired_count_i",
+        "signal": "pulse_gen_core.fired_count",
+        "signal_terms": [
+          "fired_count",
+          "pulse_gen_core"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "int_enable_o",
+        "signal": "pulse_gen_core.int_enable_i",
+        "signal_terms": [
+          "int_enable_i",
+          "pulse_gen_core"
+        ],
+        "source_ref": "integration.connections[17]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "PCLK"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PCLK",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PRESETn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PRESETn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PADDR",
+          "apb_lite_slave_PADDR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PADDR",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "PSEL",
+          "apb_lite_slave_PSEL"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSEL",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PENABLE",
+          "apb_lite_slave_PENABLE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PENABLE",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWRITE",
+          "apb_lite_slave_PWRITE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWRITE",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWDATA",
+          "apb_lite_slave_PWDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWDATA",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PSTRB",
+          "apb_lite_slave_PSTRB"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSTRB",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "PRDATA",
+          "apb_lite_slave_PRDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PRDATA",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PREADY",
+          "apb_lite_slave_PREADY"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PREADY",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PSLVERR",
+          "apb_lite_slave_PSLVERR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PSLVERR",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "pulse_out",
+          "pulse_output_pulse_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pulse_out",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "PULSE_OUT_WIDTH"
+      },
+      {
+        "aliases": [
+          "trigger_i",
+          "trigger_input_trigger_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "trigger_i",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "interrupt_irq_o",
+          "irq_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "irq_o",
+        "source_ref": "io_list.interfaces[3].ports[0]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 15,
+    "open_required_count": 15,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pulse_gen",
+  "kind": "module",
+  "owner_file": "rtl/pulse_gen.sv",
+  "owner_module": "pulse_gen",
+  "packet_id": "module__pulse_gen__test_requirements",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "test_requirements.scenario": 15
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 7,
+      "key": "test_requirements",
+      "module_task_count": 49,
+      "rule": "Owner module pulse_gen is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "test_requirements",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 15,
+    "required_count": 15,
+    "source_refs": [
+      "test_requirements.scenarios.SC1",
+      "test_requirements.scenarios.SC2",
+      "test_requirements.scenarios.SC3",
+      "test_requirements.scenarios.SC4",
+      "test_requirements.scenarios.SC5",
+      "test_requirements.scenarios.SC6",
+      "test_requirements.scenarios.SC7",
+      "test_requirements.scenarios.SC8",
+      "test_requirements.scenarios.SC9",
+      "test_requirements.scenarios.SC10",
+      "test_requirements.scenarios.SC11",
+      "test_requirements.scenarios.SC12",
+      "test_requirements.scenarios.SC13",
+      "test_requirements.scenarios.SC14",
+      "test_requirements.scenarios.SC15"
+    ],
+    "status_counts": {
+      "open": 15
+    },
+    "task_count": 15
+  },
+  "tasks": [
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC1",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC1",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: pulse_out asserts for exactly 1 PCLK cycle, STATUS.busy=1 during pulse, STATUS.done=1 after, fired_count increments"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC1.\nOwner: pulse_gen in rtl/pulse_gen.sv via test_requirements.\nSSOT item context: id=SC1; name=Software single-cycle pulse; expected=pulse_out asserts for exactly 1 PCLK cycle, STATUS.busy=1 during pulse, STATUS.done=1 after, fired_count increments.",
+      "evidence_terms": [],
+      "id": "RTL-0169",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC1",
+      "ssot_context": {
+        "expected": "pulse_out asserts for exactly 1 PCLK cycle, STATUS.busy=1 during pulse, STATUS.done=1 after, fired_count increments",
+        "id": "SC1",
+        "name": "Software single-cycle pulse"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC2",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC2",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Identical to software trigger: pulse_out asserts for PULSE_WIDTH cycles"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC2.\nOwner: pulse_gen in rtl/pulse_gen.sv via test_requirements.\nSSOT item context: id=SC2; name=Hardware trigger pulse; expected=Identical to software trigger: pulse_out asserts for PULSE_WIDTH cycles.",
+      "evidence_terms": [],
+      "id": "RTL-0170",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC2",
+      "ssot_context": {
+        "expected": "Identical to software trigger: pulse_out asserts for PULSE_WIDTH cycles",
+        "id": "SC2",
+        "name": "Hardware trigger pulse"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC3",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC3",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: pulse_out asserts for exactly 10 consecutive PCLK cycles"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC3.\nOwner: pulse_gen in rtl/pulse_gen.sv via test_requirements.\nSSOT item context: id=SC3; name=Multi-cycle pulse width; expected=pulse_out asserts for exactly 10 consecutive PCLK cycles.",
+      "evidence_terms": [],
+      "id": "RTL-0171",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC3",
+      "ssot_context": {
+        "expected": "pulse_out asserts for exactly 10 consecutive PCLK cycles",
+        "id": "SC3",
+        "name": "Multi-cycle pulse width"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC4",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC4",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Both pulses complete with correct width; fired_count increments by 2"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC4.\nOwner: pulse_gen in rtl/pulse_gen.sv via test_requirements.\nSSOT item context: id=SC4; name=Back-to-back pulses; expected=Both pulses complete with correct width; fired_count increments by 2.",
+      "evidence_terms": [],
+      "id": "RTL-0172",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC4",
+      "ssot_context": {
+        "expected": "Both pulses complete with correct width; fired_count increments by 2",
+        "id": "SC4",
+        "name": "Back-to-back pulses"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC4"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC5",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC5",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Second trigger ignored; only one pulse completes; fired_count increments by 1 only"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC5.\nOwner: pulse_gen in rtl/pulse_gen.sv via test_requirements.\nSSOT item context: id=SC5; name=Non-reentrant rejection; expected=Second trigger ignored; only one pulse completes; fired_count increments by 1 only.",
+      "evidence_terms": [],
+      "id": "RTL-0173",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC5",
+      "ssot_context": {
+        "expected": "Second trigger ignored; only one pulse completes; fired_count increments by 1 only",
+        "id": "SC5",
+        "name": "Non-reentrant rejection"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC5"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC6",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC6",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: No pulse output; STATUS unchanged; fired_count unchanged"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC6.\nOwner: pulse_gen in rtl/pulse_gen.sv via test_requirements.\nSSOT item context: id=SC6; name=Disabled trigger rejection; expected=No pulse output; STATUS unchanged; fired_count unchanged.",
+      "evidence_terms": [],
+      "id": "RTL-0174",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC6",
+      "ssot_context": {
+        "expected": "No pulse output; STATUS unchanged; fired_count unchanged",
+        "id": "SC6",
+        "name": "Disabled trigger rejection"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC6"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC7",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC7",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: pulse_out is low during pulse and high when idle (inverted from default)"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC7.\nOwner: pulse_gen in rtl/pulse_gen.sv via test_requirements.\nSSOT item context: id=SC7; name=Polarity inversion; expected=pulse_out is low during pulse and high when idle (inverted from default).",
+      "evidence_terms": [],
+      "id": "RTL-0175",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC7",
+      "ssot_context": {
+        "expected": "pulse_out is low during pulse and high when idle (inverted from default)",
+        "id": "SC7",
+        "name": "Polarity inversion"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC7"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC8",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC8",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: First pulse: no irq_o. Second pulse: irq_o asserts at completion."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC8.\nOwner: pulse_gen in rtl/pulse_gen.sv via test_requirements.\nSSOT item context: id=SC8; name=Interrupt enable/disable; expected=First pulse: no irq_o. Second pulse: irq_o asserts at completion..",
+      "evidence_terms": [],
+      "id": "RTL-0176",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC8",
+      "ssot_context": {
+        "expected": "First pulse: no irq_o. Second pulse: irq_o asserts at completion.",
+        "id": "SC8",
+        "name": "Interrupt enable/disable"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC8"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC9",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC9",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: STATUS.done clears to 0; irq_o deasserts if no other pending source"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC9.\nOwner: pulse_gen in rtl/pulse_gen.sv via test_requirements.\nSSOT item context: id=SC9; name=W1C STATUS.done clear; expected=STATUS.done clears to 0; irq_o deasserts if no other pending source.",
+      "evidence_terms": [],
+      "id": "RTL-0177",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC9",
+      "ssot_context": {
+        "expected": "STATUS.done clears to 0; irq_o deasserts if no other pending source",
+        "id": "SC9",
+        "name": "W1C STATUS.done clear"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC9"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC10",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC10",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: First pulse is 5 cycles; second pulse is 3 cycles; mid-pulse write ignored for current pulse"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC10.\nOwner: pulse_gen in rtl/pulse_gen.sv via test_requirements.\nSSOT item context: id=SC10; name=Runtime width change; expected=First pulse is 5 cycles; second pulse is 3 cycles; mid-pulse write ignored for current pulse.",
+      "evidence_terms": [],
+      "id": "RTL-0178",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC10",
+      "ssot_context": {
+        "expected": "First pulse is 5 cycles; second pulse is 3 cycles; mid-pulse write ignored for current pulse",
+        "id": "SC10",
+        "name": "Runtime width change"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC10"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC11",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC11",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: pulse_out returns to idle_level, FSM→IDLE, STATUS→0, counter→0, irq_o→0"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC11.\nOwner: pulse_gen in rtl/pulse_gen.sv via test_requirements.\nSSOT item context: id=SC11; name=Reset clears all state; expected=pulse_out returns to idle_level, FSM→IDLE, STATUS→0, counter→0, irq_o→0.",
+      "evidence_terms": [],
+      "id": "RTL-0179",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC11",
+      "ssot_context": {
+        "expected": "pulse_out returns to idle_level, FSM→IDLE, STATUS→0, counter→0, irq_o→0",
+        "id": "SC11",
+        "name": "Reset clears all state"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC11"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC12",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC12",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: PSLVERR=1, PRDATA=0"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC12.\nOwner: pulse_gen in rtl/pulse_gen.sv via test_requirements.\nSSOT item context: id=SC12; name=APB illegal address; expected=PSLVERR=1, PRDATA=0.",
+      "evidence_terms": [],
+      "id": "RTL-0180",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC12",
+      "ssot_context": {
+        "expected": "PSLVERR=1, PRDATA=0",
+        "id": "SC12",
+        "name": "APB illegal address"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC12"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC13",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC13",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Pulse width is treated as 1 (minimum clamp); no error"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC13.\nOwner: pulse_gen in rtl/pulse_gen.sv via test_requirements.\nSSOT item context: id=SC13; name=PULSE_WIDTH=0 clamp; expected=Pulse width is treated as 1 (minimum clamp); no error.",
+      "evidence_terms": [],
+      "id": "RTL-0181",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC13",
+      "ssot_context": {
+        "expected": "Pulse width is treated as 1 (minimum clamp); no error",
+        "id": "SC13",
+        "name": "PULSE_WIDTH=0 clamp"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC13"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC14",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC14",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: fired_count wraps cleanly; no overflow error"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC14.\nOwner: pulse_gen in rtl/pulse_gen.sv via test_requirements.\nSSOT item context: id=SC14; name=fired_count wrap; expected=fired_count wraps cleanly; no overflow error.",
+      "evidence_terms": [],
+      "id": "RTL-0182",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC14",
+      "ssot_context": {
+        "expected": "fired_count wraps cleanly; no overflow error",
+        "id": "SC14",
+        "name": "fired_count wrap"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC14"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC15",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC15",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Exactly one pulse fires (not double); no error"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC15.\nOwner: pulse_gen in rtl/pulse_gen.sv via test_requirements.\nSSOT item context: id=SC15; name=Simultaneous SW+HW trigger; expected=Exactly one pulse fires (not double); no error.",
+      "evidence_terms": [],
+      "id": "RTL-0183",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC15",
+      "ssot_context": {
+        "expected": "Exactly one pulse fires (not double); no error",
+        "id": "SC15",
+        "name": "Simultaneous SW+HW trigger"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC15"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "db19106d42be138c54967891b2b40e88eeea77aea8313dbb312896ba687401f7",
+  "top": "pulse_gen",
+  "type": "rtl_authoring_packet"
+}

@@ -491,9 +491,9 @@ test_requirements:
         - { id: "FCOV_BOTH_EDGE", source_ref: "function_model.transactions.DETECT", class: "transaction", description: "Both-edge detection" }
         - { id: "FCOV_STICKY_SET", source_ref: "function_model.state_variables.status_sticky", class: "state", description: "Sticky flag set" }
         - { id: "FCOV_OVERFLOW_SET", source_ref: "function_model.state_variables.status_overflow", class: "state", description: "Overflow flag set" }
-        - { id: "FCOV_W1C_CLEAR", source_ref: "registers.STATUS", class: "register", description: "W1C clear of sticky/overflow" }
+        - { id: "FCOV_W1C_CLEAR", source_ref: "function_model.state_variables.status_sticky", class: "register", description: "W1C clear of sticky/overflow" }
         - { id: "FCOV_ENABLE_GATE", source_ref: "function_model.output_rules.edge_o", class: "output", description: "Enable gating verified" }
-        - { id: "FCOV_RESERVED_MODE", source_ref: "error_handling.error_sources.ERR_RESERVED_MODE", class: "error", description: "Reserved mode safely ignored" }
+        - { id: "FCOV_RESERVED_MODE", source_ref: "function_model.state_variables.control_reg", class: "error", description: "Reserved mode safely ignored" }
     cycle:
       target_pct: 100
       model: "cycle_model"
@@ -614,6 +614,11 @@ synthesis:
     area_um2: null
     power_mw: null
     timing_wns_ns: 0.0
+  required_outputs:
+    - "rtl/netlist.v"
+    - "syn/report/area.rpt"
+    - "syn/report/timing.rpt"
+    - "syn/report/power.rpt"
   required_reports:
     - "syn/report/area.rpt"
     - "syn/report/timing.rpt"

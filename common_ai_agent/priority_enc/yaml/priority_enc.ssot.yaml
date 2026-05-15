@@ -1,0 +1,522 @@
+ip: priority_enc
+version: "1.0"
+purpose: "Parameterized N-input priority encoder with APB-lite CSR runtime configuration. Outputs the index of the highest-priority asserted input with 1-cycle registered latency."
+type: "peripheral"
+top_module:
+  name: "priority_enc"
+  file: "rtl/priority_enc.sv"
+  version: "1.0"
+  type: "peripheral"
+  description: "Parameterized N-input priority encoder with APB-lite CSR"
+  reference_spec: "Internal"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 50
+    area_um2: null
+    power_mw: null
+io_list:
+  clock_domains:
+    - name: "PCLK"
+      frequency_mhz: 50
+      description: "Single system clock for all logic"
+      ports:
+        - { name: "PCLK", width: 1, direction: "input", description: "System clock" }
+  resets:
+    - name: "PRESETn"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "Active-low asynchronous assert, synchronous deassert reset"
+      ports:
+        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low reset" }
+  interfaces:
+    - name: "priority_inputs"
+      type: "custom"
+      role: "input"
+      description: "Priority encoder input vector"
+      ports:
+        - { name: "data_in", width: "N", direction: "input", description: "N-bit input vector; bit N-1 is highest priority" }
+    - name: "priority_outputs"
+      type: "custom"
+      role: "output"
+      description: "Priority encoder result outputs"
+      ports:
+        - { name: "index_out", width: "INDEX_WIDTH", direction: "output", description: "Encoded index of highest-priority asserted bit" }
+        - { name: "valid_out", width: 1, direction: "output", description: "High when at least one input is asserted" }
+    - name: "apb_csr"
+      type: "APB4-lite"
+      role: "slave"
+      description: "APB-lite register interface for runtime configuration"
+      ports:
+        - { name: "PADDR",   width: 12, direction: "input",  description: "APB address" }
+        - { name: "PSEL",    width: 1,  direction: "input",  description: "APB select" }
+        - { name: "PENABLE", width: 1,  direction: "input",  description: "APB enable" }
+        - { name: "PWRITE",  width: 1,  direction: "input",  description: "APB write" }
+        - { name: "PWDATA",  width: 32, direction: "input",  description: "APB write data" }
+        - { name: "PRDATA",  width: 32, direction: "output", description: "APB read data" }
+        - { name: "PREADY",  width: 1,  direction: "output", description: "APB ready" }
+        - { name: "PSLVERR", width: 1,  direction: "output", description: "APB error" }
+registers:
+  config:
+    register_width: 32
+    addr_width: 12
+    byte_addressable: true
+  register_list:
+    - name: "CTRL"
+      offset: 0x000
+      width: 32
+      access: "rw"
+      reset: 0x00000001
+      category: "control"
+      description: "Control register"
+      fields:
+        - { name: "enable", bits: [0, 0], access: "rw", reset: 0x1, description: "1=encoder enabled, 0=outputs forced to zero" }
+        - { name: "rsvd",   bits: [31, 1], access: "ro", reset: 0x0, description: "Reserved, read as zero" }
+    - name: "MASK"
+      offset: 0x004
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "control"
+      description: "Input mask register"
+      fields:
+        - { name: "mask", bits: [N-1, 0], access: "rw", reset: 0x0, description: "1=input bit is masked (ignored), 0=input is active" }
+        - { name: "rsvd", bits: [31, N], access: "ro", reset: 0x0, description: "Reserved, read as zero" }
+    - name: "STATUS"
+      offset: 0x008
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "status"
+      description: "Current encoder output status"
+      fields:
+        - { name: "index", bits: [INDEX_WIDTH-1, 0], access: "ro", reset: 0x0, description: "Current encoded index" }
+        - { name: "valid", bits: [INDEX_WIDTH, INDEX_WIDTH], access: "ro", reset: 0x0, description: "Current valid indicator" }
+        - { name: "rsvd",  bits: [31, INDEX_WIDTH+1], access: "ro", reset: 0x0, description: "Reserved, read as zero" }
+      side_effects:
+        - "Updates every PCLK cycle from core datapath when CTRL.enable==1; read-only to APB"
+fsm:
+  encoder_fsm:
+    states:
+      - "IDLE"
+      - "ACTIVE"
+    transitions:
+      - { from: "IDLE", to: "ACTIVE", condition: "CTRL.enable == 1" }
+      - { from: "ACTIVE", to: "IDLE", condition: "CTRL.enable == 0" }
+    note: "Simple enable-gating FSM. When ACTIVE, output registers update every PCLK cycle."
+sub_modules:
+  - { name: "priority_enc_regs",    file: "rtl/priority_enc_regs.sv",    ownership: "manifest", ssot_gen: true,  implements: ["registers.register_list"], source_sections: ["registers"], register_refs: ["registers.register_list"], description: "APB-lite register block" }
+  - { name: "priority_enc_core",    file: "rtl/priority_enc_core.sv",    ownership: "manifest", ssot_gen: false, implements: ["function_model", "cycle_model.pipeline"], source_sections: ["function_model", "cycle_model"], function_model_refs: ["function_model.transactions", "function_model.state_updates"], cycle_model_refs: ["cycle_model.pipeline"], description: "Priority encoder combinational/registered datapath" }
+parameters:
+  - name: "N"
+    default: 8
+    type: int
+    description: "Number of encoder inputs"
+    drives: ["priority_enc_core.sv", "priority_enc_regs.sv"]
+  - name: "INDEX_WIDTH"
+    default: "$clog2(N)"
+    type: int
+    description: "Width of encoded index output"
+    drives: ["priority_enc_core.sv", "priority_enc_regs.sv"]
+  - name: "PCLK_FREQ_MHZ"
+    default: 50
+    type: int
+    description: "PCLK frequency in MHz"
+    drives: ["tb_top.sv", "docs/README.md"]
+  - name: "RESET_POLARITY"
+    default: "active_low"
+    type: enum
+    values: ["active_low", "active_high"]
+    drives: ["ALL .sv files"]
+dataflow:
+  input_path:
+    source: "data_in[N-1:0]"
+    mask: "data_in AND NOT MASK.mask"
+    priority_logic: "Find highest set bit (index N-1 down to 0)"
+    output: "{valid_out, index_out} registered on PCLK"
+    sequence: "data_in -> apply mask -> priority encode -> register -> outputs"
+  control_path:
+    enable_gating: "CTRL.enable gates output register updates; when 0, outputs forced to 0"
+    note: "All paths are single-cycle combinational through priority logic, registered at output"
+function_model:
+  purpose: "Executable behavioral contract for rtl-gen and tb-gen; describes priority encoder computation independent of cycle timing."
+  state_variables:
+    - { name: "enable", source: "registers.CTRL.enable", reset: 1, description: "Encoder enable" }
+    - { name: "mask",   source: "registers.MASK.mask",   reset: 0, description: "Input mask vector" }
+    - { name: "index",  source: "registers.STATUS.index", reset: 0, description: "Registered encoded index" }
+    - { name: "valid",  source: "registers.STATUS.valid", reset: 0, description: "Registered valid indicator" }
+  state_updates:
+    - name: "index"
+      reset: 0
+      expr: "if (enable) priority_index(data_in & ~mask) else 0"
+      description: "Index of highest-priority unmasked input bit, or 0 when disabled"
+    - name: "valid"
+      reset: 0
+      expr: "if (enable) |(data_in & ~mask) else 0"
+      description: "Valid when any unmasked input is asserted and enabled"
+  transactions:
+    - id: "FM_ENCODE"
+      name: "priority_encode"
+      preconditions:
+        - "CTRL.enable == 1"
+      inputs:
+        - "data_in[N-1:0]"
+      outputs:
+        - { name: "index_out", expr: "priority_index(data_in & ~MASK.mask)", width: "INDEX_WIDTH", port: "index_out" }
+        - { name: "valid_out", expr: "|(data_in & ~MASK.mask)",           width: 1,            port: "valid_out" }
+      output_rules:
+        - { name: "index_out", expr: "for i=N-1 downto 0: if ((data_in[i] & ~mask[i]) == 1) return i; return 0", width: "INDEX_WIDTH", port: "index_out", description: "Index of highest-priority asserted unmasked bit" }
+        - { name: "valid_out", expr: "|(data_in & ~mask)",                                              width: 1,            port: "valid_out", description: "Any unmasked input asserted" }
+      side_effects:
+        - "STATUS.index updates to current index_out"
+        - "STATUS.valid updates to current valid_out"
+      error_cases:
+        - { condition: "PADDR accesses undefined register offset", result: "APB PSLVERR=1, PRDATA=0" }
+        - { condition: "Write to read-only STATUS field", result: "Write ignored, no PSLVERR" }
+  invariants:
+    - "When enable==0, index_out and valid_out are both 0 regardless of inputs."
+    - "When multiple inputs are asserted, index_out always reflects the highest-numbered (highest-priority) bit."
+  reference_model_hint: "tb-gen should implement a Python reference model from state_updates and compare expected/got for every stimulus."
+cycle_model:
+  purpose: "Cycle/handshake contract for rtl-gen; describes when state, outputs, and APB interface may change."
+  clock: "PCLK"
+  reset:
+    assertion: "PRESETn low asynchronously clears all architectural state (registers, outputs)"
+    deassertion: "State is usable on the first rising edge after synchronized deassertion"
+  latency:
+    input_to_output: { min_cycles: 1, max_cycles: 1, description: "Registered 1-cycle latency from data_in change to index_out/valid_out update" }
+    apb_read: { min_cycles: 0, max_cycles: 1, description: "APB read data and pready timing" }
+    apb_write: { min_cycles: 0, max_cycles: 1, description: "APB write acceptance timing" }
+  handshake_rules:
+    - { signal: "apb_csr", rule: "Standard APB-lite: PSEL -> PENABLE sample on PCLK rising edge. PREADY may be tied high." }
+  pipeline:
+    - { stage: "S0_COMB", cycle: 0, action: "Combinational priority encode: masked_data = data_in & ~MASK; find highest set bit" }
+    - { stage: "S1_REG",  cycle: 1, action: "Register index_out and valid_out on PCLK rising edge when CTRL.enable==1" }
+  ordering:
+    - "Output register update occurs on PCLK rising edge after combinational priority logic settles."
+    - "APB register writes take effect on the PCLK cycle after PENABLE handshake completes."
+  backpressure:
+    - "No backpressure on priority inputs; outputs are always valid or zero."
+  observability:
+    - "Every function_model transaction maps to cycle_model pipeline stages S0_COMB and S1_REG."
+clock_reset_domains:
+  domains:
+    - { name: "PCLK", frequency_mhz: 50, description: "Single system clock" }
+  reset_scheme:
+    signal: "PRESETn"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain — no CDC required"
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "No reset domain crossings"
+memory:
+  instances: []
+  note: "No SRAM/FIFO. Register file only in priority_enc_regs."
+interrupts:
+  sources: []
+  output: {}
+  note: "No interrupts in this IP."
+features:
+  - name: "Priority Encoding"
+    trigger: "Any unmasked input assertion"
+    datapath: "data_in -> bitwise AND with ~mask -> priority encoder tree -> output register"
+    control: "CTRL.enable gates register updates"
+    output: "index_out (encoded index) and valid_out (any bit set)"
+  - name: "Runtime Masking"
+    trigger: "APB write to MASK register"
+    datapath: "APB decode -> update mask register -> next cycle mask applied"
+    control: "APB-lite write handshake"
+    output: "Masked inputs ignored in priority computation"
+  - name: "Enable Gating"
+    trigger: "APB write to CTRL.enable"
+    datapath: "enable bit -> output register clock gate / force to zero"
+    control: "FSM IDLE/ACTIVE transition"
+    output: "When disabled, index_out=0 and valid_out=0"
+decomposition:
+  units:
+    - { id: "encode", kind: "datapath", source_refs: ["function_model.state_updates"], rtl_candidates: ["priority_enc_core"], verification_impact: ["test_requirements.scenarios.priority_encode"] }
+    - { id: "csr",    kind: "control",  source_refs: ["registers.register_list"],      rtl_candidates: ["priority_enc_regs"], verification_impact: ["test_requirements.scenarios.apb_csr"] }
+rtl_contract:
+  top_module:
+    name: "priority_enc"
+    file: "rtl/priority_enc.sv"
+    description: "Top-level wrapper instantiating regs and core"
+  ownership:
+    - { module: "priority_enc_regs", owns: ["registers"], behavior_source: "registers.register_list" }
+    - { module: "priority_enc_core", owns: ["function_model", "cycle_model.pipeline"], behavior_source: "function_model.state_updates" }
+timing:
+  target_clock_period_ns: 20.0
+  target_clock_freq_mhz: 50
+  input_setup_ns: 2.0
+  input_hold_ns: 1.0
+  output_delay_ns: 3.0
+  apb_access_time_ns: 20.0
+  latency_cycles: 1
+  note: "Priority logic must settle within one PCLK cycle (20ns)."
+power:
+  domains:
+    - { name: "VDD", voltage: "1.0V", description: "Core supply" }
+  clock_gating:
+    - { signal: "PCLK", enable: "CTRL.enable", description: "Clock gating optional for output register when disabled" }
+  retention: []
+  note: "Minimal power; no dynamic power reduction beyond optional clock gating."
+security:
+  assets: []
+  threat_model: "No security-critical assets. APB interface is open read/write."
+  privilege_assumptions: "APB master is trusted."
+  safety_goals: []
+  note: "No security requirements for this peripheral."
+error_handling:
+  error_sources:
+    - { name: "APB_BAD_ADDR", source: "APB access to undefined offset", severity: "warning", effect: "PSLVERR=1", recovery: "Software must use valid offsets" }
+  propagation: "APB error returned immediately; no internal state change."
+  recovery: "Software retry with corrected address."
+  note: "No fatal errors."
+debug_observability:
+  probes:
+    - { signal: "data_in", width: "N", description: "Input vector for waveform debug" }
+    - { signal: "index_out", width: "INDEX_WIDTH", description: "Encoded output" }
+    - { signal: "valid_out", width: 1, description: "Valid indicator" }
+    - { signal: "CTRL.enable", width: 1, description: "Enable state" }
+    - { signal: "MASK.mask", width: "N", description: "Current mask" }
+  trace_events: []
+  note: "Status register provides software visibility; debug probes for waveform."
+integration:
+  bus_attachment:
+    - { bus: "APB", role: "slave", address_range: "0x000-0x00B", description: "Register aperture" }
+  address_map_ownership:
+    - { range: "0x000-0x00B", owner: "priority_enc", description: "CSR registers" }
+  external_dependencies: []
+dft:
+  scan_mode: "Not specified"
+  test_mode_ports: []
+  mbist: "Not required (no SRAM)"
+  note: "Standard scan insertion assumed; no special DFT logic."
+synthesis:
+  dialect: "SystemVerilog-2012"
+  target_library: "generic"
+  constraints:
+    - "PCLK period 20ns"
+    - "Input delay 2ns"
+    - "Output delay 3ns"
+  ppa_targets:
+    area_um2: null
+    power_mw: null
+    timing_met: true
+  required_reports: ["synthesis timing report", "area report"]
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/priority_enc_param.vh"
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge PCLK or negedge PRESETn)"
+    - "blocking (=) in combinational always @(*)"
+    - "No latches: every combinational branch assigns all outputs"
+    - "Active-low async reset"
+    - "Parameterize widths (no hardcoded numbers)"
+    - "Use rtl/priority_enc_param.vh for shared parameter declarations"
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+  lint_waivers:
+    - "UNUSEDSIGNAL: reserved field tie-offs in register reads"
+    - "WIDTHEXPAND: N-bit vs 32-bit data path conversions"
+    - "UNUSEDPARAM: INDEX_WIDTH when N is power of 2"
+reuse_modules: []
+custom:
+  assumptions:
+    - "N defaults to 8 but is synthesizable for any N >= 2. INDEX_WIDTH = $clog2(N)."
+    - "Bit N-1 is highest priority (MSB-first priority encoding)."
+    - "APB-lite interface uses no wait states (PREADY tied high)."
+    - "No interrupts required; status available via APB read of STATUS register."
+    - "No security or safety requirements identified."
+    - "Output is registered (1-cycle latency) to meet timing closure at 50MHz."
+    - "Reserved register bits read as zero; writes are ignored."
+  note: "Assumptions recorded per user instruction to not block on ask_user."
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "docs/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+filelist:
+  headers:
+    - "rtl/priority_enc_param.vh"
+  rtl:
+    - "rtl/priority_enc.sv"
+    - "rtl/priority_enc_regs.sv"
+    - "rtl/priority_enc_core.sv"
+  sim:
+    - "sim/tb_top.sv"
+    - "sim/tb_program.sv"
+    - "sim/priority_enc_model.sv"
+  firmware:
+    - "firmware/priority_enc_regs.h"
+  docs:
+    - "docs/register_map.md"
+    - "docs/README.md"
+test_requirements:
+  scenarios:
+    - id: "SC1"
+      name: "Basic priority encode"
+      stimulus: "Drive data_in with single bit asserted; verify index_out matches bit position after 1 PCLK"
+      expected: "index_out = bit position, valid_out = 1"
+      checker: "Scoreboard expected/got assertion"
+      coverage: ["function_model.transaction.FM_ENCODE", "cycle_model.pipeline.S0_COMB", "cycle_model.pipeline.S1_REG"]
+    - id: "SC2"
+      name: "Multiple inputs priority resolution"
+      stimulus: "Drive data_in with multiple bits asserted"
+      expected: "index_out reflects highest-numbered asserted bit"
+      checker: "Scoreboard verifies MSB priority"
+      coverage: ["function_model.invariant.priority_resolution"]
+    - id: "SC3"
+      name: "Mask functionality"
+      stimulus: "Write MASK to disable certain bits, then assert those bits"
+      expected: "Masked bits ignored in index_out/valid_out computation"
+      checker: "Reference model includes mask in expected computation"
+      coverage: ["function_model.state_updates.mask"]
+    - id: "SC4"
+      name: "Enable gating"
+      stimulus: "Write CTRL.enable=0, drive arbitrary data_in"
+      expected: "index_out=0, valid_out=0 regardless of inputs"
+      checker: "Scoreboard checks zero output when disabled"
+      coverage: ["function_model.invariant.enable_zero"]
+    - id: "SC5"
+      name: "APB CSR read/write"
+      stimulus: "APB write to CTRL and MASK; APB read back STATUS"
+      expected: "Register values match writes; STATUS reflects current core output"
+      checker: "APB protocol checker + register scoreboard"
+      coverage: ["registers.register_list.CTRL", "registers.register_list.MASK", "registers.register_list.STATUS"]
+    - id: "SC6"
+      name: "Reset behavior"
+      stimulus: "Assert PRESETn, deassert, then read registers and observe outputs"
+      expected: "CTRL=0x1, MASK=0x0, STATUS=0x0, index_out=0, valid_out=0"
+      checker: "Reset checker"
+      coverage: ["function_model.state_variables.reset"]
+    - id: "SC7"
+      name: "APB bad address"
+      stimulus: "APB access to undefined offset"
+      expected: "PSLVERR=1, PRDATA=0, no register state change"
+      checker: "APB error checker"
+      coverage: ["error_handling.APB_BAD_ADDR"]
+  scoreboard_checks: 7
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Behavioral coverage for priority encode computation and CSR effects."
+      bins:
+        - { id: "FCOV_SINGLE_BIT",     source_ref: "test_requirements.scenarios.SC1", class: "single_bit",     description: "Each input bit asserted individually" }
+        - { id: "FCOV_MULTI_BIT",      source_ref: "test_requirements.scenarios.SC2", class: "multi_bit",      description: "Multiple bits asserted simultaneously" }
+        - { id: "FCOV_MASKED",         source_ref: "test_requirements.scenarios.SC3", class: "mask",           description: "Mask disables selected inputs" }
+        - { id: "FCOV_DISABLED",       source_ref: "test_requirements.scenarios.SC4", class: "disable",        description: "Enable=0 forces zero outputs" }
+        - { id: "FCOV_CSR_RW",         source_ref: "test_requirements.scenarios.SC5", class: "csr",            description: "APB read/write to all registers" }
+        - { id: "FCOV_RESET",          source_ref: "test_requirements.scenarios.SC6", class: "reset",          description: "Reset clears all state" }
+        - { id: "FCOV_APB_ERR",        source_ref: "test_requirements.scenarios.SC7", class: "apb_error",      description: "APB bad-address error response" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle/handshake/FSM coverage for timing behavior."
+      bins:
+        - { id: "CCOV_PIPELINE_COMB",  source_ref: "cycle_model.pipeline.S0_COMB", class: "pipeline_stage", description: "Combinational priority stage observed" }
+        - { id: "CCOV_PIPELINE_REG",   source_ref: "cycle_model.pipeline.S1_REG",  class: "pipeline_stage", description: "Registered output stage observed" }
+        - { id: "CCOV_APB_HANDSHAKE",  source_ref: "cycle_model.handshake_rules",  class: "handshake",      description: "APB-lite handshake observed" }
+    functional: "function + cycle coverage must both close"
+    code: "line >= 90%, branch >= 85%"
+quality_gates:
+  rtl_gen:
+    profile: "production"
+    target_scale:
+      basis: "Small peripheral IP: 3 RTL files, priority logic + APB regs"
+      source_files_min: 3
+      modules_min: 3
+      procedural_blocks_min: 4
+      state_updates_min: 4
+      depth_score_min: 0
+      logic_modules_min: 2
+      behavior_owner_logic_modules_min: 2
+    target_scale_waiver:
+      approved: false
+      reason: ""
+      owner: ""
+    pass: "Every SSOT-derived RTL TODO and rtl_gate.rtl_gen gate closes with fresh evidence."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json"]
+  rtl:
+    pass: "RTL implements function_model and cycle_model, compiles, lints, and matches locked FL/CL authority."
+    evidence: ["rtl compile report", "dut lint report", "FL-vs-RTL scoreboard/audit"]
+  coverage:
+    pass: "SSOT-declared functional/code/toggle/FSM/assertion coverage goals pass or have approved SSOT waivers."
+    evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+  eda:
+    pass: "Synthesis and STA meet SSOT timing targets or have approved SSOT waivers."
+    evidence: ["syn report", "sta report"]
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "ALL files (module name)" }
+    - { yaml: "parameters", output: "priority_enc_param.vh" }
+    - { yaml: "io_list.interfaces", output: "priority_enc.sv (port list)" }
+    - { yaml: "registers.register_list", output: "priority_enc_regs.sv + firmware + docs" }
+    - { yaml: "function_model", output: "priority_enc_core.sv + tb/cocotb scoreboard" }
+    - { yaml: "cycle_model", output: "priority_enc_core.sv pipeline + waveform checks" }
+    - { yaml: "timing", output: "SDC constraints" }
+    - { yaml: "test_requirements.scenarios", output: "tb_program.sv" }
+workflow_todos:
+  fl-model-gen: []
+  rtl-gen:
+    - id: "RTL_TODO_REGS"
+      content: "Implement APB-lite register block"
+      detail: "Decode APB addresses 0x000/0x004/0x008; implement CTRL, MASK, STATUS registers with declared fields and reset values. PREADY tied high. PSLVERR on bad addr."
+      criteria:
+        - "Register block compiles and passes APB protocol assertions"
+        - "All register reset values match SSOT"
+      source_refs: ["registers.register_list", "cycle_model.handshake_rules"]
+      owner_module: "priority_enc_regs"
+      owner_file: "rtl/priority_enc_regs.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_CORE"
+      content: "Implement priority encoder datapath"
+      detail: "Combinational priority encoder tree finding highest set bit of masked data_in. Registered outputs index_out and valid_out, gated by CTRL.enable."
+      criteria:
+        - "Core implements function_model.state_updates.index and valid"
+        - "1-cycle registered latency verified in sim"
+      source_refs: ["function_model.state_updates", "cycle_model.pipeline"]
+      owner_module: "priority_enc_core"
+      owner_file: "rtl/priority_enc_core.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_TOP"
+      content: "Implement top-level wrapper"
+      detail: "Instantiate priority_enc_regs and priority_enc_core; connect APB ports to regs, data_in to core, core outputs to top ports and STATUS register feedback."
+      criteria:
+        - "Top-level connects all submodules per integration spec"
+        - "Lint clean"
+      source_refs: ["integration", "sub_modules"]
+      owner_module: "priority_enc"
+      owner_file: "rtl/priority_enc.sv"
+      priority: "high"
+      required: true
+  tb-gen: []
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh priority_enc", description: "Validate production SSOT structure and quality gates" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model priority_enc", description: "FunctionalModel from validated SSOT" }
+    - { name: "handoff_rtl", command: "/ssot-rtl priority_enc", description: "Downstream RTL generation from validated SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb priority_enc", description: "Downstream pyuvm/cocotb verification" }
+    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Waveform and failure inspection" }
+    - { name: "handoff_coverage", command: "/coverage priority_enc", description: "Measure SSOT-declared coverage goals" }
+    - { name: "handoff_eda", command: "/syn priority_enc && /sta priority_enc", description: "Synthesis and STA evidence" }

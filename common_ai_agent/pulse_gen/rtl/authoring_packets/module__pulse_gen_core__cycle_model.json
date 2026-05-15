@@ -1,0 +1,1052 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 18,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 6,
+      "enabled": true,
+      "index": 2,
+      "key": "cycle_model",
+      "module_task_count": 73,
+      "rule": "Owner module pulse_gen_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pulse_gen_core.sv",
+      "name": "pulse_gen_core",
+      "refs": [
+        "cycle_model",
+        "cycle_model.pipeline",
+        "dataflow",
+        "features",
+        "features.pulse_fire",
+        "fsm",
+        "fsm.pulse_fsm",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.transactions",
+        "function_model.transactions.FM_FIRE"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pulse_gen_regs.sv",
+        "name": "pulse_gen_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pulse_gen_core.sv",
+        "name": "pulse_gen_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pulse_gen.sv",
+        "name": "pulse_gen",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "trigger_i",
+        "signal": "trigger_i",
+        "signal_terms": [
+          "trigger_i"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "pulse_out",
+        "signal": "pulse_out",
+        "signal_terms": [
+          "pulse_out"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "irq_o",
+        "signal": "irq_o",
+        "signal_terms": [
+          "irq_o"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "status_busy_i",
+        "signal": "pulse_gen_regs.status_busy",
+        "signal_terms": [
+          "pulse_gen_regs",
+          "status_busy"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "status_done_o",
+        "signal": "pulse_gen_regs.status_done",
+        "signal_terms": [
+          "pulse_gen_regs",
+          "status_done"
+        ],
+        "source_ref": "integration.connections[15]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 17,
+    "open_required_count": 17,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pulse_gen",
+  "kind": "module",
+  "owner_file": "rtl/pulse_gen_core.sv",
+  "owner_module": "pulse_gen_core",
+  "packet_id": "module__pulse_gen_core__cycle_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.backpressure": 1,
+      "cycle_model.clock": 1,
+      "cycle_model.handshake_rules": 4,
+      "cycle_model.latency": 1,
+      "cycle_model.observability": 2,
+      "cycle_model.ordering": 4,
+      "cycle_model.pipeline": 3,
+      "cycle_model.reset": 1
+    },
+    "module_slice": {
+      "count": 6,
+      "enabled": true,
+      "index": 2,
+      "key": "cycle_model",
+      "module_task_count": 73,
+      "rule": "Owner module pulse_gen_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 17,
+    "required_count": 17,
+    "source_refs": [
+      "cycle_model.clock",
+      "cycle_model.reset",
+      "cycle_model.latency",
+      "cycle_model.handshake_rules.PREADY",
+      "cycle_model.handshake_rules.PSLVERR",
+      "cycle_model.handshake_rules.pulse_out",
+      "cycle_model.handshake_rules.trigger_i",
+      "cycle_model.pipeline.S0_IDLE",
+      "cycle_model.pipeline.S1_PULSE_COUNT",
+      "cycle_model.pipeline.S2_DONE",
+      "cycle_model.ordering.ordering_rule_0",
+      "cycle_model.ordering.ordering_rule_1",
+      "cycle_model.ordering.ordering_rule_2",
+      "cycle_model.ordering.ordering_rule_3",
+      "cycle_model.backpressure.backpressure_rule_0",
+      "cycle_model.observability.observability_signal_0",
+      "cycle_model.observability.observability_signal_1"
+    ],
+    "status_counts": {
+      "open": 17
+    },
+    "task_count": 17
+  },
+  "tasks": [
+    {
+      "category": "cycle_model.clock",
+      "content": "Implement cycle-model clock",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.clock",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.\nSSOT item context: value=PCLK.",
+      "evidence_terms": [],
+      "id": "RTL-0087",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.clock",
+      "ssot_context": {
+        "value": "PCLK"
+      },
+      "ssot_refs": [
+        "cycle_model.clock"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.reset",
+      "content": "Implement cycle-model reset",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.reset",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.",
+      "evidence_terms": [],
+      "id": "RTL-0088",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.reset",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.reset"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.latency",
+      "content": "Implement cycle-model latency",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.latency",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.",
+      "evidence_terms": [],
+      "id": "RTL-0089",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.latency",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.latency"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: PREADY",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.PREADY",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "cycle_model.handshake_rules.PREADY appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.PREADY.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.\nSSOT item context: signal=PREADY.",
+      "evidence_terms": [],
+      "id": "RTL-0090",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.PREADY",
+      "ssot_context": {
+        "signal": "PREADY"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.PREADY"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: PSLVERR",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.PSLVERR",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "cycle_model.handshake_rules.PSLVERR appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.PSLVERR.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.\nSSOT item context: signal=PSLVERR.",
+      "evidence_terms": [],
+      "id": "RTL-0091",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.PSLVERR",
+      "ssot_context": {
+        "signal": "PSLVERR"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.PSLVERR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: pulse_out",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.pulse_out",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "cycle_model.handshake_rules.pulse_out appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.pulse_out.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.\nSSOT item context: signal=pulse_out.",
+      "evidence_terms": [
+        "out",
+        "pulse",
+        "pulse_out"
+      ],
+      "id": "RTL-0092",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.pulse_out",
+      "ssot_context": {
+        "signal": "pulse_out"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.pulse_out"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "pulse",
+          "pulse_out"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: trigger_i",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.trigger_i",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "cycle_model.handshake_rules.trigger_i appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.trigger_i.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.\nSSOT item context: signal=trigger_i.",
+      "evidence_terms": [
+        "trigger",
+        "trigger_i"
+      ],
+      "id": "RTL-0093",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.trigger_i",
+      "ssot_context": {
+        "signal": "trigger_i"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.trigger_i"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "trigger",
+          "trigger_i"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S0_IDLE",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S0_IDLE",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "cycle_model.pipeline.S0_IDLE timing uses SSOT cycle/latency 0",
+        "cycle_model.pipeline.S0_IDLE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S0_IDLE.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.pipeline.\nSSOT item context: stage=S0_IDLE; action=Sample trigger (CTRL.fire or trigger_i); if accepted, latch width/polarity and transition to PULSE; cycle=0.",
+      "evidence_terms": [
+        "trigger",
+        "trigger_i"
+      ],
+      "id": "RTL-0094",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S0_IDLE",
+      "ssot_context": {
+        "action": "Sample trigger (CTRL.fire or trigger_i); if accepted, latch width/polarity and transition to PULSE",
+        "cycle": "0",
+        "stage": "S0_IDLE"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S0_IDLE"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "trigger",
+          "trigger_i"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S1_PULSE_COUNT",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S1_PULSE_COUNT",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "cycle_model.pipeline.S1_PULSE_COUNT timing uses SSOT cycle/latency 1..W",
+        "cycle_model.pipeline.S1_PULSE_COUNT appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S1_PULSE_COUNT.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.pipeline.\nSSOT item context: stage=S1_PULSE_COUNT; action=Assert pulse_out at active level; increment pulse_counter each cycle; W = latched_width; cycle=1..W.",
+      "evidence_terms": [
+        "latched",
+        "latched_width",
+        "out",
+        "pulse",
+        "pulse_counter",
+        "pulse_out",
+        "width"
+      ],
+      "id": "RTL-0095",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S1_PULSE_COUNT",
+      "ssot_context": {
+        "action": "Assert pulse_out at active level; increment pulse_counter each cycle; W = latched_width",
+        "cycle": "1..W",
+        "stage": "S1_PULSE_COUNT"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S1_PULSE_COUNT"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "latched",
+          "latched_width",
+          "out",
+          "pulse",
+          "pulse_counter",
+          "pulse_out",
+          "width"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S2_DONE",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S2_DONE",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "cycle_model.pipeline.S2_DONE timing uses SSOT cycle/latency W+1",
+        "cycle_model.pipeline.S2_DONE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S2_DONE.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.pipeline.\nSSOT item context: stage=S2_DONE; action=Deassert pulse_out; set STATUS.done=1; increment fired_count; irq_o asserts if enabled; transition to IDLE; cycle=W+1.",
+      "evidence_terms": [
+        "count",
+        "fired",
+        "fired_count",
+        "irq",
+        "irq_o",
+        "out",
+        "pulse",
+        "pulse_out"
+      ],
+      "id": "RTL-0096",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S2_DONE",
+      "ssot_context": {
+        "action": "Deassert pulse_out; set STATUS.done=1; increment fired_count; irq_o asserts if enabled; transition to IDLE",
+        "cycle": "W+1",
+        "stage": "S2_DONE"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S2_DONE"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "fired",
+          "fired_count",
+          "irq",
+          "irq_o",
+          "out",
+          "pulse",
+          "pulse_out"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_0",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "cycle_model.ordering.ordering_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_0.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.\nSSOT item context: value=Trigger acceptance and pulse_out assertion are separated by exactly 1 PCLK cycle..",
+      "evidence_terms": [],
+      "id": "RTL-0097",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_0",
+      "ssot_context": {
+        "value": "Trigger acceptance and pulse_out assertion are separated by exactly 1 PCLK cycle."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_1",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "cycle_model.ordering.ordering_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_1.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.\nSSOT item context: value=STATUS.done is set on the same rising edge that pulse_out deasserts..",
+      "evidence_terms": [],
+      "id": "RTL-0098",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_1",
+      "ssot_context": {
+        "value": "STATUS.done is set on the same rising edge that pulse_out deasserts."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_2",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_2",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "cycle_model.ordering.ordering_rule_2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_2.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.\nSSOT item context: value=irq_o reflects STATUS.done combinational — no extra cycle of interrupt latency..",
+      "evidence_terms": [],
+      "id": "RTL-0099",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_2",
+      "ssot_context": {
+        "value": "irq_o reflects STATUS.done combinational — no extra cycle of interrupt latency."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_3",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_3",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "cycle_model.ordering.ordering_rule_3 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_3.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.\nSSOT item context: value=ctrl_fire auto-clears on the rising edge after it was written (1-cycle self-clear)..",
+      "evidence_terms": [],
+      "id": "RTL-0100",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_3",
+      "ssot_context": {
+        "value": "ctrl_fire auto-clears on the rising edge after it was written (1-cycle self-clear)."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_0",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_0.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.\nSSOT item context: value=No backpressure possible: zero-wait-state APB and no data-path handshake on pulse_out..",
+      "evidence_terms": [
+        "out",
+        "pulse",
+        "pulse_out"
+      ],
+      "id": "RTL-0101",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
+      "ssot_context": {
+        "value": "No backpressure possible: zero-wait-state APB and no data-path handshake on pulse_out."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "pulse",
+          "pulse_out"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.observability",
+      "content": "Implement observability signal: observability_signal_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.observability.observability_signal_0",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "cycle_model.observability.observability_signal_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_0.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.\nSSOT item context: value=Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario..",
+      "evidence_terms": [],
+      "id": "RTL-0102",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.observability.observability_signal_0",
+      "ssot_context": {
+        "value": "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
+      },
+      "ssot_refs": [
+        "cycle_model.observability.observability_signal_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.observability",
+      "content": "Implement observability signal: observability_signal_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.observability.observability_signal_1",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "cycle_model.observability.observability_signal_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_1.\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via cycle_model.\nSSOT item context: value=STATUS.busy directly observable via APB read; pulse_out directly observable on output port..",
+      "evidence_terms": [],
+      "id": "RTL-0103",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.observability.observability_signal_1",
+      "ssot_context": {
+        "value": "STATUS.busy directly observable via APB read; pulse_out directly observable on output port."
+      },
+      "ssot_refs": [
+        "cycle_model.observability.observability_signal_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "db19106d42be138c54967891b2b40e88eeea77aea8313dbb312896ba687401f7",
+  "top": "pulse_gen",
+  "type": "rtl_authoring_packet"
+}

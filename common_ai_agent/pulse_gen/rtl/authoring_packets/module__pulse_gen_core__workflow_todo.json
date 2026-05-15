@@ -1,0 +1,303 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 18,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 6,
+      "enabled": true,
+      "index": 6,
+      "key": "workflow_todo",
+      "module_task_count": 73,
+      "rule": "Owner module pulse_gen_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "workflow_todo",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pulse_gen_core.sv",
+      "name": "pulse_gen_core",
+      "refs": [
+        "cycle_model",
+        "cycle_model.pipeline",
+        "dataflow",
+        "features",
+        "features.pulse_fire",
+        "fsm",
+        "fsm.pulse_fsm",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.transactions",
+        "function_model.transactions.FM_FIRE"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pulse_gen_regs.sv",
+        "name": "pulse_gen_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pulse_gen_core.sv",
+        "name": "pulse_gen_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pulse_gen.sv",
+        "name": "pulse_gen",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "trigger_i",
+        "signal": "trigger_i",
+        "signal_terms": [
+          "trigger_i"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "pulse_out",
+        "signal": "pulse_out",
+        "signal_terms": [
+          "pulse_out"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "irq_o",
+        "signal": "irq_o",
+        "signal_terms": [
+          "irq_o"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "status_busy_i",
+        "signal": "pulse_gen_regs.status_busy",
+        "signal_terms": [
+          "pulse_gen_regs",
+          "status_busy"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "status_done_o",
+        "signal": "pulse_gen_regs.status_done",
+        "signal_terms": [
+          "pulse_gen_regs",
+          "status_done"
+        ],
+        "source_ref": "integration.connections[15]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 1,
+    "open_required_count": 1,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pulse_gen",
+  "kind": "module",
+  "owner_file": "rtl/pulse_gen_core.sv",
+  "owner_module": "pulse_gen_core",
+  "packet_id": "module__pulse_gen_core__workflow_todo",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 6,
+      "enabled": true,
+      "index": 6,
+      "key": "workflow_todo",
+      "module_task_count": 73,
+      "rule": "Owner module pulse_gen_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "workflow_todo",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 1,
+    "required_count": 1,
+    "source_refs": [
+      "workflow_todos.rtl-gen[0]"
+    ],
+    "status_counts": {
+      "open": 1
+    },
+    "task_count": 1
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement pulse_gen_core FSM, counter, and output driver",
+      "criteria": [
+        "FSM has exactly 3 states: IDLE, PULSE, DONE with transitions matching fsm.pulse_fsm",
+        "pulse_out asserts for exactly latched_width cycles (1-cycle latency from trigger)",
+        "STATUS.busy mirrors PULSE state",
+        "STATUS.done set at PULSE→DONE transition, cleared by W1C",
+        "fired_count increments at PULSE→DONE, wraps at 2^16",
+        "ctrl_fire self-clears after 1 PCLK cycle",
+        "Non-reentrant: triggers ignored while busy",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[0]",
+        "Primary implementation evidence is in rtl/pulse_gen_core.sv",
+        "Semantic source_refs covered: cycle_model.pipeline, fsm.pulse_fsm, function_model.transactions.FM_FIRE"
+      ],
+      "detail": "Translate function_model FM_FIRE transaction, cycle_model pipeline, and fsm.pulse_fsm into RTL state machine with pulse counter, latched width/polarity capture, and pulse_out driver. ctrl_fire auto-clears after 1 cycle. irq_o = status_done & int_enable combinational.\nSSOT ref: workflow_todos.rtl-gen[0].\nOwner: pulse_gen_core in rtl/pulse_gen_core.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_PULSE_CORE.",
+      "evidence_terms": [
+        "CORE",
+        "FIRE",
+        "FM",
+        "FM_FIRE",
+        "PULSE",
+        "RTL_TODO_PULSE_CORE",
+        "TODO",
+        "core",
+        "pulse",
+        "pulse_fsm",
+        "pulse_gen_core"
+      ],
+      "id": "RTL-0020",
+      "owner_file": "rtl/pulse_gen_core.sv",
+      "owner_module": "pulse_gen_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[0]",
+      "ssot_context": {
+        "id": "RTL_TODO_PULSE_CORE"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline",
+        "fsm.pulse_fsm",
+        "function_model.transactions.FM_FIRE",
+        "workflow_todos.rtl-gen[0]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "CORE",
+          "FIRE",
+          "FM",
+          "FM_FIRE",
+          "PULSE",
+          "RTL_TODO_PULSE_CORE",
+          "TODO",
+          "core",
+          "pulse",
+          "pulse_fsm",
+          "pulse_gen_core"
+        ],
+        "source_scope": "rtl/pulse_gen_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen_core.sv.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_PULSE_CORE",
+        "source_refs": [
+          "cycle_model.pipeline",
+          "fsm.pulse_fsm",
+          "function_model.transactions.FM_FIRE"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    }
+  ],
+  "todo_plan_sha256": "db19106d42be138c54967891b2b40e88eeea77aea8313dbb312896ba687401f7",
+  "top": "pulse_gen",
+  "type": "rtl_authoring_packet"
+}

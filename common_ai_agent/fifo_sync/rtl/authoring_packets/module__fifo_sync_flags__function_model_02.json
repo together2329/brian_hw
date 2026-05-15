@@ -1,0 +1,2187 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 18,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 4,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model_02",
+      "module_task_count": 87,
+      "rule": "Owner module fifo_sync_flags is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 2,
+      "section_chunk_index": 2,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/fifo_sync_flags.sv",
+      "name": "fifo_sync_flags",
+      "refs": [
+        "cycle_model",
+        "cycle_model.latency",
+        "function_model",
+        "function_model.transactions",
+        "function_model.transactions.output_rules"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/fifo_sync_mem.sv",
+        "name": "fifo_sync_mem",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_ptrs.sv",
+        "name": "fifo_sync_ptrs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_flags.sv",
+        "name": "fifo_sync_flags",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_regs.sv",
+        "name": "fifo_sync_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_output_reg.sv",
+        "name": "fifo_sync_output_reg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync.sv",
+        "name": "fifo_sync",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "count_i",
+        "signal": "count",
+        "signal_terms": [
+          "count"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "full_o",
+        "signal": "full_o",
+        "signal_terms": [
+          "full_o"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "empty_o",
+        "signal": "empty_o",
+        "signal_terms": [
+          "empty_o"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "almost_full_o",
+        "signal": "almost_full_o",
+        "signal_terms": [
+          "almost_full_o"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "almost_empty_o",
+        "signal": "almost_empty_o",
+        "signal_terms": [
+          "almost_empty_o"
+        ],
+        "source_ref": "integration.connections[12]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 37,
+    "open_required_count": 37,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "fifo_sync",
+  "kind": "module",
+  "owner_file": "rtl/fifo_sync_flags.sv",
+  "owner_module": "fifo_sync_flags",
+  "packet_id": "module__fifo_sync_flags__function_model_02",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.output": 10,
+      "function_model.output_rule": 10,
+      "function_model.precondition": 5,
+      "function_model.side_effect": 5,
+      "function_model.state_update": 4,
+      "function_model.transaction": 3
+    },
+    "module_slice": {
+      "count": 4,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model_02",
+      "module_task_count": 87,
+      "rule": "Owner module fifo_sync_flags is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 2,
+      "section_chunk_index": 2,
+      "task_limit": 48
+    },
+    "open_required_count": 37,
+    "required_count": 37,
+    "source_refs": [
+      "function_model.transactions.FM3.state_updates.count",
+      "function_model.transactions.FM3.side_effects.side_effect_0",
+      "function_model.transactions.FM4",
+      "function_model.transactions.FM4.preconditions.precondition_0",
+      "function_model.transactions.FM4.preconditions.precondition_1",
+      "function_model.transactions.FM4.outputs.output_0",
+      "function_model.transactions.FM4.outputs.output_1",
+      "function_model.transactions.FM4.output_rules.full_o",
+      "function_model.transactions.FM4.output_rules.count_o",
+      "function_model.transactions.FM4.side_effects.side_effect_0",
+      "function_model.transactions.FM5",
+      "function_model.transactions.FM5.preconditions.precondition_0",
+      "function_model.transactions.FM5.preconditions.precondition_1",
+      "function_model.transactions.FM5.outputs.output_0",
+      "function_model.transactions.FM5.outputs.output_1",
+      "function_model.transactions.FM5.outputs.output_2",
+      "function_model.transactions.FM5.output_rules.empty_o",
+      "function_model.transactions.FM5.output_rules.rd_data_o",
+      "function_model.transactions.FM5.output_rules.count_o",
+      "function_model.transactions.FM5.side_effects.side_effect_0",
+      "function_model.transactions.FM6",
+      "function_model.transactions.FM6.preconditions.precondition_0",
+      "function_model.transactions.FM6.outputs.output_0",
+      "function_model.transactions.FM6.outputs.output_1"
+    ],
+    "status_counts": {
+      "open": 37
+    },
+    "task_count": 37
+  },
+  "tasks": [
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM3: count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM3.state_updates.count",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv",
+        "count reset behavior matches SSOT value 0",
+        "count RTL expression implements SSOT expression count",
+        "count updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM3.state_updates.count.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: name=count; expr=count; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0113",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM3.state_updates.count",
+      "ssot_context": {
+        "expr": "count",
+        "name": "count",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM3.state_updates.count"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM3: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM3.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM3.side_effects.side_effect_0.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=count is unchanged because push and pop cancel.",
+      "evidence_terms": [],
+      "id": "RTL-0114",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM3.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "count is unchanged because push and pop cancel"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM3.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM4",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM4",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM4.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: id=FM4; name=overflow_reject.",
+      "evidence_terms": [],
+      "id": "RTL-0115",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4",
+      "ssot_context": {
+        "id": "FM4",
+        "name": "overflow_reject"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM4: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.preconditions.precondition_0.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=wr_en_i == 1.",
+      "evidence_terms": [
+        "en",
+        "wr",
+        "wr_en_i"
+      ],
+      "id": "RTL-0116",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "wr_en_i == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "en",
+          "wr",
+          "wr_en_i"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM4: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.preconditions.precondition_1.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=full_o == 1 (count == DEPTH).",
+      "evidence_terms": [
+        "full",
+        "full_o"
+      ],
+      "id": "RTL-0117",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "full_o == 1 (count == DEPTH)"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "full",
+          "full_o"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM4: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.outputs.output_0",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.outputs.output_0.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=full_o = 1.",
+      "evidence_terms": [
+        "full",
+        "full_o"
+      ],
+      "id": "RTL-0118",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.outputs.output_0",
+      "ssot_context": {
+        "value": "full_o = 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "full",
+          "full_o"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM4: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.outputs.output_1",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.outputs.output_1.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=count_o = DEPTH.",
+      "evidence_terms": [
+        "count",
+        "count_o"
+      ],
+      "id": "RTL-0119",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.outputs.output_1",
+      "ssot_context": {
+        "value": "count_o = DEPTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.outputs.output_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_o"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM4: full_o",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.output_rules.full_o",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv",
+        "full_o width matches SSOT value 1",
+        "full_o RTL expression implements SSOT expression 1",
+        "DUT port full_o is the implementation/observation point for full_o",
+        "full_o is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.output_rules.full_o.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: name=full_o; port=full_o; expr=1; width=1.",
+      "evidence_terms": [
+        "full",
+        "full_o"
+      ],
+      "id": "RTL-0120",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.output_rules.full_o",
+      "ssot_context": {
+        "expr": "1",
+        "name": "full_o",
+        "port": "full_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.output_rules.full_o"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "full",
+          "full_o"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM4: count_o",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.output_rules.count_o",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv",
+        "count_o width matches SSOT value $clog2(DEPTH+1)",
+        "count_o RTL expression implements SSOT expression DEPTH",
+        "DUT port count_o is the implementation/observation point for count_o",
+        "count_o is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.output_rules.count_o.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: name=count_o; port=count_o; expr=DEPTH; width=$clog2(DEPTH+1).",
+      "evidence_terms": [
+        "DEPTH",
+        "count",
+        "count_o"
+      ],
+      "id": "RTL-0121",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.output_rules.count_o",
+      "ssot_context": {
+        "expr": "DEPTH",
+        "name": "count_o",
+        "port": "count_o",
+        "width": "$clog2(DEPTH+1)"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.output_rules.count_o"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DEPTH",
+          "count",
+          "count_o"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM4: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.side_effects.side_effect_0.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=Write rejected silently; no data corruption.",
+      "evidence_terms": [],
+      "id": "RTL-0122",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "Write rejected silently; no data corruption"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM5",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM5",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM5.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: id=FM5; name=underflow_reject.",
+      "evidence_terms": [],
+      "id": "RTL-0123",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5",
+      "ssot_context": {
+        "id": "FM5",
+        "name": "underflow_reject"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM5: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.preconditions.precondition_0.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=rd_en_i == 1.",
+      "evidence_terms": [
+        "en",
+        "rd",
+        "rd_en_i"
+      ],
+      "id": "RTL-0124",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "rd_en_i == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "en",
+          "rd",
+          "rd_en_i"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM5: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.preconditions.precondition_1.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=empty_o == 1 (count == 0).",
+      "evidence_terms": [
+        "empty",
+        "empty_o"
+      ],
+      "id": "RTL-0125",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "empty_o == 1 (count == 0)"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "empty",
+          "empty_o"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM5: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.outputs.output_0",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.outputs.output_0.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=empty_o = 1.",
+      "evidence_terms": [
+        "empty",
+        "empty_o"
+      ],
+      "id": "RTL-0126",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.outputs.output_0",
+      "ssot_context": {
+        "value": "empty_o = 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "empty",
+          "empty_o"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM5: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.outputs.output_1",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.outputs.output_1.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=rd_data_o = previous_value_or_zero.",
+      "evidence_terms": [
+        "data",
+        "or",
+        "previous",
+        "previous_value_or_zero",
+        "rd",
+        "rd_data_o",
+        "value",
+        "zero"
+      ],
+      "id": "RTL-0127",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.outputs.output_1",
+      "ssot_context": {
+        "value": "rd_data_o = previous_value_or_zero"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.outputs.output_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "data",
+          "or",
+          "previous",
+          "previous_value_or_zero",
+          "rd",
+          "rd_data_o",
+          "value",
+          "zero"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM5: output_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.outputs.output_2",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.outputs.output_2.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=count_o = 0.",
+      "evidence_terms": [
+        "count",
+        "count_o"
+      ],
+      "id": "RTL-0128",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.outputs.output_2",
+      "ssot_context": {
+        "value": "count_o = 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.outputs.output_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_o"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM5: empty_o",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.output_rules.empty_o",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv",
+        "empty_o width matches SSOT value 1",
+        "empty_o RTL expression implements SSOT expression 1",
+        "DUT port empty_o is the implementation/observation point for empty_o",
+        "empty_o is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.output_rules.empty_o.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: name=empty_o; port=empty_o; expr=1; width=1.",
+      "evidence_terms": [
+        "empty",
+        "empty_o"
+      ],
+      "id": "RTL-0129",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.output_rules.empty_o",
+      "ssot_context": {
+        "expr": "1",
+        "name": "empty_o",
+        "port": "empty_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.output_rules.empty_o"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "empty",
+          "empty_o"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM5: rd_data_o",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.output_rules.rd_data_o",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv",
+        "rd_data_o width matches SSOT value DATA_WIDTH",
+        "rd_data_o RTL expression implements SSOT expression previous_value_or_zero",
+        "DUT port rd_data_o is the implementation/observation point for rd_data_o",
+        "rd_data_o is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.output_rules.rd_data_o.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: name=rd_data_o; port=rd_data_o; expr=previous_value_or_zero; width=DATA_WIDTH.",
+      "evidence_terms": [
+        "data",
+        "or",
+        "previous",
+        "previous_value_or_zero",
+        "rd",
+        "rd_data_o",
+        "value",
+        "zero"
+      ],
+      "id": "RTL-0130",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.output_rules.rd_data_o",
+      "ssot_context": {
+        "expr": "previous_value_or_zero",
+        "name": "rd_data_o",
+        "port": "rd_data_o",
+        "width": "DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.output_rules.rd_data_o"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "data",
+          "or",
+          "previous",
+          "previous_value_or_zero",
+          "rd",
+          "rd_data_o",
+          "value",
+          "zero"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM5: count_o",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.output_rules.count_o",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv",
+        "count_o width matches SSOT value $clog2(DEPTH+1)",
+        "count_o RTL expression implements SSOT expression 0",
+        "DUT port count_o is the implementation/observation point for count_o",
+        "count_o is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.output_rules.count_o.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: name=count_o; port=count_o; expr=0; width=$clog2(DEPTH+1).",
+      "evidence_terms": [
+        "count",
+        "count_o"
+      ],
+      "id": "RTL-0131",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.output_rules.count_o",
+      "ssot_context": {
+        "expr": "0",
+        "name": "count_o",
+        "port": "count_o",
+        "width": "$clog2(DEPTH+1)"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.output_rules.count_o"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_o"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM5: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM5.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM5.side_effects.side_effect_0.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=Read rejected silently; rd_data_o holds previous value (not guaranteed).",
+      "evidence_terms": [
+        "data",
+        "rd",
+        "rd_data_o"
+      ],
+      "id": "RTL-0132",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM5.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "Read rejected silently; rd_data_o holds previous value (not guaranteed)"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM5.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "data",
+          "rd",
+          "rd_data_o"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM6",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM6",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM6.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: id=FM6; name=flush.",
+      "evidence_terms": [],
+      "id": "RTL-0133",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6",
+      "ssot_context": {
+        "id": "FM6",
+        "name": "flush"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM6: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.preconditions.precondition_0.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=flush_i == 1.",
+      "evidence_terms": [
+        "flush",
+        "flush_i"
+      ],
+      "id": "RTL-0134",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "flush_i == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "flush",
+          "flush_i"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM6: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.outputs.output_0",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.outputs.output_0.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=empty_o = 1.",
+      "evidence_terms": [
+        "empty",
+        "empty_o"
+      ],
+      "id": "RTL-0135",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.outputs.output_0",
+      "ssot_context": {
+        "value": "empty_o = 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "empty",
+          "empty_o"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM6: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.outputs.output_1",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.outputs.output_1.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=full_o = 0.",
+      "evidence_terms": [
+        "full",
+        "full_o"
+      ],
+      "id": "RTL-0136",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.outputs.output_1",
+      "ssot_context": {
+        "value": "full_o = 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.outputs.output_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "full",
+          "full_o"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM6: output_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.outputs.output_2",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.outputs.output_2.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=almost_full_o = 0.",
+      "evidence_terms": [
+        "almost",
+        "almost_full_o",
+        "full"
+      ],
+      "id": "RTL-0137",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.outputs.output_2",
+      "ssot_context": {
+        "value": "almost_full_o = 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.outputs.output_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "almost",
+          "almost_full_o",
+          "full"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM6: output_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.outputs.output_3",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.outputs.output_3.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=almost_empty_o = 1.",
+      "evidence_terms": [
+        "almost",
+        "almost_empty_o",
+        "empty"
+      ],
+      "id": "RTL-0138",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.outputs.output_3",
+      "ssot_context": {
+        "value": "almost_empty_o = 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.outputs.output_3"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "almost",
+          "almost_empty_o",
+          "empty"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM6: output_4",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.outputs.output_4",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.outputs.output_4.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=count_o = 0.",
+      "evidence_terms": [
+        "count",
+        "count_o"
+      ],
+      "id": "RTL-0139",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.outputs.output_4",
+      "ssot_context": {
+        "value": "count_o = 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.outputs.output_4"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_o"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM6: empty_o",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.output_rules.empty_o",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv",
+        "empty_o width matches SSOT value 1",
+        "empty_o RTL expression implements SSOT expression 1",
+        "DUT port empty_o is the implementation/observation point for empty_o",
+        "empty_o is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.output_rules.empty_o.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: name=empty_o; port=empty_o; expr=1; width=1.",
+      "evidence_terms": [
+        "empty",
+        "empty_o"
+      ],
+      "id": "RTL-0140",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.output_rules.empty_o",
+      "ssot_context": {
+        "expr": "1",
+        "name": "empty_o",
+        "port": "empty_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.output_rules.empty_o"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "empty",
+          "empty_o"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM6: full_o",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.output_rules.full_o",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv",
+        "full_o width matches SSOT value 1",
+        "full_o RTL expression implements SSOT expression 0",
+        "DUT port full_o is the implementation/observation point for full_o",
+        "full_o is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.output_rules.full_o.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: name=full_o; port=full_o; expr=0; width=1.",
+      "evidence_terms": [
+        "full",
+        "full_o"
+      ],
+      "id": "RTL-0141",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.output_rules.full_o",
+      "ssot_context": {
+        "expr": "0",
+        "name": "full_o",
+        "port": "full_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.output_rules.full_o"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "full",
+          "full_o"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM6: almost_full_o",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.output_rules.almost_full_o",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv",
+        "almost_full_o width matches SSOT value 1",
+        "almost_full_o RTL expression implements SSOT expression 0",
+        "DUT port almost_full_o is the implementation/observation point for almost_full_o",
+        "almost_full_o is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.output_rules.almost_full_o.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: name=almost_full_o; port=almost_full_o; expr=0; width=1.",
+      "evidence_terms": [
+        "almost",
+        "almost_full_o",
+        "full"
+      ],
+      "id": "RTL-0142",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.output_rules.almost_full_o",
+      "ssot_context": {
+        "expr": "0",
+        "name": "almost_full_o",
+        "port": "almost_full_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.output_rules.almost_full_o"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "almost",
+          "almost_full_o",
+          "full"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM6: almost_empty_o",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.output_rules.almost_empty_o",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv",
+        "almost_empty_o width matches SSOT value 1",
+        "almost_empty_o RTL expression implements SSOT expression 1",
+        "DUT port almost_empty_o is the implementation/observation point for almost_empty_o",
+        "almost_empty_o is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.output_rules.almost_empty_o.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: name=almost_empty_o; port=almost_empty_o; expr=1; width=1.",
+      "evidence_terms": [
+        "almost",
+        "almost_empty_o",
+        "empty"
+      ],
+      "id": "RTL-0143",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.output_rules.almost_empty_o",
+      "ssot_context": {
+        "expr": "1",
+        "name": "almost_empty_o",
+        "port": "almost_empty_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.output_rules.almost_empty_o"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "almost",
+          "almost_empty_o",
+          "empty"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM6: count_o",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.output_rules.count_o",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv",
+        "count_o width matches SSOT value $clog2(DEPTH+1)",
+        "count_o RTL expression implements SSOT expression 0",
+        "DUT port count_o is the implementation/observation point for count_o",
+        "count_o is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.output_rules.count_o.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: name=count_o; port=count_o; expr=0; width=$clog2(DEPTH+1).",
+      "evidence_terms": [
+        "count",
+        "count_o"
+      ],
+      "id": "RTL-0144",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.output_rules.count_o",
+      "ssot_context": {
+        "expr": "0",
+        "name": "count_o",
+        "port": "count_o",
+        "width": "$clog2(DEPTH+1)"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.output_rules.count_o"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_o"
+        ],
+        "source_scope": "rtl/fifo_sync_flags.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM6: wr_ptr",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.state_updates.wr_ptr",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv",
+        "wr_ptr reset behavior matches SSOT value 0",
+        "wr_ptr RTL expression implements SSOT expression 0",
+        "wr_ptr updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.state_updates.wr_ptr.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: name=wr_ptr; expr=0; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0145",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.state_updates.wr_ptr",
+      "ssot_context": {
+        "expr": "0",
+        "name": "wr_ptr",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.state_updates.wr_ptr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM6: rd_ptr",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.state_updates.rd_ptr",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv",
+        "rd_ptr reset behavior matches SSOT value 0",
+        "rd_ptr RTL expression implements SSOT expression 0",
+        "rd_ptr updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.state_updates.rd_ptr.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: name=rd_ptr; expr=0; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0146",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.state_updates.rd_ptr",
+      "ssot_context": {
+        "expr": "0",
+        "name": "rd_ptr",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.state_updates.rd_ptr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM6: count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.state_updates.count",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv",
+        "count reset behavior matches SSOT value 0",
+        "count RTL expression implements SSOT expression 0",
+        "count updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.state_updates.count.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: name=count; expr=0; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0147",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.state_updates.count",
+      "ssot_context": {
+        "expr": "0",
+        "name": "count",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.state_updates.count"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM6: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.side_effects.side_effect_0.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=All FIFO entries invalidated; memory contents become undefined.",
+      "evidence_terms": [],
+      "id": "RTL-0148",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "All FIFO entries invalidated; memory contents become undefined"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM6: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM6.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/fifo_sync_flags.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM6.side_effects.side_effect_1.\nOwner: fifo_sync_flags in rtl/fifo_sync_flags.sv via function_model.transactions.\nSSOT item context: value=Flush takes precedence over concurrent push/pop.",
+      "evidence_terms": [],
+      "id": "RTL-0149",
+      "owner_file": "rtl/fifo_sync_flags.sv",
+      "owner_module": "fifo_sync_flags",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM6.side_effects.side_effect_1",
+      "ssot_context": {
+        "value": "Flush takes precedence over concurrent push/pop"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM6.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_flags.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "6b09b70c762b5a848981608dade6a77fd83d5460524c0d8f571affa50413d05e",
+  "top": "fifo_sync",
+  "type": "rtl_authoring_packet"
+}

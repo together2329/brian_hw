@@ -1,0 +1,2749 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 18,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 46,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/fifo_sync_ptrs.sv",
+      "name": "fifo_sync_ptrs",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.pipeline",
+        "fsm",
+        "fsm.ptr_fsm",
+        "function_model",
+        "function_model.state_variables"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/fifo_sync_mem.sv",
+        "name": "fifo_sync_mem",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_ptrs.sv",
+        "name": "fifo_sync_ptrs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_flags.sv",
+        "name": "fifo_sync_flags",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_regs.sv",
+        "name": "fifo_sync_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_output_reg.sv",
+        "name": "fifo_sync_output_reg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync.sv",
+        "name": "fifo_sync",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_ptrs",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_ptrs",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 46,
+    "open_required_count": 46,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "fifo_sync",
+  "kind": "module",
+  "owner_file": "rtl/fifo_sync_ptrs.sv",
+  "owner_module": "fifo_sync_ptrs",
+  "packet_id": "module__fifo_sync_ptrs",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.backpressure": 2,
+      "cycle_model.clock": 1,
+      "cycle_model.handshake_rules": 5,
+      "cycle_model.observability": 1,
+      "cycle_model.ordering": 4,
+      "cycle_model.pipeline": 5,
+      "cycle_model.reset": 1,
+      "equivalence.module": 1,
+      "fsm.state": 5,
+      "fsm.transition": 9,
+      "function_model.invariant": 7,
+      "function_model.state_variable": 4,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 46,
+      "task_limit": 48
+    },
+    "open_required_count": 46,
+    "required_count": 46,
+    "source_refs": [
+      "workflow_todos.rtl-gen[0]",
+      "function_model.state_variables.wr_ptr",
+      "function_model.state_variables.rd_ptr",
+      "function_model.state_variables.count",
+      "function_model.state_variables.mem",
+      "function_model.invariants.invariant_0",
+      "function_model.invariants.invariant_1",
+      "function_model.invariants.invariant_2",
+      "function_model.invariants.invariant_3",
+      "function_model.invariants.invariant_4",
+      "function_model.invariants.invariant_5",
+      "function_model.invariants.invariant_6",
+      "cycle_model.clock",
+      "cycle_model.reset",
+      "cycle_model.handshake_rules.wr_en_i",
+      "cycle_model.handshake_rules.rd_en_i",
+      "cycle_model.handshake_rules.full_o",
+      "cycle_model.handshake_rules.empty_o",
+      "cycle_model.handshake_rules.flush_i",
+      "cycle_model.pipeline.S0_SAMPLE_INPUTS",
+      "cycle_model.pipeline.S1_EVAL_ACCEPT",
+      "cycle_model.pipeline.S2_UPDATE_PTRS",
+      "cycle_model.pipeline.S3_WRITE_MEM",
+      "cycle_model.pipeline.S4_UPDATE_FLAGS"
+    ],
+    "status_counts": {
+      "open": 46
+    },
+    "task_count": 46
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement pointer management and fill counter",
+      "criteria": [
+        "wr_ptr and rd_ptr are declared with correct width ($clog2(DEPTH))",
+        "count is declared with width $clog2(DEPTH+1)",
+        "Push increments wr_ptr and count when wr_en_i && !full_o && !flush_i",
+        "Pop increments rd_ptr and decrements count when rd_en_i && !empty_o && !flush_i",
+        "Simultaneous push/pop: both pointers advance, count unchanged",
+        "Flush: all three reset to 0, priority over push/pop",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[0]",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "Semantic source_refs covered: cycle_model.pipeline, fsm.ptr_fsm, function_model.state_variables"
+      ],
+      "detail": "Translate function_model state_variables (wr_ptr, rd_ptr, count) and cycle_model pipeline stages into sequential always block with push/pop acceptance logic. Wrapping is modular at DEPTH. Count increments on push, decrements on pop, clamped to [0..DEPTH].\nSSOT ref: workflow_todos.rtl-gen[0].\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_FIFO_PTRS.",
+      "evidence_terms": [
+        "FIFO",
+        "PTRS",
+        "RTL_TODO_FIFO_PTRS",
+        "TODO",
+        "fifo",
+        "fifo_sync_ptrs",
+        "ptr",
+        "ptr_fsm",
+        "ptrs",
+        "sync"
+      ],
+      "id": "RTL-0027",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[0]",
+      "ssot_context": {
+        "id": "RTL_TODO_FIFO_PTRS"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline",
+        "fsm.ptr_fsm",
+        "function_model.state_variables",
+        "workflow_todos.rtl-gen[0]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "FIFO",
+          "PTRS",
+          "RTL_TODO_FIFO_PTRS",
+          "TODO",
+          "fifo",
+          "fifo_sync_ptrs",
+          "ptr",
+          "ptr_fsm",
+          "ptrs",
+          "sync"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_FIFO_PTRS",
+        "source_refs": [
+          "cycle_model.pipeline",
+          "fsm.ptr_fsm",
+          "function_model.state_variables"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state wr_ptr",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.wr_ptr",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "wr_ptr reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.wr_ptr.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.\nSSOT item context: name=wr_ptr; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0061",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.wr_ptr",
+      "ssot_context": {
+        "name": "wr_ptr",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.wr_ptr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state rd_ptr",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.rd_ptr",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "rd_ptr reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.rd_ptr.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.\nSSOT item context: name=rd_ptr; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0062",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.rd_ptr",
+      "ssot_context": {
+        "name": "rd_ptr",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.rd_ptr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state count",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.count",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "count reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.count.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.\nSSOT item context: name=count; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0063",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.count",
+      "ssot_context": {
+        "name": "count",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.count"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state mem",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.mem",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "mem reset behavior matches SSOT value 0x0 per entry"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.mem.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.state_variables.\nSSOT item context: name=mem; reset=0x0 per entry.",
+      "evidence_terms": [],
+      "id": "RTL-0064",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.mem",
+      "ssot_context": {
+        "name": "mem",
+        "reset": "0x0 per entry"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.mem"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_0",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_0",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.\nSSOT item context: value=count is always in range [0, DEPTH]..",
+      "evidence_terms": [],
+      "id": "RTL-0150",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_0",
+      "ssot_context": {
+        "value": "count is always in range [0, DEPTH]."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_1",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_1",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.\nSSOT item context: value=full_o == 1 if and only if count == DEPTH..",
+      "evidence_terms": [
+        "full",
+        "full_o"
+      ],
+      "id": "RTL-0151",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_1",
+      "ssot_context": {
+        "value": "full_o == 1 if and only if count == DEPTH."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "full",
+          "full_o"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_2",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_2",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.\nSSOT item context: value=empty_o == 1 if and only if count == 0..",
+      "evidence_terms": [
+        "empty",
+        "empty_o"
+      ],
+      "id": "RTL-0152",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_2",
+      "ssot_context": {
+        "value": "empty_o == 1 if and only if count == 0."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "empty",
+          "empty_o"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_3",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_3",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_3.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.\nSSOT item context: value=wr_ptr and rd_ptr are always in range [0, DEPTH-1]..",
+      "evidence_terms": [
+        "ptr",
+        "rd",
+        "rd_ptr",
+        "wr",
+        "wr_ptr"
+      ],
+      "id": "RTL-0153",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_3",
+      "ssot_context": {
+        "value": "wr_ptr and rd_ptr are always in range [0, DEPTH-1]."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_3"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ptr",
+          "rd",
+          "rd_ptr",
+          "wr",
+          "wr_ptr"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_4",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_4",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_4.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.\nSSOT item context: value=No read data changes unless rd_en_i is accepted or flush occurs..",
+      "evidence_terms": [
+        "en",
+        "rd",
+        "rd_en_i"
+      ],
+      "id": "RTL-0154",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_4",
+      "ssot_context": {
+        "value": "No read data changes unless rd_en_i is accepted or flush occurs."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_4"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "en",
+          "rd",
+          "rd_en_i"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_5",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_5",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_5.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.\nSSOT item context: value=Simultaneous push/pop leaves count unchanged..",
+      "evidence_terms": [],
+      "id": "RTL-0155",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_5",
+      "ssot_context": {
+        "value": "Simultaneous push/pop leaves count unchanged."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_5"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_6",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_6",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_6.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via function_model.\nSSOT item context: value=Overflow and underflow are silently rejected with no state corruption..",
+      "evidence_terms": [],
+      "id": "RTL-0156",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_6",
+      "ssot_context": {
+        "value": "Overflow and underflow are silently rejected with no state corruption."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_6"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.clock",
+      "content": "Implement cycle-model clock",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.clock",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.\nSSOT item context: value=PCLK.",
+      "evidence_terms": [],
+      "id": "RTL-0157",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.clock",
+      "ssot_context": {
+        "value": "PCLK"
+      },
+      "ssot_refs": [
+        "cycle_model.clock"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.reset",
+      "content": "Implement cycle-model reset",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.reset",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.",
+      "evidence_terms": [],
+      "id": "RTL-0158",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.reset",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.reset"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: wr_en_i",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.wr_en_i",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.handshake_rules.wr_en_i appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.wr_en_i.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.handshake_rules.\nSSOT item context: signal=wr_en_i.",
+      "evidence_terms": [
+        "en",
+        "wr",
+        "wr_en_i"
+      ],
+      "id": "RTL-0160",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.wr_en_i",
+      "ssot_context": {
+        "signal": "wr_en_i"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.wr_en_i"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "en",
+          "wr",
+          "wr_en_i"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: rd_en_i",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.rd_en_i",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.handshake_rules.rd_en_i appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.rd_en_i.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.handshake_rules.\nSSOT item context: signal=rd_en_i.",
+      "evidence_terms": [
+        "en",
+        "rd",
+        "rd_en_i"
+      ],
+      "id": "RTL-0161",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.rd_en_i",
+      "ssot_context": {
+        "signal": "rd_en_i"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.rd_en_i"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "en",
+          "rd",
+          "rd_en_i"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: full_o",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.full_o",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.handshake_rules.full_o appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.full_o.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.handshake_rules.\nSSOT item context: signal=full_o.",
+      "evidence_terms": [
+        "full",
+        "full_o"
+      ],
+      "id": "RTL-0162",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.full_o",
+      "ssot_context": {
+        "signal": "full_o"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.full_o"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "full",
+          "full_o"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: empty_o",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.empty_o",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.handshake_rules.empty_o appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.empty_o.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.handshake_rules.\nSSOT item context: signal=empty_o.",
+      "evidence_terms": [
+        "empty",
+        "empty_o"
+      ],
+      "id": "RTL-0163",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.empty_o",
+      "ssot_context": {
+        "signal": "empty_o"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.empty_o"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "empty",
+          "empty_o"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: flush_i",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.flush_i",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.handshake_rules.flush_i appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.flush_i.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.handshake_rules.\nSSOT item context: signal=flush_i.",
+      "evidence_terms": [
+        "flush",
+        "flush_i"
+      ],
+      "id": "RTL-0164",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.flush_i",
+      "ssot_context": {
+        "signal": "flush_i"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.flush_i"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "flush",
+          "flush_i"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S0_SAMPLE_INPUTS",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S0_SAMPLE_INPUTS",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.pipeline.S0_SAMPLE_INPUTS timing uses SSOT cycle/latency 0",
+        "cycle_model.pipeline.S0_SAMPLE_INPUTS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S0_SAMPLE_INPUTS.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.pipeline.\nSSOT item context: stage=S0_SAMPLE_INPUTS; action=Sample wr_en_i, rd_en_i, flush_i, wr_data_i on rising PCLK edge; cycle=0.",
+      "evidence_terms": [
+        "data",
+        "en",
+        "flush",
+        "flush_i",
+        "rd",
+        "rd_en_i",
+        "wr",
+        "wr_data_i",
+        "wr_en_i"
+      ],
+      "id": "RTL-0165",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S0_SAMPLE_INPUTS",
+      "ssot_context": {
+        "action": "Sample wr_en_i, rd_en_i, flush_i, wr_data_i on rising PCLK edge",
+        "cycle": "0",
+        "stage": "S0_SAMPLE_INPUTS"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S0_SAMPLE_INPUTS"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "data",
+          "en",
+          "flush",
+          "flush_i",
+          "rd",
+          "rd_en_i",
+          "wr",
+          "wr_data_i",
+          "wr_en_i"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S1_EVAL_ACCEPT",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S1_EVAL_ACCEPT",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.pipeline.S1_EVAL_ACCEPT timing uses SSOT cycle/latency 0",
+        "cycle_model.pipeline.S1_EVAL_ACCEPT appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S1_EVAL_ACCEPT.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.pipeline.\nSSOT item context: stage=S1_EVAL_ACCEPT; action=Combinational: determine push_accepted = wr_en_i && !full_o && !flush_i; pop_accepted = rd_en_i && !empty_o && !flush_i; cycle=0.",
+      "evidence_terms": [
+        "accepted",
+        "empty",
+        "empty_o",
+        "en",
+        "flush",
+        "flush_i",
+        "full",
+        "full_o",
+        "pop",
+        "pop_accepted",
+        "push",
+        "push_accepted",
+        "rd",
+        "rd_en_i",
+        "wr",
+        "wr_en_i"
+      ],
+      "id": "RTL-0166",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S1_EVAL_ACCEPT",
+      "ssot_context": {
+        "action": "Combinational: determine push_accepted = wr_en_i && !full_o && !flush_i; pop_accepted = rd_en_i && !empty_o && !flush_i",
+        "cycle": "0",
+        "stage": "S1_EVAL_ACCEPT"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S1_EVAL_ACCEPT"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "accepted",
+          "empty",
+          "empty_o",
+          "en",
+          "flush",
+          "flush_i",
+          "full",
+          "full_o",
+          "pop",
+          "pop_accepted",
+          "push",
+          "push_accepted",
+          "rd",
+          "rd_en_i",
+          "wr",
+          "wr_en_i"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S2_UPDATE_PTRS",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S2_UPDATE_PTRS",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.pipeline.S2_UPDATE_PTRS timing uses SSOT cycle/latency 0",
+        "cycle_model.pipeline.S2_UPDATE_PTRS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S2_UPDATE_PTRS.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.pipeline.\nSSOT item context: stage=S2_UPDATE_PTRS; action=Update wr_ptr, rd_ptr, count registers based on push/pop acceptance; cycle=0.",
+      "evidence_terms": [
+        "ptr",
+        "rd",
+        "rd_ptr",
+        "wr",
+        "wr_ptr"
+      ],
+      "id": "RTL-0167",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S2_UPDATE_PTRS",
+      "ssot_context": {
+        "action": "Update wr_ptr, rd_ptr, count registers based on push/pop acceptance",
+        "cycle": "0",
+        "stage": "S2_UPDATE_PTRS"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S2_UPDATE_PTRS"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ptr",
+          "rd",
+          "rd_ptr",
+          "wr",
+          "wr_ptr"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S3_WRITE_MEM",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S3_WRITE_MEM",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.pipeline.S3_WRITE_MEM timing uses SSOT cycle/latency 0",
+        "cycle_model.pipeline.S3_WRITE_MEM appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S3_WRITE_MEM.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.pipeline.\nSSOT item context: stage=S3_WRITE_MEM; action=Write wr_data_i to mem[wr_ptr] when push_accepted; cycle=0.",
+      "evidence_terms": [
+        "accepted",
+        "data",
+        "ptr",
+        "push",
+        "push_accepted",
+        "wr",
+        "wr_data_i",
+        "wr_ptr"
+      ],
+      "id": "RTL-0168",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S3_WRITE_MEM",
+      "ssot_context": {
+        "action": "Write wr_data_i to mem[wr_ptr] when push_accepted",
+        "cycle": "0",
+        "stage": "S3_WRITE_MEM"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S3_WRITE_MEM"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "accepted",
+          "data",
+          "ptr",
+          "push",
+          "push_accepted",
+          "wr",
+          "wr_data_i",
+          "wr_ptr"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S4_UPDATE_FLAGS",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S4_UPDATE_FLAGS",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.pipeline.S4_UPDATE_FLAGS timing uses SSOT cycle/latency 1",
+        "cycle_model.pipeline.S4_UPDATE_FLAGS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S4_UPDATE_FLAGS.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.pipeline.\nSSOT item context: stage=S4_UPDATE_FLAGS; action=Flags (full, empty, almost_full, almost_empty, count) reflect new pointer state; cycle=1.",
+      "evidence_terms": [
+        "almost",
+        "almost_empty",
+        "almost_full",
+        "empty",
+        "full"
+      ],
+      "id": "RTL-0169",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S4_UPDATE_FLAGS",
+      "ssot_context": {
+        "action": "Flags (full, empty, almost_full, almost_empty, count) reflect new pointer state",
+        "cycle": "1",
+        "stage": "S4_UPDATE_FLAGS"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S4_UPDATE_FLAGS"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "almost",
+          "almost_empty",
+          "almost_full",
+          "empty",
+          "full"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_0",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.ordering.ordering_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_0.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.\nSSOT item context: value=Push data is captured into memory in the same cycle as pointer update..",
+      "evidence_terms": [],
+      "id": "RTL-0170",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_0",
+      "ssot_context": {
+        "value": "Push data is captured into memory in the same cycle as pointer update."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_1",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.ordering.ordering_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_1.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.\nSSOT item context: value=Pop data is available combinationally from memory (USE_OUTPUT_REGISTER=0) or one cycle later (USE_OUTPUT_REGISTER=1)..",
+      "evidence_terms": [],
+      "id": "RTL-0171",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_1",
+      "ssot_context": {
+        "value": "Pop data is available combinationally from memory (USE_OUTPUT_REGISTER=0) or one cycle later (USE_OUTPUT_REGISTER=1)."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_2",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_2",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.ordering.ordering_rule_2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_2.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.\nSSOT item context: value=Flush clears all state in the cycle it is sampled; concurrent push/pop are ignored..",
+      "evidence_terms": [],
+      "id": "RTL-0172",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_2",
+      "ssot_context": {
+        "value": "Flush clears all state in the cycle it is sampled; concurrent push/pop are ignored."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_3",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_3",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.ordering.ordering_rule_3 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_3.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.\nSSOT item context: value=Flag updates are visible on the cycle after pointer/count changes..",
+      "evidence_terms": [],
+      "id": "RTL-0173",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_3",
+      "ssot_context": {
+        "value": "Flag updates are visible on the cycle after pointer/count changes."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_0",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_0.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.\nSSOT item context: value=full_o provides natural backpressure to the writer; the writer must deassert wr_en_i or accept rejection..",
+      "evidence_terms": [
+        "en",
+        "full",
+        "full_o",
+        "wr",
+        "wr_en_i"
+      ],
+      "id": "RTL-0174",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
+      "ssot_context": {
+        "value": "full_o provides natural backpressure to the writer; the writer must deassert wr_en_i or accept rejection."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "en",
+          "full",
+          "full_o",
+          "wr",
+          "wr_en_i"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_1",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.backpressure.backpressure_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_1.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.\nSSOT item context: value=empty_o provides natural backpressure to the reader; the reader must deassert rd_en_i or accept undefined data..",
+      "evidence_terms": [
+        "empty",
+        "empty_o",
+        "en",
+        "rd",
+        "rd_en_i"
+      ],
+      "id": "RTL-0175",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_1",
+      "ssot_context": {
+        "value": "empty_o provides natural backpressure to the reader; the reader must deassert rd_en_i or accept undefined data."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "empty",
+          "empty_o",
+          "en",
+          "rd",
+          "rd_en_i"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.observability",
+      "content": "Implement observability signal: observability_signal_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.observability.observability_signal_0",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "cycle_model.observability.observability_signal_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_0.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via cycle_model.\nSSOT item context: value=Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario..",
+      "evidence_terms": [],
+      "id": "RTL-0176",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.observability.observability_signal_0",
+      "ssot_context": {
+        "value": "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
+      },
+      "ssot_refs": [
+        "cycle_model.observability.observability_signal_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state ptr_fsm.state_0",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.ptr_fsm.states.state_0",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.states.state_0.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: value=EMPTY.",
+      "evidence_terms": [
+        "EMPTY"
+      ],
+      "id": "RTL-0192",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ptr_fsm.states.state_0",
+      "ssot_context": {
+        "value": "EMPTY"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.states.state_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "EMPTY"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state ptr_fsm.state_1",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.ptr_fsm.states.state_1",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.states.state_1.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: value=ALMOST_EMPTY.",
+      "evidence_terms": [
+        "ALMOST_EMPTY"
+      ],
+      "id": "RTL-0193",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ptr_fsm.states.state_1",
+      "ssot_context": {
+        "value": "ALMOST_EMPTY"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.states.state_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ALMOST_EMPTY"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state ptr_fsm.state_2",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.ptr_fsm.states.state_2",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.states.state_2.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: value=NORMAL.",
+      "evidence_terms": [
+        "NORMAL"
+      ],
+      "id": "RTL-0194",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ptr_fsm.states.state_2",
+      "ssot_context": {
+        "value": "NORMAL"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.states.state_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "NORMAL"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state ptr_fsm.state_3",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.ptr_fsm.states.state_3",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.states.state_3.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: value=ALMOST_FULL.",
+      "evidence_terms": [
+        "ALMOST_FULL"
+      ],
+      "id": "RTL-0195",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ptr_fsm.states.state_3",
+      "ssot_context": {
+        "value": "ALMOST_FULL"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.states.state_3"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ALMOST_FULL"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state ptr_fsm.state_4",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.ptr_fsm.states.state_4",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.states.state_4.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: value=FULL.",
+      "evidence_terms": [
+        "FULL"
+      ],
+      "id": "RTL-0196",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ptr_fsm.states.state_4",
+      "ssot_context": {
+        "value": "FULL"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.states.state_4"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "FULL"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition ptr_fsm.transition_0",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.ptr_fsm.transitions.transition_0",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "fsm.ptr_fsm.transitions.transition_0 condition is implemented as RTL control logic: push_accepted && count becomes > ALMOST_EMPTY_THRESHOLD",
+        "fsm.ptr_fsm.transitions.transition_0 transition path EMPTY -> NORMAL is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_0.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: from=EMPTY; to=NORMAL; condition=push_accepted && count becomes > ALMOST_EMPTY_THRESHOLD.",
+      "evidence_terms": [
+        "ALMOST",
+        "ALMOST_EMPTY_THRESHOLD",
+        "EMPTY",
+        "NORMAL",
+        "THRESHOLD",
+        "accepted",
+        "push",
+        "push_accepted"
+      ],
+      "id": "RTL-0197",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ptr_fsm.transitions.transition_0",
+      "ssot_context": {
+        "condition": "push_accepted && count becomes > ALMOST_EMPTY_THRESHOLD",
+        "from": "EMPTY",
+        "to": "NORMAL"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.transitions.transition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ALMOST",
+          "ALMOST_EMPTY_THRESHOLD",
+          "EMPTY",
+          "NORMAL",
+          "THRESHOLD",
+          "accepted",
+          "push",
+          "push_accepted"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition ptr_fsm.transition_1",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.ptr_fsm.transitions.transition_1",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "fsm.ptr_fsm.transitions.transition_1 condition is implemented as RTL control logic: push_accepted && count becomes <= ALMOST_EMPTY_THRESHOLD && count > 0",
+        "fsm.ptr_fsm.transitions.transition_1 transition path EMPTY -> ALMOST_EMPTY is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_1.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: from=EMPTY; to=ALMOST_EMPTY; condition=push_accepted && count becomes <= ALMOST_EMPTY_THRESHOLD && count > 0.",
+      "evidence_terms": [
+        "ALMOST",
+        "ALMOST_EMPTY",
+        "ALMOST_EMPTY_THRESHOLD",
+        "EMPTY",
+        "THRESHOLD",
+        "accepted",
+        "push",
+        "push_accepted"
+      ],
+      "id": "RTL-0198",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ptr_fsm.transitions.transition_1",
+      "ssot_context": {
+        "condition": "push_accepted && count becomes <= ALMOST_EMPTY_THRESHOLD && count > 0",
+        "from": "EMPTY",
+        "to": "ALMOST_EMPTY"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.transitions.transition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ALMOST",
+          "ALMOST_EMPTY",
+          "ALMOST_EMPTY_THRESHOLD",
+          "EMPTY",
+          "THRESHOLD",
+          "accepted",
+          "push",
+          "push_accepted"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition ptr_fsm.transition_2",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.ptr_fsm.transitions.transition_2",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "fsm.ptr_fsm.transitions.transition_2 condition is implemented as RTL control logic: pop_accepted && count becomes 0",
+        "fsm.ptr_fsm.transitions.transition_2 transition path ALMOST_EMPTY -> EMPTY is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_2.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: from=ALMOST_EMPTY; to=EMPTY; condition=pop_accepted && count becomes 0.",
+      "evidence_terms": [
+        "ALMOST_EMPTY",
+        "EMPTY",
+        "accepted",
+        "pop",
+        "pop_accepted"
+      ],
+      "id": "RTL-0199",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ptr_fsm.transitions.transition_2",
+      "ssot_context": {
+        "condition": "pop_accepted && count becomes 0",
+        "from": "ALMOST_EMPTY",
+        "to": "EMPTY"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.transitions.transition_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ALMOST_EMPTY",
+          "EMPTY",
+          "accepted",
+          "pop",
+          "pop_accepted"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition ptr_fsm.transition_3",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.ptr_fsm.transitions.transition_3",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "fsm.ptr_fsm.transitions.transition_3 condition is implemented as RTL control logic: push_accepted && count > ALMOST_EMPTY_THRESHOLD",
+        "fsm.ptr_fsm.transitions.transition_3 transition path ALMOST_EMPTY -> NORMAL is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_3.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: from=ALMOST_EMPTY; to=NORMAL; condition=push_accepted && count > ALMOST_EMPTY_THRESHOLD.",
+      "evidence_terms": [
+        "ALMOST",
+        "ALMOST_EMPTY",
+        "ALMOST_EMPTY_THRESHOLD",
+        "EMPTY",
+        "NORMAL",
+        "THRESHOLD",
+        "accepted",
+        "push",
+        "push_accepted"
+      ],
+      "id": "RTL-0200",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ptr_fsm.transitions.transition_3",
+      "ssot_context": {
+        "condition": "push_accepted && count > ALMOST_EMPTY_THRESHOLD",
+        "from": "ALMOST_EMPTY",
+        "to": "NORMAL"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.transitions.transition_3"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ALMOST",
+          "ALMOST_EMPTY",
+          "ALMOST_EMPTY_THRESHOLD",
+          "EMPTY",
+          "NORMAL",
+          "THRESHOLD",
+          "accepted",
+          "push",
+          "push_accepted"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition ptr_fsm.transition_4",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.ptr_fsm.transitions.transition_4",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "fsm.ptr_fsm.transitions.transition_4 condition is implemented as RTL control logic: push_accepted && count >= ALMOST_FULL_THRESHOLD",
+        "fsm.ptr_fsm.transitions.transition_4 transition path NORMAL -> ALMOST_FULL is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_4.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: from=NORMAL; to=ALMOST_FULL; condition=push_accepted && count >= ALMOST_FULL_THRESHOLD.",
+      "evidence_terms": [
+        "ALMOST",
+        "ALMOST_FULL",
+        "ALMOST_FULL_THRESHOLD",
+        "FULL",
+        "NORMAL",
+        "THRESHOLD",
+        "accepted",
+        "push",
+        "push_accepted"
+      ],
+      "id": "RTL-0201",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ptr_fsm.transitions.transition_4",
+      "ssot_context": {
+        "condition": "push_accepted && count >= ALMOST_FULL_THRESHOLD",
+        "from": "NORMAL",
+        "to": "ALMOST_FULL"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.transitions.transition_4"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ALMOST",
+          "ALMOST_FULL",
+          "ALMOST_FULL_THRESHOLD",
+          "FULL",
+          "NORMAL",
+          "THRESHOLD",
+          "accepted",
+          "push",
+          "push_accepted"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition ptr_fsm.transition_5",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.ptr_fsm.transitions.transition_5",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "fsm.ptr_fsm.transitions.transition_5 condition is implemented as RTL control logic: pop_accepted && count <= ALMOST_EMPTY_THRESHOLD",
+        "fsm.ptr_fsm.transitions.transition_5 transition path NORMAL -> ALMOST_EMPTY is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_5.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: from=NORMAL; to=ALMOST_EMPTY; condition=pop_accepted && count <= ALMOST_EMPTY_THRESHOLD.",
+      "evidence_terms": [
+        "ALMOST",
+        "ALMOST_EMPTY",
+        "ALMOST_EMPTY_THRESHOLD",
+        "EMPTY",
+        "NORMAL",
+        "THRESHOLD",
+        "accepted",
+        "pop",
+        "pop_accepted"
+      ],
+      "id": "RTL-0202",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ptr_fsm.transitions.transition_5",
+      "ssot_context": {
+        "condition": "pop_accepted && count <= ALMOST_EMPTY_THRESHOLD",
+        "from": "NORMAL",
+        "to": "ALMOST_EMPTY"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.transitions.transition_5"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ALMOST",
+          "ALMOST_EMPTY",
+          "ALMOST_EMPTY_THRESHOLD",
+          "EMPTY",
+          "NORMAL",
+          "THRESHOLD",
+          "accepted",
+          "pop",
+          "pop_accepted"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition ptr_fsm.transition_6",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.ptr_fsm.transitions.transition_6",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "fsm.ptr_fsm.transitions.transition_6 condition is implemented as RTL control logic: push_accepted && count == DEPTH",
+        "fsm.ptr_fsm.transitions.transition_6 transition path ALMOST_FULL -> FULL is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_6.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: from=ALMOST_FULL; to=FULL; condition=push_accepted && count == DEPTH.",
+      "evidence_terms": [
+        "ALMOST_FULL",
+        "DEPTH",
+        "FULL",
+        "accepted",
+        "push",
+        "push_accepted"
+      ],
+      "id": "RTL-0203",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ptr_fsm.transitions.transition_6",
+      "ssot_context": {
+        "condition": "push_accepted && count == DEPTH",
+        "from": "ALMOST_FULL",
+        "to": "FULL"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.transitions.transition_6"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ALMOST_FULL",
+          "DEPTH",
+          "FULL",
+          "accepted",
+          "push",
+          "push_accepted"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition ptr_fsm.transition_7",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.ptr_fsm.transitions.transition_7",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "fsm.ptr_fsm.transitions.transition_7 condition is implemented as RTL control logic: pop_accepted && count < ALMOST_FULL_THRESHOLD",
+        "fsm.ptr_fsm.transitions.transition_7 transition path ALMOST_FULL -> NORMAL is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_7.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: from=ALMOST_FULL; to=NORMAL; condition=pop_accepted && count < ALMOST_FULL_THRESHOLD.",
+      "evidence_terms": [
+        "ALMOST",
+        "ALMOST_FULL",
+        "ALMOST_FULL_THRESHOLD",
+        "FULL",
+        "NORMAL",
+        "THRESHOLD",
+        "accepted",
+        "pop",
+        "pop_accepted"
+      ],
+      "id": "RTL-0204",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ptr_fsm.transitions.transition_7",
+      "ssot_context": {
+        "condition": "pop_accepted && count < ALMOST_FULL_THRESHOLD",
+        "from": "ALMOST_FULL",
+        "to": "NORMAL"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.transitions.transition_7"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ALMOST",
+          "ALMOST_FULL",
+          "ALMOST_FULL_THRESHOLD",
+          "FULL",
+          "NORMAL",
+          "THRESHOLD",
+          "accepted",
+          "pop",
+          "pop_accepted"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition ptr_fsm.transition_8",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.ptr_fsm.transitions.transition_8",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv",
+        "fsm.ptr_fsm.transitions.transition_8 condition is implemented as RTL control logic: pop_accepted && count == DEPTH-1",
+        "fsm.ptr_fsm.transitions.transition_8 transition path FULL -> ALMOST_FULL is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ptr_fsm.transitions.transition_8.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via fsm.ptr_fsm.\nSSOT item context: from=FULL; to=ALMOST_FULL; condition=pop_accepted && count == DEPTH-1.",
+      "evidence_terms": [
+        "ALMOST_FULL",
+        "DEPTH",
+        "FULL",
+        "accepted",
+        "pop",
+        "pop_accepted"
+      ],
+      "id": "RTL-0205",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ptr_fsm.transitions.transition_8",
+      "ssot_context": {
+        "condition": "pop_accepted && count == DEPTH-1",
+        "from": "FULL",
+        "to": "ALMOST_FULL"
+      },
+      "ssot_refs": [
+        "fsm.ptr_fsm.transitions.transition_8"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ALMOST_FULL",
+          "DEPTH",
+          "FULL",
+          "accepted",
+          "pop",
+          "pop_accepted"
+        ],
+        "source_scope": "rtl/fifo_sync_ptrs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module fifo_sync_ptrs is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.fifo_sync_ptrs.module_equivalence",
+        "Primary implementation evidence is in rtl/fifo_sync_ptrs.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.fifo_sync_ptrs.module_equivalence.\nOwner: fifo_sync_ptrs in rtl/fifo_sync_ptrs.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0245",
+      "owner_file": "rtl/fifo_sync_ptrs.sv",
+      "owner_module": "fifo_sync_ptrs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.fifo_sync_ptrs.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.fifo_sync_ptrs.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_ptrs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "6b09b70c762b5a848981608dade6a77fd83d5460524c0d8f571affa50413d05e",
+  "top": "fifo_sync",
+  "type": "rtl_authoring_packet"
+}

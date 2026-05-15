@@ -1,0 +1,674 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 18,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 4,
+      "key": "error_handling",
+      "module_task_count": 62,
+      "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "error_handling",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/fifo_sync.sv",
+      "name": "fifo_sync",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/fifo_sync_mem.sv",
+        "name": "fifo_sync_mem",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_ptrs.sv",
+        "name": "fifo_sync_ptrs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_flags.sv",
+        "name": "fifo_sync_flags",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_regs.sv",
+        "name": "fifo_sync_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_output_reg.sv",
+        "name": "fifo_sync_output_reg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync.sv",
+        "name": "fifo_sync",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_ptrs",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_ptrs",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_mem",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_mem",
+        "port": "wr_en_i",
+        "signal": "push_accepted",
+        "signal_terms": [
+          "push_accepted"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_mem",
+        "port": "wr_addr_i",
+        "signal": "wr_ptr",
+        "signal_terms": [
+          "wr_ptr"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_mem",
+        "port": "wr_data_i",
+        "signal": "wr_data_i",
+        "signal_terms": [
+          "wr_data_i"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_mem",
+        "port": "rd_addr_i",
+        "signal": "rd_ptr",
+        "signal_terms": [
+          "rd_ptr"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_mem",
+        "port": "rd_data_o",
+        "signal": "mem_rd_data",
+        "signal_terms": [
+          "mem_rd_data"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "count_i",
+        "signal": "count",
+        "signal_terms": [
+          "count"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "full_o",
+        "signal": "full_o",
+        "signal_terms": [
+          "full_o"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "empty_o",
+        "signal": "empty_o",
+        "signal_terms": [
+          "empty_o"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "almost_full_o",
+        "signal": "almost_full_o",
+        "signal_terms": [
+          "almost_full_o"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "almost_empty_o",
+        "signal": "almost_empty_o",
+        "signal_terms": [
+          "almost_empty_o"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_output_reg",
+        "port": "din_i",
+        "signal": "mem_rd_data",
+        "signal_terms": [
+          "mem_rd_data"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_output_reg",
+        "port": "load_i",
+        "signal": "pop_accepted",
+        "signal_terms": [
+          "pop_accepted"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_output_reg",
+        "port": "dout_o",
+        "signal": "rd_data_o",
+        "signal_terms": [
+          "rd_data_o"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_regs",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_regs",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[17]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "PCLK"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PCLK",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PRESETn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PRESETn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fifo_write_wr_en_i",
+          "wr_en_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "wr_en_i",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fifo_write_wr_data_i",
+          "wr_data_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "wr_data_i",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "fifo_write_full_o",
+          "full_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "full_o",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "almost_full_o",
+          "fifo_write_almost_full_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "almost_full_o",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fifo_read_rd_en_i",
+          "rd_en_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rd_en_i",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fifo_read_rd_data_o",
+          "rd_data_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "rd_data_o",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "empty_o",
+          "fifo_read_empty_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "empty_o",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "almost_empty_o",
+          "fifo_read_almost_empty_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "almost_empty_o",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "count_o",
+          "fifo_status_count_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "count_o",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "$clog2(DEPTH+1)"
+      },
+      {
+        "aliases": [
+          "fifo_control_flush_i",
+          "flush_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "flush_i",
+        "source_ref": "io_list.interfaces[3].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_paddr",
+          "paddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "paddr",
+        "source_ref": "io_list.interfaces[4].ports[0]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "apb_csr_psel",
+          "psel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "psel",
+        "source_ref": "io_list.interfaces[4].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_penable",
+          "penable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "penable",
+        "source_ref": "io_list.interfaces[4].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_pwrite",
+          "pwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwrite",
+        "source_ref": "io_list.interfaces[4].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_pwdata",
+          "pwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwdata",
+        "source_ref": "io_list.interfaces[4].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_csr_prdata",
+          "prdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prdata",
+        "source_ref": "io_list.interfaces[4].ports[5]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_csr_pready",
+          "pready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pready",
+        "source_ref": "io_list.interfaces[4].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_pslverr",
+          "pslverr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pslverr",
+        "source_ref": "io_list.interfaces[4].ports[7]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 2,
+    "open_required_count": 2,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "fifo_sync",
+  "kind": "module",
+  "owner_file": "rtl/fifo_sync.sv",
+  "owner_module": "fifo_sync",
+  "packet_id": "module__fifo_sync__error_handling",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "error_handling.recovery": 2
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 4,
+      "key": "error_handling",
+      "module_task_count": 62,
+      "rule": "Owner module fifo_sync is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "error_handling",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 2,
+    "required_count": 2,
+    "source_refs": [
+      "error_handling.recovery.recovery_0",
+      "error_handling.recovery.recovery_1"
+    ],
+    "status_counts": {
+      "open": 2
+    },
+    "task_count": 2
+  },
+  "tasks": [
+    {
+      "category": "error_handling.recovery",
+      "content": "Implement error/fault item recovery_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref error_handling.recovery.recovery_0",
+        "Primary implementation evidence is in rtl/fifo_sync.sv"
+      ],
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_0.\nOwner: fifo_sync in rtl/fifo_sync.sv via error_handling.\nSSOT item context: action=none required for overflow/underflow.",
+      "evidence_terms": [],
+      "id": "RTL-0213",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "high",
+      "required": true,
+      "source_ref": "error_handling.recovery.recovery_0",
+      "ssot_context": {
+        "action": "none required for overflow/underflow"
+      },
+      "ssot_refs": [
+        "error_handling.recovery.recovery_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "error_handling.recovery",
+      "content": "Implement error/fault item recovery_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref error_handling.recovery.recovery_1",
+        "Primary implementation evidence is in rtl/fifo_sync.sv"
+      ],
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_1.\nOwner: fifo_sync in rtl/fifo_sync.sv via error_handling.\nSSOT item context: action=APB master must retry or handle pslverr.",
+      "evidence_terms": [],
+      "id": "RTL-0214",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "high",
+      "required": true,
+      "source_ref": "error_handling.recovery.recovery_1",
+      "ssot_context": {
+        "action": "APB master must retry or handle pslverr"
+      },
+      "ssot_refs": [
+        "error_handling.recovery.recovery_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "6b09b70c762b5a848981608dade6a77fd83d5460524c0d8f571affa50413d05e",
+  "top": "fifo_sync",
+  "type": "rtl_authoring_packet"
+}

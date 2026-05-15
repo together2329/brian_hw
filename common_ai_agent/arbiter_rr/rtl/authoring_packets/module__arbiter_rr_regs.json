@@ -1,0 +1,1567 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 24,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 26,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/arbiter_rr_regs.sv",
+      "name": "arbiter_rr_regs",
+      "refs": [
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/arbiter_rr_regs.sv",
+        "name": "arbiter_rr_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arbiter_rr_core.sv",
+        "name": "arbiter_rr_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arbiter_rr.sv",
+        "name": "arbiter_rr",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PCLK",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PRESETn",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PADDR",
+        "signal": "PADDR",
+        "signal_terms": [
+          "PADDR"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PSEL",
+        "signal": "PSEL",
+        "signal_terms": [
+          "PSEL"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PENABLE",
+        "signal": "PENABLE",
+        "signal_terms": [
+          "PENABLE"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PWRITE",
+        "signal": "PWRITE",
+        "signal_terms": [
+          "PWRITE"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PWDATA",
+        "signal": "PWDATA",
+        "signal_terms": [
+          "PWDATA"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PRDATA",
+        "signal": "PRDATA",
+        "signal_terms": [
+          "PRDATA"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PREADY",
+        "signal": "PREADY",
+        "signal_terms": [
+          "PREADY"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "PSLVERR",
+        "signal": "PSLVERR",
+        "signal_terms": [
+          "PSLVERR"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "enable_o",
+        "signal": "arb_enable",
+        "signal_terms": [
+          "arb_enable"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "mask_o",
+        "signal": "req_mask",
+        "signal_terms": [
+          "req_mask"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "winner_oh_i",
+        "signal": "status_winner",
+        "signal_terms": [
+          "status_winner"
+        ],
+        "source_ref": "integration.connections[22]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_regs",
+        "port": "active_req_i",
+        "signal": "status_active_req",
+        "signal_terms": [
+          "status_active_req"
+        ],
+        "source_ref": "integration.connections[23]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "small bus/arbitration IP — minimal structural depth",
+      "min_behavior_owner_logic_modules": 1,
+      "min_logic_modules": 1,
+      "min_modules": 3,
+      "min_procedural_blocks": 4,
+      "min_source_files": 3,
+      "min_state_updates": 3,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": false,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 26,
+    "open_required_count": 26,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": false
+  },
+  "ip": "arbiter_rr",
+  "kind": "module",
+  "owner_file": "rtl/arbiter_rr_regs.sv",
+  "owner_module": "arbiter_rr_regs",
+  "packet_id": "module__arbiter_rr_regs",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "io_list.port": 14,
+      "registers.field": 7,
+      "registers.register": 3,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 26,
+      "task_limit": 48
+    },
+    "open_required_count": 26,
+    "required_count": 26,
+    "source_refs": [
+      "workflow_todos.rtl-gen[1]",
+      "registers.register_list.CTRL",
+      "registers.register_list.CTRL.fields.enable",
+      "registers.register_list.CTRL.fields.reserved_31_1",
+      "registers.register_list.REQ_MASK",
+      "registers.register_list.REQ_MASK.fields.mask",
+      "registers.register_list.REQ_MASK.fields.reserved_31_4",
+      "registers.register_list.STATUS",
+      "registers.register_list.STATUS.fields.winner",
+      "registers.register_list.STATUS.fields.active_req",
+      "registers.register_list.STATUS.fields.reserved_31_8",
+      "sub_modules.arbiter_rr_regs.module_equivalence",
+      "io_list.clock_domains.pclk.ports.PCLK",
+      "io_list.resets.presetn.ports.PRESETn",
+      "io_list.interfaces.apb_slave.ports.PADDR",
+      "io_list.interfaces.apb_slave.ports.PSEL",
+      "io_list.interfaces.apb_slave.ports.PENABLE",
+      "io_list.interfaces.apb_slave.ports.PWRITE",
+      "io_list.interfaces.apb_slave.ports.PWDATA",
+      "io_list.interfaces.apb_slave.ports.PRDATA",
+      "io_list.interfaces.apb_slave.ports.PREADY",
+      "io_list.interfaces.apb_slave.ports.PSLVERR",
+      "io_list.interfaces.request_inputs.ports.req_i",
+      "io_list.interfaces.grant_outputs.ports.gnt_o"
+    ],
+    "status_counts": {
+      "open": 26
+    },
+    "task_count": 26
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement APB-lite register decode for CTRL, REQ_MASK, STATUS",
+      "criteria": [
+        "APB-lite protocol timing matches cycle_model.latency.register_read/write",
+        "PSLVERR asserted for undefined offsets",
+        "CTRL.enable and REQ_MASK.mask readable and writable",
+        "STATUS register reflects live arbiter state (read-only)",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[1]",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "Semantic source_refs covered: error_handling.error_sources, io_list.interfaces.apb_slave, registers.register_list"
+      ],
+      "detail": "Implement APB-lite slave interface with setup/access phase protocol. Decode PADDR for CTRL (0x00 rw), REQ_MASK (0x04 rw), STATUS (0x08 ro). Drive PSLVERR for undefined offsets. Export enable_o and mask_o to arbiter core. Import winner_oh_i and active_req_i from core for STATUS register.\nSSOT ref: workflow_todos.rtl-gen[1].\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_REGS_APB.",
+      "evidence_terms": [
+        "APB",
+        "REGS",
+        "RTL_TODO_REGS_APB",
+        "TODO",
+        "apb",
+        "apb_slave",
+        "arbiter",
+        "arbiter_rr_regs",
+        "error_handling",
+        "error_sources",
+        "handling",
+        "io",
+        "io_list",
+        "list",
+        "regs",
+        "rr"
+      ],
+      "id": "RTL-0028",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[1]",
+      "ssot_context": {
+        "id": "RTL_TODO_REGS_APB"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources",
+        "io_list.interfaces.apb_slave",
+        "registers.register_list",
+        "workflow_todos.rtl-gen[1]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "APB",
+          "REGS",
+          "RTL_TODO_REGS_APB",
+          "TODO",
+          "apb",
+          "apb_slave",
+          "arbiter",
+          "arbiter_rr_regs",
+          "error_handling",
+          "error_sources",
+          "handling",
+          "io",
+          "io_list",
+          "list",
+          "regs",
+          "rr"
+        ],
+        "source_scope": "rtl/arbiter_rr_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_REGS_APB",
+        "source_refs": [
+          "error_handling.error_sources",
+          "io_list.interfaces.apb_slave",
+          "registers.register_list"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register CTRL",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.CTRL",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "CTRL width matches SSOT value 32",
+        "CTRL reset behavior matches SSOT value 1",
+        "CTRL access policy rw is implemented without read/write shortcuts",
+        "CTRL decode uses SSOT address/offset 0"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CTRL.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.\nSSOT item context: name=CTRL; width=32; reset=1; access=rw; offset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0100",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL",
+      "ssot_context": {
+        "access": "rw",
+        "name": "CTRL",
+        "offset": "0",
+        "reset": "1",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CTRL.enable",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CTRL.fields.enable",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "enable reset behavior matches SSOT value 1",
+        "enable access policy rw is implemented without read/write shortcuts",
+        "enable readback returns implemented RTL state when readable",
+        "enable write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.enable.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.\nSSOT item context: name=enable; reset=1; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0101",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL.fields.enable",
+      "ssot_context": {
+        "access": "rw",
+        "name": "enable",
+        "reset": "1"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL.fields.enable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CTRL.reserved_31_1",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CTRL.fields.reserved_31_1",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "reserved_31_1 reset behavior matches SSOT value 0",
+        "reserved_31_1 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_1 readback returns implemented RTL state when readable",
+        "reserved_31_1 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.reserved_31_1.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_1; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0102",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL.fields.reserved_31_1",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_1",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL.fields.reserved_31_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register REQ_MASK",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.REQ_MASK",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "REQ_MASK width matches SSOT value 32",
+        "REQ_MASK reset behavior matches SSOT value 15",
+        "REQ_MASK access policy rw is implemented without read/write shortcuts",
+        "REQ_MASK decode uses SSOT address/offset 4"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.REQ_MASK.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.\nSSOT item context: name=REQ_MASK; width=32; reset=15; access=rw; offset=4.",
+      "evidence_terms": [],
+      "id": "RTL-0103",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.REQ_MASK",
+      "ssot_context": {
+        "access": "rw",
+        "name": "REQ_MASK",
+        "offset": "4",
+        "reset": "15",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.REQ_MASK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field REQ_MASK.mask",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.REQ_MASK.fields.mask",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "mask reset behavior matches SSOT value 15",
+        "mask access policy rw is implemented without read/write shortcuts",
+        "mask readback returns implemented RTL state when readable",
+        "mask write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.REQ_MASK.fields.mask.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.\nSSOT item context: name=mask; reset=15; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0104",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.REQ_MASK.fields.mask",
+      "ssot_context": {
+        "access": "rw",
+        "name": "mask",
+        "reset": "15"
+      },
+      "ssot_refs": [
+        "registers.register_list.REQ_MASK.fields.mask"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field REQ_MASK.reserved_31_4",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.REQ_MASK.fields.reserved_31_4",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "reserved_31_4 reset behavior matches SSOT value 0",
+        "reserved_31_4 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_4 readback returns implemented RTL state when readable",
+        "reserved_31_4 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.REQ_MASK.fields.reserved_31_4.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_4; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0105",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.REQ_MASK.fields.reserved_31_4",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_4",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.REQ_MASK.fields.reserved_31_4"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register STATUS",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.STATUS",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "STATUS width matches SSOT value 32",
+        "STATUS reset behavior matches SSOT value 0",
+        "STATUS access policy ro is implemented without read/write shortcuts",
+        "STATUS decode uses SSOT address/offset 8"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.STATUS.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.\nSSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=8.",
+      "evidence_terms": [],
+      "id": "RTL-0106",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS",
+      "ssot_context": {
+        "access": "ro",
+        "name": "STATUS",
+        "offset": "8",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.winner",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.winner",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "winner reset behavior matches SSOT value 0",
+        "winner access policy ro is implemented without read/write shortcuts",
+        "winner readback returns implemented RTL state when readable",
+        "winner write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.winner.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.\nSSOT item context: name=winner; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0107",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.winner",
+      "ssot_context": {
+        "access": "ro",
+        "name": "winner",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.winner"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.active_req",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.active_req",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "active_req reset behavior matches SSOT value 0",
+        "active_req access policy ro is implemented without read/write shortcuts",
+        "active_req readback returns implemented RTL state when readable",
+        "active_req write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.active_req.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.\nSSOT item context: name=active_req; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0108",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.active_req",
+      "ssot_context": {
+        "access": "ro",
+        "name": "active_req",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.active_req"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.reserved_31_8",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.reserved_31_8",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "reserved_31_8 reset behavior matches SSOT value 0",
+        "reserved_31_8 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_8 readback returns implemented RTL state when readable",
+        "reserved_31_8 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.reserved_31_8.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_8; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0109",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.reserved_31_8",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_8",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.reserved_31_8"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module arbiter_rr_regs is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.arbiter_rr_regs.module_equivalence",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.arbiter_rr_regs.module_equivalence.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0157",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.arbiter_rr_regs.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.arbiter_rr_regs.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PCLK",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.pclk.ports.PCLK",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "PCLK width matches SSOT value 1",
+        "PCLK port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.pclk.ports.PCLK.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.\nSSOT item context: name=PCLK; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.pclk.ports.PCLK",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PCLK",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.pclk.ports.PCLK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PRESETn",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.presetn.ports.PRESETn",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "PRESETn width matches SSOT value 1",
+        "PRESETn port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.presetn.ports.PRESETn.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.\nSSOT item context: name=PRESETn; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0035",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.presetn.ports.PRESETn",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PRESETn",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.presetn.ports.PRESETn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PADDR",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PADDR",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "PADDR width matches SSOT value 8",
+        "PADDR port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PADDR.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=PADDR; width=8; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0036",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PADDR",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PADDR",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PADDR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PSEL",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PSEL",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "PSEL width matches SSOT value 1",
+        "PSEL port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PSEL.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=PSEL; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0037",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PSEL",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PSEL",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PSEL"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PENABLE",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PENABLE",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "PENABLE width matches SSOT value 1",
+        "PENABLE port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PENABLE.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=PENABLE; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0038",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PENABLE",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PENABLE",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PENABLE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PWRITE",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PWRITE",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "PWRITE width matches SSOT value 1",
+        "PWRITE port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PWRITE.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=PWRITE; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0039",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PWRITE",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PWRITE",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PWRITE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PWDATA",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PWDATA",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "PWDATA width matches SSOT value 32",
+        "PWDATA port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PWDATA.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=PWDATA; width=32; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0040",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PWDATA",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PWDATA",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PWDATA"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PRDATA",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PRDATA",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "PRDATA width matches SSOT value 32",
+        "PRDATA port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PRDATA.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=PRDATA; width=32; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0041",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PRDATA",
+      "ssot_context": {
+        "direction": "output",
+        "name": "PRDATA",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PRDATA"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PREADY",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PREADY",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "PREADY width matches SSOT value 1",
+        "PREADY port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PREADY.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=PREADY; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0042",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PREADY",
+      "ssot_context": {
+        "direction": "output",
+        "name": "PREADY",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PREADY"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PSLVERR",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.PSLVERR",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "PSLVERR width matches SSOT value 1",
+        "PSLVERR port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.PSLVERR.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=PSLVERR; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0043",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.PSLVERR",
+      "ssot_context": {
+        "direction": "output",
+        "name": "PSLVERR",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.PSLVERR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port req_i",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.request_inputs.ports.req_i",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "req_i width matches SSOT value NUM_REQ",
+        "req_i port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.request_inputs.ports.req_i.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.\nSSOT item context: name=req_i; width=NUM_REQ; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0044",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.request_inputs.ports.req_i",
+      "ssot_context": {
+        "direction": "input",
+        "name": "req_i",
+        "width": "NUM_REQ"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.request_inputs.ports.req_i"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port gnt_o",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.grant_outputs.ports.gnt_o",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "gnt_o width matches SSOT value NUM_REQ",
+        "gnt_o port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.grant_outputs.ports.gnt_o.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.\nSSOT item context: name=gnt_o; width=NUM_REQ; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0045",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.grant_outputs.ports.gnt_o",
+      "ssot_context": {
+        "direction": "output",
+        "name": "gnt_o",
+        "width": "NUM_REQ"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.grant_outputs.ports.gnt_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port gnt_valid_o",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.grant_outputs.ports.gnt_valid_o",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "gnt_valid_o width matches SSOT value 1",
+        "gnt_valid_o port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.grant_outputs.ports.gnt_valid_o.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.\nSSOT item context: name=gnt_valid_o; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0046",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.grant_outputs.ports.gnt_valid_o",
+      "ssot_context": {
+        "direction": "output",
+        "name": "gnt_valid_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.grant_outputs.ports.gnt_valid_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port gnt_idx_o",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.grant_outputs.ports.gnt_idx_o",
+        "Primary implementation evidence is in rtl/arbiter_rr_regs.sv",
+        "gnt_idx_o width matches SSOT value IDX_WIDTH",
+        "gnt_idx_o port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.grant_outputs.ports.gnt_idx_o.\nOwner: arbiter_rr_regs in rtl/arbiter_rr_regs.sv via io_list.\nSSOT item context: name=gnt_idx_o; width=IDX_WIDTH; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0047",
+      "owner_file": "rtl/arbiter_rr_regs.sv",
+      "owner_module": "arbiter_rr_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.grant_outputs.ports.gnt_idx_o",
+      "ssot_context": {
+        "direction": "output",
+        "name": "gnt_idx_o",
+        "width": "IDX_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.grant_outputs.ports.gnt_idx_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "ed4fb0aab2b37641faadb8a908ce4f3766aa5320c73da71fb75da59dd59109b2",
+  "top": "arbiter_rr",
+  "type": "rtl_authoring_packet"
+}

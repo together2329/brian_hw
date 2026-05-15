@@ -1,0 +1,1905 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 18,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 36,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/fifo_sync_regs.sv",
+      "name": "fifo_sync_regs",
+      "refs": [
+        "io_list",
+        "io_list.interfaces.apb_csr",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/fifo_sync_mem.sv",
+        "name": "fifo_sync_mem",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_ptrs.sv",
+        "name": "fifo_sync_ptrs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_flags.sv",
+        "name": "fifo_sync_flags",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_regs.sv",
+        "name": "fifo_sync_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_output_reg.sv",
+        "name": "fifo_sync_output_reg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync.sv",
+        "name": "fifo_sync",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_regs",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_regs",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[17]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 36,
+    "open_required_count": 36,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "fifo_sync",
+  "kind": "module",
+  "owner_file": "rtl/fifo_sync_regs.sv",
+  "owner_module": "fifo_sync_regs",
+  "packet_id": "module__fifo_sync_regs",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "io_list.port": 20,
+      "registers.field": 11,
+      "registers.register": 3,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 36,
+      "task_limit": 48
+    },
+    "open_required_count": 36,
+    "required_count": 36,
+    "source_refs": [
+      "workflow_todos.rtl-gen[4]",
+      "registers.register_list.FIFO_STATUS",
+      "registers.register_list.FIFO_STATUS.fields.empty",
+      "registers.register_list.FIFO_STATUS.fields.full",
+      "registers.register_list.FIFO_STATUS.fields.almost_empty",
+      "registers.register_list.FIFO_STATUS.fields.almost_full",
+      "registers.register_list.FIFO_STATUS.fields.count",
+      "registers.register_list.FIFO_STATUS.fields.reserved_31_12",
+      "registers.register_list.FIFO_CONFIG",
+      "registers.register_list.FIFO_CONFIG.fields.almost_full_thresh",
+      "registers.register_list.FIFO_CONFIG.fields.almost_empty_thresh",
+      "registers.register_list.FIFO_CONFIG.fields.reserved_31_16",
+      "registers.register_list.FIFO_CONTROL",
+      "registers.register_list.FIFO_CONTROL.fields.flush",
+      "registers.register_list.FIFO_CONTROL.fields.reserved_31_1",
+      "sub_modules.fifo_sync_regs.module_equivalence",
+      "io_list.clock_domains.pclk.ports.PCLK",
+      "io_list.resets.PRESETn.ports.PRESETn",
+      "io_list.interfaces.fifo_write.ports.wr_en_i",
+      "io_list.interfaces.fifo_write.ports.wr_data_i",
+      "io_list.interfaces.fifo_write.ports.full_o",
+      "io_list.interfaces.fifo_write.ports.almost_full_o",
+      "io_list.interfaces.fifo_read.ports.rd_en_i",
+      "io_list.interfaces.fifo_read.ports.rd_data_o"
+    ],
+    "status_counts": {
+      "open": 36
+    },
+    "task_count": 36
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement APB-lite CSR decode block",
+      "criteria": [
+        "3 registers decoded per registers.register_list",
+        "FIFO_STATUS reflects live flags and count",
+        "FIFO_CONFIG allows dynamic threshold update",
+        "FIFO_CONTROL.flush generates a 1-cycle flush pulse",
+        "pready always 1; pslverr for unmapped addresses",
+        "Conditionally instantiated based on USE_APB parameter",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[4]",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "Semantic source_refs covered: io_list.interfaces.apb_csr, registers.register_list"
+      ],
+      "detail": "Decode paddr into FIFO_STATUS (RO), FIFO_CONFIG (RW), and FIFO_CONTROL (WO). pready always 1. pslverr asserted for unmapped offsets. Flush pulse generated on FIFO_CONTROL.flush write. Threshold registers feed into flag comparison.\nSSOT ref: workflow_todos.rtl-gen[4].\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_FIFO_REGS_APB.",
+      "evidence_terms": [
+        "APB",
+        "FIFO",
+        "REGS",
+        "RTL_TODO_FIFO_REGS_APB",
+        "TODO",
+        "apb",
+        "apb_csr",
+        "csr",
+        "fifo",
+        "fifo_sync_regs",
+        "io",
+        "io_list",
+        "list",
+        "regs",
+        "sync"
+      ],
+      "id": "RTL-0031",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[4]",
+      "ssot_context": {
+        "id": "RTL_TODO_FIFO_REGS_APB"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr",
+        "registers.register_list",
+        "workflow_todos.rtl-gen[4]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "APB",
+          "FIFO",
+          "REGS",
+          "RTL_TODO_FIFO_REGS_APB",
+          "TODO",
+          "apb",
+          "apb_csr",
+          "csr",
+          "fifo",
+          "fifo_sync_regs",
+          "io",
+          "io_list",
+          "list",
+          "regs",
+          "sync"
+        ],
+        "source_scope": "rtl/fifo_sync_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_FIFO_REGS_APB",
+        "source_refs": [
+          "io_list.interfaces.apb_csr",
+          "registers.register_list"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register FIFO_STATUS",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.FIFO_STATUS",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "FIFO_STATUS width matches SSOT value 32",
+        "FIFO_STATUS reset behavior matches SSOT value 5",
+        "FIFO_STATUS access policy ro is implemented without read/write shortcuts",
+        "FIFO_STATUS decode uses SSOT address/offset 0"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.FIFO_STATUS.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.\nSSOT item context: name=FIFO_STATUS; width=32; reset=5; access=ro; offset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0177",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.FIFO_STATUS",
+      "ssot_context": {
+        "access": "ro",
+        "name": "FIFO_STATUS",
+        "offset": "0",
+        "reset": "5",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.FIFO_STATUS"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field FIFO_STATUS.empty",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.FIFO_STATUS.fields.empty",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "empty reset behavior matches SSOT value 1",
+        "empty access policy ro is implemented without read/write shortcuts",
+        "empty readback returns implemented RTL state when readable",
+        "empty write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.FIFO_STATUS.fields.empty.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.\nSSOT item context: name=empty; reset=1; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0178",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.FIFO_STATUS.fields.empty",
+      "ssot_context": {
+        "access": "ro",
+        "name": "empty",
+        "reset": "1"
+      },
+      "ssot_refs": [
+        "registers.register_list.FIFO_STATUS.fields.empty"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field FIFO_STATUS.full",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.FIFO_STATUS.fields.full",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "full reset behavior matches SSOT value 0",
+        "full access policy ro is implemented without read/write shortcuts",
+        "full readback returns implemented RTL state when readable",
+        "full write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.FIFO_STATUS.fields.full.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.\nSSOT item context: name=full; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0179",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.FIFO_STATUS.fields.full",
+      "ssot_context": {
+        "access": "ro",
+        "name": "full",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.FIFO_STATUS.fields.full"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field FIFO_STATUS.almost_empty",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.FIFO_STATUS.fields.almost_empty",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "almost_empty reset behavior matches SSOT value 1",
+        "almost_empty access policy ro is implemented without read/write shortcuts",
+        "almost_empty readback returns implemented RTL state when readable",
+        "almost_empty write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.FIFO_STATUS.fields.almost_empty.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.\nSSOT item context: name=almost_empty; reset=1; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0180",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.FIFO_STATUS.fields.almost_empty",
+      "ssot_context": {
+        "access": "ro",
+        "name": "almost_empty",
+        "reset": "1"
+      },
+      "ssot_refs": [
+        "registers.register_list.FIFO_STATUS.fields.almost_empty"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field FIFO_STATUS.almost_full",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.FIFO_STATUS.fields.almost_full",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "almost_full reset behavior matches SSOT value 0",
+        "almost_full access policy ro is implemented without read/write shortcuts",
+        "almost_full readback returns implemented RTL state when readable",
+        "almost_full write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.FIFO_STATUS.fields.almost_full.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.\nSSOT item context: name=almost_full; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0181",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.FIFO_STATUS.fields.almost_full",
+      "ssot_context": {
+        "access": "ro",
+        "name": "almost_full",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.FIFO_STATUS.fields.almost_full"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field FIFO_STATUS.count",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.FIFO_STATUS.fields.count",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "count reset behavior matches SSOT value 0",
+        "count access policy ro is implemented without read/write shortcuts",
+        "count readback returns implemented RTL state when readable",
+        "count write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.FIFO_STATUS.fields.count.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.\nSSOT item context: name=count; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0182",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.FIFO_STATUS.fields.count",
+      "ssot_context": {
+        "access": "ro",
+        "name": "count",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.FIFO_STATUS.fields.count"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field FIFO_STATUS.reserved_31_12",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.FIFO_STATUS.fields.reserved_31_12",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "reserved_31_12 reset behavior matches SSOT value 0",
+        "reserved_31_12 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_12 readback returns implemented RTL state when readable",
+        "reserved_31_12 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.FIFO_STATUS.fields.reserved_31_12.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_12; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0183",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.FIFO_STATUS.fields.reserved_31_12",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_12",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.FIFO_STATUS.fields.reserved_31_12"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register FIFO_CONFIG",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.FIFO_CONFIG",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "FIFO_CONFIG width matches SSOT value 32",
+        "FIFO_CONFIG reset behavior matches SSOT value 0",
+        "FIFO_CONFIG access policy rw is implemented without read/write shortcuts",
+        "FIFO_CONFIG decode uses SSOT address/offset 4"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.FIFO_CONFIG.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.\nSSOT item context: name=FIFO_CONFIG; width=32; reset=0; access=rw; offset=4.",
+      "evidence_terms": [],
+      "id": "RTL-0184",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.FIFO_CONFIG",
+      "ssot_context": {
+        "access": "rw",
+        "name": "FIFO_CONFIG",
+        "offset": "4",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.FIFO_CONFIG"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field FIFO_CONFIG.almost_full_thresh",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.FIFO_CONFIG.fields.almost_full_thresh",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "almost_full_thresh reset behavior matches SSOT value 0",
+        "almost_full_thresh access policy rw is implemented without read/write shortcuts",
+        "almost_full_thresh readback returns implemented RTL state when readable",
+        "almost_full_thresh write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.FIFO_CONFIG.fields.almost_full_thresh.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.\nSSOT item context: name=almost_full_thresh; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0185",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.FIFO_CONFIG.fields.almost_full_thresh",
+      "ssot_context": {
+        "access": "rw",
+        "name": "almost_full_thresh",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.FIFO_CONFIG.fields.almost_full_thresh"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field FIFO_CONFIG.almost_empty_thresh",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.FIFO_CONFIG.fields.almost_empty_thresh",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "almost_empty_thresh reset behavior matches SSOT value 0",
+        "almost_empty_thresh access policy rw is implemented without read/write shortcuts",
+        "almost_empty_thresh readback returns implemented RTL state when readable",
+        "almost_empty_thresh write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.FIFO_CONFIG.fields.almost_empty_thresh.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.\nSSOT item context: name=almost_empty_thresh; reset=0; access=rw.",
+      "evidence_terms": [],
+      "id": "RTL-0186",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.FIFO_CONFIG.fields.almost_empty_thresh",
+      "ssot_context": {
+        "access": "rw",
+        "name": "almost_empty_thresh",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.FIFO_CONFIG.fields.almost_empty_thresh"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field FIFO_CONFIG.reserved_31_16",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.FIFO_CONFIG.fields.reserved_31_16",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "reserved_31_16 reset behavior matches SSOT value 0",
+        "reserved_31_16 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_16 readback returns implemented RTL state when readable",
+        "reserved_31_16 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.FIFO_CONFIG.fields.reserved_31_16.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_16; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0187",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.FIFO_CONFIG.fields.reserved_31_16",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_16",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.FIFO_CONFIG.fields.reserved_31_16"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register FIFO_CONTROL",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.FIFO_CONTROL",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "FIFO_CONTROL width matches SSOT value 32",
+        "FIFO_CONTROL reset behavior matches SSOT value 0",
+        "FIFO_CONTROL access policy wo is implemented without read/write shortcuts",
+        "FIFO_CONTROL decode uses SSOT address/offset 8"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.FIFO_CONTROL.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.\nSSOT item context: name=FIFO_CONTROL; width=32; reset=0; access=wo; offset=8.",
+      "evidence_terms": [],
+      "id": "RTL-0188",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.FIFO_CONTROL",
+      "ssot_context": {
+        "access": "wo",
+        "name": "FIFO_CONTROL",
+        "offset": "8",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.FIFO_CONTROL"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field FIFO_CONTROL.flush",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.FIFO_CONTROL.fields.flush",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "flush reset behavior matches SSOT value 0",
+        "flush access policy wo is implemented without read/write shortcuts",
+        "flush readback returns implemented RTL state when readable",
+        "flush write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.FIFO_CONTROL.fields.flush.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.\nSSOT item context: name=flush; reset=0; access=wo.",
+      "evidence_terms": [],
+      "id": "RTL-0189",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.FIFO_CONTROL.fields.flush",
+      "ssot_context": {
+        "access": "wo",
+        "name": "flush",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.FIFO_CONTROL.fields.flush"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field FIFO_CONTROL.reserved_31_1",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.FIFO_CONTROL.fields.reserved_31_1",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "reserved_31_1 reset behavior matches SSOT value 0",
+        "reserved_31_1 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_1 readback returns implemented RTL state when readable",
+        "reserved_31_1 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.FIFO_CONTROL.fields.reserved_31_1.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_1; reset=0; access=reserved.",
+      "evidence_terms": [],
+      "id": "RTL-0190",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.FIFO_CONTROL.fields.reserved_31_1",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_1",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.FIFO_CONTROL.fields.reserved_31_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module fifo_sync_regs is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.fifo_sync_regs.module_equivalence",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.fifo_sync_regs.module_equivalence.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0247",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.fifo_sync_regs.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.fifo_sync_regs.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PCLK",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.pclk.ports.PCLK",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "PCLK width matches SSOT value 1",
+        "PCLK port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.pclk.ports.PCLK.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.\nSSOT item context: name=PCLK; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0041",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.pclk.ports.PCLK",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PCLK",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.pclk.ports.PCLK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PRESETn",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.PRESETn.ports.PRESETn",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "PRESETn width matches SSOT value 1",
+        "PRESETn port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.PRESETn.ports.PRESETn.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.\nSSOT item context: name=PRESETn; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0042",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.PRESETn.ports.PRESETn",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PRESETn",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.PRESETn.ports.PRESETn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port wr_en_i",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.fifo_write.ports.wr_en_i",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "wr_en_i width matches SSOT value 1",
+        "wr_en_i port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.fifo_write.ports.wr_en_i.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.\nSSOT item context: name=wr_en_i; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0043",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.fifo_write.ports.wr_en_i",
+      "ssot_context": {
+        "direction": "input",
+        "name": "wr_en_i",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.fifo_write.ports.wr_en_i"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port wr_data_i",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.fifo_write.ports.wr_data_i",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "wr_data_i width matches SSOT value DATA_WIDTH",
+        "wr_data_i port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.fifo_write.ports.wr_data_i.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.\nSSOT item context: name=wr_data_i; width=DATA_WIDTH; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0044",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.fifo_write.ports.wr_data_i",
+      "ssot_context": {
+        "direction": "input",
+        "name": "wr_data_i",
+        "width": "DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.fifo_write.ports.wr_data_i"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port full_o",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.fifo_write.ports.full_o",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "full_o width matches SSOT value 1",
+        "full_o port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.fifo_write.ports.full_o.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.\nSSOT item context: name=full_o; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0045",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.fifo_write.ports.full_o",
+      "ssot_context": {
+        "direction": "output",
+        "name": "full_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.fifo_write.ports.full_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port almost_full_o",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.fifo_write.ports.almost_full_o",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "almost_full_o width matches SSOT value 1",
+        "almost_full_o port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.fifo_write.ports.almost_full_o.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.\nSSOT item context: name=almost_full_o; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0046",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.fifo_write.ports.almost_full_o",
+      "ssot_context": {
+        "direction": "output",
+        "name": "almost_full_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.fifo_write.ports.almost_full_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port rd_en_i",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.fifo_read.ports.rd_en_i",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "rd_en_i width matches SSOT value 1",
+        "rd_en_i port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.fifo_read.ports.rd_en_i.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.\nSSOT item context: name=rd_en_i; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0047",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.fifo_read.ports.rd_en_i",
+      "ssot_context": {
+        "direction": "input",
+        "name": "rd_en_i",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.fifo_read.ports.rd_en_i"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port rd_data_o",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.fifo_read.ports.rd_data_o",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "rd_data_o width matches SSOT value DATA_WIDTH",
+        "rd_data_o port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.fifo_read.ports.rd_data_o.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.\nSSOT item context: name=rd_data_o; width=DATA_WIDTH; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0048",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.fifo_read.ports.rd_data_o",
+      "ssot_context": {
+        "direction": "output",
+        "name": "rd_data_o",
+        "width": "DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.fifo_read.ports.rd_data_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port empty_o",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.fifo_read.ports.empty_o",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "empty_o width matches SSOT value 1",
+        "empty_o port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.fifo_read.ports.empty_o.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.\nSSOT item context: name=empty_o; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0049",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.fifo_read.ports.empty_o",
+      "ssot_context": {
+        "direction": "output",
+        "name": "empty_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.fifo_read.ports.empty_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port almost_empty_o",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.fifo_read.ports.almost_empty_o",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "almost_empty_o width matches SSOT value 1",
+        "almost_empty_o port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.fifo_read.ports.almost_empty_o.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.\nSSOT item context: name=almost_empty_o; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0050",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.fifo_read.ports.almost_empty_o",
+      "ssot_context": {
+        "direction": "output",
+        "name": "almost_empty_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.fifo_read.ports.almost_empty_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port count_o",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.fifo_status.ports.count_o",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "count_o width matches SSOT value $clog2(DEPTH+1)",
+        "count_o port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.fifo_status.ports.count_o.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.\nSSOT item context: name=count_o; width=$clog2(DEPTH+1); direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0051",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.fifo_status.ports.count_o",
+      "ssot_context": {
+        "direction": "output",
+        "name": "count_o",
+        "width": "$clog2(DEPTH+1)"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.fifo_status.ports.count_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port flush_i",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.fifo_control.ports.flush_i",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "flush_i width matches SSOT value 1",
+        "flush_i port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.fifo_control.ports.flush_i.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.\nSSOT item context: name=flush_i; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0052",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.fifo_control.ports.flush_i",
+      "ssot_context": {
+        "direction": "input",
+        "name": "flush_i",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.fifo_control.ports.flush_i"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port paddr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.paddr",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "paddr width matches SSOT value 4",
+        "paddr port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.paddr.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.interfaces.apb_csr.\nSSOT item context: name=paddr; width=4; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0053",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.paddr",
+      "ssot_context": {
+        "direction": "input",
+        "name": "paddr",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.paddr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port psel",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.psel",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "psel width matches SSOT value 1",
+        "psel port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.psel.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.interfaces.apb_csr.\nSSOT item context: name=psel; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0054",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.psel",
+      "ssot_context": {
+        "direction": "input",
+        "name": "psel",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.psel"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port penable",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.penable",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "penable width matches SSOT value 1",
+        "penable port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.penable.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.interfaces.apb_csr.\nSSOT item context: name=penable; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0055",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.penable",
+      "ssot_context": {
+        "direction": "input",
+        "name": "penable",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.penable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pwrite",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.pwrite",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "pwrite width matches SSOT value 1",
+        "pwrite port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.pwrite.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.interfaces.apb_csr.\nSSOT item context: name=pwrite; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0056",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.pwrite",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pwrite",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.pwrite"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pwdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.pwdata",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "pwdata width matches SSOT value 32",
+        "pwdata port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.pwdata.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.interfaces.apb_csr.\nSSOT item context: name=pwdata; width=32; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0057",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.pwdata",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pwdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.pwdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port prdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.prdata",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "prdata width matches SSOT value 32",
+        "prdata port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.prdata.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.interfaces.apb_csr.\nSSOT item context: name=prdata; width=32; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0058",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.prdata",
+      "ssot_context": {
+        "direction": "output",
+        "name": "prdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.prdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.pready",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "pready width matches SSOT value 1",
+        "pready port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.pready.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.interfaces.apb_csr.\nSSOT item context: name=pready; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0059",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.pready",
+      "ssot_context": {
+        "direction": "output",
+        "name": "pready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.pready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pslverr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_csr.ports.pslverr",
+        "Primary implementation evidence is in rtl/fifo_sync_regs.sv",
+        "pslverr width matches SSOT value 1",
+        "pslverr port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_csr.ports.pslverr.\nOwner: fifo_sync_regs in rtl/fifo_sync_regs.sv via io_list.interfaces.apb_csr.\nSSOT item context: name=pslverr; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0060",
+      "owner_file": "rtl/fifo_sync_regs.sv",
+      "owner_module": "fifo_sync_regs",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_csr.ports.pslverr",
+      "ssot_context": {
+        "direction": "output",
+        "name": "pslverr",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_csr.ports.pslverr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_regs.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "6b09b70c762b5a848981608dade6a77fd83d5460524c0d8f571affa50413d05e",
+  "top": "fifo_sync",
+  "type": "rtl_authoring_packet"
+}

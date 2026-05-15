@@ -1,0 +1,927 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 18,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "owner": {
+      "file": "rtl/fifo_sync.sv",
+      "name": "fifo_sync",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/fifo_sync_mem.sv",
+        "name": "fifo_sync_mem",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_ptrs.sv",
+        "name": "fifo_sync_ptrs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_flags.sv",
+        "name": "fifo_sync_flags",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_regs.sv",
+        "name": "fifo_sync_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_output_reg.sv",
+        "name": "fifo_sync_output_reg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync.sv",
+        "name": "fifo_sync",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_ptrs",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_ptrs",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_mem",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_mem",
+        "port": "wr_en_i",
+        "signal": "push_accepted",
+        "signal_terms": [
+          "push_accepted"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_mem",
+        "port": "wr_addr_i",
+        "signal": "wr_ptr",
+        "signal_terms": [
+          "wr_ptr"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_mem",
+        "port": "wr_data_i",
+        "signal": "wr_data_i",
+        "signal_terms": [
+          "wr_data_i"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_mem",
+        "port": "rd_addr_i",
+        "signal": "rd_ptr",
+        "signal_terms": [
+          "rd_ptr"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_mem",
+        "port": "rd_data_o",
+        "signal": "mem_rd_data",
+        "signal_terms": [
+          "mem_rd_data"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "count_i",
+        "signal": "count",
+        "signal_terms": [
+          "count"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "full_o",
+        "signal": "full_o",
+        "signal_terms": [
+          "full_o"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "empty_o",
+        "signal": "empty_o",
+        "signal_terms": [
+          "empty_o"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "almost_full_o",
+        "signal": "almost_full_o",
+        "signal_terms": [
+          "almost_full_o"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_flags",
+        "port": "almost_empty_o",
+        "signal": "almost_empty_o",
+        "signal_terms": [
+          "almost_empty_o"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_output_reg",
+        "port": "din_i",
+        "signal": "mem_rd_data",
+        "signal_terms": [
+          "mem_rd_data"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_output_reg",
+        "port": "load_i",
+        "signal": "pop_accepted",
+        "signal_terms": [
+          "pop_accepted"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_output_reg",
+        "port": "dout_o",
+        "signal": "rd_data_o",
+        "signal_terms": [
+          "rd_data_o"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_regs",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_regs",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[17]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "PCLK"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PCLK",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PRESETn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PRESETn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fifo_write_wr_en_i",
+          "wr_en_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "wr_en_i",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fifo_write_wr_data_i",
+          "wr_data_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "wr_data_i",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "fifo_write_full_o",
+          "full_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "full_o",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "almost_full_o",
+          "fifo_write_almost_full_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "almost_full_o",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fifo_read_rd_en_i",
+          "rd_en_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rd_en_i",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fifo_read_rd_data_o",
+          "rd_data_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "rd_data_o",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "empty_o",
+          "fifo_read_empty_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "empty_o",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "almost_empty_o",
+          "fifo_read_almost_empty_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "almost_empty_o",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "count_o",
+          "fifo_status_count_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "count_o",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "$clog2(DEPTH+1)"
+      },
+      {
+        "aliases": [
+          "fifo_control_flush_i",
+          "flush_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "flush_i",
+        "source_ref": "io_list.interfaces[3].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_paddr",
+          "paddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "paddr",
+        "source_ref": "io_list.interfaces[4].ports[0]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "apb_csr_psel",
+          "psel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "psel",
+        "source_ref": "io_list.interfaces[4].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_penable",
+          "penable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "penable",
+        "source_ref": "io_list.interfaces[4].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_pwrite",
+          "pwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwrite",
+        "source_ref": "io_list.interfaces[4].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_pwdata",
+          "pwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwdata",
+        "source_ref": "io_list.interfaces[4].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_csr_prdata",
+          "prdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prdata",
+        "source_ref": "io_list.interfaces[4].ports[5]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_csr_pready",
+          "pready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pready",
+        "source_ref": "io_list.interfaces[4].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_csr_pslverr",
+          "pslverr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pslverr",
+        "source_ref": "io_list.interfaces[4].ports[7]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [
+      {
+        "gate_kind": "manifest_connection_contract_evidence",
+        "owner_module": "fifo_sync",
+        "reason": "18 SSOT connection contract issue(s) remain. fifo_sync_ptrs: SSOT connection contract targets a module not declared in RTL; fifo_sync_ptrs: SSOT connection contract targets a module not declared in RTL; fifo_sync_mem: SSOT connection contract targets a module not declared in RTL",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+        "status": "open",
+        "task_id": "RTL-0016"
+      },
+      {
+        "gate_kind": "golden_authority_artifacts",
+        "owner_module": "fifo_sync",
+        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/functional_model.py, model/fl_model_check.json, model/model_signature.json, model/decomposition.json, cov/fcov_plan.json, verify/equivalence_goals.json",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
+        "status": "open",
+        "task_id": "RTL-0020"
+      },
+      {
+        "gate_kind": "cycle_model_artifacts",
+        "owner_module": "fifo_sync",
+        "reason": "Missing executable cycle model: model/cycle_model.py.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
+        "status": "open",
+        "task_id": "RTL-0023"
+      }
+    ],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": false,
+    "evidence_closure_allowed": true,
+    "human_locked_open_count": 3,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 3,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "fifo_sync",
+  "kind": "gate",
+  "owner_file": "rtl/fifo_sync.sv",
+  "owner_module": "fifo_sync",
+  "packet_id": "rtl_gate_human_closure",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "rtl_gate.rtl_gen": 7
+    },
+    "module_slice": {},
+    "open_required_count": 3,
+    "required_count": 7,
+    "source_refs": [
+      "quality_gates.rtl_gen.ssot_required_sections",
+      "quality_gates.rtl_gen.workflow_todo_contract",
+      "quality_gates.rtl_gen.owner_traceability",
+      "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+      "quality_gates.rtl_gen.golden_authority_artifacts",
+      "quality_gates.rtl_gen.target_scale",
+      "quality_gates.rtl_gen.cycle_model_artifacts"
+    ],
+    "status_counts": {
+      "open": 3,
+      "pass": 4
+    },
+    "task_count": 7
+  },
+  "tasks": [
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: SSOT function_model and cycle_model are present before RTL generation",
+      "criteria": [
+        "function_model is present and non-empty in the SSOT",
+        "cycle_model is present and non-empty in the SSOT",
+        "Missing authority artifacts open a human/ssot-gen gate instead of being bypassed in RTL",
+        "Traceability keeps source_ref quality_gates.rtl_gen.ssot_required_sections",
+        "Primary implementation evidence is in rtl/fifo_sync.sv"
+      ],
+      "detail": "rtl-gen cannot implement production RTL until the SSOT contains both the functional golden behavior and the cycle/handshake contract.\nSSOT ref: quality_gates.rtl_gen.ssot_required_sections.\nOwner: fifo_sync in rtl/fifo_sync.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "yaml/<ip>.ssot.yaml",
+        "kind": "ssot_required_sections",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0003",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.ssot_required_sections",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.ssot_required_sections"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "yaml/<ip>.ssot.yaml"
+        ],
+        "reason": "SSOT function_model and cycle_model authority is present.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: SSOT-authored rtl-gen workflow TODOs are well formed",
+      "criteria": [
+        "Every workflow_todos.rtl-gen item has content",
+        "Every workflow_todos.rtl-gen item has detail",
+        "Every workflow_todos.rtl-gen item has at least one criteria entry",
+        "Traceability keeps source_ref quality_gates.rtl_gen.workflow_todo_contract",
+        "Primary implementation evidence is in rtl/fifo_sync.sv"
+      ],
+      "detail": "Every SSOT workflow_todos.rtl-gen item must be executable by rtl-gen and therefore must carry content, detail, and criteria.\nSSOT ref: quality_gates.rtl_gen.workflow_todo_contract.\nOwner: fifo_sync in rtl/fifo_sync.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "ssot_workflow_todo_format",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0004",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.workflow_todo_contract",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.workflow_todo_contract"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "SSOT-authored rtl-gen workflow TODOs are well formed.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: every SSOT-derived RTL behavior has an owner module",
+      "criteria": [
+        "No required function_model task is orphaned",
+        "No required cycle_model task is orphaned",
+        "No required register/dataflow/FSM task is orphaned",
+        "Owner module and owner file are recorded in rtl_todo_plan.json",
+        "Traceability keeps source_ref quality_gates.rtl_gen.owner_traceability",
+        "Primary implementation evidence is in rtl/fifo_sync.sv"
+      ],
+      "detail": "Function-level, cycle-level, register, dataflow, and FSM behavior must map to an RTL owner module before approval.\nSSOT ref: quality_gates.rtl_gen.owner_traceability.\nOwner: fifo_sync in rtl/fifo_sync.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "owner_traceability",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0005",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.owner_traceability",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.owner_traceability"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "Every required SSOT-derived RTL behavior has an owner module.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: SSOT connection contracts match RTL child port maps",
+      "criteria": [
+        "Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections",
+        "Each SSOT connection contract resolves to a reachable manifest child module and port",
+        "RTL named port-map expressions match the SSOT-intended signal terms or carry an explicit SSOT waiver",
+        "Traceability keeps source_ref quality_gates.rtl_gen.manifest_connection_contract_evidence",
+        "Primary implementation evidence is in rtl/fifo_sync.sv"
+      ],
+      "detail": "Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.\nSSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.\nOwner: fifo_sync in rtl/fifo_sync.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "manifest_connection_contract_evidence",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0016",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.manifest_connection_contract_evidence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "18 SSOT connection contract issue(s) remain. fifo_sync_ptrs: SSOT connection contract targets a module not declared in RTL; fifo_sync_ptrs: SSOT connection contract targets a module not declared in RTL; fifo_sync_mem: SSOT connection contract targets a module not declared in RTL",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: production RTL uses locked SSOT/FL/coverage authority artifacts",
+      "criteria": [
+        "governance/authority.json exists",
+        "authority.json is the current IP human_llm_authority_manifest",
+        "authority operating rules R1..R6 and LLM loops L1..L9 are present",
+        "human authority gates G1..G7 are approved before production RTL-GEN",
+        "repo_layout separates locked SSOT/model/coverage truth from LLM-editable rtl/tb/sim/report work",
+        "model/functional_model.py exists",
+        "model/fl_model_check.json passed=true",
+        "model/model_signature.json matches the current SSOT-derived golden model signature",
+        "model/decomposition.json complete=true with unblocked implementation units",
+        "cov/fcov_plan.json has planned bins before RTL signoff",
+        "verify/equivalence_goals.json has required, unblocked goals",
+        "Traceability keeps source_ref quality_gates.rtl_gen.golden_authority_artifacts",
+        "Primary implementation evidence is in rtl/fifo_sync.sv"
+      ],
+      "detail": "PL330-level RTL cannot proceed from prose alone. It must carry machine-readable authority artifacts that separate human-owned truth from LLM-editable implementation.\nSSOT ref: quality_gates.rtl_gen.golden_authority_artifacts.\nOwner: fifo_sync in rtl/fifo_sync.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "governance/authority.json",
+        "kind": "golden_authority_artifacts",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0020",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.golden_authority_artifacts"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 13,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "governance/authority.json"
+        ],
+        "reason": "Missing production golden authority artifact(s): governance/authority.json, model/functional_model.py, model/fl_model_check.json, model/model_signature.json, model/decomposition.json, cov/fcov_plan.json, verify/equivalence_goals.json",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: production RTL scale target is locked or explicitly waived",
+      "criteria": [
+        "Reference-derived suggested_ssot_target_scale candidates are review inputs only",
+        "SSOT quality_gates.rtl_gen.target_scale contains human-locked structural depth minima before PL330-level PASS claims",
+        "If target scale is intentionally not enforced, SSOT contains target_scale_waiver.approved=true with a rationale",
+        "Traceability keeps source_ref quality_gates.rtl_gen.target_scale",
+        "Primary implementation evidence is in rtl/fifo_sync.sv"
+      ],
+      "detail": "When a calibration reference profile provides target-scale candidates, a human must lock the chosen minimum structural scale in SSOT quality_gates.rtl_gen.target_scale or record an explicit SSOT target_scale_waiver before rtl-gen can claim production signoff.\nSSOT ref: quality_gates.rtl_gen.target_scale.\nOwner: fifo_sync in rtl/fifo_sync.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "yaml/<ip>.ssot.yaml",
+        "kind": "target_scale_policy",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0021",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.target_scale",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.target_scale"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "yaml/<ip>.ssot.yaml"
+        ],
+        "reason": "No reference-derived target scale candidate is present, so no target-scale policy lock is required.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: production RTL has executable cycle/handshake model evidence",
+      "criteria": [
+        "model/cycle_model.py exists",
+        "model/cl_model_check.json passed=true",
+        "cycle_model evidence traces to SSOT cycle_model",
+        "Traceability keeps source_ref quality_gates.rtl_gen.cycle_model_artifacts",
+        "Primary implementation evidence is in rtl/fifo_sync.sv"
+      ],
+      "detail": "Complex DMA-class RTL needs a cycle-level oracle for latency, handshake, ordering, backpressure, and performance-sensitive behavior.\nSSOT ref: quality_gates.rtl_gen.cycle_model_artifacts.\nOwner: fifo_sync in rtl/fifo_sync.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "model/cycle_model.py",
+        "kind": "cycle_model_artifacts",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0023",
+      "owner_file": "rtl/fifo_sync.sv",
+      "owner_module": "fifo_sync",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.cycle_model_artifacts"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "model/cycle_model.py"
+        ],
+        "reason": "Missing executable cycle model: model/cycle_model.py.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "6b09b70c762b5a848981608dade6a77fd83d5460524c0d8f571affa50413d05e",
+  "top": "fifo_sync",
+  "type": "rtl_authoring_packet"
+}

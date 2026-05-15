@@ -1,0 +1,666 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 24,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 6,
+      "enabled": true,
+      "index": 3,
+      "key": "fsm",
+      "module_task_count": 64,
+      "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/arbiter_rr_core.sv",
+      "name": "arbiter_rr_core",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.pipeline",
+        "features",
+        "fsm",
+        "fsm.arb_fsm",
+        "function_model",
+        "function_model.transactions",
+        "function_model.transactions.FM1",
+        "function_model.transactions.FM2"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/arbiter_rr_regs.sv",
+        "name": "arbiter_rr_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arbiter_rr_core.sv",
+        "name": "arbiter_rr_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arbiter_rr.sv",
+        "name": "arbiter_rr",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "req_i",
+        "signal": "req_i",
+        "signal_terms": [
+          "req_i"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "mask_i",
+        "signal": "req_mask",
+        "signal_terms": [
+          "req_mask"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "enable_i",
+        "signal": "arb_enable",
+        "signal_terms": [
+          "arb_enable"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "gnt_o",
+        "signal": "gnt_o",
+        "signal_terms": [
+          "gnt_o"
+        ],
+        "source_ref": "integration.connections[17]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "gnt_valid_o",
+        "signal": "gnt_valid_o",
+        "signal_terms": [
+          "gnt_valid_o"
+        ],
+        "source_ref": "integration.connections[18]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "gnt_idx_o",
+        "signal": "gnt_idx_o",
+        "signal_terms": [
+          "gnt_idx_o"
+        ],
+        "source_ref": "integration.connections[19]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "winner_oh_o",
+        "signal": "status_winner",
+        "signal_terms": [
+          "status_winner"
+        ],
+        "source_ref": "integration.connections[20]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arbiter_rr_core",
+        "port": "active_req_o",
+        "signal": "status_active_req",
+        "signal_terms": [
+          "status_active_req"
+        ],
+        "source_ref": "integration.connections[21]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": {
+      "basis": "small bus/arbitration IP — minimal structural depth",
+      "min_behavior_owner_logic_modules": 1,
+      "min_logic_modules": 1,
+      "min_modules": 3,
+      "min_procedural_blocks": 4,
+      "min_source_files": 3,
+      "min_state_updates": 3,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": false,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 7,
+    "open_required_count": 7,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": false
+  },
+  "ip": "arbiter_rr",
+  "kind": "module",
+  "owner_file": "rtl/arbiter_rr_core.sv",
+  "owner_module": "arbiter_rr_core",
+  "packet_id": "module__arbiter_rr_core__fsm",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "fsm.state": 3,
+      "fsm.transition": 4
+    },
+    "module_slice": {
+      "count": 6,
+      "enabled": true,
+      "index": 3,
+      "key": "fsm",
+      "module_task_count": 64,
+      "rule": "Owner module arbiter_rr_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 7,
+    "required_count": 7,
+    "source_refs": [
+      "fsm.arb_fsm.states.state_0",
+      "fsm.arb_fsm.states.state_1",
+      "fsm.arb_fsm.states.state_2",
+      "fsm.arb_fsm.transitions.transition_0",
+      "fsm.arb_fsm.transitions.transition_1",
+      "fsm.arb_fsm.transitions.transition_2",
+      "fsm.arb_fsm.transitions.transition_3"
+    ],
+    "status_counts": {
+      "open": 7
+    },
+    "task_count": 7
+  },
+  "tasks": [
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state arb_fsm.state_0",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.arb_fsm.states.state_0",
+        "Primary implementation evidence is in rtl/arbiter_rr_core.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.arb_fsm.states.state_0.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via fsm.arb_fsm.\nSSOT item context: value=IDLE.",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "id": "RTL-0110",
+      "owner_file": "rtl/arbiter_rr_core.sv",
+      "owner_module": "arbiter_rr_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.arb_fsm.states.state_0",
+      "ssot_context": {
+        "value": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.arb_fsm.states.state_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IDLE"
+        ],
+        "source_scope": "rtl/arbiter_rr_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state arb_fsm.state_1",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.arb_fsm.states.state_1",
+        "Primary implementation evidence is in rtl/arbiter_rr_core.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.arb_fsm.states.state_1.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via fsm.arb_fsm.\nSSOT item context: value=EVAL.",
+      "evidence_terms": [
+        "EVAL"
+      ],
+      "id": "RTL-0111",
+      "owner_file": "rtl/arbiter_rr_core.sv",
+      "owner_module": "arbiter_rr_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.arb_fsm.states.state_1",
+      "ssot_context": {
+        "value": "EVAL"
+      },
+      "ssot_refs": [
+        "fsm.arb_fsm.states.state_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "EVAL"
+        ],
+        "source_scope": "rtl/arbiter_rr_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state arb_fsm.state_2",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.arb_fsm.states.state_2",
+        "Primary implementation evidence is in rtl/arbiter_rr_core.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.arb_fsm.states.state_2.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via fsm.arb_fsm.\nSSOT item context: value=GRANT.",
+      "evidence_terms": [
+        "GRANT"
+      ],
+      "id": "RTL-0112",
+      "owner_file": "rtl/arbiter_rr_core.sv",
+      "owner_module": "arbiter_rr_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.arb_fsm.states.state_2",
+      "ssot_context": {
+        "value": "GRANT"
+      },
+      "ssot_refs": [
+        "fsm.arb_fsm.states.state_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "GRANT"
+        ],
+        "source_scope": "rtl/arbiter_rr_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition arb_fsm.transition_0",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.arb_fsm.transitions.transition_0",
+        "Primary implementation evidence is in rtl/arbiter_rr_core.sv",
+        "fsm.arb_fsm.transitions.transition_0 condition is implemented as RTL control logic: arb_enabled==1 && (req_i & mask) != 0",
+        "fsm.arb_fsm.transitions.transition_0 transition path IDLE -> EVAL is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.arb_fsm.transitions.transition_0.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via fsm.arb_fsm.\nSSOT item context: from=IDLE; to=EVAL; condition=arb_enabled==1 && (req_i & mask) != 0.",
+      "evidence_terms": [
+        "EVAL",
+        "IDLE",
+        "arb",
+        "arb_enabled",
+        "enabled",
+        "req",
+        "req_i"
+      ],
+      "id": "RTL-0113",
+      "owner_file": "rtl/arbiter_rr_core.sv",
+      "owner_module": "arbiter_rr_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.arb_fsm.transitions.transition_0",
+      "ssot_context": {
+        "condition": "arb_enabled==1 && (req_i & mask) != 0",
+        "from": "IDLE",
+        "to": "EVAL"
+      },
+      "ssot_refs": [
+        "fsm.arb_fsm.transitions.transition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "EVAL",
+          "IDLE",
+          "arb",
+          "arb_enabled",
+          "enabled",
+          "req",
+          "req_i"
+        ],
+        "source_scope": "rtl/arbiter_rr_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition arb_fsm.transition_1",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.arb_fsm.transitions.transition_1",
+        "Primary implementation evidence is in rtl/arbiter_rr_core.sv",
+        "fsm.arb_fsm.transitions.transition_1 condition is implemented as RTL control logic: always (1-cycle combinational eval)",
+        "fsm.arb_fsm.transitions.transition_1 transition path EVAL -> GRANT is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.arb_fsm.transitions.transition_1.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via fsm.arb_fsm.\nSSOT item context: from=EVAL; to=GRANT; condition=always (1-cycle combinational eval).",
+      "evidence_terms": [
+        "EVAL",
+        "GRANT"
+      ],
+      "id": "RTL-0114",
+      "owner_file": "rtl/arbiter_rr_core.sv",
+      "owner_module": "arbiter_rr_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.arb_fsm.transitions.transition_1",
+      "ssot_context": {
+        "condition": "always (1-cycle combinational eval)",
+        "from": "EVAL",
+        "to": "GRANT"
+      },
+      "ssot_refs": [
+        "fsm.arb_fsm.transitions.transition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "EVAL",
+          "GRANT"
+        ],
+        "source_scope": "rtl/arbiter_rr_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition arb_fsm.transition_2",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.arb_fsm.transitions.transition_2",
+        "Primary implementation evidence is in rtl/arbiter_rr_core.sv",
+        "fsm.arb_fsm.transitions.transition_2 condition is implemented as RTL control logic: next cycle: re-evaluate with updated last_winner",
+        "fsm.arb_fsm.transitions.transition_2 transition path GRANT -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.arb_fsm.transitions.transition_2.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via fsm.arb_fsm.\nSSOT item context: from=GRANT; to=IDLE; condition=next cycle: re-evaluate with updated last_winner.",
+      "evidence_terms": [
+        "GRANT",
+        "IDLE",
+        "last",
+        "last_winner",
+        "winner"
+      ],
+      "id": "RTL-0115",
+      "owner_file": "rtl/arbiter_rr_core.sv",
+      "owner_module": "arbiter_rr_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.arb_fsm.transitions.transition_2",
+      "ssot_context": {
+        "condition": "next cycle: re-evaluate with updated last_winner",
+        "from": "GRANT",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.arb_fsm.transitions.transition_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "GRANT",
+          "IDLE",
+          "last",
+          "last_winner",
+          "winner"
+        ],
+        "source_scope": "rtl/arbiter_rr_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition arb_fsm.transition_3",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.arb_fsm.transitions.transition_3",
+        "Primary implementation evidence is in rtl/arbiter_rr_core.sv",
+        "fsm.arb_fsm.transitions.transition_3 condition is implemented as RTL control logic: arb_enabled==0 || (req_i & mask) == 0",
+        "fsm.arb_fsm.transitions.transition_3 transition path IDLE -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.arb_fsm.transitions.transition_3.\nOwner: arbiter_rr_core in rtl/arbiter_rr_core.sv via fsm.arb_fsm.\nSSOT item context: from=IDLE; to=IDLE; condition=arb_enabled==0 || (req_i & mask) == 0.",
+      "evidence_terms": [
+        "IDLE",
+        "arb",
+        "arb_enabled",
+        "enabled",
+        "req",
+        "req_i"
+      ],
+      "id": "RTL-0116",
+      "owner_file": "rtl/arbiter_rr_core.sv",
+      "owner_module": "arbiter_rr_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.arb_fsm.transitions.transition_3",
+      "ssot_context": {
+        "condition": "arb_enabled==0 || (req_i & mask) == 0",
+        "from": "IDLE",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.arb_fsm.transitions.transition_3"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "arb",
+          "arb_enabled",
+          "enabled",
+          "req",
+          "req_i"
+        ],
+        "source_scope": "rtl/arbiter_rr_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/arbiter_rr_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "ed4fb0aab2b37641faadb8a908ce4f3766aa5320c73da71fb75da59dd59109b2",
+  "top": "arbiter_rr",
+  "type": "rtl_authoring_packet"
+}

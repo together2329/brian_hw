@@ -1,0 +1,1159 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 18,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 2,
+      "key": "io_list",
+      "module_task_count": 49,
+      "rule": "Owner module pulse_gen is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "io_list",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pulse_gen.sv",
+      "name": "pulse_gen",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pulse_gen_regs.sv",
+        "name": "pulse_gen_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pulse_gen_core.sv",
+        "name": "pulse_gen_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/pulse_gen.sv",
+        "name": "pulse_gen",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "trigger_i",
+        "signal": "trigger_i",
+        "signal_terms": [
+          "trigger_i"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "pulse_out",
+        "signal": "pulse_out",
+        "signal_terms": [
+          "pulse_out"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "irq_o",
+        "signal": "irq_o",
+        "signal_terms": [
+          "irq_o"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "clk_i",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "rst_ni",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen",
+        "port": "PRDATA",
+        "signal": "pulse_gen_regs.PRDATA",
+        "signal_terms": [
+          "PRDATA",
+          "pulse_gen_regs"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen",
+        "port": "PREADY",
+        "signal": "1'b1 (zero-wait-state)",
+        "signal_terms": [
+          "b1",
+          "wait",
+          "zero"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen",
+        "port": "PSLVERR",
+        "signal": "pulse_gen_regs.PSLVERR",
+        "signal_terms": [
+          "PSLVERR",
+          "pulse_gen_regs"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "ctrl_fire_o",
+        "signal": "pulse_gen_core.ctrl_fire",
+        "signal_terms": [
+          "ctrl_fire",
+          "pulse_gen_core"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "ctrl_enable_o",
+        "signal": "pulse_gen_core.ctrl_enable",
+        "signal_terms": [
+          "ctrl_enable",
+          "pulse_gen_core"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "ctrl_hw_trig_en_o",
+        "signal": "pulse_gen_core.ctrl_hw_trig_en",
+        "signal_terms": [
+          "ctrl_hw_trig_en",
+          "pulse_gen_core"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "pulse_width_o",
+        "signal": "pulse_gen_core.pulse_width_i",
+        "signal_terms": [
+          "pulse_gen_core",
+          "pulse_width_i"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "status_busy_i",
+        "signal": "pulse_gen_regs.status_busy",
+        "signal_terms": [
+          "pulse_gen_regs",
+          "status_busy"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_core",
+        "port": "status_done_o",
+        "signal": "pulse_gen_regs.status_done",
+        "signal_terms": [
+          "pulse_gen_regs",
+          "status_done"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "fired_count_i",
+        "signal": "pulse_gen_core.fired_count",
+        "signal_terms": [
+          "fired_count",
+          "pulse_gen_core"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "pulse_gen_regs",
+        "port": "int_enable_o",
+        "signal": "pulse_gen_core.int_enable_i",
+        "signal_terms": [
+          "int_enable_i",
+          "pulse_gen_core"
+        ],
+        "source_ref": "integration.connections[17]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "PCLK"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PCLK",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PRESETn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PRESETn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PADDR",
+          "apb_lite_slave_PADDR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PADDR",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "PSEL",
+          "apb_lite_slave_PSEL"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSEL",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PENABLE",
+          "apb_lite_slave_PENABLE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PENABLE",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWRITE",
+          "apb_lite_slave_PWRITE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWRITE",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWDATA",
+          "apb_lite_slave_PWDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWDATA",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PSTRB",
+          "apb_lite_slave_PSTRB"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSTRB",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "PRDATA",
+          "apb_lite_slave_PRDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PRDATA",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PREADY",
+          "apb_lite_slave_PREADY"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PREADY",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PSLVERR",
+          "apb_lite_slave_PSLVERR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PSLVERR",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "pulse_out",
+          "pulse_output_pulse_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pulse_out",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "PULSE_OUT_WIDTH"
+      },
+      {
+        "aliases": [
+          "trigger_i",
+          "trigger_input_trigger_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "trigger_i",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "interrupt_irq_o",
+          "irq_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "irq_o",
+        "source_ref": "io_list.interfaces[3].ports[0]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 14,
+    "open_required_count": 14,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pulse_gen",
+  "kind": "module",
+  "owner_file": "rtl/pulse_gen.sv",
+  "owner_module": "pulse_gen",
+  "packet_id": "module__pulse_gen__io_list",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "io_list.port": 14
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 2,
+      "key": "io_list",
+      "module_task_count": 49,
+      "rule": "Owner module pulse_gen is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "io_list",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 14,
+    "required_count": 14,
+    "source_refs": [
+      "io_list.clock_domains.pclk.ports.PCLK",
+      "io_list.resets.presetn.ports.PRESETn",
+      "io_list.interfaces.apb_lite_slave.ports.PADDR",
+      "io_list.interfaces.apb_lite_slave.ports.PSEL",
+      "io_list.interfaces.apb_lite_slave.ports.PENABLE",
+      "io_list.interfaces.apb_lite_slave.ports.PWRITE",
+      "io_list.interfaces.apb_lite_slave.ports.PWDATA",
+      "io_list.interfaces.apb_lite_slave.ports.PSTRB",
+      "io_list.interfaces.apb_lite_slave.ports.PRDATA",
+      "io_list.interfaces.apb_lite_slave.ports.PREADY",
+      "io_list.interfaces.apb_lite_slave.ports.PSLVERR",
+      "io_list.interfaces.pulse_output.ports.pulse_out",
+      "io_list.interfaces.trigger_input.ports.trigger_i",
+      "io_list.interfaces.interrupt.ports.irq_o"
+    ],
+    "status_counts": {
+      "open": 14
+    },
+    "task_count": 14
+  },
+  "tasks": [
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PCLK",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.pclk.ports.PCLK",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "PCLK width matches SSOT value 1",
+        "PCLK port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.pclk.ports.PCLK.\nOwner: pulse_gen in rtl/pulse_gen.sv via io_list.\nSSOT item context: name=PCLK; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0029",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.pclk.ports.PCLK",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PCLK",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.pclk.ports.PCLK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PRESETn",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.presetn.ports.PRESETn",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "PRESETn width matches SSOT value 1",
+        "PRESETn port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.presetn.ports.PRESETn.\nOwner: pulse_gen in rtl/pulse_gen.sv via io_list.\nSSOT item context: name=PRESETn; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0030",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.presetn.ports.PRESETn",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PRESETn",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.presetn.ports.PRESETn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PADDR",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_lite_slave.ports.PADDR",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "PADDR width matches SSOT value 8",
+        "PADDR port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_lite_slave.ports.PADDR.\nOwner: pulse_gen in rtl/pulse_gen.sv via io_list.\nSSOT item context: name=PADDR; width=8; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0031",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_lite_slave.ports.PADDR",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PADDR",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_lite_slave.ports.PADDR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PSEL",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_lite_slave.ports.PSEL",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "PSEL width matches SSOT value 1",
+        "PSEL port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_lite_slave.ports.PSEL.\nOwner: pulse_gen in rtl/pulse_gen.sv via io_list.\nSSOT item context: name=PSEL; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0032",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_lite_slave.ports.PSEL",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PSEL",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_lite_slave.ports.PSEL"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PENABLE",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_lite_slave.ports.PENABLE",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "PENABLE width matches SSOT value 1",
+        "PENABLE port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_lite_slave.ports.PENABLE.\nOwner: pulse_gen in rtl/pulse_gen.sv via io_list.\nSSOT item context: name=PENABLE; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0033",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_lite_slave.ports.PENABLE",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PENABLE",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_lite_slave.ports.PENABLE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PWRITE",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_lite_slave.ports.PWRITE",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "PWRITE width matches SSOT value 1",
+        "PWRITE port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_lite_slave.ports.PWRITE.\nOwner: pulse_gen in rtl/pulse_gen.sv via io_list.\nSSOT item context: name=PWRITE; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_lite_slave.ports.PWRITE",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PWRITE",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_lite_slave.ports.PWRITE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PWDATA",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_lite_slave.ports.PWDATA",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "PWDATA width matches SSOT value 32",
+        "PWDATA port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_lite_slave.ports.PWDATA.\nOwner: pulse_gen in rtl/pulse_gen.sv via io_list.\nSSOT item context: name=PWDATA; width=32; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0035",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_lite_slave.ports.PWDATA",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PWDATA",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_lite_slave.ports.PWDATA"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PSTRB",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_lite_slave.ports.PSTRB",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "PSTRB width matches SSOT value 4",
+        "PSTRB port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_lite_slave.ports.PSTRB.\nOwner: pulse_gen in rtl/pulse_gen.sv via io_list.\nSSOT item context: name=PSTRB; width=4; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0036",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_lite_slave.ports.PSTRB",
+      "ssot_context": {
+        "direction": "input",
+        "name": "PSTRB",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_lite_slave.ports.PSTRB"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PRDATA",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_lite_slave.ports.PRDATA",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "PRDATA width matches SSOT value 32",
+        "PRDATA port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_lite_slave.ports.PRDATA.\nOwner: pulse_gen in rtl/pulse_gen.sv via io_list.\nSSOT item context: name=PRDATA; width=32; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0037",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_lite_slave.ports.PRDATA",
+      "ssot_context": {
+        "direction": "output",
+        "name": "PRDATA",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_lite_slave.ports.PRDATA"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PREADY",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_lite_slave.ports.PREADY",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "PREADY width matches SSOT value 1",
+        "PREADY port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_lite_slave.ports.PREADY.\nOwner: pulse_gen in rtl/pulse_gen.sv via io_list.\nSSOT item context: name=PREADY; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0038",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_lite_slave.ports.PREADY",
+      "ssot_context": {
+        "direction": "output",
+        "name": "PREADY",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_lite_slave.ports.PREADY"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port PSLVERR",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_lite_slave.ports.PSLVERR",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "PSLVERR width matches SSOT value 1",
+        "PSLVERR port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_lite_slave.ports.PSLVERR.\nOwner: pulse_gen in rtl/pulse_gen.sv via io_list.\nSSOT item context: name=PSLVERR; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0039",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_lite_slave.ports.PSLVERR",
+      "ssot_context": {
+        "direction": "output",
+        "name": "PSLVERR",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_lite_slave.ports.PSLVERR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pulse_out",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.pulse_output.ports.pulse_out",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "pulse_out width matches SSOT value PULSE_OUT_WIDTH",
+        "pulse_out port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.pulse_output.ports.pulse_out.\nOwner: pulse_gen in rtl/pulse_gen.sv via io_list.\nSSOT item context: name=pulse_out; width=PULSE_OUT_WIDTH; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0040",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.pulse_output.ports.pulse_out",
+      "ssot_context": {
+        "direction": "output",
+        "name": "pulse_out",
+        "width": "PULSE_OUT_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.pulse_output.ports.pulse_out"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port trigger_i",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.trigger_input.ports.trigger_i",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "trigger_i width matches SSOT value 1",
+        "trigger_i port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.trigger_input.ports.trigger_i.\nOwner: pulse_gen in rtl/pulse_gen.sv via io_list.\nSSOT item context: name=trigger_i; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0041",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.trigger_input.ports.trigger_i",
+      "ssot_context": {
+        "direction": "input",
+        "name": "trigger_i",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.trigger_input.ports.trigger_i"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port irq_o",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.interrupt.ports.irq_o",
+        "Primary implementation evidence is in rtl/pulse_gen.sv",
+        "irq_o width matches SSOT value 1",
+        "irq_o port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.interrupt.ports.irq_o.\nOwner: pulse_gen in rtl/pulse_gen.sv via io_list.\nSSOT item context: name=irq_o; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0042",
+      "owner_file": "rtl/pulse_gen.sv",
+      "owner_module": "pulse_gen",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.interrupt.ports.irq_o",
+      "ssot_context": {
+        "direction": "output",
+        "name": "irq_o",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.interrupt.ports.irq_o"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/pulse_gen.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "db19106d42be138c54967891b2b40e88eeea77aea8313dbb312896ba687401f7",
+  "top": "pulse_gen",
+  "type": "rtl_authoring_packet"
+}

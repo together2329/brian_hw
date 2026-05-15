@@ -1,0 +1,686 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 18,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 11,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/fifo_sync_output_reg.sv",
+      "name": "fifo_sync_output_reg",
+      "refs": [
+        "cycle_model",
+        "cycle_model.latency",
+        "cycle_model.latency.registered_read",
+        "parameters",
+        "parameters.USE_OUTPUT_REGISTER"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/fifo_sync_mem.sv",
+        "name": "fifo_sync_mem",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_ptrs.sv",
+        "name": "fifo_sync_ptrs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_flags.sv",
+        "name": "fifo_sync_flags",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_regs.sv",
+        "name": "fifo_sync_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync_output_reg.sv",
+        "name": "fifo_sync_output_reg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/fifo_sync.sv",
+        "name": "fifo_sync",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_output_reg",
+        "port": "din_i",
+        "signal": "mem_rd_data",
+        "signal_terms": [
+          "mem_rd_data"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_output_reg",
+        "port": "load_i",
+        "signal": "pop_accepted",
+        "signal_terms": [
+          "pop_accepted"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_output_reg",
+        "port": "dout_o",
+        "signal": "rd_data_o",
+        "signal_terms": [
+          "rd_data_o"
+        ],
+        "source_ref": "integration.connections[15]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 11,
+    "open_required_count": 11,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "fifo_sync",
+  "kind": "module",
+  "owner_file": "rtl/fifo_sync_output_reg.sv",
+  "owner_module": "fifo_sync_output_reg",
+  "packet_id": "module__fifo_sync_output_reg",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.latency": 1,
+      "equivalence.module": 1,
+      "parameters.item": 8,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 11,
+      "task_limit": 48
+    },
+    "open_required_count": 11,
+    "required_count": 11,
+    "source_refs": [
+      "workflow_todos.rtl-gen[3]",
+      "cycle_model.latency",
+      "sub_modules.fifo_sync_output_reg.module_equivalence",
+      "parameters.DATA_WIDTH",
+      "parameters.DEPTH",
+      "parameters.ALMOST_FULL_THRESHOLD",
+      "parameters.ALMOST_EMPTY_THRESHOLD",
+      "parameters.USE_OUTPUT_REGISTER",
+      "parameters.USE_APB",
+      "parameters.USE_ECC",
+      "parameters.CLOCK_FREQ_MHZ"
+    ],
+    "status_counts": {
+      "open": 11
+    },
+    "task_count": 11
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement optional output register stage",
+      "criteria": [
+        "Output register is conditionally instantiated based on USE_OUTPUT_REGISTER parameter",
+        "Registered path: rd_data_o updated 1 cycle after pop_accepted",
+        "Bypass path: rd_data_o = mem[rd_ptr] combinationally",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[3]",
+        "Primary implementation evidence is in rtl/fifo_sync_output_reg.sv",
+        "Semantic source_refs covered: cycle_model.latency.pop_combinational, cycle_model.latency.pop_registered, parameters.USE_OUTPUT_REGISTER"
+      ],
+      "detail": "When USE_OUTPUT_REGISTER=1, insert a pipeline register between mem[rd_ptr] and rd_data_o. Register loads on pop_accepted. When USE_OUTPUT_REGISTER=0, bypass directly.\nSSOT ref: workflow_todos.rtl-gen[3].\nOwner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_FIFO_OUTPUT_REG.",
+      "evidence_terms": [
+        "FIFO",
+        "REG",
+        "REGISTER",
+        "RTL_TODO_FIFO_OUTPUT_REG",
+        "TODO",
+        "USE",
+        "USE_OUTPUT_REGISTER",
+        "combinational",
+        "fifo",
+        "fifo_sync_output_reg",
+        "pop",
+        "pop_combinational",
+        "pop_registered",
+        "reg",
+        "registered",
+        "sync"
+      ],
+      "id": "RTL-0030",
+      "owner_file": "rtl/fifo_sync_output_reg.sv",
+      "owner_module": "fifo_sync_output_reg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[3]",
+      "ssot_context": {
+        "id": "RTL_TODO_FIFO_OUTPUT_REG"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.pop_combinational",
+        "cycle_model.latency.pop_registered",
+        "parameters.USE_OUTPUT_REGISTER",
+        "workflow_todos.rtl-gen[3]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "FIFO",
+          "REG",
+          "REGISTER",
+          "RTL_TODO_FIFO_OUTPUT_REG",
+          "TODO",
+          "USE",
+          "USE_OUTPUT_REGISTER",
+          "combinational",
+          "fifo",
+          "fifo_sync_output_reg",
+          "pop",
+          "pop_combinational",
+          "pop_registered",
+          "reg",
+          "registered",
+          "sync"
+        ],
+        "source_scope": "rtl/fifo_sync_output_reg.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_FIFO_OUTPUT_REG",
+        "source_refs": [
+          "cycle_model.latency.pop_combinational",
+          "cycle_model.latency.pop_registered",
+          "parameters.USE_OUTPUT_REGISTER"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "cycle_model.latency",
+      "content": "Implement cycle-model latency",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.latency",
+        "Primary implementation evidence is in rtl/fifo_sync_output_reg.sv",
+        "cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via cycle_model.latency.registered_read.",
+      "evidence_terms": [],
+      "id": "RTL-0159",
+      "owner_file": "rtl/fifo_sync_output_reg.sv",
+      "owner_module": "fifo_sync_output_reg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.latency",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.latency"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module fifo_sync_output_reg is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.fifo_sync_output_reg.module_equivalence",
+        "Primary implementation evidence is in rtl/fifo_sync_output_reg.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.fifo_sync_output_reg.module_equivalence.\nOwner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0248",
+      "owner_file": "rtl/fifo_sync_output_reg.sv",
+      "owner_module": "fifo_sync_output_reg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.fifo_sync_output_reg.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.fifo_sync_output_reg.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter DATA_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.DATA_WIDTH",
+        "Primary implementation evidence is in rtl/fifo_sync_output_reg.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.DATA_WIDTH.\nOwner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.\nSSOT item context: name=DATA_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0033",
+      "owner_file": "rtl/fifo_sync_output_reg.sv",
+      "owner_module": "fifo_sync_output_reg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.DATA_WIDTH",
+      "ssot_context": {
+        "name": "DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.DATA_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter DEPTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.DEPTH",
+        "Primary implementation evidence is in rtl/fifo_sync_output_reg.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.DEPTH.\nOwner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.\nSSOT item context: name=DEPTH.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/fifo_sync_output_reg.sv",
+      "owner_module": "fifo_sync_output_reg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.DEPTH",
+      "ssot_context": {
+        "name": "DEPTH"
+      },
+      "ssot_refs": [
+        "parameters.DEPTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter ALMOST_FULL_THRESHOLD",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.ALMOST_FULL_THRESHOLD",
+        "Primary implementation evidence is in rtl/fifo_sync_output_reg.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.ALMOST_FULL_THRESHOLD.\nOwner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.\nSSOT item context: name=ALMOST_FULL_THRESHOLD.",
+      "evidence_terms": [],
+      "id": "RTL-0035",
+      "owner_file": "rtl/fifo_sync_output_reg.sv",
+      "owner_module": "fifo_sync_output_reg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.ALMOST_FULL_THRESHOLD",
+      "ssot_context": {
+        "name": "ALMOST_FULL_THRESHOLD"
+      },
+      "ssot_refs": [
+        "parameters.ALMOST_FULL_THRESHOLD"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter ALMOST_EMPTY_THRESHOLD",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.ALMOST_EMPTY_THRESHOLD",
+        "Primary implementation evidence is in rtl/fifo_sync_output_reg.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.ALMOST_EMPTY_THRESHOLD.\nOwner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.\nSSOT item context: name=ALMOST_EMPTY_THRESHOLD.",
+      "evidence_terms": [],
+      "id": "RTL-0036",
+      "owner_file": "rtl/fifo_sync_output_reg.sv",
+      "owner_module": "fifo_sync_output_reg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.ALMOST_EMPTY_THRESHOLD",
+      "ssot_context": {
+        "name": "ALMOST_EMPTY_THRESHOLD"
+      },
+      "ssot_refs": [
+        "parameters.ALMOST_EMPTY_THRESHOLD"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter USE_OUTPUT_REGISTER",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.USE_OUTPUT_REGISTER",
+        "Primary implementation evidence is in rtl/fifo_sync_output_reg.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.USE_OUTPUT_REGISTER.\nOwner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.USE_OUTPUT_REGISTER.\nSSOT item context: name=USE_OUTPUT_REGISTER.",
+      "evidence_terms": [],
+      "id": "RTL-0037",
+      "owner_file": "rtl/fifo_sync_output_reg.sv",
+      "owner_module": "fifo_sync_output_reg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.USE_OUTPUT_REGISTER",
+      "ssot_context": {
+        "name": "USE_OUTPUT_REGISTER"
+      },
+      "ssot_refs": [
+        "parameters.USE_OUTPUT_REGISTER"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter USE_APB",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.USE_APB",
+        "Primary implementation evidence is in rtl/fifo_sync_output_reg.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.USE_APB.\nOwner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.\nSSOT item context: name=USE_APB.",
+      "evidence_terms": [],
+      "id": "RTL-0038",
+      "owner_file": "rtl/fifo_sync_output_reg.sv",
+      "owner_module": "fifo_sync_output_reg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.USE_APB",
+      "ssot_context": {
+        "name": "USE_APB"
+      },
+      "ssot_refs": [
+        "parameters.USE_APB"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter USE_ECC",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.USE_ECC",
+        "Primary implementation evidence is in rtl/fifo_sync_output_reg.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.USE_ECC.\nOwner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.\nSSOT item context: name=USE_ECC.",
+      "evidence_terms": [],
+      "id": "RTL-0039",
+      "owner_file": "rtl/fifo_sync_output_reg.sv",
+      "owner_module": "fifo_sync_output_reg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.USE_ECC",
+      "ssot_context": {
+        "name": "USE_ECC"
+      },
+      "ssot_refs": [
+        "parameters.USE_ECC"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter CLOCK_FREQ_MHZ",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.CLOCK_FREQ_MHZ",
+        "Primary implementation evidence is in rtl/fifo_sync_output_reg.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.CLOCK_FREQ_MHZ.\nOwner: fifo_sync_output_reg in rtl/fifo_sync_output_reg.sv via parameters.\nSSOT item context: name=CLOCK_FREQ_MHZ.",
+      "evidence_terms": [],
+      "id": "RTL-0040",
+      "owner_file": "rtl/fifo_sync_output_reg.sv",
+      "owner_module": "fifo_sync_output_reg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.CLOCK_FREQ_MHZ",
+      "ssot_context": {
+        "name": "CLOCK_FREQ_MHZ"
+      },
+      "ssot_refs": [
+        "parameters.CLOCK_FREQ_MHZ"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/fifo_sync_output_reg.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "6b09b70c762b5a848981608dade6a77fd83d5460524c0d8f571affa50413d05e",
+  "top": "fifo_sync",
+  "type": "rtl_authoring_packet"
+}

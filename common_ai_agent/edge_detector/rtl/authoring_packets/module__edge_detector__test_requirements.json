@@ -1,0 +1,891 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 16,
+      "enabled": true,
+      "index": 14,
+      "key": "test_requirements",
+      "module_task_count": 103,
+      "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "test_requirements",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/edge_detector.sv",
+      "name": "edge_detector",
+      "refs": [
+        "cycle_model",
+        "cycle_model.latency",
+        "cycle_model.pipeline",
+        "dataflow",
+        "features",
+        "function_model",
+        "function_model.output_rules",
+        "function_model.state_variables",
+        "function_model.transactions"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/edge_detector.sv",
+        "name": "edge_detector",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "edge_detector",
+        "port": "PCLK",
+        "signal": "PCLK",
+        "signal_terms": [
+          "PCLK"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "edge_detector",
+        "port": "PRESETn",
+        "signal": "PRESETn",
+        "signal_terms": [
+          "PRESETn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "edge_detector",
+        "port": "signal_i",
+        "signal": "signal_i",
+        "signal_terms": [
+          "signal_i"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "edge_detector",
+        "port": "edge_o",
+        "signal": "edge_o",
+        "signal_terms": [
+          "edge_o"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "edge_detector",
+        "port": "irq_o",
+        "signal": "irq_o",
+        "signal_terms": [
+          "irq_o"
+        ],
+        "source_ref": "integration.connections[4]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "PCLK"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PCLK",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PRESETn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PRESETn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "signal_i",
+          "signal_in_signal_i"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "signal_i",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "WIDTH"
+      },
+      {
+        "aliases": [
+          "edge_o",
+          "edge_out_edge_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "edge_o",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "WIDTH"
+      },
+      {
+        "aliases": [
+          "interrupt_irq_o",
+          "irq_o"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "irq_o",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PADDR",
+          "apb_csr_PADDR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PADDR",
+        "source_ref": "io_list.interfaces[3].ports[0]",
+        "width": "12"
+      },
+      {
+        "aliases": [
+          "PSEL",
+          "apb_csr_PSEL"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSEL",
+        "source_ref": "io_list.interfaces[3].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PENABLE",
+          "apb_csr_PENABLE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PENABLE",
+        "source_ref": "io_list.interfaces[3].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWRITE",
+          "apb_csr_PWRITE"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWRITE",
+        "source_ref": "io_list.interfaces[3].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PWDATA",
+          "apb_csr_PWDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PWDATA",
+        "source_ref": "io_list.interfaces[3].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PSTRB",
+          "apb_csr_PSTRB"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "PSTRB",
+        "source_ref": "io_list.interfaces[3].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "PRDATA",
+          "apb_csr_PRDATA"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PRDATA",
+        "source_ref": "io_list.interfaces[3].ports[6]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "PREADY",
+          "apb_csr_PREADY"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PREADY",
+        "source_ref": "io_list.interfaces[3].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "PSLVERR",
+          "apb_csr_PSLVERR"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "PSLVERR",
+        "source_ref": "io_list.interfaces[3].ports[8]",
+        "width": "1"
+      }
+    ],
+    "target_scale": {
+      "basis": "Simple peripheral IP with combinational/sequential logic only",
+      "min_behavior_owner_logic_modules": 2,
+      "min_logic_modules": 2,
+      "min_modules": 2,
+      "min_procedural_blocks": 4,
+      "min_source_files": 2,
+      "min_state_updates": 4,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 12,
+    "open_required_count": 12,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "edge_detector",
+  "kind": "module",
+  "owner_file": "rtl/edge_detector.sv",
+  "owner_module": "edge_detector",
+  "packet_id": "module__edge_detector__test_requirements",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "test_requirements.scenario": 12
+    },
+    "module_slice": {
+      "count": 16,
+      "enabled": true,
+      "index": 14,
+      "key": "test_requirements",
+      "module_task_count": 103,
+      "rule": "Owner module edge_detector is split into 16 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "test_requirements",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 12,
+    "required_count": 12,
+    "source_refs": [
+      "test_requirements.scenarios.SC1",
+      "test_requirements.scenarios.SC2",
+      "test_requirements.scenarios.SC3",
+      "test_requirements.scenarios.SC4",
+      "test_requirements.scenarios.SC5",
+      "test_requirements.scenarios.SC6",
+      "test_requirements.scenarios.SC7",
+      "test_requirements.scenarios.SC8",
+      "test_requirements.scenarios.SC9",
+      "test_requirements.scenarios.SC10",
+      "test_requirements.scenarios.SC11",
+      "test_requirements.scenarios.SC12"
+    ],
+    "status_counts": {
+      "open": 12
+    },
+    "task_count": 12
+  },
+  "tasks": [
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC1",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC1",
+        "Primary implementation evidence is in rtl/edge_detector.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: edge_o[0]=1 for one cycle; STATUS.edge_sticky[0]=1"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC1.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: id=SC1; name=Basic rising edge detection; expected=edge_o[0]=1 for one cycle; STATUS.edge_sticky[0]=1.",
+      "evidence_terms": [],
+      "id": "RTL-0117",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC1",
+      "ssot_context": {
+        "expected": "edge_o[0]=1 for one cycle; STATUS.edge_sticky[0]=1",
+        "id": "SC1",
+        "name": "Basic rising edge detection"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC2",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC2",
+        "Primary implementation evidence is in rtl/edge_detector.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: edge_o[0]=1 for one cycle; STATUS.edge_sticky[0]=1"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC2.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: id=SC2; name=Basic falling edge detection; expected=edge_o[0]=1 for one cycle; STATUS.edge_sticky[0]=1.",
+      "evidence_terms": [],
+      "id": "RTL-0118",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC2",
+      "ssot_context": {
+        "expected": "edge_o[0]=1 for one cycle; STATUS.edge_sticky[0]=1",
+        "id": "SC2",
+        "name": "Basic falling edge detection"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC3",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC3",
+        "Primary implementation evidence is in rtl/edge_detector.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: edge_o[0]=1 on each transition"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC3.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: id=SC3; name=Both-edge detection; expected=edge_o[0]=1 on each transition.",
+      "evidence_terms": [],
+      "id": "RTL-0119",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC3",
+      "ssot_context": {
+        "expected": "edge_o[0]=1 on each transition",
+        "id": "SC3",
+        "name": "Both-edge detection"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC4",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC4",
+        "Primary implementation evidence is in rtl/edge_detector.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: First edge_o appears after SYNC_STAGES+1 cycles"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC4.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: id=SC4; name=Synchronizer latency; expected=First edge_o appears after SYNC_STAGES+1 cycles.",
+      "evidence_terms": [],
+      "id": "RTL-0120",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC4",
+      "ssot_context": {
+        "expected": "First edge_o appears after SYNC_STAGES+1 cycles",
+        "id": "SC4",
+        "name": "Synchronizer latency"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC4"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC5",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC5",
+        "Primary implementation evidence is in rtl/edge_detector.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: STATUS.overflow=1; edge_o still pulses"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC5.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: id=SC5; name=Sticky and overflow behavior; expected=STATUS.overflow=1; edge_o still pulses.",
+      "evidence_terms": [],
+      "id": "RTL-0121",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC5",
+      "ssot_context": {
+        "expected": "STATUS.overflow=1; edge_o still pulses",
+        "id": "SC5",
+        "name": "Sticky and overflow behavior"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC5"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC6",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC6",
+        "Primary implementation evidence is in rtl/edge_detector.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: STATUS.edge_sticky and STATUS.overflow cleared to 0"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC6.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: id=SC6; name=W1C clear; expected=STATUS.edge_sticky and STATUS.overflow cleared to 0.",
+      "evidence_terms": [],
+      "id": "RTL-0122",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC6",
+      "ssot_context": {
+        "expected": "STATUS.edge_sticky and STATUS.overflow cleared to 0",
+        "id": "SC6",
+        "name": "W1C clear"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC6"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC7",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC7",
+        "Primary implementation evidence is in rtl/edge_detector.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: edge_o remains 0; STATUS unchanged"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC7.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: id=SC7; name=Enable gating; expected=edge_o remains 0; STATUS unchanged.",
+      "evidence_terms": [],
+      "id": "RTL-0123",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC7",
+      "ssot_context": {
+        "expected": "edge_o remains 0; STATUS unchanged",
+        "id": "SC7",
+        "name": "Enable gating"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC7"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC8",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC8",
+        "Primary implementation evidence is in rtl/edge_detector.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: edge_o remains 0 regardless of input"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC8.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: id=SC8; name=Reserved mode safety; expected=edge_o remains 0 regardless of input.",
+      "evidence_terms": [],
+      "id": "RTL-0124",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC8",
+      "ssot_context": {
+        "expected": "edge_o remains 0 regardless of input",
+        "id": "SC8",
+        "name": "Reserved mode safety"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC8"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC9",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC9",
+        "Primary implementation evidence is in rtl/edge_detector.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: irq_o=1 same cycle as edge_o"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC9.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: id=SC9; name=Interrupt generation; expected=irq_o=1 same cycle as edge_o.",
+      "evidence_terms": [],
+      "id": "RTL-0125",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC9",
+      "ssot_context": {
+        "expected": "irq_o=1 same cycle as edge_o",
+        "id": "SC9",
+        "name": "Interrupt generation"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC9"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC10",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC10",
+        "Primary implementation evidence is in rtl/edge_detector.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Read data matches expected register state"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC10.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: id=SC10; name=APB register read/write; expected=Read data matches expected register state.",
+      "evidence_terms": [],
+      "id": "RTL-0126",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC10",
+      "ssot_context": {
+        "expected": "Read data matches expected register state",
+        "id": "SC10",
+        "name": "APB register read/write"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC10"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC11",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC11",
+        "Primary implementation evidence is in rtl/edge_detector.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: PSLVERR=1, no state change"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC11.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: id=SC11; name=Illegal APB address; expected=PSLVERR=1, no state change.",
+      "evidence_terms": [],
+      "id": "RTL-0127",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC11",
+      "ssot_context": {
+        "expected": "PSLVERR=1, no state change",
+        "id": "SC11",
+        "name": "Illegal APB address"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC11"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC12",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC12",
+        "Primary implementation evidence is in rtl/edge_detector.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: edge_o reflects all transitions; each bit independent"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC12.\nOwner: edge_detector in rtl/edge_detector.sv via single_owner.\nSSOT item context: id=SC12; name=Multi-bit WIDTH operation; expected=edge_o reflects all transitions; each bit independent.",
+      "evidence_terms": [],
+      "id": "RTL-0128",
+      "owner_file": "rtl/edge_detector.sv",
+      "owner_module": "edge_detector",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC12",
+      "ssot_context": {
+        "expected": "edge_o reflects all transitions; each bit independent",
+        "id": "SC12",
+        "name": "Multi-bit WIDTH operation"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC12"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/edge_detector.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "840d14de13dd95a959136737727b272b19f9ee4fec88ae3762a5e61ba413821c",
+  "top": "edge_detector",
+  "type": "rtl_authoring_packet"
+}
