@@ -59,7 +59,7 @@ module pulse_gen #(
         .PULSE_POLARITY(PULSE_POLARITY),
         .APB_ADDR_WIDTH(APB_ADDR_WIDTH)
     ) u_regs (
-        .clk_i(PCLK),
+        .rst_ni(PRESETn),
         .rst_ni(PRESETn_sync),
         .PADDR(PADDR),
         .PSEL(PSEL),
