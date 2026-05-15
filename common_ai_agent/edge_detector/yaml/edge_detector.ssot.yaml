@@ -419,8 +419,32 @@ custom:
     - "Reserved EDGE_MODE=3 is treated as 'no detection' (edge_o forced to 0); software must use 0, 1, or 2."
     - "Overflow flag only indicates that a new edge occurred while sticky was still set; it does not count multiple missed edges."
   note: "Simple peripheral IP; no custom protocol extensions"
-dir_structure: TBD
-filelist: TBD
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "docs/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+filelist:
+  headers:
+    - "rtl/edge_detector_param.vh"
+  rtl:
+    - "rtl/edge_detector.sv"
+    - "rtl/edge_detector_regs.sv"
+  sim:
+    - "sim/tb_top.sv"
+    - "sim/tb_program.sv"
+    - "sim/edge_detector_model.sv"
+  firmware:
+    - "firmware/edge_detector_regs.h"
+  docs:
+    - "docs/register_map.md"
+    - "docs/README.md"
 test_requirements:
   scenarios:
     - { id: "SC1", name: "Basic rising edge detection", stimulus: "Set EDGE_MODE=1, enable=1, toggle signal_i[0] low->high", expected: "edge_o[0]=1 for one cycle; STATUS.edge_sticky[0]=1", checker: "Scoreboard expected/got assertion", coverage: ["function_model transaction DETECT", "cycle_model stage S2_OUTPUT"] }
