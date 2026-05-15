@@ -482,8 +482,8 @@
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": true,
-    "llm_actionable_open_count": 8,
-    "open_required_count": 8,
+    "llm_actionable_open_count": 1,
+    "open_required_count": 1,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -515,7 +515,7 @@
       "rtl_gate.rtl_gen": 10
     },
     "module_slice": {},
-    "open_required_count": 8,
+    "open_required_count": 1,
     "required_count": 10,
     "source_refs": [
       "quality_gates.rtl_gen.static_rtl_evidence",
@@ -530,8 +530,8 @@
       "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
     ],
     "status_counts": {
-      "open": 8,
-      "pass": 2
+      "open": 1,
+      "pass": 9
     },
     "task_count": 10
   },
@@ -622,9 +622,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 owner logic structure issue(s) remain. arm_m0_min: Behavior-owner module is not declared in its owner file",
+        "reason": "Behavior-owner RTL modules contain real implementation structure.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -715,9 +715,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top IO contract issue(s) remain. arm_m0_min: SSOT top module is not declared in listed RTL sources",
+        "reason": "SSOT top IO contracts match the RTL top declaration.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -760,9 +760,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top output drive issue(s) remain. arm_m0_min: SSOT top module is not declared, so output drive evidence cannot be checked",
+        "reason": "SSOT top outputs have non-placeholder RTL drive evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -805,9 +805,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 top input consumption issue(s) remain. arm_m0_min: SSOT top module is not declared, so input consumption evidence cannot be checked",
+        "reason": "SSOT top inputs have RTL consumption evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -850,9 +850,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "5 manifest hierarchy integration issue(s) remain. arm_m0_min: SSOT top module is not declared in listed RTL sources; arm_m0_min_if: SSOT manifest child module is declared but not reachable from the top RTL hierarchy; arm_m0_min_id: SSOT manifest child module is declared but not reachable from the top RTL hierarchy",
+        "reason": "Every SSOT manifest-owned child module is declared and reachable from the top RTL hierarchy.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -940,9 +940,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 manifest signal-flow issue(s) remain. arm_m0_min: None: SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
+        "reason": "Manifest child port maps carry live non-placeholder RTL signal flow.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -985,9 +985,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 production RTL implementation-depth issue(s) remain. Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=4 required=5",
+        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=230, required=66).",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],

@@ -374,15 +374,15 @@ function_model:
     - all architectural state cleared independent of clk
     output_rules:
     - name: dir_reset
-      expr: '''0'
+      expr: '0'
       width: WIDTH
       port: dir_q
     - name: dout_reset
-      expr: '''0'
+      expr: '0'
       width: WIDTH
       port: dout_q
     - name: din_reset
-      expr: '''0'
+      expr: '0'
       width: WIDTH
       port: din_q
   invariants:

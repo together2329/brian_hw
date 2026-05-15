@@ -475,15 +475,6 @@
   "execution_policy": {
     "blocked_by_locked_truth": [
       {
-        "gate_kind": "manifest_connection_contract_evidence",
-        "owner_module": "arm_m0_min",
-        "reason": "12 SSOT connection contract issue(s) remain. arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy; arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy; arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-        "status": "open",
-        "task_id": "RTL-0016"
-      },
-      {
         "gate_kind": "golden_authority_artifacts",
         "owner_module": "arm_m0_min",
         "reason": "Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json, verify/equivalence_goals.json",
@@ -507,11 +498,11 @@
     "deferred_human_qa_allowed": true,
     "draft_allowed": false,
     "evidence_closure_allowed": true,
-    "human_locked_open_count": 3,
+    "human_locked_open_count": 2,
     "integration_signoff_allowed": true,
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
-    "open_required_count": 3,
+    "open_required_count": 2,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -543,7 +534,7 @@
       "rtl_gate.rtl_gen": 7
     },
     "module_slice": {},
-    "open_required_count": 3,
+    "open_required_count": 2,
     "required_count": 7,
     "source_refs": [
       "quality_gates.rtl_gen.ssot_required_sections",
@@ -555,8 +546,8 @@
       "quality_gates.rtl_gen.cycle_model_artifacts"
     ],
     "status_counts": {
-      "open": 3,
-      "pass": 4
+      "open": 2,
+      "pass": 5
     },
     "task_count": 7
   },
@@ -737,9 +728,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "12 SSOT connection contract issue(s) remain. arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy; arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy; arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy",
+        "reason": "SSOT connection contracts are satisfied by reachable RTL named port maps.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
