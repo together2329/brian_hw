@@ -482,8 +482,8 @@
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": true,
-    "llm_actionable_open_count": 9,
-    "open_required_count": 9,
+    "llm_actionable_open_count": 8,
+    "open_required_count": 8,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -515,7 +515,7 @@
       "rtl_gate.rtl_gen": 10
     },
     "module_slice": {},
-    "open_required_count": 9,
+    "open_required_count": 8,
     "required_count": 10,
     "source_refs": [
       "quality_gates.rtl_gen.static_rtl_evidence",
@@ -530,8 +530,8 @@
       "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
     ],
     "status_counts": {
-      "open": 9,
-      "pass": 1
+      "open": 8,
+      "pass": 2
     },
     "task_count": 10
   },
@@ -577,7 +577,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "30 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "28 static-evidence-required task(s) still lack DUT RTL evidence.",
         "required": true,
         "status": "open"
       }
@@ -622,7 +622,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "5 owner logic structure issue(s) remain. arm_m0_min_if: Behavior-owner module is not declared in its owner file; arm_m0_min_id: Behavior-owner module is not declared in its owner file; arm_m0_min_ex: Behavior-owner module is not declared in its owner file",
+        "reason": "4 owner logic structure issue(s) remain. arm_m0_min_id: Behavior-owner module is not declared in its owner file; arm_m0_min_ex: Behavior-owner module is not declared in its owner file; arm_m0_min_rf: Behavior-owner module is not declared in its owner file",
         "required": true,
         "status": "open"
       }
@@ -670,9 +670,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
+        "reason": "RTL sources contain no placeholder markers or disallowed default-policy constructs.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -850,7 +850,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "5 manifest hierarchy integration issue(s) remain. arm_m0_min: SSOT top module is not declared in listed RTL sources; arm_m0_min_if: SSOT manifest child module is not declared in listed RTL sources; arm_m0_min_id: SSOT manifest child module is not declared in listed RTL sources",
+        "reason": "5 manifest hierarchy integration issue(s) remain. arm_m0_min: SSOT top module is not declared in listed RTL sources; arm_m0_min_if: SSOT manifest child module is declared but not reachable from the top RTL hierarchy; arm_m0_min_id: SSOT manifest child module is not declared in listed RTL sources",
         "required": true,
         "status": "open"
       }
@@ -985,7 +985,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "4 production RTL implementation-depth issue(s) remain. No listed DUT RTL sources are available for production implementation-depth audit; Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=0 required=66; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=0 required=5",
+        "reason": "3 production RTL implementation-depth issue(s) remain. Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=27 required=66; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=1 required=5; Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=1 required=5",
         "required": true,
         "status": "open"
       }

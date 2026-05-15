@@ -477,7 +477,7 @@
       {
         "gate_kind": "manifest_connection_contract_evidence",
         "owner_module": "arm_m0_min",
-        "reason": "12 SSOT connection contract issue(s) remain. arm_m0_min_if: SSOT connection contract targets a module not declared in RTL; arm_m0_min_if: SSOT connection contract targets a module not declared in RTL; arm_m0_min_if: SSOT connection contract targets a module not declared in RTL",
+        "reason": "12 SSOT connection contract issue(s) remain. arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy; arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy; arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
         "status": "open",
@@ -737,7 +737,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "12 SSOT connection contract issue(s) remain. arm_m0_min_if: SSOT connection contract targets a module not declared in RTL; arm_m0_min_if: SSOT connection contract targets a module not declared in RTL; arm_m0_min_if: SSOT connection contract targets a module not declared in RTL",
+        "reason": "12 SSOT connection contract issue(s) remain. arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy; arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy; arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "required": true,
         "status": "open"
       }

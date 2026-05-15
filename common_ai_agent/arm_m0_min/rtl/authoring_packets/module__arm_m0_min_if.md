@@ -24,7 +24,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 23
+- LLM-actionable open tasks: 3
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules, cycle_model.pipeline, io_list, io_list.interfaces.ahb_i_master, timing, timing.fetch_path
 - SSOT connection contracts:
@@ -40,14 +40,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.clock
 - Source ref: cycle_model.clock
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.clock.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.
 SSOT item context: value=clk.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -61,13 +61,13 @@ SSOT item context: value=clk.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.reset
 - Source ref: cycle_model.reset
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.reset.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -81,14 +81,14 @@ Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.i_htrans
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.i_htrans.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.handshake_rules.
 SSOT item context: signal=i_htrans.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -109,7 +109,7 @@ SSOT item context: signal=i_htrans.
 SSOT ref: cycle_model.handshake_rules.d_htrans.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.handshake_rules.
 SSOT item context: signal=d_htrans.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -130,7 +130,7 @@ SSOT item context: signal=d_htrans.
 SSOT ref: cycle_model.handshake_rules.d_hwdata.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.handshake_rules.
 SSOT item context: signal=d_hwdata.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -144,14 +144,14 @@ SSOT item context: signal=d_hwdata.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.IF
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.IF.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.pipeline.
 SSOT item context: stage=IF; action=Drive instruction address/control and capture instruction on ready; cycle=n.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -166,14 +166,14 @@ SSOT item context: stage=IF; action=Drive instruction address/control and captur
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.ID
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.ID.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.pipeline.
 SSOT item context: stage=ID; action=Decode instruction and read source operands; cycle=n+1.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -188,14 +188,14 @@ SSOT item context: stage=ID; action=Decode instruction and read source operands;
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.backpressure
 - Source ref: cycle_model.backpressure.backpressure_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.backpressure.backpressure_rule_0.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.
 SSOT item context: value=i_hready=0 stalls IF and upstream PC progression without corrupting ID/EX committed state..
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -216,7 +216,7 @@ SSOT item context: value=i_hready=0 stalls IF and upstream PC progression withou
 SSOT ref: cycle_model.backpressure.backpressure_rule_1.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.
 SSOT item context: value=d_hready=0 stalls memory operation in EX; no duplicate commit allowed..
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -230,14 +230,14 @@ SSOT item context: value=d_hready=0 stalls memory operation in EX; no duplicate 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.observability
 - Source ref: cycle_model.observability.observability_signal_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.observability.observability_signal_0.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via cycle_model.
 SSOT item context: value=Expose stage valid/stall indicators, pc, decode class, bus handshakes, and fault_halt for waveform and checker correl....
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -251,13 +251,13 @@ SSOT item context: value=Expose stage valid/stall indicators, pc, decode class, 
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.arm_m0_min_if.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.arm_m0_min_if.module_equivalence.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
@@ -272,14 +272,14 @@ Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via module_equivalence.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.clock_domains.clk.ports.clk
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.clock_domains.clk.ports.clk.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.
 SSOT item context: name=clk; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -294,14 +294,14 @@ SSOT item context: name=clk; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.resets.rst.ports.rst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.resets.rst.ports.rst.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.
 SSOT item context: name=rst; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -316,14 +316,14 @@ SSOT item context: name=rst; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_i_master.ports.i_haddr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_i_master.ports.i_haddr.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.
 SSOT item context: name=i_haddr; width=32; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -338,14 +338,14 @@ SSOT item context: name=i_haddr; width=32; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_i_master.ports.i_htrans
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_i_master.ports.i_htrans.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.
 SSOT item context: name=i_htrans; width=2; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -360,14 +360,14 @@ SSOT item context: name=i_htrans; width=2; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_i_master.ports.i_hwrite
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_i_master.ports.i_hwrite.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.
 SSOT item context: name=i_hwrite; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -382,14 +382,14 @@ SSOT item context: name=i_hwrite; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_i_master.ports.i_hsize
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_i_master.ports.i_hsize.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.
 SSOT item context: name=i_hsize; width=3; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -404,14 +404,14 @@ SSOT item context: name=i_hsize; width=3; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_i_master.ports.i_hburst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_i_master.ports.i_hburst.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.
 SSOT item context: name=i_hburst; width=3; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -426,14 +426,14 @@ SSOT item context: name=i_hburst; width=3; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_i_master.ports.i_hprot
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_i_master.ports.i_hprot.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.
 SSOT item context: name=i_hprot; width=4; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -448,14 +448,14 @@ SSOT item context: name=i_hprot; width=4; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_i_master.ports.i_hmastlock
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_i_master.ports.i_hmastlock.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.
 SSOT item context: name=i_hmastlock; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -470,14 +470,14 @@ SSOT item context: name=i_hmastlock; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_i_master.ports.i_hready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_i_master.ports.i_hready.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.
 SSOT item context: name=i_hready; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -492,14 +492,14 @@ SSOT item context: name=i_hready; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_i_master.ports.i_hrdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_i_master.ports.i_hrdata.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.
 SSOT item context: name=i_hrdata; width=32; direction=input.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -514,14 +514,14 @@ SSOT item context: name=i_hrdata; width=32; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_i_master.ports.i_hresp
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_i_master.ports.i_hresp.
 Owner: arm_m0_min_if in rtl/arm_m0_min_if.sv via io_list.interfaces.ahb_i_master.
 SSOT item context: name=i_hresp; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/arm_m0_min_if.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified

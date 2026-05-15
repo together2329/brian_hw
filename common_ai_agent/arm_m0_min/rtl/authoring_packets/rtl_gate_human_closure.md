@@ -28,7 +28,7 @@
 - Human-locked open tasks: 3
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Locked-truth blockers:
-  - manifest_connection_contract_evidence: 12 SSOT connection contract issue(s) remain. arm_m0_min_if: SSOT connection contract targets a module not declared in RTL; arm_m0_min_if: SSOT connection contract targets a module not declared in RTL; arm_m0_min_if: SSOT connection contract targets a module not declared in RTL
+  - manifest_connection_contract_evidence: 12 SSOT connection contract issue(s) remain. arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy; arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy; arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy
   - golden_authority_artifacts: Missing production golden authority artifact(s): governance/authority.json, model/model_signature.json, verify/equivalence_goals.json
   - cycle_model_artifacts: Missing executable cycle model: model/cycle_model.py.
 - SSOT connection contracts:
@@ -116,7 +116,7 @@ Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
 - Detail: Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.
 SSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.
 Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: 12 SSOT connection contract issue(s) remain. arm_m0_min_if: SSOT connection contract targets a module not declared in RTL; arm_m0_min_if: SSOT connection contract targets a module not declared in RTL; arm_m0_min_if: SSOT connection contract targets a module not declared in RTL
+- Current reason: 12 SSOT connection contract issue(s) remain. arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy; arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy; arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy
 - Criteria:
   - Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections
   - Each SSOT connection contract resolves to a reachable manifest child module and port

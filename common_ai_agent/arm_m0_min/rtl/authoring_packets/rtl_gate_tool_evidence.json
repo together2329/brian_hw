@@ -505,7 +505,7 @@
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "arm_m0_min",
-        "reason": "144 required non-closure TODO(s) remain open.",
+        "reason": "123 required non-closure TODO(s) remain open.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -640,7 +640,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "144 required non-closure TODO(s) remain open.",
+        "reason": "123 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -948,7 +948,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "144 required non-closure TODO(s) remain open.",
+        "reason": "123 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }

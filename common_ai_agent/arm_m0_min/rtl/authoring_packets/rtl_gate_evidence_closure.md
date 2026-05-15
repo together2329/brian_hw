@@ -24,7 +24,7 @@
 - Evidence closure allowed: True
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 9
+- LLM-actionable open tasks: 8
 - Human-locked open tasks: 0
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - SSOT connection contracts:
@@ -54,7 +54,7 @@
 - Detail: After RTL exists, derive_rtl_todos.py --audit-rtl must find concrete DUT source terms for every static-evidence-required task.
 SSOT ref: quality_gates.rtl_gen.static_rtl_evidence.
 Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: 30 static-evidence-required task(s) still lack DUT RTL evidence.
+- Current reason: 28 static-evidence-required task(s) still lack DUT RTL evidence.
 - Criteria:
   - derive_rtl_todos.py --audit-rtl ran after the final RTL edit
   - rtl_todo_plan.json static_rtl_evidence.missing is zero
@@ -74,7 +74,7 @@ Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
 - Detail: Static token evidence is not enough. Each SSOT behavior-owner RTL module must contain real assign/procedural/state structure appropriate for its owned function_model, cycle_model, register, memory, or FSM contract.
 SSOT ref: quality_gates.rtl_gen.owner_logic_structure_evidence.
 Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: 5 owner logic structure issue(s) remain. arm_m0_min_if: Behavior-owner module is not declared in its owner file; arm_m0_min_id: Behavior-owner module is not declared in its owner file; arm_m0_min_ex: Behavior-owner module is not declared in its owner file
+- Current reason: 4 owner logic structure issue(s) remain. arm_m0_min_id: Behavior-owner module is not declared in its owner file; arm_m0_min_ex: Behavior-owner module is not declared in its owner file; arm_m0_min_rf: Behavior-owner module is not declared in its owner file
 - Criteria:
   - Every active behavior-owner module is declared in its owner file
   - Behavior-owner modules contain non-placeholder assign/procedural implementation logic
@@ -87,13 +87,13 @@ Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.rtl_placeholder_free_evidence
 - Detail: Production RTL cannot carry TODO/TBD/FIXME/stub/dummy/not-implemented markers in source code or comments. Generated RTL uses the project SystemVerilog subset: ANSI ports default to input/output logic, with no package/import/interface/modport, no function/task, no for/while, and no typedef/enum/always_ff/always_comb. If behavior is intentionally reserved, it must be expressed in the SSOT as a waiver or explicit tieoff/unused contract.
 SSOT ref: quality_gates.rtl_gen.rtl_placeholder_free_evidence.
 Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: 1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)
+- Current reason: RTL sources contain no placeholder markers or disallowed default-policy constructs.
 - Criteria:
   - Listed RTL source files contain no TODO/TBD/FIXME/HACK markers
   - Listed RTL source files contain no placeholder/stub/dummy/not-implemented implementation text
@@ -172,7 +172,7 @@ Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
 - Detail: File existence is not enough for general IP RTL. Every SSOT manifest-owned non-top RTL module must be declared and reachable from the SSOT top through real module instantiation.
 SSOT ref: quality_gates.rtl_gen.manifest_hierarchy_integration.
 Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: 5 manifest hierarchy integration issue(s) remain. arm_m0_min: SSOT top module is not declared in listed RTL sources; arm_m0_min_if: SSOT manifest child module is not declared in listed RTL sources; arm_m0_min_id: SSOT manifest child module is not declared in listed RTL sources
+- Current reason: 5 manifest hierarchy integration issue(s) remain. arm_m0_min: SSOT top module is not declared in listed RTL sources; arm_m0_min_if: SSOT manifest child module is declared but not reachable from the top RTL hierarchy; arm_m0_min_id: SSOT manifest child module is not declared in listed RTL sources
 - Criteria:
   - Every manifest-owned non-top submodule is declared in listed DUT RTL sources
   - Each child module is reachable from the SSOT top module through SystemVerilog instantiation
@@ -229,7 +229,7 @@ Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
 - Detail: Production-profile RTL cannot be a shallow shell that merely satisfies names, ports, or compile checks. The RTL must contain aggregate implementation structure scaled from the current SSOT task count, behavior-owner modules, and manifest hierarchy.
 SSOT ref: quality_gates.rtl_gen.rtl_implementation_depth_evidence.
 Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: 4 production RTL implementation-depth issue(s) remain. No listed DUT RTL sources are available for production implementation-depth audit; Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=0 required=66; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=0 required=5
+- Current reason: 3 production RTL implementation-depth issue(s) remain. Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=27 required=66; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=1 required=5; Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=1 required=5
 - Criteria:
   - Implementation depth thresholds are derived from SSOT owner/task complexity, not a fixed IP template
   - Listed DUT RTL sources contain enough nonconstant logic, procedural/state/control structure, and child instances for the SSOT profile

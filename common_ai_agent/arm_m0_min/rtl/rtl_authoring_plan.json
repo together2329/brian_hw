@@ -9,7 +9,7 @@
       {
         "gate_kind": "static_rtl_evidence",
         "owner_module": "arm_m0_min",
-        "reason": "30 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "28 static-evidence-required task(s) still lack DUT RTL evidence.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
         "status": "open",
@@ -18,20 +18,11 @@
       {
         "gate_kind": "owner_logic_structure_evidence",
         "owner_module": "arm_m0_min",
-        "reason": "5 owner logic structure issue(s) remain. arm_m0_min_if: Behavior-owner module is not declared in its owner file; arm_m0_min_id: Behavior-owner module is not declared in its owner file; arm_m0_min_ex: Behavior-owner module is not declared in its owner file",
+        "reason": "4 owner logic structure issue(s) remain. arm_m0_min_id: Behavior-owner module is not declared in its owner file; arm_m0_min_ex: Behavior-owner module is not declared in its owner file; arm_m0_min_rf: Behavior-owner module is not declared in its owner file",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
         "status": "open",
         "task_id": "RTL-0008"
-      },
-      {
-        "gate_kind": "rtl_placeholder_free_evidence",
-        "owner_module": "arm_m0_min",
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-        "status": "open",
-        "task_id": "RTL-0009"
       },
       {
         "gate_kind": "top_io_contract_evidence",
@@ -63,7 +54,7 @@
       {
         "gate_kind": "manifest_hierarchy_integration",
         "owner_module": "arm_m0_min",
-        "reason": "5 manifest hierarchy integration issue(s) remain. arm_m0_min: SSOT top module is not declared in listed RTL sources; arm_m0_min_if: SSOT manifest child module is not declared in listed RTL sources; arm_m0_min_id: SSOT manifest child module is not declared in listed RTL sources",
+        "reason": "5 manifest hierarchy integration issue(s) remain. arm_m0_min: SSOT top module is not declared in listed RTL sources; arm_m0_min_if: SSOT manifest child module is declared but not reachable from the top RTL hierarchy; arm_m0_min_id: SSOT manifest child module is not declared in listed RTL sources",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
         "status": "open",
@@ -81,7 +72,7 @@
       {
         "gate_kind": "rtl_implementation_depth_evidence",
         "owner_module": "arm_m0_min",
-        "reason": "4 production RTL implementation-depth issue(s) remain. No listed DUT RTL sources are available for production implementation-depth audit; Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=0 required=66; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=0 required=5",
+        "reason": "3 production RTL implementation-depth issue(s) remain. Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=27 required=66; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=1 required=5; Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=1 required=5",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
         "status": "open",
@@ -92,7 +83,7 @@
       {
         "gate_kind": "manifest_connection_contract_evidence",
         "owner_module": "arm_m0_min",
-        "reason": "12 SSOT connection contract issue(s) remain. arm_m0_min_if: SSOT connection contract targets a module not declared in RTL; arm_m0_min_if: SSOT connection contract targets a module not declared in RTL; arm_m0_min_if: SSOT connection contract targets a module not declared in RTL",
+        "reason": "12 SSOT connection contract issue(s) remain. arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy; arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy; arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
         "status": "open",
@@ -148,7 +139,7 @@
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "arm_m0_min",
-        "reason": "144 required non-closure TODO(s) remain open.",
+        "reason": "123 required non-closure TODO(s) remain open.",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -203,7 +194,7 @@
     "draft_allowed": true,
     "gate_status": "fail",
     "hard_blockers": [],
-    "open_required_todos": 145,
+    "open_required_todos": 124,
     "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
@@ -296,7 +287,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "144 required non-closure TODO(s) remain open.",
+        "reason": "123 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -395,8 +386,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 23,
-        "open_required_count": 23,
+        "llm_actionable_open_count": 3,
+        "open_required_count": 3,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -432,7 +423,7 @@
           "module_task_count": 23,
           "task_limit": 48
         },
-        "open_required_count": 23,
+        "open_required_count": 3,
         "required_count": 23,
         "source_refs": [
           "cycle_model.clock",
@@ -460,7 +451,8 @@
           "io_list.interfaces.ahb_i_master.ports.i_hresp"
         ],
         "status_counts": {
-          "open": 23
+          "open": 3,
+          "pass": 20
         },
         "task_count": 23
       }
@@ -840,8 +832,8 @@
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
         "llm_actionable": true,
-        "llm_actionable_open_count": 9,
-        "open_required_count": 9,
+        "llm_actionable_open_count": 8,
+        "open_required_count": 8,
         "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
@@ -863,7 +855,7 @@
           "rtl_gate.rtl_gen": 10
         },
         "module_slice": {},
-        "open_required_count": 9,
+        "open_required_count": 8,
         "required_count": 10,
         "source_refs": [
           "quality_gates.rtl_gen.static_rtl_evidence",
@@ -878,8 +870,8 @@
           "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
         ],
         "status_counts": {
-          "open": 9,
-          "pass": 1
+          "open": 8,
+          "pass": 2
         },
         "task_count": 10
       }
@@ -890,7 +882,7 @@
           {
             "gate_kind": "manifest_connection_contract_evidence",
             "owner_module": "arm_m0_min",
-            "reason": "12 SSOT connection contract issue(s) remain. arm_m0_min_if: SSOT connection contract targets a module not declared in RTL; arm_m0_min_if: SSOT connection contract targets a module not declared in RTL; arm_m0_min_if: SSOT connection contract targets a module not declared in RTL",
+            "reason": "12 SSOT connection contract issue(s) remain. arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy; arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy; arm_m0_min_if: SSOT connection contract targets a module not reachable from top RTL hierarchy",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
             "status": "open",
@@ -998,7 +990,7 @@
           {
             "gate_kind": "dynamic_todo_closure",
             "owner_module": "arm_m0_min",
-            "reason": "144 required non-closure TODO(s) remain open.",
+            "reason": "123 required non-closure TODO(s) remain open.",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "status": "open",
@@ -1133,7 +1125,7 @@
             "prerequisites": [
               "All non-closure required TODOs have pass status."
             ],
-            "reason": "144 required non-closure TODO(s) remain open.",
+            "reason": "123 required non-closure TODO(s) remain open.",
             "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
             "stage_sequence": [
               "audit-rtl"
@@ -1284,7 +1276,7 @@
     "human_locked_packets": 1,
     "human_locked_tasks": 3,
     "llm_actionable_packets": 7,
-    "llm_actionable_tasks": 135,
+    "llm_actionable_tasks": 114,
     "max_packet_required_tasks": 35,
     "module_packets": 5,
     "next_llm_packets": [
