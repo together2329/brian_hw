@@ -1,0 +1,9 @@
+
+# 2026-05-15 20:33:47.935531
++/mode pipeline
+
+# 2026-05-15 20:33:47.942317
++/sim arm_m0_min
+
+# 2026-05-15 20:33:48.092815
++Run simulation for arm_m0_min using the generated tb/cocotb harness. Compile RTL with iverilog or verilator, execute every test case, and compare DUT register state vs functional_model.py per cycle. Produce sim/fl_rtl_compare.json (mismatch count must be 0), sim/fl_rtl_goal_audit.json (every fcov_plan bin must be hit), test_report.md, and at least one waveform vcd. Close sim workflow_todos with real evidence — do not fake scoreboard rows.

@@ -1,0 +1,9 @@
+{
+  "ip": "arm_m0_min",
+  "source": "sim/scoreboard_events.jsonl",
+  "total_rows": 37,
+  "pass_rows": 37,
+  "mismatch_count": 0,
+  "all_matched": true,
+  "mismatches": []
+}

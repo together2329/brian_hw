@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage",
+  "status": "pass",
+  "timestamp_iso": "2026-05-15T11:43:41Z",
+  "functional": {
+    "hit": 35,
+    "total": 35,
+    "pct": 100.0,
+    "bins": {
+      "fcov_tx_decode_exec": {
+        "hit": true,
+        "goal_id": "EQ_TRANSACTION_TX_DECODE_EXEC",
+        "scenario_id": "SC_001_EQ_TRANSACTION_TX_DECODE_EXEC"
+      },
+      "function_alu_compare_branch": {
+        "hit": true,
+        "goal_id": "EQ_TRANSACTION_TX_DECODE_EXEC",
+        "scenario_id": "SC_001_EQ_TRANSACTION_TX_DECODE_EXEC"
+      },
+      "fcov_tx_load_store": {
+        "hit": true,
+        "goal_id": "EQ_TRANSACTION_TX_LOAD_STORE",
+        "scenario_id": "SC_002_EQ_TRANSACTION_TX_LOAD_STORE"
+      },
+      "function_single_transfer_memory_access": {
+        "hit": true,
+        "goal_id": "EQ_MEMORY_ID_EX_CTRL",
+        "scenario_id": "SC_014_EQ_MEMORY_ID_EX_CTRL"
+      },
+      "SC_ALU_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC_ALU",
+        "scenario_id": "SC_003_EQ_SCENARIO_SC_ALU"
+      },
+      "SC_CMP_BRANCH_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC_CMP_BRANCH",
+        "scenario_id": "SC_004_EQ_SCENARIO_SC_CMP_BRANCH"
+      },
+      "SC_LOAD_STORE_executed": {
+        "hit": true,
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+        "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2"
+      },
+      "SC_IF_STALL_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC_IF_STALL",
+        "scenario_id": "SC_006_EQ_SCENARIO_SC_IF_STALL"
+      },
+      "SC_BUS_ERROR_executed": {
+        "hit": true,
+        "goal_id": "EQ_ERROR_D_BUS_ERROR",
+        "scenario_id": "SC_016_EQ_ERROR_D_BUS_ERROR"
+      },
+      "ccov_mem_stall": {
+        "hit": true,
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+        "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2"
+      },
+      "cycle_handshake_0": {
+        "hit": true,
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+        "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2"
+      },
+      "cycle_handshake_1": {
+        "hit": true,
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+        "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2"
+      },
+      "cycle_handshake_2": {
+        "hit": true,
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+        "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2"
+      },
+      "ccov_pipeline_order": {
+        "hit": true,
+        "goal_id": "EQ_TIMING_ORDERING_1",
+        "scenario_id": "SC_012_EQ_TIMING_ORDERING_1"
+      },
+      "cycle_ordering_0": {
+        "hit": true,
+        "goal_id": "EQ_TIMING_ORDERING_1",
+        "scenario_id": "SC_012_EQ_TIMING_ORDERING_1"
+      },
+      "cycle_ordering_1": {
+        "hit": true,
+        "goal_id": "EQ_TIMING_ORDERING_1",
+        "scenario_id": "SC_012_EQ_TIMING_ORDERING_1"
+      },
+      "cycle_backpressure_1": {
+        "hit": true,
+        "goal_id": "EQ_MEMORY_ID_EX_CTRL",
+        "scenario_id": "SC_014_EQ_MEMORY_ID_EX_CTRL"
+      },
+      "fsm_core_run_to_fault_halt_5": {
+        "hit": true,
+        "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+        "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+      },
+      "fsm_core_stall_mem_to_fault_halt_6": {
+        "hit": true,
+        "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+        "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+      },
+      "error_i_bus_error": {
+        "hit": true,
+        "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+        "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+      },
+      "error_d_bus_error": {
+        "hit": true,
+        "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+        "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+      },
+      "fsm_core_reset_to_run_0": {
+        "hit": true,
+        "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+        "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+      },
+      "fsm_core_run_to_stall_if_1": {
+        "hit": true,
+        "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+        "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+      },
+      "fsm_core_stall_if_to_run_2": {
+        "hit": true,
+        "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+        "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+      },
+      "fsm_core_run_to_stall_mem_3": {
+        "hit": true,
+        "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+        "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+      },
+      "fsm_core_stall_mem_to_run_4": {
+        "hit": true,
+        "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+        "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+      },
+      "fsm_core_fault_halt_to_reset_7": {
+        "hit": true,
+        "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+        "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
+      },
+      "ccov_if_stall": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CCOV_IF_STALL",
+        "scenario_id": "SC_030_EQ_COVERAGE_CCOV_IF_STALL"
+      },
+      "cycle_latency_fetch_accept": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_FETCH_ACCEPT",
+        "scenario_id": "SC_031_EQ_COVERAGE_CYCLE_LATENCY_FETCH_ACCEPT"
+      },
+      "cycle_latency_alu_instr": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_ALU_INSTR",
+        "scenario_id": "SC_032_EQ_COVERAGE_CYCLE_LATENCY_ALU_INSTR"
+      },
+      "cycle_latency_load_store_instr": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_LOAD_STORE_INSTR",
+        "scenario_id": "SC_033_EQ_COVERAGE_CYCLE_LATENCY_LOAD_STORE_INSTR"
+      },
+      "cycle_pipeline_if": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_IF",
+        "scenario_id": "SC_034_EQ_COVERAGE_CYCLE_PIPELINE_IF"
+      },
+      "cycle_pipeline_id": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_ID",
+        "scenario_id": "SC_035_EQ_COVERAGE_CYCLE_PIPELINE_ID"
+      },
+      "cycle_pipeline_ex": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_EX",
+        "scenario_id": "SC_036_EQ_COVERAGE_CYCLE_PIPELINE_EX"
+      },
+      "cycle_backpressure_0": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "scenario_id": "SC_037_EQ_COVERAGE_CYCLE_BACKPRESSURE_0"
+      }
+    }
+  }
+}

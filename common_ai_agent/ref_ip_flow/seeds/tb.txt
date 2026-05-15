@@ -1,0 +1,3 @@
+/mode pipeline
+/ssot-tb arm_m0_min
+Generate the testbench for arm_m0_min from its SSOT and functional_model. Use cocotb if /ssot-tb-cocotb is preferred but plain SystemVerilog TB is fine too. Provide a top tb harness, AHB-Lite slave mock for I-bus and D-bus, a scoreboard comparing DUT register state per cycle against functional_model.py, and ≥15 test cases — one for each ISA instruction in {ADD,SUB,AND,ORR,EOR,MOV,CMP,LDR,STR,B,BEQ,BNE,LSL,LSR,ASR} plus a load-use-stall test and a CMP→BNE flag-propagation test. Honor SSOT coverage goals: every fcov_plan bin must be sampled. Close all tb-gen workflow_todos with evidence.

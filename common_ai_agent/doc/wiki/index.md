@@ -17,6 +17,14 @@ follow the source docs for implementation detail.
 9. [[provider-and-llm-call-accounting]] — provider normalization and how to count one LLM call.
 10. [[human-review-and-escalation]] — when to stop automation and ask for product/spec authority.
 
+## Reference Runs (working examples on real IPs)
+
+Reloadable snapshots live in [`ref_ip_flow/`](../../ref_ip_flow/README.md)
+— each run is portable (IP artifacts + ATLAS sessions + seeds) so it can
+be loaded on a different machine and inspected without recreating the DB.
+
+- [[arm-m0-min-pipeline-run]] — minimal ARMv6-M Thumb CPU, full ssot→lint pipeline with green compile/lint/sim/coverage; first CPU-class run on the new DB operating mode (2026-05-15).
+
 ## Hard Rules
 
 - Use the common engine and workflow commands for IP generation and repair.

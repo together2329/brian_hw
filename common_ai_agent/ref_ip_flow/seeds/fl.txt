@@ -1,0 +1,2 @@
+/mode pipeline
+/ssot-fl-model arm_m0_min

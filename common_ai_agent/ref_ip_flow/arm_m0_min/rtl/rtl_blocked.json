@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "type": "rtl_blocker",
+  "status": "blocked",
+  "owner": "ssot-gen + human gate",
+  "ip": "arm_m0_min",
+  "top": "arm_m0_min",
+  "reason": "SSOT behavior is not concrete enough for production RTL implementation.",
+  "questions": [
+    {
+      "id": "SSOT_BEHAVIOR_OWNERSHIP",
+      "decision_needed": "Assign every SSOT function/decomposition behavior to an RTL module contract.",
+      "evidence": "These SSOT refs have no owning RTL module contract: decomposition.units.fetch, decomposition.units.decode, decomposition.units.execute_mem",
+      "options": [
+        "Add function_model_refs/decomposition_refs to the manifest module that implements each orphan behavior.",
+        "Split or refine the SSOT decomposition if one behavior is too broad for a single RTL owner.",
+        "Move non-RTL-only intent into verification/coverage sections with explicit traceability instead of leaving it as implementation behavior."
+      ],
+      "recommended_default": "Keep SSOT as the single source: update sub_modules[] contracts with concrete function_model_refs and decomposition_refs.",
+      "downstream_effect": "rtl-gen, lint, tb-gen, and coverage can trace each LLM-authored RTL module back to SSOT behavior with no orphan function-level intent.",
+      "orphan_refs": [
+        "decomposition.units.fetch",
+        "decomposition.units.decode",
+        "decomposition.units.execute_mem"
+      ],
+      "owned_refs": {
+        "function_model_refs": [
+          "function_model",
+          "function_model.state_variables",
+          "function_model.transactions.TX_DECODE_EXEC",
+          "function_model.transactions.TX_LOAD_STORE"
+        ],
+        "decomposition_refs": []
+      },
+      "candidate_modules": [
+        {
+          "name": "arm_m0_min_if",
+          "file": "rtl/arm_m0_min_if.sv"
+        },
+        {
+          "name": "arm_m0_min_id",
+          "file": "rtl/arm_m0_min_id.sv"
+        },
+        {
+          "name": "arm_m0_min_ex",
+          "file": "rtl/arm_m0_min_ex.sv"
+        },
+        {
+          "name": "arm_m0_min_rf",
+          "file": "rtl/arm_m0_min_rf.sv"
+        }
+      ],
+      "required_fields": [
+        "sub_modules[].function_model_refs",
+        "sub_modules[].decomposition_refs"
+      ],
+      "answer_schema": {
+        "format": "YAML or JSON",
+        "root_key": "module_contracts",
+        "active_module_required": [
+          "name",
+          "file",
+          "function_model_refs and/or decomposition_refs covering every orphan_ref"
+        ],
+        "rule": "Do not use generated model/decomposition.json as authority; every owner ref must be present in the SSOT YAML."
+      },
+      "available_refs": {
+        "source_sections": [
+          "top_module",
+          "features",
+          "io_list",
+          "parameters",
+          "registers",
+          "function_model",
+          "cycle_model",
+          "dataflow",
+          "fsm",
+          "error_handling",
+          "test_requirements",
+          "quality_gates"
+        ],
+        "function_model_refs": [
+          "function_model.transactions.TX_DECODE_EXEC",
+          "function_model.transactions.TX_DECODE_EXEC.preconditions.fault_halt_0",
+          "function_model.transactions.TX_DECODE_EXEC.preconditions.instruction_fetch_completed_with_i_hready_1_and_i_hresp_OKAY",
+          "function_model.transactions.TX_DECODE_EXEC.inputs.decoded_opcode",
+          "function_model.transactions.TX_DECODE_EXEC.inputs.operand_values_from_architectural_registers",
+          "function_model.transactions.TX_DECODE_EXEC.outputs.ALU_destination_register_update_for_ADD_SUB_AND_ORR_EOR_MOV_LSL_LSR_ASR",
+          "function_model.transactions.TX_DECODE_EXEC.outputs.NZCV_updated_only_for_CMP",
+          "function_model.transactions.TX_DECODE_EXEC.outputs.PC_updated_sequentially_or_redirected_for_B_BEQ_BNE",
+          "function_model.transactions.TX_DECODE_EXEC.side_effects.pc_advances_by_instruction_size_on_non_branch",
+          "function_model.transactions.TX_DECODE_EXEC.side_effects.pc_set_to_target_when_branch_taken",
+          "function_model.transactions.TX_DECODE_EXEC.output_rules.pc_next_addr",
+          "function_model.transactions.TX_DECODE_EXEC.output_rules.store_data_mux",
+          "function_model.transactions.TX_DECODE_EXEC.error_cases.sig_0",
+          "function_model.transactions.TX_LOAD_STORE",
+          "function_model.transactions.TX_LOAD_STORE.preconditions.fault_halt_0",
+          "function_model.transactions.TX_LOAD_STORE.preconditions.decoded_opcode_is_LDR_or_STR",
+          "function_model.transactions.TX_LOAD_STORE.inputs.base_register",
+          "function_model.transactions.TX_LOAD_STORE.inputs.immediate_offset",
+          "function_model.transactions.TX_LOAD_STORE.inputs.store_data_for_STR_or_bus_read_data_for_LDR",
+          "function_model.transactions.TX_LOAD_STORE.outputs.LDR_updates_destination_register_with_returned_word",
+          "function_model.transactions.TX_LOAD_STORE.outputs.STR_commits_one_data_write_on_bus",
+          "function_model.transactions.TX_LOAD_STORE.side_effects.pc_advances_after_transfer_completion",
+          "function_model.transactions.TX_LOAD_STORE.output_rules.d_haddr_rule",
+          "function_model.transactions.TX_LOAD_STORE.output_rules.d_hwrite_rule",
+          "function_model.transactions.TX_LOAD_STORE.error_cases.sig_0",
+          "function_model.state_variables.pc",
+          "function_model.state_variables.gpr",
+          "function_model.state_variables.nzcv",
+          "function_model.state_variables.fault_halt"
+        ],
+        "decomposition_refs": [
+          "decomposition.units.fetch",
+          "decomposition.units.decode",
+          "decomposition.units.execute_mem"
+        ],
+        "cycle_model_refs": [
+          "cycle_model.pipeline.IF",
+          "cycle_model.pipeline.ID",
+          "cycle_model.pipeline.EX",
+          "cycle_model.handshake_rules.i_htrans",
+          "cycle_model.handshake_rules.d_htrans",
+          "cycle_model.handshake_rules.d_hwdata",
+          "cycle_model.clock",
+          "cycle_model.reset",
+          "cycle_model.latency"
+        ],
+        "feature_refs": [
+          "features.Thumb_1_ALU_compare",
+          "features.Load_store_over_AHB_Lite",
+          "features.Conditional_branch"
+        ],
+        "dataflow_refs": [],
+        "register_refs": [],
+        "fsm_refs": [
+          "fsm.core"
+        ],
+        "test_refs": [
+          "test_requirements.scenarios.SC_ALU",
+          "test_requirements.scenarios.SC_CMP_BRANCH",
+          "test_requirements.scenarios.SC_LOAD_STORE",
+          "test_requirements.scenarios.SC_IF_STALL",
+          "test_requirements.scenarios.SC_BUS_ERROR"
+        ],
+        "ports": [
+          "clk",
+          "rst",
+          "i_haddr",
+          "i_htrans",
+          "i_hwrite",
+          "i_hsize",
+          "i_hburst",
+          "i_hprot",
+          "i_hmastlock",
+          "i_hready",
+          "i_hrdata",
+          "i_hresp",
+          "d_haddr",
+          "d_htrans",
+          "d_hwrite",
+          "d_hsize",
+          "d_hburst",
+          "d_hprot",
+          "d_hmastlock",
+          "d_hwdata",
+          "d_hready",
+          "d_hrdata",
+          "d_hresp"
+        ],
+        "interfaces": [
+          "ahb_i_master",
+          "ahb_d_master"
+        ]
+      },
+      "yaml_patch_hint": "For each orphan_refs entry, add the exact ref or a parent ref under the owning sub_modules[] row. Parent refs cover child refs by dotted-prefix ownership."
+    }
+  ],
+  "next_action": "Run workflow/rtl-gen/scripts/prepare_rtl_human_review.py to create a pending review packet, answer/approve through ATLAS UI or resolve_rtl_blockers.py, update SSOT, then rerun /ssot-rtl.",
+  "timestamp": "2026-05-15T10:45:32Z"
+}

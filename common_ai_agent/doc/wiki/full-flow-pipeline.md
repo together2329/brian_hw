@@ -43,6 +43,14 @@ benchmark/debug runs.
 | Debug | `/sim-debug <ip>` | mismatch classification and wave/source evidence |
 | Audit | `/goal-audit <ip>` | final FL-vs-RTL goal audit |
 
+## Reference Run
+
+[[arm-m0-min-pipeline-run]] (2026-05-15) — minimal ARMv6-M Thumb CPU walked
+through ssot-gen → fl-model-gen → rtl-gen → tb-gen → sim → lint on the
+headless surface with `gpt-5.3-codex` + `/mode pipeline`. compile/lint/sim
+equivalence/coverage all green. Use this as the worked example for a fresh
+CPU-class IP.
+
 ## Pipeline Modes
 
 - `interactive`: human answers `ask_user` and review cards.

@@ -1,0 +1,674 @@
+#!/usr/bin/env python3
+"""Executable SSOT functional model for arm_m0_min.
+
+Generated from yaml/arm_m0_min.ssot.yaml. This model is independent from RTL and is
+intended to be imported by cocotb/pyuvm scoreboards.
+"""
+
+from __future__ import annotations
+
+import ast
+import json
+import re
+
+
+SSOT_MODEL = {'ip': 'arm_m0_min', 'parameters': {'XLEN': 32, 'RESET_PC': 0, 'ENABLE_FAULT_HALT': 1}, 'top_module': {'name': 'arm_m0_min', 'file': 'rtl/arm_m0_min.sv', 'version': '1.0', 'type': 'cpu', 'description': 'Minimal ARMv6-M-like educational CPU with a 3-stage in-order pipeline and dual AHB-Lite master ports.', 'reference_spec': 'ARMv6-M architectural subset (teaching profile)', 'target': {'technology': 'generic', 'clock_freq_mhz': 50, 'area_um2': None, 'power_mw': None}}, 'memory': {'instances': [{'name': 'if_id_instr', 'type': 'register', 'depth': 1, 'width': 32, 'read_ports': 1, 'write_ports': 1, 'latency': 0, 'description': 'IF/ID pipeline latch'}, {'name': 'id_ex_ctrl', 'type': 'register', 'depth': 1, 'width': 64, 'read_ports': 1, 'write_ports': 1, 'latency': 0, 'description': 'ID/EX control+operand latch'}], 'note': 'No internal SRAM/FIFO macros in minimal core'}, 'registers': {'no_csr': True, 'no_registers': True, 'policy': 'No firmware-visible CSR/register map is implemented in this profile; add register_list entries before CSR behavior is permitted.', 'note': 'No APB/CSR register map is exposed by this CPU leaf; only architectural GPR/PC/flags internal state exists.', 'config': {'register_width': 32, 'addr_width': 0, 'byte_addressable': False}, 'register_list': []}, 'function_model': {'purpose': 'Cycle-independent architectural contract for downstream RTL and scoreboard generation', 'state_variables': [{'name': 'pc', 'source': 'register_file.R15', 'reset': 0, 'description': 'Program counter'}, {'name': 'gpr', 'source': 'register_file.R0_R14', 'reset': 0, 'description': 'General registers'}, {'name': 'nzcv', 'source': 'arch_flags', 'reset': 0, 'description': 'Condition flags'}, {'name': 'fault_halt', 'source': 'fault_state', 'reset': 0, 'description': 'Fault-halt latch'}], 'transactions': [{'id': 'TX_DECODE_EXEC', 'name': 'alu_compare_branch', 'preconditions': ['fault_halt == 0', 'instruction fetch completed with i_hready == 1 and i_hresp == OKAY'], 'inputs': ['decoded opcode', 'operand values from architectural registers'], 'outputs': ['ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR', 'NZCV updated only for CMP', 'PC updated sequentially or redirected for B/BEQ/BNE'], 'output_rules': [{'name': 'pc_next_addr', 'expr': '(branch_target) if (branch_taken) else ((pc + 2))', 'width': 32, 'port': 'i_haddr'}, {'name': 'store_data_mux', 'expr': '(rs2) if (is_store) else (0)', 'width': 32, 'port': 'd_hwdata'}], 'side_effects': ['pc advances by instruction size on non-branch', 'pc set to target when branch taken'], 'error_cases': [{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}]}, {'id': 'TX_LOAD_STORE', 'name': 'single_transfer_memory_access', 'preconditions': ['fault_halt == 0', 'decoded opcode is LDR or STR'], 'inputs': ['base register', 'immediate offset', 'store data for STR or bus read data for LDR'], 'outputs': ['LDR updates destination register with returned word', 'STR commits one data write on bus'], 'output_rules': [{'name': 'd_haddr_rule', 'expr': 'base + imm', 'width': 32, 'port': 'd_haddr'}, {'name': 'd_hwrite_rule', 'expr': '(1) if (is_store) else (0)', 'width': 1, 'port': 'd_hwrite'}], 'side_effects': ['pc advances after transfer completion'], 'error_cases': [{'condition': 'data bus response ERROR', 'result': 'fault_halt set and no further instruction retirement'}]}], 'invariants': ['No instruction retires while fault_halt==1.', 'IF/ID/EX ordering remains in-order with no out-of-order commit.', 'Register writes occur only from committed EX outcomes.'], 'reference_model_hint': 'tb-gen should create a Python architectural model tracking pc/gpr/nzcv/fault_halt and compare each committed instruction outcome.'}, 'cycle_model': {'purpose': 'Cycle-accurate handshake and stage ordering contract', 'executable': 'pymtl3', 'clock': 'clk', 'reset': {'assertion': 'When rst=1 at rising edge, pipeline and architectural state reset synchronously', 'deassertion': 'After rst returns 0, fetch starts on next rising edge'}, 'latency': {'fetch_accept': {'min_cycles': 1, 'max_cycles': None, 'description': 'Depends on i_hready backpressure'}, 'alu_instr': {'min_cycles': 1, 'max_cycles': 1, 'description': 'No extra wait in EX for pure ALU ops'}, 'load_store_instr': {'min_cycles': 1, 'max_cycles': None, 'description': 'Variable with d_hready'}}, 'handshake_rules': [{'signal': 'i_htrans', 'rule': 'IF keeps transfer intent stable until i_hready handshake occurs'}, {'signal': 'd_htrans', 'rule': 'EX keeps active transfer until d_hready indicates completion'}, {'signal': 'd_hwdata', 'rule': 'For STR, write data remains stable while waiting for d_hready'}], 'pipeline': [{'stage': 'IF', 'cycle': 'n', 'action': 'Drive instruction address/control and capture instruction on ready'}, {'stage': 'ID', 'cycle': 'n+1', 'action': 'Decode instruction and read source operands'}, {'stage': 'EX', 'cycle': 'n+2', 'action': 'Execute/branch/load-store and commit results'}], 'ordering': ['Program-order retirement: instruction i commits before i+1.', 'Branch redirection affects subsequent fetch only after branch evaluation reaches commit boundary.'], 'backpressure': ['i_hready=0 stalls IF and upstream PC progression without corrupting ID/EX committed state.', 'd_hready=0 stalls memory operation in EX; no duplicate commit allowed.'], 'observability': ['Expose stage valid/stall indicators, pc, decode class, bus handshakes, and fault_halt for waveform and checker correlation.'], 'performance': {'ipc_nominal': 1.0, 'stall_sensitivity': {'if_backpressure': 'IPC degrades proportionally to i_hready low duty cycle', 'mem_backpressure': 'IPC degrades during load/store wait windows on d_hready low'}, 'branch_penalty_cycles': {'taken_min': 1, 'taken_max': 2}}}, 'fcov_bins': [{'id': 'SC_ALU_executed', 'class': 'scenario', 'source': 'test_requirements.scenarios[0]', 'scenario': 'SC_ALU', 'description': 'ALU instruction correctness'}, {'id': 'SC_CMP_BRANCH_executed', 'class': 'scenario', 'source': 'test_requirements.scenarios[1]', 'scenario': 'SC_CMP_BRANCH', 'description': 'CMP and conditional branching'}, {'id': 'SC_LOAD_STORE_executed', 'class': 'scenario', 'source': 'test_requirements.scenarios[2]', 'scenario': 'SC_LOAD_STORE', 'description': 'Load/store handshake behavior'}, {'id': 'SC_IF_STALL_executed', 'class': 'scenario', 'source': 'test_requirements.scenarios[3]', 'scenario': 'SC_IF_STALL', 'description': 'Instruction fetch backpressure'}, {'id': 'SC_BUS_ERROR_executed', 'class': 'scenario', 'source': 'test_requirements.scenarios[4]', 'scenario': 'SC_BUS_ERROR', 'description': 'Bus error to fault-halt'}, {'id': 'fcov_tx_decode_exec', 'class': 'transaction', 'coverage_domain': 'function', 'source': 'function_model.transactions.TX_DECODE_EXEC', 'source_ref': 'function_model.transactions.TX_DECODE_EXEC', 'description': 'ALU/compare/branch transaction observed'}, {'id': 'fcov_tx_load_store', 'class': 'transaction', 'coverage_domain': 'function', 'source': 'function_model.transactions.TX_LOAD_STORE', 'source_ref': 'function_model.transactions.TX_LOAD_STORE', 'description': 'Load/store transaction observed'}, {'id': 'ccov_if_stall', 'class': 'stall', 'coverage_domain': 'cycle', 'source': 'cycle_model.backpressure', 'source_ref': 'cycle_model.backpressure', 'description': 'IF backpressure observed'}, {'id': 'ccov_mem_stall', 'class': 'stall', 'coverage_domain': 'cycle', 'source': 'cycle_model.handshake_rules', 'source_ref': 'cycle_model.handshake_rules', 'description': 'MEM backpressure observed'}, {'id': 'ccov_pipeline_order', 'class': 'ordering', 'coverage_domain': 'cycle', 'source': 'cycle_model.ordering', 'source_ref': 'cycle_model.ordering', 'description': 'In-order commit observed'}, {'id': 'function_alu_compare_branch', 'class': 'transaction_type', 'coverage_domain': 'function', 'source': 'function_model.transactions[0]', 'source_ref': 'function_model.transactions.tx_decode_exec', 'description': 'alu_compare_branch'}, {'id': 'function_single_transfer_memory_access', 'class': 'transaction_type', 'coverage_domain': 'function', 'source': 'function_model.transactions[1]', 'source_ref': 'function_model.transactions.tx_load_store', 'description': 'single_transfer_memory_access'}, {'id': 'cycle_handshake_0', 'class': 'protocol', 'coverage_domain': 'cycle', 'source': 'cycle_model.handshake_rules[0]', 'source_ref': 'cycle_model.handshake_rules[0]', 'description': "{'signal': 'i_htrans', 'rule': 'IF keeps transfer intent stable until i_hready handshake occurs'}"}, {'id': 'cycle_handshake_1', 'class': 'protocol', 'coverage_domain': 'cycle', 'source': 'cycle_model.handshake_rules[1]', 'source_ref': 'cycle_model.handshake_rules[1]', 'description': "{'signal': 'd_htrans', 'rule': 'EX keeps active transfer until d_hready indicates completion'}"}, {'id': 'cycle_handshake_2', 'class': 'protocol', 'coverage_domain': 'cycle', 'source': 'cycle_model.handshake_rules[2]', 'source_ref': 'cycle_model.handshake_rules[2]', 'description': "{'signal': 'd_hwdata', 'rule': 'For STR, write data remains stable while waiting for d_hready'}"}, {'id': 'cycle_latency_fetch_accept', 'class': 'latency', 'coverage_domain': 'cycle', 'source': 'cycle_model.latency.fetch_accept', 'source_ref': 'cycle_model.latency.fetch_accept', 'description': "{'min_cycles': 1, 'max_cycles': None, 'description': 'Depends on i_hready backpressure'}"}, {'id': 'cycle_latency_alu_instr', 'class': 'latency', 'coverage_domain': 'cycle', 'source': 'cycle_model.latency.alu_instr', 'source_ref': 'cycle_model.latency.alu_instr', 'description': "{'min_cycles': 1, 'max_cycles': 1, 'description': 'No extra wait in EX for pure ALU ops'}"}, {'id': 'cycle_latency_load_store_instr', 'class': 'latency', 'coverage_domain': 'cycle', 'source': 'cycle_model.latency.load_store_instr', 'source_ref': 'cycle_model.latency.load_store_instr', 'description': "{'min_cycles': 1, 'max_cycles': None, 'description': 'Variable with d_hready'}"}, {'id': 'cycle_pipeline_if', 'class': 'pipeline_stage', 'coverage_domain': 'cycle', 'source': 'cycle_model.pipeline[0]', 'source_ref': 'cycle_model.pipeline[0]', 'description': 'Drive instruction address/control and capture instruction on ready'}, {'id': 'cycle_pipeline_id', 'class': 'pipeline_stage', 'coverage_domain': 'cycle', 'source': 'cycle_model.pipeline[1]', 'source_ref': 'cycle_model.pipeline[1]', 'description': 'Decode instruction and read source operands'}, {'id': 'cycle_pipeline_ex', 'class': 'pipeline_stage', 'coverage_domain': 'cycle', 'source': 'cycle_model.pipeline[2]', 'source_ref': 'cycle_model.pipeline[2]', 'description': 'Execute/branch/load-store and commit results'}, {'id': 'cycle_ordering_0', 'class': 'ordering', 'coverage_domain': 'cycle', 'source': 'cycle_model.ordering[0]', 'source_ref': 'cycle_model.ordering[0]', 'description': 'Program-order retirement: instruction i commits before i+1.'}, {'id': 'cycle_ordering_1', 'class': 'ordering', 'coverage_domain': 'cycle', 'source': 'cycle_model.ordering[1]', 'source_ref': 'cycle_model.ordering[1]', 'description': 'Branch redirection affects subsequent fetch only after branch evaluation reaches commit boundary.'}, {'id': 'cycle_backpressure_0', 'class': 'backpressure', 'coverage_domain': 'cycle', 'source': 'cycle_model.backpressure[0]', 'source_ref': 'cycle_model.backpressure[0]', 'description': 'i_hready=0 stalls IF and upstream PC progression without corrupting ID/EX committed state.'}, {'id': 'cycle_backpressure_1', 'class': 'backpressure', 'coverage_domain': 'cycle', 'source': 'cycle_model.backpressure[1]', 'source_ref': 'cycle_model.backpressure[1]', 'description': 'd_hready=0 stalls memory operation in EX; no duplicate commit allowed.'}, {'id': 'fsm_core_reset_to_run_0', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[0]', 'source_ref': 'fsm.core.transitions[0]', 'description': 'rst deasserted'}, {'id': 'fsm_core_run_to_stall_if_1', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[1]', 'source_ref': 'fsm.core.transitions[1]', 'description': 'i_hready==0'}, {'id': 'fsm_core_stall_if_to_run_2', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[2]', 'source_ref': 'fsm.core.transitions[2]', 'description': 'i_hready==1'}, {'id': 'fsm_core_run_to_stall_mem_3', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[3]', 'source_ref': 'fsm.core.transitions[3]', 'description': 'active load/store && d_hready==0'}, {'id': 'fsm_core_stall_mem_to_run_4', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[4]', 'source_ref': 'fsm.core.transitions[4]', 'description': 'd_hready==1 && d_hresp==OKAY'}, {'id': 'fsm_core_run_to_fault_halt_5', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[5]', 'source_ref': 'fsm.core.transitions[5]', 'description': 'i_hresp==ERROR || d_hresp==ERROR'}, {'id': 'fsm_core_stall_mem_to_fault_halt_6', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[6]', 'source_ref': 'fsm.core.transitions[6]', 'description': 'd_hresp==ERROR'}, {'id': 'fsm_core_fault_halt_to_reset_7', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[7]', 'source_ref': 'fsm.core.transitions[7]', 'description': 'rst asserted'}, {'id': 'error_i_bus_error', 'class': 'error', 'coverage_domain': 'function', 'source': 'error_handling.error_sources[0]', 'source_ref': 'error_handling.error_sources[0]', 'description': "{'name': 'I_BUS_ERROR', 'detect': 'i_hresp==ERROR when instruction transfer completes', 'effect': 'enter FAULT_HALT'}"}, {'id': 'error_d_bus_error', 'class': 'error', 'coverage_domain': 'function', 'source': 'error_handling.error_sources[1]', 'source_ref': 'error_handling.error_sources[1]', 'description': "{'name': 'D_BUS_ERROR', 'detect': 'd_hresp==ERROR when data transfer completes', 'effect': 'enter FAULT_HALT'}"}]}
+RESP_OKAY = 0
+RESP_SLVERR = 2
+
+
+def _parse_int(value, default=0):
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, int):
+        return value
+    text = str(value).strip().replace("_", "")
+    if not text:
+        return default
+    literal = text.lower()
+    if "'" in literal:
+        try:
+            base_tag = literal.split("'", 1)[1][0]
+            digits = literal.split(base_tag, 1)[1]
+            digits = digits.replace("x", "0").replace("z", "0")
+            base = {"h": 16, "d": 10, "b": 2}.get(base_tag, 10)
+            return int(digits, base)
+        except Exception:
+            return default
+    if text.startswith("0x"):
+        return int(text, 16)
+    try:
+        return int(text, 10)
+    except ValueError:
+        return default
+
+
+_BINOPS = {
+    ast.Add: lambda a, b: a + b,
+    ast.Sub: lambda a, b: a - b,
+    ast.Mult: lambda a, b: a * b,
+    ast.FloorDiv: lambda a, b: a // b,
+    ast.Div: lambda a, b: a // b,
+    ast.Mod: lambda a, b: a % b,
+    ast.LShift: lambda a, b: a << b,
+    ast.RShift: lambda a, b: a >> b,
+    ast.BitAnd: lambda a, b: a & b,
+    ast.BitOr: lambda a, b: a | b,
+    ast.BitXor: lambda a, b: a ^ b,
+}
+_UNARYOPS = {
+    ast.UAdd: lambda a: a,
+    ast.USub: lambda a: -a,
+    ast.Invert: lambda a: ~a,
+    ast.Not: lambda a: 0 if a else 1,
+}
+_CMPOPS = {
+    ast.Eq: lambda a, b: a == b,
+    ast.NotEq: lambda a, b: a != b,
+    ast.Lt: lambda a, b: a < b,
+    ast.LtE: lambda a, b: a <= b,
+    ast.Gt: lambda a, b: a > b,
+    ast.GtE: lambda a, b: a >= b,
+}
+
+
+def _normal_expr(text):
+    text = str(text or "").strip()
+    reduction_or = re.fullmatch(r"\|\s*\((.*)\)", text)
+    if reduction_or:
+        text = f"reduction_or({reduction_or.group(1)})"
+    text = text.replace("&&", " and ").replace("||", " or ")
+    text = re.sub(r"(?<![=!<>])!(?!=)", " not ", text)
+    return text
+
+
+def _literal_int(text):
+    text = str(text).strip().replace("_", "")
+    return bool(re.fullmatch(r"(?:0x[0-9a-fA-F]+|[0-9]+|[0-9]*'[hHdDbB][0-9a-fA-FxXzZ]+)", text))
+
+
+def _h_bin_to_gray(value):
+    v = _parse_int(value, 0)
+    return v ^ (v >> 1)
+
+
+def _h_gray_to_bin(value):
+    g = _parse_int(value, 0)
+    b = g
+    s = g >> 1
+    while s:
+        b ^= s
+        s >>= 1
+    return b
+
+
+def _h_popcount(value):
+    return bin(_parse_int(value, 0) & ((1 << 256) - 1)).count("1")
+
+
+def _h_parity(value):
+    return _h_popcount(value) & 1
+
+
+def _h_clog2(value):
+    v = _parse_int(value, 0)
+    if v <= 1:
+        return 0
+    return (v - 1).bit_length()
+
+
+def _default_rule_helpers():
+    return {
+        "bin_to_gray": _h_bin_to_gray,
+        "gray_to_bin": _h_gray_to_bin,
+        "popcount": _h_popcount,
+        "parity": _h_parity,
+        "clog2": _h_clog2,
+        "min": lambda a, b: min(_parse_int(a, 0), _parse_int(b, 0)),
+        "max": lambda a, b: max(_parse_int(a, 0), _parse_int(b, 0)),
+        "abs": lambda a: abs(_parse_int(a, 0)),
+    }
+
+
+def _eval_ast(node, env):
+    if isinstance(node, ast.Expression):
+        return _eval_ast(node.body, env)
+    if isinstance(node, ast.Constant):
+        if isinstance(node.value, bool):
+            return int(node.value)
+        if isinstance(node.value, int):
+            return node.value
+        if isinstance(node.value, str):
+            return _parse_int(node.value, 0)
+        raise ValueError(f"unsupported constant {node.value!r}")
+    if isinstance(node, ast.Name):
+        if node.id in env:
+            return _parse_int(env[node.id], 0)
+        raise KeyError(f"unknown rule name {node.id}")
+    if isinstance(node, ast.BinOp) and type(node.op) in _BINOPS:
+        return _BINOPS[type(node.op)](_eval_ast(node.left, env), _eval_ast(node.right, env))
+    if isinstance(node, ast.UnaryOp) and type(node.op) in _UNARYOPS:
+        return _UNARYOPS[type(node.op)](_eval_ast(node.operand, env))
+    if isinstance(node, ast.BoolOp):
+        values = [_eval_ast(v, env) for v in node.values]
+        if isinstance(node.op, ast.And):
+            return int(all(values))
+        if isinstance(node.op, ast.Or):
+            return int(any(values))
+    if isinstance(node, ast.Compare):
+        left = _eval_ast(node.left, env)
+        verdicts = []
+        for op, comparator in zip(node.ops, node.comparators):
+            right = _eval_ast(comparator, env)
+            if type(op) not in _CMPOPS:
+                raise ValueError(f"unsupported comparison {type(op).__name__}")
+            verdicts.append(_CMPOPS[type(op)](left, right))
+            left = right
+        return int(all(verdicts))
+    if isinstance(node, ast.IfExp):
+        return _eval_ast(node.body if _eval_ast(node.test, env) else node.orelse, env)
+    if isinstance(node, ast.Subscript):
+        base = _eval_ast(node.value, env)
+        sl = node.slice
+        if isinstance(sl, ast.Index):
+            sl = sl.value
+        if isinstance(sl, ast.Slice):
+            hi = _eval_ast(sl.lower, env) if sl.lower is not None else 0
+            lo = _eval_ast(sl.upper, env) if sl.upper is not None else 0
+            if hi < lo:
+                hi, lo = lo, hi
+            width = hi - lo + 1
+            mask = (1 << width) - 1
+            return (base >> lo) & mask
+        idx = _eval_ast(sl, env)
+        return (base >> idx) & 1
+    if isinstance(node, ast.Call):
+        if not isinstance(node.func, ast.Name):
+            raise ValueError(f"unsupported rule call {ast.dump(node.func)}")
+        func = env.get(node.func.id)
+        if not callable(func):
+            raise ValueError(f"unsupported rule helper {node.func.id}")
+        if node.keywords:
+            raise ValueError(f"unsupported keyword args for rule helper {node.func.id}")
+        args = [_eval_ast(arg, env) for arg in node.args]
+        return _parse_int(func(*args), 0)
+    raise ValueError(f"unsupported rule expression node {type(node).__name__}")
+
+
+def _eval_rule_expr(expr, env):
+    if isinstance(expr, bool):
+        return int(expr)
+    if isinstance(expr, int):
+        return expr
+    text = _normal_expr(expr)
+    if not text:
+        return 0
+    if _literal_int(text):
+        return _parse_int(text, 0)
+    return _eval_ast(ast.parse(text, mode="eval"), env)
+
+
+def _expr_names(expr):
+    try:
+        node = ast.parse(_normal_expr(expr), mode="eval")
+    except Exception:
+        return set()
+    return {item.id for item in ast.walk(node) if isinstance(item, ast.Name)}
+
+
+def _rule_items(value):
+    if isinstance(value, dict):
+        return [{"name": k, "expr": v} for k, v in value.items()]
+    return [item for item in value or [] if isinstance(item, dict)]
+
+
+class FunctionalModel:
+    def __init__(self, params=None):
+        self.params = dict(SSOT_MODEL.get("parameters") or {})
+        if params:
+            self.params.update(params)
+        self.state_defaults = self._state_defaults()
+        self.state = dict(self.state_defaults)
+        self.registers = self._register_defaults()
+        self.trace = []
+
+    @staticmethod
+    def _norm(value):
+        text = str(value or "").strip().lower()
+        text = re.sub(r"[^a-z0-9]+", "_", text)
+        return text.strip("_")
+
+    def _state_defaults(self):
+        defaults = {}
+        fm = SSOT_MODEL.get("function_model") or {}
+        for idx, item in enumerate(fm.get("state_variables") or []):
+            if not isinstance(item, dict):
+                continue
+            name = str(item.get("name") or f"state_{idx}")
+            defaults[name] = item.get("reset", 0)
+        defaults.setdefault("busy", 0)
+        defaults.setdefault("error", 0)
+        return defaults
+
+    def _register_defaults(self):
+        defaults = {}
+        regs = SSOT_MODEL.get("registers") or {}
+        for idx, item in enumerate(regs.get("register_list") or []):
+            if not isinstance(item, dict):
+                continue
+            name = str(item.get("name") or f"REG{idx}")
+            defaults[name] = item.get("reset", 0)
+            off = item.get("offset")
+            if off is not None:
+                defaults[str(off)] = item.get("reset", 0)
+        return defaults
+
+    @staticmethod
+    def _field_bounds(field):
+        bits = field.get("bits")
+        if isinstance(bits, (list, tuple)) and len(bits) >= 2:
+            hi = _parse_int(bits[0], 0)
+            lo = _parse_int(bits[1], 0)
+            return (max(hi, lo), min(hi, lo))
+        if "msb" in field and "lsb" in field:
+            hi = _parse_int(field.get("msb"), 0)
+            lo = _parse_int(field.get("lsb"), 0)
+            return (max(hi, lo), min(hi, lo))
+        if "lsb" in field and ("width" in field or "bit_width" in field):
+            lo = _parse_int(field.get("lsb"), 0)
+            width = max(1, _parse_int(field.get("width", field.get("bit_width", 1)), 1))
+            return (lo + width - 1, lo)
+        return (0, 0)
+
+    def _register_read_value(self, reg):
+        name = str(reg.get("name") or "")
+        value = _parse_int(self.registers.get(name, reg.get("reset", 0)), 0)
+        for field in reg.get("fields") or []:
+            if not isinstance(field, dict):
+                continue
+            fname = str(field.get("name") or "")
+            if fname in self.state:
+                fval = _parse_int(self.state.get(fname), 0)
+            elif f"{fname}_q" in self.state:
+                fval = _parse_int(self.state.get(f"{fname}_q"), 0)
+            elif fname in self.registers:
+                fval = _parse_int(self.registers.get(fname), 0)
+            else:
+                continue
+            hi, lo = self._field_bounds(field)
+            width = max(1, hi - lo + 1)
+            mask = (1 << width) - 1
+            value = (value & ~(mask << lo)) | ((fval & mask) << lo)
+        return value
+
+    def _read_mux(self, addr):
+        addr_i = _parse_int(addr, 0)
+        regs = SSOT_MODEL.get("registers") or {}
+        for reg in regs.get("register_list") or []:
+            if not isinstance(reg, dict):
+                continue
+            off = reg.get("offset")
+            if off is not None and addr_i == _parse_int(off, 0):
+                return self._register_read_value(reg)
+        return 0
+
+    def reset(self):
+        self.state = dict(self.state_defaults)
+        self.registers = self._register_defaults()
+        self.trace.clear()
+
+    def _looks_like_register_access(self, txn):
+        kind = self._norm(txn.get("kind") or txn.get("transaction") or "")
+        return (
+            kind in {"csr", "csr_access", "register", "register_access", "control_status_access", "fm_csr"}
+            or "reg" in txn
+            or "addr_or_name" in txn
+        )
+
+    def _transactions(self):
+        fm = SSOT_MODEL.get("function_model") or {}
+        return [tx for tx in fm.get("transactions") or [] if isinstance(tx, dict)]
+
+    def _find_transaction(self, kind):
+        wanted = self._norm(kind)
+        for tx in self._transactions():
+            aliases = [
+                tx.get("id"),
+                tx.get("name"),
+                self._norm(tx.get("id")),
+                self._norm(tx.get("name")),
+            ]
+            if wanted in {self._norm(x) for x in aliases if x}:
+                return tx
+        if wanted in {"reset", "rst"}:
+            return {"id": "RESET", "name": "reset", "outputs": ["state reset"], "side_effects": ["reset"]}
+        return None
+
+    def _record(self, kind, txn, result):
+        entry = {
+            "kind": kind,
+            "scenario_id": txn.get("scenario_id", ""),
+            "result": result,
+            "state": dict(self.state),
+        }
+        self.trace.append(entry)
+        return result
+
+    def _rule_env(self, txn):
+        env = {}
+        env.update(_default_rule_helpers())
+        env.update(self.params)
+        env.update(self.state)
+        env.update(self.registers)
+        env.update(txn)
+        env["read_mux"] = self._read_mux
+        env["reduction_or"] = lambda value: 1 if _parse_int(value, 0) != 0 else 0
+        env.setdefault("true", 1)
+        env.setdefault("false", 0)
+        return env
+
+    def _apply_structured_rules(self, tx, txn):
+        output_rules = _rule_items(tx.get("output_rules"))
+        state_updates = _rule_items(tx.get("state_updates"))
+        if not output_rules and not state_updates:
+            return None
+
+        env = self._rule_env(txn)
+        result = {
+            "resp": RESP_OKAY,
+            "transaction_id": tx.get("id"),
+            "transaction_name": tx.get("name"),
+            "sample_accepted": 0,
+        }
+        pending_outputs = []
+        for idx, rule in enumerate(output_rules):
+            name = str(rule.get("name") or rule.get("output") or rule.get("port") or f"output_{idx}")
+            aliases = [
+                str(v)
+                for v in (rule.get("output"), rule.get("port"))
+                if v is not None and str(v).strip() and str(v).strip() != name
+            ]
+            pending_outputs.append((
+                name,
+                rule.get("expr", rule.get("expression", rule.get("value", 0))),
+                rule.get("width") or rule.get("bits"),
+                aliases,
+            ))
+
+        def _resolve_pending_outputs(required_names=None):
+            nonlocal pending_outputs
+            required = set(required_names or [])
+            unresolved_errors = {}
+            for _pass in range(max(len(pending_outputs), 1) + 1):
+                progressed = False
+                next_pending = []
+                for name, expr, width, aliases in pending_outputs:
+                    try:
+                        value = _eval_rule_expr(expr, env)
+                    except KeyError as exc:
+                        unresolved_errors[name] = str(exc)
+                        next_pending.append((name, expr, width, aliases))
+                        continue
+                    if width is not None:
+                        value &= (1 << max(_parse_int(width, 0), 0)) - 1 if _parse_int(width, 0) > 0 else value
+                    result[name] = value
+                    env[name] = value
+                    for alias in aliases:
+                        result.setdefault(alias, value)
+                        env[alias] = value
+                    unresolved_errors.pop(name, None)
+                    progressed = True
+                pending_outputs = next_pending
+                if not pending_outputs:
+                    break
+                if required and required.issubset(env):
+                    break
+                if not progressed:
+                    break
+            if required:
+                unresolved_required = sorted(name for name in required if name not in env)
+                if unresolved_required:
+                    detail = ", ".join(
+                        f"{name}: {unresolved_errors.get(name, 'unresolved dependency')}"
+                        for name in unresolved_required
+                    )
+                    raise KeyError(f"unresolved sample condition dependencies: {detail}")
+            return unresolved_errors
+
+        output_names = set()
+        for name, _expr, _width, aliases in pending_outputs:
+            output_names.add(name)
+            output_names.update(aliases)
+        sample_expr = tx.get("sample_condition")
+        sample_accepted = True
+        if sample_expr not in (None, ""):
+            needed_outputs = _expr_names(sample_expr) & output_names
+            if needed_outputs:
+                _resolve_pending_outputs(needed_outputs)
+            sample_accepted = bool(_eval_rule_expr(sample_expr, env))
+        result["sample_accepted"] = int(sample_accepted)
+
+        unresolved_errors = _resolve_pending_outputs()
+        if pending_outputs:
+            missing = ", ".join(f"{name}: {unresolved_errors.get(name, 'unresolved dependency')}" for name, _expr, _width, _aliases in pending_outputs)
+            raise KeyError(f"unresolved output rule dependencies: {missing}")
+
+        updates = {}
+        pending_updates = []
+        if sample_accepted:
+            for idx, rule in enumerate(state_updates):
+                pending_updates.append((
+                    str(rule.get("name") or rule.get("state") or f"state_{idx}"),
+                    rule.get("expr", rule.get("expression", rule.get("value", 0))),
+                ))
+        unresolved_errors = {}
+        for _pass in range(max(len(pending_updates), 1) + 1):
+            progressed = False
+            next_pending = []
+            for name, expr in pending_updates:
+                try:
+                    value = _eval_rule_expr(expr, env)
+                except KeyError as exc:
+                    unresolved_errors[name] = str(exc)
+                    next_pending.append((name, expr))
+                    continue
+                updates[name] = value
+                env[name] = value
+                unresolved_errors.pop(name, None)
+                progressed = True
+            pending_updates = next_pending
+            if not pending_updates:
+                break
+            if not progressed:
+                break
+        if pending_updates:
+            missing = ", ".join(f"{name}: {unresolved_errors.get(name, 'unresolved dependency')}" for name, _expr in pending_updates)
+            raise KeyError(f"unresolved state update dependencies: {missing}")
+        if updates:
+            self.state.update(updates)
+            result["state_updates"] = dict(updates)
+        return result
+
+    def _apply_register_access(self, txn):
+        if not self._looks_like_register_access(txn):
+            return None
+        op = self._norm(txn.get("op") or txn.get("kind"))
+        key = txn.get("reg", txn.get("addr", txn.get("name", "")))
+        key = str(key)
+        if op in {"write", "wr", "csr_write", "control_status_access"}:
+            self.registers[key] = txn.get("data", txn.get("value", 0))
+            return {"resp": RESP_OKAY, "write": True, "reg": key, "value": self.registers[key]}
+        if op in {"read", "rd", "csr_read"}:
+            return {"resp": RESP_OKAY, "read": True, "reg": key, "value": self.registers.get(key, 0)}
+        return None
+
+    def _apply_primary(self, tx, txn):
+        structured = self._apply_structured_rules(tx, txn)
+        if structured is not None:
+            return structured
+        # T1 #1 — Cardinal rule enforcement:
+        # When SSOT does not declare structured output_rules/state_updates for
+        # this transaction, do NOT fabricate state via name heuristics. Return
+        # an SSOT-question-annotated result so the gap surfaces in the trace
+        # and downstream validators can escalate to ssot-gen / human.
+        return {
+            "resp": RESP_OKAY,
+            "transaction_id": tx.get("id"),
+            "transaction_name": tx.get("name"),
+            "outputs_spec": tx.get("outputs") or [],
+            "side_effects_spec": tx.get("side_effects") or [],
+            "ssot_question": (
+                "[SSOT QUESTION] structured output_rules/state_updates undefined "
+                "for transaction " + str(tx.get("id") or tx.get("name") or "<unknown>")
+            ),
+            "fabricated_state": False,
+        }
+
+    def apply(self, txn):
+        txn = dict(txn or {})
+        kind = self._norm(txn.get("kind") or txn.get("op") or txn.get("transaction") or "")
+        reg_result = self._apply_register_access(txn)
+        if reg_result is not None:
+            return self._record(kind or "register_access", txn, reg_result)
+        tx = self._find_transaction(kind)
+        if tx is None:
+            return self._record(kind or "unknown", txn, {"kind": kind or "unknown", "resp": RESP_SLVERR, "error": "unsupported_transaction"})
+        if self._norm(tx.get("name")) == "reset" or self._norm(tx.get("id")) in {"reset", "fm_reset"}:
+            self.reset()
+            return self._record(kind or "reset", txn, {"kind": "reset", "resp": RESP_OKAY, "state": dict(self.state)})
+        return self._record(kind, txn, self._apply_primary(tx, txn))
+
+    def coverage_seed_bins(self):
+        return {item["id"]: False for item in SSOT_MODEL.get("fcov_bins", [])}
+
+
+def run_self_check():
+    model = FunctionalModel()
+    txs = SSOT_MODEL.get("function_model", {}).get("transactions", [])
+    results = []
+    for idx, tx in enumerate(txs):
+        if not isinstance(tx, dict):
+            continue
+        kind = tx.get("id") or tx.get("name") or f"transaction_{idx}"
+        txn = {"kind": kind, "scenario_id": f"self_{kind}"}
+        for field_idx, field in enumerate(tx.get("required_fields") or []):
+            name = str(field)
+            if name and name not in txn:
+                txn[name] = field_idx + idx + 1
+        output_rules = _rule_items(tx.get("output_rules"))
+        state_updates = _rule_items(tx.get("state_updates"))
+        rule_names = set()
+        rule_names.update(_expr_names(tx.get("sample_condition", "")))
+        for rule in output_rules + state_updates:
+            rule_names.update(_expr_names(rule.get("expr", rule.get("expression", rule.get("value", "")))))
+        output_names = {
+            str(rule.get("name") or rule.get("output") or rule.get("port"))
+            for rule in output_rules
+            if rule.get("name") or rule.get("output") or rule.get("port")
+        }
+        update_names = {
+            str(rule.get("name") or rule.get("state"))
+            for rule in state_updates
+            if rule.get("name") or rule.get("state")
+        }
+        known_names = set(model.params) | set(model.state) | set(model.registers) | output_names | update_names
+        known_names.update({"true", "false", "True", "False", "and", "or", "not"})
+        known_names.update(_default_rule_helpers().keys())
+        known_names.update({"read_mux", "reduction_or"})
+        for name in sorted(rule_names - known_names):
+            if name and name not in txn:
+                txn[name] = idx + len(txn) + 1
+        result = model.apply(txn)
+        results.append({
+            "id": tx.get("id"),
+            "name": tx.get("name"),
+            "kind": kind,
+            "passed": result.get("resp") == RESP_OKAY,
+            "result": result,
+        })
+    unsupported = model.apply({"kind": "__unsupported_self_check__"})
+    checks = [item["passed"] for item in results]
+    checks.append(unsupported.get("resp") == RESP_SLVERR)
+
+    # T1 #5 — invariants / reset / error_case coverage
+    fm_block = SSOT_MODEL.get("function_model", {}) or {}
+    invariants_raw = fm_block.get("invariants") or []
+    if isinstance(invariants_raw, dict):
+        invariants_raw = [{"name": k, "expr": v} for k, v in invariants_raw.items()]
+    invariants = []
+    for inv in invariants_raw:
+        if isinstance(inv, str):
+            invariants.append({"name": inv[:40], "expr": inv})
+        elif isinstance(inv, dict):
+            expr = inv.get("expr") or inv.get("expression") or inv.get("rule") or inv.get("invariant")
+            if expr is None and len(inv) == 1:
+                k, v = next(iter(inv.items())); expr = v if isinstance(v, str) else None
+                inv = {"name": str(k), "expr": expr}
+            if expr is not None:
+                invariants.append({"name": inv.get("name") or str(expr)[:40], "expr": expr})
+    invariants_eval_env = {}
+    invariants_eval_env.update(_default_rule_helpers())
+    invariants_eval_env.update(model.params)
+    invariants_eval_env.update(model.state)
+    invariants_eval_env.update(model.registers)
+    invariants_evaluated = 0
+    invariants_failed = []
+    invariants_skipped = []
+    for inv in invariants:
+        try:
+            ok = bool(_eval_rule_expr(inv["expr"], invariants_eval_env))
+            invariants_evaluated += 1
+            if not ok:
+                invariants_failed.append({"name": inv["name"], "expr": inv["expr"]})
+        except Exception as exc:
+            invariants_skipped.append({"name": inv["name"], "expr": inv["expr"], "reason": str(exc)[:80]})
+
+    reset_consistency = True
+    reset_diff = {}
+    try:
+        baseline_defaults = dict(model.state_defaults)
+        snapshot_model = FunctionalModel()
+        snapshot_model.reset()
+        for k, v in baseline_defaults.items():
+            actual = snapshot_model.state.get(k)
+            if actual != v:
+                reset_consistency = False
+                reset_diff[k] = {"expected": v, "actual": actual}
+    except Exception as exc:
+        reset_consistency = False
+        reset_diff["__error__"] = str(exc)[:80]
+
+    error_cases_total = 0
+    error_cases_planned = 0
+    for tx in txs:
+        if not isinstance(tx, dict):
+            continue
+        cases = tx.get("error_cases") or []
+        if isinstance(cases, list):
+            error_cases_total += len(cases)
+            error_cases_planned += sum(1 for c in cases if isinstance(c, dict) and c.get("condition"))
+
+    overall_pass = all(checks) and not invariants_failed and reset_consistency
+
+    return {
+        "passed": overall_pass,
+        "checks": len(checks),
+        "failed": checks.count(False),
+        "transactions": len(txs),
+        "transaction_results": results,
+        "unsupported_transaction_check": unsupported.get("resp") == RESP_SLVERR,
+        "trace_entries": len(model.trace),
+        "coverage_bins": len(SSOT_MODEL.get("fcov_bins", [])),
+        "invariants_total": len(invariants),
+        "invariants_evaluated": invariants_evaluated,
+        "invariants_failed": invariants_failed,
+        "invariants_skipped": invariants_skipped,
+        "reset_consistency": reset_consistency,
+        "reset_diff": reset_diff,
+        "error_cases_total": error_cases_total,
+        "error_cases_planned": error_cases_planned,
+    }
+
+
+if __name__ == "__main__":
+    print(json.dumps(run_self_check(), indent=2))

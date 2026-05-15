@@ -1,0 +1,345 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 12,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 5,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/arm_m0_min_rf.sv",
+      "name": "arm_m0_min_rf",
+      "refs": [
+        "function_model",
+        "function_model.state_variables",
+        "register_file",
+        "register_file.architecture"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/arm_m0_min_if.sv",
+        "name": "arm_m0_min_if",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min_id.sv",
+        "name": "arm_m0_min_id",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min_ex.sv",
+        "name": "arm_m0_min_ex",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min_rf.sv",
+        "name": "arm_m0_min_rf",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min.sv",
+        "name": "arm_m0_min",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "arm_m0_min",
+  "kind": "module",
+  "owner_file": "rtl/arm_m0_min_rf.sv",
+  "owner_module": "arm_m0_min_rf",
+  "packet_id": "module__arm_m0_min_rf",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "function_model.state_variable": 4
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 5,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 5,
+    "source_refs": [
+      "function_model.state_variables.pc",
+      "function_model.state_variables.gpr",
+      "function_model.state_variables.nzcv",
+      "function_model.state_variables.fault_halt",
+      "sub_modules.arm_m0_min_rf.module_equivalence"
+    ],
+    "status_counts": {
+      "pass": 5
+    },
+    "task_count": 5
+  },
+  "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state pc",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.pc",
+        "Primary implementation evidence is in rtl/arm_m0_min_rf.sv",
+        "pc reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.pc.\nOwner: arm_m0_min_rf in rtl/arm_m0_min_rf.sv via function_model.state_variables.\nSSOT item context: name=pc; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0056",
+      "owner_file": "rtl/arm_m0_min_rf.sv",
+      "owner_module": "arm_m0_min_rf",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.pc",
+      "ssot_context": {
+        "name": "pc",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.pc"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state gpr",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.gpr",
+        "Primary implementation evidence is in rtl/arm_m0_min_rf.sv",
+        "gpr reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.gpr.\nOwner: arm_m0_min_rf in rtl/arm_m0_min_rf.sv via function_model.state_variables.\nSSOT item context: name=gpr; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0057",
+      "owner_file": "rtl/arm_m0_min_rf.sv",
+      "owner_module": "arm_m0_min_rf",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.gpr",
+      "ssot_context": {
+        "name": "gpr",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.gpr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state nzcv",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.nzcv",
+        "Primary implementation evidence is in rtl/arm_m0_min_rf.sv",
+        "nzcv reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.nzcv.\nOwner: arm_m0_min_rf in rtl/arm_m0_min_rf.sv via function_model.state_variables.\nSSOT item context: name=nzcv; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0058",
+      "owner_file": "rtl/arm_m0_min_rf.sv",
+      "owner_module": "arm_m0_min_rf",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.nzcv",
+      "ssot_context": {
+        "name": "nzcv",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.nzcv"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state fault_halt",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.fault_halt",
+        "Primary implementation evidence is in rtl/arm_m0_min_rf.sv",
+        "fault_halt reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.fault_halt.\nOwner: arm_m0_min_rf in rtl/arm_m0_min_rf.sv via function_model.state_variables.\nSSOT item context: name=fault_halt; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0059",
+      "owner_file": "rtl/arm_m0_min_rf.sv",
+      "owner_module": "arm_m0_min_rf",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.fault_halt",
+      "ssot_context": {
+        "name": "fault_halt",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.fault_halt"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module arm_m0_min_rf is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.arm_m0_min_rf.module_equivalence",
+        "Primary implementation evidence is in rtl/arm_m0_min_rf.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.arm_m0_min_rf.module_equivalence.\nOwner: arm_m0_min_rf in rtl/arm_m0_min_rf.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0145",
+      "owner_file": "rtl/arm_m0_min_rf.sv",
+      "owner_module": "arm_m0_min_rf",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.arm_m0_min_rf.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.arm_m0_min_rf.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "a70eeedfb17c143e2e962a82c44a8b0edf3adcdded649e82f935de86a45a7092",
+  "top": "arm_m0_min",
+  "type": "rtl_authoring_packet"
+}

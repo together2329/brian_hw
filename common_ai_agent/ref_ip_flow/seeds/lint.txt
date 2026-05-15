@@ -1,0 +1,3 @@
+/mode pipeline
+/lint arm_m0_min
+Run DUT lint for arm_m0_min. Use pyslang and verilator (per workflow/lint/scripts/dut_lint_report.py). Errors must be 0, warnings must be 0 or waived in SSOT coding_rules.waivers. Produce arm_m0_min/lint/dut_lint.json and the html/log artifacts.

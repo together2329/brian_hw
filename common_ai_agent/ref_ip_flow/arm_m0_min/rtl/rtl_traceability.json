@@ -1,0 +1,2533 @@
+{
+  "authoring_packets": [
+    {
+      "json": "rtl/authoring_packets/unowned_tasks.json",
+      "markdown": "rtl/authoring_packets/unowned_tasks.md",
+      "packet_id": "unowned_tasks"
+    },
+    {
+      "json": "rtl/authoring_packets/rtl_gate_human_closure.json",
+      "markdown": "rtl/authoring_packets/rtl_gate_human_closure.md",
+      "packet_id": "rtl_gate_human_closure"
+    },
+    {
+      "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
+      "markdown": "rtl/authoring_packets/rtl_gate_tool_evidence.md",
+      "packet_id": "rtl_gate_tool_evidence"
+    },
+    {
+      "json": "rtl/authoring_packets/module__arm_m0_min_if.json",
+      "markdown": "rtl/authoring_packets/module__arm_m0_min_if.md",
+      "packet_id": "module__arm_m0_min_if"
+    },
+    {
+      "json": "rtl/authoring_packets/module__arm_m0_min_id.json",
+      "markdown": "rtl/authoring_packets/module__arm_m0_min_id.md",
+      "packet_id": "module__arm_m0_min_id"
+    },
+    {
+      "json": "rtl/authoring_packets/module__arm_m0_min_ex.json",
+      "markdown": "rtl/authoring_packets/module__arm_m0_min_ex.md",
+      "packet_id": "module__arm_m0_min_ex"
+    },
+    {
+      "json": "rtl/authoring_packets/module__arm_m0_min_rf.json",
+      "markdown": "rtl/authoring_packets/module__arm_m0_min_rf.md",
+      "packet_id": "module__arm_m0_min_rf"
+    },
+    {
+      "json": "rtl/authoring_packets/module__arm_m0_min.json",
+      "markdown": "rtl/authoring_packets/module__arm_m0_min.md",
+      "packet_id": "module__arm_m0_min"
+    },
+    {
+      "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
+      "markdown": "rtl/authoring_packets/rtl_gate_evidence_closure.md",
+      "packet_id": "rtl_gate_evidence_closure"
+    }
+  ],
+  "authoring_plan": "rtl/rtl_authoring_plan.json",
+  "gate": {
+    "all_required_todos_pass": false,
+    "audit_rtl": true,
+    "blocking_questions": 0,
+    "criteria": [
+      "Gate: SSOT function_model and cycle_model are present before RTL generation",
+      "Gate: SSOT-authored rtl-gen workflow TODOs are well formed",
+      "Gate: every SSOT-derived RTL behavior has an owner module",
+      "Gate: RTL is authored by common_ai_agent rtl-gen, not by direct operator edits",
+      "Gate: required SSOT behavior has static DUT RTL evidence after audit",
+      "Gate: behavior-owner RTL modules contain real implementation structure",
+      "Gate: RTL sources contain no placeholder markers or disallowed generated-RTL constructs",
+      "Gate: SSOT top IO contracts match the RTL top module",
+      "Gate: SSOT top outputs are driven by real RTL logic",
+      "Gate: SSOT top inputs are consumed by RTL logic or child inputs",
+      "Gate: manifest-owned RTL modules are integrated into the top hierarchy",
+      "Gate: manifest-owned child instances have machine-checkable port connections",
+      "Gate: manifest child port connections carry live RTL signal flow",
+      "Gate: SSOT connection contracts match RTL child port maps",
+      "Gate: DUT-only RTL compile report passes after the final RTL edit",
+      "Gate: DUT-only lint report passes after the final RTL edit",
+      "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS",
+      "Gate: production RTL uses locked SSOT/FL/coverage authority artifacts",
+      "Gate: production RTL scale target is locked or explicitly waived",
+      "Gate: production RTL has SSOT-scaled implementation depth",
+      "Gate: production RTL has executable cycle/handshake model evidence",
+      "Gate: production RTL has protocol assertion generation and clean simulation evidence",
+      "Gate: production RTL passes FL-vs-RTL goal audit",
+      "Gate: production RTL closes SSOT functional coverage goals"
+    ],
+    "open_required_todos": 8,
+    "orphan_tasks": 0,
+    "static_missing": 0,
+    "status": "fail"
+  },
+  "generated_at": "2026-05-15T10:42:04Z",
+  "ip": "arm_m0_min",
+  "rows": [
+    {
+      "category": "rtl_flow.seed",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "top_module",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0001"
+    },
+    {
+      "category": "rtl_flow.top",
+      "evidence_terms": [
+        "arm",
+        "arm_m0_min",
+        "m0",
+        "min"
+      ],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "io_list",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0002"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.ssot_required_sections",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0003"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.workflow_todo_contract",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0004"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.owner_traceability",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0005"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0006"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0007"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0008"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0009"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0010"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0011"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0012"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0013"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.manifest_port_connection_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0014"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0015"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0016"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.dut_compile",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0017"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.dut_lint",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0018"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0019"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0020"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.target_scale",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0021"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0022"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0023"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0024"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0025"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "quality_gates.rtl_gen.coverage_closure",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0026"
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "evidence_terms": [
+        "RTL_TODO_PIPELINE",
+        "TODO",
+        "arm",
+        "arm_m0_min_ex",
+        "ex",
+        "m0",
+        "min"
+      ],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "workflow_todos.rtl-gen[0]",
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "arm",
+          "arm_m0_min_ex",
+          "ex",
+          "m0",
+          "min"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "RTL_TODO_PIPELINE",
+          "TODO",
+          "arm",
+          "arm_m0_min_ex",
+          "ex",
+          "m0",
+          "min"
+        ],
+        "source_scope": "rtl/arm_m0_min_ex.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0027"
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "evidence_terms": [
+        "DECODE",
+        "EXEC",
+        "ISA",
+        "RTL_TODO_ISA",
+        "TODO",
+        "TX",
+        "TX_DECODE_EXEC",
+        "arm",
+        "arm_m0_min_id",
+        "id",
+        "isa",
+        "isa_spec",
+        "m0",
+        "min",
+        "spec"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "workflow_todos.rtl-gen[1]",
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "arm",
+          "arm_m0_min_id",
+          "id",
+          "m0",
+          "min"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "DECODE",
+          "EXEC",
+          "ISA",
+          "RTL_TODO_ISA",
+          "TODO",
+          "TX",
+          "TX_DECODE_EXEC",
+          "arm",
+          "arm_m0_min_id",
+          "id",
+          "isa",
+          "isa_spec",
+          "m0",
+          "min",
+          "spec"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0028"
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "evidence_terms": [
+        "FAULT",
+        "RTL_TODO_FAULT",
+        "TODO",
+        "arm",
+        "arm_m0_min_ex",
+        "error_handling",
+        "error_sources",
+        "ex",
+        "handling",
+        "m0",
+        "min",
+        "sources"
+      ],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "workflow_todos.rtl-gen[2]",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "FAULT",
+          "arm",
+          "arm_m0_min_ex",
+          "ex",
+          "m0",
+          "min"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "FAULT",
+          "RTL_TODO_FAULT",
+          "TODO",
+          "arm",
+          "arm_m0_min_ex",
+          "error_handling",
+          "error_sources",
+          "ex",
+          "handling",
+          "m0",
+          "min",
+          "sources"
+        ],
+        "source_scope": "rtl/arm_m0_min_ex.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0029"
+    },
+    {
+      "category": "parameters.item",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "parameters.XLEN",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0030"
+    },
+    {
+      "category": "parameters.item",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "parameters.RESET_PC",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0031"
+    },
+    {
+      "category": "parameters.item",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "parameters.ENABLE_FAULT_HALT",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0032"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "io_list.clock_domains.clk.ports.clk",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0033"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "io_list.resets.rst.ports.rst",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0034"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_haddr",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0035"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_htrans",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0036"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_hwrite",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0037"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_hsize",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0038"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_hburst",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0039"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_hprot",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0040"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_hmastlock",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0041"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_hready",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0042"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_hrdata",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0043"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "io_list.interfaces.ahb_i_master.ports.i_hresp",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0044"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "io_list.interfaces.ahb_d_master.ports.d_haddr",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0045"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "io_list.interfaces.ahb_d_master.ports.d_htrans",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0046"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "io_list.interfaces.ahb_d_master.ports.d_hwrite",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0047"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "io_list.interfaces.ahb_d_master.ports.d_hsize",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0048"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "io_list.interfaces.ahb_d_master.ports.d_hburst",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0049"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "io_list.interfaces.ahb_d_master.ports.d_hprot",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0050"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "io_list.interfaces.ahb_d_master.ports.d_hmastlock",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0051"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "io_list.interfaces.ahb_d_master.ports.d_hwdata",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0052"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "io_list.interfaces.ahb_d_master.ports.d_hready",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0053"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "io_list.interfaces.ahb_d_master.ports.d_hrdata",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0054"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "io_list.interfaces.ahb_d_master.ports.d_hresp",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0055"
+    },
+    {
+      "category": "function_model.state_variable",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_rf.sv",
+      "owner_module": "arm_m0_min_rf",
+      "source_ref": "function_model.state_variables.pc",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0056"
+    },
+    {
+      "category": "function_model.state_variable",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_rf.sv",
+      "owner_module": "arm_m0_min_rf",
+      "source_ref": "function_model.state_variables.gpr",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0057"
+    },
+    {
+      "category": "function_model.state_variable",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_rf.sv",
+      "owner_module": "arm_m0_min_rf",
+      "source_ref": "function_model.state_variables.nzcv",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0058"
+    },
+    {
+      "category": "function_model.state_variable",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_rf.sv",
+      "owner_module": "arm_m0_min_rf",
+      "source_ref": "function_model.state_variables.fault_halt",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0059"
+    },
+    {
+      "category": "function_model.transaction",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0060"
+    },
+    {
+      "category": "function_model.precondition",
+      "evidence_terms": [
+        "fault",
+        "fault_halt",
+        "halt"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_0",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fault",
+          "fault_halt",
+          "halt"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fault",
+          "fault_halt",
+          "halt"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0061"
+    },
+    {
+      "category": "function_model.precondition",
+      "evidence_terms": [
+        "hready",
+        "hresp",
+        "i_hready",
+        "i_hresp"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_1",
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "hready",
+          "hresp",
+          "i_hready",
+          "i_hresp"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "hready",
+          "hresp",
+          "i_hready",
+          "i_hresp"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0062"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.inputs.input_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0063"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.inputs.input_1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0064"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.outputs.output_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0065"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.outputs.output_1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0066"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.outputs.output_2",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0067"
+    },
+    {
+      "category": "function_model.output_rule",
+      "evidence_terms": [
+        "branch",
+        "branch_taken",
+        "branch_target",
+        "haddr",
+        "i_haddr",
+        "taken",
+        "target"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.output_rules.pc_next_addr",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "branch",
+          "branch_target",
+          "target"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "branch",
+          "branch_taken",
+          "branch_target",
+          "haddr",
+          "i_haddr",
+          "taken",
+          "target"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0068"
+    },
+    {
+      "category": "function_model.output_rule",
+      "evidence_terms": [
+        "d_hwdata",
+        "hwdata",
+        "is_store",
+        "rs2",
+        "store"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.output_rules.store_data_mux",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "rs2",
+          "store"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "d_hwdata",
+          "hwdata",
+          "is_store",
+          "rs2",
+          "store"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0069"
+    },
+    {
+      "category": "function_model.side_effect",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.side_effects.side_effect_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0070"
+    },
+    {
+      "category": "function_model.side_effect",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.side_effects.side_effect_1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0071"
+    },
+    {
+      "category": "function_model.error_case",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.error_cases.error_case_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0072"
+    },
+    {
+      "category": "function_model.transaction",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "function_model.transactions.TX_LOAD_STORE",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0073"
+    },
+    {
+      "category": "function_model.precondition",
+      "evidence_terms": [
+        "fault",
+        "fault_halt",
+        "halt"
+      ],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "function_model.transactions.TX_LOAD_STORE.preconditions.precondition_0",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fault",
+          "fault_halt",
+          "halt"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fault",
+          "fault_halt",
+          "halt"
+        ],
+        "source_scope": "rtl/arm_m0_min_ex.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0074"
+    },
+    {
+      "category": "function_model.precondition",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "function_model.transactions.TX_LOAD_STORE.preconditions.precondition_1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0075"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "function_model.transactions.TX_LOAD_STORE.inputs.input_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0076"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "function_model.transactions.TX_LOAD_STORE.inputs.input_1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0077"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "function_model.transactions.TX_LOAD_STORE.inputs.input_2",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0078"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "function_model.transactions.TX_LOAD_STORE.outputs.output_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0079"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "function_model.transactions.TX_LOAD_STORE.outputs.output_1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0080"
+    },
+    {
+      "category": "function_model.output_rule",
+      "evidence_terms": [
+        "d_haddr",
+        "haddr"
+      ],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "function_model.transactions.TX_LOAD_STORE.output_rules.d_haddr_rule",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "d_haddr",
+          "haddr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "d_haddr",
+          "haddr"
+        ],
+        "source_scope": "rtl/arm_m0_min_ex.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0081"
+    },
+    {
+      "category": "function_model.output_rule",
+      "evidence_terms": [
+        "d_hwrite",
+        "hwrite",
+        "is_store",
+        "store"
+      ],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "function_model.transactions.TX_LOAD_STORE.output_rules.d_hwrite_rule",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "d_hwrite",
+          "hwrite",
+          "store"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "d_hwrite",
+          "hwrite",
+          "is_store",
+          "store"
+        ],
+        "source_scope": "rtl/arm_m0_min_ex.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0082"
+    },
+    {
+      "category": "function_model.side_effect",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "function_model.transactions.TX_LOAD_STORE.side_effects.side_effect_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0083"
+    },
+    {
+      "category": "function_model.error_case",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "function_model.transactions.TX_LOAD_STORE.error_cases.error_case_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0084"
+    },
+    {
+      "category": "function_model.invariant",
+      "evidence_terms": [
+        "fault",
+        "fault_halt",
+        "halt"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "function_model.invariants.invariant_0",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fault",
+          "fault_halt",
+          "halt"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fault",
+          "fault_halt",
+          "halt"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0085"
+    },
+    {
+      "category": "function_model.invariant",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "function_model.invariants.invariant_1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0086"
+    },
+    {
+      "category": "function_model.invariant",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "function_model.invariants.invariant_2",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0087"
+    },
+    {
+      "category": "cycle_model.clock",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "cycle_model.clock",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0088"
+    },
+    {
+      "category": "cycle_model.reset",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "cycle_model.reset",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0089"
+    },
+    {
+      "category": "cycle_model.latency",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "cycle_model.latency",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0090"
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "evidence_terms": [
+        "htrans",
+        "i_htrans"
+      ],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "cycle_model.handshake_rules.i_htrans",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "htrans",
+          "i_htrans"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "htrans",
+          "i_htrans"
+        ],
+        "source_scope": "rtl/arm_m0_min_if.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0091"
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "evidence_terms": [
+        "d_htrans",
+        "htrans"
+      ],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "cycle_model.handshake_rules.d_htrans",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "d_htrans",
+          "htrans"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "d_htrans",
+          "htrans"
+        ],
+        "source_scope": "rtl/arm_m0_min_if.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0092"
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "evidence_terms": [
+        "d_hwdata",
+        "hwdata"
+      ],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "cycle_model.handshake_rules.d_hwdata",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "d_hwdata",
+          "hwdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "d_hwdata",
+          "hwdata"
+        ],
+        "source_scope": "rtl/arm_m0_min_if.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0093"
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "cycle_model.pipeline.IF",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0094"
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "cycle_model.pipeline.ID",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0095"
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "cycle_model.pipeline.EX",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0096"
+    },
+    {
+      "category": "cycle_model.ordering",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "cycle_model.ordering.ordering_rule_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0097"
+    },
+    {
+      "category": "cycle_model.ordering",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "cycle_model.ordering.ordering_rule_1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0098"
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "evidence_terms": [
+        "hready",
+        "i_hready"
+      ],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "hready",
+          "i_hready"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "hready",
+          "i_hready"
+        ],
+        "source_scope": "rtl/arm_m0_min_if.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0099"
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "evidence_terms": [
+        "d_hready",
+        "hready"
+      ],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "cycle_model.backpressure.backpressure_rule_1",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "d_hready",
+          "hready"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "d_hready",
+          "hready"
+        ],
+        "source_scope": "rtl/arm_m0_min_if.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0100"
+    },
+    {
+      "category": "cycle_model.observability",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "cycle_model.observability.observability_signal_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0101"
+    },
+    {
+      "category": "memory.instances",
+      "evidence_terms": [],
+      "owner_file": "",
+      "owner_module": "",
+      "source_ref": "memory.instances.if_id_instr",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0102"
+    },
+    {
+      "category": "memory.instances",
+      "evidence_terms": [],
+      "owner_file": "",
+      "owner_module": "",
+      "source_ref": "memory.instances.id_ex_ctrl",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0103"
+    },
+    {
+      "category": "fsm.state",
+      "evidence_terms": [
+        "RESET"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "fsm.core.states.state_0",
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "RESET"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RESET"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0104"
+    },
+    {
+      "category": "fsm.state",
+      "evidence_terms": [
+        "RUN"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "fsm.core.states.state_1",
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "RUN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RUN"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0105"
+    },
+    {
+      "category": "fsm.state",
+      "evidence_terms": [
+        "STALL_IF"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "fsm.core.states.state_2",
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "STALL_IF"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "STALL_IF"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0106"
+    },
+    {
+      "category": "fsm.state",
+      "evidence_terms": [
+        "STALL_MEM"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "fsm.core.states.state_3",
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "STALL_MEM"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "STALL_MEM"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0107"
+    },
+    {
+      "category": "fsm.state",
+      "evidence_terms": [
+        "FAULT_HALT"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "fsm.core.states.state_4",
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "FAULT_HALT"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "FAULT_HALT"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0108"
+    },
+    {
+      "category": "fsm.transition",
+      "evidence_terms": [
+        "RESET",
+        "RUN"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "fsm.core.transitions.transition_0",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "RESET",
+          "RUN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RESET",
+          "RUN"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0109"
+    },
+    {
+      "category": "fsm.transition",
+      "evidence_terms": [
+        "RUN",
+        "STALL_IF",
+        "hready",
+        "i_hready"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "fsm.core.transitions.transition_1",
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "RUN",
+          "STALL_IF",
+          "hready",
+          "i_hready"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RUN",
+          "STALL_IF",
+          "hready",
+          "i_hready"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0110"
+    },
+    {
+      "category": "fsm.transition",
+      "evidence_terms": [
+        "RUN",
+        "STALL_IF",
+        "hready",
+        "i_hready"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "fsm.core.transitions.transition_2",
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "RUN",
+          "STALL_IF",
+          "hready",
+          "i_hready"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RUN",
+          "STALL_IF",
+          "hready",
+          "i_hready"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0111"
+    },
+    {
+      "category": "fsm.transition",
+      "evidence_terms": [
+        "RUN",
+        "STALL_MEM",
+        "d_hready",
+        "hready"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "fsm.core.transitions.transition_3",
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "RUN",
+          "STALL_MEM",
+          "d_hready",
+          "hready"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RUN",
+          "STALL_MEM",
+          "d_hready",
+          "hready"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0112"
+    },
+    {
+      "category": "fsm.transition",
+      "evidence_terms": [
+        "OKAY",
+        "RUN",
+        "STALL_MEM",
+        "d_hready",
+        "d_hresp",
+        "hready",
+        "hresp"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "fsm.core.transitions.transition_4",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "RUN",
+          "STALL_MEM",
+          "d_hready",
+          "d_hresp",
+          "hready",
+          "hresp"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "OKAY",
+          "RUN",
+          "STALL_MEM",
+          "d_hready",
+          "d_hresp",
+          "hready",
+          "hresp"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0113"
+    },
+    {
+      "category": "fsm.transition",
+      "evidence_terms": [
+        "FAULT_HALT",
+        "RUN",
+        "d_hresp",
+        "hresp",
+        "i_hresp"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "fsm.core.transitions.transition_5",
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "FAULT_HALT",
+          "RUN",
+          "d_hresp",
+          "hresp",
+          "i_hresp"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "FAULT_HALT",
+          "RUN",
+          "d_hresp",
+          "hresp",
+          "i_hresp"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0114"
+    },
+    {
+      "category": "fsm.transition",
+      "evidence_terms": [
+        "FAULT_HALT",
+        "STALL_MEM",
+        "d_hresp",
+        "hresp"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "fsm.core.transitions.transition_6",
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "FAULT_HALT",
+          "STALL_MEM",
+          "d_hresp",
+          "hresp"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "FAULT_HALT",
+          "STALL_MEM",
+          "d_hresp",
+          "hresp"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0115"
+    },
+    {
+      "category": "fsm.transition",
+      "evidence_terms": [
+        "FAULT_HALT",
+        "RESET"
+      ],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "fsm.core.transitions.transition_7",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "FAULT_HALT",
+          "RESET"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "FAULT_HALT",
+          "RESET"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0116"
+    },
+    {
+      "category": "features.item",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "features.Thumb_1_ALU_compare",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0117"
+    },
+    {
+      "category": "features.item",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "features.Load_store_over_AHB_Lite",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0118"
+    },
+    {
+      "category": "features.item",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "features.Conditional_branch",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0119"
+    },
+    {
+      "category": "error_handling.recovery",
+      "evidence_terms": [
+        "fault",
+        "fault_halt",
+        "halt"
+      ],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "error_handling.recovery.recovery_0",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fault",
+          "fault_halt",
+          "halt"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fault",
+          "fault_halt",
+          "halt"
+        ],
+        "source_scope": "rtl/arm_m0_min_ex.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0120"
+    },
+    {
+      "category": "security.assets",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "security.assets.asset_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0121"
+    },
+    {
+      "category": "integration.dependencies",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "integration.dependencies.dependencie_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0122"
+    },
+    {
+      "category": "integration.connections",
+      "evidence_terms": [
+        "haddr",
+        "i_haddr"
+      ],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "integration.connections.i_haddr",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0123"
+    },
+    {
+      "category": "integration.connections",
+      "evidence_terms": [
+        "htrans",
+        "i_htrans"
+      ],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "integration.connections.i_htrans",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0124"
+    },
+    {
+      "category": "integration.connections",
+      "evidence_terms": [
+        "hready",
+        "i_hready"
+      ],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "integration.connections.i_hready",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0125"
+    },
+    {
+      "category": "integration.connections",
+      "evidence_terms": [
+        "hrdata",
+        "i_hrdata"
+      ],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "integration.connections.i_hrdata",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0126"
+    },
+    {
+      "category": "integration.connections",
+      "evidence_terms": [
+        "hresp",
+        "i_hresp"
+      ],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "integration.connections.i_hresp",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0127"
+    },
+    {
+      "category": "integration.connections",
+      "evidence_terms": [
+        "d_haddr",
+        "haddr"
+      ],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "integration.connections.d_haddr",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0128"
+    },
+    {
+      "category": "integration.connections",
+      "evidence_terms": [
+        "d_htrans",
+        "htrans"
+      ],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "integration.connections.d_htrans",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0129"
+    },
+    {
+      "category": "integration.connections",
+      "evidence_terms": [
+        "d_hwrite",
+        "hwrite"
+      ],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "integration.connections.d_hwrite",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0130"
+    },
+    {
+      "category": "integration.connections",
+      "evidence_terms": [
+        "d_hwdata",
+        "hwdata"
+      ],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "integration.connections.d_hwdata",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0131"
+    },
+    {
+      "category": "integration.connections",
+      "evidence_terms": [
+        "d_hready",
+        "hready"
+      ],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "integration.connections.d_hready",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0132"
+    },
+    {
+      "category": "integration.connections",
+      "evidence_terms": [
+        "d_hrdata",
+        "hrdata"
+      ],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "integration.connections.d_hrdata",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0133"
+    },
+    {
+      "category": "integration.connections",
+      "evidence_terms": [
+        "d_hresp",
+        "hresp"
+      ],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "integration.connections.d_hresp",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0134"
+    },
+    {
+      "category": "dft.scan",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "dft.scan.expected",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0135"
+    },
+    {
+      "category": "dft.scan",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "dft.scan.notes",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0136"
+    },
+    {
+      "category": "synthesis.constraints",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "synthesis.constraints.constraint_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0137"
+    },
+    {
+      "category": "synthesis.constraints",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "synthesis.constraints.constraint_1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0138"
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "synthesis.ppa_targets.area_priority",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0139"
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "synthesis.ppa_targets.power_priority",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0140"
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "synthesis.ppa_targets.timing_priority",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0141"
+    },
+    {
+      "category": "equivalence.module",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_if.sv",
+      "owner_module": "arm_m0_min_if",
+      "source_ref": "sub_modules.arm_m0_min_if.module_equivalence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0142"
+    },
+    {
+      "category": "equivalence.module",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "source_ref": "sub_modules.arm_m0_min_id.module_equivalence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0143"
+    },
+    {
+      "category": "equivalence.module",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_ex.sv",
+      "owner_module": "arm_m0_min_ex",
+      "source_ref": "sub_modules.arm_m0_min_ex.module_equivalence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0144"
+    },
+    {
+      "category": "equivalence.module",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min_rf.sv",
+      "owner_module": "arm_m0_min_rf",
+      "source_ref": "sub_modules.arm_m0_min_rf.module_equivalence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0145"
+    },
+    {
+      "category": "equivalence.module",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "sub_modules.arm_m0_min.module_equivalence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0146"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "test_requirements.scenarios.SC_ALU",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0147"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "test_requirements.scenarios.SC_CMP_BRANCH",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0148"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "test_requirements.scenarios.SC_LOAD_STORE",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0149"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "test_requirements.scenarios.SC_IF_STALL",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0150"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "evidence_terms": [],
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "source_ref": "test_requirements.scenarios.SC_BUS_ERROR",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0151"
+    }
+  ],
+  "schema_version": 1,
+  "top": "arm_m0_min",
+  "type": "rtl_traceability_matrix"
+}

@@ -1,0 +1,2772 @@
+{
+  "ip": "arm_m0_min",
+  "schema_version": 1,
+  "type": "fl_rtl_equivalence_goals",
+  "source_of_truth": {
+    "ssot": "arm_m0_min/yaml/arm_m0_min.ssot.yaml",
+    "functional_model": "arm_m0_min/model/functional_model.py",
+    "functional_model_exists": true,
+    "cycle_model_section": "cycle_model",
+    "decomposition": "arm_m0_min/model/decomposition.json",
+    "coverage_plan": "arm_m0_min/cov/fcov_plan.json",
+    "authority_contract": {
+      "rule": "LLM repair loops are allowed when a general criterion has objective machine evidence: PASS/FAIL/DIFF, coverage gap, lint diagnostic, assertion failure, stale evidence, traceability gap, or measured performance gap. Human gates own intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff.",
+      "general_evaluation_criteria": [
+        {
+          "id": "traceability",
+          "criterion": "Every generated artifact traces to SSOT requirement, function_model, cycle_model, interface, coverage, or quality_gates refs.",
+          "machine_evidence": [
+            "source refs in decomposition/equivalence goals",
+            "artifact manifests"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "functional_equivalence",
+          "criterion": "RTL observable behavior matches FunctionalModel results for every required transaction/scenario.",
+          "machine_evidence": [
+            "scoreboard_events.jsonl",
+            "fl_rtl_compare.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "module_equivalence",
+          "criterion": "Each behavior-owning RTL module has module-boundary evidence before top-level signoff.",
+          "machine_evidence": [
+            "scope.level=module scoreboard rows",
+            "module goal status"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "coverage_closure",
+          "criterion": "SSOT coverage goals are hit by passing RTL-observed scoreboard evidence.",
+          "machine_evidence": [
+            "fcov_plan.json",
+            "coverage.json",
+            "scoreboard coverage_refs"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "interface_protocol",
+          "criterion": "Ports, handshakes, ordering, reset, and error protocol obey SSOT io_list/cycle_model/interface contract.",
+          "machine_evidence": [
+            "protocol goals",
+            "assertion failures",
+            "waveform evidence"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "lint_compile",
+          "criterion": "DUT-only RTL compile/lint has zero unwaived errors, warnings, and style diagnostics.",
+          "machine_evidence": [
+            "rtl_compile.json",
+            "dut_lint.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "simulation_evidence",
+          "criterion": "Simulation results are fresh, bounded, non-stale, and tied to structured scoreboard goals.",
+          "machine_evidence": [
+            "results.xml",
+            "scoreboard_events.jsonl",
+            "stale_evidence checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "performance_cycle",
+          "criterion": "Cycle/performance targets from cycle_model/timing are measured or explicitly escalated.",
+          "machine_evidence": [
+            "latency/throughput measurements",
+            "CL/performance sweep reports"
+          ],
+          "llm_loop_allowed": "candidate_search_only"
+        },
+        {
+          "id": "debug_observability",
+          "criterion": "Waveforms and debug probes are sufficient to inspect reset, interface activity, state, outputs, and failures.",
+          "machine_evidence": [
+            "VCD/FST presence",
+            "debug_observability goals",
+            "waveform parser summary"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "maintainability",
+          "criterion": "Generated RTL/TB is structured by SSOT-owned modules, avoids fixed IP templates, and remains reviewable.",
+          "machine_evidence": [
+            "module contracts",
+            "dynamic todo plan",
+            "filelist/manifest checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "human_decision",
+          "criterion": "Intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff are human-owned.",
+          "machine_evidence": [
+            "human_gate questions/answers",
+            "approval state"
+          ],
+          "llm_loop_allowed": false
+        }
+      ],
+      "locked_artifacts": [
+        {
+          "name": "requirement",
+          "path": "arm_m0_min/req/",
+          "owner": "human",
+          "change_rule": "Human owns intent, scope, priority, tradeoffs, and final acceptance."
+        },
+        {
+          "name": "ssot_spec",
+          "path": "arm_m0_min/yaml/arm_m0_min.ssot.yaml",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Behavior, interface, coverage goal, and waiver changes require human gate."
+        },
+        {
+          "name": "functional_model",
+          "path": "arm_m0_min/model/functional_model.py",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "FunctionalModel is the golden oracle; sim-debug cannot change it to match RTL."
+        },
+        {
+          "name": "coverage_plan",
+          "path": "arm_m0_min/cov/fcov_plan.json",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "LLM may add tests to hit bins, but cannot weaken or delete bins without approval."
+        },
+        {
+          "name": "interface_contract",
+          "path": "arm_m0_min/yaml/arm_m0_min.ssot.yaml#io_list",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Protocol and port contract changes require human approval."
+        },
+        {
+          "name": "performance_target",
+          "path": "arm_m0_min/yaml/arm_m0_min.ssot.yaml#cycle_model",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "LLM may sweep candidates, but target/tradeoff changes require human approval."
+        }
+      ],
+      "llm_editable_artifacts": [
+        "arm_m0_min/rtl/",
+        "arm_m0_min/tb/",
+        "arm_m0_min/sim/",
+        "arm_m0_min/reports/",
+        "arm_m0_min/vectors/"
+      ],
+      "loopable_evidence_points": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "loopable_oracles": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "non_loopable_decisions": [
+        "change requirement intent or scope",
+        "change SSOT behavioral rule",
+        "change FunctionalModel golden semantics",
+        "change coverage goal or waiver",
+        "change interface contract",
+        "change performance target or architecture tradeoff",
+        "final signoff"
+      ]
+    }
+  },
+  "summary": {
+    "total": 37,
+    "required": 36,
+    "optional": 0,
+    "blocked": 0,
+    "module_total": 4,
+    "module_required": 3,
+    "module_blocked": 1
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_TX_DECODE_EXEC",
+      "title": "Transaction alu_compare_branch matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[0]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model"
+      ],
+      "coverage_refs": [
+        "fcov_tx_decode_exec",
+        "function_alu_compare_branch"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_TX_LOAD_STORE",
+      "title": "Transaction single_transfer_memory_access matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[1]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model"
+      ],
+      "coverage_refs": [
+        "fcov_tx_load_store",
+        "function_single_transfer_memory_access"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "single_transfer_memory_access",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "decoded opcode is LDR or STR"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "LDR updates destination register with returned word",
+          "STR commits one data write on bus",
+          "d_haddr_rule",
+          "d_hwrite_rule"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "pc advances after transfer completion"
+        ],
+        "error_policy": "{'condition': 'data bus response ERROR', 'result': 'fault_halt set and no further instruction retirement'}"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_ALU",
+      "title": "Scenario SC_ALU: ALU instruction correctness",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[0]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if",
+        "arm_m0_min_id",
+        "arm_m0_min_ex",
+        "arm_m0_min_rf",
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model",
+        "arm_m0_min_security_model"
+      ],
+      "coverage_refs": [
+        "SC_ALU_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Generate ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR sequences over random operands",
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Architectural register results match reference model",
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_CMP_BRANCH",
+      "title": "Scenario SC_CMP_BRANCH: CMP and conditional branching",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[1]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if",
+        "arm_m0_min_id",
+        "arm_m0_min_ex",
+        "arm_m0_min_rf",
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model",
+        "arm_m0_min_security_model"
+      ],
+      "coverage_refs": [
+        "SC_CMP_BRANCH_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Issue CMP then BEQ/BNE with both taken and not-taken outcomes",
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "NZCV and branch target behavior match function model",
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_LOAD_STORE",
+      "title": "Scenario SC_LOAD_STORE: Load/store handshake behavior",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[2]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if",
+        "arm_m0_min_id",
+        "arm_m0_min_ex",
+        "arm_m0_min_rf",
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model",
+        "arm_m0_min_security_model"
+      ],
+      "coverage_refs": [
+        "SC_LOAD_STORE_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "single_transfer_memory_access",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive LDR/STR traffic with variable d_hready wait cycles",
+          "fault_halt == 0",
+          "decoded opcode is LDR or STR"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "No duplicate commit; results visible only after completion",
+          "LDR updates destination register with returned word",
+          "STR commits one data write on bus",
+          "d_haddr_rule",
+          "d_hwrite_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "pc advances after transfer completion"
+        ],
+        "error_policy": "{'condition': 'data bus response ERROR', 'result': 'fault_halt set and no further instruction retirement'}"
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_IF_STALL",
+      "title": "Scenario SC_IF_STALL: Instruction fetch backpressure",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[3]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if",
+        "arm_m0_min_id",
+        "arm_m0_min_ex",
+        "arm_m0_min_rf",
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model",
+        "arm_m0_min_security_model"
+      ],
+      "coverage_refs": [
+        "SC_IF_STALL_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC_IF_STALL",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Deassert i_hready for bounded bursts during fetch"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "IF/PC stall without architectural corruption",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_BUS_ERROR",
+      "title": "Scenario SC_BUS_ERROR: Bus error to fault-halt",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[4]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if",
+        "arm_m0_min_id",
+        "arm_m0_min_ex",
+        "arm_m0_min_rf",
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model",
+        "arm_m0_min_security_model"
+      ],
+      "coverage_refs": [
+        "SC_BUS_ERROR_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC_BUS_ERROR",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Inject i_hresp or d_hresp ERROR on completed transfers"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Core enters FAULT_HALT and blocks further retirement until reset",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "title": "Cycle/handshake rule handshake_0",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[0]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC_LOAD_STORE_executed",
+        "ccov_mem_stall",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_0",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'i_htrans', 'rule': 'IF keeps transfer intent stable until i_hready handshake occurs'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'fetch_accept': {'min_cycles': 1, 'max_cycles': None, 'description': 'Depends on i_hready backpressure'}, 'alu_instr': {'min_cycles': 1, 'max_cycles': 1, 'description': 'No extra wait in EX for pure ALU ops'}, 'load_store_instr': {'min_cycles': 1, 'max_cycles': None, 'description': 'Variable with d_hready'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "title": "Cycle/handshake rule handshake_1",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[1]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC_LOAD_STORE_executed",
+        "ccov_mem_stall",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_1",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'd_htrans', 'rule': 'EX keeps active transfer until d_hready indicates completion'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'fetch_accept': {'min_cycles': 1, 'max_cycles': None, 'description': 'Depends on i_hready backpressure'}, 'alu_instr': {'min_cycles': 1, 'max_cycles': 1, 'description': 'No extra wait in EX for pure ALU ops'}, 'load_store_instr': {'min_cycles': 1, 'max_cycles': None, 'description': 'Variable with d_hready'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "title": "Cycle/handshake rule handshake_2",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[2]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC_LOAD_STORE_executed",
+        "ccov_mem_stall",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_2",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'd_hwdata', 'rule': 'For STR, write data remains stable while waiting for d_hready'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'fetch_accept': {'min_cycles': 1, 'max_cycles': None, 'description': 'Depends on i_hready backpressure'}, 'alu_instr': {'min_cycles': 1, 'max_cycles': 1, 'description': 'No extra wait in EX for pure ALU ops'}, 'load_store_instr': {'min_cycles': 1, 'max_cycles': None, 'description': 'Variable with d_hready'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "title": "Ordering rule ordering_0",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[0]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_pipeline_order",
+        "cycle_ordering_0",
+        "cycle_ordering_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_0",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "Program-order retirement: instruction i commits before i+1."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'fetch_accept': {'min_cycles': 1, 'max_cycles': None, 'description': 'Depends on i_hready backpressure'}, 'alu_instr': {'min_cycles': 1, 'max_cycles': 1, 'description': 'No extra wait in EX for pure ALU ops'}, 'load_store_instr': {'min_cycles': 1, 'max_cycles': None, 'description': 'Variable with d_hready'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "title": "Ordering rule ordering_1",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[1]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_pipeline_order",
+        "cycle_ordering_0",
+        "cycle_ordering_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_1",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "Branch redirection affects subsequent fetch only after branch evaluation reaches commit boundary."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'fetch_accept': {'min_cycles': 1, 'max_cycles': None, 'description': 'Depends on i_hready backpressure'}, 'alu_instr': {'min_cycles': 1, 'max_cycles': 1, 'description': 'No extra wait in EX for pure ALU ops'}, 'load_store_instr': {'min_cycles': 1, 'max_cycles': None, 'description': 'Variable with d_hready'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_MEMORY_IF_ID_INSTR",
+      "title": "Memory behavior if_id_instr",
+      "kind": "memory",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "memory.instances[0]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_memory_model"
+      ],
+      "coverage_refs": [
+        "function_single_transfer_memory_access",
+        "cycle_backpressure_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "memory_access",
+        "required_fields": [
+          "op",
+          "addr",
+          "data"
+        ],
+        "constraints": [
+          "{'name': 'if_id_instr', 'type': 'register', 'depth': 1, 'width': 32, 'read_ports': 1, 'write_ports': 1, 'latency': 0, 'description': 'IF/ID pipeline latch'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "retention"
+        ],
+        "latency": "memory latency from cycle_model",
+        "state_updates": [
+          "memory contents"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL memory read/write behavior matches FunctionalModel state",
+        "Byte-lane, boundary, and retention behavior match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_MEMORY_ID_EX_CTRL",
+      "title": "Memory behavior id_ex_ctrl",
+      "kind": "memory",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "memory.instances[1]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_memory_model"
+      ],
+      "coverage_refs": [
+        "function_single_transfer_memory_access",
+        "cycle_backpressure_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "memory_access",
+        "required_fields": [
+          "op",
+          "addr",
+          "data"
+        ],
+        "constraints": [
+          "{'name': 'id_ex_ctrl', 'type': 'register', 'depth': 1, 'width': 64, 'read_ports': 1, 'write_ports': 1, 'latency': 0, 'description': 'ID/EX control+operand latch'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "retention"
+        ],
+        "latency": "memory latency from cycle_model",
+        "state_updates": [
+          "memory contents"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL memory read/write behavior matches FunctionalModel state",
+        "Byte-lane, boundary, and retention behavior match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_ERROR_I_BUS_ERROR",
+      "title": "Error policy I_BUS_ERROR",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[0]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_error_model"
+      ],
+      "coverage_refs": [
+        "SC_BUS_ERROR_executed",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "error_i_bus_error",
+        "error_d_bus_error"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "I_BUS_ERROR",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "constraints": [
+          "{'name': 'I_BUS_ERROR', 'detect': 'i_hresp==ERROR when instruction transfer completes', 'effect': 'enter FAULT_HALT'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "error response",
+          "status/interrupt/debug observable"
+        ],
+        "latency": "error propagation timing from cycle_model",
+        "state_updates": [
+          "error state/counter/status update"
+        ],
+        "error_policy": "['fault_halt latch blocks further commits until reset']"
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_ERROR_D_BUS_ERROR",
+      "title": "Error policy D_BUS_ERROR",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[1]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_error_model"
+      ],
+      "coverage_refs": [
+        "SC_BUS_ERROR_executed",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "error_i_bus_error",
+        "error_d_bus_error"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "D_BUS_ERROR",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "constraints": [
+          "{'name': 'D_BUS_ERROR', 'detect': 'd_hresp==ERROR when data transfer completes', 'effect': 'enter FAULT_HALT'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "error response",
+          "status/interrupt/debug observable"
+        ],
+        "latency": "error propagation timing from cycle_model",
+        "state_updates": [
+          "error state/counter/status update"
+        ],
+        "error_policy": "['fault_halt latch blocks further commits until reset']"
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_RESET_TO_RUN_0",
+      "title": "FSM transition core: RESET -> RUN",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.core.transitions[0]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_fsm_model"
+      ],
+      "coverage_refs": [
+        "fsm_core_reset_to_run_0",
+        "fsm_core_run_to_stall_if_1",
+        "fsm_core_stall_if_to_run_2",
+        "fsm_core_run_to_stall_mem_3",
+        "fsm_core_stall_mem_to_run_4",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "fsm_core_fault_halt_to_reset_7"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "core_RESET_to_RUN_0",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "rst deasserted"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "core state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_RUN_TO_STALL_IF_1",
+      "title": "FSM transition core: RUN -> STALL_IF",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.core.transitions[1]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_fsm_model"
+      ],
+      "coverage_refs": [
+        "fsm_core_reset_to_run_0",
+        "fsm_core_run_to_stall_if_1",
+        "fsm_core_stall_if_to_run_2",
+        "fsm_core_run_to_stall_mem_3",
+        "fsm_core_stall_mem_to_run_4",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "fsm_core_fault_halt_to_reset_7"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "core_RUN_to_STALL_IF_1",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "i_hready==0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "core state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_STALL_IF_TO_RUN_2",
+      "title": "FSM transition core: STALL_IF -> RUN",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.core.transitions[2]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_fsm_model"
+      ],
+      "coverage_refs": [
+        "fsm_core_reset_to_run_0",
+        "fsm_core_run_to_stall_if_1",
+        "fsm_core_stall_if_to_run_2",
+        "fsm_core_run_to_stall_mem_3",
+        "fsm_core_stall_mem_to_run_4",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "fsm_core_fault_halt_to_reset_7"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "core_STALL_IF_to_RUN_2",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "i_hready==1"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "core state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_RUN_TO_STALL_MEM_3",
+      "title": "FSM transition core: RUN -> STALL_MEM",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.core.transitions[3]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_fsm_model"
+      ],
+      "coverage_refs": [
+        "fsm_core_reset_to_run_0",
+        "fsm_core_run_to_stall_if_1",
+        "fsm_core_stall_if_to_run_2",
+        "fsm_core_run_to_stall_mem_3",
+        "fsm_core_stall_mem_to_run_4",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "fsm_core_fault_halt_to_reset_7"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "core_RUN_to_STALL_MEM_3",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "active load/store && d_hready==0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "core state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_STALL_MEM_TO_RUN_4",
+      "title": "FSM transition core: STALL_MEM -> RUN",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.core.transitions[4]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_fsm_model"
+      ],
+      "coverage_refs": [
+        "fsm_core_reset_to_run_0",
+        "fsm_core_run_to_stall_if_1",
+        "fsm_core_stall_if_to_run_2",
+        "fsm_core_run_to_stall_mem_3",
+        "fsm_core_stall_mem_to_run_4",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "fsm_core_fault_halt_to_reset_7"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "core_STALL_MEM_to_RUN_4",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "d_hready==1 && d_hresp==OKAY"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "core state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_RUN_TO_FAULT_HALT_5",
+      "title": "FSM transition core: RUN -> FAULT_HALT",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.core.transitions[5]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_fsm_model"
+      ],
+      "coverage_refs": [
+        "fsm_core_reset_to_run_0",
+        "fsm_core_run_to_stall_if_1",
+        "fsm_core_stall_if_to_run_2",
+        "fsm_core_run_to_stall_mem_3",
+        "fsm_core_stall_mem_to_run_4",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "fsm_core_fault_halt_to_reset_7",
+        "error_i_bus_error",
+        "error_d_bus_error"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "core_RUN_to_FAULT_HALT_5",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "i_hresp==ERROR || d_hresp==ERROR"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "core state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_STALL_MEM_TO_FAULT_HALT_6",
+      "title": "FSM transition core: STALL_MEM -> FAULT_HALT",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.core.transitions[6]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_fsm_model"
+      ],
+      "coverage_refs": [
+        "fsm_core_reset_to_run_0",
+        "fsm_core_run_to_stall_if_1",
+        "fsm_core_stall_if_to_run_2",
+        "fsm_core_run_to_stall_mem_3",
+        "fsm_core_stall_mem_to_run_4",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "fsm_core_fault_halt_to_reset_7",
+        "error_i_bus_error",
+        "error_d_bus_error"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "core_STALL_MEM_to_FAULT_HALT_6",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "d_hresp==ERROR"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "core state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
+      "title": "FSM transition core: FAULT_HALT -> RESET",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.core.transitions[7]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_fsm_model"
+      ],
+      "coverage_refs": [
+        "fsm_core_reset_to_run_0",
+        "fsm_core_run_to_stall_if_1",
+        "fsm_core_stall_if_to_run_2",
+        "fsm_core_run_to_stall_mem_3",
+        "fsm_core_stall_mem_to_run_4",
+        "fsm_core_run_to_fault_halt_5",
+        "fsm_core_stall_mem_to_fault_halt_6",
+        "fsm_core_fault_halt_to_reset_7",
+        "error_i_bus_error",
+        "error_d_bus_error"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "core_FAULT_HALT_to_RESET_7",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "rst asserted"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "core state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "title": "Required debug/waveform observability exists",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "debug_observability.waveform_must_probe"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "debug_probe_capture",
+        "required_fields": [
+          "waveform_path"
+        ],
+        "constraints": [
+          "pc",
+          "fault_halt",
+          "if_valid",
+          "id_valid",
+          "ex_valid",
+          "i_htrans",
+          "i_hready",
+          "i_hresp",
+          "d_htrans",
+          "d_hready",
+          "d_hresp"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "waveform contains required probes"
+        ],
+        "latency": "throughout simulation window",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Waveform includes SSOT-required debug probes",
+        "sim_debug can inspect those probes around checked scenarios"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "tb",
+          "coverage",
+          "rtl",
+          "ssot",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_MODULE_ARM_M0_MIN_IF",
+      "title": "Module arm_m0_min_if functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "arm_m0_min_if",
+        "rtl_file": "rtl/arm_m0_min_if.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.backpressure.backpressure_1",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules",
+        "cycle_model.handshake_rules.d_htrans",
+        "cycle_model.handshake_rules.d_hwdata",
+        "cycle_model.handshake_rules.i_htrans",
+        "cycle_model.observability.observability_0",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.id",
+        "cycle_model.pipeline.if",
+        "cycle_model.reset",
+        "io_list",
+        "io_list.interfaces.ahb_i_master",
+        "timing",
+        "timing.fetch_path"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "human",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "optional": true
+    },
+    {
+      "goal_id": "EQ_MODULE_ARM_M0_MIN_ID",
+      "title": "Module arm_m0_min_id functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "arm_m0_min_id",
+        "rtl_file": "rtl/arm_m0_min_id.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "fsm",
+        "fsm.core",
+        "fsm.core.states.DECODE",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.transactions.TX_DECODE_EXEC",
+        "function_model.transactions.tx_decode_exec",
+        "function_model.transactions.tx_decode_exec.error_cases.error_case_0",
+        "function_model.transactions.tx_decode_exec.inputs.input_0",
+        "function_model.transactions.tx_decode_exec.inputs.input_1",
+        "function_model.transactions.tx_decode_exec.output_rules.pc_next_addr",
+        "function_model.transactions.tx_decode_exec.output_rules.store_data_mux",
+        "function_model.transactions.tx_decode_exec.outputs.output_0",
+        "function_model.transactions.tx_decode_exec.outputs.output_1",
+        "function_model.transactions.tx_decode_exec.outputs.output_2",
+        "function_model.transactions.tx_decode_exec.preconditions.precondition_0",
+        "function_model.transactions.tx_decode_exec.preconditions.precondition_1",
+        "function_model.transactions.tx_decode_exec.side_effects.side_effect_0",
+        "function_model.transactions.tx_decode_exec.side_effects.side_effect_1",
+        "isa_spec",
+        "isa_spec.decode_contract"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_id"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_MODULE_ARM_M0_MIN_EX",
+      "title": "Module arm_m0_min_ex functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "arm_m0_min_ex",
+        "rtl_file": "rtl/arm_m0_min_ex.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.latency",
+        "cycle_model.ordering",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.ex",
+        "error_handling",
+        "error_handling.error_sources",
+        "features.load_store_over_ahb_lite",
+        "function_model",
+        "function_model.transactions.TX_DECODE_EXEC",
+        "function_model.transactions.TX_LOAD_STORE",
+        "function_model.transactions.tx_load_store",
+        "function_model.transactions.tx_load_store.error_cases.error_case_0",
+        "function_model.transactions.tx_load_store.inputs.input_0",
+        "function_model.transactions.tx_load_store.inputs.input_1",
+        "function_model.transactions.tx_load_store.inputs.input_2",
+        "function_model.transactions.tx_load_store.output_rules.d_haddr_rule",
+        "function_model.transactions.tx_load_store.output_rules.d_hwrite_rule",
+        "function_model.transactions.tx_load_store.outputs.output_0",
+        "function_model.transactions.tx_load_store.outputs.output_1",
+        "function_model.transactions.tx_load_store.preconditions.precondition_0",
+        "function_model.transactions.tx_load_store.preconditions.precondition_1",
+        "function_model.transactions.tx_load_store.side_effects.side_effect_0",
+        "io_list",
+        "io_list.interfaces.ahb_d_master",
+        "parameters.enable_fault_halt"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_ex"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_MODULE_ARM_M0_MIN_RF",
+      "title": "Module arm_m0_min_rf functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "arm_m0_min_rf",
+        "rtl_file": "rtl/arm_m0_min_rf.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "function_model",
+        "function_model.state_variables",
+        "function_model.state_variables.fault_halt",
+        "function_model.state_variables.gpr",
+        "function_model.state_variables.nzcv",
+        "function_model.state_variables.pc",
+        "register_file",
+        "register_file.architecture",
+        "registers.config.register_width"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_rf"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_IF_STALL",
+      "title": "Functional coverage bin ccov_if_stall: IF backpressure observed",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if",
+        "arm_m0_min_id",
+        "arm_m0_min_ex",
+        "arm_m0_min_rf",
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model",
+        "arm_m0_min_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_if_stall"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
+          "IF backpressure observed"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_FETCH_ACCEPT",
+      "title": "Functional coverage bin cycle_latency_fetch_accept: {'min_cycles': 1, 'max_cycles': None, 'description': 'Depends on i_hready backpressure'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.fetch_accept"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if",
+        "arm_m0_min_id",
+        "arm_m0_min_ex",
+        "arm_m0_min_rf",
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model",
+        "arm_m0_min_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_latency_fetch_accept"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
+          "{'min_cycles': 1, 'max_cycles': None, 'description': 'Depends on i_hready backpressure'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_ALU_INSTR",
+      "title": "Functional coverage bin cycle_latency_alu_instr: {'min_cycles': 1, 'max_cycles': 1, 'description': 'No extra wait in EX for pure ALU ops'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.alu_instr"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if",
+        "arm_m0_min_id",
+        "arm_m0_min_ex",
+        "arm_m0_min_rf",
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model",
+        "arm_m0_min_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_latency_alu_instr"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
+          "{'min_cycles': 1, 'max_cycles': 1, 'description': 'No extra wait in EX for pure ALU ops'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_LOAD_STORE_INSTR",
+      "title": "Functional coverage bin cycle_latency_load_store_instr: {'min_cycles': 1, 'max_cycles': None, 'description': 'Variable with d_hready'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.load_store_instr"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if",
+        "arm_m0_min_id",
+        "arm_m0_min_ex",
+        "arm_m0_min_rf",
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model",
+        "arm_m0_min_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_latency_load_store_instr"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
+          "{'min_cycles': 1, 'max_cycles': None, 'description': 'Variable with d_hready'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_IF",
+      "title": "Functional coverage bin cycle_pipeline_if: Drive instruction address/control and capture instruction on ready",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[0]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if",
+        "arm_m0_min_id",
+        "arm_m0_min_ex",
+        "arm_m0_min_rf",
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model",
+        "arm_m0_min_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_if"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
+          "Drive instruction address/control and capture instruction on ready"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_ID",
+      "title": "Functional coverage bin cycle_pipeline_id: Decode instruction and read source operands",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[1]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if",
+        "arm_m0_min_id",
+        "arm_m0_min_ex",
+        "arm_m0_min_rf",
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model",
+        "arm_m0_min_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_id"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
+          "Decode instruction and read source operands"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_EX",
+      "title": "Functional coverage bin cycle_pipeline_ex: Execute/branch/load-store and commit results",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[2]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if",
+        "arm_m0_min_id",
+        "arm_m0_min_ex",
+        "arm_m0_min_rf",
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model",
+        "arm_m0_min_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_ex"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
+          "Execute/branch/load-store and commit results"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "title": "Functional coverage bin cycle_backpressure_0: i_hready=0 stalls IF and upstream PC progression without corrupting ID/EX committed state.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure[0]"
+      ],
+      "decomposition_refs": [
+        "arm_m0_min_if",
+        "arm_m0_min_id",
+        "arm_m0_min_ex",
+        "arm_m0_min_rf",
+        "arm_m0_min_protocol_model",
+        "arm_m0_min_register_model",
+        "arm_m0_min_memory_model",
+        "arm_m0_min_datapath_model",
+        "arm_m0_min_fsm_model",
+        "arm_m0_min_error_model",
+        "arm_m0_min_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_backpressure_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "alu_compare_branch",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "fault_halt == 0",
+          "instruction fetch completed with i_hready == 1 and i_hresp == OKAY",
+          "i_hready=0 stalls IF and upstream PC progression without corrupting ID/EX committed state."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR",
+          "NZCV updated only for CMP",
+          "PC updated sequentially or redirected for B/BEQ/BNE",
+          "pc_next_addr",
+          "store_data_mux"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "pc advances by instruction size on non-branch",
+          "pc set to target when branch taken"
+        ],
+        "error_policy": "{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": ""
+    }
+  ]
+}

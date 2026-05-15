@@ -1,0 +1,315 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_manifest",
+  "ip": "arm_m0_min",
+  "top": "arm_m0_min",
+  "generated_at": "2026-05-15T10:47:03Z",
+  "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
+  "ssot": "arm_m0_min/yaml/arm_m0_min.ssot.yaml",
+  "equivalence_goals": "arm_m0_min/verify/equivalence_goals.json",
+  "rtl_contract": "arm_m0_min/rtl/rtl_contract.json",
+  "clock": "clk",
+  "reset": "rst",
+  "reset_active": "high",
+  "latency_cycles": 2,
+  "parameters": {
+    "XLEN": 32,
+    "RESET_PC": 0,
+    "ENABLE_FAULT_HALT": 1
+  },
+  "ports": [
+    {
+      "name": "clk",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "rst",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "i_haddr",
+      "direction": "output",
+      "width": 32
+    },
+    {
+      "name": "i_htrans",
+      "direction": "output",
+      "width": 2
+    },
+    {
+      "name": "i_hwrite",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "i_hsize",
+      "direction": "output",
+      "width": 3
+    },
+    {
+      "name": "i_hburst",
+      "direction": "output",
+      "width": 3
+    },
+    {
+      "name": "i_hprot",
+      "direction": "output",
+      "width": 4
+    },
+    {
+      "name": "i_hmastlock",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "i_hready",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "i_hrdata",
+      "direction": "input",
+      "width": 32
+    },
+    {
+      "name": "i_hresp",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "d_haddr",
+      "direction": "output",
+      "width": 32
+    },
+    {
+      "name": "d_htrans",
+      "direction": "output",
+      "width": 2
+    },
+    {
+      "name": "d_hwrite",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "d_hsize",
+      "direction": "output",
+      "width": 3
+    },
+    {
+      "name": "d_hburst",
+      "direction": "output",
+      "width": 3
+    },
+    {
+      "name": "d_hprot",
+      "direction": "output",
+      "width": 4
+    },
+    {
+      "name": "d_hmastlock",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "d_hwdata",
+      "direction": "output",
+      "width": 32
+    },
+    {
+      "name": "d_hready",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "d_hrdata",
+      "direction": "input",
+      "width": 32
+    },
+    {
+      "name": "d_hresp",
+      "direction": "input",
+      "width": 1
+    }
+  ],
+  "port_widths": {
+    "clk": 1,
+    "rst": 1,
+    "i_haddr": 32,
+    "i_htrans": 2,
+    "i_hwrite": 1,
+    "i_hsize": 3,
+    "i_hburst": 3,
+    "i_hprot": 4,
+    "i_hmastlock": 1,
+    "i_hready": 1,
+    "i_hrdata": 32,
+    "i_hresp": 1,
+    "d_haddr": 32,
+    "d_htrans": 2,
+    "d_hwrite": 1,
+    "d_hsize": 3,
+    "d_hburst": 3,
+    "d_hprot": 4,
+    "d_hmastlock": 1,
+    "d_hwdata": 32,
+    "d_hready": 1,
+    "d_hrdata": 32,
+    "d_hresp": 1
+  },
+  "input_ports": [
+    "clk",
+    "d_hrdata",
+    "d_hready",
+    "d_hresp",
+    "i_hrdata",
+    "i_hready",
+    "i_hresp",
+    "rst"
+  ],
+  "output_ports": [
+    "d_haddr",
+    "d_hburst",
+    "d_hmastlock",
+    "d_hprot",
+    "d_hsize",
+    "d_htrans",
+    "d_hwdata",
+    "d_hwrite",
+    "i_haddr",
+    "i_hburst",
+    "i_hmastlock",
+    "i_hprot",
+    "i_hsize",
+    "i_htrans",
+    "i_hwrite"
+  ],
+  "input_map": {
+    "i_hready": "i_hready",
+    "i_hrdata": "i_hrdata",
+    "i_hresp": "i_hresp",
+    "d_hready": "d_hready",
+    "d_hrdata": "d_hrdata",
+    "d_hresp": "d_hresp",
+    "clk": "clk",
+    "rst": "rst"
+  },
+  "sample_condition": "1",
+  "sample_inputs": [],
+  "outputs": [
+    {
+      "name": "i_haddr",
+      "port": "i_haddr",
+      "width": 32
+    },
+    {
+      "name": "i_htrans",
+      "port": "i_htrans",
+      "width": 2
+    },
+    {
+      "name": "i_hwrite",
+      "port": "i_hwrite",
+      "width": 1
+    },
+    {
+      "name": "i_hsize",
+      "port": "i_hsize",
+      "width": 3
+    },
+    {
+      "name": "i_hburst",
+      "port": "i_hburst",
+      "width": 3
+    },
+    {
+      "name": "i_hprot",
+      "port": "i_hprot",
+      "width": 4
+    },
+    {
+      "name": "i_hmastlock",
+      "port": "i_hmastlock",
+      "width": 1
+    },
+    {
+      "name": "d_haddr",
+      "port": "d_haddr",
+      "width": 32
+    },
+    {
+      "name": "d_htrans",
+      "port": "d_htrans",
+      "width": 2
+    },
+    {
+      "name": "d_hwrite",
+      "port": "d_hwrite",
+      "width": 1
+    },
+    {
+      "name": "d_hsize",
+      "port": "d_hsize",
+      "width": 3
+    },
+    {
+      "name": "d_hburst",
+      "port": "d_hburst",
+      "width": 3
+    },
+    {
+      "name": "d_hprot",
+      "port": "d_hprot",
+      "width": 4
+    },
+    {
+      "name": "d_hmastlock",
+      "port": "d_hmastlock",
+      "width": 1
+    },
+    {
+      "name": "d_hwdata",
+      "port": "d_hwdata",
+      "width": 32
+    }
+  ],
+  "special_outputs": {},
+  "transaction_kind": "TX_DECODE_EXEC",
+  "rtl_sources": [
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/arm_m0_min/rtl/arm_m0_min_alu.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/arm_m0_min/rtl/arm_m0_min_branch.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/arm_m0_min/rtl/arm_m0_min_ex.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/arm_m0_min/rtl/arm_m0_min_id.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/arm_m0_min/rtl/arm_m0_min_if.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/arm_m0_min/rtl/arm_m0_min_mem_if.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/arm_m0_min/rtl/arm_m0_min_rf.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/arm_m0_min/rtl/arm_m0_min.sv"
+  ],
+  "goal_count": 37,
+  "module_goal_count": 4,
+  "module_goals": [
+    {
+      "goal_id": "EQ_MODULE_ARM_M0_MIN_IF",
+      "rtl_module": "arm_m0_min_if",
+      "rtl_file": "rtl/arm_m0_min_if.sv"
+    },
+    {
+      "goal_id": "EQ_MODULE_ARM_M0_MIN_ID",
+      "rtl_module": "arm_m0_min_id",
+      "rtl_file": "rtl/arm_m0_min_id.sv"
+    },
+    {
+      "goal_id": "EQ_MODULE_ARM_M0_MIN_EX",
+      "rtl_module": "arm_m0_min_ex",
+      "rtl_file": "rtl/arm_m0_min_ex.sv"
+    },
+    {
+      "goal_id": "EQ_MODULE_ARM_M0_MIN_RF",
+      "rtl_module": "arm_m0_min_rf",
+      "rtl_file": "rtl/arm_m0_min_rf.sv"
+    }
+  ]
+}

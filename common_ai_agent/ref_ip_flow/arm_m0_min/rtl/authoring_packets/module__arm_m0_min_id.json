@@ -1,0 +1,1878 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 12,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 31,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/arm_m0_min_id.sv",
+      "name": "arm_m0_min_id",
+      "refs": [
+        "fsm",
+        "fsm.core",
+        "fsm.core.states.DECODE",
+        "function_model",
+        "function_model.transactions.TX_DECODE_EXEC",
+        "isa_spec",
+        "isa_spec.decode_contract"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/arm_m0_min_if.sv",
+        "name": "arm_m0_min_if",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min_id.sv",
+        "name": "arm_m0_min_id",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min_ex.sv",
+        "name": "arm_m0_min_ex",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min_rf.sv",
+        "name": "arm_m0_min_rf",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min.sv",
+        "name": "arm_m0_min",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "arm_m0_min",
+  "kind": "module",
+  "owner_file": "rtl/arm_m0_min_id.sv",
+  "owner_module": "arm_m0_min_id",
+  "packet_id": "module__arm_m0_min_id",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "fsm.state": 5,
+      "fsm.transition": 8,
+      "function_model.error_case": 1,
+      "function_model.input": 2,
+      "function_model.invariant": 3,
+      "function_model.output": 3,
+      "function_model.output_rule": 2,
+      "function_model.precondition": 2,
+      "function_model.side_effect": 2,
+      "function_model.transaction": 1,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 31,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 31,
+    "source_refs": [
+      "workflow_todos.rtl-gen[1]",
+      "function_model.transactions.TX_DECODE_EXEC",
+      "function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_0",
+      "function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_1",
+      "function_model.transactions.TX_DECODE_EXEC.inputs.input_0",
+      "function_model.transactions.TX_DECODE_EXEC.inputs.input_1",
+      "function_model.transactions.TX_DECODE_EXEC.outputs.output_0",
+      "function_model.transactions.TX_DECODE_EXEC.outputs.output_1",
+      "function_model.transactions.TX_DECODE_EXEC.outputs.output_2",
+      "function_model.transactions.TX_DECODE_EXEC.output_rules.pc_next_addr",
+      "function_model.transactions.TX_DECODE_EXEC.output_rules.store_data_mux",
+      "function_model.transactions.TX_DECODE_EXEC.side_effects.side_effect_0",
+      "function_model.transactions.TX_DECODE_EXEC.side_effects.side_effect_1",
+      "function_model.transactions.TX_DECODE_EXEC.error_cases.error_case_0",
+      "function_model.invariants.invariant_0",
+      "function_model.invariants.invariant_1",
+      "function_model.invariants.invariant_2",
+      "fsm.core.states.state_0",
+      "fsm.core.states.state_1",
+      "fsm.core.states.state_2",
+      "fsm.core.states.state_3",
+      "fsm.core.states.state_4",
+      "fsm.core.transitions.transition_0",
+      "fsm.core.transitions.transition_1"
+    ],
+    "status_counts": {
+      "pass": 31
+    },
+    "task_count": 31
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement supported Thumb-1 decode/execute subset",
+      "criteria": [
+        "Only supported opcodes retire",
+        "CMP updates flags without destination register write",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[1]",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv",
+        "Semantic source_refs covered: custom.assumptions, function_model.transactions.TX_DECODE_EXEC, isa_spec"
+      ],
+      "detail": "Implement decode and execution for listed instructions with correct writeback and flag policy.\nSSOT ref: workflow_todos.rtl-gen[1].\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_ISA.",
+      "evidence_terms": [
+        "DECODE",
+        "EXEC",
+        "ISA",
+        "RTL_TODO_ISA",
+        "TODO",
+        "TX",
+        "TX_DECODE_EXEC",
+        "arm",
+        "arm_m0_min_id",
+        "id",
+        "isa",
+        "isa_spec",
+        "m0",
+        "min",
+        "spec"
+      ],
+      "id": "RTL-0028",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[1]",
+      "ssot_context": {
+        "id": "RTL_TODO_ISA"
+      },
+      "ssot_refs": [
+        "custom.assumptions",
+        "function_model.transactions.TX_DECODE_EXEC",
+        "isa_spec",
+        "workflow_todos.rtl-gen[1]"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "arm",
+          "arm_m0_min_id",
+          "id",
+          "m0",
+          "min"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "DECODE",
+          "EXEC",
+          "ISA",
+          "RTL_TODO_ISA",
+          "TODO",
+          "TX",
+          "TX_DECODE_EXEC",
+          "arm",
+          "arm_m0_min_id",
+          "id",
+          "isa",
+          "isa_spec",
+          "m0",
+          "min",
+          "spec"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_ISA",
+        "source_refs": [
+          "custom.assumptions",
+          "function_model.transactions.TX_DECODE_EXEC",
+          "isa_spec"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction TX_DECODE_EXEC",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.TX_DECODE_EXEC",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.TX_DECODE_EXEC.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.\nSSOT item context: id=TX_DECODE_EXEC; name=alu_compare_branch.",
+      "evidence_terms": [],
+      "id": "RTL-0060",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC",
+      "ssot_context": {
+        "id": "TX_DECODE_EXEC",
+        "name": "alu_compare_branch"
+      },
+      "ssot_refs": [
+        "function_model.transactions.TX_DECODE_EXEC"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for TX_DECODE_EXEC: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_0.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.\nSSOT item context: value=fault_halt == 0.",
+      "evidence_terms": [
+        "fault",
+        "fault_halt",
+        "halt"
+      ],
+      "id": "RTL-0061",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "fault_halt == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fault",
+          "fault_halt",
+          "halt"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fault",
+          "fault_halt",
+          "halt"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for TX_DECODE_EXEC: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_1.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.\nSSOT item context: value=instruction fetch completed with i_hready == 1 and i_hresp == OKAY.",
+      "evidence_terms": [
+        "hready",
+        "hresp",
+        "i_hready",
+        "i_hresp"
+      ],
+      "id": "RTL-0062",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "instruction fetch completed with i_hready == 1 and i_hresp == OKAY"
+      },
+      "ssot_refs": [
+        "function_model.transactions.TX_DECODE_EXEC.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "hready",
+          "hresp",
+          "i_hready",
+          "i_hresp"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "hready",
+          "hresp",
+          "i_hready",
+          "i_hresp"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for TX_DECODE_EXEC: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.TX_DECODE_EXEC.inputs.input_0",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.TX_DECODE_EXEC.inputs.input_0.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.\nSSOT item context: value=decoded opcode.",
+      "evidence_terms": [],
+      "id": "RTL-0063",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.inputs.input_0",
+      "ssot_context": {
+        "value": "decoded opcode"
+      },
+      "ssot_refs": [
+        "function_model.transactions.TX_DECODE_EXEC.inputs.input_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for TX_DECODE_EXEC: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.TX_DECODE_EXEC.inputs.input_1",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.TX_DECODE_EXEC.inputs.input_1.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.\nSSOT item context: value=operand values from architectural registers.",
+      "evidence_terms": [],
+      "id": "RTL-0064",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.inputs.input_1",
+      "ssot_context": {
+        "value": "operand values from architectural registers"
+      },
+      "ssot_refs": [
+        "function_model.transactions.TX_DECODE_EXEC.inputs.input_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for TX_DECODE_EXEC: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.TX_DECODE_EXEC.outputs.output_0",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.TX_DECODE_EXEC.outputs.output_0.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.\nSSOT item context: value=ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR.",
+      "evidence_terms": [],
+      "id": "RTL-0065",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.outputs.output_0",
+      "ssot_context": {
+        "value": "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR"
+      },
+      "ssot_refs": [
+        "function_model.transactions.TX_DECODE_EXEC.outputs.output_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for TX_DECODE_EXEC: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.TX_DECODE_EXEC.outputs.output_1",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.TX_DECODE_EXEC.outputs.output_1.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.\nSSOT item context: value=NZCV updated only for CMP.",
+      "evidence_terms": [],
+      "id": "RTL-0066",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.outputs.output_1",
+      "ssot_context": {
+        "value": "NZCV updated only for CMP"
+      },
+      "ssot_refs": [
+        "function_model.transactions.TX_DECODE_EXEC.outputs.output_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for TX_DECODE_EXEC: output_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.TX_DECODE_EXEC.outputs.output_2",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.TX_DECODE_EXEC.outputs.output_2.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.\nSSOT item context: value=PC updated sequentially or redirected for B/BEQ/BNE.",
+      "evidence_terms": [],
+      "id": "RTL-0067",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.outputs.output_2",
+      "ssot_context": {
+        "value": "PC updated sequentially or redirected for B/BEQ/BNE"
+      },
+      "ssot_refs": [
+        "function_model.transactions.TX_DECODE_EXEC.outputs.output_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for TX_DECODE_EXEC: pc_next_addr",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.TX_DECODE_EXEC.output_rules.pc_next_addr",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv",
+        "pc_next_addr width matches SSOT value 32",
+        "pc_next_addr RTL expression implements SSOT expression (branch_target) if (branch_taken) else ((pc + 2))",
+        "DUT port i_haddr is the implementation/observation point for pc_next_addr",
+        "pc_next_addr is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.TX_DECODE_EXEC.output_rules.pc_next_addr.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.\nSSOT item context: name=pc_next_addr; port=i_haddr; expr=(branch_target) if (branch_taken) else ((pc + 2)); width=32.",
+      "evidence_terms": [
+        "branch",
+        "branch_taken",
+        "branch_target",
+        "haddr",
+        "i_haddr",
+        "taken",
+        "target"
+      ],
+      "id": "RTL-0068",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.output_rules.pc_next_addr",
+      "ssot_context": {
+        "expr": "(branch_target) if (branch_taken) else ((pc + 2))",
+        "name": "pc_next_addr",
+        "port": "i_haddr",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.TX_DECODE_EXEC.output_rules.pc_next_addr"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "branch",
+          "branch_target",
+          "target"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "branch",
+          "branch_taken",
+          "branch_target",
+          "haddr",
+          "i_haddr",
+          "taken",
+          "target"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for TX_DECODE_EXEC: store_data_mux",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.TX_DECODE_EXEC.output_rules.store_data_mux",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv",
+        "store_data_mux width matches SSOT value 32",
+        "store_data_mux RTL expression implements SSOT expression (rs2) if (is_store) else (0)",
+        "DUT port d_hwdata is the implementation/observation point for store_data_mux",
+        "store_data_mux is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.TX_DECODE_EXEC.output_rules.store_data_mux.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.\nSSOT item context: name=store_data_mux; port=d_hwdata; expr=(rs2) if (is_store) else (0); width=32.",
+      "evidence_terms": [
+        "d_hwdata",
+        "hwdata",
+        "is_store",
+        "rs2",
+        "store"
+      ],
+      "id": "RTL-0069",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.output_rules.store_data_mux",
+      "ssot_context": {
+        "expr": "(rs2) if (is_store) else (0)",
+        "name": "store_data_mux",
+        "port": "d_hwdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.TX_DECODE_EXEC.output_rules.store_data_mux"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "rs2",
+          "store"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "d_hwdata",
+          "hwdata",
+          "is_store",
+          "rs2",
+          "store"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for TX_DECODE_EXEC: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.TX_DECODE_EXEC.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.TX_DECODE_EXEC.side_effects.side_effect_0.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.\nSSOT item context: value=pc advances by instruction size on non-branch.",
+      "evidence_terms": [],
+      "id": "RTL-0070",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.side_effects.side_effect_0",
+      "ssot_context": {
+        "value": "pc advances by instruction size on non-branch"
+      },
+      "ssot_refs": [
+        "function_model.transactions.TX_DECODE_EXEC.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for TX_DECODE_EXEC: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.TX_DECODE_EXEC.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.TX_DECODE_EXEC.side_effects.side_effect_1.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.\nSSOT item context: value=pc set to target when branch taken.",
+      "evidence_terms": [],
+      "id": "RTL-0071",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.side_effects.side_effect_1",
+      "ssot_context": {
+        "value": "pc set to target when branch taken"
+      },
+      "ssot_refs": [
+        "function_model.transactions.TX_DECODE_EXEC.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for TX_DECODE_EXEC: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.TX_DECODE_EXEC.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv",
+        "function_model.transactions.TX_DECODE_EXEC.error_cases.error_case_0 condition is implemented as RTL control logic: instruction bus response ERROR"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.TX_DECODE_EXEC.error_cases.error_case_0.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.transactions.TX_DECODE_EXEC.\nSSOT item context: condition=instruction bus response ERROR.",
+      "evidence_terms": [],
+      "id": "RTL-0072",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.TX_DECODE_EXEC.error_cases.error_case_0",
+      "ssot_context": {
+        "condition": "instruction bus response ERROR"
+      },
+      "ssot_refs": [
+        "function_model.transactions.TX_DECODE_EXEC.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_0",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_0",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.\nSSOT item context: value=No instruction retires while fault_halt==1..",
+      "evidence_terms": [
+        "fault",
+        "fault_halt",
+        "halt"
+      ],
+      "id": "RTL-0085",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_0",
+      "ssot_context": {
+        "value": "No instruction retires while fault_halt==1."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fault",
+          "fault_halt",
+          "halt"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fault",
+          "fault_halt",
+          "halt"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_1",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_1",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.\nSSOT item context: value=IF/ID/EX ordering remains in-order with no out-of-order commit..",
+      "evidence_terms": [],
+      "id": "RTL-0086",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_1",
+      "ssot_context": {
+        "value": "IF/ID/EX ordering remains in-order with no out-of-order commit."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_2",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_2",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via function_model.\nSSOT item context: value=Register writes occur only from committed EX outcomes..",
+      "evidence_terms": [],
+      "id": "RTL-0087",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_2",
+      "ssot_context": {
+        "value": "Register writes occur only from committed EX outcomes."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state core.state_0",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.core.states.state_0",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core.states.state_0.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.\nSSOT item context: value=RESET.",
+      "evidence_terms": [
+        "RESET"
+      ],
+      "id": "RTL-0104",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.core.states.state_0",
+      "ssot_context": {
+        "value": "RESET"
+      },
+      "ssot_refs": [
+        "fsm.core.states.state_0"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "RESET"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RESET"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state core.state_1",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.core.states.state_1",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core.states.state_1.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.\nSSOT item context: value=RUN.",
+      "evidence_terms": [
+        "RUN"
+      ],
+      "id": "RTL-0105",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.core.states.state_1",
+      "ssot_context": {
+        "value": "RUN"
+      },
+      "ssot_refs": [
+        "fsm.core.states.state_1"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "RUN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RUN"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state core.state_2",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.core.states.state_2",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core.states.state_2.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.\nSSOT item context: value=STALL_IF.",
+      "evidence_terms": [
+        "STALL_IF"
+      ],
+      "id": "RTL-0106",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.core.states.state_2",
+      "ssot_context": {
+        "value": "STALL_IF"
+      },
+      "ssot_refs": [
+        "fsm.core.states.state_2"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "STALL_IF"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "STALL_IF"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state core.state_3",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.core.states.state_3",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core.states.state_3.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.\nSSOT item context: value=STALL_MEM.",
+      "evidence_terms": [
+        "STALL_MEM"
+      ],
+      "id": "RTL-0107",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.core.states.state_3",
+      "ssot_context": {
+        "value": "STALL_MEM"
+      },
+      "ssot_refs": [
+        "fsm.core.states.state_3"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "STALL_MEM"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "STALL_MEM"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state core.state_4",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.core.states.state_4",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core.states.state_4.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.\nSSOT item context: value=FAULT_HALT.",
+      "evidence_terms": [
+        "FAULT_HALT"
+      ],
+      "id": "RTL-0108",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.core.states.state_4",
+      "ssot_context": {
+        "value": "FAULT_HALT"
+      },
+      "ssot_refs": [
+        "fsm.core.states.state_4"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "FAULT_HALT"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "FAULT_HALT"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition core.transition_0",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.core.transitions.transition_0",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv",
+        "fsm.core.transitions.transition_0 condition is implemented as RTL control logic: rst deasserted",
+        "fsm.core.transitions.transition_0 transition path RESET -> RUN is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core.transitions.transition_0.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.\nSSOT item context: from=RESET; to=RUN; condition=rst deasserted.",
+      "evidence_terms": [
+        "RESET",
+        "RUN"
+      ],
+      "id": "RTL-0109",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.core.transitions.transition_0",
+      "ssot_context": {
+        "condition": "rst deasserted",
+        "from": "RESET",
+        "to": "RUN"
+      },
+      "ssot_refs": [
+        "fsm.core.transitions.transition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "RESET",
+          "RUN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RESET",
+          "RUN"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition core.transition_1",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.core.transitions.transition_1",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv",
+        "fsm.core.transitions.transition_1 condition is implemented as RTL control logic: i_hready==0",
+        "fsm.core.transitions.transition_1 transition path RUN -> STALL_IF is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core.transitions.transition_1.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.\nSSOT item context: from=RUN; to=STALL_IF; condition=i_hready==0.",
+      "evidence_terms": [
+        "RUN",
+        "STALL_IF",
+        "hready",
+        "i_hready"
+      ],
+      "id": "RTL-0110",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.core.transitions.transition_1",
+      "ssot_context": {
+        "condition": "i_hready==0",
+        "from": "RUN",
+        "to": "STALL_IF"
+      },
+      "ssot_refs": [
+        "fsm.core.transitions.transition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "RUN",
+          "STALL_IF",
+          "hready",
+          "i_hready"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RUN",
+          "STALL_IF",
+          "hready",
+          "i_hready"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition core.transition_2",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.core.transitions.transition_2",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv",
+        "fsm.core.transitions.transition_2 condition is implemented as RTL control logic: i_hready==1",
+        "fsm.core.transitions.transition_2 transition path STALL_IF -> RUN is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core.transitions.transition_2.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.\nSSOT item context: from=STALL_IF; to=RUN; condition=i_hready==1.",
+      "evidence_terms": [
+        "RUN",
+        "STALL_IF",
+        "hready",
+        "i_hready"
+      ],
+      "id": "RTL-0111",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.core.transitions.transition_2",
+      "ssot_context": {
+        "condition": "i_hready==1",
+        "from": "STALL_IF",
+        "to": "RUN"
+      },
+      "ssot_refs": [
+        "fsm.core.transitions.transition_2"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "RUN",
+          "STALL_IF",
+          "hready",
+          "i_hready"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RUN",
+          "STALL_IF",
+          "hready",
+          "i_hready"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition core.transition_3",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.core.transitions.transition_3",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv",
+        "fsm.core.transitions.transition_3 condition is implemented as RTL control logic: active load/store && d_hready==0",
+        "fsm.core.transitions.transition_3 transition path RUN -> STALL_MEM is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core.transitions.transition_3.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.\nSSOT item context: from=RUN; to=STALL_MEM; condition=active load/store && d_hready==0.",
+      "evidence_terms": [
+        "RUN",
+        "STALL_MEM",
+        "d_hready",
+        "hready"
+      ],
+      "id": "RTL-0112",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.core.transitions.transition_3",
+      "ssot_context": {
+        "condition": "active load/store && d_hready==0",
+        "from": "RUN",
+        "to": "STALL_MEM"
+      },
+      "ssot_refs": [
+        "fsm.core.transitions.transition_3"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "RUN",
+          "STALL_MEM",
+          "d_hready",
+          "hready"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RUN",
+          "STALL_MEM",
+          "d_hready",
+          "hready"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition core.transition_4",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.core.transitions.transition_4",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv",
+        "fsm.core.transitions.transition_4 condition is implemented as RTL control logic: d_hready==1 && d_hresp==OKAY",
+        "fsm.core.transitions.transition_4 transition path STALL_MEM -> RUN is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core.transitions.transition_4.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.\nSSOT item context: from=STALL_MEM; to=RUN; condition=d_hready==1 && d_hresp==OKAY.",
+      "evidence_terms": [
+        "OKAY",
+        "RUN",
+        "STALL_MEM",
+        "d_hready",
+        "d_hresp",
+        "hready",
+        "hresp"
+      ],
+      "id": "RTL-0113",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.core.transitions.transition_4",
+      "ssot_context": {
+        "condition": "d_hready==1 && d_hresp==OKAY",
+        "from": "STALL_MEM",
+        "to": "RUN"
+      },
+      "ssot_refs": [
+        "fsm.core.transitions.transition_4"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "RUN",
+          "STALL_MEM",
+          "d_hready",
+          "d_hresp",
+          "hready",
+          "hresp"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "OKAY",
+          "RUN",
+          "STALL_MEM",
+          "d_hready",
+          "d_hresp",
+          "hready",
+          "hresp"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition core.transition_5",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.core.transitions.transition_5",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv",
+        "fsm.core.transitions.transition_5 condition is implemented as RTL control logic: i_hresp==ERROR || d_hresp==ERROR",
+        "fsm.core.transitions.transition_5 transition path RUN -> FAULT_HALT is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core.transitions.transition_5.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.\nSSOT item context: from=RUN; to=FAULT_HALT; condition=i_hresp==ERROR || d_hresp==ERROR.",
+      "evidence_terms": [
+        "FAULT_HALT",
+        "RUN",
+        "d_hresp",
+        "hresp",
+        "i_hresp"
+      ],
+      "id": "RTL-0114",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.core.transitions.transition_5",
+      "ssot_context": {
+        "condition": "i_hresp==ERROR || d_hresp==ERROR",
+        "from": "RUN",
+        "to": "FAULT_HALT"
+      },
+      "ssot_refs": [
+        "fsm.core.transitions.transition_5"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "FAULT_HALT",
+          "RUN",
+          "d_hresp",
+          "hresp",
+          "i_hresp"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "FAULT_HALT",
+          "RUN",
+          "d_hresp",
+          "hresp",
+          "i_hresp"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition core.transition_6",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.core.transitions.transition_6",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv",
+        "fsm.core.transitions.transition_6 condition is implemented as RTL control logic: d_hresp==ERROR",
+        "fsm.core.transitions.transition_6 transition path STALL_MEM -> FAULT_HALT is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core.transitions.transition_6.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.\nSSOT item context: from=STALL_MEM; to=FAULT_HALT; condition=d_hresp==ERROR.",
+      "evidence_terms": [
+        "FAULT_HALT",
+        "STALL_MEM",
+        "d_hresp",
+        "hresp"
+      ],
+      "id": "RTL-0115",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.core.transitions.transition_6",
+      "ssot_context": {
+        "condition": "d_hresp==ERROR",
+        "from": "STALL_MEM",
+        "to": "FAULT_HALT"
+      },
+      "ssot_refs": [
+        "fsm.core.transitions.transition_6"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "FAULT_HALT",
+          "STALL_MEM",
+          "d_hresp",
+          "hresp"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "FAULT_HALT",
+          "STALL_MEM",
+          "d_hresp",
+          "hresp"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition core.transition_7",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.core.transitions.transition_7",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv",
+        "fsm.core.transitions.transition_7 condition is implemented as RTL control logic: rst asserted",
+        "fsm.core.transitions.transition_7 transition path FAULT_HALT -> RESET is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.core.transitions.transition_7.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via fsm.core.\nSSOT item context: from=FAULT_HALT; to=RESET; condition=rst asserted.",
+      "evidence_terms": [
+        "FAULT_HALT",
+        "RESET"
+      ],
+      "id": "RTL-0116",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.core.transitions.transition_7",
+      "ssot_context": {
+        "condition": "rst asserted",
+        "from": "FAULT_HALT",
+        "to": "RESET"
+      },
+      "ssot_refs": [
+        "fsm.core.transitions.transition_7"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "FAULT_HALT",
+          "RESET"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "FAULT_HALT",
+          "RESET"
+        ],
+        "source_scope": "rtl/arm_m0_min_id.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module arm_m0_min_id is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.arm_m0_min_id.module_equivalence",
+        "Primary implementation evidence is in rtl/arm_m0_min_id.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.arm_m0_min_id.module_equivalence.\nOwner: arm_m0_min_id in rtl/arm_m0_min_id.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0143",
+      "owner_file": "rtl/arm_m0_min_id.sv",
+      "owner_module": "arm_m0_min_id",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.arm_m0_min_id.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.arm_m0_min_id.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "a70eeedfb17c143e2e962a82c44a8b0edf3adcdded649e82f935de86a45a7092",
+  "top": "arm_m0_min",
+  "type": "rtl_authoring_packet"
+}

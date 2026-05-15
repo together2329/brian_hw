@@ -96,3 +96,13 @@ When lint or sim finds an issue:
   `ip_id`, `workspace_id`, `workflow`, and `rtl_version_id`.
 - Pipeline signoff uses only fresh downstream evidence for the selected RTL
   version.
+
+## Recorded Runs
+
+Concrete reference runs captured in this wiki. Each row anchors a version
+set that downstream evidence in this run must name.
+
+| Date | IP | SSOT | RTL | TB | Sim | Lint | Reference |
+|---|---|---|---|---|---|---|---|
+| 2026-05-15 | `arm_m0_min` | yaml/arm_m0_min.ssot.yaml (31 271 B, 36 sections) | 8 SV files, 22 KB, compile errors=0 | 9 cocotb files, 37 tests | scoreboard 37/37, 0 mismatches, 35/35 fcov bins | pyslang+verilator errors=0 warnings=0 | [[arm-m0-min-pipeline-run]] |
+

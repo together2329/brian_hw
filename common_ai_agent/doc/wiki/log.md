@@ -1,5 +1,30 @@
 # Wiki Log
 
+## 2026-05-16
+
+- New IP run captured: [[arm-m0-min-pipeline-run]] — first CPU-class IP
+  driven end-to-end through `ssot-gen → fl-model-gen → rtl-gen → tb-gen →
+  sim → lint` with green compile/lint/sim/coverage on the headless
+  surface (`gpt-5.3-codex`, `/mode pipeline`). 8 SV files (22 KB),
+  scoreboard 37/37 with 0 mismatches, 35/35 fcov bins hit, lint clean.
+  Detailed report at `arm_m0_min/PIPELINE_SUMMARY.md`. Open ledger
+  items (8) classified as: 1 self-counter, 3 out-of-plan-scope
+  (cl-model-gen / formal / production governance), 4 derive-tool
+  false positives (same family as the uart_lite trial's "30 owner-file
+  mismatches as tool bug"). Three workflow improvement candidates
+  surfaced:
+  1. `repair_ssot_schema.py` should normalize C/Verilog ternary and
+     bit literals (`cond ? a : b`, `32'h0`, `1'b1`) inside `expr`
+     strings — `emit_fl_model.py` crashes on these with SyntaxError.
+  2. `rtl-gen` system prompt should require
+     `rtl/rtl_authoring_provenance.json` emission as a closing artifact
+     (schema: agent, workflow, surface, model_profile, ssot,
+     rtl_files, todo_plan, todo_plan_sha256, toolchain).
+  3. `react_loop` should stop on idle once the agent declares done,
+     not run out the iteration cap doing nothing — ~50 min of the
+     ~3 h wall-time on this run was post-completion idle.
+- Updated [[rtl-version-run-history]] with the arm_m0_min row.
+
 ## 2026-05-15
 
 - Created the tracked project wiki map for common_ai_agent under `doc/wiki/`.

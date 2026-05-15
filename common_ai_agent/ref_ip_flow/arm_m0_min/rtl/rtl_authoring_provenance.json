@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "type": "rtl_authoring_provenance",
+  "agent": "common_ai_agent",
+  "workflow": "rtl-gen",
+  "surface": "headless_common_engine",
+  "model_profile": "gpt-5.3-codex",
+  "effort": "medium",
+  "generated_at": "2026-05-15T10:41:22Z",
+  "updated_at": "2026-05-15T10:41:22Z",
+  "ip": "arm_m0_min",
+  "ssot": "yaml/arm_m0_min.ssot.yaml",
+  "filelist": "list/arm_m0_min.f",
+  "header_files": [],
+  "note": "All RTL files were authored by common_ai_agent rtl-gen from arm_m0_min/yaml/arm_m0_min.ssot.yaml using the canonical SSOT-driven RTL generation path.",
+  "refresh_reason": "Initial canonical authoring run completed; compile=0 errors, lint=0 errors/warnings.",
+  "rtl_files": [
+    "rtl/arm_m0_min.sv",
+    "rtl/arm_m0_min_alu.sv",
+    "rtl/arm_m0_min_branch.sv",
+    "rtl/arm_m0_min_ex.sv",
+    "rtl/arm_m0_min_id.sv",
+    "rtl/arm_m0_min_if.sv",
+    "rtl/arm_m0_min_mem_if.sv",
+    "rtl/arm_m0_min_rf.sv"
+  ],
+  "todo_plan": "rtl/rtl_todo_plan.json",
+  "todo_plan_sha256": "1baeab31bcea69525358f8da93d9931e4a55a6d138306875da9731f82204c051",
+  "toolchain": "atlas rtl-gen via common_ai_agent"
+}

@@ -1,0 +1,714 @@
+top_module:
+  name: "arm_m0_min"
+  file: "rtl/arm_m0_min.sv"
+  version: "1.0"
+  type: "cpu"
+  description: "Minimal ARMv6-M-like educational CPU with a 3-stage in-order pipeline and dual AHB-Lite master ports."
+  reference_spec: "ARMv6-M architectural subset (teaching profile)"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 50
+    area_um2: null
+    power_mw: null
+
+sub_modules:
+  - name: "arm_m0_min_if"
+    file: "rtl/arm_m0_min_if.sv"
+    ownership: "manifest"
+    ssot_gen: true
+    source_sections: ["io_list", "cycle_model", "timing"]
+    implements: ["io_list.interfaces.ahb_i_master", "cycle_model.pipeline", "cycle_model.handshake_rules", "timing.fetch_path"]
+    cycle_model_refs: ["cycle_model.pipeline", "cycle_model.handshake_rules"]
+    ssot_refs: ["io_list.interfaces.ahb_i_master"]
+    description: "Instruction fetch/address phase control and IF-stage stalling behavior"
+  - name: "arm_m0_min_id"
+    file: "rtl/arm_m0_min_id.sv"
+    ownership: "manifest"
+    ssot_gen: true
+    source_sections: ["function_model", "isa_spec", "fsm"]
+    implements: ["function_model.transactions.TX_DECODE_EXEC", "isa_spec.decode_contract", "fsm.core.states.DECODE"]
+    function_model_refs: ["function_model.transactions.TX_DECODE_EXEC"]
+    fsm_refs: ["fsm.core"]
+    ssot_refs: ["isa_spec.decode_contract"]
+    description: "Thumb-1 decode, operand selection, and branch condition evaluation"
+  - name: "arm_m0_min_ex"
+    file: "rtl/arm_m0_min_ex.sv"
+    ownership: "manifest"
+    ssot_gen: false
+    source_sections: ["function_model", "cycle_model", "error_handling", "io_list"]
+    implements: ["function_model.transactions.TX_DECODE_EXEC", "function_model.transactions.TX_LOAD_STORE", "cycle_model.pipeline", "error_handling.error_sources", "io_list.interfaces.ahb_d_master"]
+    function_model_refs: ["function_model.transactions.TX_DECODE_EXEC", "function_model.transactions.TX_LOAD_STORE"]
+    cycle_model_refs: ["cycle_model.pipeline", "cycle_model.latency", "cycle_model.ordering"]
+    ssot_refs: ["io_list.interfaces.ahb_d_master"]
+    description: "Execute, load/store handshake, writeback, and fault-halt transition"
+  - name: "arm_m0_min_rf"
+    file: "rtl/arm_m0_min_rf.sv"
+    ownership: "manifest"
+    ssot_gen: true
+    source_sections: ["register_file", "function_model"]
+    implements: ["register_file.architecture", "function_model.state_variables"]
+    ssot_refs: ["register_file.architecture"]
+    function_model_refs: ["function_model.state_variables"]
+    description: "16x32 architectural register file"
+
+decomposition:
+  units:
+    - id: "fetch"
+      kind: "control/protocol"
+      source_refs: ["cycle_model.pipeline", "io_list.interfaces.ahb_i_master"]
+      rtl_candidates: ["arm_m0_min_if"]
+      verification_impact: ["test_requirements.scenarios.SC_IF_STALL"]
+    - id: "decode"
+      kind: "control"
+      source_refs: ["isa_spec.decode_contract", "function_model.transactions"]
+      rtl_candidates: ["arm_m0_min_id"]
+      verification_impact: ["test_requirements.scenarios.SC_ALU"]
+    - id: "execute_mem"
+      kind: "datapath/control"
+      source_refs: ["function_model.transactions", "cycle_model.pipeline", "error_handling"]
+      rtl_candidates: ["arm_m0_min_ex"]
+      verification_impact: ["test_requirements.scenarios.SC_LOAD_STORE", "test_requirements.scenarios.SC_BUS_ERROR"]
+
+parameters:
+  - name: "XLEN"
+    default: 32
+    type: int
+    description: "Architectural integer width"
+    drives: ["rtl/arm_m0_min.sv", "rtl/arm_m0_min_rf.sv", "rtl/arm_m0_min_ex.sv"]
+  - name: "RESET_PC"
+    default: 0
+    type: int
+    description: "PC reset vector"
+    drives: ["rtl/arm_m0_min_ex.sv", "rtl/arm_m0_min_if.sv"]
+  - name: "ENABLE_FAULT_HALT"
+    default: 1
+    type: int
+    description: "Enable entry to FAULT_HALT state on bus error"
+    drives: ["rtl/arm_m0_min_ex.sv"]
+
+io_list:
+  clock_domains:
+    - name: "clk"
+      frequency_mhz: 50
+      description: "Main CPU clock"
+      ports:
+        - { name: "clk", width: 1, direction: "input", description: "Clock input" }
+  resets:
+    - name: "rst"
+      polarity: "active_high"
+      sync_async: "sync"
+      description: "Synchronous active-high reset"
+      ports:
+        - { name: "rst", width: 1, direction: "input", description: "Reset input" }
+  interfaces:
+    - name: "ahb_i_master"
+      type: "AHB-Lite"
+      role: "master"
+      clock_domain: "clk"
+      reset_domain: "rst"
+      description: "Instruction fetch interface"
+      protocol:
+        handshake: "Transfer accepted when i_htrans!=IDLE and i_hready=1"
+        backpressure: "IF stage holds request and PC when i_hready=0"
+      ports:
+        - { name: "i_haddr", width: 32, direction: "output", description: "Instruction address" }
+        - { name: "i_htrans", width: 2, direction: "output", description: "Transfer type" }
+        - { name: "i_hwrite", width: 1, direction: "output", description: "Write control (constant 0)" }
+        - { name: "i_hsize", width: 3, direction: "output", description: "Transfer size" }
+        - { name: "i_hburst", width: 3, direction: "output", description: "Burst type" }
+        - { name: "i_hprot", width: 4, direction: "output", description: "Protection attributes" }
+        - { name: "i_hmastlock", width: 1, direction: "output", description: "Locked transfer indicator" }
+        - { name: "i_hready", width: 1, direction: "input", description: "Ready from bus" }
+        - { name: "i_hrdata", width: 32, direction: "input", description: "Read data" }
+        - { name: "i_hresp", width: 1, direction: "input", description: "Response (OKAY/ERROR)" }
+    - name: "ahb_d_master"
+      type: "AHB-Lite"
+      role: "master"
+      clock_domain: "clk"
+      reset_domain: "rst"
+      description: "Data load/store interface"
+      protocol:
+        handshake: "Address/control then data/response complete when d_hready=1"
+        backpressure: "EX stage and writeback stall while d_hready=0"
+      ports:
+        - { name: "d_haddr", width: 32, direction: "output", description: "Data address" }
+        - { name: "d_htrans", width: 2, direction: "output", description: "Transfer type" }
+        - { name: "d_hwrite", width: 1, direction: "output", description: "Write enable" }
+        - { name: "d_hsize", width: 3, direction: "output", description: "Transfer size" }
+        - { name: "d_hburst", width: 3, direction: "output", description: "Burst type" }
+        - { name: "d_hprot", width: 4, direction: "output", description: "Protection attributes" }
+        - { name: "d_hmastlock", width: 1, direction: "output", description: "Locked transfer indicator" }
+        - { name: "d_hwdata", width: 32, direction: "output", description: "Write data" }
+        - { name: "d_hready", width: 1, direction: "input", description: "Ready from bus" }
+        - { name: "d_hrdata", width: 32, direction: "input", description: "Read data" }
+        - { name: "d_hresp", width: 1, direction: "input", description: "Response (OKAY/ERROR)" }
+
+features:
+  - name: "Thumb-1 ALU/compare"
+    trigger: "Decoded ALU/CMP instruction in ID stage"
+    datapath: "Read operands from register file, compute ALU result or compare flags, writeback in EX"
+    control: "IF->ID->EX flow with decode-select and optional flag update"
+    output: "Destination register update and/or NZCV flag update"
+  - name: "Load/store over AHB-Lite"
+    trigger: "Decoded LDR/STR instruction"
+    datapath: "Address generation in EX, bus access via d_* signals, data return/write data handling"
+    control: "EX waits for d_hready before completing operation"
+    output: "Register writeback for LDR or bus write for STR"
+  - name: "Conditional branch"
+    trigger: "Decoded B/BEQ/BNE instruction"
+    datapath: "Branch target from current PC and sign-extended immediate"
+    control: "Condition evaluation in ID, PC redirection applied in EX boundary"
+    output: "PC update to branch target or sequential path"
+
+dataflow:
+  instruction_path:
+    source: "Instruction memory via ahb_i_master"
+    sequence: "PC -> i_haddr/i_htrans -> i_hrdata -> decode"
+    stall_behavior: "Hold PC and IF/ID when i_hready=0"
+  execute_path:
+    source: "Decoded opcode + register operands"
+    sequence: "ID decode -> EX ALU/branch/load-store -> writeback"
+    side_effects: "Register update, NZCV update for CMP, or PC redirection"
+  load_store_path:
+    source: "EX address generation"
+    sequence: "EX -> d_haddr/control -> d_hrdata or d_hwdata -> completion"
+    stall_behavior: "Hold EX/writeback while d_hready=0"
+
+function_model:
+  purpose: "Cycle-independent architectural contract for downstream RTL and scoreboard generation"
+  state_variables:
+    - { name: "pc", source: "register_file.R15", reset: 0, description: "Program counter" }
+    - { name: "gpr", source: "register_file.R0_R14", reset: 0, description: "General registers" }
+    - { name: "nzcv", source: "arch_flags", reset: 0, description: "Condition flags" }
+    - { name: "fault_halt", source: "fault_state", reset: 0, description: "Fault-halt latch" }
+  transactions:
+    - id: "TX_DECODE_EXEC"
+      name: "alu_compare_branch"
+      preconditions:
+        - "fault_halt == 0"
+        - "instruction fetch completed with i_hready == 1 and i_hresp == OKAY"
+      inputs:
+        - "decoded opcode"
+        - "operand values from architectural registers"
+      outputs:
+        - "ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR"
+        - "NZCV updated only for CMP"
+        - "PC updated sequentially or redirected for B/BEQ/BNE"
+      output_rules:
+        - { name: "pc_next_addr", expr: "(branch_target) if (branch_taken) else ((pc + 2))", width: 32, port: "i_haddr" }
+        - { name: "store_data_mux", expr: "(rs2) if (is_store) else (0)", width: 32, port: "d_hwdata" }
+      side_effects:
+        - "pc advances by instruction size on non-branch"
+        - "pc set to target when branch taken"
+      error_cases:
+        - { condition: "instruction bus response ERROR", result: "fault_halt set and architectural state frozen except reset" }
+    - id: "TX_LOAD_STORE"
+      name: "single_transfer_memory_access"
+      preconditions:
+        - "fault_halt == 0"
+        - "decoded opcode is LDR or STR"
+      inputs:
+        - "base register"
+        - "immediate offset"
+        - "store data for STR or bus read data for LDR"
+      outputs:
+        - "LDR updates destination register with returned word"
+        - "STR commits one data write on bus"
+      output_rules:
+        - { name: "d_haddr_rule", expr: "base + imm", width: 32, port: "d_haddr" }
+        - { name: "d_hwrite_rule", expr: "(1) if (is_store) else (0)", width: 1, port: "d_hwrite" }
+      side_effects:
+        - "pc advances after transfer completion"
+      error_cases:
+        - { condition: "data bus response ERROR", result: "fault_halt set and no further instruction retirement" }
+  invariants:
+    - "No instruction retires while fault_halt==1."
+    - "IF/ID/EX ordering remains in-order with no out-of-order commit."
+    - "Register writes occur only from committed EX outcomes."
+  reference_model_hint: "tb-gen should create a Python architectural model tracking pc/gpr/nzcv/fault_halt and compare each committed instruction outcome."
+
+cycle_model:
+  purpose: "Cycle-accurate handshake and stage ordering contract"
+  executable: "pymtl3"
+  clock: "clk"
+  reset:
+    assertion: "When rst=1 at rising edge, pipeline and architectural state reset synchronously"
+    deassertion: "After rst returns 0, fetch starts on next rising edge"
+  latency:
+    fetch_accept: { min_cycles: 1, max_cycles: null, description: "Depends on i_hready backpressure" }
+    alu_instr: { min_cycles: 1, max_cycles: 1, description: "No extra wait in EX for pure ALU ops" }
+    load_store_instr: { min_cycles: 1, max_cycles: null, description: "Variable with d_hready" }
+  handshake_rules:
+    - { signal: "i_htrans", rule: "IF keeps transfer intent stable until i_hready handshake occurs" }
+    - { signal: "d_htrans", rule: "EX keeps active transfer until d_hready indicates completion" }
+    - { signal: "d_hwdata", rule: "For STR, write data remains stable while waiting for d_hready" }
+  pipeline:
+    - { stage: "IF", cycle: "n", action: "Drive instruction address/control and capture instruction on ready" }
+    - { stage: "ID", cycle: "n+1", action: "Decode instruction and read source operands" }
+    - { stage: "EX", cycle: "n+2", action: "Execute/branch/load-store and commit results" }
+  ordering:
+    - "Program-order retirement: instruction i commits before i+1."
+    - "Branch redirection affects subsequent fetch only after branch evaluation reaches commit boundary."
+  backpressure:
+    - "i_hready=0 stalls IF and upstream PC progression without corrupting ID/EX committed state."
+    - "d_hready=0 stalls memory operation in EX; no duplicate commit allowed."
+  observability:
+    - "Expose stage valid/stall indicators, pc, decode class, bus handshakes, and fault_halt for waveform and checker correlation."
+  performance:
+    ipc_nominal: 1.0
+    stall_sensitivity:
+      if_backpressure: "IPC degrades proportionally to i_hready low duty cycle"
+      mem_backpressure: "IPC degrades during load/store wait windows on d_hready low"
+    branch_penalty_cycles:
+      taken_min: 1
+      taken_max: 2
+
+clock_reset_domains:
+  domains:
+    - { name: "clk", frequency_mhz: 50, description: "Single synchronous CPU domain" }
+  reset_scheme:
+    signal: "rst"
+    polarity: "active_high"
+    type: "sync"
+
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain; CDC not required"
+
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single reset domain; RDC not required"
+
+registers:
+  no_csr: true
+  no_registers: true
+  policy: "No firmware-visible CSR/register map is implemented in this profile; add register_list entries before CSR behavior is permitted."
+  note: "No APB/CSR register map is exposed by this CPU leaf; only architectural GPR/PC/flags internal state exists."
+  config:
+    register_width: 32
+    addr_width: 0
+    byte_addressable: false
+  register_list: []
+
+memory:
+  instances:
+    - { name: "if_id_instr", type: "register", depth: 1, width: 32, read_ports: 1, write_ports: 1, latency: 0, description: "IF/ID pipeline latch" }
+    - { name: "id_ex_ctrl", type: "register", depth: 1, width: 64, read_ports: 1, write_ports: 1, latency: 0, description: "ID/EX control+operand latch" }
+  note: "No internal SRAM/FIFO macros in minimal core"
+
+interrupts:
+  sources: []
+  output:
+    signal: "none"
+    polarity: "active_high"
+    type: "none"
+
+fsm:
+  core:
+    states: ["RESET", "RUN", "STALL_IF", "STALL_MEM", "FAULT_HALT"]
+    transitions:
+      - { from: "RESET", to: "RUN", condition: "rst deasserted" }
+      - { from: "RUN", to: "STALL_IF", condition: "i_hready==0" }
+      - { from: "STALL_IF", to: "RUN", condition: "i_hready==1" }
+      - { from: "RUN", to: "STALL_MEM", condition: "active load/store && d_hready==0" }
+      - { from: "STALL_MEM", to: "RUN", condition: "d_hready==1 && d_hresp==OKAY" }
+      - { from: "RUN", to: "FAULT_HALT", condition: "i_hresp==ERROR || d_hresp==ERROR" }
+      - { from: "STALL_MEM", to: "FAULT_HALT", condition: "d_hresp==ERROR" }
+      - { from: "FAULT_HALT", to: "RESET", condition: "rst asserted" }
+
+rtl_contract:
+  module_style: "single top with manifest submodules"
+  transaction:
+    primary: "TX_DECODE_EXEC"
+    secondary: "TX_LOAD_STORE"
+    commit_event: "EX stage completion with no fault_halt"
+  input_map:
+    instruction_fetch:
+      - "i_hrdata"
+      - "i_hready"
+      - "i_hresp"
+    data_bus:
+      - "d_hrdata"
+      - "d_hready"
+      - "d_hresp"
+    controls:
+      - "clk"
+      - "rst"
+  output_map:
+    instruction_bus:
+      - "i_haddr"
+      - "i_htrans"
+      - "i_hwrite"
+    data_bus:
+      - "d_haddr"
+      - "d_htrans"
+      - "d_hwrite"
+      - "d_hwdata"
+  reset_value_policy: "All pipeline/control flops reset to deterministic zero/idle values"
+  bus_protocol_contract:
+    - "AHB-Lite master outputs are valid only for non-IDLE transfers"
+    - "No burst beyond SINGLE semantics in this profile"
+
+timing:
+  target_clocks:
+    - { name: "clk", frequency_mhz: 50, duty_cycle: 50, uncertainty_ns: 0.2 }
+  clock_target_mhz: 50
+  fetch_path:
+    target: "Single-cycle IF address/control launch under no backpressure"
+  performance:
+    nominal_cpi_no_stall: 1
+    expected_cpi_with_stalls: ">=1 depending on i_hready/d_hready"
+  latency_budget:
+    fetch_to_decode_cycles: { min: 1, max: 2 }
+    decode_to_execute_cycles: { min: 1, max: 1 }
+    load_store_completion_cycles: { min: 1, max: null }
+  sta_expectations:
+    - "Meet setup/hold for 50MHz in generic library"
+
+power:
+  domains:
+    - { name: "PD_CPU", type: "always_on", description: "Single always-on domain" }
+  power_states:
+    - { name: "ON", description: "Normal execution and stall operation", entry_condition: "rst can be 0 or 1", exit_condition: "none" }
+  clock_gating:
+    allowed: true
+    required: false
+    note: "Optional local gating for idle/stall is implementation-dependent"
+  retention: []
+
+security:
+  classification: "non_secure_educational"
+  threat_model:
+    - { threat: "bus_fault_injection", mitigation: "fault_halt on ERROR response" }
+    - { threat: "state_corruption_via_undefined_flow", mitigation: "deterministic in-order commit and reset recovery" }
+  assets:
+    - "Architectural state integrity (pc/gpr/flags)"
+  assumptions:
+    - "No privilege/security states in this educational subset"
+    - "External system enforces memory access permissions"
+  safety_goals:
+    - "On protocol error, stop retirement to avoid silent corruption"
+
+error_handling:
+  error_sources:
+    - { name: "I_BUS_ERROR", detect: "i_hresp==ERROR when instruction transfer completes", effect: "enter FAULT_HALT" }
+    - { name: "D_BUS_ERROR", detect: "d_hresp==ERROR when data transfer completes", effect: "enter FAULT_HALT" }
+  propagation:
+    - "fault_halt latch blocks further commits until reset"
+  recovery:
+    - "Only synchronous reset clears fault_halt"
+
+debug_observability:
+  waveform_must_probe:
+    - "pc"
+    - "fault_halt"
+    - "if_valid"
+    - "id_valid"
+    - "ex_valid"
+    - "i_htrans"
+    - "i_hready"
+    - "i_hresp"
+    - "d_htrans"
+    - "d_hready"
+    - "d_hresp"
+  required_signals:
+    - "pc"
+    - "fault_halt"
+    - "if_valid/id_valid/ex_valid"
+    - "i_htrans/i_hready/i_hresp"
+    - "d_htrans/d_hready/d_hresp"
+  trace_events:
+    - "instruction_commit"
+    - "branch_taken"
+    - "fault_enter"
+
+integration:
+  bus_attachment:
+    - { bus: "AHB-Lite", role: "instruction_master", interface: "ahb_i_master" }
+    - { bus: "AHB-Lite", role: "data_master", interface: "ahb_d_master" }
+  connections:
+    - { module: "arm_m0_min_if", port: "i_haddr", signal: "i_haddr", direction: "output" }
+    - { module: "arm_m0_min_if", port: "i_htrans", signal: "i_htrans", direction: "output" }
+    - { module: "arm_m0_min_if", port: "i_hready", signal: "i_hready", direction: "input" }
+    - { module: "arm_m0_min_if", port: "i_hrdata", signal: "i_hrdata", direction: "input" }
+    - { module: "arm_m0_min_if", port: "i_hresp", signal: "i_hresp", direction: "input" }
+    - { module: "arm_m0_min_ex", port: "d_haddr", signal: "d_haddr", direction: "output" }
+    - { module: "arm_m0_min_ex", port: "d_htrans", signal: "d_htrans", direction: "output" }
+    - { module: "arm_m0_min_ex", port: "d_hwrite", signal: "d_hwrite", direction: "output" }
+    - { module: "arm_m0_min_ex", port: "d_hwdata", signal: "d_hwdata", direction: "output" }
+    - { module: "arm_m0_min_ex", port: "d_hready", signal: "d_hready", direction: "input" }
+    - { module: "arm_m0_min_ex", port: "d_hrdata", signal: "d_hrdata", direction: "input" }
+    - { module: "arm_m0_min_ex", port: "d_hresp", signal: "d_hresp", direction: "input" }
+  dependencies:
+    - "External instruction/data memory or interconnect responder"
+  address_map_ownership: "Owned by SoC integration, not this leaf core"
+
+dft:
+  scan_required: true
+  controllability:
+    - "All state-holding flops shall be reachable via scan chain in test mode"
+  observability:
+    - "Critical control state (fault_halt, pipeline stage valids) shall be observable via scan/trace"
+  scan:
+    expected: true
+    notes: "Scan insertion by downstream synthesis/DFT flow"
+  mbist:
+    expected: false
+    notes: "No SRAM macros present"
+  test_mode_signals: []
+
+synthesis:
+  dialect: "systemverilog_2012"
+  verilog_style: "systemverilog_2012"
+  constraints:
+    - "Target 50MHz single clock"
+    - "Synchronous active-high reset"
+  ppa_targets:
+    area_priority: "medium"
+    power_priority: "low"
+    timing_priority: "high"
+  required_reports:
+    - "timing_summary"
+    - "area_summary"
+    - "power_estimate"
+  required_outputs:
+    - "gate_level_netlist"
+    - "timing_constraints_snapshot"
+    - "synthesis_log"
+
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 5.0
+  global_density: 0.65
+  io_layers: { horizontal: "met3", vertical: "met2" }
+  cts: { buf_list: ["generic_clkbuf_small", "generic_clkbuf_large"] }
+  routing: { signal_layers: { min: "met1", max: "met5" }, drc_waivers: [] }
+
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/arm_m0_min_param.vh"
+  conventions:
+    - "nonblocking assignments in sequential logic"
+    - "blocking assignments in combinational logic"
+    - "avoid inferred latches"
+    - "deterministic reset values"
+  lint_waivers: []
+
+reuse_modules: []
+
+custom:
+  assumptions:
+    - "Instruction subset only: ADD SUB AND ORR EOR MOV CMP LDR STR B BEQ BNE LSL LSR ASR"
+    - "No interrupts, NVIC, SysTick, debug AP, MPU/MMU, caches, or Thumb-2"
+    - "R13 and R14 treated as general-purpose in this profile"
+  note: "Any architectural expansion requires explicit SSOT update before rtl-gen"
+
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "docs/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+
+filelist:
+  headers:
+    - "rtl/arm_m0_min_param.vh"
+  rtl:
+    - "rtl/arm_m0_min_if.sv"
+    - "rtl/arm_m0_min_id.sv"
+    - "rtl/arm_m0_min_ex.sv"
+    - "rtl/arm_m0_min_rf.sv"
+    - "rtl/arm_m0_min.sv"
+  sim:
+    - "sim/tb_top.sv"
+    - "sim/tb_program.sv"
+  firmware: []
+  docs:
+    - "docs/README.md"
+
+test_requirements:
+  scenarios:
+    - id: "SC_ALU"
+      name: "ALU instruction correctness"
+      stimulus: "Generate ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR sequences over random operands"
+      expected: "Architectural register results match reference model"
+      checker: "Scoreboard compares per-commit register and PC deltas"
+      coverage: ["function_model.transactions.TX_DECODE_EXEC", "cycle_model.pipeline"]
+    - id: "SC_CMP_BRANCH"
+      name: "CMP and conditional branching"
+      stimulus: "Issue CMP then BEQ/BNE with both taken and not-taken outcomes"
+      expected: "NZCV and branch target behavior match function model"
+      checker: "Flag checker plus PC trajectory monitor"
+      coverage: ["function_model.transactions.TX_DECODE_EXEC", "fsm.core.transitions"]
+    - id: "SC_LOAD_STORE"
+      name: "Load/store handshake behavior"
+      stimulus: "Drive LDR/STR traffic with variable d_hready wait cycles"
+      expected: "No duplicate commit; results visible only after completion"
+      checker: "Bus protocol monitor + architectural scoreboard"
+      coverage: ["function_model.transactions.TX_LOAD_STORE", "cycle_model.handshake_rules"]
+    - id: "SC_IF_STALL"
+      name: "Instruction fetch backpressure"
+      stimulus: "Deassert i_hready for bounded bursts during fetch"
+      expected: "IF/PC stall without architectural corruption"
+      checker: "Pipeline stall assertion and commit-order checker"
+      coverage: ["cycle_model.backpressure", "fsm.core.states.STALL_IF"]
+    - id: "SC_BUS_ERROR"
+      name: "Bus error to fault-halt"
+      stimulus: "Inject i_hresp or d_hresp ERROR on completed transfers"
+      expected: "Core enters FAULT_HALT and blocks further retirement until reset"
+      checker: "Fault-state checker + no-retire assertion"
+      coverage: ["error_handling.error_sources", "fsm.core.states.FAULT_HALT"]
+  scoreboard_checks: 20
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "All functional transactions and error transitions observed"
+      bins:
+        - { id: "FCOV_TX_DECODE_EXEC", source_ref: "function_model.transactions.TX_DECODE_EXEC", class: "transaction", description: "ALU/compare/branch transaction observed" }
+        - { id: "FCOV_TX_LOAD_STORE", source_ref: "function_model.transactions.TX_LOAD_STORE", class: "transaction", description: "Load/store transaction observed" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Handshake, stall, and ordering behaviors covered"
+      bins:
+        - { id: "CCOV_IF_STALL", source_ref: "cycle_model.backpressure", class: "stall", description: "IF backpressure observed" }
+        - { id: "CCOV_MEM_STALL", source_ref: "cycle_model.handshake_rules", class: "stall", description: "MEM backpressure observed" }
+        - { id: "CCOV_PIPELINE_ORDER", source_ref: "cycle_model.ordering", class: "ordering", description: "In-order commit observed" }
+    functional: "Legacy alias: function + cycle must both close"
+    code: "line >= 90%, branch >= 85%"
+
+quality_gates:
+  ssot:
+    pass: "All production-required sections populated with no live TBD markers"
+    evidence: ["arm_m0_min/yaml/arm_m0_min.ssot.yaml", "workflow/ssot-gen/scripts/check_ssot_disk.sh output"]
+  rtl_gen:
+    profile: "production"
+    pass: "RTL ownership and behavior TODOs from SSOT are implemented with evidence"
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json"]
+  rtl:
+    pass: "RTL compiles, lint-clean or waived, and matches functional/cycle model expectations"
+    evidence: ["compile report", "lint report", "scoreboard comparison report"]
+  dv:
+    pass: "All SSOT scenarios execute with scoreboards/checkers passing"
+    evidence: ["sim/test_report.md", "sim/scoreboard_report.json"]
+  coverage:
+    pass: "Function and cycle coverage goals meet targets or approved waivers exist"
+    evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+  eda:
+    pass: "Synthesis/STA/PnR reports meet SSOT timing intent or carry approved waivers"
+    evidence: ["syn report", "sta report", "pnr report"]
+  signoff:
+    pass: "Project signoff requires ssot+rtl+dv+coverage+eda gates passing"
+    evidence: ["quality_gates aggregate review"]
+
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module", output: "rtl/arm_m0_min.sv top declaration" }
+    - { yaml: "sub_modules", output: "rtl/* module partitioning" }
+    - { yaml: "io_list.interfaces", output: "top-level bus port list and protocol monitors" }
+    - { yaml: "function_model", output: "reference scoreboard model + commit checkers" }
+    - { yaml: "cycle_model", output: "pipeline/handshake assertions and stall logic" }
+    - { yaml: "error_handling", output: "fault-halt logic and negative tests" }
+    - { yaml: "test_requirements", output: "test program generation and coverage plan" }
+    - { yaml: "quality_gates", output: "workflow signoff criteria" }
+
+workflow_todos:
+  fl-model-gen:
+    - id: "FL_TODO_1"
+      content: "Create executable architectural model for supported instruction subset"
+      detail: "Model pc/gpr/nzcv/fault_halt and transaction outcomes exactly as function_model."
+      criteria:
+        - "Reference model produces deterministic commit trace"
+        - "All function_model error cases represented"
+      source_refs: ["function_model", "error_handling"]
+      owner_module: "arm_m0_min_model"
+      owner_file: "sim/arm_m0_min_model.py"
+      priority: "high"
+      required: true
+  rtl-gen:
+    - id: "RTL_TODO_PIPELINE"
+      content: "Implement IF/ID/EX pipeline control and stalls"
+      detail: "Translate cycle_model pipeline, ordering, and backpressure rules into concrete stage-valid/stall logic."
+      criteria:
+        - "Program-order commit is preserved"
+        - "IF stall on i_hready low and MEM stall on d_hready low are correct"
+      source_refs: ["cycle_model.pipeline", "cycle_model.ordering", "cycle_model.backpressure"]
+      owner_module: "arm_m0_min_ex"
+      owner_file: "rtl/arm_m0_min_ex.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_ISA"
+      content: "Implement supported Thumb-1 decode/execute subset"
+      detail: "Implement decode and execution for listed instructions with correct writeback and flag policy."
+      criteria:
+        - "Only supported opcodes retire"
+        - "CMP updates flags without destination register write"
+      source_refs: ["custom.assumptions", "function_model.transactions.TX_DECODE_EXEC", "isa_spec"]
+      owner_module: "arm_m0_min_id"
+      owner_file: "rtl/arm_m0_min_id.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_TODO_FAULT"
+      content: "Implement bus-error fault-halt behavior"
+      detail: "Detect i_hresp/d_hresp errors on completed transfers and latch FAULT_HALT until reset."
+      criteria:
+        - "No retire after FAULT_HALT entry"
+        - "Reset exits FAULT_HALT"
+      source_refs: ["error_handling.error_sources", "fsm.core", "function_model.invariants"]
+      owner_module: "arm_m0_min_ex"
+      owner_file: "rtl/arm_m0_min_ex.sv"
+      priority: "high"
+      required: true
+  tb-gen:
+    - id: "TB_TODO_1"
+      content: "Build scenario-driven testbench with bus agents"
+      detail: "Implement SC_ALU/SC_CMP_BRANCH/SC_LOAD_STORE/SC_IF_STALL/SC_BUS_ERROR stimuli and checkers."
+      criteria:
+        - "All declared scenarios executable"
+        - "Scoreboard checks architectural state per commit"
+      source_refs: ["test_requirements.scenarios", "function_model", "cycle_model"]
+      owner_module: "tb_top"
+      owner_file: "sim/tb_top.sv"
+      priority: "high"
+      required: true
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh arm_m0_min", description: "Validate production SSOT" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model arm_m0_min", description: "Generate functional model and FCOV plan" }
+    - { name: "handoff_rtl", command: "/ssot-rtl arm_m0_min", description: "Generate/author RTL from SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb arm_m0_min", description: "Generate/author TB from SSOT" }
+    - { name: "handoff_coverage", command: "/coverage arm_m0_min", description: "Measure coverage against SSOT goals" }
+
+isa_spec:
+  decode_contract:
+    instruction_set: ["ADD", "SUB", "AND", "ORR", "EOR", "MOV", "CMP", "LDR", "STR", "B", "BEQ", "BNE", "LSL", "LSR", "ASR"]
+    encoding_scope: "Thumb-1 16-bit subset only"
+    undefined_behavior: "Unsupported opcodes are treated as non-retiring NOP or fault per downstream design choice, but behavior must be deterministic and documented."
+
+register_file:
+  architecture:
+    num_registers: 16
+    width: 32
+    read_ports: 2
+    write_ports: 1
+    special_roles:
+      r15: "pc"
+      r13: "general-purpose in this subset"
+      r14: "general-purpose in this subset"

@@ -1,0 +1,2127 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 12,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 35,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/arm_m0_min.sv",
+      "name": "arm_m0_min",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/arm_m0_min_if.sv",
+        "name": "arm_m0_min_if",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min_id.sv",
+        "name": "arm_m0_min_id",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min_ex.sv",
+        "name": "arm_m0_min_ex",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min_rf.sv",
+        "name": "arm_m0_min_rf",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/arm_m0_min.sv",
+        "name": "arm_m0_min",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_if",
+        "port": "i_haddr",
+        "signal": "i_haddr",
+        "signal_terms": [
+          "i_haddr"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_if",
+        "port": "i_htrans",
+        "signal": "i_htrans",
+        "signal_terms": [
+          "i_htrans"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_if",
+        "port": "i_hready",
+        "signal": "i_hready",
+        "signal_terms": [
+          "i_hready"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_if",
+        "port": "i_hrdata",
+        "signal": "i_hrdata",
+        "signal_terms": [
+          "i_hrdata"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_if",
+        "port": "i_hresp",
+        "signal": "i_hresp",
+        "signal_terms": [
+          "i_hresp"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_ex",
+        "port": "d_haddr",
+        "signal": "d_haddr",
+        "signal_terms": [
+          "d_haddr"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_ex",
+        "port": "d_htrans",
+        "signal": "d_htrans",
+        "signal_terms": [
+          "d_htrans"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_ex",
+        "port": "d_hwrite",
+        "signal": "d_hwrite",
+        "signal_terms": [
+          "d_hwrite"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_ex",
+        "port": "d_hwdata",
+        "signal": "d_hwdata",
+        "signal_terms": [
+          "d_hwdata"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_ex",
+        "port": "d_hready",
+        "signal": "d_hready",
+        "signal_terms": [
+          "d_hready"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_ex",
+        "port": "d_hrdata",
+        "signal": "d_hrdata",
+        "signal_terms": [
+          "d_hrdata"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "arm_m0_min_ex",
+        "port": "d_hresp",
+        "signal": "d_hresp",
+        "signal_terms": [
+          "d_hresp"
+        ],
+        "source_ref": "integration.connections[11]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_i_master_i_haddr",
+          "i_haddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "i_haddr",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "ahb_i_master_i_htrans",
+          "i_htrans"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "i_htrans",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "ahb_i_master_i_hwrite",
+          "i_hwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "i_hwrite",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_i_master_i_hsize",
+          "i_hsize"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "i_hsize",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "ahb_i_master_i_hburst",
+          "i_hburst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "i_hburst",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "ahb_i_master_i_hprot",
+          "i_hprot"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "i_hprot",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "ahb_i_master_i_hmastlock",
+          "i_hmastlock"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "i_hmastlock",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_i_master_i_hready",
+          "i_hready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "i_hready",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_i_master_i_hrdata",
+          "i_hrdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "i_hrdata",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "ahb_i_master_i_hresp",
+          "i_hresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "i_hresp",
+        "source_ref": "io_list.interfaces[0].ports[9]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_d_master_d_haddr",
+          "d_haddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "d_haddr",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "ahb_d_master_d_htrans",
+          "d_htrans"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "d_htrans",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "ahb_d_master_d_hwrite",
+          "d_hwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "d_hwrite",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_d_master_d_hsize",
+          "d_hsize"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "d_hsize",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "ahb_d_master_d_hburst",
+          "d_hburst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "d_hburst",
+        "source_ref": "io_list.interfaces[1].ports[4]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "ahb_d_master_d_hprot",
+          "d_hprot"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "d_hprot",
+        "source_ref": "io_list.interfaces[1].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "ahb_d_master_d_hmastlock",
+          "d_hmastlock"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "d_hmastlock",
+        "source_ref": "io_list.interfaces[1].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_d_master_d_hwdata",
+          "d_hwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "d_hwdata",
+        "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "ahb_d_master_d_hready",
+          "d_hready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "d_hready",
+        "source_ref": "io_list.interfaces[1].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_d_master_d_hrdata",
+          "d_hrdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "d_hrdata",
+        "source_ref": "io_list.interfaces[1].ports[9]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "ahb_d_master_d_hresp",
+          "d_hresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "d_hresp",
+        "source_ref": "io_list.interfaces[1].ports[10]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "arm_m0_min",
+  "kind": "module",
+  "owner_file": "rtl/arm_m0_min.sv",
+  "owner_module": "arm_m0_min",
+  "packet_id": "module__arm_m0_min",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "dft.scan": 2,
+      "equivalence.module": 1,
+      "features.item": 3,
+      "integration.connections": 12,
+      "integration.dependencies": 1,
+      "parameters.item": 3,
+      "rtl_flow.seed": 1,
+      "rtl_flow.top": 1,
+      "security.assets": 1,
+      "synthesis.constraints": 2,
+      "synthesis.ppa_targets": 3,
+      "test_requirements.scenario": 5
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 35,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 35,
+    "source_refs": [
+      "top_module",
+      "io_list",
+      "features.Thumb_1_ALU_compare",
+      "features.Load_store_over_AHB_Lite",
+      "features.Conditional_branch",
+      "security.assets.asset_0",
+      "integration.dependencies.dependencie_0",
+      "integration.connections.i_haddr",
+      "integration.connections.i_htrans",
+      "integration.connections.i_hready",
+      "integration.connections.i_hrdata",
+      "integration.connections.i_hresp",
+      "integration.connections.d_haddr",
+      "integration.connections.d_htrans",
+      "integration.connections.d_hwrite",
+      "integration.connections.d_hwdata",
+      "integration.connections.d_hready",
+      "integration.connections.d_hrdata",
+      "integration.connections.d_hresp",
+      "dft.scan.expected",
+      "dft.scan.notes",
+      "synthesis.constraints.constraint_0",
+      "synthesis.constraints.constraint_1",
+      "synthesis.ppa_targets.area_priority"
+    ],
+    "status_counts": {
+      "pass": 35
+    },
+    "task_count": 35
+  },
+  "tasks": [
+    {
+      "category": "rtl_flow.seed",
+      "content": "Read SSOT and build dynamic RTL implementation ledger",
+      "criteria": [
+        "rtl_todo_plan.json was regenerated from the current SSOT",
+        "Every required task in the plan is either implemented, evidenced, or escalated",
+        "No IP-specific fixed template is used as the source of truth",
+        "Traceability keeps source_ref top_module",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv"
+      ],
+      "detail": "Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.\nSSOT ref: top_module.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via top_module.",
+      "evidence_terms": [],
+      "id": "RTL-0001",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "top_module",
+      "ssot_context": {},
+      "ssot_refs": [
+        "top_module"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_flow.top",
+      "content": "Implement top-level ports, reset, and filelist integration",
+      "criteria": [
+        "Top module name matches SSOT top_module",
+        "Every SSOT top-level port appears with matching direction and width",
+        "Filelist contains all LLM-authored RTL sources and no stale sources",
+        "Traceability keeps source_ref io_list",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv"
+      ],
+      "detail": "The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.\nSSOT ref: io_list.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via top_module.\nSSOT item context: value=arm_m0_min.",
+      "evidence_terms": [
+        "arm",
+        "arm_m0_min",
+        "m0",
+        "min"
+      ],
+      "id": "RTL-0002",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "io_list",
+      "ssot_context": {
+        "value": "arm_m0_min"
+      },
+      "ssot_refs": [
+        "io_list"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Thumb-1 ALU/compare",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Thumb_1_ALU_compare",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Thumb_1_ALU_compare.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via features.\nSSOT item context: name=Thumb-1 ALU/compare; output=Destination register update and/or NZCV flag update.",
+      "evidence_terms": [],
+      "id": "RTL-0117",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Thumb_1_ALU_compare",
+      "ssot_context": {
+        "name": "Thumb-1 ALU/compare",
+        "output": "Destination register update and/or NZCV flag update"
+      },
+      "ssot_refs": [
+        "features.Thumb_1_ALU_compare"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Load/store over AHB-Lite",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Load_store_over_AHB_Lite",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Load_store_over_AHB_Lite.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via features.\nSSOT item context: name=Load/store over AHB-Lite; output=Register writeback for LDR or bus write for STR.",
+      "evidence_terms": [],
+      "id": "RTL-0118",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Load_store_over_AHB_Lite",
+      "ssot_context": {
+        "name": "Load/store over AHB-Lite",
+        "output": "Register writeback for LDR or bus write for STR"
+      },
+      "ssot_refs": [
+        "features.Load_store_over_AHB_Lite"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Conditional branch",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Conditional_branch",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Conditional_branch.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via features.\nSSOT item context: name=Conditional branch; output=PC update to branch target or sequential path.",
+      "evidence_terms": [],
+      "id": "RTL-0119",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Conditional_branch",
+      "ssot_context": {
+        "name": "Conditional branch",
+        "output": "PC update to branch target or sequential path"
+      },
+      "ssot_refs": [
+        "features.Conditional_branch"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item asset_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.asset_0",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.asset_0.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via security.\nSSOT item context: value=Architectural state integrity (pc/gpr/flags).",
+      "evidence_terms": [],
+      "id": "RTL-0121",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.asset_0",
+      "ssot_context": {
+        "value": "Architectural state integrity (pc/gpr/flags)"
+      },
+      "ssot_refs": [
+        "security.assets.asset_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item dependencie_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.dependencie_0",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.dependencie_0.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via integration.\nSSOT item context: value=External instruction/data memory or interconnect responder.",
+      "evidence_terms": [],
+      "id": "RTL-0122",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.dependencie_0",
+      "ssot_context": {
+        "value": "External instruction/data memory or interconnect responder"
+      },
+      "ssot_refs": [
+        "integration.dependencies.dependencie_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item i_haddr",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.i_haddr",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv",
+        "DUT port i_haddr is the implementation/observation point for i_haddr",
+        "i_haddr port direction remains output"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.i_haddr.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via integration.\nSSOT item context: port=i_haddr; signal=i_haddr; direction=output.",
+      "evidence_terms": [
+        "haddr",
+        "i_haddr"
+      ],
+      "id": "RTL-0123",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.i_haddr",
+      "ssot_context": {
+        "direction": "output",
+        "port": "i_haddr",
+        "signal": "i_haddr"
+      },
+      "ssot_refs": [
+        "integration.connections.i_haddr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item i_htrans",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.i_htrans",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv",
+        "DUT port i_htrans is the implementation/observation point for i_htrans",
+        "i_htrans port direction remains output"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.i_htrans.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via integration.\nSSOT item context: port=i_htrans; signal=i_htrans; direction=output.",
+      "evidence_terms": [
+        "htrans",
+        "i_htrans"
+      ],
+      "id": "RTL-0124",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.i_htrans",
+      "ssot_context": {
+        "direction": "output",
+        "port": "i_htrans",
+        "signal": "i_htrans"
+      },
+      "ssot_refs": [
+        "integration.connections.i_htrans"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item i_hready",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.i_hready",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv",
+        "DUT port i_hready is the implementation/observation point for i_hready",
+        "i_hready port direction remains input"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.i_hready.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via integration.\nSSOT item context: port=i_hready; signal=i_hready; direction=input.",
+      "evidence_terms": [
+        "hready",
+        "i_hready"
+      ],
+      "id": "RTL-0125",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.i_hready",
+      "ssot_context": {
+        "direction": "input",
+        "port": "i_hready",
+        "signal": "i_hready"
+      },
+      "ssot_refs": [
+        "integration.connections.i_hready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item i_hrdata",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.i_hrdata",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv",
+        "DUT port i_hrdata is the implementation/observation point for i_hrdata",
+        "i_hrdata port direction remains input"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.i_hrdata.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via integration.\nSSOT item context: port=i_hrdata; signal=i_hrdata; direction=input.",
+      "evidence_terms": [
+        "hrdata",
+        "i_hrdata"
+      ],
+      "id": "RTL-0126",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.i_hrdata",
+      "ssot_context": {
+        "direction": "input",
+        "port": "i_hrdata",
+        "signal": "i_hrdata"
+      },
+      "ssot_refs": [
+        "integration.connections.i_hrdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item i_hresp",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.i_hresp",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv",
+        "DUT port i_hresp is the implementation/observation point for i_hresp",
+        "i_hresp port direction remains input"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.i_hresp.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via integration.\nSSOT item context: port=i_hresp; signal=i_hresp; direction=input.",
+      "evidence_terms": [
+        "hresp",
+        "i_hresp"
+      ],
+      "id": "RTL-0127",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.i_hresp",
+      "ssot_context": {
+        "direction": "input",
+        "port": "i_hresp",
+        "signal": "i_hresp"
+      },
+      "ssot_refs": [
+        "integration.connections.i_hresp"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item d_haddr",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.d_haddr",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv",
+        "DUT port d_haddr is the implementation/observation point for d_haddr",
+        "d_haddr port direction remains output"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.d_haddr.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via integration.\nSSOT item context: port=d_haddr; signal=d_haddr; direction=output.",
+      "evidence_terms": [
+        "d_haddr",
+        "haddr"
+      ],
+      "id": "RTL-0128",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.d_haddr",
+      "ssot_context": {
+        "direction": "output",
+        "port": "d_haddr",
+        "signal": "d_haddr"
+      },
+      "ssot_refs": [
+        "integration.connections.d_haddr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item d_htrans",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.d_htrans",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv",
+        "DUT port d_htrans is the implementation/observation point for d_htrans",
+        "d_htrans port direction remains output"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.d_htrans.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via integration.\nSSOT item context: port=d_htrans; signal=d_htrans; direction=output.",
+      "evidence_terms": [
+        "d_htrans",
+        "htrans"
+      ],
+      "id": "RTL-0129",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.d_htrans",
+      "ssot_context": {
+        "direction": "output",
+        "port": "d_htrans",
+        "signal": "d_htrans"
+      },
+      "ssot_refs": [
+        "integration.connections.d_htrans"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item d_hwrite",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.d_hwrite",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv",
+        "DUT port d_hwrite is the implementation/observation point for d_hwrite",
+        "d_hwrite port direction remains output"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.d_hwrite.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via integration.\nSSOT item context: port=d_hwrite; signal=d_hwrite; direction=output.",
+      "evidence_terms": [
+        "d_hwrite",
+        "hwrite"
+      ],
+      "id": "RTL-0130",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.d_hwrite",
+      "ssot_context": {
+        "direction": "output",
+        "port": "d_hwrite",
+        "signal": "d_hwrite"
+      },
+      "ssot_refs": [
+        "integration.connections.d_hwrite"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item d_hwdata",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.d_hwdata",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv",
+        "DUT port d_hwdata is the implementation/observation point for d_hwdata",
+        "d_hwdata port direction remains output"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.d_hwdata.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via integration.\nSSOT item context: port=d_hwdata; signal=d_hwdata; direction=output.",
+      "evidence_terms": [
+        "d_hwdata",
+        "hwdata"
+      ],
+      "id": "RTL-0131",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.d_hwdata",
+      "ssot_context": {
+        "direction": "output",
+        "port": "d_hwdata",
+        "signal": "d_hwdata"
+      },
+      "ssot_refs": [
+        "integration.connections.d_hwdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item d_hready",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.d_hready",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv",
+        "DUT port d_hready is the implementation/observation point for d_hready",
+        "d_hready port direction remains input"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.d_hready.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via integration.\nSSOT item context: port=d_hready; signal=d_hready; direction=input.",
+      "evidence_terms": [
+        "d_hready",
+        "hready"
+      ],
+      "id": "RTL-0132",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.d_hready",
+      "ssot_context": {
+        "direction": "input",
+        "port": "d_hready",
+        "signal": "d_hready"
+      },
+      "ssot_refs": [
+        "integration.connections.d_hready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item d_hrdata",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.d_hrdata",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv",
+        "DUT port d_hrdata is the implementation/observation point for d_hrdata",
+        "d_hrdata port direction remains input"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.d_hrdata.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via integration.\nSSOT item context: port=d_hrdata; signal=d_hrdata; direction=input.",
+      "evidence_terms": [
+        "d_hrdata",
+        "hrdata"
+      ],
+      "id": "RTL-0133",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.d_hrdata",
+      "ssot_context": {
+        "direction": "input",
+        "port": "d_hrdata",
+        "signal": "d_hrdata"
+      },
+      "ssot_refs": [
+        "integration.connections.d_hrdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item d_hresp",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.d_hresp",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv",
+        "DUT port d_hresp is the implementation/observation point for d_hresp",
+        "d_hresp port direction remains input"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.d_hresp.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via integration.\nSSOT item context: port=d_hresp; signal=d_hresp; direction=input.",
+      "evidence_terms": [
+        "d_hresp",
+        "hresp"
+      ],
+      "id": "RTL-0134",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.d_hresp",
+      "ssot_context": {
+        "direction": "input",
+        "port": "d_hresp",
+        "signal": "d_hresp"
+      },
+      "ssot_refs": [
+        "integration.connections.d_hresp"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dft.scan",
+      "content": "Implement DFT item expected",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref dft.scan.expected",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv"
+      ],
+      "detail": "This SSOT dft.scan item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: dft.scan.expected.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via dft.\nSSOT item context: name=expected; value=True.",
+      "evidence_terms": [],
+      "id": "RTL-0135",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dft.scan.expected",
+      "ssot_context": {
+        "name": "expected",
+        "value": "True"
+      },
+      "ssot_refs": [
+        "dft.scan.expected"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dft.scan",
+      "content": "Implement DFT item notes",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref dft.scan.notes",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv"
+      ],
+      "detail": "This SSOT dft.scan item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: dft.scan.notes.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via dft.\nSSOT item context: name=notes; value=Scan insertion by downstream synthesis/DFT flow.",
+      "evidence_terms": [],
+      "id": "RTL-0136",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dft.scan.notes",
+      "ssot_context": {
+        "name": "notes",
+        "value": "Scan insertion by downstream synthesis/DFT flow"
+      },
+      "ssot_refs": [
+        "dft.scan.notes"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_0",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_0.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via synthesis.\nSSOT item context: value=Target 50MHz single clock.",
+      "evidence_terms": [],
+      "id": "RTL-0137",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_0",
+      "ssot_context": {
+        "value": "Target 50MHz single clock"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_1",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_1.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via synthesis.\nSSOT item context: value=Synchronous active-high reset.",
+      "evidence_terms": [],
+      "id": "RTL-0138",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_1",
+      "ssot_context": {
+        "value": "Synchronous active-high reset"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item area_priority",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.area_priority",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.area_priority.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via synthesis.\nSSOT item context: name=area_priority; value=medium.",
+      "evidence_terms": [],
+      "id": "RTL-0139",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.area_priority",
+      "ssot_context": {
+        "name": "area_priority",
+        "value": "medium"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.area_priority"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item power_priority",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.power_priority",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.power_priority.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via synthesis.\nSSOT item context: name=power_priority; value=low.",
+      "evidence_terms": [],
+      "id": "RTL-0140",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.power_priority",
+      "ssot_context": {
+        "name": "power_priority",
+        "value": "low"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.power_priority"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item timing_priority",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.timing_priority",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.timing_priority.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via synthesis.\nSSOT item context: name=timing_priority; value=high.",
+      "evidence_terms": [],
+      "id": "RTL-0141",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.timing_priority",
+      "ssot_context": {
+        "name": "timing_priority",
+        "value": "high"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.timing_priority"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module arm_m0_min is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.arm_m0_min.module_equivalence",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.arm_m0_min.module_equivalence.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0146",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.arm_m0_min.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.arm_m0_min.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter XLEN",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.XLEN",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.XLEN.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via parameters.\nSSOT item context: name=XLEN.",
+      "evidence_terms": [],
+      "id": "RTL-0030",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.XLEN",
+      "ssot_context": {
+        "name": "XLEN"
+      },
+      "ssot_refs": [
+        "parameters.XLEN"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter RESET_PC",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.RESET_PC",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.RESET_PC.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via parameters.\nSSOT item context: name=RESET_PC.",
+      "evidence_terms": [],
+      "id": "RTL-0031",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.RESET_PC",
+      "ssot_context": {
+        "name": "RESET_PC"
+      },
+      "ssot_refs": [
+        "parameters.RESET_PC"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter ENABLE_FAULT_HALT",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.ENABLE_FAULT_HALT",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.ENABLE_FAULT_HALT.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via parameters.\nSSOT item context: name=ENABLE_FAULT_HALT.",
+      "evidence_terms": [],
+      "id": "RTL-0032",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.ENABLE_FAULT_HALT",
+      "ssot_context": {
+        "name": "ENABLE_FAULT_HALT"
+      },
+      "ssot_refs": [
+        "parameters.ENABLE_FAULT_HALT"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_ALU",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_ALU",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Architectural register results match reference model"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_ALU.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via test_requirements.\nSSOT item context: id=SC_ALU; name=ALU instruction correctness; expected=Architectural register results match reference model.",
+      "evidence_terms": [],
+      "id": "RTL-0147",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_ALU",
+      "ssot_context": {
+        "expected": "Architectural register results match reference model",
+        "id": "SC_ALU",
+        "name": "ALU instruction correctness"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_ALU"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_CMP_BRANCH",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_CMP_BRANCH",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: NZCV and branch target behavior match function model"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_CMP_BRANCH.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via test_requirements.\nSSOT item context: id=SC_CMP_BRANCH; name=CMP and conditional branching; expected=NZCV and branch target behavior match function model.",
+      "evidence_terms": [],
+      "id": "RTL-0148",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_CMP_BRANCH",
+      "ssot_context": {
+        "expected": "NZCV and branch target behavior match function model",
+        "id": "SC_CMP_BRANCH",
+        "name": "CMP and conditional branching"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_CMP_BRANCH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_LOAD_STORE",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_LOAD_STORE",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: No duplicate commit; results visible only after completion"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_LOAD_STORE.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via test_requirements.\nSSOT item context: id=SC_LOAD_STORE; name=Load/store handshake behavior; expected=No duplicate commit; results visible only after completion.",
+      "evidence_terms": [],
+      "id": "RTL-0149",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_LOAD_STORE",
+      "ssot_context": {
+        "expected": "No duplicate commit; results visible only after completion",
+        "id": "SC_LOAD_STORE",
+        "name": "Load/store handshake behavior"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_LOAD_STORE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_IF_STALL",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_IF_STALL",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: IF/PC stall without architectural corruption"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_IF_STALL.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via test_requirements.\nSSOT item context: id=SC_IF_STALL; name=Instruction fetch backpressure; expected=IF/PC stall without architectural corruption.",
+      "evidence_terms": [],
+      "id": "RTL-0150",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_IF_STALL",
+      "ssot_context": {
+        "expected": "IF/PC stall without architectural corruption",
+        "id": "SC_IF_STALL",
+        "name": "Instruction fetch backpressure"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_IF_STALL"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_BUS_ERROR",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_BUS_ERROR",
+        "Primary implementation evidence is in rtl/arm_m0_min.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Core enters FAULT_HALT and blocks further retirement until reset"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_BUS_ERROR.\nOwner: arm_m0_min in rtl/arm_m0_min.sv via test_requirements.\nSSOT item context: id=SC_BUS_ERROR; name=Bus error to fault-halt; expected=Core enters FAULT_HALT and blocks further retirement until reset.",
+      "evidence_terms": [],
+      "id": "RTL-0151",
+      "owner_file": "rtl/arm_m0_min.sv",
+      "owner_module": "arm_m0_min",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_BUS_ERROR",
+      "ssot_context": {
+        "expected": "Core enters FAULT_HALT and blocks further retirement until reset",
+        "id": "SC_BUS_ERROR",
+        "name": "Bus error to fault-halt"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_BUS_ERROR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "a70eeedfb17c143e2e962a82c44a8b0edf3adcdded649e82f935de86a45a7092",
+  "top": "arm_m0_min",
+  "type": "rtl_authoring_packet"
+}

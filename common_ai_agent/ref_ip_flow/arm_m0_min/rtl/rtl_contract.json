@@ -1,0 +1,229 @@
+{
+  "schema_version": 1,
+  "type": "generic_ssot_rule_rtl_contract",
+  "ip": "arm_m0_min",
+  "top": "arm_m0_min",
+  "generated_at": "2026-05-15T00:00:00Z",
+  "contract": {
+    "top": "arm_m0_min",
+    "transaction": "TX_DECODE_EXEC",
+    "clock": "clk",
+    "reset": "rst",
+    "reset_active": "high",
+    "sample_condition": "1",
+    "outputs": [
+      {
+        "name": "i_haddr",
+        "port": "i_haddr",
+        "expr": "((i_haddr) != 0)",
+        "width": 32,
+        "source": {
+          "name": "i_haddr",
+          "port": "i_haddr",
+          "width": 32,
+          "expr": "i_haddr"
+        }
+      },
+      {
+        "name": "i_htrans",
+        "port": "i_htrans",
+        "expr": "((i_htrans) != 0)",
+        "width": 2,
+        "source": {
+          "name": "i_htrans",
+          "port": "i_htrans",
+          "width": 2,
+          "expr": "i_htrans"
+        }
+      },
+      {
+        "name": "i_hwrite",
+        "port": "i_hwrite",
+        "expr": "((i_hwrite) != 0)",
+        "width": 1,
+        "source": {
+          "name": "i_hwrite",
+          "port": "i_hwrite",
+          "width": 1,
+          "expr": "i_hwrite"
+        }
+      },
+      {
+        "name": "i_hsize",
+        "port": "i_hsize",
+        "expr": "((i_hsize) != 0)",
+        "width": 3,
+        "source": {
+          "name": "i_hsize",
+          "port": "i_hsize",
+          "width": 3,
+          "expr": "i_hsize"
+        }
+      },
+      {
+        "name": "i_hburst",
+        "port": "i_hburst",
+        "expr": "((i_hburst) != 0)",
+        "width": 3,
+        "source": {
+          "name": "i_hburst",
+          "port": "i_hburst",
+          "width": 3,
+          "expr": "i_hburst"
+        }
+      },
+      {
+        "name": "i_hprot",
+        "port": "i_hprot",
+        "expr": "((i_hprot) != 0)",
+        "width": 4,
+        "source": {
+          "name": "i_hprot",
+          "port": "i_hprot",
+          "width": 4,
+          "expr": "i_hprot"
+        }
+      },
+      {
+        "name": "i_hmastlock",
+        "port": "i_hmastlock",
+        "expr": "((i_hmastlock) != 0)",
+        "width": 1,
+        "source": {
+          "name": "i_hmastlock",
+          "port": "i_hmastlock",
+          "width": 1,
+          "expr": "i_hmastlock"
+        }
+      },
+      {
+        "name": "d_haddr",
+        "port": "d_haddr",
+        "expr": "((d_haddr) != 0)",
+        "width": 32,
+        "source": {
+          "name": "d_haddr",
+          "port": "d_haddr",
+          "width": 32,
+          "expr": "d_haddr"
+        }
+      },
+      {
+        "name": "d_htrans",
+        "port": "d_htrans",
+        "expr": "((d_htrans) != 0)",
+        "width": 2,
+        "source": {
+          "name": "d_htrans",
+          "port": "d_htrans",
+          "width": 2,
+          "expr": "d_htrans"
+        }
+      },
+      {
+        "name": "d_hwrite",
+        "port": "d_hwrite",
+        "expr": "((d_hwrite) != 0)",
+        "width": 1,
+        "source": {
+          "name": "d_hwrite",
+          "port": "d_hwrite",
+          "width": 1,
+          "expr": "d_hwrite"
+        }
+      },
+      {
+        "name": "d_hsize",
+        "port": "d_hsize",
+        "expr": "((d_hsize) != 0)",
+        "width": 3,
+        "source": {
+          "name": "d_hsize",
+          "port": "d_hsize",
+          "width": 3,
+          "expr": "d_hsize"
+        }
+      },
+      {
+        "name": "d_hburst",
+        "port": "d_hburst",
+        "expr": "((d_hburst) != 0)",
+        "width": 3,
+        "source": {
+          "name": "d_hburst",
+          "port": "d_hburst",
+          "width": 3,
+          "expr": "d_hburst"
+        }
+      },
+      {
+        "name": "d_hprot",
+        "port": "d_hprot",
+        "expr": "((d_hprot) != 0)",
+        "width": 4,
+        "source": {
+          "name": "d_hprot",
+          "port": "d_hprot",
+          "width": 4,
+          "expr": "d_hprot"
+        }
+      },
+      {
+        "name": "d_hmastlock",
+        "port": "d_hmastlock",
+        "expr": "((d_hmastlock) != 0)",
+        "width": 1,
+        "source": {
+          "name": "d_hmastlock",
+          "port": "d_hmastlock",
+          "width": 1,
+          "expr": "d_hmastlock"
+        }
+      },
+      {
+        "name": "d_hwdata",
+        "port": "d_hwdata",
+        "expr": "((d_hwdata) != 0)",
+        "width": 32,
+        "source": {
+          "name": "d_hwdata",
+          "port": "d_hwdata",
+          "width": 32,
+          "expr": "d_hwdata"
+        }
+      }
+    ],
+    "state_updates": [],
+    "rule_outputs": [],
+    "input_map": {
+      "i_hready": "i_hready",
+      "i_hrdata": "i_hrdata",
+      "i_hresp": "i_hresp",
+      "d_hready": "d_hready",
+      "d_hrdata": "d_hrdata",
+      "d_hresp": "d_hresp",
+      "clk": "clk",
+      "rst": "rst"
+    }
+  },
+  "transactions": [
+    {
+      "id": "TX_DECODE_EXEC",
+      "name": "alu_compare_branch"
+    },
+    {
+      "id": "TX_LOAD_STORE",
+      "name": "single_transfer_memory_access"
+    }
+  ],
+  "evidence": {
+    "ssot": "arm_m0_min/yaml/arm_m0_min.ssot.yaml",
+    "rtl_files": [
+      "rtl/arm_m0_min_if.sv",
+      "rtl/arm_m0_min_id.sv",
+      "rtl/arm_m0_min_ex.sv",
+      "rtl/arm_m0_min_rf.sv",
+      "rtl/arm_m0_min.sv"
+    ]
+  }
+}
