@@ -1,8 +1,7 @@
 {
-  "log_stage": "tb-gen",
   "model": "gpt-5.3-codex",
-  "phase": "llm_call",
-  "stage": "tb-gen",
-  "state": "running",
-  "ts": "2026-05-15T09:17:08Z"
+  "phase": "finished",
+  "state": "done",
+  "status": "fail",
+  "ts": "2026-05-15T09:17:36Z"
 }

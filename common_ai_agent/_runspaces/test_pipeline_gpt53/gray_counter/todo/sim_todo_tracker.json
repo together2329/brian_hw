@@ -1,0 +1,61 @@
+{
+  "description": "Dynamic sim todo list from sim/sim_todo_plan.json",
+  "name": "gray_counter-sim",
+  "schema_version": "todo_tracker.dynamic.v1",
+  "source_plan": "sim/sim_todo_plan.json",
+  "tasks": [
+    {
+      "activeForm": "Run generated testbench and collect simulator evidence",
+      "approval_policy": "evidence_required",
+      "content": "Run generated testbench and collect simulator evidence",
+      "criteria": "sim.sh and check_tb_sim_evidence both exit 0; results.xml, scoreboard_events.jsonl, and sim_report.txt exist.",
+      "detail": "Run the generated TB through sim.sh and require machine-readable pass/fail evidence.",
+      "priority": "high",
+      "required_evidence": [
+        "gray_counter/sim/results.xml or gray_counter/tb/cocotb/results.xml",
+        "gray_counter/sim/scoreboard_events.jsonl",
+        "gray_counter/sim/sim_report.txt"
+      ],
+      "source_id": "SIM-0001",
+      "source_plan": "sim/sim_todo_plan.json",
+      "status": "rejected",
+      "todo_completion": {
+        "evidence_basis": [
+          "gray_counter/sim/results.xml or gray_counter/tb/cocotb/results.xml",
+          "gray_counter/sim/scoreboard_events.jsonl",
+          "gray_counter/sim/sim_report.txt",
+          "sim",
+          "sim_evidence"
+        ],
+        "reason": "[sim] FAIL",
+        "status": "open"
+      }
+    },
+    {
+      "activeForm": "Produce coverage-ready scoreboard rows",
+      "approval_policy": "evidence_required",
+      "content": "Produce coverage-ready scoreboard rows",
+      "criteria": "ssot_coverage_summary exits 0, or a blocked coverage capability is explicitly recorded by policy.",
+      "detail": "Simulation evidence must carry goal/scenario/coverage references so Coverage can audit FL/CL bins against RTL observations.",
+      "priority": "high",
+      "required_evidence": [
+        "gray_counter/cov/coverage.json",
+        "ssot_coverage_summary returncode 0 or explicit rc=3 policy override"
+      ],
+      "source_id": "SIM-0002",
+      "source_plan": "sim/sim_todo_plan.json",
+      "status": "rejected",
+      "todo_completion": {
+        "evidence_basis": [
+          "gray_counter/cov/coverage.json",
+          "ssot_coverage_summary returncode 0 or explicit rc=3 policy override",
+          "sim",
+          "sim_evidence"
+        ],
+        "reason": "[sim] FAIL",
+        "status": "open"
+      }
+    }
+  ],
+  "ui_grouping": false
+}
