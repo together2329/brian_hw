@@ -71,6 +71,10 @@ io_list:
       clock_domain: "PCLK"
       reset_domain: "PRESETn"
       description: "Input signal to be edge-detected"
+      protocol:
+        sampling: "signal_i is sampled on every rising edge of PCLK after PRESETn deassertion"
+        timing: "No handshake; input may be asynchronous to PCLK. Internal synchronizer chain handles metastability."
+        backpressure: "None; input is always sampled."
       ports:
         - { name: "signal_i", width: "WIDTH", direction: "input", description: "Input signal vector" }
     - name: "edge_out"
@@ -78,6 +82,9 @@ io_list:
       clock_domain: "PCLK"
       reset_domain: "PRESETn"
       description: "Edge detection output pulses"
+      protocol:
+        timing: "edge_o asserts for exactly one PCLK cycle per detected edge; no handshake."
+        backpressure: "None; downstream must sample or drop the one-cycle pulse."
       ports:
         - { name: "edge_o", width: "WIDTH", direction: "output", description: "One-cycle pulse per detected edge" }
     - name: "interrupt"

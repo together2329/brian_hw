@@ -11022,20 +11022,35 @@ def create_app():
     )
 
     # ── Admin endpoints ──────────────────────────────────────────
+    from core.atlas_auth import admin_auth_status, is_admin_user, is_local_admin_mode
+
     def _admin_required(request: Request) -> Optional[dict]:
         user = request.scope.get("user") or {}
-        # Local admin is intentionally open: /api/admin/* is exposed without
-        # account/password checks for the single-user desktop workflow.
-        return {
-            "id": user.get("id") or "local-admin",
-            "username": user.get("username") or "local-admin",
-            "role": "admin",
-        }
+        if is_local_admin_mode():
+            return {
+                "id": user.get("id") or "local-admin",
+                "username": user.get("username") or "local-admin",
+                "role": "admin",
+            }
+        return user if is_admin_user(user) else None
+
+    def _admin_denied(request: Request) -> JSONResponse:
+        if request.scope.get("user"):
+            return JSONResponse({"error": "Admin role required"}, status_code=403)
+        return JSONResponse({"error": "Admin login required"}, status_code=401)
+
+    @app.get("/api/admin/auth/status")
+    async def api_admin_auth_status(request: Request):
+        try:
+            with AtlasDB() as db:
+                return JSONResponse(admin_auth_status(db, request.scope.get("user")))
+        except Exception as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
 
     @app.get("/api/admin/users")
     async def api_admin_users(request: Request):
         if _admin_required(request) is None:
-            return JSONResponse({"error": "Forbidden"}, status_code=403)
+            return _admin_denied(request)
         try:
             with AtlasDB() as db:
                 users = db.list_all_users()
@@ -11050,7 +11065,7 @@ def create_app():
     @app.get("/api/admin/sessions")
     async def api_admin_sessions(request: Request):
         if _admin_required(request) is None:
-            return JSONResponse({"error": "Forbidden"}, status_code=403)
+            return _admin_denied(request)
         try:
             with AtlasDB() as db:
                 sessions = db.list_all_sessions()
@@ -11064,7 +11079,7 @@ def create_app():
         """Per-user usage aggregation: tokens, cost, message count, model
         distribution. Joined across users / sessions / messages."""
         if _admin_required(request) is None:
-            return JSONResponse({"error": "Forbidden"}, status_code=403)
+            return _admin_denied(request)
         try:
             with AtlasDB() as db:
                 from core.atlas_admin_usage import build_admin_usage_payload
@@ -11109,7 +11124,7 @@ def create_app():
         """Admin view of every feedback row, joined to the submitter's
         username for readability."""
         if _admin_required(request) is None:
-            return JSONResponse({"error": "Forbidden"}, status_code=403)
+            return _admin_denied(request)
         try:
             with AtlasDB() as db:
                 rows = db._fetchall(
@@ -11129,7 +11144,7 @@ def create_app():
         """Mark a feedback item resolved. Body: {notes: str (optional)}."""
         admin = _admin_required(request)
         if admin is None:
-            return JSONResponse({"error": "Forbidden"}, status_code=403)
+            return _admin_denied(request)
         try:
             body = await request.json()
         except Exception:
@@ -11149,7 +11164,7 @@ def create_app():
     @app.delete("/api/admin/sessions/{session_id}")
     async def api_admin_delete_session(session_id: str, request: Request):
         if _admin_required(request) is None:
-            return JSONResponse({"error": "Forbidden"}, status_code=403)
+            return _admin_denied(request)
         try:
             with AtlasDB() as db:
                 if db.get_session(session_id) is None:

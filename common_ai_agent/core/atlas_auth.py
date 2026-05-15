@@ -42,6 +42,9 @@ else:
 _COOKIE_NAME = "atlas_session"
 _MAX_AGE = 90 * 24 * 60 * 60
 _DEFAULT_ADMIN_USERS = "admin"
+_LOCAL_ADMIN_MODES = {"local", "open", "legacy", "bypass", "none", "off"}
+_TRUTHY = {"1", "true", "yes", "on"}
+_FALSY = {"0", "false", "no", "off"}
 
 
 def _default_cookie_secret() -> str:
@@ -80,6 +83,84 @@ def _admin_usernames() -> set[str]:
     """
     raw = os.environ.get("ATLAS_ADMIN_USERS", _DEFAULT_ADMIN_USERS)
     return {item.strip().lower() for item in raw.split(",") if item.strip()}
+
+
+def _env_flag(name: str, default: bool = False) -> bool:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    value = raw.strip().lower()
+    if value in _TRUTHY:
+        return True
+    if value in _FALSY:
+        return False
+    return default
+
+
+def is_local_admin_mode() -> bool:
+    """Return True when legacy passwordless local admin is explicitly enabled.
+
+    The default admin policy is DB-backed username/password auth. The old
+    desktop-local open-admin behavior remains available for compatibility via
+    ATLAS_ADMIN_AUTH_MODE=local or ATLAS_ADMIN_LOGIN_REQUIRED=0.
+    """
+    mode = os.environ.get("ATLAS_ADMIN_AUTH_MODE", "").strip().lower()
+    if mode in _LOCAL_ADMIN_MODES:
+        return True
+    if _env_flag("ATLAS_LOCAL_ADMIN", False) or _env_flag("ATLAS_ADMIN_BYPASS", False):
+        return True
+    if os.environ.get("ATLAS_ADMIN_LOGIN_REQUIRED") is not None:
+        return not _env_flag("ATLAS_ADMIN_LOGIN_REQUIRED", True)
+    return False
+
+
+def admin_auth_mode() -> str:
+    return "local" if is_local_admin_mode() else "db"
+
+
+def is_admin_user(user: Optional[Dict[str, Any]]) -> bool:
+    return bool(user and str(user.get("role") or "").strip().lower() == "admin")
+
+
+def admin_user_exists(db: AtlasDB) -> bool:
+    """Return whether the DB already has a usable admin login."""
+    row = db._fetchone("SELECT 1 FROM users WHERE role = 'admin' LIMIT 1")
+    if row is not None:
+        return True
+    names = sorted(_admin_usernames())
+    if not names:
+        return False
+    placeholders = ",".join("?" for _ in names)
+    row = db._fetchone(
+        f"SELECT 1 FROM users WHERE lower(username) IN ({placeholders}) LIMIT 1",
+        tuple(names),
+    )
+    return row is not None
+
+
+def admin_auth_status(db: AtlasDB, user: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """Small JSON-serializable status block for the admin login screen."""
+    if is_local_admin_mode():
+        return {
+            "mode": "local",
+            "login_required": False,
+            "authenticated": True,
+            "admin_user_exists": admin_user_exists(db),
+            "user": {
+                "id": (user or {}).get("id") or "local-admin",
+                "username": (user or {}).get("username") or "local-admin",
+                "display_name": (user or {}).get("display_name") or "Local Admin",
+                "role": "admin",
+            },
+        }
+    return {
+        "mode": "db",
+        "login_required": True,
+        "authenticated": is_admin_user(user),
+        "admin_user_exists": admin_user_exists(db),
+        "bootstrap_admin_users": sorted(_admin_usernames()),
+        "user": _sanitize_user(user) if is_admin_user(user) else None,
+    }
 
 
 def _bootstrap_role_for_username(username: str) -> str:
@@ -191,8 +272,15 @@ async def get_current_user(request: Request) -> dict:
     return user
 
 
-_PUBLIC_PATHS = {"/", "/index.html", "/admin", "/healthz", "/favicon.ico"}
-_PUBLIC_PREFIXES = ("/static/", "/assets/", "/api/auth/", "/api/admin/", "/git/")
+_PUBLIC_PATHS = {
+    "/",
+    "/index.html",
+    "/admin",
+    "/healthz",
+    "/favicon.ico",
+    "/api/admin/auth/status",
+}
+_PUBLIC_PREFIXES = ("/static/", "/assets/", "/api/auth/", "/git/")
 _PUBLIC_EXT = {"js", "jsx", "css", "html", "png", "jpg", "jpeg", "svg", "ico", "woff", "woff2", "ttf", "map"}
 
 
@@ -213,7 +301,11 @@ class AuthMiddleware:
         request = StarletteRequest(scope, receive)
         scope["user"] = self.auth.ensure_bootstrap_role(self.auth.get_user_from_cookie(request))
 
-        if self._is_public(path) or scope["user"] is not None:
+        if (
+            self._is_public(path)
+            or scope["user"] is not None
+            or (path.startswith("/api/admin/") and is_local_admin_mode())
+        ):
             await self.app(scope, receive, send)
             return
 
