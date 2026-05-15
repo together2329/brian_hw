@@ -29,7 +29,7 @@
 - Owner refs: top_module, io_list, parameters, interrupts, features, error_handling, security, debug_observability, integration, timing, power, synthesis, dft, test_requirements, quality_gates, workflow_todos
 - Tool-evidence blockers:
   - common_ai_agent_authoring: Missing common_ai_agent RTL authoring provenance.
-  - dut_compile: rtl/rtl_compile.json is older than current RTL source rtl/arm_m0_min_id.sv; rerun DUT compile after the final RTL edit.
+  - dut_compile: rtl/rtl_compile.json is older than current RTL source rtl/arm_m0_min_alu.sv; rerun DUT compile after the final RTL edit.
   - dut_lint: DUT lint artifact is not clean.
   - dynamic_todo_closure: 29 required non-closure TODO(s) remain open.
   - protocol_assertion_evidence: Missing protocol assertion artifact: verify/protocol_assertions.sva.
@@ -93,7 +93,7 @@ Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
 - Detail: Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.
 SSOT ref: quality_gates.rtl_gen.dut_compile.
 Owner: arm_m0_min in rtl/arm_m0_min.sv via top_module.
-- Current reason: rtl/rtl_compile.json is older than current RTL source rtl/arm_m0_min_id.sv; rerun DUT compile after the final RTL edit.
+- Current reason: rtl/rtl_compile.json is older than current RTL source rtl/arm_m0_min_alu.sv; rerun DUT compile after the final RTL edit.
 - Criteria:
   - rtl/rtl_compile.json exists
   - rtl_compile.json reports dut_only=true

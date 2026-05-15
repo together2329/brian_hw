@@ -1,0 +1,42 @@
+{
+  "error": "",
+  "finish_reason": "",
+  "finished_at": "2026-05-15T09:56:17Z",
+  "input_hash": "2b2f526dbd998e40cd33ec617bb4116be1217c2d07249f8d8555efaf9e081be0",
+  "model": "gpt-5.3-codex",
+  "output_hash": "27f72c90ae470b9a60f57c24caa7971bc40bfdd1dedd4154adce4e41da88f3b9",
+  "parsed_artifacts": [
+    {
+      "content": "module gpio_regs #(\n    parameter integer WIDTH = 8\n) (\n    input  logic [WIDTH-1:0] clk,\n    input  logic [WIDTH-1:0] rst_n,\n    input  logic [WIDTH-1:0] dir_in,\n    input  logic [WIDTH-1:0] dout_in,\n    input  logic [WIDTH-1:0] pad_in,\n    output logic [WIDTH-1:0] dir_q,\n    output logic [WIDTH-1:0] dout_q,\n    output logic [WIDTH-1:0] din_q\n);\n\n    // Direction masks used by FM2 sampling rule:\n    // - input_mask bit=1 means the corresponding GPIO is configured as input\n    // - output_mask bit=1 means hold prior sampled din_q bit\n    logic [WIDTH-1:0] input_mask;\n    logic [WIDTH-1:0] output_mask;\n    logic [WIDTH-1:0] din_q_masked_next;\n\n    assign input_mask       = ~dir_q;\n    assign output_mask      = dir_q;\n    assign din_q_masked_next = (din_q & output_mask) | (pad_in & input_mask);\n\n    // FM1 + FM2 + FM4 behavior with cycle-model ordering:\n    // S0_RESET (async assert): clear architectural state\n    // S1_LATCH_CONTROL (cycle N): sample dir_in/dout_in\n    // S2_SAMPLE_INPUTS (cycle N): sample pad_in only for input-configured bits\n    always @(posedge clk or negedge rst_n) begin\n        if (!rst_n) begin\n            dir_q  <= {WIDTH{1'b0}};\n            dout_q <= {WIDTH{1'b0}};\n            din_q  <= {WIDTH{1'b0}};\n        end else begin\n            dir_q  <= dir_in;\n            dout_q <= dout_in;\n            din_q  <= din_q_masked_next;\n        end\n    end\n\nendmodule\n",
+      "kind": "rtl",
+      "path": "gpio/rtl/gpio_regs.sv"
+    },
+    {
+      "content": "Updated gpio_regs observability/traceability for SC01-SC09 by keeping architectural state as explicit output ports (dir_q, dout_q, din_q) and implementing reset/latch/sample behavior directly tied to FM1/FM2/FM4 and cycle stages S0/S1/S2. Added explicit input/output masks used in the live din_q update expression so scenario checkers can compare masked sampling behavior cycle-by-cycle.",
+      "kind": "rtl_notes",
+      "path": "gpio/rtl/rtl_authoring_notes/module__gpio_regs__test_requirements.md"
+    }
+  ],
+  "prompt_hash": "e8ecf652cee72b154d19962a889a390fbedbdb3cd922d634f0be5f2576678d3b",
+  "raw_response": "{\"files\":[{\"path\":\"gpio/rtl/gpio_regs.sv\",\"kind\":\"rtl\",\"content\":\"module gpio_regs #(\\n    parameter integer WIDTH = 8\\n) (\\n    input  logic [WIDTH-1:0] clk,\\n    input  logic [WIDTH-1:0] rst_n,\\n    input  logic [WIDTH-1:0] dir_in,\\n    input  logic [WIDTH-1:0] dout_in,\\n    input  logic [WIDTH-1:0] pad_in,\\n    output logic [WIDTH-1:0] dir_q,\\n    output logic [WIDTH-1:0] dout_q,\\n    output logic [WIDTH-1:0] din_q\\n);\\n\\n    // Direction masks used by FM2 sampling rule:\\n    // - input_mask bit=1 means the corresponding GPIO is configured as input\\n    // - output_mask bit=1 means hold prior sampled din_q bit\\n    logic [WIDTH-1:0] input_mask;\\n    logic [WIDTH-1:0] output_mask;\\n    logic [WIDTH-1:0] din_q_masked_next;\\n\\n    assign input_mask       = ~dir_q;\\n    assign output_mask      = dir_q;\\n    assign din_q_masked_next = (din_q & output_mask) | (pad_in & input_mask);\\n\\n    // FM1 + FM2 + FM4 behavior with cycle-model ordering:\\n    // S0_RESET (async assert): clear architectural state\\n    // S1_LATCH_CONTROL (cycle N): sample dir_in/dout_in\\n    // S2_SAMPLE_INPUTS (cycle N): sample pad_in only for input-configured bits\\n    always @(posedge clk or negedge rst_n) begin\\n        if (!rst_n) begin\\n            dir_q  <= {WIDTH{1'b0}};\\n            dout_q <= {WIDTH{1'b0}};\\n            din_q  <= {WIDTH{1'b0}};\\n        end else begin\\n            dir_q  <= dir_in;\\n            dout_q <= dout_in;\\n            din_q  <= din_q_masked_next;\\n        end\\n    end\\n\\nendmodule\\n\"},{\"path\":\"gpio/rtl/rtl_authoring_notes/module__gpio_regs__test_requirements.md\",\"kind\":\"rtl_notes\",\"content\":\"Updated gpio_regs observability/traceability for SC01-SC09 by keeping architectural state as explicit output ports (dir_q, dout_q, din_q) and implementing reset/latch/sample behavior directly tied to FM1/FM2/FM4 and cycle stages S0/S1/S2. Added explicit input/output masks used in the live din_q update expression so scenario checkers can compare masked sampling behavior cycle-by-cycle.\"}]}",
+  "stage": "rtl-gen",
+  "started_at": "2026-05-15T09:55:57Z",
+  "status": "pass",
+  "usage": {
+    "cache_created": 0,
+    "cache_read": 13056,
+    "cost": {
+      "pricing_per_1m": {
+        "cache": 0.26,
+        "input": 1.4,
+        "output": 4.4
+      },
+      "usd": 0.04315595999999999
+    },
+    "input": 38487,
+    "output": 945,
+    "total": 39432,
+    "total_cache_created": 0,
+    "total_cache_read": 13056
+  }
+}

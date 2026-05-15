@@ -47,7 +47,7 @@
     "static_missing": 18,
     "status": "fail"
   },
-  "generated_at": "2026-05-15T09:55:03Z",
+  "generated_at": "2026-05-15T09:56:07Z",
   "ip": "arm_m0_min",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 12,
@@ -111,7 +111,7 @@
     "status": "pass"
   },
   "manifest_signal_flow_evidence": {
-    "checked_inputs": 44,
+    "checked_inputs": 42,
     "checked_outputs": 41,
     "issues": [],
     "reachable_modules": [
@@ -154,16 +154,16 @@
     "aggregate": {
       "behavior_owner_logic_modules": 5,
       "control_flow": 40,
-      "depth_score": 237,
+      "depth_score": 241,
       "instances": 7,
-      "lines": 594,
+      "lines": 596,
       "logic_modules": 8,
       "modules": 8,
-      "nonconstant_assigns": 15,
+      "nonconstant_assigns": 17,
       "procedural_blocks": 10,
       "source_files": 8,
       "state_updates": 44,
-      "storage_decls": 50
+      "storage_decls": 52
     },
     "issues": [],
     "modules": [
@@ -238,16 +238,16 @@
         "module": "arm_m0_min_id"
       },
       {
-        "depth_score": 9,
+        "depth_score": 13,
         "file": "rtl/arm_m0_min_alu.sv",
         "metrics": {
           "control_flow": 1,
           "instances": 0,
-          "nonconstant_assigns": 3,
+          "nonconstant_assigns": 5,
           "placeholder_tokens": false,
           "procedural_blocks": 1,
           "state_updates": 0,
-          "storage_decls": 2
+          "storage_decls": 4
         },
         "module": "arm_m0_min_alu"
       },
@@ -2003,7 +2003,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/arm_m0_min_id.sv; rerun DUT compile after the final RTL edit.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/arm_m0_min_alu.sv; rerun DUT compile after the final RTL edit.",
         "required": true,
         "status": "open"
       }
@@ -2249,7 +2249,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=237, required=66).",
+        "reason": "Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=241, required=66).",
         "required": true,
         "status": "pass"
       }
@@ -8732,7 +8732,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/arm_m0_min_id.sv; rerun DUT compile after the final RTL edit.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/arm_m0_min_alu.sv; rerun DUT compile after the final RTL edit.",
         "source_ref": "quality_gates.rtl_gen.dut_compile",
         "task_id": "RTL-0017"
       },
